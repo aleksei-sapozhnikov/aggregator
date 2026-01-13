@@ -10,6 +10,13 @@ and ready to extend later without coupling to persistence or transport concerns.
 - **Dependency**: A directed relationship between two items with an explicit
   string `type` (for example `"includes"` or `"depends on"`).
 
+## Catalog configuration
+
+The application loads a static catalog definition from the path configured by
+`catalog.path` (defaults to `classpath:catalog.yaml`). Both YAML and JSON formats
+are supported; see `src/main/resources/catalog.yaml` or `src/main/resources/catalog.json`
+for examples.
+
 ## Examples
 
 ### Example 1: product includes a service

@@ -1,0 +1,17 @@
+items:
+  - id: api-gateway
+    name: API Gateway
+    type: service
+  - id: user-service
+    name: User Service
+    type: service
+  - id: billing-service
+    name: Billing Service
+    type: service
+dependencies:
+  - sourceId: api-gateway
+    targetId: user-service
+    type: depends_on
+  - sourceId: api-gateway
+    targetId: billing-service
+    type: depends_on
