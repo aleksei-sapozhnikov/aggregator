@@ -8,3 +8,6 @@ management:
         include:
           - health
           - prometheus
+
+catalog:
+  path: classpath:catalog.yaml

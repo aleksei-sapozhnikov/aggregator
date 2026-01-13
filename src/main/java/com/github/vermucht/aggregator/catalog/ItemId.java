@@ -26,4 +26,25 @@ public final class ItemId {
 	public String getValue() {
 		return value;
 	}
+
+	@Override
+	public boolean equals(Object other) {
+		if (this == other) {
+			return true;
+		}
+		if (!(other instanceof ItemId itemId)) {
+			return false;
+		}
+		return value.equals(itemId.value);
+	}
+
+	@Override
+	public int hashCode() {
+		return value.hashCode();
+	}
+
+	@Override
+	public String toString() {
+		return value;
+	}
 }
