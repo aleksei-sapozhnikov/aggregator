@@ -1,0 +1,29 @@
+package com.github.vermucht.aggregator.catalog;
+
+import java.util.Objects;
+import jakarta.annotation.Nonnull;
+
+/**
+ * Stable identifier for catalog items. Independent of persistence or transport.
+ */
+public final class ItemId {
+	@Nonnull
+	private final String value;
+
+	private ItemId(@Nonnull String value) {
+		this.value = Objects.requireNonNull(value, "value");
+		if (value.isBlank()) {
+			throw new IllegalArgumentException("value must not be blank");
+		}
+	}
+
+	@Nonnull
+	public static ItemId of(@Nonnull String value) {
+		return new ItemId(value);
+	}
+
+	@Nonnull
+	public String getValue() {
+		return value;
+	}
+}
