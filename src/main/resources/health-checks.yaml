@@ -1,0 +1,8 @@
+httpChecks:
+  - checkId: gateway-http
+    catalogItemId: api-gateway
+    url: http://localhost:8080/health
+    method: GET
+    timeout: 2s
+    expectedStatusCodes:
+      - 200
