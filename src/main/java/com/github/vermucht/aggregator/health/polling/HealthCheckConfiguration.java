@@ -23,9 +23,15 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.client.RestTemplate;
 
+/**
+ * Spring configuration that wires polling health checks from typed definitions.
+ */
 @Configuration
 @EnableConfigurationProperties(HealthCheckProperties.class)
 public class HealthCheckConfiguration {
+	/**
+	 * Creates the task scheduler used for polling health checks.
+	 */
 	@Bean
 	@Nonnull
 	public TaskScheduler healthCheckTaskScheduler() {
@@ -36,6 +42,9 @@ public class HealthCheckConfiguration {
 		return scheduler;
 	}
 
+	/**
+	 * Builds polling health checks from the loaded health check configurations.
+	 */
 	@Bean
 	@Nonnull
 	public List<PollingHealthCheck> pollingHealthChecks(

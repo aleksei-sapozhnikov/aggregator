@@ -8,6 +8,9 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
 
+/**
+ * Loads health check configurations from the configured definition resource.
+ */
 @Component
 public class HealthCheckDefinitionLoader {
 	@Nonnull
@@ -17,6 +20,9 @@ public class HealthCheckDefinitionLoader {
 	@Nonnull
 	private final ResourceLoader resourceLoader;
 
+	/**
+	 * Creates a loader that reads the health check definition file.
+	 */
 	public HealthCheckDefinitionLoader(
 		@Nonnull HealthCheckProperties properties,
 		@Nonnull DefinitionLoader definitionLoader,
@@ -27,6 +33,9 @@ public class HealthCheckDefinitionLoader {
 		this.resourceLoader = Objects.requireNonNull(resourceLoader, "resourceLoader");
 	}
 
+	/**
+	 * Loads the health check configurations from the configured resource.
+	 */
 	@Nonnull
 	public List<HealthCheckConfiguration> loadConfigurations() {
 		Resource resource = resourceLoader.getResource(properties.getChecksPath());
