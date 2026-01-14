@@ -1,4 +1,4 @@
-package com.github.vermucht.aggregator.health.polling;
+package com.github.vermucht.aggregator.health.configuration;
 
 import java.time.Duration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
