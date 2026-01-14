@@ -2,7 +2,10 @@ package com.github.vermucht.aggregator.health.polling;
 
 import com.github.vermucht.aggregator.catalog.Catalog;
 import com.github.vermucht.aggregator.catalog.ItemId;
-import com.github.vermucht.aggregator.utils.DefinitionLoader;\
+import com.github.vermucht.aggregator.health.configuration.HealthCheckConfiguration;
+import com.github.vermucht.aggregator.health.configuration.HealthCheckDefinitionLoader;
+import com.github.vermucht.aggregator.health.configuration.HealthCheckProperties;
+import com.github.vermucht.aggregator.health.configuration.HttpHealthCheckConfiguration;
 import jakarta.annotation.Nonnull;
 import java.net.URI;
 import java.time.Duration;
@@ -15,16 +18,20 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpMethod;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.client.RestTemplate;
 
+/**
+ * Spring configuration that wires polling health checks from typed definitions.
+ */
 @Configuration
 @EnableConfigurationProperties(HealthCheckProperties.class)
 public class HealthCheckConfiguration {
+	/**
+	 * Creates the task scheduler used for polling health checks.
+	 */
 	@Bean
 	@Nonnull
 	public TaskScheduler healthCheckTaskScheduler() {
@@ -35,36 +42,36 @@ public class HealthCheckConfiguration {
 		return scheduler;
 	}
 
+	/**
+	 * Builds polling health checks from the loaded health check configurations.
+	 */
 	@Bean
 	@Nonnull
 	public List<PollingHealthCheck> pollingHealthChecks(
 		@Nonnull HealthCheckProperties properties,
 		@Nonnull RestTemplateBuilder restTemplateBuilder,
 		@Nonnull Catalog catalog,
-		@Nonnull DefinitionLoader definitionLoader,
-		@Nonnull ResourceLoader resourceLoader
+		@Nonnull HealthCheckDefinitionLoader definitionLoader
 	) {
 		Objects.requireNonNull(properties, "properties");
 		Objects.requireNonNull(restTemplateBuilder, "restTemplateBuilder");
 		Objects.requireNonNull(catalog, "catalog");
 		Objects.requireNonNull(definitionLoader, "definitionLoader");
-		Objects.requireNonNull(resourceLoader, "resourceLoader");
-		Resource resource = resourceLoader.getResource(properties.getChecksPath());
-		if (!resource.exists()) {
-			throw new IllegalStateException("Health checks file not found at " + properties.getChecksPath());
-		}
-		HealthCheckDefinition definition = definitionLoader.loadDefinition(resource, HealthCheckDefinition.class);
-		List<HealthCheckDefinition.HttpCheckDefinition> httpChecks = requireList(definition.httpChecks(), "httpChecks");
+		List<HealthCheckConfiguration> configurations = definitionLoader.loadConfigurations();
 		List<PollingHealthCheck> checks = new ArrayList<>();
-		for (HealthCheckDefinition.HttpCheckDefinition httpDefinition : httpChecks) {
-			checks.add(buildHttpCheck(httpDefinition, properties.getPollInterval(), restTemplateBuilder, catalog));
+		for (HealthCheckConfiguration configuration : configurations) {
+			if (configuration instanceof HttpHealthCheckConfiguration httpConfiguration) {
+				checks.add(buildHttpCheck(httpConfiguration, properties.getPollInterval(), restTemplateBuilder, catalog));
+			} else {
+				throw new IllegalStateException("Unsupported health check configuration " + configuration.type());
+			}
 		}
 		return List.copyOf(checks);
 	}
 
 	@Nonnull
 	private PollingHealthCheck buildHttpCheck(
-		@Nonnull HealthCheckDefinition.HttpCheckDefinition definition,
+		@Nonnull HttpHealthCheckConfiguration definition,
 		@Nonnull Duration defaultInterval,
 		@Nonnull RestTemplateBuilder restTemplateBuilder,
 		@Nonnull Catalog catalog
@@ -93,14 +100,6 @@ public class HealthCheckConfiguration {
 			.setReadTimeout(timeout)
 			.build();
 		return new HttpHealthCheck(itemId, checkId, uri, method, interval, expectedStatusSet, restTemplate);
-	}
-
-	@Nonnull
-	private <T> List<T> requireList(List<T> values, String name) {
-		if (values == null) {
-			throw new IllegalStateException("Health check definition must include " + name);
-		}
-		return values;
 	}
 
 	@Nonnull
