@@ -6,10 +6,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+/**
+ * Ingests health signals by logging them for observability.
+ */
 @Component
 public class LoggingHealthSignalIngestor implements HealthSignalIngestor {
 	private static final Logger LOGGER = LoggerFactory.getLogger(LoggingHealthSignalIngestor.class);
 
+	/**
+	 * Logs a health signal payload at info level.
+	 *
+	 * @param signal health signal to ingest
+	 */
 	@Override
 	public void ingest(@Nonnull HealthSignal signal) {
 		LOGGER.info(

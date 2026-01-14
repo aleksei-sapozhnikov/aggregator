@@ -15,6 +15,12 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class CatalogValidator {
+	/**
+	 * Validates a raw catalog definition and builds the runtime catalog.
+	 *
+	 * @param definition raw catalog definition to validate
+	 * @return validated catalog instance
+	 */
 	@Nonnull
 	public Catalog validate(@Nonnull CatalogDefinition definition) {
 		Objects.requireNonNull(definition, "definition");

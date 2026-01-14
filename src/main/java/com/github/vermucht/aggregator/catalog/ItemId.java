@@ -17,16 +17,33 @@ public final class ItemId {
 		}
 	}
 
+	/**
+	 * Creates a new item identifier from a string value.
+	 *
+	 * @param value identifier value
+	 * @return item identifier instance
+	 */
 	@Nonnull
 	public static ItemId of(@Nonnull String value) {
 		return new ItemId(value);
 	}
 
+	/**
+	 * Returns the raw identifier value.
+	 *
+	 * @return identifier value
+	 */
 	@Nonnull
 	public String getValue() {
 		return value;
 	}
 
+	/**
+	 * Compares this identifier to another object for equality.
+	 *
+	 * @param other object to compare
+	 * @return true if the object is an equivalent {@link ItemId}
+	 */
 	@Override
 	public boolean equals(Object other) {
 		if (this == other) {
@@ -38,11 +55,21 @@ public final class ItemId {
 		return value.equals(itemId.value);
 	}
 
+	/**
+	 * Computes the hash code for this identifier.
+	 *
+	 * @return hash code based on the identifier value
+	 */
 	@Override
 	public int hashCode() {
 		return value.hashCode();
 	}
 
+	/**
+	 * Returns the identifier as a string.
+	 *
+	 * @return identifier value
+	 */
 	@Override
 	public String toString() {
 		return value;

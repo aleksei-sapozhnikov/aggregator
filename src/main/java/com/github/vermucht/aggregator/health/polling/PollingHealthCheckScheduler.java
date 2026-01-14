@@ -11,6 +11,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 
+/**
+ * Schedules polling health checks and routes signals to the ingestor.
+ */
 @Component
 public class PollingHealthCheckScheduler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PollingHealthCheckScheduler.class);
@@ -19,6 +22,13 @@ public class PollingHealthCheckScheduler {
 	private final HealthSignalIngestor ingestor;
 	private final TaskScheduler scheduler;
 
+	/**
+	 * Creates a scheduler for the configured polling health checks.
+	 *
+	 * @param checks checks to schedule
+	 * @param ingestor ingestor that handles emitted signals
+	 * @param scheduler task scheduler for fixed-delay execution
+	 */
 	public PollingHealthCheckScheduler(
 		@Nonnull List<PollingHealthCheck> checks,
 		@Nonnull HealthSignalIngestor ingestor,
@@ -29,6 +39,9 @@ public class PollingHealthCheckScheduler {
 		this.scheduler = Objects.requireNonNull(scheduler, "scheduler");
 	}
 
+	/**
+	 * Starts scheduling the configured health checks after initialization.
+	 */
 	@PostConstruct
 	public void scheduleChecks() {
 		for (PollingHealthCheck check : checks) {

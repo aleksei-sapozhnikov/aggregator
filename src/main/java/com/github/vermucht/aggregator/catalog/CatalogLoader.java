@@ -14,10 +14,21 @@ public class CatalogLoader {
 	@Nonnull
 	private final DefinitionLoader definitionLoader;
 
+	/**
+	 * Creates a loader for catalog definition resources.
+	 *
+	 * @param definitionLoader shared definition loader
+	 */
 	public CatalogLoader(@Nonnull DefinitionLoader definitionLoader) {
 		this.definitionLoader = Objects.requireNonNull(definitionLoader, "definitionLoader");
 	}
 
+	/**
+	 * Loads and parses the catalog definition from the given resource.
+	 *
+	 * @param resource catalog definition resource
+	 * @return parsed catalog definition
+	 */
 	@Nonnull
 	public CatalogDefinition loadDefinition(@Nonnull Resource resource) {
 		CatalogDefinition definition = definitionLoader.loadDefinition(resource, CatalogDefinition.class);

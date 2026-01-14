@@ -15,6 +15,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+/**
+ * Polling health check that executes an HTTP request and evaluates the response.
+ */
 public final class HttpHealthCheck implements PollingHealthCheck {
 	private static final String SOURCE = "http";
 
@@ -26,6 +29,17 @@ public final class HttpHealthCheck implements PollingHealthCheck {
 	private final Set<Integer> expectedStatusCodes;
 	private final RestTemplate restTemplate;
 
+	/**
+	 * Creates an HTTP-based polling health check.
+	 *
+	 * @param catalogItemId catalog item associated with this check
+	 * @param checkId identifier for the check
+	 * @param uri target URI to call
+	 * @param method HTTP method to use
+	 * @param interval polling interval for the check
+	 * @param expectedStatusCodes acceptable HTTP status codes
+	 * @param restTemplate HTTP client to execute the request
+	 */
 	public HttpHealthCheck(
 		@Nonnull ItemId catalogItemId,
 		@Nonnull String checkId,
@@ -47,26 +61,51 @@ public final class HttpHealthCheck implements PollingHealthCheck {
 		this.restTemplate = Objects.requireNonNull(restTemplate, "restTemplate");
 	}
 
+	/**
+	 * Returns the identifier for this health check.
+	 *
+	 * @return check identifier
+	 */
 	@Override
 	public String getCheckId() {
 		return checkId;
 	}
 
+	/**
+	 * Returns the catalog item targeted by this health check.
+	 *
+	 * @return catalog item identifier
+	 */
 	@Override
 	public ItemId getCatalogItemId() {
 		return catalogItemId;
 	}
 
+	/**
+	 * Returns the polling interval for this check.
+	 *
+	 * @return polling interval
+	 */
 	@Override
 	public Duration getInterval() {
 		return interval;
 	}
 
+	/**
+	 * Returns the source identifier for signals emitted by this check.
+	 *
+	 * @return source label
+	 */
 	@Override
 	public String getSource() {
 		return SOURCE;
 	}
 
+	/**
+	 * Executes the HTTP request and maps the response to a health signal.
+	 *
+	 * @return health signal describing the response outcome
+	 */
 	@Override
 	public HealthSignal poll() {
 		Instant observedAt = Instant.now();

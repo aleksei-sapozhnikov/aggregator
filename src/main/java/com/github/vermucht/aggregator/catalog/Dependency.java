@@ -23,21 +23,44 @@ public final class Dependency {
 		}
 	}
 
+	/**
+	 * Creates a dependency between two catalog items.
+	 *
+	 * @param sourceId source item identifier
+	 * @param targetId target item identifier
+	 * @param type dependency classification
+	 * @return dependency instance
+	 */
 	@Nonnull
 	public static Dependency of(@Nonnull ItemId sourceId, @Nonnull ItemId targetId, @Nonnull String type) {
 		return new Dependency(sourceId, targetId, type);
 	}
 
+	/**
+	 * Returns the source item identifier.
+	 *
+	 * @return source item identifier
+	 */
 	@Nonnull
 	public ItemId getSourceId() {
 		return sourceId;
 	}
 
+	/**
+	 * Returns the target item identifier.
+	 *
+	 * @return target item identifier
+	 */
 	@Nonnull
 	public ItemId getTargetId() {
 		return targetId;
 	}
 
+	/**
+	 * Returns the dependency type.
+	 *
+	 * @return dependency type
+	 */
 	@Nonnull
 	public String getType() {
 		return type;
