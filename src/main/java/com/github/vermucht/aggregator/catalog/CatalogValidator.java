@@ -1,6 +1,7 @@
 package com.github.vermucht.aggregator.catalog;
 
 import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -38,25 +39,14 @@ public class CatalogValidator {
 	}
 
 	@Nonnull
-	private List<CatalogDefinition.ItemDefinition> requireList(
-		@jakarta.annotation.Nullable List<CatalogDefinition.ItemDefinition> items,
-		@Nonnull String name
+	private <T> List<T> requireList(
+		@Nullable List<T> list,
+		@Nonnull String listPropertyName
 	) {
-		if (items == null) {
-			throw new IllegalStateException("Catalog definition must include " + name);
+		if (list == null) {
+			throw new IllegalStateException("Catalog definition must include " + listPropertyName);
 		}
-		return items;
-	}
-
-	@Nonnull
-	private List<CatalogDefinition.DependencyDefinition> requireList(
-		@jakarta.annotation.Nullable List<CatalogDefinition.DependencyDefinition> dependencies,
-		@Nonnull String name
-	) {
-		if (dependencies == null) {
-			throw new IllegalStateException("Catalog definition must include " + name);
-		}
-		return dependencies;
+		return list;
 	}
 
 	@Nonnull
@@ -116,7 +106,7 @@ public class CatalogValidator {
 
 	@Nonnull
 	private String requireText(
-		@jakarta.annotation.Nullable String value,
+		@Nullable String value,
 		@Nonnull String field,
 		@Nonnull String context
 	) {
