@@ -1,6 +1,9 @@
 # IDEA config
 .idea/
 
+# Build artifacts
+target/
+
 # Compiled class file
 *.class
 
