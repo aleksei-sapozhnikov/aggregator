@@ -31,7 +31,6 @@ public class CatalogLoader {
 	 */
 	@Nonnull
 	public CatalogDefinition loadDefinition(@Nonnull Resource resource) {
-		CatalogDefinition definition = definitionLoader.loadDefinition(resource, CatalogDefinition.class);
-        return definition;
+        return definitionLoader.loadDefinition(resource, CatalogDefinition.class);
 	}
 }
