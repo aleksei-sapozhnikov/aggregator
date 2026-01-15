@@ -7,6 +7,17 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * Represents the result of a health check execution for a catalog item.
+ *
+ * @param catalogItemId catalog item associated with the signal
+ * @param checkId identifier of the check that produced the signal
+ * @param status health status outcome
+ * @param observedAt time the check was executed
+ * @param source check source identifier
+ * @param message optional descriptive message for the signal
+ * @param details additional signal details as key-value pairs
+ */
 public record HealthSignal(
 	@Nonnull ItemId catalogItemId,
 	@Nonnull String checkId,

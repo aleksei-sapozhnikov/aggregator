@@ -10,6 +10,9 @@ import java.util.Objects;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
+/**
+ * Loads typed definitions from JSON or YAML resources.
+ */
 @Component
 public class DefinitionLoader {
 	@Nonnull
@@ -17,11 +20,23 @@ public class DefinitionLoader {
 	@Nonnull
 	private final ObjectMapper yamlMapper;
 
+	/**
+	 * Creates a loader configured with a JSON mapper.
+	 *
+	 * @param objectMapper object mapper for JSON definitions
+	 */
 	public DefinitionLoader(@Nonnull ObjectMapper objectMapper) {
 		this.jsonMapper = Objects.requireNonNull(objectMapper, "objectMapper");
 		this.yamlMapper = new ObjectMapper(new YAMLFactory()).findAndRegisterModules();
 	}
 
+	/**
+	 * Reads and deserializes a definition from the given resource.
+	 *
+	 * @param resource resource containing a JSON or YAML definition
+	 * @param type expected definition type
+	 * @return parsed definition instance
+	 */
 	@Nonnull
 	public <T> T loadDefinition(@Nonnull Resource resource, @Nonnull Class<T> type) {
 		Objects.requireNonNull(resource, "resource");

@@ -26,21 +26,44 @@ public final class Item {
 		}
 	}
 
+	/**
+	 * Creates a catalog item instance.
+	 *
+	 * @param id item identifier
+	 * @param name item display name
+	 * @param type item classification
+	 * @return catalog item
+	 */
 	@Nonnull
 	public static Item of(@Nonnull ItemId id, @Nonnull String name, @Nonnull String type) {
 		return new Item(id, name, type);
 	}
 
+	/**
+	 * Returns the identifier of the item.
+	 *
+	 * @return item identifier
+	 */
 	@Nonnull
 	public ItemId getId() {
 		return id;
 	}
 
+	/**
+	 * Returns the display name of the item.
+	 *
+	 * @return item name
+	 */
 	@Nonnull
 	public String getName() {
 		return name;
 	}
 
+	/**
+	 * Returns the classification of the item.
+	 *
+	 * @return item type
+	 */
 	@Nonnull
 	public String getType() {
 		return type;

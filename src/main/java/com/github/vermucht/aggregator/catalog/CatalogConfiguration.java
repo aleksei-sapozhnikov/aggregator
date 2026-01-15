@@ -12,6 +12,15 @@ import org.springframework.core.io.ResourceLoader;
  */
 @Configuration
 public class CatalogConfiguration {
+	/**
+	 * Creates the catalog bean from the configured catalog definition resource.
+	 *
+	 * @param resourceLoader loader for catalog resources
+	 * @param catalogLoader loader for the raw catalog definition
+	 * @param catalogValidator validator that builds the runtime catalog
+	 * @param catalogPath resource path to the catalog definition
+	 * @return validated, immutable catalog
+	 */
 	@Bean
 	@Nonnull
 	public Catalog catalog(
