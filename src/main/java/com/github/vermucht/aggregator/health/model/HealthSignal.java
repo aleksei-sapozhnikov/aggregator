@@ -39,10 +39,6 @@ public record HealthSignal(
 		if (source.isBlank()) {
 			throw new IllegalArgumentException("source must not be blank");
 		}
-		if (details == null) {
-			details = Map.of();
-		} else {
-			details = Map.copyOf(details);
-		}
-	}
+        details = Map.copyOf(details);
+    }
 }
