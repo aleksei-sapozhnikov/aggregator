@@ -6,7 +6,7 @@ package com.github.vermucht.aggregator.health.metrics;
  * <p>Metric names:
  *
  * <ul>
- *   <li>{@code aggregator_item_health} (gauge)
+ *   <li>{@code catalog_item_state} (gauge)
  * </ul>
  *
  * <p>Labels:

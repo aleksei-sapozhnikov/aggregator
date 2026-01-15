@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 /** Registers Prometheus metrics for service and product health state. */
 @Component
 public class HealthMetrics {
-  public static final String ITEM_METRIC_NAME = "aggregator_item_health";
+  public static final String ITEM_METRIC_NAME = "catalog_item_state";
   public static final String LABEL_ITEM_ID = "item_id";
   public static final String LABEL_ITEM_NAME = "item_name";
   public static final String LABEL_ITEM_TYPE = "item_type";
