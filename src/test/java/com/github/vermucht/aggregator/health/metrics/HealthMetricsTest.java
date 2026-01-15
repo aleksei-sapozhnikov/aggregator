@@ -95,7 +95,7 @@ class HealthMetricsTest {
     assertThat(gatewayGauge.value()).isEqualTo(HealthStatusMetrics.UNKNOWN_VALUE);
     assertThat(suiteGauge.value()).isEqualTo(HealthStatusMetrics.UNKNOWN_VALUE);
 
-    healthStateStore.updateServiceStatus(ItemId.of("api-gateway"), HealthStatus.DOWN);
+    healthStateStore.updateStatus(ItemId.of("api-gateway"), HealthStatus.DOWN);
 
     assertThat(gatewayGauge.value()).isEqualTo(HealthStatusMetrics.DOWN_VALUE);
     assertThat(suiteGauge.value()).isEqualTo(HealthStatusMetrics.DOWN_VALUE);

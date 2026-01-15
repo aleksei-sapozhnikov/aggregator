@@ -25,6 +25,7 @@ package com.github.vermucht.aggregator.health.metrics;
  *   <li>{@code 0.0} - {@code DOWN}
  * </ul>
  */
+@SuppressWarnings("unused")
 public final class HealthMetricsDocumentation {
   private HealthMetricsDocumentation() {}
 }
