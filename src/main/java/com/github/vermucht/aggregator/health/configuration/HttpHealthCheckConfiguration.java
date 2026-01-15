@@ -1,5 +1,6 @@
 package com.github.vermucht.aggregator.health.configuration;
 
+import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import java.time.Duration;
 import java.util.List;
@@ -27,7 +28,8 @@ public record HttpHealthCheckConfiguration(
 	/**
 	 * Identifies this configuration as an HTTP check.
 	 */
-	@Override
+	@Nonnull
+    @Override
 	public HealthCheckType type() {
 		return HealthCheckType.HTTP;
 	}

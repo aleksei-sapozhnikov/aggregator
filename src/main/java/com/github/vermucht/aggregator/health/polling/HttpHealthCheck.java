@@ -66,7 +66,8 @@ public final class HttpHealthCheck implements PollingHealthCheck {
 	 *
 	 * @return check identifier
 	 */
-	@Override
+	@Nonnull
+    @Override
 	public String getCheckId() {
 		return checkId;
 	}
@@ -76,7 +77,8 @@ public final class HttpHealthCheck implements PollingHealthCheck {
 	 *
 	 * @return catalog item identifier
 	 */
-	@Override
+	@Nonnull
+    @Override
 	public ItemId getCatalogItemId() {
 		return catalogItemId;
 	}
@@ -86,7 +88,8 @@ public final class HttpHealthCheck implements PollingHealthCheck {
 	 *
 	 * @return polling interval
 	 */
-	@Override
+	@Nonnull
+    @Override
 	public Duration getInterval() {
 		return interval;
 	}
@@ -96,7 +99,8 @@ public final class HttpHealthCheck implements PollingHealthCheck {
 	 *
 	 * @return source label
 	 */
-	@Override
+	@Nonnull
+    @Override
 	public String getSource() {
 		return SOURCE;
 	}
@@ -106,7 +110,8 @@ public final class HttpHealthCheck implements PollingHealthCheck {
 	 *
 	 * @return health signal describing the response outcome
 	 */
-	@Override
+	@Nonnull
+    @Override
 	public HealthSignal poll() {
 		Instant observedAt = Instant.now();
 		try {
