@@ -9,16 +9,11 @@ import jakarta.annotation.Nonnull;
 /**
  * In-memory service catalog for runtime access.
  */
-public final class Catalog {
-	@Nonnull
-	private final Map<ItemId, Item> items;
-	@Nonnull
-	private final List<Dependency> dependencies;
-
+public record Catalog(@Nonnull Map<ItemId, Item> items, @Nonnull List<Dependency> dependencies) {
 	/**
 	 * Creates an immutable catalog from item and dependency collections.
 	 *
-	 * @param items catalog items keyed by identifier
+	 * @param items        catalog items keyed by identifier
 	 * @param dependencies catalog dependency list
 	 */
 	public Catalog(@Nonnull Map<ItemId, Item> items, @Nonnull List<Dependency> dependencies) {
@@ -31,8 +26,9 @@ public final class Catalog {
 	 *
 	 * @return catalog items
 	 */
+	@Override
 	@Nonnull
-	public Map<ItemId, Item> getItems() {
+	public Map<ItemId, Item> items() {
 		return items;
 	}
 
@@ -41,8 +37,9 @@ public final class Catalog {
 	 *
 	 * @return catalog dependencies
 	 */
+	@Override
 	@Nonnull
-	public List<Dependency> getDependencies() {
+	public List<Dependency> dependencies() {
 		return dependencies;
 	}
 }

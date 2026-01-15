@@ -79,7 +79,7 @@ public class PollingHealthCheckConfiguration {
 		String checkId = requireText(definition.checkId(), "checkId");
 		String catalogItemId = requireText(definition.catalogItemId(), "catalogItemId");
 		ItemId itemId = ItemId.of(catalogItemId);
-		if (!catalog.getItems().containsKey(itemId)) {
+		if (!catalog.items().containsKey(itemId)) {
 			throw new IllegalStateException("Catalog item not found for health check " + checkId + ": " + itemId);
 		}
 		String url = requireText(definition.url(), "url");

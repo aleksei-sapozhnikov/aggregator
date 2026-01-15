@@ -39,8 +39,8 @@ public final class ProductHealthAggregator {
 		Objects.requireNonNull(catalog, "catalog");
 		Objects.requireNonNull(serviceStatuses, "serviceStatuses");
 
-		Map<ItemId, Item> items = catalog.getItems();
-		Map<ItemId, List<ItemId>> productServices = mapIncludedServices(items, catalog.getDependencies());
+		Map<ItemId, Item> items = catalog.items();
+		Map<ItemId, List<ItemId>> productServices = mapIncludedServices(items, catalog.dependencies());
 		Map<ItemId, HealthStatus> results = new HashMap<>();
 
 		for (Item item : items.values()) {
