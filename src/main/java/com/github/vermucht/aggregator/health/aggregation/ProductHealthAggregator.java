@@ -6,12 +6,8 @@ import com.github.vermucht.aggregator.catalog.Item;
 import com.github.vermucht.aggregator.catalog.ItemId;
 import com.github.vermucht.aggregator.health.model.HealthStatus;
 import jakarta.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+
+import java.util.*;
 
 /**
  * Aggregates product health from the health of underlying services.
@@ -26,7 +22,7 @@ import java.util.Objects;
  * </ul>
  */
 public final class ProductHealthAggregator {
-	private static final String DEPENDENCY_TYPE_INCLUDES = "includes";
+	private static final Set<String> DEPENDENCY_TYPES_TO_ACCOUNT = Set.of("includes", "depends_on");
 	private static final String ITEM_TYPE_PRODUCT = "product";
 	private static final String ITEM_TYPE_SERVICE = "service";
 
@@ -73,7 +69,7 @@ public final class ProductHealthAggregator {
 			if (!isType(source, ITEM_TYPE_PRODUCT) || !isType(target, ITEM_TYPE_SERVICE)) {
 				continue;
 			}
-			if (!DEPENDENCY_TYPE_INCLUDES.equalsIgnoreCase(dependency.getType())) {
+			if (!DEPENDENCY_TYPES_TO_ACCOUNT.contains(dependency.getType().toLowerCase())) {
 				continue;
 			}
 			productServices
