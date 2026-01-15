@@ -6,31 +6,28 @@ import java.util.Objects;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
-/**
- * Loads a catalog definition from JSON or YAML.
- */
-@Component	
+/** Loads a catalog definition from JSON or YAML. */
+@Component
 public class CatalogLoader {
-	@Nonnull
-	private final DefinitionLoader definitionLoader;
+  @Nonnull private final DefinitionLoader definitionLoader;
 
-	/**
-	 * Creates a loader for catalog definition resources.
-	 *
-	 * @param definitionLoader shared definition loader
-	 */
-	public CatalogLoader(@Nonnull DefinitionLoader definitionLoader) {
-		this.definitionLoader = Objects.requireNonNull(definitionLoader, "definitionLoader");
-	}
+  /**
+   * Creates a loader for catalog definition resources.
+   *
+   * @param definitionLoader shared definition loader
+   */
+  public CatalogLoader(@Nonnull DefinitionLoader definitionLoader) {
+    this.definitionLoader = Objects.requireNonNull(definitionLoader, "definitionLoader");
+  }
 
-	/**
-	 * Loads and parses the catalog definition from the given resource.
-	 *
-	 * @param resource catalog definition resource
-	 * @return parsed catalog definition
-	 */
-	@Nonnull
-	public CatalogDefinition loadDefinition(@Nonnull Resource resource) {
-        return definitionLoader.loadDefinition(resource, CatalogDefinition.class);
-	}
+  /**
+   * Loads and parses the catalog definition from the given resource.
+   *
+   * @param resource catalog definition resource
+   * @return parsed catalog definition
+   */
+  @Nonnull
+  public CatalogDefinition loadDefinition(@Nonnull Resource resource) {
+    return definitionLoader.loadDefinition(resource, CatalogDefinition.class);
+  }
 }

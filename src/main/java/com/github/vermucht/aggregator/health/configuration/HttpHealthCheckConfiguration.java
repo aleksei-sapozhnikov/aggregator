@@ -17,20 +17,18 @@ import java.util.List;
  * @param interval polling interval override
  */
 public record HttpHealthCheckConfiguration(
-	@Nullable String checkId,
-	@Nullable String catalogItemId,
-	@Nullable String url,
-	@Nullable String method,
-	@Nullable Duration timeout,
-	@Nullable List<Integer> expectedStatusCodes,
-	@Nullable Duration interval
-) implements HealthCheckConfiguration {
-	/**
-	 * Identifies this configuration as an HTTP check.
-	 */
-	@Nonnull
-    @Override
-	public HealthCheckType type() {
-		return HealthCheckType.HTTP;
-	}
+    @Nullable String checkId,
+    @Nullable String catalogItemId,
+    @Nullable String url,
+    @Nullable String method,
+    @Nullable Duration timeout,
+    @Nullable List<Integer> expectedStatusCodes,
+    @Nullable Duration interval)
+    implements HealthCheckConfiguration {
+  /** Identifies this configuration as an HTTP check. */
+  @Nonnull
+  @Override
+  public HealthCheckType type() {
+    return HealthCheckType.HTTP;
+  }
 }

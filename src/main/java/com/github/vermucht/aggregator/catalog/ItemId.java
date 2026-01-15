@@ -1,7 +1,7 @@
 package com.github.vermucht.aggregator.catalog;
 
-import java.util.Objects;
 import jakarta.annotation.Nonnull;
+import java.util.Objects;
 
 /**
  * Stable identifier for catalog items. Independent of persistence or transport.
