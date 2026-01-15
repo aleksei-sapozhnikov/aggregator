@@ -7,26 +7,24 @@ import com.github.vermucht.aggregator.catalog.ItemId;
 import com.github.vermucht.aggregator.health.model.HealthStatus;
 import jakarta.annotation.Nonnull;
 import java.util.*;
+import org.springframework.stereotype.Component;
 
 /**
- * Aggregates product health from the health of underlying services.
+ * Aggregates catalog item health from the health of dependent items.
  *
  * <p>Aggregation rules:
  *
  * <ul>
- *   <li>Only dependencies of type {@code includes} from a product to a service are considered.
- *   <li>If a product has no included services, its health is {@link HealthStatus#UNKNOWN}.
- *   <li>If any included service is {@link HealthStatus#DOWN}, the product is {@link
- *       HealthStatus#DOWN}.
- *   <li>If no service is down but at least one is {@link HealthStatus#UNKNOWN}, the product is
+ *   <li>All dependencies are considered regardless of dependency type.
+ *   <li>If an item has no dependencies, its health is derived from its own status.
+ *   <li>If any dependency is {@link HealthStatus#DOWN}, the item is {@link HealthStatus#DOWN}.
+ *   <li>If no dependency is down but at least one is {@link HealthStatus#UNKNOWN}, the item is
  *       {@link HealthStatus#UNKNOWN}.
- *   <li>If all included services are {@link HealthStatus#UP}, the product is {@link
- *       HealthStatus#UP}.
+ *   <li>If all dependencies are {@link HealthStatus#UP}, the item is {@link HealthStatus#UP}.
  * </ul>
  */
+@Component
 public final class ProductHealthAggregator {
-  private static final Set<String> DEPENDENCY_TYPES_TO_ACCOUNT = Set.of("includes", "depends_on");
-
   /**
    * Aggregates product health from service health based on catalog relationships.
    *
@@ -41,50 +39,84 @@ public final class ProductHealthAggregator {
     Objects.requireNonNull(serviceStatuses, "serviceStatuses");
 
     Map<ItemId, Item> items = catalog.items();
-    Map<ItemId, List<ItemId>> productServices = mapIncludedServices(items, catalog.dependencies());
     Map<ItemId, HealthStatus> results = new HashMap<>();
 
     for (Item item : items.values()) {
-      List<ItemId> includedServices = productServices.getOrDefault(item.getId(), List.of());
-      results.put(item.getId(), aggregateServices(includedServices, serviceStatuses));
+      results.put(
+          item.getId(),
+          getState(item.getId(), catalog, serviceStatuses, new HashMap<>(), new HashSet<>()));
     }
 
     return Collections.unmodifiableMap(results);
   }
 
-  private Map<ItemId, List<ItemId>> mapIncludedServices(
-      Map<ItemId, Item> items, List<Dependency> dependencies) {
-    Map<ItemId, List<ItemId>> productServices = new HashMap<>();
-    for (Dependency dependency : dependencies) {
-      Item source = items.get(dependency.getSourceId());
-      Item target = items.get(dependency.getTargetId());
-      if (source == null || target == null) {
-        continue;
-      }
-      if (!DEPENDENCY_TYPES_TO_ACCOUNT.contains(dependency.getType().toLowerCase())) {
-        continue;
-      }
-      productServices.computeIfAbsent(source.getId(), key -> new ArrayList<>()).add(target.getId());
-    }
-    return productServices;
+  /**
+   * Returns the aggregated health state for a single catalog item.
+   *
+   * @param itemId item identifier to evaluate
+   * @param catalog catalog defining items and dependencies
+   * @param serviceStatuses map of service health status keyed by catalog item identifier
+   * @return aggregated health status for the item
+   */
+  @Nonnull
+  public HealthStatus getState(
+      @Nonnull ItemId itemId,
+      @Nonnull Catalog catalog,
+      @Nonnull Map<ItemId, HealthStatus> serviceStatuses) {
+    Objects.requireNonNull(itemId, "itemId");
+    Objects.requireNonNull(catalog, "catalog");
+    Objects.requireNonNull(serviceStatuses, "serviceStatuses");
+    return getState(itemId, catalog, serviceStatuses, new HashMap<>(), new HashSet<>());
   }
 
-  private HealthStatus aggregateServices(
-      List<ItemId> serviceIds, Map<ItemId, HealthStatus> serviceStatuses) {
-    if (serviceIds.isEmpty()) {
+  private HealthStatus getState(
+      ItemId itemId,
+      Catalog catalog,
+      Map<ItemId, HealthStatus> serviceStatuses,
+      Map<ItemId, HealthStatus> memo,
+      Set<ItemId> visiting) {
+    HealthStatus cached = memo.get(itemId);
+    if (cached != null) {
+      return cached;
+    }
+    if (!visiting.add(itemId)) {
       return HealthStatus.UNKNOWN;
     }
 
-    HealthStatus aggregate = HealthStatus.UP;
-    for (ItemId serviceId : serviceIds) {
-      HealthStatus status = serviceStatuses.getOrDefault(serviceId, HealthStatus.UNKNOWN);
-      if (status == HealthStatus.DOWN) {
-        return HealthStatus.DOWN;
+    HealthStatus ownStatus = serviceStatuses.getOrDefault(itemId, HealthStatus.UNKNOWN);
+    Map<ItemId, List<ItemId>> dependencies = mapDependencies(catalog.dependencies());
+    List<ItemId> dependencyIds = dependencies.getOrDefault(itemId, List.of());
+
+    HealthStatus status;
+    if (dependencyIds.isEmpty() || ownStatus == HealthStatus.DOWN) {
+      status = ownStatus;
+    } else {
+      Set<HealthStatus> dependencyStatuses = EnumSet.noneOf(HealthStatus.class);
+      for (ItemId dependencyId : dependencyIds) {
+        dependencyStatuses.add(getState(dependencyId, catalog, serviceStatuses, memo, visiting));
       }
-      if (status == HealthStatus.UNKNOWN) {
-        aggregate = HealthStatus.UNKNOWN;
+      if (dependencyStatuses.contains(HealthStatus.DOWN)) {
+        status = HealthStatus.DOWN;
+      } else if (dependencyStatuses.contains(HealthStatus.UNKNOWN)
+          || dependencyStatuses.isEmpty()) {
+        status = HealthStatus.UNKNOWN;
+      } else {
+        status = HealthStatus.UP;
       }
     }
-    return aggregate;
+
+    visiting.remove(itemId);
+    memo.put(itemId, status);
+    return status;
+  }
+
+  private Map<ItemId, List<ItemId>> mapDependencies(List<Dependency> dependencies) {
+    Map<ItemId, List<ItemId>> itemDependencies = new HashMap<>();
+    for (Dependency dependency : dependencies) {
+      itemDependencies
+          .computeIfAbsent(dependency.getSourceId(), key -> new ArrayList<>())
+          .add(dependency.getTargetId());
+    }
+    return itemDependencies;
   }
 }
