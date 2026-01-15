@@ -31,10 +31,6 @@ public class CatalogLoader {
 	 */
 	@Nonnull
 	public CatalogDefinition loadDefinition(@Nonnull Resource resource) {
-		CatalogDefinition definition = definitionLoader.loadDefinition(resource, CatalogDefinition.class);
-		if (definition == null) {
-			throw new IllegalStateException("Catalog definition must not be empty");
-		}
-		return definition;
+        return definitionLoader.loadDefinition(resource, CatalogDefinition.class);
 	}
 }

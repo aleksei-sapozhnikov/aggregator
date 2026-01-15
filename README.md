@@ -99,3 +99,12 @@ HttpHealthCheckConfiguration billingCheck = new HttpHealthCheckConfiguration(
 	null
 );
 ```
+
+## Health checks aggregation
+
+Health state of a product or service which includes or depends on others is derived deterministically
+using those "children" states too. Aggregator applies simple rules like:
+- Any `DOWN` child service makes the parent `DOWN`
+- Otherwise any `UNKNOWN` makes the parent `UNKNOWN`
+- And only when all children are `UP`, the parent is also `UP`. 
+- Products without child services default to `UNKNOWN` to avoid false positives.

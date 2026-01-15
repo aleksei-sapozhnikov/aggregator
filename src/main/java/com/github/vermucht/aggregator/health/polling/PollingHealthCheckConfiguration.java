@@ -28,7 +28,7 @@ import org.springframework.web.client.RestTemplate;
  */
 @Configuration
 @EnableConfigurationProperties(HealthCheckProperties.class)
-public class HealthCheckConfiguration {
+public class PollingHealthCheckConfiguration {
 	/**
 	 * Creates the task scheduler used for polling health checks.
 	 */
