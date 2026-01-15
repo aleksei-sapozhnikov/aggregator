@@ -26,7 +26,7 @@ class ProductHealthAggregatorTest {
 			Map.of(product.getId(), product, auth.getId(), auth, billing.getId(), billing),
 			List.of(
 				Dependency.of(product.getId(), auth.getId(), "includes"),
-				Dependency.of(product.getId(), billing.getId(), "includes")
+				Dependency.of(product.getId(), billing.getId(), "depends_on")
 			)
 		);
 
@@ -51,7 +51,7 @@ class ProductHealthAggregatorTest {
 		Catalog catalog = new Catalog(
 			Map.of(product.getId(), product, cart.getId(), cart, pricing.getId(), pricing),
 			List.of(
-				Dependency.of(product.getId(), cart.getId(), "includes"),
+				Dependency.of(product.getId(), cart.getId(), "depends_on"),
 				Dependency.of(product.getId(), pricing.getId(), "includes")
 			)
 		);
@@ -77,7 +77,7 @@ class ProductHealthAggregatorTest {
 		Catalog catalog = new Catalog(
 			Map.of(product.getId(), product, directory.getId(), directory, policy.getId(), policy),
 			List.of(
-				Dependency.of(product.getId(), directory.getId(), "includes"),
+				Dependency.of(product.getId(), directory.getId(), "depends_on"),
 				Dependency.of(product.getId(), policy.getId(), "includes")
 			)
 		);
@@ -93,15 +93,15 @@ class ProductHealthAggregatorTest {
 	}
 
 	/**
-	 * Verifies aggregation reports UNKNOWN when a product has no included services.
+	 * Verifies aggregation reports UNKNOWN when a product has no services with considered dependency types.
 	 */
 	@Test
-	void aggregatesUnknownWhenNoIncludedServicesExist() {
+	void aggregatesUnknownWhenNotConsideredDependencyType() {
 		Item product = Item.of(ItemId.of("product:empty"), "Empty", "product");
 		Item service = Item.of(ItemId.of("service:logging"), "Logging", "service");
 		Catalog catalog = new Catalog(
 			Map.of(product.getId(), product, service.getId(), service),
-			List.of(Dependency.of(service.getId(), product.getId(), "depends_on"))
+			List.of(Dependency.of(product.getId(), service.getId(), "relates_to"))
 		);
 
 		Map<ItemId, HealthStatus> results = aggregator.aggregate(catalog, Map.of());
@@ -118,11 +118,38 @@ class ProductHealthAggregatorTest {
 		Item tracking = Item.of(ItemId.of("service:tracking"), "Tracking", "service");
 		Catalog catalog = new Catalog(
 			Map.of(product.getId(), product, tracking.getId(), tracking),
-			List.of(Dependency.of(product.getId(), tracking.getId(), "includes"))
+			List.of(Dependency.of(product.getId(), tracking.getId(), "depends_on"))
 		);
 
 		Map<ItemId, HealthStatus> results = aggregator.aggregate(catalog, Map.of());
 
 		assertThat(results).containsEntry(product.getId(), HealthStatus.UNKNOWN);
+	}
+
+
+	/**
+	 * Verifies that aggregation is not limited to some certain item types.
+	 */
+	@Test
+	void aggregatesAnyItemType() {
+		Item parent = Item.of(ItemId.of("aajvkalaseisdadf"), "Payments", "aajvkalaseisdadf");
+		Item dependency1 = Item.of(ItemId.of("retdsfsdaawsda"), "Auth", "retdsfsdaawsda");
+		Item dependency2 = Item.of(ItemId.of("safasfsd"), "Billing", "safasfsd");
+		Catalog catalog = new Catalog(
+				Map.of(parent.getId(), parent, dependency1.getId(), dependency1, dependency2.getId(), dependency2),
+				List.of(
+						Dependency.of(parent.getId(), dependency1.getId(), "includes"),
+						Dependency.of(parent.getId(), dependency1.getId(), "depends_on")
+				)
+		);
+
+		Map<ItemId, HealthStatus> serviceStatuses = Map.of(
+				dependency1.getId(), HealthStatus.UP,
+				dependency2.getId(), HealthStatus.UP
+		);
+
+		Map<ItemId, HealthStatus> results = aggregator.aggregate(catalog, serviceStatuses);
+
+		assertThat(results).containsEntry(parent.getId(), HealthStatus.UP);
 	}
 }

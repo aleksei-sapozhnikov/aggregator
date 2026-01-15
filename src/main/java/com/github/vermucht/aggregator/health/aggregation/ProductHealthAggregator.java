@@ -23,10 +23,8 @@ import java.util.*;
  */
 public final class ProductHealthAggregator {
 	private static final Set<String> DEPENDENCY_TYPES_TO_ACCOUNT = Set.of("includes", "depends_on");
-	private static final String ITEM_TYPE_PRODUCT = "product";
-	private static final String ITEM_TYPE_SERVICE = "service";
 
-	/**
+    /**
 	 * Aggregates product health from service health based on catalog relationships.
 	 *
 	 * @param catalog catalog defining products, services, and dependencies
@@ -46,10 +44,8 @@ public final class ProductHealthAggregator {
 		Map<ItemId, HealthStatus> results = new HashMap<>();
 
 		for (Item item : items.values()) {
-			if (isType(item, ITEM_TYPE_PRODUCT)) {
-				List<ItemId> includedServices = productServices.getOrDefault(item.getId(), List.of());
-				results.put(item.getId(), aggregateServices(includedServices, serviceStatuses));
-			}
+			List<ItemId> includedServices = productServices.getOrDefault(item.getId(), List.of());
+			results.put(item.getId(), aggregateServices(includedServices, serviceStatuses));
 		}
 
 		return Collections.unmodifiableMap(results);
@@ -64,9 +60,6 @@ public final class ProductHealthAggregator {
 			Item source = items.get(dependency.getSourceId());
 			Item target = items.get(dependency.getTargetId());
 			if (source == null || target == null) {
-				continue;
-			}
-			if (!isType(source, ITEM_TYPE_PRODUCT) || !isType(target, ITEM_TYPE_SERVICE)) {
 				continue;
 			}
 			if (!DEPENDENCY_TYPES_TO_ACCOUNT.contains(dependency.getType().toLowerCase())) {
@@ -98,9 +91,5 @@ public final class ProductHealthAggregator {
 			}
 		}
 		return aggregate;
-	}
-
-	private boolean isType(Item item, String expectedType) {
-		return item.getType().equalsIgnoreCase(expectedType);
 	}
 }
