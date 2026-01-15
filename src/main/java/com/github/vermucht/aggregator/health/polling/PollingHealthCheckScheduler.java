@@ -11,50 +11,45 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 
-/**
- * Schedules polling health checks and routes signals to the ingestor.
- */
+/** Schedules polling health checks and routes signals to the ingestor. */
 @Component
 public class PollingHealthCheckScheduler {
-	private static final Logger LOGGER = LoggerFactory.getLogger(PollingHealthCheckScheduler.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(PollingHealthCheckScheduler.class);
 
-	private final List<PollingHealthCheck> checks;
-	private final HealthSignalIngestor ingestor;
-	private final TaskScheduler scheduler;
+  private final List<PollingHealthCheck> checks;
+  private final HealthSignalIngestor ingestor;
+  private final TaskScheduler scheduler;
 
-	/**
-	 * Creates a scheduler for the configured polling health checks.
-	 *
-	 * @param checks checks to schedule
-	 * @param ingestor ingestor that handles emitted signals
-	 * @param scheduler task scheduler for fixed-delay execution
-	 */
-	public PollingHealthCheckScheduler(
-		@Nonnull List<PollingHealthCheck> checks,
-		@Nonnull HealthSignalIngestor ingestor,
-		@Nonnull TaskScheduler scheduler
-	) {
-		this.checks = List.copyOf(Objects.requireNonNull(checks, "checks"));
-		this.ingestor = Objects.requireNonNull(ingestor, "ingestor");
-		this.scheduler = Objects.requireNonNull(scheduler, "scheduler");
-	}
+  /**
+   * Creates a scheduler for the configured polling health checks.
+   *
+   * @param checks checks to schedule
+   * @param ingestor ingestor that handles emitted signals
+   * @param scheduler task scheduler for fixed-delay execution
+   */
+  public PollingHealthCheckScheduler(
+      @Nonnull List<PollingHealthCheck> checks,
+      @Nonnull HealthSignalIngestor ingestor,
+      @Nonnull TaskScheduler scheduler) {
+    this.checks = List.copyOf(Objects.requireNonNull(checks, "checks"));
+    this.ingestor = Objects.requireNonNull(ingestor, "ingestor");
+    this.scheduler = Objects.requireNonNull(scheduler, "scheduler");
+  }
 
-	/**
-	 * Starts scheduling the configured health checks after initialization.
-	 */
-	@PostConstruct
-	public void scheduleChecks() {
-		for (PollingHealthCheck check : checks) {
-			scheduler.scheduleWithFixedDelay(() -> runCheck(check), check.getInterval());
-		}
-	}
+  /** Starts scheduling the configured health checks after initialization. */
+  @PostConstruct
+  public void scheduleChecks() {
+    for (PollingHealthCheck check : checks) {
+      scheduler.scheduleWithFixedDelay(() -> runCheck(check), check.getInterval());
+    }
+  }
 
-	private void runCheck(PollingHealthCheck check) {
-		try {
-			HealthSignal signal = check.poll();
-			ingestor.ingest(signal);
-		} catch (RuntimeException ex) {
-			LOGGER.warn("Health check {} failed unexpectedly", check.getCheckId(), ex);
-		}
-	}
+  private void runCheck(PollingHealthCheck check) {
+    try {
+      HealthSignal signal = check.poll();
+      ingestor.ingest(signal);
+    } catch (RuntimeException ex) {
+      LOGGER.warn("Health check {} failed unexpectedly", check.getCheckId(), ex);
+    }
+  }
 }

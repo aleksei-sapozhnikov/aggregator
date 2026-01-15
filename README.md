@@ -21,21 +21,21 @@ for examples.
 
 ```java
 Item payrollApi = Item.of(
-	ItemId.of("service:payroll-api"),
-	"Payroll API",
-	"SERVICE"
+        ItemId.of("service:payroll-api"),
+        "Payroll API",
+        "SERVICE"
 );
 
 Item payrollSuite = Item.of(
-	ItemId.of("product:payroll-suite"),
-	"Payroll Suite",
-	"PRODUCT"
+        ItemId.of("product:payroll-suite"),
+        "Payroll Suite",
+        "PRODUCT"
 );
 
 Dependency payrollSuiteincludesApi = Dependency.of(
-	payrollSuite.getId(),
-	payrollApi.getId(),
-	"includes"
+        payrollSuite.getId(),
+        payrollApi.getId(),
+        "includes"
 );
 ```
 
@@ -45,21 +45,21 @@ Dependency payrollSuiteincludesApi = Dependency.of(
 
 ```java
 Item webPortal = Item.of(
-	ItemId.of("service:web-portal"),
-	"Web Portal",
-	"SERVICE"
+        ItemId.of("service:web-portal"),
+        "Web Portal",
+        "SERVICE"
 );
 
 Dependency webPortalDependsOnAuth = Dependency.of(
-	webPortal.getId(),
-	ItemId.of("service:auth"),
-	"depends on"
+        webPortal.getId(),
+        ItemId.of("service:auth"),
+        "depends on"
 );
 
 Dependency webPortalDependsOnBilling = Dependency.of(
-	webPortal.getId(),
-	ItemId.of("service:billing"),
-	"depends on"
+        webPortal.getId(),
+        ItemId.of("service:billing"),
+        "depends on"
 );
 ```
 
@@ -76,13 +76,13 @@ by `catalogItemId`.
 
 ```java
 HttpHealthCheckConfiguration payrollApiCheck = new HttpHealthCheckConfiguration(
-	"payroll-api-http",
-	"service:payroll-api",
-	"https://payroll.example.com/health",
-	"GET",
-	Duration.ofSeconds(2),
-	List.of(200, 204),
-	Duration.ofSeconds(30)
+        "payroll-api-http",
+        "service:payroll-api",
+        "https://payroll.example.com/health",
+        "GET",
+        Duration.ofSeconds(2),
+        List.of(200, 204),
+        Duration.ofSeconds(30)
 );
 ```
 
@@ -90,13 +90,13 @@ HttpHealthCheckConfiguration payrollApiCheck = new HttpHealthCheckConfiguration(
 
 ```java
 HttpHealthCheckConfiguration billingCheck = new HttpHealthCheckConfiguration(
-	"billing-http",
-	"service:billing",
-	"https://billing.example.com/health",
-	"GET",
-	null,
-	null,
-	null
+        "billing-http",
+        "service:billing",
+        "https://billing.example.com/health",
+        "GET",
+        null,
+        null,
+        null
 );
 ```
 
@@ -104,7 +104,8 @@ HttpHealthCheckConfiguration billingCheck = new HttpHealthCheckConfiguration(
 
 Health state of a product or service which includes or depends on others is derived deterministically
 using those "children" states too. Aggregator applies simple rules like:
+
 - Any `DOWN` child service makes the parent `DOWN`
-- Otherwise any `UNKNOWN` makes the parent `UNKNOWN`
-- And only when all children are `UP`, the parent is also `UP`. 
+- Otherwise, any `UNKNOWN` makes the parent `UNKNOWN`
+- And only when all children are `UP`, the parent is also `UP`.
 - Products without child services default to `UNKNOWN` to avoid false positives.

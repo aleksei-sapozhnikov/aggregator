@@ -8,6 +8,4 @@ import java.util.List;
  *
  * @param checks list of configured health checks
  */
-public record HealthCheckDefinition(
-	@Nullable List<HealthCheckConfiguration> checks
-) {}
+public record HealthCheckDefinition(@Nullable List<HealthCheckConfiguration> checks) {}

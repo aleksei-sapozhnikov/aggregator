@@ -23,90 +23,86 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.client.RestTemplate;
 
-/**
- * Spring configuration that wires polling health checks from typed definitions.
- */
+/** Spring configuration that wires polling health checks from typed definitions. */
 @Configuration
 @EnableConfigurationProperties(HealthCheckProperties.class)
 public class PollingHealthCheckConfiguration {
-	/**
-	 * Creates the task scheduler used for polling health checks.
-	 */
-	@Bean
-	@Nonnull
-	public TaskScheduler healthCheckTaskScheduler() {
-		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
-		scheduler.setPoolSize(4);
-		scheduler.setThreadNamePrefix("health-check-");
-		scheduler.initialize();
-		return scheduler;
-	}
+  /** Creates the task scheduler used for polling health checks. */
+  @Bean
+  @Nonnull
+  public TaskScheduler healthCheckTaskScheduler() {
+    ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+    scheduler.setPoolSize(4);
+    scheduler.setThreadNamePrefix("health-check-");
+    scheduler.initialize();
+    return scheduler;
+  }
 
-	/**
-	 * Builds polling health checks from the loaded health check configurations.
-	 */
-	@Bean
-	@Nonnull
-	public List<PollingHealthCheck> pollingHealthChecks(
-		@Nonnull HealthCheckProperties properties,
-		@Nonnull RestTemplateBuilder restTemplateBuilder,
-		@Nonnull Catalog catalog,
-		@Nonnull HealthCheckDefinitionLoader definitionLoader
-	) {
-		Objects.requireNonNull(properties, "properties");
-		Objects.requireNonNull(restTemplateBuilder, "restTemplateBuilder");
-		Objects.requireNonNull(catalog, "catalog");
-		Objects.requireNonNull(definitionLoader, "definitionLoader");
-		List<HealthCheckConfiguration> configurations = definitionLoader.loadConfigurations();
-		List<PollingHealthCheck> checks = new ArrayList<>();
-		for (HealthCheckConfiguration configuration : configurations) {
-			if (configuration instanceof HttpHealthCheckConfiguration httpConfiguration) {
-				checks.add(buildHttpCheck(httpConfiguration, properties.getPollInterval(), restTemplateBuilder, catalog));
-			} else {
-				throw new IllegalStateException("Unsupported health check configuration " + configuration.type());
-			}
-		}
-		return List.copyOf(checks);
-	}
+  /** Builds polling health checks from the loaded health check configurations. */
+  @Bean
+  @Nonnull
+  public List<PollingHealthCheck> pollingHealthChecks(
+      @Nonnull HealthCheckProperties properties,
+      @Nonnull RestTemplateBuilder restTemplateBuilder,
+      @Nonnull Catalog catalog,
+      @Nonnull HealthCheckDefinitionLoader definitionLoader) {
+    Objects.requireNonNull(properties, "properties");
+    Objects.requireNonNull(restTemplateBuilder, "restTemplateBuilder");
+    Objects.requireNonNull(catalog, "catalog");
+    Objects.requireNonNull(definitionLoader, "definitionLoader");
+    List<HealthCheckConfiguration> configurations = definitionLoader.loadConfigurations();
+    List<PollingHealthCheck> checks = new ArrayList<>();
+    for (HealthCheckConfiguration configuration : configurations) {
+      if (configuration instanceof HttpHealthCheckConfiguration httpConfiguration) {
+        checks.add(
+            buildHttpCheck(
+                httpConfiguration, properties.getPollInterval(), restTemplateBuilder, catalog));
+      } else {
+        throw new IllegalStateException(
+            "Unsupported health check configuration " + configuration.type());
+      }
+    }
+    return List.copyOf(checks);
+  }
 
-	@Nonnull
-	private PollingHealthCheck buildHttpCheck(
-		@Nonnull HttpHealthCheckConfiguration definition,
-		@Nonnull Duration defaultInterval,
-		@Nonnull RestTemplateBuilder restTemplateBuilder,
-		@Nonnull Catalog catalog
-	) {
-		String checkId = requireText(definition.checkId(), "checkId");
-		String catalogItemId = requireText(definition.catalogItemId(), "catalogItemId");
-		ItemId itemId = ItemId.of(catalogItemId);
-		if (!catalog.getItems().containsKey(itemId)) {
-			throw new IllegalStateException("Catalog item not found for health check " + checkId + ": " + itemId);
-		}
-		String url = requireText(definition.url(), "url");
-		URI uri = URI.create(url);
-		String methodValue = requireText(definition.method(), "method");
-		HttpMethod method = HttpMethod.valueOf(methodValue.toUpperCase(Locale.ROOT));
-		Duration timeout = Objects.requireNonNullElse(definition.timeout(), Duration.ofSeconds(2));
-		Duration interval = definition.interval() == null ? defaultInterval : definition.interval();
-		if (interval.isZero() || interval.isNegative()) {
-			throw new IllegalStateException("Health check interval must be positive for " + checkId);
-		}
-		List<Integer> expectedStatusCodes = definition.expectedStatusCodes();
-		Set<Integer> expectedStatusSet = expectedStatusCodes == null || expectedStatusCodes.isEmpty()
-			? Set.of(200)
-			: Set.copyOf(expectedStatusCodes);
-		RestTemplate restTemplate = restTemplateBuilder
-			.setConnectTimeout(timeout)
-			.setReadTimeout(timeout)
-			.build();
-		return new HttpHealthCheck(itemId, checkId, uri, method, interval, expectedStatusSet, restTemplate);
-	}
+  @Nonnull
+  private PollingHealthCheck buildHttpCheck(
+      @Nonnull HttpHealthCheckConfiguration definition,
+      @Nonnull Duration defaultInterval,
+      @Nonnull RestTemplateBuilder restTemplateBuilder,
+      @Nonnull Catalog catalog) {
+    String checkId = requireText(definition.checkId(), "checkId");
+    String catalogItemId = requireText(definition.catalogItemId(), "catalogItemId");
+    ItemId itemId = ItemId.of(catalogItemId);
+    if (!catalog.items().containsKey(itemId)) {
+      throw new IllegalStateException(
+          "Catalog item not found for health check " + checkId + ": " + itemId);
+    }
+    String url = requireText(definition.url(), "url");
+    URI uri = URI.create(url);
+    String methodValue = requireText(definition.method(), "method");
+    HttpMethod method = HttpMethod.valueOf(methodValue.toUpperCase(Locale.ROOT));
+    Duration timeout = Objects.requireNonNullElse(definition.timeout(), Duration.ofSeconds(2));
+    Duration interval = definition.interval() == null ? defaultInterval : definition.interval();
+    if (interval.isZero() || interval.isNegative()) {
+      throw new IllegalStateException("Health check interval must be positive for " + checkId);
+    }
+    List<Integer> expectedStatusCodes = definition.expectedStatusCodes();
+    Set<Integer> expectedStatusSet =
+        expectedStatusCodes == null || expectedStatusCodes.isEmpty()
+            ? Set.of(200)
+            : Set.copyOf(expectedStatusCodes);
+    RestTemplate restTemplate =
+        restTemplateBuilder.setConnectTimeout(timeout).setReadTimeout(timeout).build();
+    return new HttpHealthCheck(
+        itemId, checkId, uri, method, interval, expectedStatusSet, restTemplate);
+  }
 
-	@Nonnull
-	private String requireText(String value, String field) {
-		if (value == null || value.isBlank()) {
-			throw new IllegalStateException("Health check must define " + field);
-		}
-		return value;
-	}
+  @Nonnull
+  private String requireText(String value, String field) {
+    if (value == null || value.isBlank()) {
+      throw new IllegalStateException("Health check must define " + field);
+    }
+    return value;
+  }
 }

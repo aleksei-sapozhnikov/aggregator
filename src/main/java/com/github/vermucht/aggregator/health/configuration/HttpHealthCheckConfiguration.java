@@ -1,5 +1,6 @@
 package com.github.vermucht.aggregator.health.configuration;
 
+import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import java.time.Duration;
 import java.util.List;
@@ -16,19 +17,18 @@ import java.util.List;
  * @param interval polling interval override
  */
 public record HttpHealthCheckConfiguration(
-	@Nullable String checkId,
-	@Nullable String catalogItemId,
-	@Nullable String url,
-	@Nullable String method,
-	@Nullable Duration timeout,
-	@Nullable List<Integer> expectedStatusCodes,
-	@Nullable Duration interval
-) implements HealthCheckConfiguration {
-	/**
-	 * Identifies this configuration as an HTTP check.
-	 */
-	@Override
-	public HealthCheckType type() {
-		return HealthCheckType.HTTP;
-	}
+    @Nullable String checkId,
+    @Nullable String catalogItemId,
+    @Nullable String url,
+    @Nullable String method,
+    @Nullable Duration timeout,
+    @Nullable List<Integer> expectedStatusCodes,
+    @Nullable Duration interval)
+    implements HealthCheckConfiguration {
+  /** Identifies this configuration as an HTTP check. */
+  @Nonnull
+  @Override
+  public HealthCheckType type() {
+    return HealthCheckType.HTTP;
+  }
 }
