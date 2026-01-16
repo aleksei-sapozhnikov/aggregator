@@ -23,10 +23,10 @@ public class HealthStateStore {
   private final Map<ItemId, HealthStatus> rawStatuses;
 
   public HealthStateStore(
-          @Nonnull Catalog catalog, @Nonnull ProductHealthAggregator productHealthAggregator) {
+      @Nonnull Catalog catalog, @Nonnull ProductHealthAggregator productHealthAggregator) {
     this.catalog = Objects.requireNonNull(catalog, "catalog");
     this.productHealthAggregator =
-            Objects.requireNonNull(productHealthAggregator, "productHealthAggregator");
+        Objects.requireNonNull(productHealthAggregator, "productHealthAggregator");
     this.rawStatuses = new ConcurrentHashMap<>();
     initializeDefaults();
   }

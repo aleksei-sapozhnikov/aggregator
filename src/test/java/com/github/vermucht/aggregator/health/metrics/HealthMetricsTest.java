@@ -52,7 +52,6 @@ class HealthMetricsTest {
     // Registers gauges in constructor.
     HealthMetrics metrics = new HealthMetrics(meterRegistry, catalog, healthStateStore);
     metrics.registerMetrics();
-
   }
 
   @Test
