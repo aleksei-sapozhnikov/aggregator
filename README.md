@@ -109,3 +109,10 @@ using those "children" states too. Aggregator applies simple rules like:
 - Otherwise, any `UNKNOWN` makes the parent `UNKNOWN`
 - And only when all children are `UP`, the parent is also `UP`.
 - Products without child services default to `UNKNOWN` to avoid false positives.
+
+## Prometheus health metrics
+
+The application exports current catalog item health via Spring Boot Actuator at
+`/actuator/prometheus`. 
+
+Find further documentation in documentation class: [HealthMetricsDocumentation.java](src/main/java/com/github/vermucht/aggregator/health/metrics/HealthMetricsDocumentation.java)
