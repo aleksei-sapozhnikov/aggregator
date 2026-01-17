@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.Set;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
@@ -87,15 +86,9 @@ public class PollingHealthCheckConfiguration {
     if (interval.isZero() || interval.isNegative()) {
       throw new IllegalStateException("Health check interval must be positive for " + checkId);
     }
-    List<Integer> expectedStatusCodes = definition.expectedStatusCodes();
-    Set<Integer> expectedStatusSet =
-        expectedStatusCodes == null || expectedStatusCodes.isEmpty()
-            ? Set.of(200)
-            : Set.copyOf(expectedStatusCodes);
     RestTemplate restTemplate =
         restTemplateBuilder.setConnectTimeout(timeout).setReadTimeout(timeout).build();
-    return new HttpHealthCheck(
-        itemId, checkId, uri, method, interval, expectedStatusSet, restTemplate);
+    return new HttpHealthCheck(itemId, checkId, uri, method, interval, restTemplate);
   }
 
   @Nonnull
