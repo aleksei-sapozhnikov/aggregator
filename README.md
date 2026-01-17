@@ -115,5 +115,31 @@ using those "children" states too. Aggregator applies simple rules like:
 The application exports current catalog item health via Spring Boot Actuator at
 `/actuator/prometheus`.
 
-Find further documentation in documentation
-class: [HealthMetricsDocumentation.java](src/main/java/com/github/vermucht/aggregator/health/metrics/HealthMetricsDocumentation.java)
+Further details are documented in:
+`HealthMetricsDocumentation.java`
+(`src/main/java/com/github/vermucht/aggregator/health/metrics/HealthMetricsDocumentation.java`)
+
+## Dummy services for health simulations
+
+Three standalone dummy services are provided to simulate external health check
+endpoints during local development and testing.
+
+Each service exposes the following HTTP endpoints:
+
+- `GET /health`  
+  Returns the current health status:
+  ```json
+  {
+    "status": "UP"
+  }
+  ```
+
+- `GET /set-health/{up|down}`  
+  Updates the health status returned by `/health`
+
+Each dummy service is self-contained and ships with its own Dockerfile under
+`dummy-services/`:
+
+- `dummy-services/java` (Java)
+- `dummy-services/python` (Python)
+- `dummy-services/javascript` (JavaScript)
