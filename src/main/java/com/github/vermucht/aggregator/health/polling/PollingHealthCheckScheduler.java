@@ -2,6 +2,7 @@ package com.github.vermucht.aggregator.health.polling;
 
 import com.github.vermucht.aggregator.health.ingest.HealthSignalIngestor;
 import com.github.vermucht.aggregator.health.model.HealthSignal;
+import com.github.vermucht.aggregator.health.state.HealthStateStore;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.PostConstruct;
 import java.util.List;
@@ -19,6 +20,7 @@ public class PollingHealthCheckScheduler {
   private final List<PollingHealthCheck> checks;
   private final HealthSignalIngestor ingestor;
   private final TaskScheduler scheduler;
+  private final HealthStateStore stateStore;
 
   /**
    * Creates a scheduler for the configured polling health checks.
@@ -30,10 +32,12 @@ public class PollingHealthCheckScheduler {
   public PollingHealthCheckScheduler(
       @Nonnull List<PollingHealthCheck> checks,
       @Nonnull HealthSignalIngestor ingestor,
-      @Nonnull TaskScheduler scheduler) {
+      @Nonnull TaskScheduler scheduler,
+      @Nonnull HealthStateStore stateStore) {
     this.checks = List.copyOf(Objects.requireNonNull(checks, "checks"));
     this.ingestor = Objects.requireNonNull(ingestor, "ingestor");
     this.scheduler = Objects.requireNonNull(scheduler, "scheduler");
+    this.stateStore = Objects.requireNonNull(stateStore, "stateStore");
   }
 
   /** Starts scheduling the configured health checks after initialization. */
@@ -47,6 +51,7 @@ public class PollingHealthCheckScheduler {
   private void runCheck(PollingHealthCheck check) {
     try {
       HealthSignal signal = check.poll();
+      stateStore.updateStatus(signal.catalogItemId(), signal.status());
       ingestor.ingest(signal);
     } catch (RuntimeException ex) {
       LOGGER.warn("Health check {} failed unexpectedly", check.getCheckId(), ex);
