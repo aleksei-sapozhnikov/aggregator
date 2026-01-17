@@ -1,17 +1,24 @@
 items:
-  - id: api-gateway
-    name: API Gateway
+  - id: dummy-java
+    name: Dummy Java service
     type: service
-  - id: user-service
-    name: User Service
-    type: service
-  - id: billing-service
-    name: Billing Service
-    type: service
+  - id: dummy-javascript
+    name: Dummy JavaScript gateway
+    type: gateway
+  - id: dummy-python
+    name: Dummy Python database
+    type: database
+  - id: user-facing
+    name: User facing service
+    type: product
+
 dependencies:
-  - sourceId: api-gateway
-    targetId: user-service
+  - sourceId: user-facing
+    targetId: dummy-java
     type: depends_on
-  - sourceId: api-gateway
-    targetId: billing-service
-    type: depends_on
+  - sourceId: user-facing
+    targetId: dummy-javascript
+    type: relies_on
+  - sourceId: user-facing
+    targetId: dummy-python
+    type: believes_in
