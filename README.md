@@ -1,19 +1,23 @@
+"# Catalog health checks
+
+The main idea is that a state of an item which consists of other items, can be
+defined by them. For example, one product consists of several services, and each
+service state defines the product state.
+
 ## Catalog
 
-This module defines a tiny, storage-agnostic domain model for catalog items and their
-relationships. The model is intentionally minimal so it is easy to read, hard to misuse,
-and ready to extend later without coupling to persistence or transport concerns.
+A storage-agnostic domain model for different items and their relationships.
 
 - **Item**: A catalog entry (product or service) with a stable `ItemId`, name, and type.
-- **Dependency**: A directed relationship between two items with an explicit
-  string `type` (for example `"includes"` or `"depends on"`).
+- **Dependency**: A directed relationship between two items with an explicit string
+  `type` (for example `"includes"` or `"depends on"`).
 
 ### Catalog configuration
 
 The application loads a static catalog definition from the path configured by
 `catalog.path` (defaults to `classpath:catalog.yaml`). Both YAML and JSON formats
-are supported; see `src/main/resources/catalog.yaml` or `src/main/resources/catalog.json`
-for examples.
+are supported; see `src/main/resources/catalog.yaml` or
+`src/main/resources/catalog.json` for examples.
 
 ### Example 1: product includes a service
 
@@ -32,7 +36,7 @@ Item payrollSuite = Item.of(
         "PRODUCT"
 );
 
-Dependency payrollSuiteincludesApi = Dependency.of(
+Dependency payrollSuiteIncludesApi = Dependency.of(
         payrollSuite.getId(),
         payrollApi.getId(),
         "includes"
@@ -68,9 +72,9 @@ Dependency webPortalDependsOnBilling = Dependency.of(
 ### Health checks configuration
 
 The application loads health check definitions from the path configured by
-`health.checks-path` (defaults to `classpath:health-checks.yaml`). Definitions are
-parsed into typed configurations (such as HTTP checks) and mapped to catalog items
-by `catalogItemId`.
+`health.checks-path` (defaults to `classpath:health-checks.yaml`).
+Definitions are parsed into typed configurations (for example, HTTP checks) and
+mapped to catalog items via `catalogItemId`.
 
 ### Example 1: HTTP health check targeting a catalog item
 
@@ -102,13 +106,15 @@ HttpHealthCheckConfiguration billingCheck = new HttpHealthCheckConfiguration(
 
 ## Health checks aggregation
 
-Health state of a product or service which includes or depends on others is derived deterministically
-using those "children" states too. Aggregator applies simple rules like:
+The health state of a product or service that includes or depends on other items
+is derived deterministically from the states of its dependencies.
 
-- Any `DOWN` child service makes the parent `DOWN`
-- Otherwise, any `UNKNOWN` makes the parent `UNKNOWN`
-- And only when all children are `UP`, the parent is also `UP`.
-- Products without child services default to `UNKNOWN` to avoid false positives.
+The aggregator applies simple rules:
+
+- If **any child service is `DOWN`**, the parent is `DOWN`
+- Otherwise, if **any child service is `UNKNOWN`**, the parent is `UNKNOWN`
+- The parent is `UP` **only if all child services are `UP`**
+- Products without child services default to `UNKNOWN` to avoid false positives
 
 ## Prometheus health metrics
 
