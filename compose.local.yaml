@@ -1,0 +1,8 @@
+services:
+  aggregator:
+    environment:
+      JAVA_OPTS: >
+        -XX:MaxRAMPercentage=75.0
+        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+    ports:
+      - "5005:5005"
