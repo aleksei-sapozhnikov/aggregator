@@ -37,7 +37,10 @@ endif
 OVERRIDE_EXISTS := $(wildcard $(OVERRIDE_FILE))
 COMPOSE_FILES := $(BASE_COMPOSE_FILES) $(if $(OVERRIDE_EXISTS),-f $(OVERRIDE_FILE),)
 
-.PHONY: info build up down clean restart
+# Prometheus data storage
+PROMETHEUS_DATA_DIR := ./.temp/prometheus/data
+
+.PHONY: info prepare-dirs build up down clean restart
 .NOTPARALLEL: restart
 
 info:
@@ -45,10 +48,17 @@ info:
 	@echo "Using container command: $(COMPOSE)"
 	@echo "Compose files: $(COMPOSE_FILES)"
 
-build: info
+prepare-dirs:
+ifeq ($(OS),Windows_NT)
+	@powershell -NoProfile -Command "New-Item -ItemType Directory -Force -Path '$(PROMETHEUS_DATA_DIR)' | Out-Null"
+else
+	@mkdir -p $(PROMETHEUS_DATA_DIR)
+endif
+
+build: info prepare-dirs
 	$(COMPOSE) $(COMPOSE_FILES) build
 
-up: info
+up: info prepare-dirs
 	$(COMPOSE) $(COMPOSE_FILES) up --detach
 
 down: info
