@@ -160,3 +160,79 @@ Each dummy service is self-contained and ships with its own Dockerfile under `du
 * `dummy-services/java` (Java)
 * `dummy-services/python` (Python)
 * `dummy-services/javascript` (JavaScript)
+
+## Local startup with Docker or Podman Compose
+
+The repository ships with a Compose definition that runs the aggregator alongside the three dummy services on the same
+network. The aggregator reaches the dummy services via the Compose service names (`dummy-java`, `dummy-python`,
+`dummy-javascript`) on port `8080`, matching the URLs in `health-checks.yaml`. The `compose.local.yaml` override enables
+the Java remote debugger on port `5005`.
+
+### Prerequisites
+
+* Docker Compose v2 or Podman Compose
+* GNU Make (for the `Makefile` targets below)
+
+### Makefile targets
+
+* `make build` - build all images
+* `make up` - start the full stack
+* `make down` - stop the stack
+* `make clean` - remove containers, networks, and volumes created by Compose
+* `make restart` - stop the stack, rebuild and start again
+
+### Start the full stack
+
+Use the Makefile to abstract the container runtime:
+
+```bash
+make up
+```
+
+If you don't have `make` or prefer to call Compose directly:
+
+```bash
+docker compose -f compose.yaml -f compose.local.yaml up --detach
+```
+
+```bash
+podman compose --file compose.yaml --file compose.local.yaml up --detach
+```
+
+### Stop or clean the stack
+
+```bash
+make down
+```
+
+```bash
+make clean
+```
+
+### Verify the setup
+
+Check that the services are up:
+
+```bash
+curl http://localhost:8080/actuator/health
+```
+
+```bash
+curl http://localhost:8081/health
+curl http://localhost:8082/health
+curl http://localhost:8083/health
+```
+
+Flip a dummy service to `DOWN` and confirm the aggregator reflects it:
+
+```bash
+curl http://localhost:8081/set-health/down
+curl http://localhost:8080/actuator/health
+```
+
+### Local endpoints
+
+* Aggregator: `http://localhost:8080/actuator/health`
+* Dummy Java: `http://localhost:8081/health`
+* Dummy Python: `http://localhost:8082/health`
+* Dummy JavaScript: `http://localhost:8083/health`
