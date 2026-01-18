@@ -1,23 +1,30 @@
+# Catalog health checks
+
+This project demonstrates a simple approach to aggregating service-level health signals into a product-level health view
+based on a static catalog definition.
+
+The core idea is that the health state of an item composed of other items is derived deterministically from the states
+of its dependencies. For example, a product consists of several services, and the overall product state is calculated
+from the states of those services.
+
 ## Catalog
 
-This module defines a tiny, storage-agnostic domain model for catalog items and their
-relationships. The model is intentionally minimal so it is easy to read, hard to misuse,
-and ready to extend later without coupling to persistence or transport concerns.
+The catalog is a storage-agnostic domain model describing items and their relationships.
 
-- **Item**: A catalog entry (product or service) with a stable `ItemId`, name, and type.
-- **Dependency**: A directed relationship between two items with an explicit
-  string `type` (for example `"includes"` or `"depends on"`).
+* **Item**: A catalog entry (for example, product or service) with a stable `ItemId`, name, and type.
+* **Dependency**: A directed relationship between two items with an explicit string `type` (for example, `"includes"` or
+  `"depends on"`).
 
 ### Catalog configuration
 
-The application loads a static catalog definition from the path configured by
-`catalog.path` (defaults to `classpath:catalog.yaml`). Both YAML and JSON formats
-are supported; see `src/main/resources/catalog.yaml` or `src/main/resources/catalog.json`
-for examples.
+The application loads a static catalog definition from the path configured by `catalog.path` (defaults to
+`classpath:catalog.yaml`). Both YAML and JSON formats are supported.
 
-### Example 1: product includes a service
+See `src/main/resources/catalog.yaml` or `src/main/resources/catalog.json` for examples.
 
-- `product:payroll-suite` includes `service:payroll-api`
+### Example 1: Product includes a service
+
+* `product:payroll-suite` includes `service:payroll-api`
 
 ```java
 Item payrollApi = Item.of(
@@ -32,16 +39,16 @@ Item payrollSuite = Item.of(
         "PRODUCT"
 );
 
-Dependency payrollSuiteincludesApi = Dependency.of(
+Dependency payrollSuiteIncludesApi = Dependency.of(
         payrollSuite.getId(),
         payrollApi.getId(),
         "includes"
 );
 ```
 
-### Example 2: service depends on other services
+### Example 2: Service depends on other services
 
-- `service:web-portal` depends on `service:auth` and `service:billing`
+* `service:web-portal` depends on `service:auth` and `service:billing`
 
 ```java
 Item webPortal = Item.of(
@@ -65,12 +72,15 @@ Dependency webPortalDependsOnBilling = Dependency.of(
 
 ## Health checks
 
+Health checks define how the system retrieves raw health signals for catalog items.
+
 ### Health checks configuration
 
-The application loads health check definitions from the path configured by
-`health.checks-path` (defaults to `classpath:health-checks.yaml`). Definitions are
-parsed into typed configurations (such as HTTP checks) and mapped to catalog items
-by `catalogItemId`.
+The application loads health check definitions from the path configured by `health.checks-path` (defaults to
+`classpath:health-checks.yaml`).
+
+Definitions are parsed into typed configurations (for example, HTTP checks) and mapped to catalog items via
+`catalogItemId`.
 
 ### Example 1: HTTP health check targeting a catalog item
 
@@ -100,46 +110,53 @@ HttpHealthCheckConfiguration billingCheck = new HttpHealthCheckConfiguration(
 );
 ```
 
-## Health checks aggregation
+## Health aggregation
 
-Health state of a product or service which includes or depends on others is derived deterministically
-using those "children" states too. Aggregator applies simple rules like:
+The health state of a product or service that includes or depends on other items is derived deterministically from the
+states of its dependencies.
 
-- Any `DOWN` child service makes the parent `DOWN`
-- Otherwise, any `UNKNOWN` makes the parent `UNKNOWN`
-- And only when all children are `UP`, the parent is also `UP`.
-- Products without child services default to `UNKNOWN` to avoid false positives.
+The aggregator applies the following rules:
 
-## Prometheus health metrics
+* If **any child service is `DOWN`**, the parent is `DOWN`
+* Otherwise, if **any child service is `UNKNOWN`**, the parent is `UNKNOWN`
+* The parent is `UP` **only if all child services are `UP`**
+* Products without child services default to `UNKNOWN` to avoid false positives
 
-The application exports current catalog item health via Spring Boot Actuator at
-`/actuator/prometheus`.
+## Prometheus metrics
 
-Further details are documented in:
+The application exports current catalog item health via Spring Boot Actuator at:
+
+```
+/actuator/prometheus
+```
+
+Metric names, labels, and semantics are documented in:
+
 `HealthMetricsDocumentation.java`
 (`src/main/java/com/github/vermucht/aggregator/health/metrics/HealthMetricsDocumentation.java`)
 
-## Dummy services for health simulations
+## Dummy services
 
-Three standalone dummy services are provided to simulate external health check
-endpoints during local development and testing.
+Standalone dummy services are provided to simulate external health check endpoints during local development and testing.
 
-Each service exposes the following HTTP endpoints:
+Each dummy service exposes the following HTTP endpoints:
 
-- `GET /health`  
+* `GET /health`
+
   Returns the current health status:
+
   ```json
   {
     "status": "UP"
   }
   ```
 
-- `GET /set-health/{up|down}`  
-  Updates the health status returned by `/health`
+* `GET /set-health/{up|down}`
 
-Each dummy service is self-contained and ships with its own Dockerfile under
-`dummy-services/`:
+  Updates the health status returned by `/health`.
 
-- `dummy-services/java` (Java)
-- `dummy-services/python` (Python)
-- `dummy-services/javascript` (JavaScript)
+Each dummy service is self-contained and ships with its own Dockerfile under `dummy-services/`:
+
+* `dummy-services/java` (Java)
+* `dummy-services/python` (Python)
+* `dummy-services/javascript` (JavaScript)
