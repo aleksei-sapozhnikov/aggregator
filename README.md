@@ -135,6 +135,111 @@ Metric names, labels, and semantics are documented in:
 `HealthMetricsDocumentation.java`
 (`src/main/java/com/github/vermucht/aggregator/health/metrics/HealthMetricsDocumentation.java`)
 
+## Local Prometheus setup (optional)
+
+For local development and verification, the repository includes an optional Prometheus instance that periodically
+scrapes the aggregator metrics and stores a short local history on disk.
+
+The Prometheus service is defined in `compose.yaml` and configured to:
+
+* Scrape the aggregator every **10 seconds**
+* Read metrics from `/actuator/prometheus`
+* Store data locally using Prometheus TSDB
+* Limit local storage size and retention to keep the setup lightweight
+
+### Prometheus configuration
+
+The scrape configuration is located at:
+
+```
+monitoring/prometheus/prometheus.yml
+```
+
+It defines a single scrape job targeting the aggregator service via the Compose network:
+
+```yaml
+scrape_configs:
+  - job_name: aggregator
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets:
+          - aggregator:8080
+```
+
+### Local data storage
+
+Prometheus stores its data in a local directory mounted from the host:
+
+```
+./.temp/prometheus/data
+```
+
+This directory is:
+
+* Automatically created by the `Makefile` on startup (including Windows support)
+* Ignored by Git (`.gitignore`)
+* Used only for local development and PoC verification
+
+The stored data follows the standard Prometheus TSDB layout (WAL, head chunks, blocks), not a single rolling file.
+
+### Accessing Prometheus
+
+Once the stack is running, Prometheus is available at:
+
+```
+http://localhost:9090
+```
+
+You can use it to:
+
+* Verify that the aggregator target is `UP` (`Status → Targets`)
+* Query exported catalog metrics (for example, `catalog_item_state`)
+* Observe how metric values change when dummy services transition between `UP` and `DOWN`
+
+### Example verification
+
+1. Start the stack:
+    ```bash
+    make up
+    ```
+2. Open Prometheus UI:
+
+    ```
+    http://localhost:9090
+    ```
+
+3. Query current catalog item states:
+
+    ```
+    catalog_item_state
+    ```
+
+   Or more specifically
+
+    ```
+    catalog_item_state{item_id=~"user-facing|dummy-javascript"}
+    ```
+
+   Or build graph by items
+
+    ```
+   avg by (item_id) (catalog_item_state)
+   ```
+
+4. Flip a dummy service state and observe the metric change:
+
+    ```bash
+    curl http://localhost:8081/set-health/down
+    ```
+
+After the next scrape interval, the corresponding `catalog_item_state` metric value will reflect the updated state.
+
+Example
+- Service `dummy-java` was initially `UP==1.0`, then turned to `DOWN==0.0` and then back again.
+- The `user-facing` product depends on `dummy-java` - and follows the same pattern.
+
+![Prometheus catalog item health over time](docs/images/prometheus-catalog-item-state.png)
+
 ## Dummy services
 
 Standalone dummy services are provided to simulate external health check endpoints during local development and testing.

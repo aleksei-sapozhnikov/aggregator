@@ -1,6 +1,9 @@
 # IDEA config
 .idea/
 
+# Temporary files, usually for local dev
+.temp/
+
 # Build artifacts
 target/
 
