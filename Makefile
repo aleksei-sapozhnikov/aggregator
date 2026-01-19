@@ -96,10 +96,14 @@ build: info prepare-dirs
 up: info prepare-dirs
 	$(COMPOSE) $(COMPOSE_FILES) up --detach
 
+redeploy: info prepare-dirs
+	$(COMPOSE) $(COMPOSE_FILES) up --detach --build
+
+force-redeploy: info prepare-dirs
+	$(COMPOSE) $(COMPOSE_FILES) up --detach --build --force-recreate
+
 down: info
 	$(COMPOSE) $(COMPOSE_FILES) down
 
 clean: info
 	$(COMPOSE) $(COMPOSE_FILES) down --remove-orphans --volumes
-
-restart: down build up
