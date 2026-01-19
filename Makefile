@@ -53,8 +53,27 @@ endif
 OVERRIDE_EXISTS := $(wildcard $(OVERRIDE_FILE))
 COMPOSE_FILES := -f $(BASE_COMPOSE_FILE) $(if $(OVERRIDE_EXISTS),-f $(OVERRIDE_FILE),)
 
-.PHONY: info prepare-dirs build up down clean restart
+.PHONY: help info prepare-dirs build up down clean restart redeploy force-redeploy
 .NOTPARALLEL: restart
+
+help:
+	@echo "Targets:"
+	@echo "  make info                 Show resolved environment and compose settings"
+	@echo "  make build                Build images"
+	@echo "  make up                   Start stack (no rebuild)"
+	@echo "  make redeploy             Rebuild changed images and recreate updated containers"
+	@echo "  make force-redeploy       Rebuild and force recreate all containers"
+	@echo "  make down                 Stop stack (keep volumes)"
+	@echo "  make clean                Stop stack and remove volumes"
+	@echo "  make restart              Restart stack (down + up)"
+	@echo ""
+	@echo "Variables:"
+	@echo "  ENV=local|dev|qa|prod      Select compose override (if file exists)"
+	@echo "  COMPOSE=\"docker compose\"  Override compose command"
+	@echo ""
+	@echo "Examples:"
+	@echo "  make redeploy ENV=local"
+	@echo "  make up COMPOSE=\"podman compose\""
 
 info:
 	@echo "ENV=$(ENV)"
