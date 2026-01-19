@@ -1,6 +1,12 @@
 # Environment: local | dev | qa | prod
 ENV ?= local
 
+# Prometheus data storage
+PROMETHEUS_DATA_DIR := ./.temp/prometheus/data
+
+# Grafana data storage
+GRAFANA_DATA_DIR := ./.temp/grafana/data
+
 # Compose command (override if needed: make up COMPOSE="docker compose")
 COMPOSE ?=
 
@@ -46,12 +52,6 @@ endif
 # Build compose file list (include override only if it exists)
 OVERRIDE_EXISTS := $(wildcard $(OVERRIDE_FILE))
 COMPOSE_FILES := -f $(BASE_COMPOSE_FILE) $(if $(OVERRIDE_EXISTS),-f $(OVERRIDE_FILE),)
-
-# Prometheus data storage
-PROMETHEUS_DATA_DIR := ./.temp/prometheus/data
-
-# Grafana data storage
-GRAFANA_DATA_DIR := ./.temp/grafana/data
 
 .PHONY: info prepare-dirs build up down clean restart
 .NOTPARALLEL: restart
