@@ -53,6 +53,7 @@ endif
 OVERRIDE_EXISTS := $(wildcard $(OVERRIDE_FILE))
 COMPOSE_FILES := -f $(BASE_COMPOSE_FILE) $(if $(OVERRIDE_EXISTS),-f $(OVERRIDE_FILE),)
 
+# ---- Targets ----
 .PHONY: help info prepare-dirs build up down clean restart redeploy force-redeploy
 .NOTPARALLEL: restart
 
@@ -77,7 +78,7 @@ help:
 
 info:
 	@echo "ENV=$(ENV)"
-	@echo "Using container command: $(COMPOSE)"
+	@echo "Using compose command: $(COMPOSE)"
 	@echo "Compose files: $(COMPOSE_FILES)"
 
 prepare-dirs:
