@@ -1,7 +1,15 @@
 # Environment: local | dev | qa | prod
 ENV ?= local
 
-# Detect container runtime
+# Compose command (override if needed: make up COMPOSE="docker compose")
+COMPOSE ?=
+
+# Compose files
+BASE_COMPOSE_FILE := compose.yaml
+OVERRIDE_FILE :=
+COMPOSE_FILES :=
+
+# ---- Runtime detection (docker/podman) ----
 ifeq ($(OS),Windows_NT)
 DOCKER := $(shell powershell -NoProfile -Command "Get-Command docker -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source")
 PODMAN := $(shell powershell -NoProfile -Command "Get-Command podman -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source")
@@ -10,17 +18,19 @@ DOCKER := $(shell command -v docker 2>/dev/null)
 PODMAN := $(shell command -v podman 2>/dev/null)
 endif
 
-# Exit with message if nothing found
-ifeq ($(DOCKER)$(PODMAN),)
+ifeq ($(COMPOSE),)
+ifeq ($(DOCKER),)
+ifeq ($(PODMAN),)
 $(error Neither docker nor podman is installed. Please install one of them.)
+else
+COMPOSE := podman compose
+endif
+else
+COMPOSE := docker compose
+endif
 endif
 
-# Select compose command (can be overridden: make up COMPOSE="docker compose")
-COMPOSE ?= $(if $(DOCKER),docker compose,podman compose)
-
-BASE_COMPOSE_FILES := -f compose.yaml
-
-# Map ENV -> override compose file (optional)
+# ---- ENV -> optional override file ----
 ifeq ($(ENV),local)
 OVERRIDE_FILE := compose.local.yaml
 else ifeq ($(ENV),dev)
@@ -33,9 +43,9 @@ else
 $(error Unknown ENV '$(ENV)'. Use one of: local, dev, qa, prod)
 endif
 
-# Only include override file if it exists
+# Build compose file list (include override only if it exists)
 OVERRIDE_EXISTS := $(wildcard $(OVERRIDE_FILE))
-COMPOSE_FILES := $(BASE_COMPOSE_FILES) $(if $(OVERRIDE_EXISTS),-f $(OVERRIDE_FILE),)
+COMPOSE_FILES := -f $(BASE_COMPOSE_FILE) $(if $(OVERRIDE_EXISTS),-f $(OVERRIDE_FILE),)
 
 # Prometheus data storage
 PROMETHEUS_DATA_DIR := ./.temp/prometheus/data
