@@ -1,6 +1,7 @@
 package com.github.vermucht.aggregator.health.metrics;
 
 import com.github.vermucht.aggregator.catalog.Catalog;
+import com.github.vermucht.aggregator.catalog.Dependency;
 import com.github.vermucht.aggregator.catalog.Item;
 import com.github.vermucht.aggregator.catalog.ItemId;
 import com.github.vermucht.aggregator.health.state.HealthStateStore;
@@ -15,9 +16,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class HealthMetrics {
   public static final String ITEM_METRIC_NAME = "catalog_item_state";
+  public static final String DEPENDENCY_METRIC_NAME = "catalog_dependency";
   public static final String LABEL_ITEM_ID = "item_id";
   public static final String LABEL_ITEM_NAME = "item_name";
   public static final String LABEL_ITEM_TYPE = "item_type";
+  public static final String LABEL_SOURCE_ID = "source_id";
+  public static final String LABEL_TARGET_ID = "target_id";
+  public static final String LABEL_DEP_TYPE = "dep_type";
 
   private final MeterRegistry registry;
   private final Catalog catalog;
@@ -43,6 +48,15 @@ public class HealthMetrics {
           .tag(LABEL_ITEM_TYPE, item.getType())
           .register(registry);
     }
+
+    for (Dependency dependency : catalog.dependencies()) {
+      Gauge.builder(DEPENDENCY_METRIC_NAME, () -> 1.0)
+          .description("Catalog dependency edge (1=present)")
+          .tag(LABEL_SOURCE_ID, dependency.getSourceId().getValue())
+          .tag(LABEL_TARGET_ID, dependency.getTargetId().getValue())
+          .tag(LABEL_DEP_TYPE, dependency.getType())
+          .register(registry);
+    }
   }
 
   @PostConstruct
@@ -61,6 +75,15 @@ public class HealthMetrics {
           .tag(LABEL_ITEM_ID, itemId.getValue())
           .tag(LABEL_ITEM_NAME, item.getName())
           .tag(LABEL_ITEM_TYPE, item.getType())
+          .register(registry);
+    }
+
+    for (Dependency dependency : catalog.dependencies()) {
+      Gauge.builder(DEPENDENCY_METRIC_NAME, () -> 1.0)
+          .description("Catalog dependency edge (1=present)")
+          .tag(LABEL_SOURCE_ID, dependency.getSourceId().getValue())
+          .tag(LABEL_TARGET_ID, dependency.getTargetId().getValue())
+          .tag(LABEL_DEP_TYPE, dependency.getType())
           .register(registry);
     }
   }
