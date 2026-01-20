@@ -269,6 +269,7 @@ Grafana is provisioned with two dashboards based on the `catalog_item_state` met
     * Shows the latest known state per catalog item
     * Uses a numeric mapping (`UP = 1`, `DOWN = 0`) with color indication
     * Intended for a quick, high-level overview
+  * Shows states of all dependencies, allows to select specific
 
   ![Catalog Item State – Current](docs/images/grafana-state-current.png)
 
@@ -276,6 +277,7 @@ Grafana is provisioned with two dashboards based on the `catalog_item_state` met
     * Displays state transitions over time
     * Useful for verifying aggregation behavior and change propagation
     * Helps correlate service-level changes with product-level impact
+  * Shows timelines of all dependencies, allows to select specific
 
   ![Catalog Item State – Timeline](docs/images/grafana-state-timeline.png)
 
