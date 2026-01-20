@@ -194,6 +194,7 @@ You can use it to:
 
 * Verify that the aggregator target is `UP` (`Status → Targets`)
 * Query exported catalog metrics (for example, `catalog_item_state`)
+* Query exported catalog dependency edges (for example, `catalog_dependency`)
 * Observe how metric values change when dummy services transition between `UP` and `DOWN`
 
 ### Example verification
@@ -228,11 +229,23 @@ You can use it to:
 
 4. Flip a dummy service state and observe the metric change:
 
-    ```bash
-    curl http://localhost:8081/set-health/down
-    ```
+   ```bash
+   curl http://localhost:8081/set-health/down
+   ```
 
 After the next scrape interval, the corresponding `catalog_item_state` metric value will reflect the updated state.
+
+You can also inspect catalog dependencies in Prometheus, for example:
+
+```
+catalog_dependency
+```
+
+Each dependency is exported as a gauge with labels, for example:
+
+```
+catalog_dependency{source_id="user-facing", target_id="dummy-javascript", dep_type="depends_on"} 1
+```
 
 Example
 - Service `dummy-java` was initially `UP==1.0`, then turned to `DOWN==0.0` and then back again.
