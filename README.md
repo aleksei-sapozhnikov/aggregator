@@ -238,8 +238,10 @@ After the next scrape interval, the corresponding `catalog_item_state` metric va
 You can also inspect catalog dependencies in Prometheus, for example:
 
 ```
-catalog_dependency
+catalog_dependency{source_id="user-facing"}
 ```
+
+![Prometheus - Catalog Dependency Graph](docs/images/prometheus-catalog-dependency.png)
 
 Each dependency is exported as a gauge with labels, for example:
 
