@@ -240,6 +240,63 @@ Example
 
 ![Prometheus catalog item health over time](docs/images/prometheus-catalog-item-state.png)
 
+## Grafana visualization
+
+For catalog item health states visualization, the project includes a preconfigured Grafana instance.
+Grafana is connected to Prometheus automatically and provides ready-to-use dashboards without need
+for additional configuration.
+
+### Provisioned dashboards
+
+Grafana is provisioned with two dashboards based on the `catalog_item_state` metric:
+
+* **Catalog Item State – Current**
+    * Shows the latest known state per catalog item
+    * Uses a numeric mapping (`UP = 1`, `DOWN = 0`) with color indication
+    * Intended for a quick, high-level overview
+
+  ![Catalog Item State – Current](docs/images/grafana-state-current.png)
+
+* **Catalog Item State – Timeline**
+    * Displays state transitions over time
+    * Useful for verifying aggregation behavior and change propagation
+    * Helps correlate service-level changes with product-level impact
+
+  ![Catalog Item State – Timeline](docs/images/grafana-state-timeline.png)
+
+Both dashboards expose an `item_id` variable populated via:
+
+```
+label_values(catalog_item_state, item_id)
+```
+
+This allows filtering or comparing specific services and products.
+
+### Local data storage
+
+Grafana stores its local data in a host-mounted directory:
+
+```
+./.temp/grafana/data
+```
+
+This directory is:
+
+* Automatically created by the `Makefile`
+* Ignored by Git
+* Used only for local development and verification
+
+### Accessing Grafana
+
+Once the stack is running, Grafana is available at:
+
+```
+http://localhost:3000
+```
+
+Authentication is disabled for local usage. Grafana starts in anonymous **Viewer** mode, suitable for demos and PoC
+validation.
+
 ## Dummy services
 
 Standalone dummy services are provided to simulate external health check endpoints during local development and testing.
