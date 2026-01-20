@@ -28,9 +28,10 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "fixed"
           },
           "custom": {
+            "axisPlacement": "auto",
             "fillOpacity": 100,
             "hideFrom": {
               "legend": false,
@@ -41,65 +42,36 @@
             "lineWidth": 0,
             "spanNulls": false
           },
+          "fieldMinMax": false,
           "mappings": [
             {
-              "type": "value",
               "options": {
                 "0": {
+                  "color": "red",
+                  "index": 1,
                   "text": "DOWN"
                 },
                 "1": {
+                  "color": "green",
+                  "index": 0,
                   "text": "UP"
+                },
+                "0.5": {
+                  "color": "yellow",
+                  "index": 2,
+                  "text": "UNKNOWN"
                 }
-              }
+              },
+              "type": "value"
             }
           ],
+          "noValue": "No dependencies",
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "dark-red",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 0.1
-              },
-              {
-                "color": "orange-red",
-                "value": 0.2
-              },
-              {
-                "color": "orange",
-                "value": 0.3
-              },
-              {
-                "color": "yellow",
-                "value": 0.4
-              },
-              {
-                "color": "yellow-green",
-                "value": 0.5
-              },
-              {
-                "color": "light-green",
-                "value": 0.6
-              },
-              {
-                "color": "green",
-                "value": 0.7
-              },
-              {
-                "color": "semi-dark-green",
-                "value": 0.8
-              },
-              {
-                "color": "dark-green",
-                "value": 0.9
-              },
-              {
-                "color": "green",
-                "value": 1
+                "color": "text",
+                "value": 0
               }
             ]
           }
@@ -107,12 +79,12 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 12,
+        "h": 14,
         "w": 24,
         "x": 0,
         "y": 0
       },
-      "id": 1,
+      "id": 2,
       "options": {
         "alignValue": "left",
         "legend": {
@@ -121,30 +93,46 @@
           "showLegend": false
         },
         "mergeValues": false,
-        "rowHeight": 0.9,
+        "rowHeight": 0.5,
         "showValue": "never",
         "tooltip": {
-          "mode": "single",
+          "hideZeros": false,
+          "mode": "multi",
           "sort": "none"
         }
       },
+      "pluginVersion": "12.3.1",
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
           "editorMode": "code",
-          "expr": "catalog_item_state{item_id=~\"$item_id\"}",
+          "exemplar": false,
+          "expr": "catalog_item_state{item_id=~\"${item_id:regex}\"}",
+          "hide": false,
+          "instant": false,
           "legendFormat": "{{item_id}}",
           "range": true,
-          "refId": "A",
-          "interval": "1s",
-          "intervalFactor": 1
+          "refId": "A"
+        },
+        {
+          "editorMode": "code",
+          "expr": "catalog_item_state{item_id=~\"${deps:regex}\"}",
+          "intervalFactor": 1,
+          "legendFormat": "{{item_id}}",
+          "range": true,
+          "refId": "B"
         }
       ],
-      "title": "Catalog Item State (timeline, pseudo-gradient 0..1 step 0.1)",
+      "title": "Dependencies",
       "type": "state-timeline"
     }
   ],
+  "preload": false,
   "refresh": "10s",
-  "schemaVersion": 39,
+  "schemaVersion": 42,
   "tags": [
     "catalog",
     "state"
@@ -157,9 +145,7 @@
           "uid": "prometheus"
         },
         "definition": "label_values(catalog_item_state, item_id)",
-        "hide": 0,
         "includeAll": false,
-        "multi": true,
         "name": "item_id",
         "options": [],
         "query": {
@@ -168,7 +154,25 @@
         },
         "refresh": 1,
         "regex": "",
-        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "definition": "label_values(catalog_dependency{source_id=\"$item_id\"}, target_id)",
+        "includeAll": true,
+        "multi": true,
+        "name": "deps",
+        "options": [],
+        "query": {
+          "query": "label_values(catalog_dependency{source_id=\"$item_id\"}, target_id)",
+          "refId": "PrometheusVariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
         "sort": 1,
         "type": "query"
       }
@@ -178,12 +182,8 @@
     "from": "now-15m",
     "to": "now"
   },
-  "timepicker": {
-    "hidden": false
-  },
+  "timepicker": {},
   "timezone": "",
   "title": "Catalog Item State - Timeline",
-  "uid": "catalog-item-state-timeline",
-  "version": 4,
-  "weekStart": ""
+  "uid": "catalog-item-state-timeline"
 }

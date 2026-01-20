@@ -27,34 +27,40 @@
       },
       "fieldConfig": {
         "defaults": {
-          "min": 0,
-          "max": 1,
           "color": {
-            "mode": "continuous-RdYlGr"
+            "mode": "fixed"
           },
           "mappings": [
             {
-              "type": "value",
               "options": {
                 "0": {
+                  "color": "red",
                   "text": "DOWN"
                 },
                 "1": {
+                  "color": "green",
                   "text": "UP"
+                },
+                "0.5": {
+                  "color": "yellow",
+                  "text": "UNKNOWN"
                 }
-              }
+              },
+              "type": "value"
             }
           ],
+          "max": 1,
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "red",
-                "value": null
+                "color": "green",
+                "value": 0
               },
               {
-                "color": "green",
-                "value": 1
+                "color": "red",
+                "value": 80
               }
             ]
           }
@@ -62,17 +68,18 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 10,
+        "h": 3,
         "w": 24,
         "x": 0,
         "y": 0
       },
       "id": 1,
       "options": {
-        "colorMode": "background",
+        "colorMode": "value",
         "graphMode": "none",
-        "justifyMode": "left",
-        "orientation": "horizontal",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -81,25 +88,125 @@
           "values": false
         },
         "showPercentChange": false,
-        "textMode": "value_and_name"
+        "text": {
+          "percentSize": 1
+        },
+        "textMode": "value_and_name",
+        "wideLayout": true
       },
+      "pluginVersion": "12.3.1",
       "targets": [
         {
           "editorMode": "code",
-          "expr": "catalog_item_state{item_id=~\"$item_id\"}",
+          "exemplar": false,
+          "expr": "catalog_item_state{item_id=~\"${item_id:regex}\"}",
+          "format": "heatmap",
+          "instant": true,
+          "intervalFactor": 1,
           "legendFormat": "{{item_id}}",
-          "range": true,
-          "refId": "A",
-          "interval": "1s",
-          "intervalFactor": 1
+          "range": false,
+          "refId": "A"
         }
       ],
-      "title": "Catalog Item State (gradient 0..1)",
+      "title": "State",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed"
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "color": "red",
+                  "index": 1,
+                  "text": "DOWN"
+                },
+                "1": {
+                  "color": "green",
+                  "index": 0,
+                  "text": "UP"
+                },
+                "0.5": {
+                  "color": "yellow",
+                  "index": 2,
+                  "text": "UNKNOWN"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "max": 1,
+          "min": 0,
+          "noValue": "No dependencies",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": 0
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 24,
+        "x": 0,
+        "y": 3
+      },
+      "id": 2,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "left",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "text": {
+          "titleSize": 15,
+          "valueSize": 30
+        },
+        "textMode": "value_and_name",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "catalog_item_state{item_id=~\"${deps:regex}\"}",
+          "format": "time_series",
+          "instant": true,
+          "intervalFactor": 1,
+          "legendFormat": "{{item_id}}",
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "title": "Dependencies",
       "type": "stat"
     }
   ],
+  "preload": false,
   "refresh": "10s",
-  "schemaVersion": 39,
+  "schemaVersion": 42,
   "tags": [
     "catalog",
     "state"
@@ -112,9 +219,7 @@
           "uid": "prometheus"
         },
         "definition": "label_values(catalog_item_state, item_id)",
-        "hide": 0,
         "includeAll": false,
-        "multi": true,
         "name": "item_id",
         "options": [],
         "query": {
@@ -123,7 +228,25 @@
         },
         "refresh": 1,
         "regex": "",
-        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "definition": "label_values(catalog_dependency{source_id=\"$item_id\"}, target_id)",
+        "includeAll": true,
+        "multi": true,
+        "name": "deps",
+        "options": [],
+        "query": {
+          "query": "label_values(catalog_dependency{source_id=\"$item_id\"}, target_id)",
+          "refId": "PrometheusVariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
         "sort": 1,
         "type": "query"
       }
@@ -133,12 +256,8 @@
     "from": "now-15m",
     "to": "now"
   },
-  "timepicker": {
-    "hidden": false
-  },
+  "timepicker": {},
   "timezone": "",
   "title": "Catalog Item State - Current",
-  "uid": "catalog-item-state-current",
-  "version": 3,
-  "weekStart": ""
+  "uid": "catalog-item-state-current"
 }
