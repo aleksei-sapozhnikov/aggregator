@@ -1,7 +1,21 @@
 # Environment: local | dev | qa | prod
 ENV ?= local
 
-# Detect container runtime
+# Prometheus data storage
+PROMETHEUS_DATA_DIR := ./.temp/prometheus/data
+
+# Grafana data storage
+GRAFANA_DATA_DIR := ./.temp/grafana/data
+
+# Compose command (override if needed: make up COMPOSE="docker compose")
+COMPOSE ?=
+
+# Compose files
+BASE_COMPOSE_FILE := compose.yaml
+OVERRIDE_FILE :=
+COMPOSE_FILES :=
+
+# ---- Runtime detection (docker/podman) ----
 ifeq ($(OS),Windows_NT)
 DOCKER := $(shell powershell -NoProfile -Command "Get-Command docker -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source")
 PODMAN := $(shell powershell -NoProfile -Command "Get-Command podman -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source")
@@ -10,17 +24,19 @@ DOCKER := $(shell command -v docker 2>/dev/null)
 PODMAN := $(shell command -v podman 2>/dev/null)
 endif
 
-# Exit with message if nothing found
-ifeq ($(DOCKER)$(PODMAN),)
+ifeq ($(COMPOSE),)
+ifeq ($(DOCKER),)
+ifeq ($(PODMAN),)
 $(error Neither docker nor podman is installed. Please install one of them.)
+else
+COMPOSE := podman compose
+endif
+else
+COMPOSE := docker compose
+endif
 endif
 
-# Select compose command (can be overridden: make up COMPOSE="docker compose")
-COMPOSE ?= $(if $(DOCKER),docker compose,podman compose)
-
-BASE_COMPOSE_FILES := -f compose.yaml
-
-# Map ENV -> override compose file (optional)
+# ---- ENV -> optional override file ----
 ifeq ($(ENV),local)
 OVERRIDE_FILE := compose.local.yaml
 else ifeq ($(ENV),dev)
@@ -33,22 +49,36 @@ else
 $(error Unknown ENV '$(ENV)'. Use one of: local, dev, qa, prod)
 endif
 
-# Only include override file if it exists
+# Build compose file list (include override only if it exists)
 OVERRIDE_EXISTS := $(wildcard $(OVERRIDE_FILE))
-COMPOSE_FILES := $(BASE_COMPOSE_FILES) $(if $(OVERRIDE_EXISTS),-f $(OVERRIDE_FILE),)
+COMPOSE_FILES := -f $(BASE_COMPOSE_FILE) $(if $(OVERRIDE_EXISTS),-f $(OVERRIDE_FILE),)
 
-# Prometheus data storage
-PROMETHEUS_DATA_DIR := ./.temp/prometheus/data
-
-# Grafana data storage
-GRAFANA_DATA_DIR := ./.temp/grafana/data
-
-.PHONY: info prepare-dirs build up down clean restart
+# ---- Targets ----
+.PHONY: help info prepare-dirs build up down clean restart redeploy force-redeploy
 .NOTPARALLEL: restart
+
+help:
+	@echo "Targets:"
+	@echo "  make info                 Show resolved environment and compose settings"
+	@echo "  make build                Build images"
+	@echo "  make up                   Start stack (no rebuild)"
+	@echo "  make redeploy             Rebuild changed images and recreate updated containers"
+	@echo "  make force-redeploy       Rebuild and force recreate all containers"
+	@echo "  make down                 Stop stack (keep volumes)"
+	@echo "  make clean                Stop stack and remove volumes"
+	@echo "  make restart              Restart stack (down + up)"
+	@echo ""
+	@echo "Variables:"
+	@echo "  ENV=local|dev|qa|prod      Select compose override (if file exists)"
+	@echo "  COMPOSE=\"docker compose\"  Override compose command"
+	@echo ""
+	@echo "Examples:"
+	@echo "  make redeploy ENV=local"
+	@echo "  make up COMPOSE=\"podman compose\""
 
 info:
 	@echo "ENV=$(ENV)"
-	@echo "Using container command: $(COMPOSE)"
+	@echo "Using compose command: $(COMPOSE)"
 	@echo "Compose files: $(COMPOSE_FILES)"
 
 prepare-dirs:
@@ -66,10 +96,14 @@ build: info prepare-dirs
 up: info prepare-dirs
 	$(COMPOSE) $(COMPOSE_FILES) up --detach
 
+redeploy: info prepare-dirs
+	$(COMPOSE) $(COMPOSE_FILES) up --detach --build
+
+force-redeploy: info prepare-dirs
+	$(COMPOSE) $(COMPOSE_FILES) up --detach --build --force-recreate
+
 down: info
 	$(COMPOSE) $(COMPOSE_FILES) down
 
 clean: info
 	$(COMPOSE) $(COMPOSE_FILES) down --remove-orphans --volumes
-
-restart: down build up
