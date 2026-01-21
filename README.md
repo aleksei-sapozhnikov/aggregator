@@ -147,6 +147,45 @@ The aggregator applies the following rules:
 * The parent is `UP` **only if all child services are `UP`**
 * Products without child services default to `UNKNOWN` to avoid false positives
 
+## Limitations & Next Steps
+
+This is a proof-of-concept (PoC). It is designed to demonstrate deterministic health aggregation comes with
+deterministic constraints.
+
+### Current limitations (PoC scope)
+
+* **Static catalog only**: The catalog is loaded from a static YAML/JSON file at startup; there is no dynamic catalog
+  source, sync, or runtime updates. This means item relationships cannot change without redeploying the service.
+* **Limited check types**: Health checks are currently focused on basic HTTP checks, with no support for TCP, gRPC,
+  synthetic transactions, or multi-step probes.
+* **Local-only stack**: The Compose stack assumes a local network and dummy services. There is no remote service
+  discovery, multi-region support, or production-grade networking.
+* **No persistence**: Aggregated state is emitted as metrics only; there is no built-in storage for historical health
+  state, trends, or incident timelines.
+* **No authentication/authorization**: Endpoints and dashboards are exposed without auth, which is acceptable for local
+  PoC usage but not safe for production environments.
+* **No alerting or notification workflow**: The system does not ship with alert rules or integrations for paging,
+  incident management, or chat notifications.
+* **Minimal operational hardening**: There is no deployment packaging, scaling strategy, or resilience guidance beyond
+  the local Compose setup.
+
+### Next possible steps
+
+* **Dynamic catalog source**: Integrate a real catalog source (database, service registry, or API) and support runtime
+  updates, diffs, and validation.
+* **Expand health check types**: Add TCP, gRPC, and synthetic transaction checks, plus richer status mapping and
+  timeouts/retry policies.
+* **Alerting & incident flow**: Provide example alert rules (Prometheus/Alertmanager) and integrate with notification
+  targets (PagerDuty, Slack, email).
+* **Historical storage**: Persist aggregated states in a database or time-series store to enable reporting, SLO/SLA
+  calculations, and incident playback.
+* **Authentication & RBAC**: Add auth for APIs and dashboards plus role-based access controls to restrict visibility and
+  editing capabilities.
+* **Deployment hardening**: Add Kubernetes manifests/Helm charts, secure defaults (TLS, secrets management), and
+  scalability guidance (horizontal scaling, leader election, cache/backpressure strategies).
+* **Operational observability**: Extend metrics/logging/tracing coverage, add health check execution metrics, and expose
+  internal queue or scheduler instrumentation.
+
 ## Prometheus metrics
 
 The application exports current catalog item health via Spring Boot Actuator at:
