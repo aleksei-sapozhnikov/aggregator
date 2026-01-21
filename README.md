@@ -479,3 +479,45 @@ curl http://localhost:8080/actuator/health
 * Dummy Java: `http://localhost:8081/health`
 * Dummy Python: `http://localhost:8082/health`
 * Dummy JavaScript: `http://localhost:8083/health`
+
+## Using Proof of Concept for demonstration
+
+1. Start the stack: `make up`.
+2. Check that the dummy services are running and returning their `/health`
+    * dummy-java: `curl http://localhost:8081/health`
+    * dummy-python: `curl http://localhost:8082/health`
+    * dummy-javascript: `curl http://localhost:8083/health`
+3. Verify that aggregator returns Prometheus metrics on health and dependencies by
+   `curl http://localhost:8080/actuator/health`.
+   ```
+   # HELP catalog_item_state Current health of a catalog item (1=UP, 0.5=UNKNOWN, 0=DOWN)
+   # TYPE catalog_item_state gauge
+   catalog_item_state{item_id="dummy-java",item_name="Dummy Java service",item_type="service",} 1.0
+   catalog_item_state{item_id="dummy-javascript",item_name="Dummy JavaScript gateway",item_type="gateway",} 1.0
+   catalog_item_state{item_id="dummy-python",item_name="Dummy Python database",item_type="database",} 1.0
+   catalog_item_state{item_id="user-facing",item_name="User facing service",item_type="product",} 1.0\
+   ```
+   Note the `user-facing` item which is not a running container The state of the item is defined by its dependency
+   services.
+   ```
+   # HELP catalog_dependency Catalog dependency edge (1=present)
+   # TYPE catalog_dependency gauge
+   catalog_dependency{dep_type="relies_on",source_id="user-facing",target_id="dummy-javascript",} 1.0
+   catalog_dependency{dep_type="believes_in",source_id="user-facing",target_id="dummy-python",} 1.0
+   catalog_dependency{dep_type="depends_on",source_id="user-facing",target_id="dummy-java",} 1.0
+   ``` 
+4. Flip a dummy service state to simulate an incident:
+    * dummy-java down: `curl http://localhost:8081/set-health/down`
+    * then optionally restore with `curl http://localhost:8081/set-health/up`
+5. Observe changes in:
+    * Actuator: `curl http://localhost:8080/actuator/health`
+    * Prometheus UI: `http://localhost:9090`, queries:
+        * `catalog_item_state` for each item::
+          [open query](http://localhost:9090/graph?g0.expr=avg%20by%20(item_id)%20(catalog_item_state)&g0.tab=0&g0.display_mode=stacked&g0.show_exemplars=0&g0.range_input=15m)
+        * `catalog_item_state` to see dependencies:
+          [open query](http://localhost:9090/graph?g0.expr=avg%20by%20(target_id%2Csource_id)%20(catalog_dependency)&g0.tab=0&g0.display_mode=stacked&g0.show_exemplars=0&g0.range_input=15m)
+    * Grafana UI: `http://localhost:3000`, view the provided dashboards:
+        * Current state - `user-facing` service and dependencies:
+          [open dashboard](http://localhost:3000/d/catalog-item-state-current?var-item_id=user-facing&var-deps=$__all)
+        * State timeline - `user-facing` service and dependencies:
+          [open dashboard](http://localhost:3000/d/catalog-item-state-timeline?var-item_id=user-facing&var-deps=$__all)
