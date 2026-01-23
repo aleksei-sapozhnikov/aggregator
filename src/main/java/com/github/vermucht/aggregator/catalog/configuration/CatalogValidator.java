@@ -1,5 +1,9 @@
-package com.github.vermucht.aggregator.catalog;
+package com.github.vermucht.aggregator.catalog.configuration;
 
+import com.github.vermucht.aggregator.catalog.model.Catalog;
+import com.github.vermucht.aggregator.catalog.model.Dependency;
+import com.github.vermucht.aggregator.catalog.model.Item;
+import com.github.vermucht.aggregator.catalog.model.ItemId;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import java.util.ArrayList;

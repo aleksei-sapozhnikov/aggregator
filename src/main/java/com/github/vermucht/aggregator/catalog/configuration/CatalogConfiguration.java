@@ -1,5 +1,6 @@
-package com.github.vermucht.aggregator.catalog;
+package com.github.vermucht.aggregator.catalog.configuration;
 
+import com.github.vermucht.aggregator.catalog.model.Catalog;
 import jakarta.annotation.Nonnull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

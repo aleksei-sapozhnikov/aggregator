@@ -1,7 +1,7 @@
 package com.github.vermucht.aggregator.health.polling;
 
-import com.github.vermucht.aggregator.catalog.Catalog;
-import com.github.vermucht.aggregator.catalog.ItemId;
+import com.github.vermucht.aggregator.catalog.model.Catalog;
+import com.github.vermucht.aggregator.catalog.model.ItemId;
 import com.github.vermucht.aggregator.health.configuration.HealthCheckConfiguration;
 import com.github.vermucht.aggregator.health.configuration.HealthCheckDefinitionLoader;
 import com.github.vermucht.aggregator.health.configuration.HealthCheckProperties;

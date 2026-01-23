@@ -1,4 +1,4 @@
-package com.github.vermucht.aggregator.catalog;
+package com.github.vermucht.aggregator.catalog.configuration;
 
 import com.github.vermucht.aggregator.utils.DefinitionLoader;
 import jakarta.annotation.Nonnull;

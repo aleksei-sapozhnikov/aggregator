@@ -1,6 +1,6 @@
 package com.github.vermucht.aggregator.health.polling;
 
-import com.github.vermucht.aggregator.catalog.ItemId;
+import com.github.vermucht.aggregator.catalog.model.ItemId;
 import com.github.vermucht.aggregator.health.model.HealthSignal;
 import jakarta.annotation.Nonnull;
 import java.time.Duration;

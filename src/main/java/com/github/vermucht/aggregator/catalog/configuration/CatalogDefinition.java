@@ -1,4 +1,4 @@
-package com.github.vermucht.aggregator.catalog;
+package com.github.vermucht.aggregator.catalog.configuration;
 
 import jakarta.annotation.Nullable;
 import java.util.List;

@@ -1,7 +1,7 @@
 package com.github.vermucht.aggregator.health.state;
 
-import com.github.vermucht.aggregator.catalog.Catalog;
-import com.github.vermucht.aggregator.catalog.ItemId;
+import com.github.vermucht.aggregator.catalog.model.Catalog;
+import com.github.vermucht.aggregator.catalog.model.ItemId;
 import com.github.vermucht.aggregator.health.aggregation.ProductHealthAggregator;
 import com.github.vermucht.aggregator.health.model.HealthStatus;
 import jakarta.annotation.Nonnull;

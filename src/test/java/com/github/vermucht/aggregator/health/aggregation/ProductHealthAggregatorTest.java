@@ -2,10 +2,10 @@ package com.github.vermucht.aggregator.health.aggregation;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.github.vermucht.aggregator.catalog.Catalog;
-import com.github.vermucht.aggregator.catalog.Dependency;
-import com.github.vermucht.aggregator.catalog.Item;
-import com.github.vermucht.aggregator.catalog.ItemId;
+import com.github.vermucht.aggregator.catalog.model.Catalog;
+import com.github.vermucht.aggregator.catalog.model.Dependency;
+import com.github.vermucht.aggregator.catalog.model.Item;
+import com.github.vermucht.aggregator.catalog.model.ItemId;
 import com.github.vermucht.aggregator.health.model.HealthStatus;
 import java.util.List;
 import java.util.Map;

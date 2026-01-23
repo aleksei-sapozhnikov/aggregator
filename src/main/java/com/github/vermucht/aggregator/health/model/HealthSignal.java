@@ -1,6 +1,6 @@
 package com.github.vermucht.aggregator.health.model;
 
-import com.github.vermucht.aggregator.catalog.ItemId;
+import com.github.vermucht.aggregator.catalog.model.ItemId;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import java.time.Instant;

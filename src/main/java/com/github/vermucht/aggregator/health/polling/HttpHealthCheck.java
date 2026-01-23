@@ -3,7 +3,7 @@ package com.github.vermucht.aggregator.health.polling;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.vermucht.aggregator.catalog.ItemId;
+import com.github.vermucht.aggregator.catalog.model.ItemId;
 import com.github.vermucht.aggregator.health.model.HealthSignal;
 import com.github.vermucht.aggregator.health.model.HealthStatus;
 import jakarta.annotation.Nonnull;
