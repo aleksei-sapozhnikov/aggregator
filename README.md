@@ -60,6 +60,13 @@ The aggregator applies the following rules:
 * The parent is `UP` **only if all child services are `UP`**.
 * Products without child services default to `UNKNOWN` to avoid false positives.
 
+## Health check configuration
+
+Health checks are configured separately from the catalog definition. The default configuration file is
+`classpath:health-checks.yaml` and can be overridden via the `health.checks-path` property. Each check entry is mapped
+to a catalog item and defines the HTTP request to run on a polling interval. See
+[health-checks.yaml](src/main/resources/health-checks.yaml) for an annotated example.
+
 ## Limitations & Next Steps
 
 This is a proof-of-concept (PoC). It is designed to demonstrate deterministic health aggregation and its inherent
