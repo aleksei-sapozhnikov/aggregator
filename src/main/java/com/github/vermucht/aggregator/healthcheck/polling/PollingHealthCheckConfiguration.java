@@ -1,11 +1,11 @@
-package com.github.vermucht.aggregator.health.polling;
+package com.github.vermucht.aggregator.healthcheck.polling;
 
 import com.github.vermucht.aggregator.catalog.model.Catalog;
 import com.github.vermucht.aggregator.catalog.model.ItemId;
-import com.github.vermucht.aggregator.health.configuration.HealthCheckConfiguration;
-import com.github.vermucht.aggregator.health.configuration.HealthCheckDefinitionLoader;
-import com.github.vermucht.aggregator.health.configuration.HealthCheckProperties;
-import com.github.vermucht.aggregator.health.configuration.HttpHealthCheckConfiguration;
+import com.github.vermucht.aggregator.healthcheck.configuration.HealthCheckConfiguration;
+import com.github.vermucht.aggregator.healthcheck.configuration.HealthCheckDefinitionLoader;
+import com.github.vermucht.aggregator.healthcheck.configuration.HealthCheckProperties;
+import com.github.vermucht.aggregator.healthcheck.configuration.HttpHealthCheckConfiguration;
 import jakarta.annotation.Nonnull;
 import java.net.URI;
 import java.time.Duration;

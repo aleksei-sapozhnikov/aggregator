@@ -1,4 +1,4 @@
-package com.github.vermucht.aggregator.health.configuration;
+package com.github.vermucht.aggregator.healthcheck.configuration;
 
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;

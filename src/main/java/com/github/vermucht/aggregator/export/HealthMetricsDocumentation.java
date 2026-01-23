@@ -1,4 +1,4 @@
-package com.github.vermucht.aggregator.health.metrics;
+package com.github.vermucht.aggregator.export;
 
 /**
  * Documents the Prometheus metrics contract for health state export.

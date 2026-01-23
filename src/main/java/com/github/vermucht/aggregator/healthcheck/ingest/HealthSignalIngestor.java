@@ -1,6 +1,6 @@
-package com.github.vermucht.aggregator.health.ingest;
+package com.github.vermucht.aggregator.healthcheck.ingest;
 
-import com.github.vermucht.aggregator.health.model.HealthSignal;
+import com.github.vermucht.aggregator.healthcheck.model.HealthSignal;
 import jakarta.annotation.Nonnull;
 
 /** Consumes emitted health signals from polling checks. */

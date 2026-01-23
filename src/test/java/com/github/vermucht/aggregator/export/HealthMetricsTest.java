@@ -1,14 +1,14 @@
-package com.github.vermucht.aggregator.health.metrics;
+package com.github.vermucht.aggregator.export;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.github.vermucht.aggregator.aggregation.HealthStateStore;
+import com.github.vermucht.aggregator.aggregation.ProductHealthAggregator;
 import com.github.vermucht.aggregator.catalog.model.Catalog;
 import com.github.vermucht.aggregator.catalog.model.Dependency;
 import com.github.vermucht.aggregator.catalog.model.Item;
 import com.github.vermucht.aggregator.catalog.model.ItemId;
-import com.github.vermucht.aggregator.health.aggregation.ProductHealthAggregator;
-import com.github.vermucht.aggregator.health.model.HealthStatus;
-import com.github.vermucht.aggregator.health.state.HealthStateStore;
+import com.github.vermucht.aggregator.healthcheck.model.HealthStatus;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.Collection;

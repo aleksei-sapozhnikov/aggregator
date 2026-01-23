@@ -1,8 +1,8 @@
-package com.github.vermucht.aggregator.health.polling;
+package com.github.vermucht.aggregator.healthcheck.polling;
 
-import com.github.vermucht.aggregator.health.ingest.HealthSignalIngestor;
-import com.github.vermucht.aggregator.health.model.HealthSignal;
-import com.github.vermucht.aggregator.health.state.HealthStateStore;
+import com.github.vermucht.aggregator.aggregation.HealthStateStore;
+import com.github.vermucht.aggregator.healthcheck.ingest.HealthSignalIngestor;
+import com.github.vermucht.aggregator.healthcheck.model.HealthSignal;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.PostConstruct;
 import java.util.List;

@@ -1,4 +1,4 @@
-package com.github.vermucht.aggregator.health.configuration;
+package com.github.vermucht.aggregator.healthcheck.configuration;
 
 /** Enumerates the supported health check configuration types. */
 public enum HealthCheckType {

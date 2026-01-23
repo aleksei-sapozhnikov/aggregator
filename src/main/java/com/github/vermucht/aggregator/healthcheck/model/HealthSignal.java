@@ -1,4 +1,4 @@
-package com.github.vermucht.aggregator.health.model;
+package com.github.vermucht.aggregator.healthcheck.model;
 
 import com.github.vermucht.aggregator.catalog.model.ItemId;
 import jakarta.annotation.Nonnull;

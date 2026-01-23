@@ -1,4 +1,4 @@
-package com.github.vermucht.aggregator.health.model;
+package com.github.vermucht.aggregator.healthcheck.model;
 
 /** Enumerates possible health check outcomes. */
 public enum HealthStatus {

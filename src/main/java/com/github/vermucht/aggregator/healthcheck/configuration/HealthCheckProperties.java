@@ -1,4 +1,4 @@
-package com.github.vermucht.aggregator.health.configuration;
+package com.github.vermucht.aggregator.healthcheck.configuration;
 
 import java.time.Duration;
 import org.springframework.boot.context.properties.ConfigurationProperties;

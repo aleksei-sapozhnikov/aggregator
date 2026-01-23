@@ -1,7 +1,7 @@
-package com.github.vermucht.aggregator.health.polling;
+package com.github.vermucht.aggregator.healthcheck.polling;
 
 import com.github.vermucht.aggregator.catalog.model.ItemId;
-import com.github.vermucht.aggregator.health.model.HealthSignal;
+import com.github.vermucht.aggregator.healthcheck.model.HealthSignal;
 import jakarta.annotation.Nonnull;
 import java.time.Duration;
 

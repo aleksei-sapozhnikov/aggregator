@@ -1,10 +1,10 @@
-package com.github.vermucht.aggregator.health.metrics;
+package com.github.vermucht.aggregator.export;
 
+import com.github.vermucht.aggregator.aggregation.HealthStateStore;
 import com.github.vermucht.aggregator.catalog.model.Catalog;
 import com.github.vermucht.aggregator.catalog.model.Dependency;
 import com.github.vermucht.aggregator.catalog.model.Item;
 import com.github.vermucht.aggregator.catalog.model.ItemId;
-import com.github.vermucht.aggregator.health.state.HealthStateStore;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.annotation.Nonnull;

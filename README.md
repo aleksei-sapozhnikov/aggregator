@@ -98,7 +98,7 @@ catalog_dependency
 ```
 
 Metric names, labels, and semantics are documented in
-[HealthMetricsDocumentation.java](src/main/java/com/github/vermucht/aggregator/health/metrics/HealthMetricsDocumentation.java)
+[HealthMetricsDocumentation.java](src/main/java/com/github/vermucht/aggregator/export/HealthMetricsDocumentation.java)
 
 See [Screenshots](#screenshots) for images.
 

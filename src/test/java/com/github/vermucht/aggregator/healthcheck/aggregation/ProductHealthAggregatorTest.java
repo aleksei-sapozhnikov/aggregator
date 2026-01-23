@@ -1,12 +1,13 @@
-package com.github.vermucht.aggregator.health.aggregation;
+package com.github.vermucht.aggregator.healthcheck.aggregation;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.github.vermucht.aggregator.aggregation.ProductHealthAggregator;
 import com.github.vermucht.aggregator.catalog.model.Catalog;
 import com.github.vermucht.aggregator.catalog.model.Dependency;
 import com.github.vermucht.aggregator.catalog.model.Item;
 import com.github.vermucht.aggregator.catalog.model.ItemId;
-import com.github.vermucht.aggregator.health.model.HealthStatus;
+import com.github.vermucht.aggregator.healthcheck.model.HealthStatus;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;

@@ -1,4 +1,4 @@
-package com.github.vermucht.aggregator.health.configuration;
+package com.github.vermucht.aggregator.healthcheck.configuration;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
