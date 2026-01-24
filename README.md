@@ -13,14 +13,15 @@ Major runtime components and responsibilities:
 
 * **Aggregator service**: main Spring Boot application that loads the catalog, executes health checks, applies
   aggregation rules, and exposes health and metrics endpoints. Submodules:
-    * **Catalog loader**: reads the static catalog definition (`catalog.yaml` / `catalog.json`) and builds the in-memory
-      dependency graph used for aggregation.
-  * **Health check runner**: executes configured checks (for example, HTTP checks) on a schedule and records raw health
-    per catalog item.
-    * **Health aggregation rules**: deterministic rules that roll up child service states into product and service
-      states.
-    * **Metrics / Actuator exporter**: publishes raw and aggregated states (including dependencies) via Spring Boot
-      Actuator Prometheus metrics.
+* **Catalog loader**: reads the static catalog definition (`catalog.yaml` / `catalog.json`) and builds the in-memory
+  dependency graph used for aggregation.
+* **Health check runner**: executes configured checks (for example, HTTP checks) on a schedule and records raw
+  health
+  per catalog item.
+* **Health aggregation rules**: deterministic rules that roll up child service states into product and service
+  states.
+* **Metrics / Actuator exporter**: publishes raw and aggregated states (including dependencies) via Spring Boot
+  Actuator Prometheus metrics.
 * **Dummy services**: local HTTP services that simulate external dependencies for development and testing. They are
   written in different languages (Java, JavaScript, Python). Each service exposes a `/health` endpoint and allows
   changing its state via `/set-health/{up|down}`.
