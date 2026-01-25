@@ -47,7 +47,7 @@ The catalog is a storage-agnostic domain model describing items and their relati
 The application loads a static catalog definition from the path configured by `catalog.path` (defaults to
 `classpath:catalog.yaml`). Both YAML and JSON formats are supported.
 
-See [catalog.yaml](src/main/resources/catalog.yaml) and [catalog.json](src/main/resources/catalog.json) for examples.
+See [demo/catalog.yaml](src/main/resources/demo/catalog.yaml) for example.
 
 ## Health aggregation
 
@@ -66,7 +66,7 @@ The aggregator applies the following rules:
 Health checks are configured separately from the catalog definition. The default configuration file is
 `classpath:health-checks.yaml` and can be overridden via the `health.checks-path` property. Each check entry is mapped
 to a catalog item and defines the HTTP request to run on a polling interval. See
-[health-checks.yaml](src/main/resources/health-checks.yaml) for an annotated example.
+[demo/health-checks.yaml](src/main/resources/demo/health-checks.yaml) for an annotated example.
 
 ## Limitations & Next Steps
 

@@ -1,24 +1,3 @@
 items:
-  - id: dummy-java
-    name: Dummy Java service
-    type: service
-  - id: dummy-javascript
-    name: Dummy JavaScript gateway
-    type: gateway
-  - id: dummy-python
-    name: Dummy Python database
-    type: database
-  - id: user-facing
-    name: User facing service
-    type: product
 
 dependencies:
-  - sourceId: user-facing
-    targetId: dummy-java
-    type: depends_on
-  - sourceId: user-facing
-    targetId: dummy-javascript
-    type: relies_on
-  - sourceId: user-facing
-    targetId: dummy-python
-    type: believes_in

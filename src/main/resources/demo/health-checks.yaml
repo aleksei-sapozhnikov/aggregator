@@ -1,0 +1,22 @@
+# Health checks for demo environment services
+checks:
+  - type: http
+    checkId: payments-api-check
+    catalogItemId: payments-api
+    url: http://dummy-java:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: edge-gateway-check
+    catalogItemId: edge-gateway
+    url: http://dummy-javascript:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: customer-db-check
+    catalogItemId: customer-db
+    url: http://dummy-python:8080/health
+    method: GET
+    timeout: PT2S

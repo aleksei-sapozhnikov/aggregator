@@ -1,0 +1,50 @@
+items:
+  # Underlying demo services (implemented by existing dummy containers)
+  - id: payments-api
+    name: Payments API
+    type: service
+  - id: edge-gateway
+    name: Edge Gateway
+    type: gateway
+  - id: customer-db
+    name: Customer Database
+    type: database
+
+  # Product layer
+  - id: checkout
+    name: Checkout
+    type: product
+  - id: merchant-portal
+    name: Merchant Portal
+    type: product
+  - id: commerce-suite
+    name: Commerce Suite
+    type: product
+
+dependencies:
+  # Checkout
+  - sourceId: checkout
+    targetId: payments-api
+    type: depends_on
+  - sourceId: checkout
+    targetId: edge-gateway
+    type: depends_on
+  - sourceId: checkout
+    targetId: customer-db
+    type: depends_on
+
+  # Merchant Portal
+  - sourceId: merchant-portal
+    targetId: edge-gateway
+    type: depends_on
+  - sourceId: merchant-portal
+    targetId: customer-db
+    type: depends_on
+
+  # Top-level suite depends on both products
+  - sourceId: commerce-suite
+    targetId: checkout
+    type: includes
+  - sourceId: commerce-suite
+    targetId: merchant-portal
+    type: includes
