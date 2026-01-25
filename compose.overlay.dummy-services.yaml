@@ -1,0 +1,12 @@
+services:
+  dummy-java:
+    build:
+      context: dummy-services/java
+
+  dummy-python:
+    build:
+      context: dummy-services/python
+
+  dummy-javascript:
+    build:
+      context: dummy-services/javascript

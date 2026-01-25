@@ -1,0 +1,12 @@
+services:
+  dummy-java:
+    ports:
+      - "8081:8080"
+
+  dummy-python:
+    ports:
+      - "8082:8080"
+
+  dummy-javascript:
+    ports:
+      - "8083:8080"
