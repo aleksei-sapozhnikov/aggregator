@@ -13,4 +13,3 @@ services:
       GF_AUTH_BASIC_ENABLED: "false"
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_USERS_ANONYMOUS_DEVICE_PREFERENCES: "true"
-      SPRING_PROFILES_ACTIVE: demo
