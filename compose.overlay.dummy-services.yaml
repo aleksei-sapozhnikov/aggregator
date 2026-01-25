@@ -1,12 +1,12 @@
 services:
-  dummy-java:
+  payments-api:
     build:
       context: dummy-services/java
 
-  dummy-python:
+  edge-gateway:
     build:
       context: dummy-services/python
 
-  dummy-javascript:
+  customer-db:
     build:
       context: dummy-services/javascript
