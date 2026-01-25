@@ -42,6 +42,11 @@ LOCAL_GRAFANA_DATA_DIR := ./.temp/grafana/data
 
 help:
 	@echo "Targets:"
+	@echo "  make up                  Up local dev stack (ports exposed)"
+	@echo "  make down                Down local dev stack (remove orphans)"
+	@echo "  make clean               Down local dev stack + remove volumes"
+	@echo "  make redeploy            Up local dev stack (rebuild)"
+	@echo ""
 	@echo "  make local-up            Up local dev stack (ports exposed)"
 	@echo "  make local-down          Down local dev stack (remove orphans)"
 	@echo "  make local-clean         Down local dev stack + remove volumes"
@@ -73,6 +78,11 @@ else
 endif
 
 # ---- local ----
+up: local-up
+down: local-down
+clean: local-clean
+redeploy: local-redeploy
+
 local-up: info prepare-dirs
 	$(COMPOSE) $(LOCAL_STACK) up --detach
 
