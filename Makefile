@@ -1,17 +1,14 @@
 # ---- Compose files ----
 BASE := -f compose.yaml
+LOCAL := -f compose.local.yaml
+DEMO := -f compose.demo.yaml
+LOCAL_PORTS := -f compose.overlay.local-ports.yaml
+DUMMY_SERVICES := -f compose.overlay.dummy-services.yaml
+DUMMY_SERVICE_PORTS := -f compose.overlay.dummy-services-local-ports.yaml
 
-LOCAL_STACK := $(BASE) -f compose.local.yaml -f compose.overlay.local-ports.yaml
-LOCAL_DEMO_STACK := $(BASE) \
-  -f compose.local.yaml \
-  -f compose.overlay.local-demo.yaml \
-  -f compose.overlay.dummy-services.yaml \
-  -f compose.overlay.local-ports.yaml \
-  -f compose.overlay.local-ports.dummy.yaml
-
-DEMO_STACK := $(BASE) \
-	-f compose.demo.yaml\
-	-f compose.overlay.dummy-services.yaml
+LOCAL_STACK := $(BASE) $(LOCAL) $(LOCAL_PORTS)
+LOCAL_DEMO_STACK := $(BASE) $(LOCAL) $(DUMMY_SERVICES) $(LOCAL_PORTS) $(DUMMY_SERVICE_PORTS)
+DEMO_STACK := $(BASE) $(DEMO) $(DUMMY_SERVICES)
 
 # ---- Compose command (docker/podman autodetect; override via COMPOSE=...) ----
 COMPOSE ?=
@@ -38,6 +35,7 @@ LOCAL_PROMETHEUS_DATA_DIR := ./.temp/prometheus/data
 LOCAL_GRAFANA_DATA_DIR := ./.temp/grafana/data
 
 .PHONY: help info prepare-dirs \
+        up down clean redeploy \
         local-up local-down local-clean local-redeploy \
         local-demo-up local-demo-down local-demo-clean local-demo-redeploy \
         demo-up demo-down demo-clean demo-redeploy
