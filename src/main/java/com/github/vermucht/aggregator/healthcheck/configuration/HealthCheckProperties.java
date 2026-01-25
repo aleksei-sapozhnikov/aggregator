@@ -7,7 +7,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties("health")
 public class HealthCheckProperties {
   private Duration pollInterval = Duration.ofSeconds(30);
-  private String checksPath = "classpath:health-checks.yaml";
+  private String checksPath = "";
 
   /** Returns the default polling interval for checks. */
   public Duration getPollInterval() {

@@ -1,0 +1,12 @@
+services:
+  aggregator:
+    ports:
+      - "8080:8080"
+
+  grafana:
+    ports:
+      - "3000:3000"
+
+  prometheus:
+    ports:
+      - "9090:9090"

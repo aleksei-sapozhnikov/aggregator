@@ -26,7 +26,7 @@ public class CatalogConfiguration {
       @Nonnull ResourceLoader resourceLoader,
       @Nonnull CatalogLoader catalogLoader,
       @Nonnull CatalogValidator catalogValidator,
-      @Nonnull @Value("${catalog.path:classpath:catalog.yaml}") String catalogPath) {
+      @Nonnull @Value("${catalog.path}") String catalogPath) {
     Resource resource = resourceLoader.getResource(catalogPath);
     if (!resource.exists()) {
       throw new IllegalStateException("Catalog file not found at " + catalogPath);

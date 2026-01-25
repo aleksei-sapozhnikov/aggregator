@@ -106,7 +106,7 @@ public class CatalogValidator {
   @Nonnull
   private String requireText(
       @Nullable String value, @Nonnull String field, @Nonnull String context) {
-    if (value == null || value.isBlank()) {
+    if (value == null) {
       throw new IllegalStateException("Catalog " + context + " must include " + field);
     }
     return value;

@@ -6,11 +6,10 @@ management:
     web:
       exposure:
         include:
-          - health
           - prometheus
 
 catalog:
-  path: classpath:catalog.yaml
+  path: classpath:empty/catalog.yaml
 
 health:
-  checks-path: classpath:health-checks.yaml
+  checks-path: classpath:empty/health-checks.yaml

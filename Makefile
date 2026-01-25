@@ -1,21 +1,18 @@
-# Environment: local | dev | qa | prod
-ENV ?= local
+# ---- Compose files ----
+BASE := -f compose.yaml
+LOCAL := -f compose.local.yaml
+LOCAL_DEMO := -f compose.local-demo.yaml
+DEMO := -f compose.demo.yaml
+LOCAL_PORTS := -f compose.overlay.local-ports.yaml
+DUMMY_SERVICES := -f compose.overlay.dummy-services.yaml
+DUMMY_SERVICE_PORTS := -f compose.overlay.dummy-services-local-ports.yaml
 
-# Prometheus data storage
-PROMETHEUS_DATA_DIR := ./.temp/prometheus/data
+LOCAL_STACK := $(BASE) $(LOCAL) $(LOCAL_PORTS)
+LOCAL_DEMO_STACK := $(BASE) $(LOCAL_DEMO) $(DUMMY_SERVICES) $(LOCAL_PORTS) $(DUMMY_SERVICE_PORTS)
+DEMO_STACK := $(BASE) $(DEMO) $(DUMMY_SERVICES)
 
-# Grafana data storage
-GRAFANA_DATA_DIR := ./.temp/grafana/data
-
-# Compose command (override if needed: make up COMPOSE="docker compose")
+# ---- Compose command (docker/podman autodetect; override via COMPOSE=...) ----
 COMPOSE ?=
-
-# Compose files
-BASE_COMPOSE_FILE := compose.yaml
-OVERRIDE_FILE :=
-COMPOSE_FILES :=
-
-# ---- Runtime detection (docker/podman) ----
 ifeq ($(OS),Windows_NT)
 DOCKER := $(shell powershell -NoProfile -Command "Get-Command docker -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source")
 PODMAN := $(shell powershell -NoProfile -Command "Get-Command podman -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source")
@@ -25,85 +22,102 @@ PODMAN := $(shell command -v podman 2>/dev/null)
 endif
 
 ifeq ($(COMPOSE),)
-ifeq ($(DOCKER),)
-ifeq ($(PODMAN),)
-$(error Neither docker nor podman is installed. Please install one of them.)
-else
-COMPOSE := podman compose
-endif
-else
-COMPOSE := docker compose
-endif
+  ifneq ($(DOCKER),)
+    COMPOSE := docker compose
+  else ifneq ($(PODMAN),)
+    COMPOSE := podman compose
+  else
+    $(error Neither docker nor podman is installed. Please install one of them.)
+  endif
 endif
 
-# ---- ENV -> optional override file ----
-ifeq ($(ENV),local)
-OVERRIDE_FILE := compose.local.yaml
-else ifeq ($(ENV),dev)
-OVERRIDE_FILE := compose.dev.yaml
-else ifeq ($(ENV),qa)
-OVERRIDE_FILE := compose.qa.yaml
-else ifeq ($(ENV),prod)
-OVERRIDE_FILE := compose.prod.yaml
-else
-$(error Unknown ENV '$(ENV)'. Use one of: local, dev, qa, prod)
-endif
+# ---- Local-only data dirs (needed by compose.local.yaml bind mounts) ----
+LOCAL_PROMETHEUS_DATA_DIR := ./.temp/prometheus/data
+LOCAL_GRAFANA_DATA_DIR := ./.temp/grafana/data
 
-# Build compose file list (include override only if it exists)
-OVERRIDE_EXISTS := $(wildcard $(OVERRIDE_FILE))
-COMPOSE_FILES := -f $(BASE_COMPOSE_FILE) $(if $(OVERRIDE_EXISTS),-f $(OVERRIDE_FILE),)
-
-# ---- Targets ----
-.PHONY: help info prepare-dirs build up down clean restart redeploy force-redeploy
-.NOTPARALLEL: restart
+.PHONY: help info prepare-dirs \
+        up down clean redeploy \
+        local-up local-down local-clean local-redeploy \
+        local-demo-up local-demo-down local-demo-clean local-demo-redeploy \
+        demo-up demo-down demo-clean demo-redeploy
 
 help:
 	@echo "Targets:"
-	@echo "  make info                 Show resolved environment and compose settings"
-	@echo "  make build                Build images"
-	@echo "  make up                   Start stack (no rebuild)"
-	@echo "  make redeploy             Rebuild changed images and recreate updated containers"
-	@echo "  make force-redeploy       Rebuild and force recreate all containers"
-	@echo "  make down                 Stop stack (keep volumes)"
-	@echo "  make clean                Stop stack and remove volumes"
-	@echo "  make restart              Restart stack (down + up)"
+	@echo "  make up                  Up local dev stack (ports exposed)"
+	@echo "  make down                Down local dev stack (remove orphans)"
+	@echo "  make clean               Down local dev stack + remove volumes"
+	@echo "  make redeploy            Up local dev stack (rebuild)"
+	@echo ""
+	@echo "  make local-up            Up local dev stack (ports exposed)"
+	@echo "  make local-down          Down local dev stack (remove orphans)"
+	@echo "  make local-clean         Down local dev stack + remove volumes"
+	@echo "  make local-redeploy      Up local dev stack (rebuild)"
+	@echo ""
+	@echo "  make local-demo-up       Up local demo stack (demo profile + dummy + ports)"
+	@echo "  make local-demo-down     Down local demo stack (remove orphans)"
+	@echo "  make local-demo-clean    Down local demo stack + remove volumes"
+	@echo "  make local-demo-redeploy Up local demo stack (rebuild)"
+	@echo ""
+	@echo "  make demo-up             Up demo stack (dummy enabled, no ports by default)"
+	@echo "  make demo-down           Down demo stack (remove orphans)"
+	@echo "  make demo-clean          Down demo stack + remove volumes"
+	@echo "  make demo-redeploy       Up demo stack (rebuild)"
 	@echo ""
 	@echo "Variables:"
-	@echo "  ENV=local|dev|qa|prod      Select compose override (if file exists)"
 	@echo "  COMPOSE=\"docker compose\"  Override compose command"
-	@echo ""
-	@echo "Examples:"
-	@echo "  make redeploy ENV=local"
-	@echo "  make up COMPOSE=\"podman compose\""
 
 info:
-	@echo "ENV=$(ENV)"
 	@echo "Using compose command: $(COMPOSE)"
-	@echo "Compose files: $(COMPOSE_FILES)"
 
 prepare-dirs:
 ifeq ($(OS),Windows_NT)
-	@powershell -NoProfile -Command "New-Item -ItemType Directory -Force -Path '$(PROMETHEUS_DATA_DIR)' | Out-Null"
-	@powershell -NoProfile -Command "New-Item -ItemType Directory -Force -Path '$(GRAFANA_DATA_DIR)' | Out-Null"
+	@powershell -NoProfile -Command "New-Item -ItemType Directory -Force -Path '$(LOCAL_PROMETHEUS_DATA_DIR)' | Out-Null"
+	@powershell -NoProfile -Command "New-Item -ItemType Directory -Force -Path '$(LOCAL_GRAFANA_DATA_DIR)' | Out-Null"
 else
-	@mkdir -p $(PROMETHEUS_DATA_DIR)
-	@mkdir -p $(GRAFANA_DATA_DIR)
+	@mkdir -p $(LOCAL_PROMETHEUS_DATA_DIR)
+	@mkdir -p $(LOCAL_GRAFANA_DATA_DIR)
 endif
 
-build: info prepare-dirs
-	$(COMPOSE) $(COMPOSE_FILES) build
+# ---- local ----
+up: local-demo-up
+down: local-demo-down
+clean: local-demo-clean
+redeploy: local-demo-redeploy
 
-up: info prepare-dirs
-	$(COMPOSE) $(COMPOSE_FILES) up --detach
+local-up: info prepare-dirs
+	$(COMPOSE) $(LOCAL_STACK) up --detach
 
-redeploy: info prepare-dirs
-	$(COMPOSE) $(COMPOSE_FILES) up --detach --build
+local-redeploy: info prepare-dirs
+	$(COMPOSE) $(LOCAL_STACK) up --detach --build
 
-force-redeploy: info prepare-dirs
-	$(COMPOSE) $(COMPOSE_FILES) up --detach --build --force-recreate
+local-down: info
+	$(COMPOSE) $(LOCAL_STACK) down --remove-orphans
 
-down: info
-	$(COMPOSE) $(COMPOSE_FILES) down
+local-clean: info
+	$(COMPOSE) $(LOCAL_STACK) down --remove-orphans --volumes
 
-clean: info
-	$(COMPOSE) $(COMPOSE_FILES) down --remove-orphans --volumes
+# ---- local-demo ----
+local-demo-up: info prepare-dirs
+	$(COMPOSE) $(LOCAL_DEMO_STACK) up --detach
+
+local-demo-redeploy: info prepare-dirs
+	$(COMPOSE) $(LOCAL_DEMO_STACK) up --detach --build
+
+local-demo-down: info
+	$(COMPOSE) $(LOCAL_DEMO_STACK) down --remove-orphans
+
+local-demo-clean: info
+	$(COMPOSE) $(LOCAL_DEMO_STACK) down --remove-orphans --volumes
+
+# ---- demo ----
+demo-up: info
+	$(COMPOSE) $(DEMO_STACK) up --detach
+
+demo-redeploy: info
+	$(COMPOSE) $(DEMO_STACK) up --detach --build
+
+demo-down: info
+	$(COMPOSE) $(DEMO_STACK) down --remove-orphans
+
+demo-clean: info
+	$(COMPOSE) $(DEMO_STACK) down --remove-orphans --volumes
