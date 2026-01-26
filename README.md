@@ -133,7 +133,22 @@ Each dummy service exposes:
 make up
 ```
 
-## Using Proof of Concept for demonstration
+## Cloud Aggregator demo on AWS server
+
+Available on EC2 instance
+
+* https://ec2-63-180-71-231.eu-central-1.compute.amazonaws.com
+
+Example dashboards:
+
+* [Dashboard - Current state](https://ec2-63-180-71-231.eu-central-1.compute.amazonaws.com/d/catalog-item-state-current/catalog-item-state-current?var-item_id=merchant-portal)
+* [Dashboard - State timeline](https://ec2-63-180-71-231.eu-central-1.compute.amazonaws.com/d/catalog-item-state-timeline/catalog-item-state-timeline?var-item_id=merchant-portal)
+
+**Note:** A TLS certificate browser warning is expected because the certificate is self-signed.
+
+For additional setup info, see  [README](deploy/demo/README.md).
+
+## Using Local Demo
 
 This section describes the minimal end-to-end flow to run the PoC and reproduce the screenshots shown below.
 
@@ -206,10 +221,6 @@ This section describes the minimal end-to-end flow to run the PoC and reproduce 
       [open dashboard](http://localhost:3000/d/catalog-item-state-current?var-item_id=user-facing&var-deps=$__all)
     * Timeline dashboard:
       [open dashboard](http://localhost:3000/d/catalog-item-state-timeline?var-item_id=user-facing&var-deps=$__all)
-
-## Starting remote Aggregator demo on AWS server
-
-See separate [README](deploy/demo/README.md) on that.
 
 ### Screenshots
 
