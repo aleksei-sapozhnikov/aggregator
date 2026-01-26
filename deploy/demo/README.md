@@ -7,14 +7,20 @@ The result is a self-contained demo environment accessible over HTTPS.
 
 ---
 
-## Prerequisites
+## Prerequisites and configuration
 
-* AWS EC2 instance with **Amazon Linux 2023**
-* Public IPv4 address assigned
-* Security Group allows inbound traffic on:
+- AWS EC2 instance
+    - Instance type:
+      [t3.micro](https://aws.amazon.com/ec2/instance-types/t3/)
+    - Storage:
+      [General purpose SSD gp3](https://docs.aws.amazon.com/ebs/latest/userguide/general-purpose.html#gp3-ebs-volume-type)
+    - Operating system: Amazon Linux 2023
 
-    * 22 (SSH)
-    * 443 (HTTPS)
+- Public IPv4 address assigned
+
+- Security Group allows inbound traffic on:
+    - 22 (SSH)
+    - 443 (HTTPS)
 
 All commands below are executed as the `ec2-user` unless stated otherwise.
 
