@@ -7,6 +7,21 @@ The core idea is that the health state of an item composed of other items is der
 of its dependencies. For example, a product consists of several services, and the overall product state is calculated
 from the states of those services.
 
+## Cloud Demo on AWS
+
+Available on EC2 public instance
+
+* https://ec2-3-76-118-58.eu-central-1.compute.amazonaws.com
+
+Example dashboards:
+
+* [Dashboard - Current state](https://ec2-3-76-118-58.eu-central-1.compute.amazonaws.com/d/catalog-item-state-current/catalog-item-state-current?var-item_id=merchant-portal)
+* [Dashboard - State timeline](https://ec2-3-76-118-58.eu-central-1.compute.amazonaws.com/d/catalog-item-state-timeline/catalog-item-state-timeline?var-item_id=merchant-portal)
+
+**Note:** A TLS certificate browser warning is expected because the certificate is self-signed.
+
+For additional setup info, see  [README](deploy/demo/README.md).
+
 ## Architecture / Components
 
 Major runtime components and responsibilities:
@@ -132,21 +147,6 @@ Each dummy service exposes:
 ```bash
 make up
 ```
-
-## Cloud Aggregator demo on AWS server
-
-Available on EC2 instance
-
-* https://ec2-63-180-71-231.eu-central-1.compute.amazonaws.com
-
-Example dashboards:
-
-* [Dashboard - Current state](https://ec2-63-180-71-231.eu-central-1.compute.amazonaws.com/d/catalog-item-state-current/catalog-item-state-current?var-item_id=merchant-portal)
-* [Dashboard - State timeline](https://ec2-63-180-71-231.eu-central-1.compute.amazonaws.com/d/catalog-item-state-timeline/catalog-item-state-timeline?var-item_id=merchant-portal)
-
-**Note:** A TLS certificate browser warning is expected because the certificate is self-signed.
-
-For additional setup info, see  [README](deploy/demo/README.md).
 
 ## Using Local Demo
 
