@@ -207,6 +207,10 @@ This section describes the minimal end-to-end flow to run the PoC and reproduce 
     * Timeline dashboard:
       [open dashboard](http://localhost:3000/d/catalog-item-state-timeline?var-item_id=user-facing&var-deps=$__all)
 
+## Starting remote Aggregator demo on AWS server
+
+See separate [README](deploy/demo/README.md) on that.
+
 ### Screenshots
 
 #### Prometheus - Catalog Dependency Graph
