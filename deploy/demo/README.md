@@ -14,7 +14,9 @@ The result is a self-contained demo environment accessible over HTTPS.
       [t3.micro](https://aws.amazon.com/ec2/instance-types/t3/)
     - Storage:
       [General purpose SSD gp3](https://docs.aws.amazon.com/ebs/latest/userguide/general-purpose.html#gp3-ebs-volume-type)
-    - Operating system: Amazon Linux 2023
+        - Operating system:
+          Amazon Linux 2023 kernel-6.1 AMI
+
 
 - Public IPv4 address assigned
 
@@ -67,7 +69,7 @@ References:
 * [https://github.com/amazonlinux/amazon-linux-2023/issues/1032](https://github.com/amazonlinux/amazon-linux-2023/issues/1032)
 
 ```bash
-DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
+DOCKER_CONFIG=$HOME/.docker
 mkdir -p $DOCKER_CONFIG/cli-plugins
 
 curl -SL https://github.com/docker/compose/releases/download/v2.39.4/docker-compose-$(uname -s)-$(uname -m) \
@@ -86,16 +88,10 @@ docker compose version
 
 ## 4. Install required tools
 
-### Git
+### Git & make
 
 ```bash
-sudo dnf install git -y
-```
-
-### Make
-
-```bash
-sudo dnf install make -y
+sudo dnf install git make -y
 ```
 
 ---
@@ -122,9 +118,8 @@ sudo chown -R 472:472 $HOME/aggregator-demo/data/grafana
 ```bash
 REPO_URL=https://github.com/aleksei-sapozhnikov/aggregator.git
 
-cd $HOME/aggregator-demo
-git clone $REPO_URL repo
-cd repo
+git clone $REPO_URL $HOME/aggregator-demo/repo
+cd $HOME/aggregator-demo/repo
 ```
 
 ---
@@ -134,16 +129,18 @@ cd repo
 Certificates are required for HTTPS access to the demo.
 
 ```bash
-mkdir -p deploy/certs
+mkdir -p cd $HOME/aggregator-demo/deploy/certs
 ```
 
 Set site IP and DNS name and generate certificates:
 
 ```bash
-SITE_IP=63.180.71.231
-SITE_ADDRESS=ec2-63-180-71-231.eu-central-1.compute.amazonaws.com
+# Set your values here
+SITE_IP=0.0.0.0
+SITE_ADDRESS=ec2-0-0-0-0.eu-central-1.compute.amazonaws.com
 
-CERTS_DIR=$HOME/aggregator-demo/repo/deploy/certs
+CERTS_DIR=$HOME/aggregator-demo/deploy/certs
+mkdir -p $CERTS_DIR
 
 openssl req -x509 -newkey rsa:2048 -sha256 -days 3650 -nodes \
   -keyout $CERTS_DIR/key.pem \
@@ -155,12 +152,18 @@ openssl req -x509 -newkey rsa:2048 -sha256 -days 3650 -nodes \
 Verify Subject Alternative Names:
 
 ```bash
-openssl x509 -in deploy/certs/cert.pem -noout -text | grep -A2 "Subject Alternative Name"
+openssl x509 -in $HOME/aggregator-demo/deploy/certs/cert.pem -noout -text | grep -A2 "Subject Alternative Name"
+```
+
+## 9. Verify HTTPS access locally
+
+```bash
+curl -vk https://127.0.0.1/
 ```
 
 ---
 
-## 8. Run the demo stack
+## 9. Run the demo stack
 
 From the repository root:
 
@@ -179,18 +182,12 @@ This starts:
 
 ---
 
-## 9. Verify HTTPS access
+## 10. Verify HTTPS access from browser
 
-Local TLS check:
-
-```bash
-curl -vk https://127.0.0.1/
-```
-
-Browser access:
+Replace with your actual instance URL
 
 ```
-https://<EC2_PUBLIC_DNS_NAME>/
+https://ec2-0-0-0-0.eu-central-1.compute.amazonaws.com
 ```
 
 A certificate warning is expected because the certificate is self-signed.
