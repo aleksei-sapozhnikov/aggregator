@@ -14,9 +14,8 @@ The result is a self-contained demo environment accessible over HTTPS.
       [t3.micro](https://aws.amazon.com/ec2/instance-types/t3/)
     - Storage:
       [General purpose SSD gp3](https://docs.aws.amazon.com/ebs/latest/userguide/general-purpose.html#gp3-ebs-volume-type)
-        - Operating system:
-          Amazon Linux 2023 kernel-6.1 AMI
-
+  - Operating system:
+    Amazon Linux 2023 (kernel 6.1)
 
 - Public IPv4 address assigned
 
@@ -65,8 +64,8 @@ Amazon Linux 2023 does not ship a recent Docker Compose plugin by default. Insta
 
 References:
 
-* [https://docs.docker.com/compose/install/linux/#install-the-plugin-manually](https://docs.docker.com/compose/install/linux/#install-the-plugin-manually)
-* [https://github.com/amazonlinux/amazon-linux-2023/issues/1032](https://github.com/amazonlinux/amazon-linux-2023/issues/1032)
+- https://docs.docker.com/compose/install/linux/#install-the-plugin-manually
+- https://github.com/amazonlinux/amazon-linux-2023/issues/1032
 
 ```bash
 DOCKER_CONFIG=$HOME/.docker
@@ -88,7 +87,7 @@ docker compose version
 
 ## 4. Install required tools
 
-### Git & make
+### Git and make
 
 ```bash
 sudo dnf install git make -y
@@ -155,7 +154,9 @@ Verify Subject Alternative Names:
 openssl x509 -in $HOME/aggregator-demo/deploy/certs/cert.pem -noout -text | grep -A2 "Subject Alternative Name"
 ```
 
-## 9. Verify HTTPS access locally
+---
+
+## 8. Verify HTTPS access locally
 
 ```bash
 curl -vk https://127.0.0.1/
@@ -174,17 +175,17 @@ make demo-up
 
 This starts:
 
-* Aggregator service
-* Dummy services
-* Prometheus
-* Grafana
-* Reverse proxy with TLS
+- Aggregator service
+- Dummy services
+- Prometheus
+- Grafana
+- Reverse proxy with TLS
 
 ---
 
 ## 10. Verify HTTPS access from browser
 
-Replace with your actual instance URL
+Replace with your actual instance URL:
 
 ```
 https://ec2-0-0-0-0.eu-central-1.compute.amazonaws.com
@@ -196,7 +197,7 @@ A certificate warning is expected because the certificate is self-signed.
 
 ## Notes
 
-* Intended for demo purposes only.
-* Certificates are self-signed.
-* No authentication is enabled.
-* Persistence is limited to local Docker volumes.
+- Intended for demo purposes only.
+- Certificates are self-signed.
+- No authentication is enabled.
+- Persistence is limited to local Docker volumes.
