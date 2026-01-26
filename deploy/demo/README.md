@@ -15,7 +15,7 @@ The result is a self-contained demo environment accessible over HTTPS.
     - Storage:
       [General purpose SSD gp3](https://docs.aws.amazon.com/ebs/latest/userguide/general-purpose.html#gp3-ebs-volume-type)
   - Operating system:
-    Amazon Linux 2023 (kernel 6.1)
+    [Amazon Linux 2023 (kernel 6.1)](https://aws.amazon.com/linux/amazon-linux-2023)
 
 - Public IPv4 address assigned
 
