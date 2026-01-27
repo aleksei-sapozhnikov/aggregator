@@ -24,9 +24,9 @@ jobs:
         run: bash ./deploy/demo/demo-deploy.sh
         env:
           SSH_HOST: ${{ secrets.SSH_HOST }}
-          SSH_PORT: ${{ secrets.SSH_PORT }}
-          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PORT: 22
           SSH_KEY: ${{ secrets.SSH_KEY }}
           SSH_HOST_KEY: ${{ secrets.SSH_HOST_KEY }}
-          REPO_PATH: ${{ secrets.REPO_PATH }}
-          DEPLOY_BRANCH: main
+          SSH_USER: ec2-user
+          REPO_PATH: /home/ec2-user/aggregator-demo/repo
+          DEPLOY_BRANCH: ${{ github.ref_name }}
