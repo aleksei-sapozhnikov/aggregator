@@ -17,17 +17,19 @@ The result is a self-contained demo environment accessible over HTTPS.
   - Operating system:
     [Amazon Linux 2023 (kernel 6.1)](https://aws.amazon.com/linux/amazon-linux-2023)
 
+- User: `ec2-user`
+
 - Public IPv4 address assigned
 
 - Security Group allows inbound traffic on:
     - 22 (SSH)
     - 443 (HTTPS)
 
-All commands below are executed as the `ec2-user` unless stated otherwise.
-
 ---
 
-## 1. Base system update
+## Manual preparations and first deployment
+
+### 1. Base system update
 
 ```bash
 sudo dnf update -y
@@ -35,7 +37,7 @@ sudo dnf update -y
 
 ---
 
-## 2. Install Docker
+### 2. Install Docker
 
 ```bash
 sudo dnf install docker -y
@@ -58,7 +60,7 @@ docker version
 
 ---
 
-## 3. Install Docker Compose plugin
+### 3. Install Docker Compose plugin
 
 Amazon Linux 2023 does not ship a recent Docker Compose plugin by default. Install it manually.
 
@@ -85,9 +87,7 @@ docker compose version
 
 ---
 
-## 4. Install required tools
-
-### Git and make
+### 4. Install required tools
 
 ```bash
 sudo dnf install git make -y
@@ -95,7 +95,7 @@ sudo dnf install git make -y
 
 ---
 
-## 5. Prepare directories
+### 5. Prepare directories
 
 Create a working directory for the demo and persistent data:
 
@@ -112,7 +112,7 @@ sudo chown -R 472:472 $HOME/aggregator-demo/data/grafana
 
 ---
 
-## 6. Clone the repository
+### 6. Clone the repository
 
 ```bash
 REPO_URL=https://github.com/aleksei-sapozhnikov/aggregator.git
@@ -123,7 +123,7 @@ cd $HOME/aggregator-demo/repo
 
 ---
 
-## 7. Generate self-signed TLS certificates
+### 7. Generate self-signed TLS certificates
 
 Certificates are required for HTTPS access to the demo.
 
@@ -156,7 +156,7 @@ openssl x509 -in $HOME/aggregator-demo/deploy/certs/cert.pem -noout -text | grep
 
 ---
 
-## 8. Verify HTTPS access locally
+### 8. Verify HTTPS access locally
 
 ```bash
 curl -vk https://127.0.0.1/
@@ -164,7 +164,7 @@ curl -vk https://127.0.0.1/
 
 ---
 
-## 9. Run the demo stack
+### 9. Run the demo stack
 
 From the repository root:
 
@@ -183,7 +183,7 @@ This starts:
 
 ---
 
-## 10. Verify HTTPS access from browser
+### 10. Verify HTTPS access from browser
 
 Replace with your actual instance URL:
 
@@ -195,9 +195,21 @@ A certificate warning is expected because the certificate is self-signed.
 
 ---
 
-## Notes
+### Notes
 
 - Intended for demo purposes only.
 - Certificates are self-signed.
 - No authentication is enabled.
 - Persistence is limited to local Docker volumes.
+
+---
+
+## Automated Demo Deployment
+
+The demo environment is redeployed automatically using GitHub Actions.
+
+The deployment is implemented as:
+
+- a GitHub Actions workflow, defines **when** deployment is
+  triggered: [demo-deploy.yml](../../.github/workflows/demo-deploy.yml)
+- a deployment script, defines **how** the deployment is performed: [demo-deploy.sh](../../deploy/demo/demo-deploy.sh)
