@@ -5,6 +5,11 @@ services:
         -XX:MaxRAMPercentage=75.0
       SPRING_PROFILES_ACTIVE: demo
 
+  prometheus:
+    volumes:
+      - ${PROMETHEUS_CONFIG_FILE:-./monitoring/prometheus/prometheus.yml}:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:$HOME/aggregator-demo/data/prometheus
+
   grafana:
     environment:
       GF_AUTH_ANONYMOUS_ENABLED: "true"
@@ -13,3 +18,18 @@ services:
       GF_AUTH_BASIC_ENABLED: "false"
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_USERS_ANONYMOUS_DEVICE_PREFERENCES: "true"
+    volumes:
+      - ${GRAFANA_PROVISIONING_DIR:-./monitoring/grafana/provisioning}:/etc/grafana/provisioning:ro
+      - ${GRAFANA_DASHBOARDS_DIR:-./monitoring/grafana/dashboards}:/var/lib/grafana/dashboards:ro
+      - grafana-data:$HOME/aggregator-demo/data/grafana
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "443:443"
+    volumes:
+      - ./deploy/demo/Caddyfile:/etc/caddy/Caddyfile:ro
+      - $HOME/aggregator-demo/deploy/certs:/etc/caddy/certs:ro
+    depends_on:
+      - grafana

@@ -1,0 +1,10 @@
+{
+    servers {
+                protocols h1 h2
+            }
+}
+
+:443 {
+    tls /etc/caddy/certs/cert.pem /etc/caddy/certs/key.pem
+    reverse_proxy grafana:3000
+}
