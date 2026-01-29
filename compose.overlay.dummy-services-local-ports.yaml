@@ -1,12 +1,200 @@
 services:
-  payments-api:
+  commerce-catalog:
     ports:
       - "8081:8080"
 
-  edge-gateway:
+  commerce-pricing:
     ports:
       - "8082:8080"
 
-  customer-db:
+  commerce-inventory:
     ports:
       - "8083:8080"
+
+  commerce-order:
+    ports:
+      - "8084:8080"
+
+  commerce-tax:
+    ports:
+      - "8085:8080"
+
+  payments-gateway:
+    ports:
+      - "8086:8080"
+
+  payments-ledger:
+    ports:
+      - "8087:8080"
+
+  payments-risk:
+    ports:
+      - "8088:8080"
+
+  payments-reconciliation:
+    ports:
+      - "8089:8080"
+
+  payments-notifications:
+    ports:
+      - "8090:8080"
+
+  fulfillment-routing:
+    ports:
+      - "8091:8080"
+
+  fulfillment-picking:
+    ports:
+      - "8092:8080"
+
+  fulfillment-shipping:
+    ports:
+      - "8093:8080"
+
+  fulfillment-tracking:
+    ports:
+      - "8094:8080"
+
+  fulfillment-returns:
+    ports:
+      - "8095:8080"
+
+  insights-events:
+    ports:
+      - "8096:8080"
+
+  insights-warehouse:
+    ports:
+      - "8097:8080"
+
+  insights-analytics:
+    ports:
+      - "8098:8080"
+
+  insights-reporting:
+    ports:
+      - "8099:8080"
+
+  insights-forecast:
+    ports:
+      - "8100:8080"
+
+  supply-planning:
+    ports:
+      - "8101:8080"
+
+  supply-procurement:
+    ports:
+      - "8102:8080"
+
+  supply-vendor:
+    ports:
+      - "8103:8080"
+
+  supply-quality:
+    ports:
+      - "8104:8080"
+
+  supply-compliance:
+    ports:
+      - "8105:8080"
+
+  workforce-scheduling:
+    ports:
+      - "8106:8080"
+
+  workforce-timekeeping:
+    ports:
+      - "8107:8080"
+
+  workforce-payroll:
+    ports:
+      - "8108:8080"
+
+  workforce-training:
+    ports:
+      - "8109:8080"
+
+  workforce-access:
+    ports:
+      - "8110:8080"
+
+  support-intake:
+    ports:
+      - "8111:8080"
+
+  support-routing:
+    ports:
+      - "8112:8080"
+
+  support-knowledge:
+    ports:
+      - "8113:8080"
+
+  support-chat:
+    ports:
+      - "8114:8080"
+
+  support-sla:
+    ports:
+      - "8115:8080"
+
+  engagement-profile:
+    ports:
+      - "8116:8080"
+
+  engagement-preferences:
+    ports:
+      - "8117:8080"
+
+  engagement-messaging:
+    ports:
+      - "8118:8080"
+
+  engagement-segmentation:
+    ports:
+      - "8119:8080"
+
+  engagement-campaigns:
+    ports:
+      - "8120:8080"
+
+  loyalty-accounts:
+    ports:
+      - "8121:8080"
+
+  loyalty-rewards:
+    ports:
+      - "8122:8080"
+
+  loyalty-redemption:
+    ports:
+      - "8123:8080"
+
+  loyalty-partner:
+    ports:
+      - "8124:8080"
+
+  loyalty-ledger:
+    ports:
+      - "8125:8080"
+
+  marketing-journeys:
+    ports:
+      - "8126:8080"
+
+  marketing-content:
+    ports:
+      - "8127:8080"
+
+  marketing-offers:
+    ports:
+      - "8128:8080"
+
+  marketing-attribution:
+    ports:
+      - "8129:8080"
+
+  marketing-insights:
+    ports:
+      - "8130:8080"
