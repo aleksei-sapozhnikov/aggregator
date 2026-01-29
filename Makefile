@@ -4,12 +4,12 @@ LOCAL := -f compose.local.yaml
 LOCAL_DEMO := -f compose.local-demo.yaml
 DEMO := -f compose.demo.yaml
 LOCAL_PORTS := -f compose.overlay.local-ports.yaml
-DUMMY_SERVICES := -f compose.overlay.dummy-services.yaml
-DUMMY_SERVICE_PORTS := -f compose.overlay.dummy-services-local-ports.yaml
+DEMO_SERVICES := -f compose.overlay.demo-services.yaml
+DEMO_SERVICES_PORTS := -f compose.overlay.demo-services-local-ports.yaml
 
 LOCAL_STACK := $(BASE) $(LOCAL) $(LOCAL_PORTS)
-LOCAL_DEMO_STACK := $(BASE) $(LOCAL_DEMO) $(DUMMY_SERVICES) $(LOCAL_PORTS) $(DUMMY_SERVICE_PORTS)
-DEMO_STACK := $(BASE) $(DEMO) $(DUMMY_SERVICES)
+LOCAL_DEMO_STACK := $(BASE) $(LOCAL_DEMO) $(DEMO_SERVICES) $(LOCAL_PORTS) $(DEMO_SERVICES_PORTS)
+DEMO_STACK := $(BASE) $(DEMO) $(DEMO_SERVICES)
 
 # ---- Compose command (docker/podman autodetect; override via COMPOSE=...) ----
 COMPOSE ?=
