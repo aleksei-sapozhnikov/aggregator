@@ -1,50 +1,416 @@
 items:
-  # Underlying demo services (implemented by existing dummy containers)
-  - id: payments-api
-    name: Payments API
-    type: service
-  - id: edge-gateway
-    name: Edge Gateway
-    type: gateway
-  - id: customer-db
-    name: Customer Database
-    type: database
+  # Business
+  - id: business-suite
+    name: Business Suite
+    type: business
 
-  # Product layer
-  - id: checkout
-    name: Checkout
+  # Product families
+  - id: commerce-platform
+    name: Commerce Platform
+    type: product-family
+  - id: operations-suite
+    name: Operations Suite
+    type: product-family
+  - id: customer-experience
+    name: Customer Experience
+    type: product-family
+
+  # Products
+  - id: commerce-core
+    name: Commerce Core
     type: product
-  - id: merchant-portal
-    name: Merchant Portal
+  - id: payments-suite
+    name: Payments Suite
     type: product
-  - id: commerce-suite
-    name: Commerce Suite
+  - id: fulfillment-hub
+    name: Fulfillment Hub
     type: product
+  - id: merchant-insights
+    name: Merchant Insights
+    type: product
+  - id: supply-ops
+    name: Supply Ops
+    type: product
+  - id: workforce-hub
+    name: Workforce Hub
+    type: product
+  - id: support-desk
+    name: Support Desk
+    type: product
+  - id: customer-engagement
+    name: Customer Engagement
+    type: product
+  - id: loyalty-cloud
+    name: Loyalty Cloud
+    type: product
+  - id: marketing-automation
+    name: Marketing Automation
+    type: product
+
+  # Services
+  - id: commerce-catalog
+    name: Commerce Catalog Service
+    type: service
+  - id: commerce-pricing
+    name: Commerce Pricing Service
+    type: service
+  - id: commerce-inventory
+    name: Commerce Inventory Service
+    type: service
+  - id: commerce-order
+    name: Commerce Order Service
+    type: service
+  - id: commerce-tax
+    name: Commerce Tax Service
+    type: service
+
+  - id: payments-gateway
+    name: Payments Gateway Service
+    type: service
+  - id: payments-ledger
+    name: Payments Ledger Service
+    type: service
+  - id: payments-risk
+    name: Payments Risk Service
+    type: service
+  - id: payments-reconciliation
+    name: Payments Reconciliation Service
+    type: service
+  - id: payments-notifications
+    name: Payments Notifications Service
+    type: service
+
+  - id: fulfillment-routing
+    name: Fulfillment Routing Service
+    type: service
+  - id: fulfillment-picking
+    name: Fulfillment Picking Service
+    type: service
+  - id: fulfillment-shipping
+    name: Fulfillment Shipping Service
+    type: service
+  - id: fulfillment-tracking
+    name: Fulfillment Tracking Service
+    type: service
+  - id: fulfillment-returns
+    name: Fulfillment Returns Service
+    type: service
+
+  - id: insights-events
+    name: Insights Event Service
+    type: service
+  - id: insights-warehouse
+    name: Insights Warehouse Service
+    type: service
+  - id: insights-analytics
+    name: Insights Analytics Service
+    type: service
+  - id: insights-reporting
+    name: Insights Reporting Service
+    type: service
+  - id: insights-forecast
+    name: Insights Forecast Service
+    type: service
+
+  - id: supply-planning
+    name: Supply Planning Service
+    type: service
+  - id: supply-procurement
+    name: Supply Procurement Service
+    type: service
+  - id: supply-vendor
+    name: Supply Vendor Service
+    type: service
+  - id: supply-quality
+    name: Supply Quality Service
+    type: service
+  - id: supply-compliance
+    name: Supply Compliance Service
+    type: service
+
+  - id: workforce-scheduling
+    name: Workforce Scheduling Service
+    type: service
+  - id: workforce-timekeeping
+    name: Workforce Timekeeping Service
+    type: service
+  - id: workforce-payroll
+    name: Workforce Payroll Service
+    type: service
+  - id: workforce-training
+    name: Workforce Training Service
+    type: service
+  - id: workforce-access
+    name: Workforce Access Service
+    type: service
+
+  - id: support-intake
+    name: Support Intake Service
+    type: service
+  - id: support-routing
+    name: Support Routing Service
+    type: service
+  - id: support-knowledge
+    name: Support Knowledge Service
+    type: service
+  - id: support-chat
+    name: Support Chat Service
+    type: service
+  - id: support-sla
+    name: Support SLA Service
+    type: service
+
+  - id: engagement-profile
+    name: Engagement Profile Service
+    type: service
+  - id: engagement-preferences
+    name: Engagement Preferences Service
+    type: service
+  - id: engagement-messaging
+    name: Engagement Messaging Service
+    type: service
+  - id: engagement-segmentation
+    name: Engagement Segmentation Service
+    type: service
+  - id: engagement-campaigns
+    name: Engagement Campaigns Service
+    type: service
+
+  - id: loyalty-accounts
+    name: Loyalty Accounts Service
+    type: service
+  - id: loyalty-rewards
+    name: Loyalty Rewards Service
+    type: service
+  - id: loyalty-redemption
+    name: Loyalty Redemption Service
+    type: service
+  - id: loyalty-partner
+    name: Loyalty Partner Service
+    type: service
+  - id: loyalty-ledger
+    name: Loyalty Ledger Service
+    type: service
+
+  - id: marketing-journeys
+    name: Marketing Journeys Service
+    type: service
+  - id: marketing-content
+    name: Marketing Content Service
+    type: service
+  - id: marketing-offers
+    name: Marketing Offers Service
+    type: service
+  - id: marketing-attribution
+    name: Marketing Attribution Service
+    type: service
+  - id: marketing-insights
+    name: Marketing Insights Service
+    type: service
 
 dependencies:
-  # Checkout
-  - sourceId: checkout
-    targetId: payments-api
+  # Business to families
+  - sourceId: business-suite
+    targetId: commerce-platform
+    type: includes
+  - sourceId: business-suite
+    targetId: operations-suite
+    type: includes
+  - sourceId: business-suite
+    targetId: customer-experience
+    type: includes
+
+  # Families to products
+  - sourceId: commerce-platform
+    targetId: commerce-core
+    type: includes
+  - sourceId: commerce-platform
+    targetId: payments-suite
+    type: includes
+  - sourceId: commerce-platform
+    targetId: fulfillment-hub
+    type: includes
+  - sourceId: commerce-platform
+    targetId: merchant-insights
+    type: includes
+
+  - sourceId: operations-suite
+    targetId: supply-ops
+    type: includes
+  - sourceId: operations-suite
+    targetId: workforce-hub
+    type: includes
+  - sourceId: operations-suite
+    targetId: support-desk
+    type: includes
+
+  - sourceId: customer-experience
+    targetId: customer-engagement
+    type: includes
+  - sourceId: customer-experience
+    targetId: loyalty-cloud
+    type: includes
+  - sourceId: customer-experience
+    targetId: marketing-automation
+    type: includes
+
+  # Product to service dependencies
+  - sourceId: commerce-core
+    targetId: commerce-catalog
     type: depends_on
-  - sourceId: checkout
-    targetId: edge-gateway
+  - sourceId: commerce-core
+    targetId: commerce-pricing
     type: depends_on
-  - sourceId: checkout
-    targetId: customer-db
+  - sourceId: commerce-core
+    targetId: commerce-inventory
+    type: depends_on
+  - sourceId: commerce-core
+    targetId: commerce-order
+    type: depends_on
+  - sourceId: commerce-core
+    targetId: commerce-tax
     type: depends_on
 
-  # Merchant Portal
-  - sourceId: merchant-portal
-    targetId: edge-gateway
+  - sourceId: payments-suite
+    targetId: payments-gateway
     type: depends_on
-  - sourceId: merchant-portal
-    targetId: customer-db
+  - sourceId: payments-suite
+    targetId: payments-ledger
+    type: depends_on
+  - sourceId: payments-suite
+    targetId: payments-risk
+    type: depends_on
+  - sourceId: payments-suite
+    targetId: payments-reconciliation
+    type: depends_on
+  - sourceId: payments-suite
+    targetId: payments-notifications
     type: depends_on
 
-  # Top-level suite depends on both products
-  - sourceId: commerce-suite
-    targetId: checkout
-    type: includes
-  - sourceId: commerce-suite
-    targetId: merchant-portal
-    type: includes
+  - sourceId: fulfillment-hub
+    targetId: fulfillment-routing
+    type: depends_on
+  - sourceId: fulfillment-hub
+    targetId: fulfillment-picking
+    type: depends_on
+  - sourceId: fulfillment-hub
+    targetId: fulfillment-shipping
+    type: depends_on
+  - sourceId: fulfillment-hub
+    targetId: fulfillment-tracking
+    type: depends_on
+  - sourceId: fulfillment-hub
+    targetId: fulfillment-returns
+    type: depends_on
+
+  - sourceId: merchant-insights
+    targetId: insights-events
+    type: depends_on
+  - sourceId: merchant-insights
+    targetId: insights-warehouse
+    type: depends_on
+  - sourceId: merchant-insights
+    targetId: insights-analytics
+    type: depends_on
+  - sourceId: merchant-insights
+    targetId: insights-reporting
+    type: depends_on
+  - sourceId: merchant-insights
+    targetId: insights-forecast
+    type: depends_on
+
+  - sourceId: supply-ops
+    targetId: supply-planning
+    type: depends_on
+  - sourceId: supply-ops
+    targetId: supply-procurement
+    type: depends_on
+  - sourceId: supply-ops
+    targetId: supply-vendor
+    type: depends_on
+  - sourceId: supply-ops
+    targetId: supply-quality
+    type: depends_on
+  - sourceId: supply-ops
+    targetId: supply-compliance
+    type: depends_on
+
+  - sourceId: workforce-hub
+    targetId: workforce-scheduling
+    type: depends_on
+  - sourceId: workforce-hub
+    targetId: workforce-timekeeping
+    type: depends_on
+  - sourceId: workforce-hub
+    targetId: workforce-payroll
+    type: depends_on
+  - sourceId: workforce-hub
+    targetId: workforce-training
+    type: depends_on
+  - sourceId: workforce-hub
+    targetId: workforce-access
+    type: depends_on
+
+  - sourceId: support-desk
+    targetId: support-intake
+    type: depends_on
+  - sourceId: support-desk
+    targetId: support-routing
+    type: depends_on
+  - sourceId: support-desk
+    targetId: support-knowledge
+    type: depends_on
+  - sourceId: support-desk
+    targetId: support-chat
+    type: depends_on
+  - sourceId: support-desk
+    targetId: support-sla
+    type: depends_on
+
+  - sourceId: customer-engagement
+    targetId: engagement-profile
+    type: depends_on
+  - sourceId: customer-engagement
+    targetId: engagement-preferences
+    type: depends_on
+  - sourceId: customer-engagement
+    targetId: engagement-messaging
+    type: depends_on
+  - sourceId: customer-engagement
+    targetId: engagement-segmentation
+    type: depends_on
+  - sourceId: customer-engagement
+    targetId: engagement-campaigns
+    type: depends_on
+
+  - sourceId: loyalty-cloud
+    targetId: loyalty-accounts
+    type: depends_on
+  - sourceId: loyalty-cloud
+    targetId: loyalty-rewards
+    type: depends_on
+  - sourceId: loyalty-cloud
+    targetId: loyalty-redemption
+    type: depends_on
+  - sourceId: loyalty-cloud
+    targetId: loyalty-partner
+    type: depends_on
+  - sourceId: loyalty-cloud
+    targetId: loyalty-ledger
+    type: depends_on
+
+  - sourceId: marketing-automation
+    targetId: marketing-journeys
+    type: depends_on
+  - sourceId: marketing-automation
+    targetId: marketing-content
+    type: depends_on
+  - sourceId: marketing-automation
+    targetId: marketing-offers
+    type: depends_on
+  - sourceId: marketing-automation
+    targetId: marketing-attribution
+    type: depends_on
+  - sourceId: marketing-automation
+    targetId: marketing-insights
+    type: depends_on

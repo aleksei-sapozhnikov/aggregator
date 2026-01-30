@@ -1,0 +1,200 @@
+services:
+  commerce-catalog:
+    build:
+      context: dummy-services/java
+
+  commerce-pricing:
+    build:
+      context: dummy-services/python
+
+  commerce-inventory:
+    build:
+      context: dummy-services/javascript
+
+  commerce-order:
+    build:
+      context: dummy-services/java
+
+  commerce-tax:
+    build:
+      context: dummy-services/python
+
+  payments-gateway:
+    build:
+      context: dummy-services/javascript
+
+  payments-ledger:
+    build:
+      context: dummy-services/java
+
+  payments-risk:
+    build:
+      context: dummy-services/python
+
+  payments-reconciliation:
+    build:
+      context: dummy-services/javascript
+
+  payments-notifications:
+    build:
+      context: dummy-services/java
+
+  fulfillment-routing:
+    build:
+      context: dummy-services/python
+
+  fulfillment-picking:
+    build:
+      context: dummy-services/javascript
+
+  fulfillment-shipping:
+    build:
+      context: dummy-services/java
+
+  fulfillment-tracking:
+    build:
+      context: dummy-services/python
+
+  fulfillment-returns:
+    build:
+      context: dummy-services/javascript
+
+  insights-events:
+    build:
+      context: dummy-services/java
+
+  insights-warehouse:
+    build:
+      context: dummy-services/python
+
+  insights-analytics:
+    build:
+      context: dummy-services/javascript
+
+  insights-reporting:
+    build:
+      context: dummy-services/java
+
+  insights-forecast:
+    build:
+      context: dummy-services/python
+
+  supply-planning:
+    build:
+      context: dummy-services/javascript
+
+  supply-procurement:
+    build:
+      context: dummy-services/java
+
+  supply-vendor:
+    build:
+      context: dummy-services/python
+
+  supply-quality:
+    build:
+      context: dummy-services/javascript
+
+  supply-compliance:
+    build:
+      context: dummy-services/java
+
+  workforce-scheduling:
+    build:
+      context: dummy-services/python
+
+  workforce-timekeeping:
+    build:
+      context: dummy-services/javascript
+
+  workforce-payroll:
+    build:
+      context: dummy-services/java
+
+  workforce-training:
+    build:
+      context: dummy-services/python
+
+  workforce-access:
+    build:
+      context: dummy-services/javascript
+
+  support-intake:
+    build:
+      context: dummy-services/java
+
+  support-routing:
+    build:
+      context: dummy-services/python
+
+  support-knowledge:
+    build:
+      context: dummy-services/javascript
+
+  support-chat:
+    build:
+      context: dummy-services/java
+
+  support-sla:
+    build:
+      context: dummy-services/python
+
+  engagement-profile:
+    build:
+      context: dummy-services/javascript
+
+  engagement-preferences:
+    build:
+      context: dummy-services/java
+
+  engagement-messaging:
+    build:
+      context: dummy-services/python
+
+  engagement-segmentation:
+    build:
+      context: dummy-services/javascript
+
+  engagement-campaigns:
+    build:
+      context: dummy-services/java
+
+  loyalty-accounts:
+    build:
+      context: dummy-services/python
+
+  loyalty-rewards:
+    build:
+      context: dummy-services/javascript
+
+  loyalty-redemption:
+    build:
+      context: dummy-services/java
+
+  loyalty-partner:
+    build:
+      context: dummy-services/python
+
+  loyalty-ledger:
+    build:
+      context: dummy-services/javascript
+
+  marketing-journeys:
+    build:
+      context: dummy-services/java
+
+  marketing-content:
+    build:
+      context: dummy-services/python
+
+  marketing-offers:
+    build:
+      context: dummy-services/javascript
+
+  marketing-attribution:
+    build:
+      context: dummy-services/java
+
+  marketing-insights:
+    build:
+      context: dummy-services/python

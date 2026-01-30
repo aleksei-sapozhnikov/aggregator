@@ -1,22 +1,393 @@
-# Health checks for demo environment services
+# Health checks for demo environment services and selected products
 checks:
   - type: http
-    checkId: payments-api-check
-    catalogItemId: payments-api
-    url: http://payments-api:8080/health
+    checkId: commerce-catalog-check
+    catalogItemId: commerce-catalog
+    url: http://commerce-catalog:8080/health
     method: GET
     timeout: PT2S
 
   - type: http
-    checkId: edge-gateway-check
-    catalogItemId: edge-gateway
-    url: http://edge-gateway:8080/health
+    checkId: commerce-pricing-check
+    catalogItemId: commerce-pricing
+    url: http://commerce-pricing:8080/health
     method: GET
     timeout: PT2S
 
   - type: http
-    checkId: customer-db-check
-    catalogItemId: customer-db
-    url: http://customer-db:8080/health
+    checkId: commerce-inventory-check
+    catalogItemId: commerce-inventory
+    url: http://commerce-inventory:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: commerce-order-check
+    catalogItemId: commerce-order
+    url: http://commerce-order:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: commerce-tax-check
+    catalogItemId: commerce-tax
+    url: http://commerce-tax:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: payments-gateway-check
+    catalogItemId: payments-gateway
+    url: http://payments-gateway:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: payments-ledger-check
+    catalogItemId: payments-ledger
+    url: http://payments-ledger:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: payments-risk-check
+    catalogItemId: payments-risk
+    url: http://payments-risk:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: payments-reconciliation-check
+    catalogItemId: payments-reconciliation
+    url: http://payments-reconciliation:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: payments-notifications-check
+    catalogItemId: payments-notifications
+    url: http://payments-notifications:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: fulfillment-routing-check
+    catalogItemId: fulfillment-routing
+    url: http://fulfillment-routing:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: fulfillment-picking-check
+    catalogItemId: fulfillment-picking
+    url: http://fulfillment-picking:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: fulfillment-shipping-check
+    catalogItemId: fulfillment-shipping
+    url: http://fulfillment-shipping:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: fulfillment-tracking-check
+    catalogItemId: fulfillment-tracking
+    url: http://fulfillment-tracking:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: fulfillment-returns-check
+    catalogItemId: fulfillment-returns
+    url: http://fulfillment-returns:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: insights-events-check
+    catalogItemId: insights-events
+    url: http://insights-events:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: insights-warehouse-check
+    catalogItemId: insights-warehouse
+    url: http://insights-warehouse:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: insights-analytics-check
+    catalogItemId: insights-analytics
+    url: http://insights-analytics:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: insights-reporting-check
+    catalogItemId: insights-reporting
+    url: http://insights-reporting:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: insights-forecast-check
+    catalogItemId: insights-forecast
+    url: http://insights-forecast:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: supply-planning-check
+    catalogItemId: supply-planning
+    url: http://supply-planning:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: supply-procurement-check
+    catalogItemId: supply-procurement
+    url: http://supply-procurement:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: supply-vendor-check
+    catalogItemId: supply-vendor
+    url: http://supply-vendor:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: supply-quality-check
+    catalogItemId: supply-quality
+    url: http://supply-quality:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: supply-compliance-check
+    catalogItemId: supply-compliance
+    url: http://supply-compliance:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: workforce-scheduling-check
+    catalogItemId: workforce-scheduling
+    url: http://workforce-scheduling:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: workforce-timekeeping-check
+    catalogItemId: workforce-timekeeping
+    url: http://workforce-timekeeping:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: workforce-payroll-check
+    catalogItemId: workforce-payroll
+    url: http://workforce-payroll:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: workforce-training-check
+    catalogItemId: workforce-training
+    url: http://workforce-training:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: workforce-access-check
+    catalogItemId: workforce-access
+    url: http://workforce-access:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: support-intake-check
+    catalogItemId: support-intake
+    url: http://support-intake:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: support-routing-check
+    catalogItemId: support-routing
+    url: http://support-routing:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: support-knowledge-check
+    catalogItemId: support-knowledge
+    url: http://support-knowledge:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: support-chat-check
+    catalogItemId: support-chat
+    url: http://support-chat:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: support-sla-check
+    catalogItemId: support-sla
+    url: http://support-sla:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: engagement-profile-check
+    catalogItemId: engagement-profile
+    url: http://engagement-profile:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: engagement-preferences-check
+    catalogItemId: engagement-preferences
+    url: http://engagement-preferences:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: engagement-messaging-check
+    catalogItemId: engagement-messaging
+    url: http://engagement-messaging:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: engagement-segmentation-check
+    catalogItemId: engagement-segmentation
+    url: http://engagement-segmentation:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: engagement-campaigns-check
+    catalogItemId: engagement-campaigns
+    url: http://engagement-campaigns:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: loyalty-accounts-check
+    catalogItemId: loyalty-accounts
+    url: http://loyalty-accounts:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: loyalty-rewards-check
+    catalogItemId: loyalty-rewards
+    url: http://loyalty-rewards:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: loyalty-redemption-check
+    catalogItemId: loyalty-redemption
+    url: http://loyalty-redemption:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: loyalty-partner-check
+    catalogItemId: loyalty-partner
+    url: http://loyalty-partner:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: loyalty-ledger-check
+    catalogItemId: loyalty-ledger
+    url: http://loyalty-ledger:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: marketing-journeys-check
+    catalogItemId: marketing-journeys
+    url: http://marketing-journeys:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: marketing-content-check
+    catalogItemId: marketing-content
+    url: http://marketing-content:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: marketing-offers-check
+    catalogItemId: marketing-offers
+    url: http://marketing-offers:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: marketing-attribution-check
+    catalogItemId: marketing-attribution
+    url: http://marketing-attribution:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: marketing-insights-check
+    catalogItemId: marketing-insights
+    url: http://marketing-insights:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: commerce-core-check
+    catalogItemId: commerce-core
+    url: http://commerce-catalog:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: payments-suite-check
+    catalogItemId: payments-suite
+    url: http://payments-gateway:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: fulfillment-hub-check
+    catalogItemId: fulfillment-hub
+    url: http://fulfillment-routing:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: customer-engagement-check
+    catalogItemId: customer-engagement
+    url: http://engagement-profile:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: loyalty-cloud-check
+    catalogItemId: loyalty-cloud
+    url: http://loyalty-accounts:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: commerce-platform-check
+    catalogItemId: commerce-platform
+    url: http://commerce-catalog:8080/health
     method: GET
     timeout: PT2S
