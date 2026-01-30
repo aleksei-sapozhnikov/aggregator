@@ -1,6 +1,7 @@
 #!/bin/sh
 # Phase 2: user-level bootstrap (must NOT run as root).
-# Verifies docker access, clones/updates repo, generates certs, starts the demo stack.
+# Verifies docker access, clones/updates repo, generates certs.
+# Does NOT start the demo stack automatically; prints next steps.
 
 set -eu
 
@@ -30,6 +31,24 @@ else
 fi
 
 need_cmd() { command -v "$1" >/dev/null 2>&1 || die "Missing required command: $1"; }
+
+print_required_vars() {
+  log ""
+  log "Required variables are missing."
+  log ""
+  log "You must provide:"
+  log "  SITE_IP       - EC2 instance Public IPv4 address"
+  log "  SITE_ADDRESS  - EC2 instance Public IPv4 DNS name"
+  log ""
+  log "Where to get them:"
+  log "  AWS Console -> EC2 -> Instances -> your instance -> Details"
+  log "  - Public IPv4 address"
+  log "  - Public IPv4 DNS"
+  log ""
+  log "Example:"
+  log "  SITE_IP=<public-ip> SITE_ADDRESS=<public-dns> sh bootstrap_phase2.sh"
+  log ""
+}
 
 # -------- Main --------
 [ "$(id -u)" -ne 0 ] || die "Phase 2 must be run as a regular user (not root)."
@@ -62,8 +81,10 @@ mkdir -p "$CERTS_DIR"
 if [ -f "$CERTS_DIR/cert.pem" ] && [ -f "$CERTS_DIR/key.pem" ]; then
   log "==> Certificates already exist"
 else
-  [ -n "$SITE_IP" ] || die "SITE_IP is required to generate certs"
-  [ -n "$SITE_ADDRESS" ] || die "SITE_ADDRESS is required to generate certs"
+  if [ -z "$SITE_IP" ] || [ -z "$SITE_ADDRESS" ]; then
+    print_required_vars
+    die "SITE_IP and SITE_ADDRESS are required to generate certificates."
+  fi
 
   openssl req -x509 -newkey rsa:2048 -sha256 -days 3650 -nodes \
     -keyout "$CERTS_DIR/key.pem" \
@@ -71,12 +92,3 @@ else
     -subj "/CN=$SITE_ADDRESS" \
     -addext "subjectAltName=DNS:$SITE_ADDRESS,IP:$SITE_IP,IP:127.0.0.1"
 fi
-
-log "==> Start demo stack"
-cd "$REPO_DIR"
-make demo-up
-
-log ""
-printf '%s\n' "${GREEN}${BOLD}READY${RESET} - demo stack is up."
-log "Local check: curl -vk https://127.0.0.1/"
-log "Browser: https://$SITE_ADDRESS (self-signed cert warning expected)"
