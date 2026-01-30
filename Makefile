@@ -11,6 +11,11 @@ LOCAL_STACK := $(BASE) $(LOCAL) $(LOCAL_PORTS)
 LOCAL_DEMO_STACK := $(BASE) $(LOCAL_DEMO) $(DEMO_SERVICES) $(LOCAL_PORTS) $(DEMO_SERVICES_PORTS)
 DEMO_STACK := $(BASE) $(DEMO) $(DEMO_SERVICES)
 
+# ---- Project names (separate stacks to avoid cross-orphan cleanup) ----
+LOCAL_PROJECT := --project-name aggregator-local
+LOCAL_DEMO_PROJECT := --project-name aggregator-local-demo
+DEMO_PROJECT := --project-name aggregator-demo
+
 # ---- Compose command (docker/podman autodetect; override via COMPOSE=...) ----
 COMPOSE ?=
 ifeq ($(OS),Windows_NT)
@@ -85,39 +90,39 @@ clean: local-demo-clean
 redeploy: local-demo-redeploy
 
 local-up: info prepare-dirs
-	$(COMPOSE) $(LOCAL_STACK) up --detach
+	$(COMPOSE) $(LOCAL_PROJECT) $(LOCAL_STACK) up --detach --remove-orphans
 
 local-redeploy: info prepare-dirs
-	$(COMPOSE) $(LOCAL_STACK) up --detach --build
+	$(COMPOSE) $(LOCAL_PROJECT) $(LOCAL_STACK) up --detach --build --remove-orphans
 
 local-down: info
-	$(COMPOSE) $(LOCAL_STACK) down --remove-orphans
+	$(COMPOSE) $(LOCAL_PROJECT) $(LOCAL_STACK) down --remove-orphans
 
 local-clean: info
-	$(COMPOSE) $(LOCAL_STACK) down --remove-orphans --volumes
+	$(COMPOSE) $(LOCAL_PROJECT) $(LOCAL_STACK) down --remove-orphans --volumes
 
 # ---- local-demo ----
 local-demo-up: info prepare-dirs
-	$(COMPOSE) $(LOCAL_DEMO_STACK) up --detach
+	$(COMPOSE) $(LOCAL_DEMO_PROJECT) $(LOCAL_DEMO_STACK) up --detach --remove-orphans
 
 local-demo-redeploy: info prepare-dirs
-	$(COMPOSE) $(LOCAL_DEMO_STACK) up --detach --build
+	$(COMPOSE) $(LOCAL_DEMO_PROJECT) $(LOCAL_DEMO_STACK) up --detach --build --remove-orphans
 
 local-demo-down: info
-	$(COMPOSE) $(LOCAL_DEMO_STACK) down --remove-orphans
+	$(COMPOSE) $(LOCAL_DEMO_PROJECT) $(LOCAL_DEMO_STACK) down --remove-orphans
 
 local-demo-clean: info
-	$(COMPOSE) $(LOCAL_DEMO_STACK) down --remove-orphans --volumes
+	$(COMPOSE) $(LOCAL_DEMO_PROJECT) $(LOCAL_DEMO_STACK) down --remove-orphans --volumes
 
 # ---- demo ----
 demo-up: info
-	$(COMPOSE) $(DEMO_STACK) up --detach
+	$(COMPOSE) $(DEMO_PROJECT) $(DEMO_STACK) up --detach --remove-orphans
 
 demo-redeploy: info
-	$(COMPOSE) $(DEMO_STACK) up --detach --build
+	$(COMPOSE) $(DEMO_PROJECT) $(DEMO_STACK) up --detach --build --remove-orphans
 
 demo-down: info
-	$(COMPOSE) $(DEMO_STACK) down --remove-orphans
+	$(COMPOSE) $(DEMO_PROJECT) $(DEMO_STACK) down --remove-orphans
 
 demo-clean: info
-	$(COMPOSE) $(DEMO_STACK) down --remove-orphans --volumes
+	$(COMPOSE) $(DEMO_PROJECT) $(DEMO_STACK) down --remove-orphans --volumes
