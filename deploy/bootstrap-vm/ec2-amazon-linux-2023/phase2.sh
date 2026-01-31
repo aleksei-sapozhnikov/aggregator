@@ -21,21 +21,13 @@ DOMAIN_NAME="${DOMAIN_NAME:-}"
 die() { printf '%s\n' "ERROR: $*" >&2; exit 1; }
 log() { printf '%s\n' "$*"; }
 
-if [ -t 1 ]; then
-  GREEN="$(printf '\033[32m')"
-  BOLD="$(printf '\033[1m')"
-  RESET="$(printf '\033[0m')"
-else
-  GREEN=""; BOLD=""; RESET=""
-fi
-
 need_cmd() { command -v "$1" >/dev/null 2>&1 || die "Missing required command: $1"; }
 
 print_next_steps() {
   log ""
-  log "${BOLD}Phase 2 completed.${RESET}"
+  log "Phase 2 completed."
   log ""
-  log "${BOLD}Next steps:${RESET}"
+  log "Next steps:"
   log ""
   log "1) Ensure DNS A-record points to your Elastic IP:"
   if [ -n "$DOMAIN_NAME" ]; then

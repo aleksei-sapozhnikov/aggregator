@@ -34,14 +34,6 @@ die()  { printf '%s\n' "ERROR: $*" >&2; exit 1; }
 
 need_cmd() { command -v "$1" >/dev/null 2>&1 || die "Missing required command: $1"; }
 
-if [ -t 1 ]; then
-  GREEN="$(printf '\033[32m')"
-  BOLD="$(printf '\033[1m')"
-  RESET="$(printf '\033[0m')"
-else
-  GREEN=""; BOLD=""; RESET=""
-fi
-
 # Compare semantic-ish versions (not full semver). Return 0 if $1 >= $2
 version_ge() {
   v1="$1"; v2="$2"
