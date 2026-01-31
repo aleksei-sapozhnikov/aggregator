@@ -27,9 +27,15 @@ services:
     image: caddy:2
     restart: unless-stopped
     ports:
+      - "80:80"
       - "443:443"
     volumes:
       - ./deploy/demo/Caddyfile:/etc/caddy/Caddyfile:ro
-      - $HOME/aggregator-demo/deploy/certs:/etc/caddy/certs:ro
+      - caddy_data:/data
+      - caddy_config:/config
     depends_on:
       - grafana
+
+volumes:
+  caddy_data:
+  caddy_config:
