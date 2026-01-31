@@ -11,12 +11,12 @@ from the states of those services.
 
 Available on EC2 public instance, uses Grafana for visualization:
 
-* https://alivion.cc/health-aggregator
+- https://alivion.cc/health-aggregator
 
 Example dashboards:
 
-* [Dashboard - Current state for "business_suite"](https://alivion.cc/health-aggregator/d/catalog-item-state-current/catalog-item-state-current?var-item_id=business-suite)
-* [Dashboard - State timeline for "business_suite"](https://alivion.cc/health-aggregator/d/catalog-item-state-timeline/catalog-item-state-timeline?var-item_id=business-suite)
+- [Dashboard - Current state for "business_suite"](https://alivion.cc/health-aggregator/d/catalog-item-state-current/catalog-item-state-current?var-item_id=business-suite)
+- [Dashboard - State timeline for "business_suite"](https://alivion.cc/health-aggregator/d/catalog-item-state-timeline/catalog-item-state-timeline?var-item_id=business-suite)
 
 **Note:** A TLS certificate browser warning is expected because the certificate is self-signed.
 
@@ -26,22 +26,22 @@ For additional setup info, see  [README](deploy/demo/README.md).
 
 Major runtime components and responsibilities:
 
-* **Aggregator service**: main Spring Boot application that loads the catalog, executes health checks, applies
+- **Aggregator service**: main Spring Boot application that loads the catalog, executes health checks, applies
   aggregation rules, and exposes health and metrics endpoints. Submodules:
-* **Catalog loader**: reads the static catalog definition (`catalog.yaml` / `catalog.json`) and builds the in-memory
+- **Catalog loader**: reads the static catalog definition (`catalog.yaml` / `catalog.json`) and builds the in-memory
   dependency graph used for aggregation.
-* **Health check runner**: executes configured checks (for example, HTTP checks) on a schedule and records raw
+- **Health check runner**: executes configured checks (for example, HTTP checks) on a schedule and records raw
   health
   per catalog item.
-* **Health aggregation rules**: deterministic rules that roll up child service states into product and service
+- **Health aggregation rules**: deterministic rules that roll up child service states into product and service
   states.
-* **Metrics / Actuator exporter**: publishes raw and aggregated states (including dependencies) via Spring Boot
+- **Metrics / Actuator exporter**: publishes raw and aggregated states (including dependencies) via Spring Boot
   Actuator Prometheus metrics.
-* **Dummy services**: local HTTP services that simulate external dependencies for development and testing. They are
+- **Dummy services**: local HTTP services that simulate external dependencies for development and testing. They are
   written in different languages (Java, JavaScript, Python). Each service exposes a `/health` endpoint and allows
   changing its state via `/set-health/{up|down}`.
-* **Prometheus**: scrapes Actuator metrics and stores time-series data for local verification.
-* **Grafana**: visualizes aggregated states and trends using dashboards backed by Prometheus.
+- **Prometheus**: scrapes Actuator metrics and stores time-series data for local verification.
+- **Grafana**: visualizes aggregated states and trends using dashboards backed by Prometheus.
 
 Key data flow:
 
@@ -53,8 +53,8 @@ catalog + checks → raw health → aggregated health → metrics → dashboards
 
 The catalog is a storage-agnostic domain model describing items and their relationships.
 
-* **Item**: a catalog entry (for example, product or service) with a stable `ItemId`, name, and type.
-* **Dependency**: a directed relationship between two items with an explicit string `type` (for example, "includes" or
+- **Item**: a catalog entry (for example, product or service) with a stable `ItemId`, name, and type.
+- **Dependency**: a directed relationship between two items with an explicit string `type` (for example, "includes" or
   "depends on").
 
 ### Catalog configuration
@@ -102,10 +102,10 @@ states of its dependencies.
 
 The aggregator applies the following rules:
 
-* If **any child service is `DOWN`**, the parent is `DOWN`.
-* Otherwise, if **any child service is `UNKNOWN`**, the parent is `UNKNOWN`.
-* The parent is `UP` **only if all child services are `UP`**.
-* Products without child services default to `UNKNOWN` to avoid false positives.
+- If **any child service is `DOWN`**, the parent is `DOWN`.
+- Otherwise, if **any child service is `UNKNOWN`**, the parent is `UNKNOWN`.
+- The parent is `UP` **only if all child services are `UP`**.
+- Products without child services default to `UNKNOWN` to avoid false positives.
 
 ## Health check configuration
 
@@ -121,20 +121,20 @@ constraints.
 
 ### Current limitations (PoC scope)
 
-* **Static catalog only**: the catalog is loaded from a static YAML or JSON file at startup; there is no dynamic catalog
+- **Static catalog only**: the catalog is loaded from a static YAML or JSON file at startup; there is no dynamic catalog
   source, synchronization, or runtime updates.
-* **Limited check types**: health checks are currently focused on basic HTTP checks.
-* **Local-only stack**: the Compose stack assumes a local network and dummy services.
-* **No persistence**: aggregated state is emitted as metrics only.
-* **No authentication or authorization**: endpoints and dashboards are exposed without auth.
+- **Limited check types**: health checks are currently focused on basic HTTP checks.
+- **Local-only stack**: the Compose stack assumes a local network and dummy services.
+- **No persistence**: aggregated state is emitted as metrics only.
+- **No authentication or authorization**: endpoints and dashboards are exposed without auth.
 
 ### Next possible steps
 
-* **Dynamic catalog source**
-* **Expanded health check types**
-* **Alerting and incident flow**
-* **Historical storage**
-* **Authentication and RBAC**
+- **Dynamic catalog source**
+- **Expanded health check types**
+- **Alerting and incident flow**
+- **Historical storage**
+- **Authentication and RBAC**
 
 ## Prometheus metrics
 
@@ -170,8 +170,8 @@ See [Screenshots](#screenshots) for images.
 
 Each dummy service exposes:
 
-* `GET /health`
-* `GET /set-health/{up|down}`
+- `GET /health`
+- `GET /set-health/{up|down}`
 
 ## Local startup
 
@@ -241,13 +241,13 @@ This section describes the minimal end-to-end flow to run the PoC and reproduce 
 
 5. Observe propagated changes:
 
-* **Actuator**: `http://localhost:8080/actuator/health`
-* **Prometheus UI**: `http://localhost:9090`
+- **Actuator**: `http://localhost:8080/actuator/health`
+- **Prometheus UI**: `http://localhost:9090`
     * Item health:
       [open query](http://localhost:9090/graph?g0.expr=avg%20by%20%28item_id%29%20%28catalog_item_state%29&g0.tab=0&g0.range_input=15m)
     * Dependency edges:
       [open query](http://localhost:9090/graph?g0.expr=avg%20by%20%28target_id%2Csource_id%29%20%28catalog_dependency%29&g0.tab=0&g0.range_input=15m)
-* **Grafana UI**: `http://localhost:3000`
+- **Grafana UI**: `http://localhost:3000`
     * Current state dashboard:
       [open dashboard](http://localhost:3000/d/catalog-item-state-current?var-item_id=user-facing&var-deps=$__all)
     * Timeline dashboard:
