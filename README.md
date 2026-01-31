@@ -9,14 +9,14 @@ from the states of those services.
 
 ## Cloud Demo on AWS
 
-Available on EC2 public instance
+Available on EC2 public instance, uses Grafana for visualization:
 
-* https://ec2-3-76-118-58.eu-central-1.compute.amazonaws.com
+* https://alivion.cc/health-aggregator
 
 Example dashboards:
 
-* [Dashboard - Current state](https://ec2-3-76-118-58.eu-central-1.compute.amazonaws.com/d/catalog-item-state-current/catalog-item-state-current?var-item_id=merchant-portal)
-* [Dashboard - State timeline](https://ec2-3-76-118-58.eu-central-1.compute.amazonaws.com/d/catalog-item-state-timeline/catalog-item-state-timeline?var-item_id=merchant-portal)
+* [Dashboard - Current state](https://alivion.cc/health-aggregator/d/catalog-item-state-current/catalog-item-state-current?var-item_id=business-suite)
+* [Dashboard - State timeline](https://alivion.cc/health-aggregator/d/catalog-item-state-timeline/catalog-item-state-timeline?var-item_id=business-suite)
 
 **Note:** A TLS certificate browser warning is expected because the certificate is self-signed.
 
