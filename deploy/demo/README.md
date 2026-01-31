@@ -64,9 +64,5 @@ A certificate warning is expected because the TLS certificate is self-signed.
 
 The demo environment is redeployed automatically using GitHub Actions.
 
-- Deployment trigger (when):
-
-    - `.github/workflows/demo-deploy.yml`
-- Deployment logic (how):
-
-    - `deploy/demo/demo-deploy.sh`
+- Deployment trigger (when): [demo-deploy.yml](/.github/workflows/demo-deploy.yml)
+- Deployment logic (how): [demo-deploy.sh](/deploy/demo/demo-deploy.sh)

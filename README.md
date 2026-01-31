@@ -15,8 +15,8 @@ Available on EC2 public instance, uses Grafana for visualization:
 
 Example dashboards:
 
-* [Dashboard - Current state](https://alivion.cc/health-aggregator/d/catalog-item-state-current/catalog-item-state-current?var-item_id=business-suite)
-* [Dashboard - State timeline](https://alivion.cc/health-aggregator/d/catalog-item-state-timeline/catalog-item-state-timeline?var-item_id=business-suite)
+* [Dashboard - Current state for "business_suite"](https://alivion.cc/health-aggregator/d/catalog-item-state-current/catalog-item-state-current?var-item_id=business-suite)
+* [Dashboard - State timeline for "business_suite"](https://alivion.cc/health-aggregator/d/catalog-item-state-timeline/catalog-item-state-timeline?var-item_id=business-suite)
 
 **Note:** A TLS certificate browser warning is expected because the certificate is self-signed.
 
