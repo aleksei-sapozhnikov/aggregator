@@ -1,6 +1,6 @@
 #!/bin/sh
 # Phase 2: user-level bootstrap (must NOT run as root).
-# Verifies docker access, clones/updates repo, generates certs.
+# Verifies docker access, clones/updates repo.
 # Does NOT start the demo stack automatically; prints next steps.
 
 set -eu
@@ -10,13 +10,12 @@ REPO_URL="${REPO_URL:-https://github.com/aleksei-sapozhnikov/aggregator.git}"
 
 BASE_DIR="${BASE_DIR:-$HOME/aggregator-demo}"
 REPO_DIR="${REPO_DIR:-$BASE_DIR/repo}"
-CERTS_DIR="${CERTS_DIR:-$BASE_DIR/deploy/certs}"
 
 STATE_DIR="${STATE_DIR:-$BASE_DIR/.bootstrap}"
 PHASE1_MARKER="$STATE_DIR/phase1.done"
 
-SITE_IP="${SITE_IP:-}"
-SITE_ADDRESS="${SITE_ADDRESS:-}"
+# Optional (only used for printing helpful next steps)
+DOMAIN_NAME="${DOMAIN_NAME:-}"
 
 # -------- Helpers --------
 die() { printf '%s\n' "ERROR: $*" >&2; exit 1; }
@@ -32,21 +31,42 @@ fi
 
 need_cmd() { command -v "$1" >/dev/null 2>&1 || die "Missing required command: $1"; }
 
-print_required_vars() {
+print_next_steps() {
   log ""
-  log "Required variables are missing."
+  log "${BOLD}Phase 2 completed.${RESET}"
   log ""
-  log "You must provide:"
-  log "  SITE_IP       - EC2 instance Public IPv4 address"
-  log "  SITE_ADDRESS  - EC2 instance Public IPv4 DNS name"
+  log "${BOLD}Next steps:${RESET}"
   log ""
-  log "Where to get them:"
-  log "  AWS Console -> EC2 -> Instances -> your instance -> Details"
-  log "  - Public IPv4 address"
-  log "  - Public IPv4 DNS"
+  log "1) Ensure DNS A-record points to your Elastic IP:"
+  if [ -n "$DOMAIN_NAME" ]; then
+    log "   - $DOMAIN_NAME -> <elastic-ip>"
+    log "   - www.$DOMAIN_NAME -> <elastic-ip> (optional)"
+  else
+    log "   - <your-domain> -> <elastic-ip>"
+    log "   - www.<your-domain> -> <elastic-ip> (optional)"
+  fi
   log ""
-  log "Example:"
-  log "  SITE_IP=<public-ip> SITE_ADDRESS=<public-dns> sh bootstrap_phase2.sh"
+  log "2) Ensure AWS Security Group allows inbound:"
+  log "   - TCP 80 (HTTP)"
+  log "   - TCP 443 (HTTPS)"
+  log ""
+  log "3) Configure Caddyfile to use your domain (auto-TLS):"
+  log "   - deploy/demo/Caddyfile should contain something like:"
+  if [ -n "$DOMAIN_NAME" ]; then
+    log "       $DOMAIN_NAME, www.$DOMAIN_NAME {"
+  else
+    log "       <your-domain>, www.<your-domain> {"
+  fi
+  log "         reverse_proxy grafana:3000"
+  log "       }"
+  log ""
+  log "4) Start the demo stack:"
+  log "   cd \"$REPO_DIR\""
+  log "   make demo-up"
+  log ""
+  log "5) Check Caddy logs for certificate issuance:"
+  log "   cd \"$REPO_DIR\""
+  log "   docker compose logs -n 200 caddy"
   log ""
 }
 
@@ -57,7 +77,6 @@ print_required_vars() {
 
 need_cmd git
 need_cmd make
-need_cmd openssl
 need_cmd docker
 
 log "==> Phase 2: user bootstrap"
@@ -75,20 +94,4 @@ else
   git clone "$REPO_URL" "$REPO_DIR"
 fi
 
-log "==> Ensure certificates exist"
-mkdir -p "$CERTS_DIR"
-
-if [ -f "$CERTS_DIR/cert.pem" ] && [ -f "$CERTS_DIR/key.pem" ]; then
-  log "==> Certificates already exist"
-else
-  if [ -z "$SITE_IP" ] || [ -z "$SITE_ADDRESS" ]; then
-    print_required_vars
-    die "SITE_IP and SITE_ADDRESS are required to generate certificates."
-  fi
-
-  openssl req -x509 -newkey rsa:2048 -sha256 -days 3650 -nodes \
-    -keyout "$CERTS_DIR/key.pem" \
-    -out "$CERTS_DIR/cert.pem" \
-    -subj "/CN=$SITE_ADDRESS" \
-    -addext "subjectAltName=DNS:$SITE_ADDRESS,IP:$SITE_IP,IP:127.0.0.1"
-fi
+print_next_steps
