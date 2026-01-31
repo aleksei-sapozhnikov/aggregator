@@ -18,6 +18,9 @@ services:
       GF_AUTH_BASIC_ENABLED: "false"
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_USERS_ANONYMOUS_DEVICE_PREFERENCES: "true"
+      GF_SERVER_DOMAIN: "alivion.cc"
+      GF_SERVER_ROOT_URL: "https://alivion.cc/health-aggregator/"
+      GF_SERVER_SERVE_FROM_SUB_PATH: "true"
     volumes:
       - ${GRAFANA_PROVISIONING_DIR:-./monitoring/grafana/provisioning}:/etc/grafana/provisioning:ro
       - ${GRAFANA_DASHBOARDS_DIR:-./monitoring/grafana/dashboards}:/var/lib/grafana/dashboards:ro
