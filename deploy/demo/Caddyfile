@@ -1,10 +1,15 @@
 {
+    acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
     servers {
                 protocols h1 h2
             }
 }
 
-:443 {
-    tls /etc/caddy/certs/cert.pem /etc/caddy/certs/key.pem
-    reverse_proxy grafana:3000
+alivion.cc, www.alivion.cc {
+    @root path /
+    redir @root /health-aggregator 302
+
+    handle /health-aggregator* {
+                                   reverse_proxy grafana:3000
+                               }
 }
