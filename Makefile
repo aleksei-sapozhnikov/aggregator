@@ -41,40 +41,46 @@ LOCAL_PROMETHEUS_DATA_DIR := ./.temp/prometheus/data
 LOCAL_GRAFANA_DATA_DIR := ./.temp/grafana/data
 
 .PHONY: help info prepare-dirs \
-        up down restart recreate rebuild clean \
-        local-up local-down local-restart local-recreate local-rebuild local-clean \
-        local-demo-up local-demo-down local-demo-restart local-demo-recreate local-demo-rebuild local-demo-clean \
-        demo-up demo-down demo-restart demo-recreate demo-rebuild demo-clean \
-        local-up-svc local-stop-svc local-restart-svc local-recreate-svc local-rebuild-svc \
-        local-demo-up-svc local-demo-stop-svc local-demo-restart-svc local-demo-recreate-svc local-demo-rebuild-svc \
-        demo-up-svc demo-stop-svc demo-restart-svc demo-recreate-svc demo-rebuild-svc
+        up down restart recreate rebuild rebuild-recreate clean \
+        local-up local-down local-restart local-recreate local-rebuild local-rebuild-recreate local-clean \
+        local-demo-up local-demo-down local-demo-restart local-demo-recreate local-demo-rebuild local-demo-rebuild-recreate local-demo-clean \
+        demo-up demo-down demo-restart demo-recreate demo-rebuild demo-rebuild-recreate demo-clean \
+        local-up-svc local-stop-svc local-restart-svc local-recreate-svc local-rebuild-svc local-rebuild-recreate-svc \
+        local-demo-up-svc local-demo-stop-svc local-demo-restart-svc local-demo-recreate-svc local-demo-rebuild-svc local-demo-rebuild-recreate-svc \
+        demo-up-svc demo-stop-svc demo-restart-svc demo-recreate-svc demo-rebuild-svc demo-rebuild-recreate-svc
 
 help:
 	@echo "Conventions:"
-	@echo "  up       -> start/update containers (no build)"
-	@echo "  down     -> stop/remove containers + network (keep volumes)"
-	@echo "  restart  -> restart existing containers (no recreate)"
-	@echo "  recreate -> force re-create containers (keep volumes)"
-	@echo "  rebuild  -> build images + start (keep volumes)"
-	@echo "  clean    -> down + remove volumes (DATA LOSS)"
+	@echo "  up               -> start/update containers (no build)"
+	@echo "  down             -> stop/remove containers + network (keep volumes)"
+	@echo "  restart          -> restart existing containers (no recreate)"
+	@echo "  recreate         -> force re-create containers (keep volumes)"
+	@echo "  rebuild          -> build images + start/update (keep volumes)"
+	@echo "  rebuild-recreate -> build images + force re-create containers (keep volumes)"
+	@echo "  clean            -> down + remove volumes (DATA LOSS)"
 	@echo ""
 	@echo "Default (alias -> local-demo):"
-	@echo "  make up | down | restart | recreate | rebuild | clean"
+	@echo "  make up | down | restart | recreate | rebuild | rebuild-recreate | clean"
+	@echo ""
+	@echo "Service-scoped commands (*-svc):"
+	@echo "  Affect only one or more explicitly specified services."
+	@echo "  Other running containers in the stack are not touched."
+	@echo ""
+	@echo "  Examples:"
+	@echo "    make demo-restart-svc caddy grafana"
+	@echo "    make demo-rebuild-recreate-svc caddy"
+	@echo "    make local-demo-recreate-svc aggregator prometheus"
 	@echo ""
 	@echo "Local:"
-	@echo "  make local-up | local-down | local-restart | local-recreate | local-rebuild | local-clean"
-	@echo "  make local-up-svc <svc...>"
-	@echo "  make local-stop-svc <svc...>"
-	@echo "  make local-restart-svc <svc...>"
-	@echo "  make local-recreate-svc <svc...>"
-	@echo "  make local-rebuild-svc <svc...>"
+	@echo "  make local-up | local-down | local-restart | local-recreate | local-rebuild | local-rebuild-recreate | local-clean"
+	@echo "  make local-*-svc <svc...>"
 	@echo ""
 	@echo "Local demo:"
-	@echo "  make local-demo-up | local-demo-down | local-demo-restart | local-demo-recreate | local-demo-rebuild | local-demo-clean"
+	@echo "  make local-demo-up | local-demo-down | local-demo-restart | local-demo-recreate | local-demo-rebuild | local-demo-rebuild-recreate | local-demo-clean"
 	@echo "  make local-demo-*-svc <svc...>"
 	@echo ""
 	@echo "Demo (AWS / public):"
-	@echo "  make demo-up | demo-down | demo-restart | demo-recreate | demo-rebuild | demo-clean"
+	@echo "  make demo-up | demo-down | demo-restart | demo-recreate | demo-rebuild | demo-rebuild-recreate | demo-clean"
 	@echo "  make demo-*-svc <svc...>"
 	@echo ""
 	@echo "Variables:"
@@ -99,6 +105,7 @@ down: local-demo-down
 restart: local-demo-restart
 recreate: local-demo-recreate
 rebuild: local-demo-rebuild
+rebuild-recreate: local-demo-rebuild-recreate
 clean: local-demo-clean
 
 # ---- local ----
@@ -116,6 +123,9 @@ local-recreate: info
 
 local-rebuild: info prepare-dirs
 	$(COMPOSE) $(LOCAL_PROJECT) $(LOCAL_STACK) up --detach --build --remove-orphans
+
+local-rebuild-recreate: info prepare-dirs
+	$(COMPOSE) $(LOCAL_PROJECT) $(LOCAL_STACK) up --detach --build --force-recreate --remove-orphans
 
 local-clean: info
 	$(COMPOSE) $(LOCAL_PROJECT) $(LOCAL_STACK) down --remove-orphans --volumes
@@ -136,6 +146,9 @@ local-demo-recreate: info
 local-demo-rebuild: info prepare-dirs
 	$(COMPOSE) $(LOCAL_DEMO_PROJECT) $(LOCAL_DEMO_STACK) up --detach --build --remove-orphans
 
+local-demo-rebuild-recreate: info prepare-dirs
+	$(COMPOSE) $(LOCAL_DEMO_PROJECT) $(LOCAL_DEMO_STACK) up --detach --build --force-recreate --remove-orphans
+
 local-demo-clean: info
 	$(COMPOSE) $(LOCAL_DEMO_PROJECT) $(LOCAL_DEMO_STACK) down --remove-orphans --volumes
 
@@ -155,6 +168,9 @@ demo-recreate: info
 demo-rebuild: info
 	$(COMPOSE) $(DEMO_PROJECT) $(DEMO_STACK) up --detach --build --remove-orphans
 
+demo-rebuild-recreate: info
+	$(COMPOSE) $(DEMO_PROJECT) $(DEMO_STACK) up --detach --build --force-recreate --remove-orphans
+
 demo-clean: info
 	$(COMPOSE) $(DEMO_PROJECT) $(DEMO_STACK) down --remove-orphans --volumes
 
@@ -164,9 +180,9 @@ demo-clean: info
 #   make local-demo-recreate-svc aggregator prometheus
 #
 SERVICE_TARGETS := \
-  local-up-svc local-stop-svc local-restart-svc local-recreate-svc local-rebuild-svc \
-  local-demo-up-svc local-demo-stop-svc local-demo-restart-svc local-demo-recreate-svc local-demo-rebuild-svc \
-  demo-up-svc demo-stop-svc demo-restart-svc demo-recreate-svc demo-rebuild-svc
+  local-up-svc local-stop-svc local-restart-svc local-recreate-svc local-rebuild-svc local-rebuild-recreate-svc \
+  local-demo-up-svc local-demo-stop-svc local-demo-restart-svc local-demo-recreate-svc local-demo-rebuild-svc local-demo-rebuild-recreate-svc \
+  demo-up-svc demo-stop-svc demo-restart-svc demo-recreate-svc demo-rebuild-svc demo-rebuild-recreate-svc
 
 ifneq ($(filter $(SERVICE_TARGETS),$(MAKECMDGOALS)),)
 SERVICES := $(filter-out $(SERVICE_TARGETS),$(MAKECMDGOALS))
@@ -202,6 +218,10 @@ local-rebuild-svc: info prepare-dirs
 	$(call require_services,local-rebuild-svc)
 	$(COMPOSE) $(LOCAL_PROJECT) $(LOCAL_STACK) up --detach --build $(SERVICES)
 
+local-rebuild-recreate-svc: info prepare-dirs
+	$(call require_services,local-rebuild-recreate-svc)
+	$(COMPOSE) $(LOCAL_PROJECT) $(LOCAL_STACK) up --detach --build --force-recreate $(SERVICES)
+
 # local-demo services
 local-demo-up-svc: info prepare-dirs
 	$(call require_services,local-demo-up-svc)
@@ -223,6 +243,10 @@ local-demo-rebuild-svc: info prepare-dirs
 	$(call require_services,local-demo-rebuild-svc)
 	$(COMPOSE) $(LOCAL_DEMO_PROJECT) $(LOCAL_DEMO_STACK) up --detach --build $(SERVICES)
 
+local-demo-rebuild-recreate-svc: info prepare-dirs
+	$(call require_services,local-demo-rebuild-recreate-svc)
+	$(COMPOSE) $(LOCAL_DEMO_PROJECT) $(LOCAL_DEMO_STACK) up --detach --build --force-recreate $(SERVICES)
+
 # demo services
 demo-up-svc: info
 	$(call require_services,demo-up-svc)
@@ -243,3 +267,7 @@ demo-recreate-svc: info
 demo-rebuild-svc: info
 	$(call require_services,demo-rebuild-svc)
 	$(COMPOSE) $(DEMO_PROJECT) $(DEMO_STACK) up --detach --build $(SERVICES)
+
+demo-rebuild-recreate-svc: info
+	$(call require_services,demo-rebuild-recreate-svc)
+	$(COMPOSE) $(DEMO_PROJECT) $(DEMO_STACK) up --detach --build --force-recreate $(SERVICES)
