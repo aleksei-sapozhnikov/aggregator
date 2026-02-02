@@ -253,6 +253,18 @@ This section describes the minimal end-to-end flow to run the PoC and reproduce 
     * Timeline dashboard:
       [open dashboard](http://localhost:3000/d/catalog-item-state-timeline?var-item_id=user-facing&var-deps=$__all)
 
+## Demo chaos maker container
+
+The demo stack includes an optional `chaos-maker` container that flips service health endpoints to `DOWN` for a short
+window and then restores them to `UP`. This container is **disabled by default** and is only wired into the demo
+Compose stacks.
+
+Enable by setting `CHAOS_ENABLED=true` in the `chaos-maker` service environment. Disable by setting
+`CHAOS_ENABLED=false` (default).
+
+Default configuration is applied via environment variables.
+See the description in [chaos_maker.py](chaos-maker/chaos_maker.py).
+
 ### Screenshots
 
 #### Prometheus - Catalog Dependency Graph
