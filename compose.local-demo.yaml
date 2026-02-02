@@ -5,6 +5,8 @@ services:
         -XX:MaxRAMPercentage=75.0
         -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
       SPRING_PROFILES_ACTIVE: demo
+    volumes:
+      - ./config/demo:/app/config/demo:ro
 
   prometheus:
     image: prom/prometheus:v2.54.1
