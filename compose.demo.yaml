@@ -7,6 +7,20 @@ services:
     volumes:
       - ./config/demo:/app/config/demo:ro
 
+  chaos-maker:
+    build:
+      context: chaos-maker
+    environment:
+      CHAOS_ENABLED: "true"
+      CHAOS_MIN_INTERVAL: 10m
+      CHAOS_MAX_INTERVAL: 120m
+      CHAOS_MIN_DURATION: 15m
+      CHAOS_MAX_DURATION: 180m
+      CHAOS_MAX_CONCURRENT: "2"
+      CHAOS_CHECKS_PATH: /config/demo/health-checks.yaml
+    volumes:
+      - ./config/demo:/config/demo:ro
+
   prometheus:
     volumes:
       - ${PROMETHEUS_CONFIG_FILE:-./monitoring/prometheus/prometheus.yml}:/etc/prometheus/prometheus.yml:ro
