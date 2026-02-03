@@ -6,6 +6,11 @@ services:
       SPRING_PROFILES_ACTIVE: demo
 
   prometheus:
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=14d"
+      - "--storage.tsdb.retention.size=2GB"
     volumes:
       - ${PROMETHEUS_CONFIG_FILE:-./monitoring/prometheus/prometheus.yml}:/etc/prometheus/prometheus.yml:ro
       - prometheus-data:/prometheus
