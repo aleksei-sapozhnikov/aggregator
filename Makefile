@@ -191,10 +191,7 @@ $(SERVICES):
 endif
 
 define require_services
-	@if [ -z "$(SERVICES)" ]; then \
-	  echo "ERROR: No services specified. Example: make $(1) caddy grafana"; \
-	  exit 1; \
-	fi
+  $(if $(strip $(SERVICES)),,$(error No services specified. Example: make $(1) caddy grafana))
 endef
 
 # local services
