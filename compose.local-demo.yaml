@@ -5,6 +5,22 @@ services:
         -XX:MaxRAMPercentage=75.0
         -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
       SPRING_PROFILES_ACTIVE: demo
+    volumes:
+      - ./config/demo:/app/config/demo:ro
+
+  chaos-maker:
+    build:
+      context: chaos-maker
+    environment:
+      CHAOS_ENABLED: "true"
+      CHAOS_MIN_INTERVAL: 30s
+      CHAOS_MAX_INTERVAL: 90s
+      CHAOS_MIN_DURATION: 20s
+      CHAOS_MAX_DURATION: 45s
+      CHAOS_MAX_CONCURRENT: "2"
+      CHAOS_CHECKS_PATH: /config/demo/health-checks.yaml
+    volumes:
+      - ./config/demo:/config/demo:ro
 
   prometheus:
     image: prom/prometheus:v2.54.1

@@ -4,6 +4,22 @@ services:
       JAVA_OPTS: >
         -XX:MaxRAMPercentage=75.0
       SPRING_PROFILES_ACTIVE: demo
+    volumes:
+      - ./config/demo:/app/config/demo:ro
+
+  chaos-maker:
+    build:
+      context: chaos-maker
+    environment:
+      CHAOS_ENABLED: "true"
+      CHAOS_MIN_INTERVAL: 30m
+      CHAOS_MAX_INTERVAL: 120m
+      CHAOS_MIN_DURATION: 5m
+      CHAOS_MAX_DURATION: 60m
+      CHAOS_MAX_CONCURRENT: "1"
+      CHAOS_CHECKS_PATH: /config/demo/health-checks.yaml
+    volumes:
+      - ./config/demo:/config/demo:ro
 
   prometheus:
     command:
