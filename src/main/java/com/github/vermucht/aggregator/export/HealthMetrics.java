@@ -9,6 +9,11 @@ import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.PostConstruct;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import org.springframework.stereotype.Component;
 
@@ -23,6 +28,8 @@ public class HealthMetrics {
   public static final String LABEL_SOURCE_ID = "source_id";
   public static final String LABEL_TARGET_ID = "target_id";
   public static final String LABEL_DEP_TYPE = "dep_type";
+  public static final String LABEL_DEP_DEPTH = "dep_depth";
+  private static final String TRANSITIVE_DEP_TYPE = "transitive";
 
   private final MeterRegistry registry;
   private final Catalog catalog;
@@ -79,16 +86,30 @@ public class HealthMetrics {
 
   /** Registers dependency edge metrics. */
   private void registerDependencyMetrics() {
+    Map<ItemId, Map<ItemId, String>> directTypes = new HashMap<>();
     for (Dependency dependency : catalog.dependencies()) {
-      Gauge.builder(DEPENDENCY_METRIC_NAME, () -> 1.0)
-          .description("Catalog dependency edge (1=present)")
-          .tag(LABEL_SOURCE_ID, dependency.getSourceId().getValue())
-          .tag(LABEL_TARGET_ID, dependency.getTargetId().getValue())
-          .tag(LABEL_DEP_TYPE, dependency.getType())
-          .register(registry);
+      directTypes
+          .computeIfAbsent(dependency.getSourceId(), key -> new HashMap<>())
+          .put(dependency.getTargetId(), dependency.getType());
+    }
+
+    Map<ItemId, Map<ItemId, Integer>> dependencyDepths = computeDependencyDepths();
+    for (Map.Entry<ItemId, Map<ItemId, Integer>> sourceEntry : dependencyDepths.entrySet()) {
+      ItemId sourceId = sourceEntry.getKey();
+      Map<ItemId, String> sourceTypes = directTypes.getOrDefault(sourceId, Map.of());
+      for (Map.Entry<ItemId, Integer> targetEntry : sourceEntry.getValue().entrySet()) {
+        ItemId targetId = targetEntry.getKey();
+        String depType = sourceTypes.getOrDefault(targetId, TRANSITIVE_DEP_TYPE);
+        Gauge.builder(DEPENDENCY_METRIC_NAME, () -> 1.0)
+            .description("Catalog dependency edge (1=present)")
+            .tag(LABEL_SOURCE_ID, sourceId.getValue())
+            .tag(LABEL_TARGET_ID, targetId.getValue())
+            .tag(LABEL_DEP_TYPE, depType)
+            .tag(LABEL_DEP_DEPTH, Integer.toString(targetEntry.getValue()))
+            .register(registry);
+      }
     }
   }
-}
 
   /** Computes the minimal traversal depth between catalog items for all transitive dependencies. */
   private Map<ItemId, Map<ItemId, Integer>> computeDependencyDepths() {

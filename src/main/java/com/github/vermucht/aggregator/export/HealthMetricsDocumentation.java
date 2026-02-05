@@ -19,6 +19,7 @@ package com.github.vermucht.aggregator.export;
  *   <li>{@code source_id} - source catalog item identifier
  *   <li>{@code target_id} - target catalog item identifier
  *   <li>{@code dep_type} - dependency classification
+ *   <li>{@code dep_depth} - dependency depth (1: direct, 2+: transitive)
  * </ul>
  *
  * <p>Gauge values:
