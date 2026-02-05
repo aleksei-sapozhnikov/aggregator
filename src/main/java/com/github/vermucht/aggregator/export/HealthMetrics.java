@@ -28,6 +28,7 @@ public class HealthMetrics {
   private final Catalog catalog;
   private final HealthStateStore healthStateStore;
 
+  /** Creates and registers item-level health gauges based on the catalog and health state store. */
   public HealthMetrics(
       @Nonnull MeterRegistry registry,
       @Nonnull Catalog catalog,
@@ -59,11 +60,13 @@ public class HealthMetrics {
     }
   }
 
+  /** Initializes metric registration after Spring context construction. */
   @PostConstruct
   void init() {
     registerMetrics();
   }
 
+  /** Registers all item and dependency metrics in the meter registry. */
   void registerMetrics() {
     for (Item item : catalog.items().values()) {
       ItemId itemId = item.getId();
