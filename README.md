@@ -222,9 +222,10 @@ This section describes the minimal end-to-end flow to run the PoC and reproduce 
    ```
    # HELP catalog_dependency Catalog dependency edge (1=present)
    # TYPE catalog_dependency gauge
-   catalog_dependency{dep_type="relies_on",source_id="user-facing",target_id="dummy-javascript"} 1.0
-   catalog_dependency{dep_type="believes_in",source_id="user-facing",target_id="dummy-python"} 1.0
-   catalog_dependency{dep_type="depends_on",source_id="user-facing",target_id="dummy-java"} 1.0
+   catalog_dependency{dep_depth="1",dep_type="relies_on",source_id="user-facing",target_id="dummy-javascript"} 1.0
+   catalog_dependency{dep_depth="1",dep_type="believes_in",source_id="user-facing",target_id="dummy-python"} 1.0
+   catalog_dependency{dep_depth="1",dep_type="depends_on",source_id="user-facing",target_id="dummy-java"} 1.0
+   catalog_dependency{dep_depth="2",dep_type="transitive",source_id="user-facing",target_id="dummy-rust"} 1.0
    ```
 
 4. Flip a dummy service state to simulate an incident:
@@ -249,9 +250,9 @@ This section describes the minimal end-to-end flow to run the PoC and reproduce 
       [open query](http://localhost:9090/graph?g0.expr=avg%20by%20%28target_id%2Csource_id%29%20%28catalog_dependency%29&g0.tab=0&g0.range_input=15m)
 - **Grafana UI**: `http://localhost:3000`
     * Current state dashboard:
-      [open dashboard](http://localhost:3000/d/catalog-item-state-current?var-item_id=user-facing&var-deps=$__all)
+      [open dashboard](http://localhost:3000/d/catalog-item-state-current?var-item_id=user-facing&var-dep_depth=$__all&var-deps=$__all)
     * Timeline dashboard:
-      [open dashboard](http://localhost:3000/d/catalog-item-state-timeline?var-item_id=user-facing&var-deps=$__all)
+      [open dashboard](http://localhost:3000/d/catalog-item-state-timeline?var-item_id=user-facing&var-dep_depth=$__all&var-deps=$__all)
 
 ## Demo chaos maker container
 
