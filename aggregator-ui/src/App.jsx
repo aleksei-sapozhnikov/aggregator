@@ -68,8 +68,7 @@ const resolveGrafanaBaseUrl = () => {
   if (import.meta.env.VITE_GRAFANA_URL) {
     return import.meta.env.VITE_GRAFANA_URL;
   }
-  const { protocol, hostname } = window.location;
-  return `${protocol}//${hostname}:3001`;
+  return `${window.location.origin}/grafana`;
 };
 
 const buildDashboardUrl = (baseUrl, dashboardUid, itemId, theme) => {
