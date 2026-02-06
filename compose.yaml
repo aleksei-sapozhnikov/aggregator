@@ -3,6 +3,15 @@ services:
     build:
       context: .
 
+  aggregator-ui:
+    build:
+      context: .
+      dockerfile: aggregator-ui/Dockerfile
+      args:
+        CATALOG_FILE: config/empty/catalog.yaml
+    depends_on:
+      - grafana
+
   prometheus:
     image: prom/prometheus:v2.54.1
     command:

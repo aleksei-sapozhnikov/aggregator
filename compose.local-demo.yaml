@@ -8,6 +8,13 @@ services:
     volumes:
       - ./config/demo:/app/config/demo:ro
 
+  aggregator-ui:
+    build:
+      context: .
+      dockerfile: aggregator-ui/Dockerfile
+      args:
+        CATALOG_FILE: config/demo/catalog.yaml
+
   chaos-maker:
     build:
       context: chaos-maker
