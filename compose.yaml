@@ -27,6 +27,8 @@ services:
 
   grafana:
     image: grafana/grafana:12.3.1
+    environment:
+      GF_SECURITY_ALLOW_EMBEDDING: "true"
     depends_on:
       - aggregator
       - prometheus
