@@ -40,7 +40,7 @@ endif
 LOCAL_PROMETHEUS_DATA_DIR := ./.temp/prometheus/data
 LOCAL_GRAFANA_DATA_DIR := ./.temp/grafana/data
 
-.PHONY: help info prepare-dirs \
+.PHONY: help info \
         up down restart recreate rebuild rebuild-recreate clean \
         local-up local-down local-restart local-recreate local-rebuild local-rebuild-recreate local-clean \
         local-demo-up local-demo-down local-demo-restart local-demo-recreate local-demo-rebuild local-demo-rebuild-recreate local-demo-clean \
@@ -89,15 +89,6 @@ help:
 info:
 	@echo "Using compose command: $(COMPOSE)"
 
-prepare-dirs:
-ifeq ($(OS),Windows_NT)
-	@powershell -NoProfile -Command "New-Item -ItemType Directory -Force -Path '$(LOCAL_PROMETHEUS_DATA_DIR)' | Out-Null"
-	@powershell -NoProfile -Command "New-Item -ItemType Directory -Force -Path '$(LOCAL_GRAFANA_DATA_DIR)' | Out-Null"
-else
-	@mkdir -p $(LOCAL_PROMETHEUS_DATA_DIR)
-	@mkdir -p $(LOCAL_GRAFANA_DATA_DIR)
-endif
-
 # ---- default aliases ----
 # Keep existing behavior: default targets operate on local-demo.
 up: local-demo-up
@@ -109,7 +100,7 @@ rebuild-recreate: local-demo-rebuild-recreate
 clean: local-demo-clean
 
 # ---- local ----
-local-up: info prepare-dirs
+local-up: info
 	$(COMPOSE) $(LOCAL_PROJECT) $(LOCAL_STACK) up --detach --remove-orphans
 
 local-down: info
@@ -121,17 +112,17 @@ local-restart: info
 local-recreate: info
 	$(COMPOSE) $(LOCAL_PROJECT) $(LOCAL_STACK) up --detach --force-recreate --remove-orphans
 
-local-rebuild: info prepare-dirs
+local-rebuild: info
 	$(COMPOSE) $(LOCAL_PROJECT) $(LOCAL_STACK) up --detach --build --remove-orphans
 
-local-rebuild-recreate: info prepare-dirs
+local-rebuild-recreate: info
 	$(COMPOSE) $(LOCAL_PROJECT) $(LOCAL_STACK) up --detach --build --force-recreate --remove-orphans
 
 local-clean: info
 	$(COMPOSE) $(LOCAL_PROJECT) $(LOCAL_STACK) down --remove-orphans --volumes
 
 # ---- local-demo ----
-local-demo-up: info prepare-dirs
+local-demo-up: info
 	$(COMPOSE) $(LOCAL_DEMO_PROJECT) $(LOCAL_DEMO_STACK) up --detach --remove-orphans
 
 local-demo-down: info
@@ -143,10 +134,10 @@ local-demo-restart: info
 local-demo-recreate: info
 	$(COMPOSE) $(LOCAL_DEMO_PROJECT) $(LOCAL_DEMO_STACK) up --detach --force-recreate --remove-orphans
 
-local-demo-rebuild: info prepare-dirs
+local-demo-rebuild: info
 	$(COMPOSE) $(LOCAL_DEMO_PROJECT) $(LOCAL_DEMO_STACK) up --detach --build --remove-orphans
 
-local-demo-rebuild-recreate: info prepare-dirs
+local-demo-rebuild-recreate: info
 	$(COMPOSE) $(LOCAL_DEMO_PROJECT) $(LOCAL_DEMO_STACK) up --detach --build --force-recreate --remove-orphans
 
 local-demo-clean: info
@@ -191,14 +182,11 @@ $(SERVICES):
 endif
 
 define require_services
-	@if [ -z "$(SERVICES)" ]; then \
-	  echo "ERROR: No services specified. Example: make $(1) caddy grafana"; \
-	  exit 1; \
-	fi
+  $(if $(strip $(SERVICES)),,$(error No services specified. Example: make $(1) caddy grafana))
 endef
 
 # local services
-local-up-svc: info prepare-dirs
+local-up-svc: info
 	$(call require_services,local-up-svc)
 	$(COMPOSE) $(LOCAL_PROJECT) $(LOCAL_STACK) up --detach --remove-orphans $(SERVICES)
 
@@ -214,16 +202,16 @@ local-recreate-svc: info
 	$(call require_services,local-recreate-svc)
 	$(COMPOSE) $(LOCAL_PROJECT) $(LOCAL_STACK) up --detach --force-recreate $(SERVICES)
 
-local-rebuild-svc: info prepare-dirs
+local-rebuild-svc: info
 	$(call require_services,local-rebuild-svc)
 	$(COMPOSE) $(LOCAL_PROJECT) $(LOCAL_STACK) up --detach --build $(SERVICES)
 
-local-rebuild-recreate-svc: info prepare-dirs
+local-rebuild-recreate-svc: info
 	$(call require_services,local-rebuild-recreate-svc)
 	$(COMPOSE) $(LOCAL_PROJECT) $(LOCAL_STACK) up --detach --build --force-recreate $(SERVICES)
 
 # local-demo services
-local-demo-up-svc: info prepare-dirs
+local-demo-up-svc: info
 	$(call require_services,local-demo-up-svc)
 	$(COMPOSE) $(LOCAL_DEMO_PROJECT) $(LOCAL_DEMO_STACK) up --detach --remove-orphans $(SERVICES)
 
@@ -239,11 +227,11 @@ local-demo-recreate-svc: info
 	$(call require_services,local-demo-recreate-svc)
 	$(COMPOSE) $(LOCAL_DEMO_PROJECT) $(LOCAL_DEMO_STACK) up --detach --force-recreate $(SERVICES)
 
-local-demo-rebuild-svc: info prepare-dirs
+local-demo-rebuild-svc: info
 	$(call require_services,local-demo-rebuild-svc)
 	$(COMPOSE) $(LOCAL_DEMO_PROJECT) $(LOCAL_DEMO_STACK) up --detach --build $(SERVICES)
 
-local-demo-rebuild-recreate-svc: info prepare-dirs
+local-demo-rebuild-recreate-svc: info
 	$(call require_services,local-demo-rebuild-recreate-svc)
 	$(COMPOSE) $(LOCAL_DEMO_PROJECT) $(LOCAL_DEMO_STACK) up --detach --build --force-recreate $(SERVICES)
 
