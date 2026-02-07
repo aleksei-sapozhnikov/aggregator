@@ -145,6 +145,7 @@
           "uid": "prometheus"
         },
         "definition": "label_values(catalog_item_state, item_id)",
+        "hide": 2,
         "includeAll": false,
         "name": "item_id",
         "options": [],
