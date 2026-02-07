@@ -60,6 +60,10 @@ const getInitialTheme = () => {
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 };
 
+const resolveBasePath = () => new URL('.', window.location.href).pathname;
+
+const resolveBaseUrl = () => `${window.location.origin}${resolveBasePath()}`;
+
 const resolveGrafanaBaseUrl = () => {
   const configured = window.__AGGREGATOR_UI__?.grafanaUrl;
   if (configured) {
@@ -68,7 +72,7 @@ const resolveGrafanaBaseUrl = () => {
   if (import.meta.env.VITE_GRAFANA_URL) {
     return import.meta.env.VITE_GRAFANA_URL;
   }
-  return `${window.location.origin}/grafana`;
+  return `${resolveBaseUrl()}grafana`;
 };
 
 const buildDashboardUrl = (baseUrl, dashboardUid, itemId, theme) => {
@@ -139,7 +143,7 @@ export default function App() {
   useEffect(() => {
     const loadCatalog = async () => {
       try {
-        const response = await fetch('/catalog.yaml');
+        const response = await fetch(new URL('catalog.yaml', resolveBaseUrl()))
         if (!response.ok) {
           throw new Error(`Failed to load catalog: ${response.status}`);
         }
