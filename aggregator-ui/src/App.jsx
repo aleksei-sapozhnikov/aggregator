@@ -59,6 +59,10 @@ const getInitialTheme = () => {
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 };
 
+const resolveBasePath = () => new URL('.', window.location.href).pathname;
+
+const resolveBaseUrl = () => `${window.location.origin}${resolveBasePath()}`;
+
 const resolveGrafanaBaseUrl = () => {
   const configured = window.__AGGREGATOR_UI__?.grafanaUrl;
   if (configured) {
@@ -67,7 +71,7 @@ const resolveGrafanaBaseUrl = () => {
   if (import.meta.env.VITE_GRAFANA_URL) {
     return import.meta.env.VITE_GRAFANA_URL;
   }
-  return `${window.location.origin}/grafana`;
+  return `${resolveBaseUrl()}grafana`;
 };
 
 const resolvePrometheusBaseUrl = () => {
@@ -101,6 +105,7 @@ const CatalogNode = ({
   lastUpdated,
 }) => {
   const hasChildren = node.children.length > 0;
+  const currentUrl = buildDashboardUrl(grafanaBaseUrl, DASHBOARDS.current, node.item.id, theme);
   const timelineUrl = buildDashboardUrl(grafanaBaseUrl, DASHBOARDS.timeline, node.item.id, theme);
   const statusLabel = `Status: ${status.toUpperCase()}${
     lastUpdated ? ` (at ${lastUpdated})` : ''
@@ -127,6 +132,9 @@ const CatalogNode = ({
         {node.item.name && <span className="node-name">{node.item.name}</span>}
       </button>
       <div className="node-links" onClick={(event) => event.stopPropagation()}>
+        <a href={currentUrl} target="_blank" rel="noreferrer">
+          Current State
+        </a>
         <a href={timelineUrl} target="_blank" rel="noreferrer">
           State Timeline
         </a>
@@ -181,7 +189,7 @@ export default function App() {
   useEffect(() => {
     const loadCatalog = async () => {
       try {
-        const response = await fetch('/catalog.yaml');
+        const response = await fetch(new URL('catalog.yaml', resolveBaseUrl()))
         if (!response.ok) {
           throw new Error(`Failed to load catalog: ${response.status}`);
         }
@@ -309,6 +317,18 @@ export default function App() {
           <div className="empty">Select a catalog item to view dashboards.</div>
         ) : (
           <div className="grafana-grid">
+            <section className="grafana-panel">
+              <div className="panel-header">Current State</div>
+              <iframe
+                title="Current State"
+                src={buildDashboardUrl(
+                  grafanaBaseUrl,
+                  DASHBOARDS.current,
+                  selectedItem.id,
+                  theme,
+                )}
+              />
+            </section>
             <section className="grafana-panel">
               <div className="panel-header">State Timeline</div>
               <iframe
