@@ -298,9 +298,11 @@ export default function App() {
       <main className="content">
         <header className="content-header">
           <div>
-            <div className="content-title">Grafana Dashboard</div>
+            <div className="content-title">
+                {selectedItem ? selectedItem.name || selectedItem.id : 'Select an item'}
+            </div>
             <div className="content-subtitle">
-              {selectedItem ? selectedItem.name || selectedItem.id : 'Select an item'}
+                State Timeline
             </div>
           </div>
           <div className="grafana-meta">Theme: {theme}</div>
@@ -310,7 +312,6 @@ export default function App() {
         ) : (
           <div className="grafana-grid">
             <section className="grafana-panel">
-              <div className="panel-header">State Timeline</div>
               <iframe
                 title="State Timeline"
                 src={buildDashboardUrl(
