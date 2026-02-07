@@ -277,8 +277,8 @@ export default function App() {
       <aside className="sidebar">
         <div className="sidebar-header">
           <div>
-            <div className="app-title">Aggregator UI</div>
-            <div className="app-subtitle">Catalog Explorer</div>
+            <div className="app-title">Catalog Explorer</div>
+            <div className="app-subtitle">Hierarchy and Current State</div>
           </div>
           <button
             type="button"
