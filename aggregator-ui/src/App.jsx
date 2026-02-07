@@ -5,6 +5,10 @@ const DASHBOARDS = {
   timeline: 'catalog-item-state-timeline',
 };
 
+const DASHBOARD_PANELS = {
+  timeline: 2001,
+};
+
 const sortItemsByName = (items) =>
   [...items].sort((a, b) => (a.name || a.id).localeCompare(b.name || b.id));
 
@@ -81,12 +85,15 @@ const resolvePrometheusBaseUrl = () => {
   return `${window.location.origin}/prometheus`;
 };
 
-const buildDashboardUrl = (baseUrl, dashboardUid, itemId, theme) => {
+const buildDashboardUrl = (baseUrl, dashboardUid, itemId, theme, panelId) => {
   const params = new URLSearchParams({
     orgId: '1',
     'var-item_id': itemId,
     theme,
   });
+  if (panelId) {
+    params.set('viewPanel', panelId);
+  }
   return `${baseUrl}/d/${dashboardUid}?${params.toString()}&kiosk`;
 };
 
@@ -101,7 +108,13 @@ const CatalogNode = ({
   lastUpdated,
 }) => {
   const hasChildren = node.children.length > 0;
-  const timelineUrl = buildDashboardUrl(grafanaBaseUrl, DASHBOARDS.timeline, node.item.id, theme);
+  const timelineUrl = buildDashboardUrl(
+    grafanaBaseUrl,
+    DASHBOARDS.timeline,
+    node.item.id,
+    theme,
+    DASHBOARD_PANELS.timeline,
+  );
   const statusLabel = `Status: ${status.toUpperCase()}${
     lastUpdated ? ` (at ${lastUpdated})` : ''
   }`;
@@ -319,6 +332,7 @@ export default function App() {
                   DASHBOARDS.timeline,
                   selectedItem.id,
                   theme,
+                  DASHBOARD_PANELS.timeline,
                 )}
               />
             </section>
