@@ -278,7 +278,7 @@ export default function App() {
         <div className="sidebar-header">
           <div>
             <div className="app-title">Catalog Explorer</div>
-            <div className="app-subtitle">Hierarchy and Current State</div>
+            <div className="app-subtitle">Current State</div>
           </div>
           <button
             type="button"
