@@ -7,6 +7,13 @@ services:
     volumes:
       - ./config/demo:/app/config/demo:ro
 
+  aggregator-ui:
+    build:
+      context: .
+      dockerfile: aggregator-ui/Dockerfile
+      args:
+        CATALOG_FILE: config/demo/catalog.yaml
+
   chaos-maker:
     build:
       context: chaos-maker
@@ -33,15 +40,15 @@ services:
 
   grafana:
     environment:
+      GF_SECURITY_ALLOW_EMBEDDING: "true"
+      GF_SERVER_ROOT_URL: "%(protocol)s://%(domain)s:%(http_port)s/grafana"
+      GF_SERVER_SERVE_FROM_SUB_PATH: "true"
       GF_AUTH_ANONYMOUS_ENABLED: "true"
       GF_AUTH_ANONYMOUS_ORG_ROLE: "Viewer"
       GF_AUTH_DISABLE_LOGIN_FORM: "true"
       GF_AUTH_BASIC_ENABLED: "false"
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_USERS_ANONYMOUS_DEVICE_PREFERENCES: "true"
-      GF_SERVER_DOMAIN: "alivion.cc"
-      GF_SERVER_ROOT_URL: "https://alivion.cc/health-aggregator/"
-      GF_SERVER_SERVE_FROM_SUB_PATH: "true"
     volumes:
       - ${GRAFANA_PROVISIONING_DIR:-./monitoring/grafana/provisioning}:/etc/grafana/provisioning:ro
       - ${GRAFANA_DASHBOARDS_DIR:-./monitoring/grafana/dashboards}:/var/lib/grafana/dashboards:ro
