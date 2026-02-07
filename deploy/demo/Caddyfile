@@ -1,7 +1,7 @@
 {
     servers {
-                protocols h1 h2
-            }
+        protocols h1 h2
+    }
 }
 
 alivion.cc, www.alivion.cc, aggregator.alivion.cc {
