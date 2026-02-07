@@ -11,12 +11,12 @@ from the states of those services.
 
 Available on EC2 public instance, uses Grafana for visualization:
 
-- https://alivion.cc/health-aggregator
+- https://aggregator.alivion.cc
 
 Example dashboards:
 
-- [Dashboard - Current state for "business_suite"](https://alivion.cc/health-aggregator/d/catalog-item-state-current/catalog-item-state-current?var-item_id=business-suite)
-- [Dashboard - State timeline for "business_suite"](https://alivion.cc/health-aggregator/d/catalog-item-state-timeline/catalog-item-state-timeline?var-item_id=business-suite)
+- [Dashboard - Current state for "business_suite"](https://aggregator.alivion.cc/d/catalog-item-state-current/catalog-item-state-current?var-item_id=business-suite)
+- [Dashboard - State timeline for "business_suite"](https://aggregator.alivion.cc/d/catalog-item-state-timeline/catalog-item-state-timeline?var-item_id=business-suite)
 
 **Note:** A TLS certificate browser warning is expected because the certificate is self-signed.
 
