@@ -9,6 +9,11 @@ import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.PostConstruct;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import org.springframework.stereotype.Component;
 
@@ -23,11 +28,14 @@ public class HealthMetrics {
   public static final String LABEL_SOURCE_ID = "source_id";
   public static final String LABEL_TARGET_ID = "target_id";
   public static final String LABEL_DEP_TYPE = "dep_type";
+  public static final String LABEL_DEP_DEPTH = "dep_depth";
+  private static final String TRANSITIVE_DEP_TYPE = "transitive";
 
   private final MeterRegistry registry;
   private final Catalog catalog;
   private final HealthStateStore healthStateStore;
 
+  /** Creates and registers item-level health gauges based on the catalog and health state store. */
   public HealthMetrics(
       @Nonnull MeterRegistry registry,
       @Nonnull Catalog catalog,
@@ -49,21 +57,16 @@ public class HealthMetrics {
           .register(registry);
     }
 
-    for (Dependency dependency : catalog.dependencies()) {
-      Gauge.builder(DEPENDENCY_METRIC_NAME, () -> 1.0)
-          .description("Catalog dependency edge (1=present)")
-          .tag(LABEL_SOURCE_ID, dependency.getSourceId().getValue())
-          .tag(LABEL_TARGET_ID, dependency.getTargetId().getValue())
-          .tag(LABEL_DEP_TYPE, dependency.getType())
-          .register(registry);
-    }
+    registerDependencyMetrics();
   }
 
+  /** Initializes metric registration after Spring context construction. */
   @PostConstruct
   void init() {
     registerMetrics();
   }
 
+  /** Registers all item and dependency metrics in the meter registry. */
   void registerMetrics() {
     for (Item item : catalog.items().values()) {
       ItemId itemId = item.getId();
@@ -78,13 +81,74 @@ public class HealthMetrics {
           .register(registry);
     }
 
+    registerDependencyMetrics();
+  }
+
+  /** Registers dependency edge metrics. */
+  private void registerDependencyMetrics() {
+    Map<ItemId, Map<ItemId, String>> directTypes = new HashMap<>();
     for (Dependency dependency : catalog.dependencies()) {
-      Gauge.builder(DEPENDENCY_METRIC_NAME, () -> 1.0)
-          .description("Catalog dependency edge (1=present)")
-          .tag(LABEL_SOURCE_ID, dependency.getSourceId().getValue())
-          .tag(LABEL_TARGET_ID, dependency.getTargetId().getValue())
-          .tag(LABEL_DEP_TYPE, dependency.getType())
-          .register(registry);
+      directTypes
+          .computeIfAbsent(dependency.getSourceId(), key -> new HashMap<>())
+          .put(dependency.getTargetId(), dependency.getType());
+    }
+
+    Map<ItemId, Map<ItemId, Integer>> dependencyDepths = computeDependencyDepths();
+    for (Map.Entry<ItemId, Map<ItemId, Integer>> sourceEntry : dependencyDepths.entrySet()) {
+      ItemId sourceId = sourceEntry.getKey();
+      Map<ItemId, String> sourceTypes = directTypes.getOrDefault(sourceId, Map.of());
+      for (Map.Entry<ItemId, Integer> targetEntry : sourceEntry.getValue().entrySet()) {
+        ItemId targetId = targetEntry.getKey();
+        String depType = sourceTypes.getOrDefault(targetId, TRANSITIVE_DEP_TYPE);
+        Gauge.builder(DEPENDENCY_METRIC_NAME, () -> 1.0)
+            .description("Catalog dependency edge (1=present)")
+            .tag(LABEL_SOURCE_ID, sourceId.getValue())
+            .tag(LABEL_TARGET_ID, targetId.getValue())
+            .tag(LABEL_DEP_TYPE, depType)
+            .tag(LABEL_DEP_DEPTH, Integer.toString(targetEntry.getValue()))
+            .register(registry);
+      }
     }
   }
+
+  /** Computes the minimal traversal depth between catalog items for all transitive dependencies. */
+  private Map<ItemId, Map<ItemId, Integer>> computeDependencyDepths() {
+    Map<ItemId, List<ItemId>> adjacency = new HashMap<>();
+    for (Dependency dependency : catalog.dependencies()) {
+      adjacency
+          .computeIfAbsent(dependency.getSourceId(), key -> new java.util.ArrayList<>())
+          .add(dependency.getTargetId());
+    }
+
+    Map<ItemId, Map<ItemId, Integer>> result = new HashMap<>();
+    for (ItemId sourceId : adjacency.keySet()) {
+      Map<ItemId, Integer> depths = new HashMap<>();
+      Deque<DependencyTraversal> queue = new ArrayDeque<>();
+      for (ItemId directTarget : adjacency.getOrDefault(sourceId, List.of())) {
+        if (depths.putIfAbsent(directTarget, 1) == null) {
+          queue.add(new DependencyTraversal(directTarget, 1));
+        }
+      }
+
+      while (!queue.isEmpty()) {
+        DependencyTraversal current = queue.removeFirst();
+        int nextDepth = current.depth() + 1;
+        for (ItemId nextTarget : adjacency.getOrDefault(current.targetId(), List.of())) {
+          Integer existingDepth = depths.get(nextTarget);
+          if (existingDepth == null || nextDepth < existingDepth) {
+            depths.put(nextTarget, nextDepth);
+            queue.add(new DependencyTraversal(nextTarget, nextDepth));
+          }
+        }
+      }
+
+      if (!depths.isEmpty()) {
+        result.put(sourceId, depths);
+      }
+    }
+    return result;
+  }
+
+  /** Represents a traversal step during dependency graph breadth-first search. */
+  private record DependencyTraversal(ItemId targetId, int depth) {}
 }
