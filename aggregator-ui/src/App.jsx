@@ -63,6 +63,10 @@ const getInitialTheme = () => {
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 };
 
+const resolveBasePath = () => new URL('.', window.location.href).pathname;
+
+const resolveBaseUrl = () => `${window.location.origin}${resolveBasePath()}`;
+
 const resolveGrafanaBaseUrl = () => {
   const configured = window.__AGGREGATOR_UI__?.grafanaUrl;
   if (configured) {
@@ -71,7 +75,7 @@ const resolveGrafanaBaseUrl = () => {
   if (import.meta.env.VITE_GRAFANA_URL) {
     return import.meta.env.VITE_GRAFANA_URL;
   }
-  return `${window.location.origin}/grafana`;
+  return `${resolveBaseUrl()}grafana`;
 };
 
 const resolvePrometheusBaseUrl = () => {
@@ -140,6 +144,9 @@ const CatalogNode = ({
         {node.item.id && <span className="node-id">{node.item.id}</span>}
       </button>
       <div className="node-links" onClick={(event) => event.stopPropagation()}>
+        <a href={currentUrl} target="_blank" rel="noreferrer">
+          Current State
+        </a>
         <a href={timelineUrl} target="_blank" rel="noreferrer">
           State Timeline
         </a>
@@ -194,7 +201,7 @@ export default function App() {
   useEffect(() => {
     const loadCatalog = async () => {
       try {
-        const response = await fetch('/catalog.yaml');
+        const response = await fetch(new URL('catalog.yaml', resolveBaseUrl()))
         if (!response.ok) {
           throw new Error(`Failed to load catalog: ${response.status}`);
         }
@@ -325,6 +332,19 @@ export default function App() {
         ) : (
           <div className="grafana-grid">
             <section className="grafana-panel">
+              <div className="panel-header">Current State</div>
+              <iframe
+                title="Current State"
+                src={buildDashboardUrl(
+                  grafanaBaseUrl,
+                  DASHBOARDS.current,
+                  selectedItem.id,
+                  theme,
+                )}
+              />
+            </section>
+            <section className="grafana-panel">
+              <div className="panel-header">State Timeline</div>
               <iframe
                 title="State Timeline"
                 src={buildDashboardUrl(

@@ -4,11 +4,6 @@
             }
 }
 
-alivion.cc, www.alivion.cc {
-    @root path /
-    redir @root /health-aggregator 302
-
-    handle /health-aggregator* {
-                                   reverse_proxy grafana:3000
-                               }
+alivion.cc, www.alivion.cc, aggregator.alivion.cc {
+    reverse_proxy aggregator-ui:3000
 }
