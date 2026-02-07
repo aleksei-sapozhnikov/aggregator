@@ -135,9 +135,9 @@ const CatalogNode = ({
             aria-label={statusLabel}
             title={statusLabel}
           />
-          <span className="node-key">{node.item.id}</span>
+          {node.item.name && <span className="node-name">{node.item.name}</span>}
         </span>
-        {node.item.name && <span className="node-name">{node.item.name}</span>}
+        {node.item.id && <span className="node-id">{node.item.id}</span>}
       </button>
       <div className="node-links" onClick={(event) => event.stopPropagation()}>
         <a href={timelineUrl} target="_blank" rel="noreferrer">

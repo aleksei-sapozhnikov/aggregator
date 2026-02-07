@@ -129,13 +129,13 @@ body {
   gap: 8px;
 }
 
-.node-key {
-  font-size: 14px;
-  font-weight: 600;
-}
-
 .node-name {
   font-size: 12px;
+  font-weight: 600
+}
+
+.node-id {
+  font-size: 11px;
   color: var(--muted);
 }
 
