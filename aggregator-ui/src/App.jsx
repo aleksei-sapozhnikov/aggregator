@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import yaml from 'js-yaml';
 
 const DASHBOARDS = {
-  current: 'catalog-item-state-current',
   timeline: 'catalog-item-state-timeline',
 };
 
@@ -75,6 +74,17 @@ const resolveGrafanaBaseUrl = () => {
   return `${resolveBaseUrl()}grafana`;
 };
 
+const resolvePrometheusBaseUrl = () => {
+  const configured = window.__AGGREGATOR_UI__?.prometheusUrl;
+  if (configured) {
+    return configured;
+  }
+  if (import.meta.env.VITE_PROMETHEUS_URL) {
+    return import.meta.env.VITE_PROMETHEUS_URL;
+  }
+  return `${window.location.origin}/prometheus`;
+};
+
 const buildDashboardUrl = (baseUrl, dashboardUid, itemId, theme) => {
   const params = new URLSearchParams({
     orgId: '1',
@@ -84,10 +94,21 @@ const buildDashboardUrl = (baseUrl, dashboardUid, itemId, theme) => {
   return `${baseUrl}/d/${dashboardUid}?${params.toString()}&kiosk`;
 };
 
-const CatalogNode = ({ node, selectedId, onSelect, grafanaBaseUrl, theme }) => {
+const CatalogNode = ({
+  node,
+  selectedId,
+  onSelect,
+  grafanaBaseUrl,
+  theme,
+  status,
+  statuses,
+  lastUpdated,
+}) => {
   const hasChildren = node.children.length > 0;
-  const currentUrl = buildDashboardUrl(grafanaBaseUrl, DASHBOARDS.current, node.item.id, theme);
   const timelineUrl = buildDashboardUrl(grafanaBaseUrl, DASHBOARDS.timeline, node.item.id, theme);
+  const statusLabel = `Status: ${status.toUpperCase()}${
+    lastUpdated ? ` (at ${lastUpdated})` : ''
+  }`;
 
   const row = (
     <div className={`node-row ${selectedId === node.item.id ? 'is-selected' : ''}`}>
@@ -99,13 +120,17 @@ const CatalogNode = ({ node, selectedId, onSelect, grafanaBaseUrl, theme }) => {
           onSelect(node.item.id);
         }}
       >
-        <span className="node-key">{node.item.id}</span>
+        <span className="node-heading">
+          <span
+            className={`status-indicator status-${status}`}
+            aria-label={statusLabel}
+            title={statusLabel}
+          />
+          <span className="node-key">{node.item.id}</span>
+        </span>
         {node.item.name && <span className="node-name">{node.item.name}</span>}
       </button>
       <div className="node-links" onClick={(event) => event.stopPropagation()}>
-        <a href={currentUrl} target="_blank" rel="noreferrer">
-          Current State
-        </a>
         <a href={timelineUrl} target="_blank" rel="noreferrer">
           State Timeline
         </a>
@@ -121,7 +146,21 @@ const CatalogNode = ({ node, selectedId, onSelect, grafanaBaseUrl, theme }) => {
     <li>
       <details open>
         <summary>{row}</summary>
-        <ul>{node.children.map((child) => <CatalogNode key={child.item.id} node={child} selectedId={selectedId} onSelect={onSelect} grafanaBaseUrl={grafanaBaseUrl} theme={theme} />)}</ul>
+        <ul>
+          {node.children.map((child) => (
+            <CatalogNode
+              key={child.item.id}
+              node={child}
+              selectedId={selectedId}
+              onSelect={onSelect}
+              grafanaBaseUrl={grafanaBaseUrl}
+              theme={theme}
+              status={statuses[child.item.id] || 'unknown'}
+              statuses={statuses}
+              lastUpdated={lastUpdated}
+            />
+          ))}
+        </ul>
       </details>
     </li>
   );
@@ -132,8 +171,11 @@ export default function App() {
   const [selectedId, setSelectedId] = useState('');
   const [error, setError] = useState('');
   const [theme, setTheme] = useState(getInitialTheme);
+  const [itemStatuses, setItemStatuses] = useState({});
+  const [lastUpdated, setLastUpdated] = useState('');
 
   const grafanaBaseUrl = useMemo(resolveGrafanaBaseUrl, []);
+  const prometheusBaseUrl = useMemo(resolvePrometheusBaseUrl, []);
 
   useEffect(() => {
     document.body.dataset.theme = theme;
@@ -160,6 +202,59 @@ export default function App() {
 
     loadCatalog();
   }, []);
+
+  useEffect(() => {
+    if (!catalog.items.length) {
+      return undefined;
+    }
+
+    let cancelled = false;
+
+    const fetchStatuses = async () => {
+      try {
+        const response = await fetch(
+          `${prometheusBaseUrl}/api/v1/query?query=${encodeURIComponent('catalog_item_state')}`,
+        );
+        if (!response.ok) {
+          throw new Error(`Failed to load Prometheus data: ${response.status}`);
+        }
+        const payload = await response.json();
+        const results = payload?.data?.result ?? [];
+        const nextStatuses = {};
+        results.forEach((entry) => {
+          const itemId = entry?.metric?.item_id;
+          if (!itemId) {
+            return;
+          }
+          const value = Number.parseFloat(entry?.value?.[1]);
+          let status = 'unknown';
+          if (Number.isFinite(value)) {
+            if (value >= 0.9) {
+              status = 'up';
+            } else if (value <= 0.1) {
+              status = 'down';
+            }
+          }
+          nextStatuses[itemId] = status;
+        });
+        if (!cancelled) {
+          setItemStatuses(nextStatuses);
+          setLastUpdated(new Date().toLocaleTimeString());
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.error(err);
+        }
+      }
+    };
+
+    fetchStatuses();
+    const interval = window.setInterval(fetchStatuses, 10000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
+  }, [catalog.items, prometheusBaseUrl]);
 
   const tree = useMemo(
     () => buildCatalogTree(catalog.items, catalog.dependencies),
@@ -197,6 +292,9 @@ export default function App() {
               onSelect={setSelectedId}
               grafanaBaseUrl={grafanaBaseUrl}
               theme={theme}
+              status={itemStatuses[node.item.id] || 'unknown'}
+              statuses={itemStatuses}
+              lastUpdated={lastUpdated}
             />
           ))}
         </ul>
@@ -204,7 +302,7 @@ export default function App() {
       <main className="content">
         <header className="content-header">
           <div>
-            <div className="content-title">Grafana Dashboards</div>
+            <div className="content-title">Grafana Dashboard</div>
             <div className="content-subtitle">
               {selectedItem ? selectedItem.name || selectedItem.id : 'Select an item'}
             </div>
@@ -215,18 +313,6 @@ export default function App() {
           <div className="empty">Select a catalog item to view dashboards.</div>
         ) : (
           <div className="grafana-grid">
-            <section className="grafana-panel">
-              <div className="panel-header">Current State</div>
-              <iframe
-                title="Current State"
-                src={buildDashboardUrl(
-                  grafanaBaseUrl,
-                  DASHBOARDS.current,
-                  selectedItem.id,
-                  theme,
-                )}
-              />
-            </section>
             <section className="grafana-panel">
               <div className="panel-header">State Timeline</div>
               <iframe

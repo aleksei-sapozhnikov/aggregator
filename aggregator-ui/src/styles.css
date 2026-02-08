@@ -123,6 +123,12 @@ body {
   gap: 4px;
 }
 
+.node-heading {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .node-key {
   font-size: 14px;
   font-weight: 600;
@@ -151,6 +157,27 @@ body {
 
 .node-leaf {
   padding-left: 12px;
+}
+
+.status-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  display: inline-block;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+
+.status-up {
+  background: #73bf69;
+}
+
+.status-unknown {
+  background: #f2c94c;
+}
+
+.status-down {
+  background: #e24d42;
 }
 
 summary {
@@ -194,7 +221,7 @@ summary::-webkit-details-marker {
 
 .grafana-grid {
   display: grid;
-  grid-template-rows: 1fr 1fr;
+  grid-template-rows: 1fr;
   gap: 16px;
   flex: 1;
   min-height: 0;
