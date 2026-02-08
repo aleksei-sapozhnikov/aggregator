@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import yaml from 'js-yaml';
 
 const DASHBOARDS = {
@@ -186,9 +186,51 @@ export default function App() {
   const [theme, setTheme] = useState(getInitialTheme);
   const [itemStatuses, setItemStatuses] = useState({});
   const [lastUpdated, setLastUpdated] = useState('');
+  const grafanaIframeRef = useRef(null);
+  const grafanaEscHandlerRef = useRef(null);
 
   const grafanaBaseUrl = useMemo(resolveGrafanaBaseUrl, []);
   const prometheusBaseUrl = useMemo(resolvePrometheusBaseUrl, []);
+
+  const handleGrafanaLoad = useCallback(() => {
+    const iframe = grafanaIframeRef.current;
+    if (!iframe?.contentWindow) {
+      return;
+    }
+    try {
+      const previousHandler = grafanaEscHandlerRef.current;
+      if (previousHandler) {
+        iframe.contentWindow.removeEventListener('keydown', previousHandler, true);
+      }
+      const handler = (event) => {
+        if (event.key === 'Escape' || event.keyCode === 27) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+      };
+      grafanaEscHandlerRef.current = handler;
+      iframe.contentWindow.addEventListener('keydown', handler, true);
+
+      const mousetrap = iframe.contentWindow.Mousetrap;
+      if (mousetrap) {
+        mousetrap.unbindGlobal?.('esc');
+        mousetrap.unbind?.('esc');
+      }
+    } catch (error) {
+      // Ignore cross-origin access issues when Grafana is hosted elsewhere.
+    }
+  }, []);
+
+  useEffect(
+    () => () => {
+      const iframe = grafanaIframeRef.current;
+      const handler = grafanaEscHandlerRef.current;
+      if (iframe?.contentWindow && handler) {
+        iframe.contentWindow.removeEventListener('keydown', handler, true);
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     document.body.dataset.theme = theme;
@@ -332,6 +374,8 @@ export default function App() {
               <div className="panel-header">State Timeline</div>
               <iframe
                 title="State Timeline"
+                ref={grafanaIframeRef}
+                onLoad={handleGrafanaLoad}
                 src={buildDashboardUrl(
                   grafanaBaseUrl,
                   DASHBOARDS.timeline,
