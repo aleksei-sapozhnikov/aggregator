@@ -1,9 +1,4 @@
 items:
-  # Business
-  - id: business-suite
-    name: Business Suite
-    type: business
-
   # Product families
   - id: commerce-platform
     name: Commerce Platform
@@ -97,17 +92,6 @@ items:
     type: service
 
 dependencies:
-  # Business to families
-  - sourceId: business-suite
-    targetId: commerce-platform
-    type: includes
-  - sourceId: business-suite
-    targetId: operations-suite
-    type: includes
-  - sourceId: business-suite
-    targetId: customer-experience
-    type: includes
-
   # Families to products
   - sourceId: commerce-platform
     targetId: commerce-core
