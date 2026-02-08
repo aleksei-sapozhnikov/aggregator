@@ -105,7 +105,6 @@ const CatalogNode = ({
   lastUpdated,
 }) => {
   const hasChildren = node.children.length > 0;
-  const currentUrl = buildDashboardUrl(grafanaBaseUrl, DASHBOARDS.current, node.item.id, theme);
   const timelineUrl = buildDashboardUrl(grafanaBaseUrl, DASHBOARDS.timeline, node.item.id, theme);
   const statusLabel = `Status: ${status.toUpperCase()}${
     lastUpdated ? ` (at ${lastUpdated})` : ''
@@ -132,9 +131,6 @@ const CatalogNode = ({
         {node.item.name && <span className="node-name">{node.item.name}</span>}
       </button>
       <div className="node-links" onClick={(event) => event.stopPropagation()}>
-        <a href={currentUrl} target="_blank" rel="noreferrer">
-          Current State
-        </a>
         <a href={timelineUrl} target="_blank" rel="noreferrer">
           State Timeline
         </a>
@@ -317,18 +313,6 @@ export default function App() {
           <div className="empty">Select a catalog item to view dashboards.</div>
         ) : (
           <div className="grafana-grid">
-            <section className="grafana-panel">
-              <div className="panel-header">Current State</div>
-              <iframe
-                title="Current State"
-                src={buildDashboardUrl(
-                  grafanaBaseUrl,
-                  DASHBOARDS.current,
-                  selectedItem.id,
-                  theme,
-                )}
-              />
-            </section>
             <section className="grafana-panel">
               <div className="panel-header">State Timeline</div>
               <iframe
