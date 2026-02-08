@@ -5,6 +5,10 @@ const DASHBOARDS = {
   timeline: 'catalog-item-state-timeline',
 };
 
+const DASHBOARD_SLUGS = {
+  timeline: 'catalog-item-state-timeline',
+};
+
 const DASHBOARD_PANELS = {
   timeline: 2001,
 };
@@ -89,15 +93,20 @@ const resolvePrometheusBaseUrl = () => {
   return `${window.location.origin}/prometheus`;
 };
 
-const normalizeDashboardBaseUrl = (baseUrl, dashboardUid) => {
+const normalizeDashboardBaseUrl = (baseUrl, dashboardUid, dashboardSlug = dashboardUid) => {
   const url = new URL(baseUrl, window.location.origin);
   const segments = url.pathname.split('/').filter(Boolean);
   const dashboardIndex = segments.indexOf('d');
 
   if (dashboardIndex !== -1 && segments[dashboardIndex + 1] === dashboardUid) {
-    segments.length = dashboardIndex + 2;
+    if (segments[dashboardIndex + 2]) {
+      segments.length = dashboardIndex + 3;
+    } else {
+      segments.length = dashboardIndex + 2;
+      segments.push(dashboardSlug);
+    }
   } else {
-    segments.push('d', dashboardUid);
+    segments.push('d', dashboardUid, dashboardSlug);
   }
 
   url.pathname = `/${segments.join('/')}`;
@@ -107,7 +116,14 @@ const normalizeDashboardBaseUrl = (baseUrl, dashboardUid) => {
   return url.toString().replace(/\/$/, '');
 };
 
-const buildDashboardUrl = (baseUrl, dashboardUid, itemId, theme, panelId) => {
+const buildDashboardUrl = (
+  baseUrl,
+  dashboardUid,
+  dashboardSlug,
+  itemId,
+  theme,
+  panelId,
+) => {
   const params = new URLSearchParams({
     orgId: '1',
     'var-item_id': itemId,
@@ -116,7 +132,7 @@ const buildDashboardUrl = (baseUrl, dashboardUid, itemId, theme, panelId) => {
   if (panelId) {
     params.set('viewPanel', panelId);
   }
-  const normalizedBaseUrl = normalizeDashboardBaseUrl(baseUrl, dashboardUid);
+  const normalizedBaseUrl = normalizeDashboardBaseUrl(baseUrl, dashboardUid, dashboardSlug);
   return `${normalizedBaseUrl}?${params.toString()}&kiosk`;
 };
 
@@ -134,6 +150,7 @@ const CatalogNode = ({
   const timelineUrl = buildDashboardUrl(
     grafanaBaseUrl,
     DASHBOARDS.timeline,
+    DASHBOARD_SLUGS.timeline,
     node.item.id,
     theme,
     DASHBOARD_PANELS.timeline,
@@ -292,6 +309,10 @@ export default function App() {
         if (!response.ok) {
           throw new Error(`Failed to load Prometheus data: ${response.status}`);
         }
+        const contentType = response.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+          return;
+        }
         const payload = await response.json();
         const results = payload?.data?.result ?? [];
         const nextStatuses = {};
@@ -398,6 +419,7 @@ export default function App() {
                 src={buildDashboardUrl(
                   grafanaBaseUrl,
                   DASHBOARDS.timeline,
+                  DASHBOARD_SLUGS.timeline,
                   selectedItem.id,
                   theme,
                   DASHBOARD_PANELS.timeline,
