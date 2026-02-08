@@ -89,6 +89,24 @@ const resolvePrometheusBaseUrl = () => {
   return `${window.location.origin}/prometheus`;
 };
 
+const normalizeDashboardBaseUrl = (baseUrl, dashboardUid) => {
+  const url = new URL(baseUrl, window.location.origin);
+  const segments = url.pathname.split('/').filter(Boolean);
+  const dashboardIndex = segments.indexOf('d');
+
+  if (dashboardIndex !== -1 && segments[dashboardIndex + 1] === dashboardUid) {
+    segments.length = dashboardIndex + 2;
+  } else {
+    segments.push('d', dashboardUid);
+  }
+
+  url.pathname = `/${segments.join('/')}`;
+  url.search = '';
+  url.hash = '';
+
+  return url.toString().replace(/\/$/, '');
+};
+
 const buildDashboardUrl = (baseUrl, dashboardUid, itemId, theme, panelId) => {
   const params = new URLSearchParams({
     orgId: '1',
@@ -98,7 +116,8 @@ const buildDashboardUrl = (baseUrl, dashboardUid, itemId, theme, panelId) => {
   if (panelId) {
     params.set('viewPanel', panelId);
   }
-  return `${baseUrl}/d/${dashboardUid}?${params.toString()}&kiosk`;
+  const normalizedBaseUrl = normalizeDashboardBaseUrl(baseUrl, dashboardUid);
+  return `${normalizedBaseUrl}?${params.toString()}&kiosk`;
 };
 
 const CatalogNode = ({
