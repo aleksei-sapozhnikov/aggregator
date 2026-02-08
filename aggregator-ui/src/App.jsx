@@ -411,7 +411,6 @@ export default function App() {
         ) : (
           <div className="grafana-grid">
             <section className="grafana-panel">
-              <div className="panel-header">State Timeline</div>
               <iframe
                 title="State Timeline"
                 ref={grafanaIframeRef}
