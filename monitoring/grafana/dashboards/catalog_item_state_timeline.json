@@ -228,7 +228,7 @@
     ]
   },
   "time": {
-    "from": "now-15m",
+    "from": "now-1d",
     "to": "now"
   },
   "timepicker": {},
