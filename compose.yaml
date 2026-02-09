@@ -2,6 +2,10 @@ services:
   aggregator:
     build:
       context: .
+      dockerfile: aggregator/Dockerfile
+      args:
+        CATALOG_FILE: config/empty/catalog.yaml
+        HEALTH_CHECKS_FILE: config/empty/health-checks.yaml
 
   aggregator-ui:
     build:
