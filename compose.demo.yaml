@@ -2,7 +2,7 @@ services:
   aggregator:
     build:
       args:
-        CONTAINER_ROOT: aggregator
+        CONTAINER_ROOT: services-core/aggregator
         CATALOG_FILE: config/demo/catalog.yaml
         HEALTH_CHECKS_FILE: config/demo/health-checks.yaml
     environment:
