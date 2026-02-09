@@ -2,6 +2,9 @@ services:
   aggregator:
     ports:
       - "8080:8080"
+    environment:
+      JAVA_OPTS: >
+        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
 
   aggregator-ui:
     ports:
