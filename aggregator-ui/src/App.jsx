@@ -1,8 +1,16 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import yaml from 'js-yaml';
 
 const DASHBOARDS = {
   timeline: 'catalog-item-state-timeline',
+};
+
+const DASHBOARD_SLUGS = {
+  timeline: 'catalog-item-state-timeline',
+};
+
+const DASHBOARD_PANELS = {
+  timeline: 2001,
 };
 
 const sortItemsByName = (items) =>
@@ -85,13 +93,47 @@ const resolvePrometheusBaseUrl = () => {
   return `${window.location.origin}/prometheus`;
 };
 
-const buildDashboardUrl = (baseUrl, dashboardUid, itemId, theme) => {
+const normalizeDashboardBaseUrl = (baseUrl, dashboardUid, dashboardSlug = dashboardUid) => {
+  const url = new URL(baseUrl, window.location.origin);
+  const segments = url.pathname.split('/').filter(Boolean);
+  const dashboardIndex = segments.indexOf('d');
+
+  if (dashboardIndex !== -1 && segments[dashboardIndex + 1] === dashboardUid) {
+    if (segments[dashboardIndex + 2]) {
+      segments.length = dashboardIndex + 3;
+    } else {
+      segments.length = dashboardIndex + 2;
+      segments.push(dashboardSlug);
+    }
+  } else {
+    segments.push('d', dashboardUid, dashboardSlug);
+  }
+
+  url.pathname = `/${segments.join('/')}`;
+  url.search = '';
+  url.hash = '';
+
+  return url.toString().replace(/\/$/, '');
+};
+
+const buildDashboardUrl = (
+  baseUrl,
+  dashboardUid,
+  dashboardSlug,
+  itemId,
+  theme,
+  panelId,
+) => {
   const params = new URLSearchParams({
     orgId: '1',
     'var-item_id': itemId,
     theme,
   });
-  return `${baseUrl}/d/${dashboardUid}?${params.toString()}&kiosk`;
+  if (panelId) {
+    params.set('viewPanel', panelId);
+  }
+  const normalizedBaseUrl = normalizeDashboardBaseUrl(baseUrl, dashboardUid, dashboardSlug);
+  return `${normalizedBaseUrl}?${params.toString()}&kiosk`;
 };
 
 const CatalogNode = ({
@@ -105,7 +147,14 @@ const CatalogNode = ({
   lastUpdated,
 }) => {
   const hasChildren = node.children.length > 0;
-  const timelineUrl = buildDashboardUrl(grafanaBaseUrl, DASHBOARDS.timeline, node.item.id, theme);
+  const timelineUrl = buildDashboardUrl(
+    grafanaBaseUrl,
+    DASHBOARDS.timeline,
+    DASHBOARD_SLUGS.timeline,
+    node.item.id,
+    theme,
+    DASHBOARD_PANELS.timeline,
+  );
   const statusLabel = `Status: ${status.toUpperCase()}${
     lastUpdated ? ` (at ${lastUpdated})` : ''
   }`;
@@ -126,9 +175,9 @@ const CatalogNode = ({
             aria-label={statusLabel}
             title={statusLabel}
           />
-          <span className="node-key">{node.item.id}</span>
+          {node.item.name && <span className="node-name">{node.item.name}</span>}
         </span>
-        {node.item.name && <span className="node-name">{node.item.name}</span>}
+        {node.item.id && <span className="node-id">{node.item.id}</span>}
       </button>
       <div className="node-links" onClick={(event) => event.stopPropagation()}>
         <a href={timelineUrl} target="_blank" rel="noreferrer">
@@ -173,9 +222,51 @@ export default function App() {
   const [theme, setTheme] = useState(getInitialTheme);
   const [itemStatuses, setItemStatuses] = useState({});
   const [lastUpdated, setLastUpdated] = useState('');
+  const grafanaIframeRef = useRef(null);
+  const grafanaEscHandlerRef = useRef(null);
 
   const grafanaBaseUrl = useMemo(resolveGrafanaBaseUrl, []);
   const prometheusBaseUrl = useMemo(resolvePrometheusBaseUrl, []);
+
+  const handleGrafanaLoad = useCallback(() => {
+    const iframe = grafanaIframeRef.current;
+    if (!iframe?.contentWindow) {
+      return;
+    }
+    try {
+      const previousHandler = grafanaEscHandlerRef.current;
+      if (previousHandler) {
+        iframe.contentWindow.removeEventListener('keydown', previousHandler, true);
+      }
+      const handler = (event) => {
+        if (event.key === 'Escape' || event.keyCode === 27) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+      };
+      grafanaEscHandlerRef.current = handler;
+      iframe.contentWindow.addEventListener('keydown', handler, true);
+
+      const mousetrap = iframe.contentWindow.Mousetrap;
+      if (mousetrap) {
+        mousetrap.unbindGlobal?.('esc');
+        mousetrap.unbind?.('esc');
+      }
+    } catch (error) {
+      // Ignore cross-origin access issues when Grafana is hosted elsewhere.
+    }
+  }, []);
+
+  useEffect(
+    () => () => {
+      const iframe = grafanaIframeRef.current;
+      const handler = grafanaEscHandlerRef.current;
+      if (iframe?.contentWindow && handler) {
+        iframe.contentWindow.removeEventListener('keydown', handler, true);
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     document.body.dataset.theme = theme;
@@ -217,6 +308,10 @@ export default function App() {
         );
         if (!response.ok) {
           throw new Error(`Failed to load Prometheus data: ${response.status}`);
+        }
+        const contentType = response.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+          return;
         }
         const payload = await response.json();
         const results = payload?.data?.result ?? [];
@@ -268,8 +363,8 @@ export default function App() {
       <aside className="sidebar">
         <div className="sidebar-header">
           <div>
-            <div className="app-title">Aggregator UI</div>
-            <div className="app-subtitle">Catalog Explorer</div>
+            <div className="app-title">Catalog Explorer</div>
+            <div className="app-subtitle">Current State</div>
           </div>
           <button
             type="button"
@@ -302,9 +397,11 @@ export default function App() {
       <main className="content">
         <header className="content-header">
           <div>
-            <div className="content-title">Grafana Dashboard</div>
+            <div className="content-title">
+                {selectedItem ? selectedItem.name || selectedItem.id : 'Select an item'}
+            </div>
             <div className="content-subtitle">
-              {selectedItem ? selectedItem.name || selectedItem.id : 'Select an item'}
+                State Timeline
             </div>
           </div>
           <div className="grafana-meta">Theme: {theme}</div>
@@ -314,14 +411,17 @@ export default function App() {
         ) : (
           <div className="grafana-grid">
             <section className="grafana-panel">
-              <div className="panel-header">State Timeline</div>
               <iframe
                 title="State Timeline"
+                ref={grafanaIframeRef}
+                onLoad={handleGrafanaLoad}
                 src={buildDashboardUrl(
                   grafanaBaseUrl,
                   DASHBOARDS.timeline,
+                  DASHBOARD_SLUGS.timeline,
                   selectedItem.id,
                   theme,
+                  DASHBOARD_PANELS.timeline,
                 )}
               />
             </section>

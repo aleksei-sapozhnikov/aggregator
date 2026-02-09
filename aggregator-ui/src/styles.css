@@ -129,13 +129,13 @@ body {
   gap: 8px;
 }
 
-.node-key {
-  font-size: 14px;
-  font-weight: 600;
-}
-
 .node-name {
   font-size: 12px;
+  font-weight: 600
+}
+
+.node-id {
+  font-size: 11px;
   color: var(--muted);
 }
 
@@ -235,14 +235,6 @@ summary::-webkit-details-marker {
   flex-direction: column;
   overflow: hidden;
   border: 1px solid var(--border);
-}
-
-.panel-header {
-  padding: 10px 16px;
-  background: var(--panel-alt);
-  border-bottom: 1px solid var(--border);
-  font-size: 13px;
-  font-weight: 600;
 }
 
 .grafana-panel iframe {
