@@ -2,12 +2,12 @@ services:
   aggregator:
     build:
       args:
+        ROOT_FOLDER: aggregator
         CATALOG_FILE: config/demo/catalog.yaml
         HEALTH_CHECKS_FILE: config/demo/health-checks.yaml
     environment:
       JAVA_OPTS: >
         -XX:MaxRAMPercentage=75.0
-      SPRING_PROFILES_ACTIVE: demo
     volumes:
       - ./config/demo:/app/config/demo:ro
 

@@ -1,30 +1,35 @@
 # -------- Build stage --------
 FROM maven:3.9-eclipse-temurin-21 AS build
 
+ARG ROOT_FOLDER
 ARG CATALOG_FILE
 ARG HEALTH_CHECKS_FILE
+
 WORKDIR /app
 
-COPY pom.xml .
 COPY ${ROOT_FOLDER}/src ./src
 COPY ${CATALOG_FILE} ./catalog.yaml
 COPY ${HEALTH_CHECKS_FILE} ./health-checks.yaml
 
+COPY ${ROOT_FOLDER}/pom.xml .
 RUN mvn -B dependency:go-offline
 
-COPY src ./src
-RUN mvn -B package -DskipTests
+COPY ${ROOT_FOLDER}/src ./src
+RUN mvn -B package
 
 # -------- Runtime stage --------
 FROM eclipse-temurin:21-jre-jammy
 
+ARG ROOT_FOLDER
 ARG CATALOG_FILE
 ARG HEALTH_CHECKS_FILE
 
 WORKDIR /app
 
+COPY ${ROOT_FOLDER}/ ./
 COPY ${CATALOG_FILE} ./catalog.yaml
 COPY ${HEALTH_CHECKS_FILE} ./health-checks.yaml
+
 RUN useradd -r -u 1001 appuser
 USER appuser
 
