@@ -1,7 +1,7 @@
 # -------- Build stage --------
 FROM maven:3.9-eclipse-temurin-21 AS build
 
-ARG ROOT_FOLDER
+ARG ROOT_FOLDER=aggregator
 ARG CATALOG_FILE
 ARG HEALTH_CHECKS_FILE
 
@@ -20,7 +20,7 @@ RUN mvn -B package
 # -------- Runtime stage --------
 FROM eclipse-temurin:21-jre-jammy
 
-ARG ROOT_FOLDER
+ARG ROOT_FOLDER=aggregator
 ARG CATALOG_FILE
 ARG HEALTH_CHECKS_FILE
 
@@ -33,7 +33,7 @@ COPY ${HEALTH_CHECKS_FILE} ./health-checks.yaml
 RUN useradd -r -u 1001 appuser
 USER appuser
 
-COPY --from=build /app/target/*.jar app.jar
+COPY --from=build ${ROOT_FOLDER}/target/*.jar app.jar
 
 EXPOSE 8080
 

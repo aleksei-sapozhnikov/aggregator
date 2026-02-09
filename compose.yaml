@@ -4,7 +4,6 @@ services:
       context: .
       dockerfile: aggregator/Dockerfile
       args:
-        ROOT_FOLDER: aggregator
         CATALOG_FILE: config/empty/catalog.yaml
         HEALTH_CHECKS_FILE: config/empty/health-checks.yaml
 
