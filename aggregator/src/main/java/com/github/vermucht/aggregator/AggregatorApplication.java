@@ -12,7 +12,7 @@ public class AggregatorApplication {
    *
    * @param args command-line arguments
    */
-  static void main(String[] args) {
+  public static void main(String[] args) {
     SpringApplication.run(AggregatorApplication.class, args);
   }
 }
