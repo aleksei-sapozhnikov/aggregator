@@ -9,7 +9,7 @@ management:
           - prometheus
 
 catalog:
-  path: file:./config/empty/catalog.yaml
+  path: file:./catalog.yaml
 
 health:
-  checks-path: file:./config/empty/health-checks.yaml
+  checks-path: file:./health-checks.yaml

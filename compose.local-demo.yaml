@@ -1,10 +1,10 @@
 services:
   aggregator:
-    environment:
-      JAVA_OPTS: >
-        -XX:MaxRAMPercentage=75.0
-        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
-      SPRING_PROFILES_ACTIVE: demo
+    build:
+      args:
+        CONTAINER_ROOT: services-core/aggregator
+        CATALOG_FILE: config/demo/catalog.yaml
+        HEALTH_CHECKS_FILE: config/demo/health-checks.yaml
     volumes:
       - ./config/demo:/app/config/demo:ro
 
