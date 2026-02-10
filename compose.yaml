@@ -13,6 +13,7 @@ services:
       context: .
       dockerfile: services-core/aggregator-ui/Dockerfile
       args:
+        CONTAINER_ROOT: services-core/aggregator-ui
         CATALOG_FILE: config/empty/catalog.yaml
 
   prometheus:
