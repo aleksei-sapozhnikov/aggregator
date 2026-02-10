@@ -11,7 +11,7 @@ services:
   aggregator-ui:
     build:
       context: .
-      dockerfile: aggregator-ui/Dockerfile
+      dockerfile: services-core/aggregator-ui/Dockerfile
       args:
         CATALOG_FILE: config/empty/catalog.yaml
 
