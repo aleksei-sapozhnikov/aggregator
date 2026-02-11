@@ -37,7 +37,7 @@ services:
       - "--storage.tsdb.retention.time=14d"
       - "--storage.tsdb.retention.size=2GB"
     volumes:
-      - ${PROMETHEUS_CONFIG_FILE:-./services-extraprometheus/prometheus.yml}:/etc/prometheus/prometheus.yml:ro
+      - ${PROMETHEUS_CONFIG_FILE:-./services-extra/prometheus/prometheus.yml}:/etc/prometheus/prometheus.yml:ro
       - prometheus-data:/prometheus
 
   grafana:
@@ -53,8 +53,8 @@ services:
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_USERS_ANONYMOUS_DEVICE_PREFERENCES: "true"
     volumes:
-      - ${GRAFANA_PROVISIONING_DIR:-./services-extragrafana/provisioning}:/etc/grafana/provisioning:ro
-      - ${GRAFANA_DASHBOARDS_DIR:-./services-extragrafana/dashboards}:/var/lib/grafana/dashboards:ro
+      - ${GRAFANA_PROVISIONING_DIR:-./services-extra/grafana/provisioning}:/etc/grafana/provisioning:ro
+      - ${GRAFANA_DASHBOARDS_DIR:-./services-extra/grafana/dashboards}:/var/lib/grafana/dashboards:ro
       - grafana-data:/var/lib/grafana
 
   caddy:
