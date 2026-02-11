@@ -18,7 +18,11 @@ services:
 
   chaos-maker:
     build:
-      context: chaos-maker
+      context: .
+      dockerfile: services-demo/chaos-maker/Dockerfile
+      args:
+        CONTAINER_ROOT: services-demo/chaos-maker
+        HEALTH_CHECKS_FILE: config/demo/health-checks.yaml
     environment:
       CHAOS_ENABLED: "true"
       CHAOS_MIN_INTERVAL: 30m
@@ -26,7 +30,6 @@ services:
       CHAOS_MIN_DURATION: 5m
       CHAOS_MAX_DURATION: 60m
       CHAOS_MAX_CONCURRENT: "1"
-      CHAOS_CHECKS_PATH: /config/demo/health-checks.yaml
     volumes:
       - ./config/demo:/config/demo:ro
 

@@ -14,7 +14,6 @@
 #   - CHAOS_MIN_DURATION:      e.g. 20s (default: 20s)
 #   - CHAOS_MAX_DURATION:      e.g. 45s (default: 45s)
 #   - CHAOS_MAX_CONCURRENT:    integer (default: 2)
-#   - CHAOS_CHECKS_PATH:       path to health-checks.yaml (default: /config/demo/health-checks.yaml)
 #
 # Intended for demo and testing only.
 #
@@ -27,6 +26,7 @@ import threading
 import time
 import yaml
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Iterable, List, Set
 from urllib.parse import urlsplit
 
@@ -73,6 +73,7 @@ def parse_duration(value: str | None) -> float:
 
 
 def load_config() -> ChaosConfig:
+    script_dir = Path(__file__).resolve().parent
     return ChaosConfig(
         enabled=os.getenv("CHAOS_ENABLED", "false").strip().lower() == "true",
         min_interval=parse_duration(os.getenv("CHAOS_MIN_INTERVAL", "30s")),
@@ -80,7 +81,7 @@ def load_config() -> ChaosConfig:
         min_duration=parse_duration(os.getenv("CHAOS_MIN_DURATION", "20s")),
         max_duration=parse_duration(os.getenv("CHAOS_MAX_DURATION", "45s")),
         max_concurrent=int(os.getenv("CHAOS_MAX_CONCURRENT", "2")),
-        checks_path=os.getenv("CHAOS_CHECKS_PATH", "/config/demo/health-checks.yaml"),
+        checks_path=str(script_dir / "health-checks.yaml"),
     )
 
 
