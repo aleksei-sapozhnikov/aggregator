@@ -17,7 +17,7 @@ services:
       GF_AUTH_BASIC_ENABLED: "false"
       GF_USERS_ANONYMOUS_DEVICE_PREFERENCES: "true"
     volumes:
-      - ${GRAFANA_PROVISIONING_DIR:-./monitoring/grafana/provisioning}:/etc/grafana/provisioning:ro
+      - ${GRAFANA_PROVISIONING_DIR:-./services-extragrafana/provisioning}:/etc/grafana/provisioning:ro
       - grafana-data:/var/lib/grafana
 
 volumes:

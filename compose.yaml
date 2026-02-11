@@ -34,8 +34,8 @@ services:
       GF_SERVER_ROOT_URL: "%(protocol)s://%(domain)s:%(http_port)s/grafana"
       GF_SERVER_SERVE_FROM_SUB_PATH: "true"
     volumes:
-      - ${GRAFANA_PROVISIONING_DIR:-./monitoring/grafana/provisioning}:/etc/grafana/provisioning:ro
-      - ${GRAFANA_DASHBOARDS_DIR:-./monitoring/grafana/dashboards}:/var/lib/grafana/dashboards:ro
+      - ${GRAFANA_PROVISIONING_DIR:-./services-extragrafana/provisioning}:/etc/grafana/provisioning:ro
+      - ${GRAFANA_DASHBOARDS_DIR:-./services-extragrafana/dashboards}:/var/lib/grafana/dashboards:ro
       - grafana-data:/var/lib/grafana
 
 volumes:

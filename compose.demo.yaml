@@ -53,8 +53,8 @@ services:
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_USERS_ANONYMOUS_DEVICE_PREFERENCES: "true"
     volumes:
-      - ${GRAFANA_PROVISIONING_DIR:-./monitoring/grafana/provisioning}:/etc/grafana/provisioning:ro
-      - ${GRAFANA_DASHBOARDS_DIR:-./monitoring/grafana/dashboards}:/var/lib/grafana/dashboards:ro
+      - ${GRAFANA_PROVISIONING_DIR:-./services-extragrafana/provisioning}:/etc/grafana/provisioning:ro
+      - ${GRAFANA_DASHBOARDS_DIR:-./services-extragrafana/dashboards}:/var/lib/grafana/dashboards:ro
       - grafana-data:/var/lib/grafana
 
   caddy:
