@@ -1,72 +1,72 @@
 services:
   commerce-catalog:
     build:
-      context: services-demo/java
+      context: services-demo/dummy-java
 
   commerce-pricing:
     build:
-      context: services-demo/python
+      context: services-demo/dummy-python
 
   commerce-order:
     build:
-      context: services-demo/javascript
+      context: services-demo/dummy-javascript
 
   payments-gateway:
     build:
-      context: services-demo/java
+      context: services-demo/dummy-java
 
   payments-ledger:
     build:
-      context: services-demo/python
+      context: services-demo/dummy-python
 
   payments-risk:
     build:
-      context: services-demo/javascript
+      context: services-demo/dummy-javascript
 
   fulfillment-routing:
     build:
-      context: services-demo/java
+      context: services-demo/dummy-java
 
   fulfillment-shipping:
     build:
-      context: services-demo/python
+      context: services-demo/dummy-python
 
   fulfillment-returns:
     build:
-      context: services-demo/javascript
+      context: services-demo/dummy-javascript
 
   support-intake:
     build:
-      context: services-demo/java
+      context: services-demo/dummy-java
 
   support-chat:
     build:
-      context: services-demo/python
+      context: services-demo/dummy-python
 
   support-sla:
     build:
-      context: services-demo/javascript
+      context: services-demo/dummy-javascript
 
   engagement-profile:
     build:
-      context: services-demo/java
+      context: services-demo/dummy-java
 
   engagement-messaging:
     build:
-      context: services-demo/python
+      context: services-demo/dummy-python
 
   engagement-campaigns:
     build:
-      context: services-demo/javascript
+      context: services-demo/dummy-javascript
 
   marketing-journeys:
     build:
-      context: services-demo/java
+      context: services-demo/dummy-java
 
   marketing-content:
     build:
-      context: services-demo/python
+      context: services-demo/dummy-python
 
   marketing-offers:
     build:
-      context: services-demo/javascript
+      context: services-demo/dummy-javascript
