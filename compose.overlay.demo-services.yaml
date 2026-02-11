@@ -1,72 +1,72 @@
 services:
   commerce-catalog:
     build:
-      context: dummy-services/java
+      context: services-demo/java
 
   commerce-pricing:
     build:
-      context: dummy-services/python
+      context: services-demo/python
 
   commerce-order:
     build:
-      context: dummy-services/javascript
+      context: services-demo/javascript
 
   payments-gateway:
     build:
-      context: dummy-services/java
+      context: services-demo/java
 
   payments-ledger:
     build:
-      context: dummy-services/python
+      context: services-demo/python
 
   payments-risk:
     build:
-      context: dummy-services/javascript
+      context: services-demo/javascript
 
   fulfillment-routing:
     build:
-      context: dummy-services/java
+      context: services-demo/java
 
   fulfillment-shipping:
     build:
-      context: dummy-services/python
+      context: services-demo/python
 
   fulfillment-returns:
     build:
-      context: dummy-services/javascript
+      context: services-demo/javascript
 
   support-intake:
     build:
-      context: dummy-services/java
+      context: services-demo/java
 
   support-chat:
     build:
-      context: dummy-services/python
+      context: services-demo/python
 
   support-sla:
     build:
-      context: dummy-services/javascript
+      context: services-demo/javascript
 
   engagement-profile:
     build:
-      context: dummy-services/java
+      context: services-demo/java
 
   engagement-messaging:
     build:
-      context: dummy-services/python
+      context: services-demo/python
 
   engagement-campaigns:
     build:
-      context: dummy-services/javascript
+      context: services-demo/javascript
 
   marketing-journeys:
     build:
-      context: dummy-services/java
+      context: services-demo/java
 
   marketing-content:
     build:
-      context: dummy-services/python
+      context: services-demo/python
 
   marketing-offers:
     build:
-      context: dummy-services/javascript
+      context: services-demo/javascript
