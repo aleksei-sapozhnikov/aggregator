@@ -94,4 +94,4 @@ ssh -i ~/.ssh/demo_key \
    git fetch --prune; \
    git checkout '${DEPLOY_BRANCH}'; \
    git reset --hard 'origin/${DEPLOY_BRANCH}'; \
-   make demo-rebuild-recreate"
+   make rebuild-recreate ENV=demo"
