@@ -21,6 +21,31 @@ const sortNodesByName = (nodes) =>
     (a.item.name || a.item.id).localeCompare(b.item.name || b.item.id),
   );
 
+const collectNodeIds = (nodes) => {
+  const ids = [];
+  const visit = (node) => {
+    ids.push(node.item.id);
+    node.children.forEach(visit);
+  };
+  nodes.forEach(visit);
+  return ids;
+};
+
+const collectDescendantIds = (node) => {
+  const descendants = [];
+  const visit = (children) => {
+    children.forEach((child) => {
+      descendants.push(child.item.id);
+      visit(child.children);
+    });
+  };
+  visit(node.children);
+  return descendants;
+};
+
+const collectExpandableIds = (nodes) =>
+  collectNodeIds(nodes).filter((id, index, arr) => arr.indexOf(id) === index);
+
 const buildCatalogTree = (items, dependencies) => {
   const itemMap = new Map(items.map((item) => [item.id, item]));
   const childrenMap = new Map();
@@ -150,6 +175,9 @@ const CatalogNode = ({
   lastUpdated,
 }) => {
   const hasChildren = node.children.length > 0;
+  const isExpanded = expandedIds.has(node.item.id);
+  const descendantIds = collectDescendantIds(node);
+  const isFullyExpanded = hasChildren && descendantIds.every((id) => expandedIds.has(id));
   const timelineUrl = buildDashboardUrl(
     grafanaBaseUrl,
     DASHBOARDS.timeline,
@@ -171,6 +199,12 @@ const CatalogNode = ({
           onSelect(node.item.id);
         }}
         role="button"
+        tabIndex={0}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            onSelect(node.item.id);
+          }
         }}
       >
         <span className="node-heading">
@@ -188,6 +222,16 @@ const CatalogNode = ({
           State Timeline
         </a>
       </div>
+      {hasChildren && (
+        <div className="node-controls" onClick={(event) => event.stopPropagation()}>
+          <button type="button" onClick={() => onToggleDirectChildren(node)}>
+            {isExpanded ? 'Collapse direct children' : 'Show direct children'}
+          </button>
+          <button type="button" onClick={() => onToggleAllChildren(node)}>
+            {isFullyExpanded ? 'Collapse all children' : 'Show all children'}
+          </button>
+        </div>
+      )}
     </div>
   );
 
@@ -399,6 +443,14 @@ export default function App() {
     });
   }, []);
 
+  const handleExpandAll = useCallback(() => {
+    setExpandedIds(new Set(collectExpandableIds(tree)));
+  }, [tree]);
+
+  const handleCollapseAll = useCallback(() => {
+    setExpandedIds(new Set());
+  }, []);
+
   const selectedItem = catalog.items.find((item) => item.id === selectedId);
 
   return (
@@ -418,6 +470,12 @@ export default function App() {
           </button>
         </div>
         {error && <div className="error">{error}</div>}
+        {!error && tree.length > 0 && (
+          <div className="tree-controls">
+            <button type="button" onClick={handleCollapseAll}>Collapse all</button>
+            <button type="button" onClick={handleExpandAll}>Expand all</button>
+          </div>
+        )}
         {!error && tree.length === 0 && (
           <div className="empty">Catalog is empty. Add items to catalog.yaml.</div>
         )}

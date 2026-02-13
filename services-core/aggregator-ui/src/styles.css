@@ -85,6 +85,12 @@ body {
   overflow-y: auto;
 }
 
+.tree-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.tree-controls button,
 .node-controls button {
   border: 1px solid var(--border);
   background: var(--panel-alt);
@@ -94,6 +100,7 @@ body {
   cursor: pointer;
   padding: 6px 8px;
 }
+
 .catalog-tree ul {
   list-style: none;
   margin: 8px 0 8px 16px;
@@ -195,13 +202,8 @@ body {
   background: #e24d42;
 }
 
-summary {
-  list-style: none;
-}
-
-summary::-webkit-details-marker {
-  display: none;
 .node-label:focus-visible,
+.tree-controls button:focus-visible,
 .node-controls button:focus-visible,
 .theme-toggle:focus-visible {
   outline: 2px solid var(--link);
