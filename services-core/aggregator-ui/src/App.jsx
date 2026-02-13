@@ -161,12 +161,12 @@ const CatalogNode = ({
 
   const row = (
     <div className={`node-row ${selectedId === node.item.id ? 'is-selected' : ''}`}>
-      <button
-        type="button"
+      <div
         className="node-label"
         onClick={(event) => {
           event.stopPropagation();
           onSelect(node.item.id);
+        role="button"
         }}
       >
         <span className="node-heading">
@@ -178,7 +178,7 @@ const CatalogNode = ({
           {node.item.name && <span className="node-name">{node.item.name}</span>}
         </span>
         {node.item.id && <span className="node-id">{node.item.id}</span>}
-      </button>
+      </div>
       <div className="node-links" onClick={(event) => event.stopPropagation()}>
         <a href={timelineUrl} target="_blank" rel="noreferrer">
           State Timeline
