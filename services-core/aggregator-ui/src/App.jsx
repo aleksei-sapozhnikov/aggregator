@@ -513,7 +513,6 @@ export default function App() {
                 State Timeline
             </div>
           </div>
-          <div className="grafana-meta">Theme: {theme}</div>
         </header>
         {!selectedItem ? (
           <div className="empty">Select a catalog item to view dashboards.</div>
