@@ -140,6 +140,9 @@ const CatalogNode = ({
   node,
   selectedId,
   onSelect,
+  expandedIds,
+  onToggleDirectChildren,
+  onToggleAllChildren,
   grafanaBaseUrl,
   theme,
   status,
@@ -166,6 +169,7 @@ const CatalogNode = ({
         onClick={(event) => {
           event.stopPropagation();
           onSelect(node.item.id);
+        }}
         role="button"
         }}
       >
@@ -193,8 +197,8 @@ const CatalogNode = ({
 
   return (
     <li>
-      <details open>
-        <summary>{row}</summary>
+      {row}
+      {isExpanded && (
         <ul>
           {node.children.map((child) => (
             <CatalogNode
@@ -202,6 +206,9 @@ const CatalogNode = ({
               node={child}
               selectedId={selectedId}
               onSelect={onSelect}
+              expandedIds={expandedIds}
+              onToggleDirectChildren={onToggleDirectChildren}
+              onToggleAllChildren={onToggleAllChildren}
               grafanaBaseUrl={grafanaBaseUrl}
               theme={theme}
               status={statuses[child.item.id] || 'unknown'}
@@ -210,7 +217,7 @@ const CatalogNode = ({
             />
           ))}
         </ul>
-      </details>
+      )}
     </li>
   );
 };
@@ -220,6 +227,7 @@ export default function App() {
   const [selectedId, setSelectedId] = useState('');
   const [error, setError] = useState('');
   const [theme, setTheme] = useState(getInitialTheme);
+  const [expandedIds, setExpandedIds] = useState(() => new Set());
   const [itemStatuses, setItemStatuses] = useState({});
   const [lastUpdated, setLastUpdated] = useState('');
   const grafanaIframeRef = useRef(null);
@@ -356,6 +364,41 @@ export default function App() {
     [catalog.items, catalog.dependencies],
   );
 
+  const handleToggleDirectChildren = useCallback((node) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      const descendants = collectDescendantIds(node);
+      if (next.has(node.item.id)) {
+        next.delete(node.item.id);
+        descendants.forEach((id) => next.delete(id));
+        return next;
+      }
+
+      next.add(node.item.id);
+      descendants.forEach((id) => next.delete(id));
+      return next;
+    });
+  }, []);
+
+  const handleToggleAllChildren = useCallback((node) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      const descendants = collectDescendantIds(node);
+      const allExpanded = next.has(node.item.id)
+        && descendants.every((id) => next.has(id));
+
+      if (allExpanded) {
+        next.delete(node.item.id);
+        descendants.forEach((id) => next.delete(id));
+        return next;
+      }
+
+      next.add(node.item.id);
+      descendants.forEach((id) => next.add(id));
+      return next;
+    });
+  }, []);
+
   const selectedItem = catalog.items.find((item) => item.id === selectedId);
 
   return (
@@ -385,6 +428,9 @@ export default function App() {
               node={node}
               selectedId={selectedId}
               onSelect={setSelectedId}
+              expandedIds={expandedIds}
+              onToggleDirectChildren={handleToggleDirectChildren}
+              onToggleAllChildren={handleToggleAllChildren}
               grafanaBaseUrl={grafanaBaseUrl}
               theme={theme}
               status={itemStatuses[node.item.id] || 'unknown'}

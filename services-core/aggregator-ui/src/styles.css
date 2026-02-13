@@ -85,6 +85,15 @@ body {
   overflow-y: auto;
 }
 
+.node-controls button {
+  border: 1px solid var(--border);
+  background: var(--panel-alt);
+  color: var(--text);
+  border-radius: 8px;
+  font-size: 11px;
+  cursor: pointer;
+  padding: 6px 8px;
+}
 .catalog-tree ul {
   list-style: none;
   margin: 8px 0 8px 16px;
@@ -121,6 +130,12 @@ body {
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+.node-controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .node-heading {
@@ -186,6 +201,11 @@ summary {
 
 summary::-webkit-details-marker {
   display: none;
+.node-label:focus-visible,
+.node-controls button:focus-visible,
+.theme-toggle:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
 }
 
 .content {
