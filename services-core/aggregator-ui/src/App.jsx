@@ -215,7 +215,12 @@ const CatalogNode = ({
           />
           {node.item.name && <span className="node-name">{node.item.name}</span>}
         </span>
-        {node.item.id && <span className="node-id">{node.item.id}</span>}
+        {(node.item.id || node.item.type) && (
+          <span className="node-identity">
+            {node.item.id}
+            {node.item.type ? ` (${node.item.type})` : ''}
+          </span>
+        )}
       </div>
       <div className="node-links" onClick={(event) => event.stopPropagation()}>
         <a href={timelineUrl} target="_blank" rel="noreferrer">
