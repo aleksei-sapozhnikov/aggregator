@@ -51,6 +51,10 @@ body {
   padding: 24px 20px;
   gap: 16px;
   overflow: hidden;
+  opacity: 1;
+  transform: translateX(0);
+  transition: width 180ms ease, min-width 180ms ease, padding 180ms ease, opacity 140ms ease, transform 180ms ease, border-color 180ms ease;
+  will-change: width, min-width, padding, opacity, transform;
 }
 
 .hamburger-toggle {
@@ -254,7 +258,14 @@ body {
 }
 
 .app.sidebar-collapsed.is-desktop .sidebar {
-  display: none;
+  width: 0;
+  min-width: 0;
+  padding-left: 0;
+  padding-right: 0;
+  border-right-color: transparent;
+  opacity: 0;
+  transform: translateX(-14px);
+  pointer-events: none;
 }
 .content-header {
   display: flex;
@@ -337,14 +348,18 @@ body {
     z-index: 30;
     border-right: 1px solid var(--border);
     border-bottom: none;
+    transform: translateX(0);
   }
 
   .app.sidebar-collapsed .sidebar {
-    display: none;
-  }
-
-  .app.sidebar-open .sidebar {
-    display: flex;
+    width: min(360px, 88vw);
+    min-width: min(360px, 88vw);
+    padding-left: 20px;
+    padding-right: 20px;
+    border-right-color: var(--border);
+    opacity: 0;
+    transform: translateX(calc(-100% - 12px));
+    pointer-events: none;
   }
 
   .sidebar-toggle {
@@ -359,26 +374,6 @@ body {
   .content-header-with-toggle {
     padding-left: 52px;
   }
-
-  .app.sidebar-open .sidebar {
-    display: flex;
-  }
-
-  .sidebar-toggle {
-    top: 16px;
-    left: 16px;
-  }
-
-
-  .sidebar-header {
-    padding-left: 52px;
-  }
-
-
-  .content-header-with-toggle {
-    padding-left: 52px;
-  }
-
 
   .grafana-grid {
     grid-template-rows: auto;
