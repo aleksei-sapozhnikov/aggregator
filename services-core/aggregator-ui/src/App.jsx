@@ -373,7 +373,7 @@ export default function App() {
   useEffect(() => {
     const loadCatalog = async () => {
       try {
-        const response = await fetch(new URL('catalog.yaml', resolveBaseUrl()))
+        const response = await fetch(new URL('catalog.yaml', resolveBaseUrl()));
         if (!response.ok) {
           throw new Error(`Failed to load catalog: ${response.status}`);
         }
@@ -590,6 +590,8 @@ export default function App() {
             className="theme-toggle"
             onClick={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))}
           >
+            {theme === 'dark' ? 'Light Theme' : 'Dark Theme'}
+          </button>
         </header>
         {!selectedItem ? (
           <div className="empty">Select a catalog item to view dashboards.</div>
