@@ -85,9 +85,10 @@ body {
 }
 .sidebar-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
+  padding-left: 56px;
 }
 
 .app-title {
@@ -257,9 +258,24 @@ body {
 }
 .content-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
+  flex-wrap: wrap;
+}
+
+.content-header-with-toggle {
+  padding-left: 56px;
+}
+
+.content-header-main {
+  flex: 1 1 280px;
+  min-width: 220px;
+}
+
+.content-header .theme-toggle {
+  margin-left: auto;
+  flex: 0 0 auto;
 }
 
 .content-title {
@@ -316,9 +332,36 @@ body {
   }
 
   .sidebar {
-    width: 100%;
-    border-right: none;
-    border-bottom: 1px solid var(--border);
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: min(360px, 88vw);
+    min-width: min(360px, 88vw);
+    z-index: 30;
+    border-right: 1px solid var(--border);
+    border-bottom: none;
+  }
+
+  .app.sidebar-collapsed .sidebar {
+    display: none;
+  }
+
+  .app.sidebar-open .sidebar {
+    display: flex;
+  }
+
+  .sidebar-toggle {
+    top: 16px;
+    left: 16px;
+  }
+
+  .sidebar-header {
+    padding-left: 52px;
+  }
+
+  .content-header-with-toggle {
+    padding-left: 52px;
   }
 
   .grafana-grid {
