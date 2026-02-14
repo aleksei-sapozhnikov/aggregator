@@ -38,10 +38,12 @@ body {
 .app {
   display: flex;
   height: 100vh;
+  position: relative;
 }
 
 .sidebar {
   width: 360px;
+  min-width: 360px;
   background: var(--panel);
   border-right: 1px solid var(--border);
   display: flex;
@@ -51,6 +53,36 @@ body {
   overflow: hidden;
 }
 
+.hamburger-toggle {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+}
+
+.sidebar-toggle {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 35;
+}
+
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  border: none;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 20;
+}
 .sidebar-header {
   display: flex;
   align-items: center;
@@ -205,7 +237,8 @@ body {
 .node-label:focus-visible,
 .tree-controls button:focus-visible,
 .node-controls button:focus-visible,
-.theme-toggle:focus-visible {
+.theme-toggle:focus-visible,
+.hamburger-toggle:focus-visible {
   outline: 2px solid var(--link);
   outline-offset: 2px;
 }
@@ -219,6 +252,9 @@ body {
   overflow: hidden;
 }
 
+.app.sidebar-collapsed.is-desktop .sidebar {
+  display: none;
+}
 .content-header {
   display: flex;
   align-items: center;
