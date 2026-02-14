@@ -1,5 +1,6 @@
 # IDEA config
 .idea/
+*.iml
 
 # Temporary files, usually for local dev
 .temp/
