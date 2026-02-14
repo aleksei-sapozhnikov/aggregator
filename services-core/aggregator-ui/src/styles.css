@@ -149,6 +149,20 @@ body {
   margin-bottom: 8px;
 }
 
+.node-children {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transform: translateY(-6px);
+  transition: max-height 220ms ease, opacity 160ms ease, transform 220ms ease;
+}
+
+.node-children.is-expanded {
+  max-height: 1200px;
+  opacity: 1;
+  transform: translateY(0);
+}
+
 .node-row {
   display: flex;
   flex-direction: column;

@@ -191,6 +191,8 @@ const CatalogNode = ({
 }) => {
   const hasChildren = node.children.length > 0;
   const isExpanded = expandedIds.has(node.item.id);
+  const [isChildrenVisible, setIsChildrenVisible] = useState(isExpanded);
+  const [isChildrenExpanded, setIsChildrenExpanded] = useState(isExpanded);
   const descendantIds = collectDescendantIds(node);
   const isFullyExpanded = hasChildren && descendantIds.every((id) => expandedIds.has(id));
   const timelineUrl = buildDashboardUrl(
@@ -204,6 +206,31 @@ const CatalogNode = ({
   const statusLabel = `Status: ${status.toUpperCase()}${
     lastUpdated ? ` (at ${lastUpdated})` : ''
   }`;
+
+  useEffect(() => {
+    let animationFrameId;
+    let nestedAnimationFrameId;
+
+    if (isExpanded) {
+      setIsChildrenVisible(true);
+      animationFrameId = window.requestAnimationFrame(() => {
+        nestedAnimationFrameId = window.requestAnimationFrame(() => {
+          setIsChildrenExpanded(true);
+        });
+      });
+    } else {
+      setIsChildrenExpanded(false);
+    }
+
+    return () => {
+      if (animationFrameId) {
+        window.cancelAnimationFrame(animationFrameId);
+      }
+      if (nestedAnimationFrameId) {
+        window.cancelAnimationFrame(nestedAnimationFrameId);
+      }
+    };
+  }, [isExpanded]);
 
   const row = (
     <div className={`node-row ${selectedId === node.item.id ? 'is-selected' : ''}`}>
@@ -262,8 +289,18 @@ const CatalogNode = ({
   return (
     <li>
       {row}
-      {isExpanded && (
-        <ul>
+      {isChildrenVisible && (
+        <ul
+          className={`node-children ${isChildrenExpanded ? 'is-expanded' : ''}`}
+          onTransitionEnd={(event) => {
+            if (event.target !== event.currentTarget) {
+              return;
+            }
+            if (!isExpanded) {
+              setIsChildrenVisible(false);
+            }
+          }}
+        >
           {node.children.map((child) => (
             <CatalogNode
               key={child.item.id}
