@@ -120,12 +120,19 @@ const resolvePrometheusBaseUrl = () => {
   return `${window.location.origin}/prometheus`;
 };
 
-const normalizeDashboardBaseUrl = (baseUrl, dashboardUid, dashboardSlug = dashboardUid) => {
+const normalizeDashboardBaseUrl = (
+  baseUrl,
+  dashboardUid,
+  dashboardSlug = dashboardUid,
+  isSolo = false,
+) => {
   const url = new URL(baseUrl, window.location.origin);
   const segments = url.pathname.split('/').filter(Boolean);
-  const dashboardIndex = segments.indexOf('d');
+  const dashboardSegment = isSolo ? 'd-solo' : 'd';
+  const dashboardIndex = segments.findIndex((segment) => segment === 'd' || segment === 'd-solo');
 
   if (dashboardIndex !== -1 && segments[dashboardIndex + 1] === dashboardUid) {
+    segments[dashboardIndex] = dashboardSegment;
     if (segments[dashboardIndex + 2]) {
       segments.length = dashboardIndex + 3;
     } else {
@@ -133,7 +140,7 @@ const normalizeDashboardBaseUrl = (baseUrl, dashboardUid, dashboardSlug = dashbo
       segments.push(dashboardSlug);
     }
   } else {
-    segments.push('d', dashboardUid, dashboardSlug);
+    segments.push(dashboardSegment, dashboardUid, dashboardSlug);
   }
 
   url.pathname = `/${segments.join('/')}`;
@@ -150,6 +157,7 @@ const buildDashboardUrl = (
   itemId,
   theme,
   panelId,
+  isSolo = false,
 ) => {
   const params = new URLSearchParams({
     orgId: '1',
@@ -159,7 +167,12 @@ const buildDashboardUrl = (
   if (panelId) {
     params.set('viewPanel', panelId);
   }
-  const normalizedBaseUrl = normalizeDashboardBaseUrl(baseUrl, dashboardUid, dashboardSlug);
+  const normalizedBaseUrl = normalizeDashboardBaseUrl(
+    baseUrl,
+    dashboardUid,
+    dashboardSlug,
+    isSolo,
+  );
   return `${normalizedBaseUrl}?${params.toString()}&kiosk`;
 };
 
