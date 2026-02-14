@@ -2,15 +2,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import yaml from 'js-yaml';
 
 const DASHBOARDS = {
-  timeline: 'catalog-item-state-timeline',
-};
-
-const DASHBOARD_SLUGS = {
-  timeline: 'catalog-item-state-timeline',
-};
-
-const DASHBOARD_PANELS = {
-  timeline: 2001,
+  timeline: {
+    uid: 'catalog-item-state-timeline',
+    slug: 'catalog-item-state-timeline',
+    panelId: 2001,
+  },
 };
 
 const MOBILE_BREAKPOINT = 1100;
@@ -124,11 +120,10 @@ const normalizeDashboardBaseUrl = (
   baseUrl,
   dashboardUid,
   dashboardSlug = dashboardUid,
-  isSolo = false,
 ) => {
   const url = new URL(baseUrl, window.location.origin);
   const segments = url.pathname.split('/').filter(Boolean);
-  const dashboardSegment = isSolo ? 'd-solo' : 'd';
+  const dashboardSegment = 'd';
   const dashboardIndex = segments.findIndex((segment) => segment === 'd' || segment === 'd-solo');
 
   if (dashboardIndex !== -1 && segments[dashboardIndex + 1] === dashboardUid) {
@@ -157,7 +152,6 @@ const buildDashboardUrl = (
   itemId,
   theme,
   panelId,
-  isSolo = false,
 ) => {
   const params = new URLSearchParams({
     orgId: '1',
@@ -167,12 +161,7 @@ const buildDashboardUrl = (
   if (panelId) {
     params.set('viewPanel', panelId);
   }
-  const normalizedBaseUrl = normalizeDashboardBaseUrl(
-    baseUrl,
-    dashboardUid,
-    dashboardSlug,
-    isSolo,
-  );
+  const normalizedBaseUrl = normalizeDashboardBaseUrl(baseUrl, dashboardUid, dashboardSlug);
   return `${normalizedBaseUrl}?${params.toString()}&kiosk`;
 };
 
@@ -197,11 +186,11 @@ const CatalogNode = ({
   const isFullyExpanded = hasChildren && descendantIds.every((id) => expandedIds.has(id));
   const timelineUrl = buildDashboardUrl(
     grafanaBaseUrl,
-    DASHBOARDS.timeline,
-    DASHBOARD_SLUGS.timeline,
+    DASHBOARDS.timeline.uid,
+    DASHBOARDS.timeline.slug,
     node.item.id,
     theme,
-    DASHBOARD_PANELS.timeline,
+    DASHBOARDS.timeline.panelId,
   );
   const statusLabel = `Status: ${status.toUpperCase()}${
     lastUpdated ? ` (at ${lastUpdated})` : ''
@@ -641,11 +630,11 @@ export default function App() {
                 onLoad={handleGrafanaLoad}
                 src={buildDashboardUrl(
                   grafanaBaseUrl,
-                  DASHBOARDS.timeline,
-                  DASHBOARD_SLUGS.timeline,
+                  DASHBOARDS.timeline.uid,
+                  DASHBOARDS.timeline.slug,
                   selectedItem.id,
                   theme,
-                  DASHBOARD_PANELS.timeline,
+                  DASHBOARDS.timeline.panelId,
                 )}
               />
             </section>
