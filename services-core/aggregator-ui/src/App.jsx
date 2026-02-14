@@ -21,6 +21,31 @@ const sortNodesByName = (nodes) =>
     (a.item.name || a.item.id).localeCompare(b.item.name || b.item.id),
   );
 
+const collectNodeIds = (nodes) => {
+  const ids = [];
+  const visit = (node) => {
+    ids.push(node.item.id);
+    node.children.forEach(visit);
+  };
+  nodes.forEach(visit);
+  return ids;
+};
+
+const collectDescendantIds = (node) => {
+  const descendants = [];
+  const visit = (children) => {
+    children.forEach((child) => {
+      descendants.push(child.item.id);
+      visit(child.children);
+    });
+  };
+  visit(node.children);
+  return descendants;
+};
+
+const collectExpandableIds = (nodes) =>
+  collectNodeIds(nodes).filter((id, index, arr) => arr.indexOf(id) === index);
+
 const buildCatalogTree = (items, dependencies) => {
   const itemMap = new Map(items.map((item) => [item.id, item]));
   const childrenMap = new Map();
@@ -140,6 +165,9 @@ const CatalogNode = ({
   node,
   selectedId,
   onSelect,
+  expandedIds,
+  onToggleDirectChildren,
+  onToggleAllChildren,
   grafanaBaseUrl,
   theme,
   status,
@@ -147,6 +175,9 @@ const CatalogNode = ({
   lastUpdated,
 }) => {
   const hasChildren = node.children.length > 0;
+  const isExpanded = expandedIds.has(node.item.id);
+  const descendantIds = collectDescendantIds(node);
+  const isFullyExpanded = hasChildren && descendantIds.every((id) => expandedIds.has(id));
   const timelineUrl = buildDashboardUrl(
     grafanaBaseUrl,
     DASHBOARDS.timeline,
@@ -161,12 +192,19 @@ const CatalogNode = ({
 
   const row = (
     <div className={`node-row ${selectedId === node.item.id ? 'is-selected' : ''}`}>
-      <button
-        type="button"
+      <div
         className="node-label"
         onClick={(event) => {
           event.stopPropagation();
           onSelect(node.item.id);
+        }}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            onSelect(node.item.id);
+          }
         }}
       >
         <span className="node-heading">
@@ -177,13 +215,28 @@ const CatalogNode = ({
           />
           {node.item.name && <span className="node-name">{node.item.name}</span>}
         </span>
-        {node.item.id && <span className="node-id">{node.item.id}</span>}
-      </button>
+        {(node.item.id || node.item.type) && (
+          <span className="node-identity">
+            {node.item.id}
+            {node.item.type ? ` (${node.item.type})` : ''}
+          </span>
+        )}
+      </div>
       <div className="node-links" onClick={(event) => event.stopPropagation()}>
         <a href={timelineUrl} target="_blank" rel="noreferrer">
           State Timeline
         </a>
       </div>
+      {hasChildren && (
+        <div className="node-controls" onClick={(event) => event.stopPropagation()}>
+          <button type="button" onClick={() => onToggleDirectChildren(node)}>
+            {isExpanded ? 'Collapse direct children' : 'Show direct children'}
+          </button>
+          <button type="button" onClick={() => onToggleAllChildren(node)}>
+            {isFullyExpanded ? 'Collapse all children' : 'Show all children'}
+          </button>
+        </div>
+      )}
     </div>
   );
 
@@ -193,8 +246,8 @@ const CatalogNode = ({
 
   return (
     <li>
-      <details open>
-        <summary>{row}</summary>
+      {row}
+      {isExpanded && (
         <ul>
           {node.children.map((child) => (
             <CatalogNode
@@ -202,6 +255,9 @@ const CatalogNode = ({
               node={child}
               selectedId={selectedId}
               onSelect={onSelect}
+              expandedIds={expandedIds}
+              onToggleDirectChildren={onToggleDirectChildren}
+              onToggleAllChildren={onToggleAllChildren}
               grafanaBaseUrl={grafanaBaseUrl}
               theme={theme}
               status={statuses[child.item.id] || 'unknown'}
@@ -210,7 +266,7 @@ const CatalogNode = ({
             />
           ))}
         </ul>
-      </details>
+      )}
     </li>
   );
 };
@@ -220,6 +276,7 @@ export default function App() {
   const [selectedId, setSelectedId] = useState('');
   const [error, setError] = useState('');
   const [theme, setTheme] = useState(getInitialTheme);
+  const [expandedIds, setExpandedIds] = useState(() => new Set());
   const [itemStatuses, setItemStatuses] = useState({});
   const [lastUpdated, setLastUpdated] = useState('');
   const grafanaIframeRef = useRef(null);
@@ -356,6 +413,49 @@ export default function App() {
     [catalog.items, catalog.dependencies],
   );
 
+  const handleToggleDirectChildren = useCallback((node) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      const descendants = collectDescendantIds(node);
+      if (next.has(node.item.id)) {
+        next.delete(node.item.id);
+        descendants.forEach((id) => next.delete(id));
+        return next;
+      }
+
+      next.add(node.item.id);
+      descendants.forEach((id) => next.delete(id));
+      return next;
+    });
+  }, []);
+
+  const handleToggleAllChildren = useCallback((node) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      const descendants = collectDescendantIds(node);
+      const allExpanded = next.has(node.item.id)
+        && descendants.every((id) => next.has(id));
+
+      if (allExpanded) {
+        next.delete(node.item.id);
+        descendants.forEach((id) => next.delete(id));
+        return next;
+      }
+
+      next.add(node.item.id);
+      descendants.forEach((id) => next.add(id));
+      return next;
+    });
+  }, []);
+
+  const handleExpandAll = useCallback(() => {
+    setExpandedIds(new Set(collectExpandableIds(tree)));
+  }, [tree]);
+
+  const handleCollapseAll = useCallback(() => {
+    setExpandedIds(new Set());
+  }, []);
+
   const selectedItem = catalog.items.find((item) => item.id === selectedId);
 
   return (
@@ -375,6 +475,12 @@ export default function App() {
           </button>
         </div>
         {error && <div className="error">{error}</div>}
+        {!error && tree.length > 0 && (
+          <div className="tree-controls">
+            <button type="button" onClick={handleCollapseAll}>Collapse all</button>
+            <button type="button" onClick={handleExpandAll}>Expand all</button>
+          </div>
+        )}
         {!error && tree.length === 0 && (
           <div className="empty">Catalog is empty. Add items to catalog.yaml.</div>
         )}
@@ -385,6 +491,9 @@ export default function App() {
               node={node}
               selectedId={selectedId}
               onSelect={setSelectedId}
+              expandedIds={expandedIds}
+              onToggleDirectChildren={handleToggleDirectChildren}
+              onToggleAllChildren={handleToggleAllChildren}
               grafanaBaseUrl={grafanaBaseUrl}
               theme={theme}
               status={itemStatuses[node.item.id] || 'unknown'}
@@ -404,7 +513,6 @@ export default function App() {
                 State Timeline
             </div>
           </div>
-          <div className="grafana-meta">Theme: {theme}</div>
         </header>
         {!selectedItem ? (
           <div className="empty">Select a catalog item to view dashboards.</div>
