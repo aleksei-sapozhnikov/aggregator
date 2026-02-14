@@ -512,13 +512,6 @@ export default function App() {
             <div className="app-title">Catalog Explorer</div>
             <div className="app-subtitle">Current State</div>
           </div>
-          <button
-            type="button"
-            className="theme-toggle"
-            onClick={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))}
-          >
-            {theme === 'dark' ? 'Light Theme' : 'Dark Theme'}
-          </button>
         </div>
         {error && <div className="error">{error}</div>}
         {!error && tree.length > 0 && (
@@ -566,8 +559,12 @@ export default function App() {
         />
       )}
       <main className="content">
-        <header className="content-header">
-          <div>
+        <header
+          className={`content-header ${
+            shouldOffsetContentHeader ? 'content-header-with-toggle' : ''
+          }`}
+        >
+          <div className="content-header-main">
             <div className="content-title">
                 {selectedItem ? selectedItem.name || selectedItem.id : 'Select an item'}
             </div>
@@ -575,6 +572,11 @@ export default function App() {
                 State Timeline
             </div>
           </div>
+          <button
+            type="button"
+            className="theme-toggle"
+            onClick={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))}
+          >
         </header>
         {!selectedItem ? (
           <div className="empty">Select a catalog item to view dashboards.</div>
