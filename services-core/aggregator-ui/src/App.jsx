@@ -13,6 +13,8 @@ const DASHBOARD_PANELS = {
   timeline: 2001,
 };
 
+const MOBILE_BREAKPOINT = 1100;
+
 const sortItemsByName = (items) =>
   [...items].sort((a, b) => (a.name || a.id).localeCompare(b.name || b.id));
 
@@ -279,6 +281,11 @@ export default function App() {
   const [expandedIds, setExpandedIds] = useState(() => new Set());
   const [itemStatuses, setItemStatuses] = useState({});
   const [lastUpdated, setLastUpdated] = useState('');
+  const [isMobileLayout, setIsMobileLayout] = useState(
+    () => window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT}px)`).matches,
+  );
+  const [isDesktopSidebarOpen, setIsDesktopSidebarOpen] = useState(true);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const grafanaIframeRef = useRef(null);
   const grafanaEscHandlerRef = useRef(null);
 
@@ -329,6 +336,26 @@ export default function App() {
     document.body.dataset.theme = theme;
     localStorage.setItem('aggregator-ui-theme', theme);
   }, [theme]);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT}px)`);
+    const updateLayout = (event) => {
+      setIsMobileLayout(event.matches);
+    };
+
+    setIsMobileLayout(mediaQuery.matches);
+    mediaQuery.addEventListener('change', updateLayout);
+
+    return () => {
+      mediaQuery.removeEventListener('change', updateLayout);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isMobileLayout) {
+      setIsMobileSidebarOpen(false);
+    }
+  }, [isMobileLayout]);
 
   useEffect(() => {
     const loadCatalog = async () => {
@@ -457,9 +484,28 @@ export default function App() {
   }, []);
 
   const selectedItem = catalog.items.find((item) => item.id === selectedId);
+  const isSidebarOpen = isMobileLayout ? isMobileSidebarOpen : isDesktopSidebarOpen;
+  const shouldOffsetContentHeader = isMobileLayout || !isSidebarOpen;
+
+  const handleToggleSidebar = useCallback(() => {
+    if (isMobileLayout) {
+      setIsMobileSidebarOpen((prev) => !prev);
+      return;
+    }
+    setIsDesktopSidebarOpen((prev) => !prev);
+  }, [isMobileLayout]);
+
+  const handleSelectItem = useCallback((itemId) => {
+    setSelectedId(itemId);
+    setIsMobileSidebarOpen(false);
+  }, []);
 
   return (
-    <div className="app">
+    <div
+      className={`app ${isMobileLayout ? 'is-mobile' : 'is-desktop'} ${
+        isSidebarOpen ? 'sidebar-open' : 'sidebar-collapsed'
+      }`}
+    >
       <aside className="sidebar">
         <div className="sidebar-header">
           <div>
@@ -490,7 +536,7 @@ export default function App() {
               key={node.item.id}
               node={node}
               selectedId={selectedId}
-              onSelect={setSelectedId}
+              onSelect={handleSelectItem}
               expandedIds={expandedIds}
               onToggleDirectChildren={handleToggleDirectChildren}
               onToggleAllChildren={handleToggleAllChildren}
@@ -503,6 +549,22 @@ export default function App() {
           ))}
         </ul>
       </aside>
+      <button
+        type="button"
+        aria-label={isSidebarOpen ? 'Collapse catalog panel' : 'Open catalog panel'}
+        className="hamburger-toggle sidebar-toggle"
+        onClick={handleToggleSidebar}
+      >
+        ☰
+      </button>
+      {isMobileLayout && isSidebarOpen && (
+        <button
+          type="button"
+          className="sidebar-backdrop"
+          onClick={() => setIsMobileSidebarOpen(false)}
+          aria-label="Close catalog panel"
+        />
+      )}
       <main className="content">
         <header className="content-header">
           <div>
