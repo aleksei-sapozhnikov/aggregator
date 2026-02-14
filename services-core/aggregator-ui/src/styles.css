@@ -327,10 +327,6 @@ body {
 }
 
 @media (max-width: 1100px) {
-  .app {
-    flex-direction: column;
-  }
-
   .sidebar {
     position: fixed;
     top: 0;
@@ -363,6 +359,26 @@ body {
   .content-header-with-toggle {
     padding-left: 52px;
   }
+
+  .app.sidebar-open .sidebar {
+    display: flex;
+  }
+
+  .sidebar-toggle {
+    top: 16px;
+    left: 16px;
+  }
+
+
+  .sidebar-header {
+    padding-left: 52px;
+  }
+
+
+  .content-header-with-toggle {
+    padding-left: 52px;
+  }
+
 
   .grafana-grid {
     grid-template-rows: auto;
