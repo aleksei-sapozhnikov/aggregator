@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import yaml from 'js-yaml';
 
 const DASHBOARDS = {
@@ -183,7 +183,13 @@ const CatalogNode = ({
   const [isChildrenVisible, setIsChildrenVisible] = useState(isExpanded);
   const [isChildrenExpanded, setIsChildrenExpanded] = useState(isExpanded);
   const descendantIds = collectDescendantIds(node);
+  const isDirectOnlyExpanded = hasChildren
+      && isExpanded
+      && descendantIds.every((id) => !expandedIds.has(id));
   const isFullyExpanded = hasChildren && descendantIds.every((id) => expandedIds.has(id));
+  const hasNestedDescendants = descendantIds.length > node.children.length;
+  const shouldShowDirectCollapse = isDirectOnlyExpanded || (isFullyExpanded && !hasNestedDescendants);
+  const shouldShowAllCollapse = isFullyExpanded || (isExpanded && !hasNestedDescendants);
   const timelineUrl = buildDashboardUrl(
     grafanaBaseUrl,
     DASHBOARDS.timeline.uid,
@@ -262,10 +268,10 @@ const CatalogNode = ({
       {hasChildren && (
         <div className="node-controls" onClick={(event) => event.stopPropagation()}>
           <button type="button" onClick={() => onToggleDirectChildren(node)}>
-            {isExpanded ? 'Collapse direct children' : 'Show direct children'}
+            {shouldShowDirectCollapse ? '▾ Direct' : '▸ Direct'}
           </button>
           <button type="button" onClick={() => onToggleAllChildren(node)}>
-            {isFullyExpanded ? 'Collapse all children' : 'Show all children'}
+            {shouldShowAllCollapse ? '▾ All' : '▸ All'}
           </button>
         </div>
       )}
@@ -484,13 +490,22 @@ export default function App() {
     setExpandedIds((prev) => {
       const next = new Set(prev);
       const descendants = collectDescendantIds(node);
-      if (next.has(node.item.id)) {
-        next.delete(node.item.id);
+      const isExpanded = next.has(node.item.id);
+      const hasNestedDescendants = descendants.length > node.children.length;
+
+      if (!isExpanded) {
+        next.add(node.item.id);
         descendants.forEach((id) => next.delete(id));
         return next;
       }
 
-      next.add(node.item.id);
+      const hasExpandedDescendants = descendants.some((id) => next.has(id));
+      if (hasExpandedDescendants && hasNestedDescendants) {
+        descendants.forEach((id) => next.delete(id));
+        return next;
+      }
+
+      next.delete(node.item.id);
       descendants.forEach((id) => next.delete(id));
       return next;
     });
@@ -500,10 +515,13 @@ export default function App() {
     setExpandedIds((prev) => {
       const next = new Set(prev);
       const descendants = collectDescendantIds(node);
-      const allExpanded = next.has(node.item.id)
+      const isExpanded = next.has(node.item.id);
+      const hasNestedDescendants = descendants.length > node.children.length;
+      const allExpanded = isExpanded
         && descendants.every((id) => next.has(id));
+      const shouldCollapseAll = allExpanded || (isExpanded && !hasNestedDescendants);
 
-      if (allExpanded) {
+      if (shouldCollapseAll) {
         next.delete(node.item.id);
         descendants.forEach((id) => next.delete(id));
         return next;
