@@ -262,7 +262,7 @@ body[data-theme='dark'] .node-controls .direct-toggle-button {
 }
 
 .node-leaf {
-  padding-left: 12px;
+  padding-left: 0;
 }
 
 .status-indicator {
