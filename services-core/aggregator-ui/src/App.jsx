@@ -267,11 +267,19 @@ const CatalogNode = ({
       </div>
       {hasChildren && (
         <div className="node-controls" onClick={(event) => event.stopPropagation()}>
-          <button type="button" onClick={() => onToggleDirectChildren(node)}>
-            {shouldShowDirectCollapse ? '▾ Direct' : '▸ Direct'}
+            <button
+                type="button"
+                title={shouldShowDirectCollapse ? 'Collapse direct dependencies' : 'Expand to direct dependencies'}
+                onClick={() => onToggleDirectChildren(node)}
+            >
+                {shouldShowDirectCollapse ? 'Hide direct' : 'Show direct'}
           </button>
-          <button type="button" onClick={() => onToggleAllChildren(node)}>
-            {shouldShowAllCollapse ? '▾ All' : '▸ All'}
+            <button
+                type="button"
+                title={shouldShowAllCollapse ? 'Collapse all dependencies' : 'Expand to all dependencies'}
+                onClick={() => onToggleAllChildren(node)}
+            >
+                {shouldShowAllCollapse ? 'Hide All' : 'Show All'}
           </button>
         </div>
       )}
@@ -574,8 +582,8 @@ export default function App() {
         {error && <div className="error">{error}</div>}
         {!error && tree.length > 0 && (
           <div className="tree-controls">
-            <button type="button" onClick={handleCollapseAll}>Collapse all</button>
-            <button type="button" onClick={handleExpandAll}>Expand all</button>
+              <button type="button" title="Collapse all dependencies" onClick={handleCollapseAll}>Collapse all</button>
+              <button type="button" title="Expand to all dependencies" onClick={handleExpandAll}>Expand all</button>
           </div>
         )}
         {!error && tree.length === 0 && (
