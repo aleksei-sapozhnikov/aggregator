@@ -11,6 +11,22 @@ services:
     build:
       context: dummy-services/javascript
 
+  commerce-order-orchestration:
+    build:
+      context: dummy-services/java
+
+  commerce-inventory-reservation:
+    build:
+      context: dummy-services/python
+
+  commerce-stock-allocation:
+    build:
+      context: dummy-services/javascript
+
+  commerce-warehouse-sync:
+    build:
+      context: dummy-services/java
+
   payments-gateway:
     build:
       context: dummy-services/java
