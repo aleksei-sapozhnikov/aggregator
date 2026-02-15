@@ -40,6 +40,18 @@ items:
   - id: commerce-order
     name: Commerce Order Service
     type: service
+  - id: commerce-order-orchestration
+    name: Commerce Order Orchestration Service
+    type: service
+  - id: commerce-inventory-reservation
+    name: Commerce Inventory Reservation Service
+    type: service
+  - id: commerce-stock-allocation
+    name: Commerce Stock Allocation Service
+    type: service
+  - id: commerce-warehouse-sync
+    name: Commerce Warehouse Sync Service
+    type: service
 
   - id: payments-gateway
     name: Payments Gateway Service
@@ -123,6 +135,18 @@ dependencies:
     type: depends_on
   - sourceId: commerce-core
     targetId: commerce-order
+    type: depends_on
+  - sourceId: commerce-order
+    targetId: commerce-order-orchestration
+    type: depends_on
+  - sourceId: commerce-order-orchestration
+    targetId: commerce-inventory-reservation
+    type: depends_on
+  - sourceId: commerce-inventory-reservation
+    targetId: commerce-stock-allocation
+    type: depends_on
+  - sourceId: commerce-stock-allocation
+    targetId: commerce-warehouse-sync
     type: depends_on
 
   - sourceId: payments-suite

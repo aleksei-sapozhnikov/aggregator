@@ -20,6 +20,30 @@ checks:
     url: http://commerce-order:8080/health
     method: GET
     timeout: PT2S
+  - type: http
+    checkId: commerce-order-orchestration-check
+    catalogItemId: commerce-order-orchestration
+    url: http://commerce-order-orchestration:8080/health
+    method: GET
+    timeout: PT2S
+  - type: http
+    checkId: commerce-inventory-reservation-check
+    catalogItemId: commerce-inventory-reservation
+    url: http://commerce-inventory-reservation:8080/health
+    method: GET
+    timeout: PT2S
+  - type: http
+    checkId: commerce-stock-allocation-check
+    catalogItemId: commerce-stock-allocation
+    url: http://commerce-stock-allocation:8080/health
+    method: GET
+    timeout: PT2S
+  - type: http
+    checkId: commerce-warehouse-sync-check
+    catalogItemId: commerce-warehouse-sync
+    url: http://commerce-warehouse-sync:8080/health
+    method: GET
+    timeout: PT2S
 
   - type: http
     checkId: payments-gateway-check
