@@ -7,6 +7,8 @@
   --muted: #5b616f;
   --border: #d8dadd;
   --accent: #73bf69;
+  --selection-accent: #5b9dff;
+  --direct-toggle-accent: #5b9dff;
   --link: #1f60c4;
   --shadow: 0 6px 20px rgba(15, 23, 42, 0.08);
 }
@@ -20,6 +22,8 @@ body[data-theme='dark'] {
   --muted: #a4a9b4;
   --border: #2c323a;
   --accent: #73bf69;
+  --selection-accent: #73bf69;
+  --direct-toggle-accent: #73bf69;
   --link: #8ab8ff;
   --shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
 }
@@ -174,7 +178,7 @@ body {
 }
 
 .node-row.is-selected {
-  border-color: var(--accent);
+  border-color: var(--selection-accent);
   box-shadow: var(--shadow);
 }
 
@@ -194,6 +198,16 @@ body {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.node-controls .direct-toggle-button {
+  background: color-mix(in srgb, var(--direct-toggle-accent) 16%, var(--panel-alt));
+  border-color: color-mix(in srgb, var(--direct-toggle-accent) 42%, var(--border));
+}
+
+body[data-theme='dark'] .node-controls .direct-toggle-button {
+  background: color-mix(in srgb, var(--direct-toggle-accent) 22%, var(--panel-alt));
+  border-color: color-mix(in srgb, var(--direct-toggle-accent) 55%, var(--border));
 }
 
 .node-heading {

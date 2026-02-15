@@ -268,6 +268,7 @@ const CatalogNode = ({
             {hasChildren && (
                 <div className="node-controls" onClick={(event) => event.stopPropagation()}>
                     <button
+                        className="direct-toggle-button"
                         type="button"
                         title={shouldShowDirectCollapse ? 'Collapse direct dependencies' : 'Expand to direct dependencies'}
                         onClick={() => onToggleDirectChildren(node)}
