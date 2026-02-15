@@ -648,20 +648,7 @@ export default function App() {
                         onClick={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))}
                     >
                         <span className="theme-toggle-icon" aria-hidden="true">
-                            {theme === 'dark' ? (
-                                <svg viewBox="0 0 24 24" role="presentation">
-                                    <circle cx="12" cy="9" r="5.5"/>
-                                    <path d="M9 16h6v2H9z"/>
-                                    <path d="M10 20h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                                </svg>
-                            ) : (
-                                <svg viewBox="0 0 24 24" role="presentation">
-                                    <path
-                                        d="M15.5 3.5c-4 0-7.2 3.2-7.2 7.2 0 4.1 3.3 7.4 7.4 7.4 2.6 0 4.9-1.3 6.2-3.4-4.6.6-8.6-2.9-8.6-7.6 0-1.4.4-2.7 1.1-3.6-.3 0-.6 0-.9 0Z"/>
-                                    <path
-                                        d="M6.2 5.6l.7 1.4 1.5.2-1.1 1 .3 1.5-1.4-.7-1.4.7.3-1.5-1.1-1 1.5-.2.7-1.4Z"/>
-                                </svg>
-                            )}
+                            {theme === 'dark' ? '💡' : '🌙'}
                         </span>
                         <span className="theme-toggle-text">
                             {theme === 'dark' ? 'Go light' : 'Go dark'}
