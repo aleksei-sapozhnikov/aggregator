@@ -647,7 +647,12 @@ export default function App() {
                         className="theme-toggle"
                         onClick={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))}
                     >
-                        {theme === 'dark' ? 'Light Theme' : 'Dark Theme'}
+                        <span className="theme-toggle-icon" aria-hidden="true">
+                            {theme === 'dark' ? '💡' : '🌙'}
+                        </span>
+                        <span className="theme-toggle-text">
+                            {theme === 'dark' ? 'Go light' : 'Go dark'}
+                        </span>
                     </button>
                 </header>
                 {!selectedItem ? (

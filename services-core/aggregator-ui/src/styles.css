@@ -11,6 +11,8 @@
   --direct-toggle-accent: #5b9dff;
   --link: #1f60c4;
   --shadow: 0 6px 20px rgba(15, 23, 42, 0.08);
+  --theme-toggle-bg: #e6ebf1;
+  --theme-toggle-border: #cdd3dc;
 }
 
 body[data-theme='dark'] {
@@ -26,6 +28,8 @@ body[data-theme='dark'] {
   --direct-toggle-accent: #73bf69;
   --link: #8ab8ff;
   --shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  --theme-toggle-bg: #262c35;
+  --theme-toggle-border: #353d48;
 }
 
 * {
@@ -110,13 +114,28 @@ body {
 }
 
 .theme-toggle {
-  border: 1px solid var(--border);
-  background: var(--panel-alt);
+  border: 1px solid var(--theme-toggle-border);
+  background: var(--theme-toggle-bg);
   color: var(--text);
-  padding: 8px 12px;
-  border-radius: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
   font-size: 12px;
+  font-weight: 600;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: var(--shadow);
+}
+
+.theme-toggle-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.theme-toggle-text {
+  letter-spacing: 0.01em;
 }
 
 .catalog-tree {
