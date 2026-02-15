@@ -262,7 +262,7 @@ body[data-theme='dark'] .node-controls .direct-toggle-button {
 }
 
 .node-leaf {
-  padding-left: 12px;
+  padding-left: 0;
 }
 
 .status-indicator {
@@ -319,7 +319,7 @@ body[data-theme='dark'] .node-controls .direct-toggle-button {
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .content-header-with-toggle {
@@ -327,8 +327,8 @@ body[data-theme='dark'] .node-controls .direct-toggle-button {
 }
 
 .content-header-main {
-  flex: 1 1 280px;
-  min-width: 220px;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .content-header .theme-toggle {
@@ -339,11 +339,22 @@ body[data-theme='dark'] .node-controls .direct-toggle-button {
 .content-title {
   font-size: 20px;
   font-weight: 600;
+  overflow-wrap: anywhere;
 }
 
 .content-subtitle {
   font-size: 13px;
   color: var(--muted);
+}
+
+@media (max-width: 640px) {
+  .theme-toggle {
+    padding: 8px;
+  }
+
+  .theme-toggle-text {
+    display: none;
+  }
 }
 
 .grafana-grid {
