@@ -2,16 +2,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import yaml from 'js-yaml';
 
 const DASHBOARDS = {
-  timeline: 'catalog-item-state-timeline',
+  timeline: {
+    uid: 'catalog-item-state-timeline',
+    slug: 'catalog-item-state-timeline',
+    panelId: 2001,
+  },
 };
 
-const DASHBOARD_SLUGS = {
-  timeline: 'catalog-item-state-timeline',
-};
-
-const DASHBOARD_PANELS = {
-  timeline: 2001,
-};
+const MOBILE_BREAKPOINT = 1100;
 
 const sortItemsByName = (items) =>
   [...items].sort((a, b) => (a.name || a.id).localeCompare(b.name || b.id));
@@ -118,12 +116,18 @@ const resolvePrometheusBaseUrl = () => {
   return `${window.location.origin}/prometheus`;
 };
 
-const normalizeDashboardBaseUrl = (baseUrl, dashboardUid, dashboardSlug = dashboardUid) => {
+const normalizeDashboardBaseUrl = (
+  baseUrl,
+  dashboardUid,
+  dashboardSlug = dashboardUid,
+) => {
   const url = new URL(baseUrl, window.location.origin);
   const segments = url.pathname.split('/').filter(Boolean);
-  const dashboardIndex = segments.indexOf('d');
+  const dashboardSegment = 'd';
+  const dashboardIndex = segments.findIndex((segment) => segment === 'd' || segment === 'd-solo');
 
   if (dashboardIndex !== -1 && segments[dashboardIndex + 1] === dashboardUid) {
+    segments[dashboardIndex] = dashboardSegment;
     if (segments[dashboardIndex + 2]) {
       segments.length = dashboardIndex + 3;
     } else {
@@ -131,7 +135,7 @@ const normalizeDashboardBaseUrl = (baseUrl, dashboardUid, dashboardSlug = dashbo
       segments.push(dashboardSlug);
     }
   } else {
-    segments.push('d', dashboardUid, dashboardSlug);
+    segments.push(dashboardSegment, dashboardUid, dashboardSlug);
   }
 
   url.pathname = `/${segments.join('/')}`;
@@ -176,19 +180,46 @@ const CatalogNode = ({
 }) => {
   const hasChildren = node.children.length > 0;
   const isExpanded = expandedIds.has(node.item.id);
+  const [isChildrenVisible, setIsChildrenVisible] = useState(isExpanded);
+  const [isChildrenExpanded, setIsChildrenExpanded] = useState(isExpanded);
   const descendantIds = collectDescendantIds(node);
   const isFullyExpanded = hasChildren && descendantIds.every((id) => expandedIds.has(id));
   const timelineUrl = buildDashboardUrl(
     grafanaBaseUrl,
-    DASHBOARDS.timeline,
-    DASHBOARD_SLUGS.timeline,
+    DASHBOARDS.timeline.uid,
+    DASHBOARDS.timeline.slug,
     node.item.id,
     theme,
-    DASHBOARD_PANELS.timeline,
+    DASHBOARDS.timeline.panelId,
   );
   const statusLabel = `Status: ${status.toUpperCase()}${
     lastUpdated ? ` (at ${lastUpdated})` : ''
   }`;
+
+  useEffect(() => {
+    let animationFrameId;
+    let nestedAnimationFrameId;
+
+    if (isExpanded) {
+      setIsChildrenVisible(true);
+      animationFrameId = window.requestAnimationFrame(() => {
+        nestedAnimationFrameId = window.requestAnimationFrame(() => {
+          setIsChildrenExpanded(true);
+        });
+      });
+    } else {
+      setIsChildrenExpanded(false);
+    }
+
+    return () => {
+      if (animationFrameId) {
+        window.cancelAnimationFrame(animationFrameId);
+      }
+      if (nestedAnimationFrameId) {
+        window.cancelAnimationFrame(nestedAnimationFrameId);
+      }
+    };
+  }, [isExpanded]);
 
   const row = (
     <div className={`node-row ${selectedId === node.item.id ? 'is-selected' : ''}`}>
@@ -247,8 +278,18 @@ const CatalogNode = ({
   return (
     <li>
       {row}
-      {isExpanded && (
-        <ul>
+      {isChildrenVisible && (
+        <ul
+          className={`node-children ${isChildrenExpanded ? 'is-expanded' : ''}`}
+          onTransitionEnd={(event) => {
+            if (event.target !== event.currentTarget) {
+              return;
+            }
+            if (!isExpanded) {
+              setIsChildrenVisible(false);
+            }
+          }}
+        >
           {node.children.map((child) => (
             <CatalogNode
               key={child.item.id}
@@ -279,6 +320,11 @@ export default function App() {
   const [expandedIds, setExpandedIds] = useState(() => new Set());
   const [itemStatuses, setItemStatuses] = useState({});
   const [lastUpdated, setLastUpdated] = useState('');
+  const [isMobileLayout, setIsMobileLayout] = useState(
+    () => window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT}px)`).matches,
+  );
+  const [isDesktopSidebarOpen, setIsDesktopSidebarOpen] = useState(true);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const grafanaIframeRef = useRef(null);
   const grafanaEscHandlerRef = useRef(null);
 
@@ -331,9 +377,29 @@ export default function App() {
   }, [theme]);
 
   useEffect(() => {
+    const mediaQuery = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT}px)`);
+    const updateLayout = (event) => {
+      setIsMobileLayout(event.matches);
+    };
+
+    setIsMobileLayout(mediaQuery.matches);
+    mediaQuery.addEventListener('change', updateLayout);
+
+    return () => {
+      mediaQuery.removeEventListener('change', updateLayout);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isMobileLayout) {
+      setIsMobileSidebarOpen(false);
+    }
+  }, [isMobileLayout]);
+
+  useEffect(() => {
     const loadCatalog = async () => {
       try {
-        const response = await fetch(new URL('catalog.yaml', resolveBaseUrl()))
+        const response = await fetch(new URL('catalog.yaml', resolveBaseUrl()));
         if (!response.ok) {
           throw new Error(`Failed to load catalog: ${response.status}`);
         }
@@ -457,22 +523,34 @@ export default function App() {
   }, []);
 
   const selectedItem = catalog.items.find((item) => item.id === selectedId);
+  const isSidebarOpen = isMobileLayout ? isMobileSidebarOpen : isDesktopSidebarOpen;
+  const shouldOffsetContentHeader = isMobileLayout || !isSidebarOpen;
+
+  const handleToggleSidebar = useCallback(() => {
+    if (isMobileLayout) {
+      setIsMobileSidebarOpen((prev) => !prev);
+      return;
+    }
+    setIsDesktopSidebarOpen((prev) => !prev);
+  }, [isMobileLayout]);
+
+  const handleSelectItem = useCallback((itemId) => {
+    setSelectedId(itemId);
+    setIsMobileSidebarOpen(false);
+  }, []);
 
   return (
-    <div className="app">
+    <div
+      className={`app ${isMobileLayout ? 'is-mobile' : 'is-desktop'} ${
+        isSidebarOpen ? 'sidebar-open' : 'sidebar-collapsed'
+      }`}
+    >
       <aside className="sidebar">
         <div className="sidebar-header">
           <div>
             <div className="app-title">Catalog Explorer</div>
             <div className="app-subtitle">Current State</div>
           </div>
-          <button
-            type="button"
-            className="theme-toggle"
-            onClick={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))}
-          >
-            {theme === 'dark' ? 'Light Theme' : 'Dark Theme'}
-          </button>
         </div>
         {error && <div className="error">{error}</div>}
         {!error && tree.length > 0 && (
@@ -490,7 +568,7 @@ export default function App() {
               key={node.item.id}
               node={node}
               selectedId={selectedId}
-              onSelect={setSelectedId}
+              onSelect={handleSelectItem}
               expandedIds={expandedIds}
               onToggleDirectChildren={handleToggleDirectChildren}
               onToggleAllChildren={handleToggleAllChildren}
@@ -503,9 +581,29 @@ export default function App() {
           ))}
         </ul>
       </aside>
+      <button
+        type="button"
+        aria-label={isSidebarOpen ? 'Collapse catalog panel' : 'Open catalog panel'}
+        className="hamburger-toggle sidebar-toggle"
+        onClick={handleToggleSidebar}
+      >
+        ☰
+      </button>
+      {isMobileLayout && isSidebarOpen && (
+        <button
+          type="button"
+          className="sidebar-backdrop"
+          onClick={() => setIsMobileSidebarOpen(false)}
+          aria-label="Close catalog panel"
+        />
+      )}
       <main className="content">
-        <header className="content-header">
-          <div>
+        <header
+          className={`content-header ${
+            shouldOffsetContentHeader ? 'content-header-with-toggle' : ''
+          }`}
+        >
+          <div className="content-header-main">
             <div className="content-title">
                 {selectedItem ? selectedItem.name || selectedItem.id : 'Select an item'}
             </div>
@@ -513,6 +611,13 @@ export default function App() {
                 State Timeline
             </div>
           </div>
+          <button
+            type="button"
+            className="theme-toggle"
+            onClick={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))}
+          >
+            {theme === 'dark' ? 'Light Theme' : 'Dark Theme'}
+          </button>
         </header>
         {!selectedItem ? (
           <div className="empty">Select a catalog item to view dashboards.</div>
@@ -525,11 +630,11 @@ export default function App() {
                 onLoad={handleGrafanaLoad}
                 src={buildDashboardUrl(
                   grafanaBaseUrl,
-                  DASHBOARDS.timeline,
-                  DASHBOARD_SLUGS.timeline,
+                  DASHBOARDS.timeline.uid,
+                  DASHBOARDS.timeline.slug,
                   selectedItem.id,
                   theme,
-                  DASHBOARD_PANELS.timeline,
+                  DASHBOARDS.timeline.panelId,
                 )}
               />
             </section>

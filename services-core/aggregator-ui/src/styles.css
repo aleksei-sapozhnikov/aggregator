@@ -38,10 +38,12 @@ body {
 .app {
   display: flex;
   height: 100vh;
+  position: relative;
 }
 
 .sidebar {
   width: 360px;
+  min-width: 360px;
   background: var(--panel);
   border-right: 1px solid var(--border);
   display: flex;
@@ -49,13 +51,48 @@ body {
   padding: 24px 20px;
   gap: 16px;
   overflow: hidden;
+  opacity: 1;
+  transform: translateX(0);
+  transition: width 180ms ease, min-width 180ms ease, padding 180ms ease, opacity 140ms ease, transform 180ms ease, border-color 180ms ease;
+  will-change: width, min-width, padding, opacity, transform;
 }
 
+.hamburger-toggle {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+}
+
+.sidebar-toggle {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 35;
+}
+
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  border: none;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 20;
+}
 .sidebar-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
+  padding-left: 56px;
 }
 
 .app-title {
@@ -110,6 +147,20 @@ body {
 
 .catalog-tree li {
   margin-bottom: 8px;
+}
+
+.node-children {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transform: translateY(-6px);
+  transition: max-height 220ms ease, opacity 160ms ease, transform 220ms ease;
+}
+
+.node-children.is-expanded {
+  max-height: 1200px;
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .node-row {
@@ -205,7 +256,8 @@ body {
 .node-label:focus-visible,
 .tree-controls button:focus-visible,
 .node-controls button:focus-visible,
-.theme-toggle:focus-visible {
+.theme-toggle:focus-visible,
+.hamburger-toggle:focus-visible {
   outline: 2px solid var(--link);
   outline-offset: 2px;
 }
@@ -219,11 +271,36 @@ body {
   overflow: hidden;
 }
 
+.app.sidebar-collapsed.is-desktop .sidebar {
+  width: 0;
+  min-width: 0;
+  padding-left: 0;
+  padding-right: 0;
+  border-right-color: transparent;
+  opacity: 0;
+  transform: translateX(-14px);
+  pointer-events: none;
+}
 .content-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
+  flex-wrap: wrap;
+}
+
+.content-header-with-toggle {
+  padding-left: 56px;
+}
+
+.content-header-main {
+  flex: 1 1 280px;
+  min-width: 220px;
+}
+
+.content-header .theme-toggle {
+  margin-left: auto;
+  flex: 0 0 auto;
 }
 
 .content-title {
@@ -275,14 +352,41 @@ body {
 }
 
 @media (max-width: 1100px) {
-  .app {
-    flex-direction: column;
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: min(360px, 88vw);
+    min-width: min(360px, 88vw);
+    z-index: 30;
+    border-right: 1px solid var(--border);
+    border-bottom: none;
+    transform: translateX(0);
   }
 
-  .sidebar {
-    width: 100%;
-    border-right: none;
-    border-bottom: 1px solid var(--border);
+  .app.sidebar-collapsed .sidebar {
+    width: min(360px, 88vw);
+    min-width: min(360px, 88vw);
+    padding-left: 20px;
+    padding-right: 20px;
+    border-right-color: var(--border);
+    opacity: 0;
+    transform: translateX(calc(-100% - 12px));
+    pointer-events: none;
+  }
+
+  .sidebar-toggle {
+    top: 16px;
+    left: 16px;
+  }
+
+  .sidebar-header {
+    padding-left: 52px;
+  }
+
+  .content-header-with-toggle {
+    padding-left: 52px;
   }
 
   .grafana-grid {
