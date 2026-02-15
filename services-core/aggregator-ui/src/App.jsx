@@ -254,9 +254,10 @@ const CatalogNode = ({
         )}
       </div>
       <div className="node-links" onClick={(event) => event.stopPropagation()}>
-        <a href={timelineUrl} target="_blank" rel="noreferrer">
-          State Timeline
-        </a>
+{/*        I like this link style but we don't need this link here */}
+{/*         <a href={timelineUrl} target="_blank" rel="noreferrer"> */}
+{/*           State Timeline */}
+{/*         </a> */}
       </div>
       {hasChildren && (
         <div className="node-controls" onClick={(event) => event.stopPropagation()}>
