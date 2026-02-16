@@ -160,6 +160,62 @@ body {
   padding: 6px 8px;
 }
 
+.tree-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--panel-alt);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 6px 10px;
+}
+
+.search-results {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.search-results-header {
+  font-size: 11px;
+  color: var(--muted);
+  padding: 0 4px;
+}
+
+.tree-search input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 12px;
+  outline: none;
+}
+
+.tree-search input::placeholder {
+  color: var(--muted);
+}
+
+.search-icon {
+  font-size: 13px;
+  opacity: 0.7;
+}
+
+.search-clear {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 4px;
+  border-radius: 6px;
+}
+
+.search-clear:hover {
+  color: var(--text);
+  background: color-mix(in srgb, var(--border) 35%, transparent);
+}
+
 .catalog-tree ul {
   list-style: none;
   margin: 8px 0 8px 16px;
@@ -305,6 +361,8 @@ body {
 .node-label:focus-visible,
 .tree-controls button:focus-visible,
 .node-toggle:focus-visible,
+.tree-search input:focus-visible,
+.search-clear:focus-visible,
 .theme-toggle:focus-visible,
 .hamburger-toggle:focus-visible {
   outline: 2px solid var(--link);
