@@ -10,191 +10,179 @@ items:
     name: Customer Experience
     type: product-family
 
-  # Products
+  # Product lines and products
+  - id: commerce-line-core
+    name: Commerce Line Core
+    type: product
   - id: commerce-core
     name: Commerce Core
     type: product
-  - id: payments-suite
-    name: Payments Suite
+  - id: order-domain
+    name: Order Domain
+    type: product
+  - id: order-workflow
+    name: Order Workflow
+    type: product
+
+  - id: operations-line
+    name: Operations Line
     type: product
   - id: fulfillment-hub
     name: Fulfillment Hub
     type: product
-  - id: support-desk
-    name: Support Desk
+  - id: logistics-domain
+    name: Logistics Domain
     type: product
-  - id: customer-engagement
-    name: Customer Engagement
-    type: product
-  - id: marketing-automation
-    name: Marketing Automation
+  - id: distribution-core
+    name: Distribution Core
     type: product
 
-  # Services
-  - id: commerce-catalog
-    name: Commerce Catalog Service
+  - id: experience-line
+    name: Experience Line
+    type: product
+  - id: engagement-suite
+    name: Engagement Suite
+    type: product
+  - id: journey-domain
+    name: Journey Domain
+    type: product
+  - id: touchpoint-core
+    name: Touchpoint Core
+    type: product
+
+  # Services (real demo containers)
+  - id: order-capture-svc
+    name: Order Capture Service
     type: service
-  - id: commerce-pricing
-    name: Commerce Pricing Service
+  - id: order-validation-svc
+    name: Order Validation Service
     type: service
-  - id: commerce-order
-    name: Commerce Order Service
+  - id: order-billing-svc
+    name: Order Billing Service
     type: service
-  - id: commerce-order-orchestration
-    name: Commerce Order Orchestration Service
-    type: service
-  - id: commerce-inventory-reservation
-    name: Commerce Inventory Reservation Service
-    type: service
-  - id: commerce-stock-allocation
-    name: Commerce Stock Allocation Service
-    type: service
-  - id: commerce-warehouse-sync
-    name: Commerce Warehouse Sync Service
+  - id: order-dispatch-svc
+    name: Order Dispatch Service
     type: service
 
-  - id: payments-gateway
-    name: Payments Gateway Service
+  - id: routing-engine-svc
+    name: Routing Engine Service
     type: service
-  - id: payments-ledger
-    name: Payments Ledger Service
+  - id: inventory-sync-svc
+    name: Inventory Sync Service
     type: service
-  - id: payments-risk
-    name: Payments Risk Service
+  - id: lastmile-dispatch-svc
+    name: Last-Mile Dispatch Service
     type: service
-
-  - id: fulfillment-routing
-    name: Fulfillment Routing Service
-    type: service
-  - id: fulfillment-shipping
-    name: Fulfillment Shipping Service
-    type: service
-  - id: fulfillment-returns
-    name: Fulfillment Returns Service
+  - id: returns-processing-svc
+    name: Returns Processing Service
     type: service
 
-  - id: support-intake
-    name: Support Intake Service
+  - id: engagement-orchestrator-svc
+    name: Engagement Orchestrator Service
     type: service
-  - id: support-chat
-    name: Support Chat Service
+  - id: profile-store-svc
+    name: Profile Store Service
     type: service
-  - id: support-sla
-    name: Support SLA Service
+  - id: messaging-hub-svc
+    name: Messaging Hub Service
     type: service
-
-  - id: engagement-profile
-    name: Engagement Profile Service
-    type: service
-  - id: engagement-messaging
-    name: Engagement Messaging Service
-    type: service
-  - id: engagement-campaigns
-    name: Engagement Campaigns Service
-    type: service
-
-  - id: marketing-journeys
-    name: Marketing Journeys Service
-    type: service
-  - id: marketing-content
-    name: Marketing Content Service
-    type: service
-  - id: marketing-offers
-    name: Marketing Offers Service
+  - id: campaign-execution-svc
+    name: Campaign Execution Service
     type: service
 
 dependencies:
-  # Families to products
+  # Commerce branch
   - sourceId: commerce-platform
+    targetId: commerce-line-core
+    type: includes
+  - sourceId: commerce-line-core
     targetId: commerce-core
     type: includes
-  - sourceId: commerce-platform
-    targetId: payments-suite
-    type: includes
+  - sourceId: commerce-core
+    targetId: order-domain
+    type: depends_on
 
+  - sourceId: order-domain
+    targetId: order-capture-svc
+    type: depends_on
+  - sourceId: order-domain
+    targetId: order-validation-svc
+    type: depends_on
+  - sourceId: order-domain
+    targetId: order-billing-svc
+    type: depends_on
+
+  - sourceId: order-capture-svc
+    targetId: order-workflow
+    type: depends_on
+  - sourceId: order-validation-svc
+    targetId: order-workflow
+    type: depends_on
+  - sourceId: order-billing-svc
+    targetId: order-workflow
+    type: depends_on
+
+  - sourceId: order-workflow
+    targetId: order-dispatch-svc
+    type: depends_on
+
+  # Operations branch
   - sourceId: operations-suite
+    targetId: operations-line
+    type: includes
+  - sourceId: operations-line
     targetId: fulfillment-hub
     type: includes
-  - sourceId: operations-suite
-    targetId: support-desk
-    type: includes
+  - sourceId: fulfillment-hub
+    targetId: logistics-domain
+    type: depends_on
 
+  - sourceId: logistics-domain
+    targetId: routing-engine-svc
+    type: depends_on
+  - sourceId: logistics-domain
+    targetId: inventory-sync-svc
+    type: depends_on
+
+  - sourceId: routing-engine-svc
+    targetId: distribution-core
+    type: depends_on
+  - sourceId: inventory-sync-svc
+    targetId: distribution-core
+    type: depends_on
+
+  - sourceId: distribution-core
+    targetId: lastmile-dispatch-svc
+    type: depends_on
+  - sourceId: distribution-core
+    targetId: returns-processing-svc
+    type: depends_on
+
+  # Customer experience branch
   - sourceId: customer-experience
-    targetId: customer-engagement
+    targetId: experience-line
     type: includes
-  - sourceId: customer-experience
-    targetId: marketing-automation
+  - sourceId: experience-line
+    targetId: engagement-suite
     type: includes
-
-  # Product to service dependencies
-  - sourceId: commerce-core
-    targetId: commerce-catalog
-    type: depends_on
-  - sourceId: commerce-core
-    targetId: commerce-pricing
-    type: depends_on
-  - sourceId: commerce-core
-    targetId: commerce-order
-    type: depends_on
-  - sourceId: commerce-order
-    targetId: commerce-order-orchestration
-    type: depends_on
-  - sourceId: commerce-order-orchestration
-    targetId: commerce-inventory-reservation
-    type: depends_on
-  - sourceId: commerce-inventory-reservation
-    targetId: commerce-stock-allocation
-    type: depends_on
-  - sourceId: commerce-stock-allocation
-    targetId: commerce-warehouse-sync
+  - sourceId: engagement-suite
+    targetId: journey-domain
     type: depends_on
 
-  - sourceId: payments-suite
-    targetId: payments-gateway
-    type: depends_on
-  - sourceId: payments-suite
-    targetId: payments-ledger
-    type: depends_on
-  - sourceId: payments-suite
-    targetId: payments-risk
+  - sourceId: journey-domain
+    targetId: engagement-orchestrator-svc
     type: depends_on
 
-  - sourceId: fulfillment-hub
-    targetId: fulfillment-routing
-    type: depends_on
-  - sourceId: fulfillment-hub
-    targetId: fulfillment-shipping
-    type: depends_on
-  - sourceId: fulfillment-hub
-    targetId: fulfillment-returns
+  - sourceId: engagement-orchestrator-svc
+    targetId: touchpoint-core
     type: depends_on
 
-  - sourceId: support-desk
-    targetId: support-intake
+  - sourceId: touchpoint-core
+    targetId: profile-store-svc
     type: depends_on
-  - sourceId: support-desk
-    targetId: support-chat
+  - sourceId: touchpoint-core
+    targetId: messaging-hub-svc
     type: depends_on
-  - sourceId: support-desk
-    targetId: support-sla
-    type: depends_on
-
-  - sourceId: customer-engagement
-    targetId: engagement-profile
-    type: depends_on
-  - sourceId: customer-engagement
-    targetId: engagement-messaging
-    type: depends_on
-  - sourceId: customer-engagement
-    targetId: engagement-campaigns
-    type: depends_on
-
-  - sourceId: marketing-automation
-    targetId: marketing-journeys
-    type: depends_on
-  - sourceId: marketing-automation
-    targetId: marketing-content
-    type: depends_on
-  - sourceId: marketing-automation
-    targetId: marketing-offers
+  - sourceId: touchpoint-core
+    targetId: campaign-execution-svc
     type: depends_on
