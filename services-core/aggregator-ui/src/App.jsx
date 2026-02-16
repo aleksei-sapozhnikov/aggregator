@@ -1076,7 +1076,9 @@ export default function App() {
                                                     />
                                                     <div className="affected-meta">
                                                         <div className="affected-row">
-                                                            <span className="affected-name">{entry.name}</span>
+                                                            <span className="affected-name" title={entry.name}>
+                                                                {entry.name}
+                                                            </span>
                                                             <span className={`affected-status status-${entry.status}`}>
                                                                 {entry.status.toUpperCase()}
                                                             </span>
