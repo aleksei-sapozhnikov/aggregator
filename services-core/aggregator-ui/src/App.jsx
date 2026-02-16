@@ -500,7 +500,8 @@ export default function App() {
             try {
                 const response = await fetch(new URL('catalog.yaml', resolveBaseUrl()));
                 if (!response.ok) {
-                    throw new Error(`Failed to load catalog: ${response.status}`);
+                    setError(`Failed to load catalog: ${response.status}`);
+                    return;
                 }
                 const text = await response.text();
                 const data = yaml.load(text) || {};
@@ -529,7 +530,8 @@ export default function App() {
                     `${prometheusBaseUrl}/api/v1/query?query=${encodeURIComponent('catalog_item_state')}`,
                 );
                 if (!response.ok) {
-                    throw new Error(`Failed to load Prometheus data: ${response.status}`);
+                    console.error(`Failed to load Prometheus data: ${response.status}`);
+                    return;
                 }
                 const contentType = response.headers.get('content-type') || '';
                 if (!contentType.includes('application/json')) {
