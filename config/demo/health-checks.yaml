@@ -1,193 +1,85 @@
-# Health checks for demo environment services and selected products
+# Health checks for demo environment services
 checks:
   - type: http
-    checkId: commerce-catalog-check
-    catalogItemId: commerce-catalog
-    url: http://commerce-catalog:8080/health
+    checkId: order-capture-svc-check
+    catalogItemId: order-capture-svc
+    url: http://order-capture-svc:8080/health
     method: GET
     timeout: PT2S
 
   - type: http
-    checkId: commerce-pricing-check
-    catalogItemId: commerce-pricing
-    url: http://commerce-pricing:8080/health
+    checkId: order-validation-svc-check
+    catalogItemId: order-validation-svc
+    url: http://order-validation-svc:8080/health
     method: GET
     timeout: PT2S
 
   - type: http
-    checkId: commerce-order-check
-    catalogItemId: commerce-order
-    url: http://commerce-order:8080/health
-    method: GET
-    timeout: PT2S
-  - type: http
-    checkId: commerce-order-orchestration-check
-    catalogItemId: commerce-order-orchestration
-    url: http://commerce-order-orchestration:8080/health
-    method: GET
-    timeout: PT2S
-  - type: http
-    checkId: commerce-inventory-reservation-check
-    catalogItemId: commerce-inventory-reservation
-    url: http://commerce-inventory-reservation:8080/health
-    method: GET
-    timeout: PT2S
-  - type: http
-    checkId: commerce-stock-allocation-check
-    catalogItemId: commerce-stock-allocation
-    url: http://commerce-stock-allocation:8080/health
-    method: GET
-    timeout: PT2S
-  - type: http
-    checkId: commerce-warehouse-sync-check
-    catalogItemId: commerce-warehouse-sync
-    url: http://commerce-warehouse-sync:8080/health
+    checkId: order-billing-svc-check
+    catalogItemId: order-billing-svc
+    url: http://order-billing-svc:8080/health
     method: GET
     timeout: PT2S
 
   - type: http
-    checkId: payments-gateway-check
-    catalogItemId: payments-gateway
-    url: http://payments-gateway:8080/health
+    checkId: order-dispatch-svc-check
+    catalogItemId: order-dispatch-svc
+    url: http://order-dispatch-svc:8080/health
     method: GET
     timeout: PT2S
 
   - type: http
-    checkId: payments-ledger-check
-    catalogItemId: payments-ledger
-    url: http://payments-ledger:8080/health
+    checkId: routing-engine-svc-check
+    catalogItemId: routing-engine-svc
+    url: http://routing-engine-svc:8080/health
     method: GET
     timeout: PT2S
 
   - type: http
-    checkId: payments-risk-check
-    catalogItemId: payments-risk
-    url: http://payments-risk:8080/health
+    checkId: inventory-sync-svc-check
+    catalogItemId: inventory-sync-svc
+    url: http://inventory-sync-svc:8080/health
     method: GET
     timeout: PT2S
 
   - type: http
-    checkId: fulfillment-routing-check
-    catalogItemId: fulfillment-routing
-    url: http://fulfillment-routing:8080/health
+    checkId: lastmile-dispatch-svc-check
+    catalogItemId: lastmile-dispatch-svc
+    url: http://lastmile-dispatch-svc:8080/health
     method: GET
     timeout: PT2S
 
   - type: http
-    checkId: fulfillment-shipping-check
-    catalogItemId: fulfillment-shipping
-    url: http://fulfillment-shipping:8080/health
+    checkId: returns-processing-svc-check
+    catalogItemId: returns-processing-svc
+    url: http://returns-processing-svc:8080/health
     method: GET
     timeout: PT2S
 
   - type: http
-    checkId: fulfillment-returns-check
-    catalogItemId: fulfillment-returns
-    url: http://fulfillment-returns:8080/health
+    checkId: engagement-orchestrator-svc-check
+    catalogItemId: engagement-orchestrator-svc
+    url: http://engagement-orchestrator-svc:8080/health
     method: GET
     timeout: PT2S
 
   - type: http
-    checkId: support-intake-check
-    catalogItemId: support-intake
-    url: http://support-intake:8080/health
+    checkId: profile-store-svc-check
+    catalogItemId: profile-store-svc
+    url: http://profile-store-svc:8080/health
     method: GET
     timeout: PT2S
 
   - type: http
-    checkId: support-chat-check
-    catalogItemId: support-chat
-    url: http://support-chat:8080/health
+    checkId: messaging-hub-svc-check
+    catalogItemId: messaging-hub-svc
+    url: http://messaging-hub-svc:8080/health
     method: GET
     timeout: PT2S
 
   - type: http
-    checkId: support-sla-check
-    catalogItemId: support-sla
-    url: http://support-sla:8080/health
-    method: GET
-    timeout: PT2S
-
-  - type: http
-    checkId: engagement-profile-check
-    catalogItemId: engagement-profile
-    url: http://engagement-profile:8080/health
-    method: GET
-    timeout: PT2S
-
-  - type: http
-    checkId: engagement-messaging-check
-    catalogItemId: engagement-messaging
-    url: http://engagement-messaging:8080/health
-    method: GET
-    timeout: PT2S
-
-  - type: http
-    checkId: engagement-campaigns-check
-    catalogItemId: engagement-campaigns
-    url: http://engagement-campaigns:8080/health
-    method: GET
-    timeout: PT2S
-
-  - type: http
-    checkId: marketing-journeys-check
-    catalogItemId: marketing-journeys
-    url: http://marketing-journeys:8080/health
-    method: GET
-    timeout: PT2S
-
-  - type: http
-    checkId: marketing-content-check
-    catalogItemId: marketing-content
-    url: http://marketing-content:8080/health
-    method: GET
-    timeout: PT2S
-
-  - type: http
-    checkId: marketing-offers-check
-    catalogItemId: marketing-offers
-    url: http://marketing-offers:8080/health
-    method: GET
-    timeout: PT2S
-
-  - type: http
-    checkId: commerce-core-check
-    catalogItemId: commerce-core
-    url: http://commerce-catalog:8080/health
-    method: GET
-    timeout: PT2S
-
-  - type: http
-    checkId: payments-suite-check
-    catalogItemId: payments-suite
-    url: http://payments-gateway:8080/health
-    method: GET
-    timeout: PT2S
-
-  - type: http
-    checkId: fulfillment-hub-check
-    catalogItemId: fulfillment-hub
-    url: http://fulfillment-routing:8080/health
-    method: GET
-    timeout: PT2S
-
-  - type: http
-    checkId: support-desk-check
-    catalogItemId: support-desk
-    url: http://support-intake:8080/health
-    method: GET
-    timeout: PT2S
-
-  - type: http
-    checkId: customer-engagement-check
-    catalogItemId: customer-engagement
-    url: http://engagement-profile:8080/health
-    method: GET
-    timeout: PT2S
-
-  - type: http
-    checkId: marketing-automation-check
-    catalogItemId: marketing-automation
-    url: http://marketing-journeys:8080/health
+    checkId: campaign-execution-svc-check
+    catalogItemId: campaign-execution-svc
+    url: http://campaign-execution-svc:8080/health
     method: GET
     timeout: PT2S

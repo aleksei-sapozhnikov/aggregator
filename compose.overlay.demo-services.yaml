@@ -1,88 +1,48 @@
 services:
-  commerce-catalog:
+  order-capture-svc:
     build:
       context: dummy-services/java
 
-  commerce-pricing:
+  order-validation-svc:
     build:
       context: dummy-services/python
 
-  commerce-order:
+  order-billing-svc:
     build:
       context: dummy-services/javascript
 
-  commerce-order-orchestration:
+  order-dispatch-svc:
     build:
       context: dummy-services/java
 
-  commerce-inventory-reservation:
+  routing-engine-svc:
     build:
       context: dummy-services/python
 
-  commerce-stock-allocation:
+  inventory-sync-svc:
     build:
       context: dummy-services/javascript
 
-  commerce-warehouse-sync:
+  lastmile-dispatch-svc:
     build:
       context: dummy-services/java
 
-  payments-gateway:
-    build:
-      context: dummy-services/java
-
-  payments-ledger:
+  returns-processing-svc:
     build:
       context: dummy-services/python
 
-  payments-risk:
+  engagement-orchestrator-svc:
     build:
       context: dummy-services/javascript
 
-  fulfillment-routing:
+  profile-store-svc:
     build:
       context: dummy-services/java
 
-  fulfillment-shipping:
+  messaging-hub-svc:
     build:
       context: dummy-services/python
 
-  fulfillment-returns:
-    build:
-      context: dummy-services/javascript
-
-  support-intake:
-    build:
-      context: dummy-services/java
-
-  support-chat:
-    build:
-      context: dummy-services/python
-
-  support-sla:
-    build:
-      context: dummy-services/javascript
-
-  engagement-profile:
-    build:
-      context: dummy-services/java
-
-  engagement-messaging:
-    build:
-      context: dummy-services/python
-
-  engagement-campaigns:
-    build:
-      context: dummy-services/javascript
-
-  marketing-journeys:
-    build:
-      context: dummy-services/java
-
-  marketing-content:
-    build:
-      context: dummy-services/python
-
-  marketing-offers:
+  campaign-execution-svc:
     build:
       context: dummy-services/javascript
