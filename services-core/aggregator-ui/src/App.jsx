@@ -417,10 +417,12 @@ export default function App() {
     );
     const [isDesktopSidebarOpen, setIsDesktopSidebarOpen] = useState(true);
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+    const [isSearchActive, setIsSearchActive] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [pendingScrollId, setPendingScrollId] = useState('');
     const [disableTreeAnimation, setDisableTreeAnimation] = useState(false);
     const prevSearchTokensRef = useRef(0);
+    const clearSearchRequestedRef = useRef(false);
     const catalogTreeRef = useRef(null);
     const grafanaIframeRef = useRef(null);
     const grafanaEscHandlerRef = useRef(null);
@@ -498,7 +500,8 @@ export default function App() {
             try {
                 const response = await fetch(new URL('catalog.yaml', resolveBaseUrl()));
                 if (!response.ok) {
-                    throw new Error(`Failed to load catalog: ${response.status}`);
+                    setError(`Failed to load catalog: ${response.status}`);
+                    return;
                 }
                 const text = await response.text();
                 const data = yaml.load(text) || {};
@@ -527,7 +530,8 @@ export default function App() {
                     `${prometheusBaseUrl}/api/v1/query?query=${encodeURIComponent('catalog_item_state')}`,
                 );
                 if (!response.ok) {
-                    throw new Error(`Failed to load Prometheus data: ${response.status}`);
+                    console.error(`Failed to load Prometheus data: ${response.status}`);
+                    return;
                 }
                 const contentType = response.headers.get('content-type') || '';
                 if (!contentType.includes('application/json')) {
@@ -641,6 +645,28 @@ export default function App() {
         setIsMobileSidebarOpen(false);
     }, []);
 
+    const handleClearSearch = useCallback(() => {
+        clearSearchRequestedRef.current = true;
+        setSearchQuery('');
+        setIsSearchActive(false);
+    }, []);
+
+    useEffect(() => {
+        if (!isSearchActive) {
+            return undefined;
+        }
+        const handleKeyDown = (event) => {
+            if (event.key === 'Escape' || event.keyCode === 27) {
+                event.preventDefault();
+                handleClearSearch();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [handleClearSearch, isSearchActive]);
+
     const scrollToNodeId = useCallback((targetId) => {
         const container = catalogTreeRef.current;
         if (!container) {
@@ -693,19 +719,25 @@ export default function App() {
     }, []);
 
     useEffect(() => {
-        if (searchTokens.length === 0 && selectedId) {
-            setPendingScrollId(selectedId);
-        }
-    }, [selectedId, searchTokens.length]);
-
-    useEffect(() => {
         const prevTokens = prevSearchTokensRef.current;
         prevSearchTokensRef.current = searchTokens.length;
-        if (prevTokens > 0 && searchTokens.length === 0 && selectedId) {
+        if (searchTokens.length > 0) {
+            clearSearchRequestedRef.current = false;
+            return;
+        }
+        if (isSearchActive) {
+            return;
+        }
+        if (prevTokens > 0 && selectedId && clearSearchRequestedRef.current) {
+            clearSearchRequestedRef.current = false;
             expandPathToItem(selectedId, {suppressAnimation: true});
             setPendingScrollId(selectedId);
+            return;
         }
-    }, [expandPathToItem, searchTokens.length, selectedId]);
+        if (clearSearchRequestedRef.current) {
+            clearSearchRequestedRef.current = false;
+        }
+    }, [expandPathToItem, isSearchActive, searchTokens.length, selectedId]);
 
     useEffect(() => {
         if (!pendingScrollId || searchTokens.length > 0) {
@@ -741,18 +773,24 @@ export default function App() {
                     <div className="tree-search">
                         <span className="search-icon" aria-hidden="true">🔍</span>
                         <input
-                            type="search"
-                            placeholder="Search service..."
+                            type="text"
+                            placeholder="Search item..."
                             value={searchQuery}
-                            onChange={(event) => setSearchQuery(event.target.value)}
-                            aria-label="Search services by title, key, or type"
+                            onChange={(event) => {
+                                const nextValue = event.target.value;
+                                setSearchQuery(nextValue);
+                                if (!isSearchActive && nextValue.trim()) {
+                                    setIsSearchActive(true);
+                                }
+                            }}
+                            aria-label="Search items by title, key, or type"
                         />
-                        {searchQuery && (
+                        {(searchQuery || isSearchActive) && (
                             <button
                                 type="button"
                                 className="search-clear"
                                 aria-label="Clear search"
-                                onClick={() => setSearchQuery('')}
+                                onClick={handleClearSearch}
                             >
                                 ✕
                             </button>
@@ -762,13 +800,13 @@ export default function App() {
                 {!error && tree.length === 0 && (
                     <div className="empty">Catalog is empty. Add items to catalog.yaml.</div>
                 )}
-                {searchTokens.length > 0 ? (
+                {isSearchActive ? (
                     <div className="search-results">
                         <div className="search-results-header">
-                            Found {searchResults.length} service{searchResults.length === 1 ? '' : 's'}
+                            Found {searchResults.length} item{searchResults.length === 1 ? '' : 's'}
                         </div>
                         {searchResults.length === 0 ? (
-                            <div className="empty">No services match the current search.</div>
+                            <div className="empty">No items match the current search.</div>
                         ) : (
                             <ul className="catalog-tree">
                                 {searchResults.map(({item}) => (
