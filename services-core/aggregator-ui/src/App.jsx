@@ -257,7 +257,7 @@ const CatalogNode = ({
     const isExpanded = expandedIds.has(node.item.id);
     const [isChildrenVisible, setIsChildrenVisible] = useState(isExpanded);
     const [isChildrenExpanded, setIsChildrenExpanded] = useState(isExpanded);
-    const timelineUrl = buildDashboardUrl(
+    buildDashboardUrl(
         grafanaBaseUrl,
         DASHBOARDS.timeline.uid,
         DASHBOARDS.timeline.slug,
@@ -359,12 +359,6 @@ const CatalogNode = ({
             </span>
                     )}
                 </div>
-            </div>
-            <div className="node-links" onClick={(event) => event.stopPropagation()}>
-                {/*        I like this link style but we don't need this link here */}
-                {/*         <a href={timelineUrl} target="_blank" rel="noreferrer"> */}
-                {/*           State Timeline */} 
-                {/*         </a> */}
             </div>
         </div>
     );
