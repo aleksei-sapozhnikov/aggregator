@@ -143,6 +143,8 @@ body {
   margin: 0;
   padding: 0;
   overflow-y: auto;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .tree-controls {
@@ -175,6 +177,9 @@ body {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .search-results-header {
