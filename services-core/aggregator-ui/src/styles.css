@@ -24,7 +24,7 @@ body[data-theme='dark'] {
   --panel: #181b1f;
   --panel-alt: #1f232a;
   --outer-background: #15181d;
-  --panel-inner-border-background: #1c2026;
+  --panel-inner-border-background: #111217;
   --panel-content-background: var(--panel);
   --text: #f5f7fa;
   --muted: #a4a9b4;
@@ -172,7 +172,6 @@ body {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 0;
   background: var(--panel-alt);
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -493,7 +492,7 @@ body {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0;
 }
 
 .affected-panel.is-open {
@@ -548,7 +547,7 @@ body {
   right: 0;
   bottom: 0;
   width: 48px;
-  background: linear-gradient(90deg, rgba(0, 0, 0, 0), var(--panel-content-background));
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0), var(--outer-background));
   pointer-events: none;
 }
 
@@ -558,14 +557,14 @@ body {
 
 .affected-list {
   list-style: none;
-  margin: 0 12px 12px;
+  margin: 0;
   padding: 8px;
   border: 1px solid var(--border);
   column-width: 260px;
   column-gap: 16px;
   row-gap: 6px;
   background: var(--panel-content-background);
-  border-radius: 10px;
+  border-radius: 0 0 10px 10px;
 }
 
 .affected-item {
