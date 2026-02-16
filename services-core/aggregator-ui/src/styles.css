@@ -166,11 +166,12 @@ body {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0;
   background: var(--panel-alt);
   border: 1px solid var(--border);
   border-radius: 10px;
-  padding: 6px 10px;
+  padding: 0 0 0 10px;
+  min-height: 36px;
 }
 
 .search-results {
@@ -195,6 +196,10 @@ body {
   color: var(--text);
   font-size: 12px;
   outline: none;
+  height: 36px;
+  padding: 0 10px;
+  margin: 0 10px;
+  border-radius: 0;
 }
 
 .tree-search input::placeholder {
@@ -208,17 +213,21 @@ body {
 
 .search-clear {
   border: none;
-  background: transparent;
-  color: var(--muted);
+  background: #e24d42;
+  color: #ffffff;
   cursor: pointer;
-  font-size: 14px;
-  padding: 2px 4px;
-  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 0 10px 10px 0;
+  margin-left: 0;
 }
 
 .search-clear:hover {
-  color: var(--text);
-  background: color-mix(in srgb, var(--border) 35%, transparent);
+  background: #b93931;
+  color: #ffffff;
 }
 
 .catalog-tree ul {
