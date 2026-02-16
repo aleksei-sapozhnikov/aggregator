@@ -649,6 +649,22 @@ export default function App() {
         setIsSearchActive(false);
     }, []);
 
+    useEffect(() => {
+        if (!isSearchActive) {
+            return undefined;
+        }
+        const handleKeyDown = (event) => {
+            if (event.key === 'Escape' || event.keyCode === 27) {
+                event.preventDefault();
+                handleClearSearch();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [handleClearSearch, isSearchActive]);
+
     const scrollToNodeId = useCallback((targetId) => {
         const container = catalogTreeRef.current;
         if (!container) {
@@ -763,14 +779,6 @@ export default function App() {
                                 setSearchQuery(nextValue);
                                 if (!isSearchActive && nextValue.trim()) {
                                     setIsSearchActive(true);
-                                }
-                            }}
-                            onKeyDown={(event) => {
-                                if (event.key === 'Escape' || event.keyCode === 27) {
-                                    event.preventDefault();
-                                    if (isSearchActive) {
-                                        handleClearSearch();
-                                    }
                                 }
                             }}
                             aria-label="Search items by title, key, or type"
