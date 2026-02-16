@@ -228,7 +228,7 @@ Enable by setting `CHAOS_ENABLED=true` in the `chaos-maker` service environment.
 `CHAOS_ENABLED=false` (default).
 
 Default configuration is applied via environment variables.
-See the description in [chaos_maker.py](chaos-maker/chaos_maker.py).
+See the description in [chaos_maker.py](services-demo/chaos-maker/src/chaos_maker.py).
 
 ### Screenshots
 
