@@ -426,7 +426,7 @@ export default function App() {
     const [searchQuery, setSearchQuery] = useState('');
     const [pendingScrollId, setPendingScrollId] = useState('');
     const [disableTreeAnimation, setDisableTreeAnimation] = useState(false);
-    const searchClearRef = useRef(false);
+    const prevSearchTokensRef = useRef(0);
     const catalogTreeRef = useRef(null);
     const grafanaIframeRef = useRef(null);
     const grafanaEscHandlerRef = useRef(null);
@@ -653,23 +653,9 @@ export default function App() {
             return;
         }
         const startedAt = performance.now();
-        let lastScrollHeight = container.scrollHeight;
-        let stableFrames = 0;
         const tryScroll = () => {
             const node = container.querySelector(`[data-node-id="${targetId}"]`);
             if (node) {
-                const currentScrollHeight = container.scrollHeight;
-                if (currentScrollHeight !== lastScrollHeight) {
-                    lastScrollHeight = currentScrollHeight;
-                    stableFrames = 0;
-                    window.requestAnimationFrame(tryScroll);
-                    return;
-                }
-                stableFrames += 1;
-                if (stableFrames < 2) {
-                    window.requestAnimationFrame(tryScroll);
-                    return;
-                }
                 if (!node.offsetParent) {
                     window.requestAnimationFrame(tryScroll);
                     return;
@@ -712,22 +698,6 @@ export default function App() {
         window.requestAnimationFrame(tryScroll);
     }, []);
 
-    const setCatalogTreeRef = useCallback(
-        (node) => {
-            catalogTreeRef.current = node;
-            if (node && pendingScrollId && searchTokens.length === 0) {
-                scrollToNodeId(pendingScrollId);
-            }
-        },
-        [pendingScrollId, scrollToNodeId, searchTokens.length],
-    );
-
-    useEffect(() => {
-        if (!searchQuery) {
-            searchClearRef.current = true;
-        }
-    }, [searchQuery]);
-
     useEffect(() => {
         if (searchTokens.length === 0 && selectedId) {
             setPendingScrollId(selectedId);
@@ -735,12 +705,12 @@ export default function App() {
     }, [selectedId, searchTokens.length]);
 
     useEffect(() => {
-        if (searchTokens.length > 0 || !searchClearRef.current || !selectedId) {
-            return;
+        const prevTokens = prevSearchTokensRef.current;
+        prevSearchTokensRef.current = searchTokens.length;
+        if (prevTokens > 0 && searchTokens.length === 0 && selectedId) {
+            expandPathToItem(selectedId, {suppressAnimation: true});
+            setPendingScrollId(selectedId);
         }
-        expandPathToItem(selectedId, {suppressAnimation: true});
-        setPendingScrollId(selectedId);
-        searchClearRef.current = false;
     }, [expandPathToItem, searchTokens.length, selectedId]);
 
     useEffect(() => {
@@ -860,7 +830,7 @@ export default function App() {
                     </div>
                 ) : (
                     <>
-                        <ul className="catalog-tree" ref={setCatalogTreeRef}>
+                        <ul className="catalog-tree" ref={catalogTreeRef}>
                             {filteredTree.map((node) => (
                                 <CatalogNode
                                     key={node.item.id}
