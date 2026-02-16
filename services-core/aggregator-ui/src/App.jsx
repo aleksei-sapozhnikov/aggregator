@@ -170,8 +170,7 @@ const CatalogNode = ({
                          selectedId,
                          onSelect,
                          expandedIds,
-                         onToggleDirectChildren,
-                         onToggleAllChildren,
+                         onToggleNode,
                          grafanaBaseUrl,
                          theme,
                          status,
@@ -182,14 +181,6 @@ const CatalogNode = ({
     const isExpanded = expandedIds.has(node.item.id);
     const [isChildrenVisible, setIsChildrenVisible] = useState(isExpanded);
     const [isChildrenExpanded, setIsChildrenExpanded] = useState(isExpanded);
-    const descendantIds = collectDescendantIds(node);
-    const isDirectOnlyExpanded = hasChildren
-        && isExpanded
-        && descendantIds.every((id) => !expandedIds.has(id));
-    const isFullyExpanded = hasChildren && descendantIds.every((id) => expandedIds.has(id));
-    const hasNestedDescendants = descendantIds.length > node.children.length;
-    const shouldShowDirectCollapse = isDirectOnlyExpanded || (isFullyExpanded && !hasNestedDescendants);
-    const shouldShowAllCollapse = isFullyExpanded || (isExpanded && !hasNestedDescendants);
     const timelineUrl = buildDashboardUrl(
         grafanaBaseUrl,
         DASHBOARDS.timeline.uid,
@@ -229,61 +220,60 @@ const CatalogNode = ({
 
     const row = (
         <div className={`node-row ${selectedId === node.item.id ? 'is-selected' : ''}`}>
-            <div
-                className="node-label"
-                onClick={(event) => {
-                    event.stopPropagation();
-                    onSelect(node.item.id);
-                }}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(event) => {
-                    if (event.key === 'Enter' || event.key === ' ') {
-                        event.preventDefault();
-                        onSelect(node.item.id);
-                    }
-                }}
-            >
-        <span className="node-heading">
-          <span
-              className={`status-indicator status-${status}`}
-              aria-label={statusLabel}
-              title={statusLabel}
-          />
-            {node.item.name && <span className="node-name">{node.item.name}</span>}
-        </span>
-                {(node.item.id || node.item.type) && (
-                    <span className="node-identity">
-            {node.item.id}
-                        {node.item.type ? ` (${node.item.type})` : ''}
-          </span>
+            <div className="node-main">
+                {hasChildren ? (
+                    <button
+                        className={`node-toggle ${isExpanded ? 'is-expanded' : ''}`}
+                        type="button"
+                        aria-label={isExpanded ? 'Collapse children' : 'Expand children'}
+                        title={isExpanded ? 'Collapse children' : 'Expand children'}
+                        onClick={(event) => {
+                            event.stopPropagation();
+                            onToggleNode(node);
+                        }}
+                    >
+                        {isExpanded ? 'v' : '>'}
+                    </button>
+                ) : (
+                    <span className="node-toggle-spacer" aria-hidden="true"/>
                 )}
+                <div
+                    className="node-label"
+                    onClick={(event) => {
+                        event.stopPropagation();
+                        onSelect(node.item.id);
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            onSelect(node.item.id);
+                        }
+                    }}
+                >
+          <span className="node-heading">
+            <span
+                className={`status-indicator status-${status}`}
+                aria-label={statusLabel}
+                title={statusLabel}
+            />
+              {node.item.name && <span className="node-name">{node.item.name}</span>}
+          </span>
+                    {(node.item.id || node.item.type) && (
+                        <span className="node-identity">
+              {node.item.id}
+                            {node.item.type ? ` (${node.item.type})` : ''}
+            </span>
+                    )}
+                </div>
             </div>
             <div className="node-links" onClick={(event) => event.stopPropagation()}>
                 {/*        I like this link style but we don't need this link here */}
                 {/*         <a href={timelineUrl} target="_blank" rel="noreferrer"> */}
-                {/*           State Timeline */}
+                {/*           State Timeline */} 
                 {/*         </a> */}
             </div>
-            {hasChildren && (
-                <div className="node-controls" onClick={(event) => event.stopPropagation()}>
-                    <button
-                        className="direct-toggle-button"
-                        type="button"
-                        title={shouldShowDirectCollapse ? 'Collapse direct dependencies' : 'Expand to direct dependencies'}
-                        onClick={() => onToggleDirectChildren(node)}
-                    >
-                        {shouldShowDirectCollapse ? 'Hide direct' : 'Show direct'}
-                    </button>
-                    <button
-                        type="button"
-                        title={shouldShowAllCollapse ? 'Collapse all dependencies' : 'Expand to all dependencies'}
-                        onClick={() => onToggleAllChildren(node)}
-                    >
-                        {shouldShowAllCollapse ? 'Hide All' : 'Show All'}
-                    </button>
-                </div>
-            )}
         </div>
     );
 
@@ -313,8 +303,7 @@ const CatalogNode = ({
                             selectedId={selectedId}
                             onSelect={onSelect}
                             expandedIds={expandedIds}
-                            onToggleDirectChildren={onToggleDirectChildren}
-                            onToggleAllChildren={onToggleAllChildren}
+                            onToggleNode={onToggleNode}
                             grafanaBaseUrl={grafanaBaseUrl}
                             theme={theme}
                             status={statuses[child.item.id] || 'unknown'}
@@ -495,49 +484,18 @@ export default function App() {
         [catalog.items, catalog.dependencies],
     );
 
-    const handleToggleDirectChildren = useCallback((node) => {
+    const handleToggleNode = useCallback((node) => {
         setExpandedIds((prev) => {
             const next = new Set(prev);
             const descendants = collectDescendantIds(node);
-            const isExpanded = next.has(node.item.id);
-            const hasNestedDescendants = descendants.length > node.children.length;
 
-            if (!isExpanded) {
+            if (!next.has(node.item.id)) {
                 next.add(node.item.id);
-                descendants.forEach((id) => next.delete(id));
-                return next;
-            }
-
-            const hasExpandedDescendants = descendants.some((id) => next.has(id));
-            if (hasExpandedDescendants && hasNestedDescendants) {
-                descendants.forEach((id) => next.delete(id));
                 return next;
             }
 
             next.delete(node.item.id);
             descendants.forEach((id) => next.delete(id));
-            return next;
-        });
-    }, []);
-
-    const handleToggleAllChildren = useCallback((node) => {
-        setExpandedIds((prev) => {
-            const next = new Set(prev);
-            const descendants = collectDescendantIds(node);
-            const isExpanded = next.has(node.item.id);
-            const hasNestedDescendants = descendants.length > node.children.length;
-            const allExpanded = isExpanded
-                && descendants.every((id) => next.has(id));
-            const shouldCollapseAll = allExpanded || (isExpanded && !hasNestedDescendants);
-
-            if (shouldCollapseAll) {
-                next.delete(node.item.id);
-                descendants.forEach((id) => next.delete(id));
-                return next;
-            }
-
-            next.add(node.item.id);
-            descendants.forEach((id) => next.add(id));
             return next;
         });
     }, []);
@@ -601,8 +559,7 @@ export default function App() {
                             selectedId={selectedId}
                             onSelect={handleSelectItem}
                             expandedIds={expandedIds}
-                            onToggleDirectChildren={handleToggleDirectChildren}
-                            onToggleAllChildren={handleToggleAllChildren}
+                            onToggleNode={handleToggleNode}
                             grafanaBaseUrl={grafanaBaseUrl}
                             theme={theme}
                             status={itemStatuses[node.item.id] || 'unknown'}

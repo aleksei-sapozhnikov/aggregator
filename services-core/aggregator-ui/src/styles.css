@@ -150,8 +150,7 @@ body {
   gap: 8px;
 }
 
-.tree-controls button,
-.node-controls button {
+.tree-controls button {
   border: 1px solid var(--border);
   background: var(--panel-alt);
   color: var(--text);
@@ -196,6 +195,39 @@ body {
   border: 1px solid transparent;
 }
 
+.node-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.node-toggle {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+
+.node-toggle.is-expanded {
+  background: color-mix(in srgb, var(--selection-accent) 16%, var(--panel));
+  border-color: color-mix(in srgb, var(--selection-accent) 45%, var(--border));
+}
+
+.node-toggle-spacer {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+}
+
 .node-row.is-selected {
   border-color: var(--selection-accent);
   box-shadow: var(--shadow);
@@ -211,22 +243,6 @@ body {
   display: flex;
   flex-direction: column;
   gap: 4px;
-}
-
-.node-controls {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.node-controls .direct-toggle-button {
-  background: color-mix(in srgb, var(--direct-toggle-accent) 16%, var(--panel-alt));
-  border-color: color-mix(in srgb, var(--direct-toggle-accent) 42%, var(--border));
-}
-
-body[data-theme='dark'] .node-controls .direct-toggle-button {
-  background: color-mix(in srgb, var(--direct-toggle-accent) 22%, var(--panel-alt));
-  border-color: color-mix(in srgb, var(--direct-toggle-accent) 55%, var(--border));
 }
 
 .node-heading {
@@ -288,7 +304,7 @@ body[data-theme='dark'] .node-controls .direct-toggle-button {
 
 .node-label:focus-visible,
 .tree-controls button:focus-visible,
-.node-controls button:focus-visible,
+.node-toggle:focus-visible,
 .theme-toggle:focus-visible,
 .hamburger-toggle:focus-visible {
   outline: 2px solid var(--link);
