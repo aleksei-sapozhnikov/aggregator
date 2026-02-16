@@ -1,72 +1,48 @@
 services:
-  commerce-catalog:
+  order-capture-svc:
     ports:
       - "8081:8080"
 
-  commerce-pricing:
+  order-validation-svc:
     ports:
       - "8082:8080"
 
-  commerce-order:
+  order-billing-svc:
     ports:
       - "8083:8080"
 
-  payments-gateway:
+  order-dispatch-svc:
     ports:
       - "8084:8080"
 
-  payments-ledger:
+  routing-engine-svc:
     ports:
       - "8085:8080"
 
-  payments-risk:
+  inventory-sync-svc:
     ports:
       - "8086:8080"
 
-  fulfillment-routing:
+  lastmile-dispatch-svc:
     ports:
       - "8087:8080"
 
-  fulfillment-shipping:
+  returns-processing-svc:
     ports:
       - "8088:8080"
 
-  fulfillment-returns:
+  engagement-orchestrator-svc:
     ports:
       - "8089:8080"
 
-  support-intake:
+  profile-store-svc:
     ports:
       - "8090:8080"
 
-  support-chat:
+  messaging-hub-svc:
     ports:
       - "8091:8080"
 
-  support-sla:
+  campaign-execution-svc:
     ports:
       - "8092:8080"
-
-  engagement-profile:
-    ports:
-      - "8093:8080"
-
-  engagement-messaging:
-    ports:
-      - "8094:8080"
-
-  engagement-campaigns:
-    ports:
-      - "8095:8080"
-
-  marketing-journeys:
-    ports:
-      - "8096:8080"
-
-  marketing-content:
-    ports:
-      - "8097:8080"
-
-  marketing-offers:
-    ports:
-      - "8098:8080"

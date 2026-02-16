@@ -59,37 +59,6 @@ Both YAML and JSON formats are supported.
 
 See [config/demo/catalog.yaml](config/demo/catalog.yaml) for example.
 
-### Demo catalog hierarchy
-
-- Business Suite (`business-suite`, `business`)
-  - Commerce Platform (`commerce-platform`, `product-family`)
-    - Commerce Core (`commerce-core`, `product`)
-      - Commerce Catalog Service (`commerce-catalog`, `service`)
-      - Commerce Order Service (`commerce-order`, `service`)
-      - Commerce Pricing Service (`commerce-pricing`, `service`)
-    - Payments Suite (`payments-suite`, `product`)
-      - Payments Gateway Service (`payments-gateway`, `service`)
-      - Payments Ledger Service (`payments-ledger`, `service`)
-      - Payments Risk Service (`payments-risk`, `service`)
-  - Customer Experience (`customer-experience`, `product-family`)
-    - Customer Engagement (`customer-engagement`, `product`)
-      - Engagement Campaigns Service (`engagement-campaigns`, `service`)
-      - Engagement Messaging Service (`engagement-messaging`, `service`)
-      - Engagement Profile Service (`engagement-profile`, `service`)
-    - Marketing Automation (`marketing-automation`, `product`)
-      - Marketing Content Service (`marketing-content`, `service`)
-      - Marketing Journeys Service (`marketing-journeys`, `service`)
-      - Marketing Offers Service (`marketing-offers`, `service`)
-  - Operations Suite (`operations-suite`, `product-family`)
-    - Support Desk (`support-desk`, `product`)
-      - Support Chat Service (`support-chat`, `service`)
-      - Support Intake Service (`support-intake`, `service`)
-      - Support SLA Service (`support-sla`, `service`)
-    - Fulfillment Hub (`fulfillment-hub`, `product`)
-      - Fulfillment Returns Service (`fulfillment-returns`, `service`)
-      - Fulfillment Routing Service (`fulfillment-routing`, `service`)
-      - Fulfillment Shipping Service (`fulfillment-shipping`, `service`)
-
 ## Health aggregation
 
 The health state of a product or service that includes or depends on other items is derived deterministically from the
