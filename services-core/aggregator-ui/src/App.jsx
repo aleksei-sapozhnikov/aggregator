@@ -82,6 +82,81 @@ const buildCatalogTree = (items, dependencies) => {
     return rootItems.map((item) => toNode(item.id)).filter(Boolean);
 };
 
+const normalizeSearchText = (value) => value.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+
+const matchSearch = (item, queryTokens) => {
+    if (!queryTokens.length) {
+        return true;
+    }
+    const name = normalizeSearchText(item.name || '');
+    const id = normalizeSearchText(item.id || '');
+    const type = normalizeSearchText(item.type || '');
+    const haystack = `${name} ${id} ${type}`.trim();
+    return queryTokens.every((token) => haystack.includes(token));
+};
+
+const filterCatalogTree = (nodes, queryTokens) => {
+    if (!queryTokens.length) {
+        return nodes;
+    }
+    const visit = (node) => {
+        const filteredChildren = node.children
+            .map(visit)
+            .filter(Boolean);
+        if (matchSearch(node.item, queryTokens) || filteredChildren.length > 0) {
+            return {...node, children: filteredChildren};
+        }
+        return null;
+    };
+    return nodes.map(visit).filter(Boolean);
+};
+
+const findNodePath = (nodes, targetId) => {
+    for (const node of nodes) {
+        if (node.item.id === targetId) {
+            return [node.item.id];
+        }
+        if (node.children.length) {
+            const childPath = findNodePath(node.children, targetId);
+            if (childPath) {
+                return [node.item.id, ...childPath];
+            }
+        }
+    }
+    return null;
+};
+
+const rankSearchResults = (items, queryTokens) => {
+    if (!queryTokens.length) {
+        return [];
+    }
+    const results = [];
+    items.forEach((item) => {
+        const name = normalizeSearchText(item.name || '');
+        const id = normalizeSearchText(item.id || '');
+        const type = normalizeSearchText(item.type || '');
+        const haystack = `${name} ${id} ${type}`.trim();
+        if (!queryTokens.every((token) => haystack.includes(token))) {
+            return;
+        }
+        let score = 0;
+        queryTokens.forEach((token) => {
+            if (name.includes(token)) {
+                score += 3;
+            }
+            if (id.includes(token)) {
+                score += 2;
+            }
+            if (type.includes(token)) {
+                score += 1;
+            }
+        });
+        results.push({item, score});
+    });
+    return results
+        .sort((a, b) => b.score - a.score || (a.item.name || a.item.id).localeCompare(b.item.name || b.item.id));
+};
+
 const getInitialTheme = () => {
     const stored = localStorage.getItem('aggregator-ui-theme');
     if (stored) {
@@ -170,8 +245,8 @@ const CatalogNode = ({
                          selectedId,
                          onSelect,
                          expandedIds,
-                         onToggleDirectChildren,
-                         onToggleAllChildren,
+                         onToggleNode,
+                         disableAnimation,
                          grafanaBaseUrl,
                          theme,
                          status,
@@ -182,15 +257,7 @@ const CatalogNode = ({
     const isExpanded = expandedIds.has(node.item.id);
     const [isChildrenVisible, setIsChildrenVisible] = useState(isExpanded);
     const [isChildrenExpanded, setIsChildrenExpanded] = useState(isExpanded);
-    const descendantIds = collectDescendantIds(node);
-    const isDirectOnlyExpanded = hasChildren
-        && isExpanded
-        && descendantIds.every((id) => !expandedIds.has(id));
-    const isFullyExpanded = hasChildren && descendantIds.every((id) => expandedIds.has(id));
-    const hasNestedDescendants = descendantIds.length > node.children.length;
-    const shouldShowDirectCollapse = isDirectOnlyExpanded || (isFullyExpanded && !hasNestedDescendants);
-    const shouldShowAllCollapse = isFullyExpanded || (isExpanded && !hasNestedDescendants);
-    const timelineUrl = buildDashboardUrl(
+    buildDashboardUrl(
         grafanaBaseUrl,
         DASHBOARDS.timeline.uid,
         DASHBOARDS.timeline.slug,
@@ -205,6 +272,19 @@ const CatalogNode = ({
     useEffect(() => {
         let animationFrameId;
         let nestedAnimationFrameId;
+
+        if (disableAnimation) {
+            setIsChildrenVisible(isExpanded);
+            setIsChildrenExpanded(isExpanded);
+            return () => {
+                if (animationFrameId) {
+                    window.cancelAnimationFrame(animationFrameId);
+                }
+                if (nestedAnimationFrameId) {
+                    window.cancelAnimationFrame(nestedAnimationFrameId);
+                }
+            };
+        }
 
         if (isExpanded) {
             setIsChildrenVisible(true);
@@ -225,65 +305,61 @@ const CatalogNode = ({
                 window.cancelAnimationFrame(nestedAnimationFrameId);
             }
         };
-    }, [isExpanded]);
+    }, [disableAnimation, isExpanded]);
 
     const row = (
-        <div className={`node-row ${selectedId === node.item.id ? 'is-selected' : ''}`}>
-            <div
-                className="node-label"
-                onClick={(event) => {
-                    event.stopPropagation();
-                    onSelect(node.item.id);
-                }}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(event) => {
-                    if (event.key === 'Enter' || event.key === ' ') {
-                        event.preventDefault();
-                        onSelect(node.item.id);
-                    }
-                }}
-            >
-        <span className="node-heading">
-          <span
-              className={`status-indicator status-${status}`}
-              aria-label={statusLabel}
-              title={statusLabel}
-          />
-            {node.item.name && <span className="node-name">{node.item.name}</span>}
-        </span>
-                {(node.item.id || node.item.type) && (
-                    <span className="node-identity">
-            {node.item.id}
-                        {node.item.type ? ` (${node.item.type})` : ''}
-          </span>
+        <div
+            className={`node-row ${selectedId === node.item.id ? 'is-selected' : ''}`}
+            data-node-id={node.item.id}
+        >
+            <div className="node-main">
+                {hasChildren ? (
+                    <button
+                        className={`node-toggle ${isExpanded ? 'is-expanded' : ''}`}
+                        type="button"
+                        aria-label={isExpanded ? 'Collapse children' : 'Expand children'}
+                        title={isExpanded ? 'Collapse children' : 'Expand children'}
+                        onClick={(event) => {
+                            event.stopPropagation();
+                            onToggleNode(node);
+                        }}
+                    >
+                        {isExpanded ? 'v' : '>'}
+                    </button>
+                ) : (
+                    <span className="node-toggle-spacer" aria-hidden="true"/>
                 )}
-            </div>
-            <div className="node-links" onClick={(event) => event.stopPropagation()}>
-                {/*        I like this link style but we don't need this link here */}
-                {/*         <a href={timelineUrl} target="_blank" rel="noreferrer"> */}
-                {/*           State Timeline */}
-                {/*         </a> */}
-            </div>
-            {hasChildren && (
-                <div className="node-controls" onClick={(event) => event.stopPropagation()}>
-                    <button
-                        className="direct-toggle-button"
-                        type="button"
-                        title={shouldShowDirectCollapse ? 'Collapse direct dependencies' : 'Expand to direct dependencies'}
-                        onClick={() => onToggleDirectChildren(node)}
-                    >
-                        {shouldShowDirectCollapse ? 'Hide direct' : 'Show direct'}
-                    </button>
-                    <button
-                        type="button"
-                        title={shouldShowAllCollapse ? 'Collapse all dependencies' : 'Expand to all dependencies'}
-                        onClick={() => onToggleAllChildren(node)}
-                    >
-                        {shouldShowAllCollapse ? 'Hide All' : 'Show All'}
-                    </button>
+                <div
+                    className="node-label"
+                    onClick={(event) => {
+                        event.stopPropagation();
+                        onSelect(node.item.id);
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            onSelect(node.item.id);
+                        }
+                    }}
+                >
+          <span className="node-heading">
+            <span
+                className={`status-indicator status-${status}`}
+                aria-label={statusLabel}
+                title={statusLabel}
+            />
+              {node.item.name && <span className="node-name">{node.item.name}</span>}
+          </span>
+                    {(node.item.id || node.item.type) && (
+                        <span className="node-identity">
+              {node.item.id}
+                            {node.item.type ? ` (${node.item.type})` : ''}
+            </span>
+                    )}
                 </div>
-            )}
+            </div>
         </div>
     );
 
@@ -313,8 +389,8 @@ const CatalogNode = ({
                             selectedId={selectedId}
                             onSelect={onSelect}
                             expandedIds={expandedIds}
-                            onToggleDirectChildren={onToggleDirectChildren}
-                            onToggleAllChildren={onToggleAllChildren}
+                            onToggleNode={onToggleNode}
+                            disableAnimation={disableAnimation}
                             grafanaBaseUrl={grafanaBaseUrl}
                             theme={theme}
                             status={statuses[child.item.id] || 'unknown'}
@@ -341,6 +417,11 @@ export default function App() {
     );
     const [isDesktopSidebarOpen, setIsDesktopSidebarOpen] = useState(true);
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [pendingScrollId, setPendingScrollId] = useState('');
+    const [disableTreeAnimation, setDisableTreeAnimation] = useState(false);
+    const prevSearchTokensRef = useRef(0);
+    const catalogTreeRef = useRef(null);
     const grafanaIframeRef = useRef(null);
     const grafanaEscHandlerRef = useRef(null);
 
@@ -494,23 +575,26 @@ export default function App() {
         () => buildCatalogTree(catalog.items, catalog.dependencies),
         [catalog.items, catalog.dependencies],
     );
+    const searchTokens = useMemo(
+        () => normalizeSearchText(searchQuery).split(' ').filter(Boolean),
+        [searchQuery],
+    );
+    const filteredTree = useMemo(
+        () => filterCatalogTree(tree, searchTokens),
+        [tree, searchTokens],
+    );
+    const searchResults = useMemo(
+        () => rankSearchResults(catalog.items, searchTokens),
+        [catalog.items, searchTokens],
+    );
 
-    const handleToggleDirectChildren = useCallback((node) => {
+    const handleToggleNode = useCallback((node) => {
         setExpandedIds((prev) => {
             const next = new Set(prev);
             const descendants = collectDescendantIds(node);
-            const isExpanded = next.has(node.item.id);
-            const hasNestedDescendants = descendants.length > node.children.length;
 
-            if (!isExpanded) {
+            if (!next.has(node.item.id)) {
                 next.add(node.item.id);
-                descendants.forEach((id) => next.delete(id));
-                return next;
-            }
-
-            const hasExpandedDescendants = descendants.some((id) => next.has(id));
-            if (hasExpandedDescendants && hasNestedDescendants) {
-                descendants.forEach((id) => next.delete(id));
                 return next;
             }
 
@@ -520,27 +604,17 @@ export default function App() {
         });
     }, []);
 
-    const handleToggleAllChildren = useCallback((node) => {
-        setExpandedIds((prev) => {
-            const next = new Set(prev);
-            const descendants = collectDescendantIds(node);
-            const isExpanded = next.has(node.item.id);
-            const hasNestedDescendants = descendants.length > node.children.length;
-            const allExpanded = isExpanded
-                && descendants.every((id) => next.has(id));
-            const shouldCollapseAll = allExpanded || (isExpanded && !hasNestedDescendants);
-
-            if (shouldCollapseAll) {
-                next.delete(node.item.id);
-                descendants.forEach((id) => next.delete(id));
-                return next;
-            }
-
-            next.add(node.item.id);
-            descendants.forEach((id) => next.add(id));
-            return next;
-        });
-    }, []);
+    const expandPathToItem = useCallback((itemId, {suppressAnimation} = {}) => {
+        const path = findNodePath(tree, itemId);
+        const ancestors = path ? path.slice(0, -1) : [];
+        setExpandedIds(new Set(ancestors));
+        if (suppressAnimation) {
+            setDisableTreeAnimation(true);
+            window.requestAnimationFrame(() => {
+                setDisableTreeAnimation(false);
+            });
+        }
+    }, [tree]);
 
     const handleExpandAll = useCallback(() => {
         setExpandedIds(new Set(collectExpandableIds(tree)));
@@ -567,6 +641,79 @@ export default function App() {
         setIsMobileSidebarOpen(false);
     }, []);
 
+    const scrollToNodeId = useCallback((targetId) => {
+        const container = catalogTreeRef.current;
+        if (!container) {
+            return;
+        }
+        const startedAt = performance.now();
+        const tryScroll = () => {
+            const node = container.querySelector(`[data-node-id="${targetId}"]`);
+            if (node) {
+                if (!node.offsetParent) {
+                    window.requestAnimationFrame(tryScroll);
+                    return;
+                }
+                const nodeRect = node.getBoundingClientRect();
+                if (nodeRect.height === 0 || nodeRect.width === 0) {
+                    window.requestAnimationFrame(tryScroll);
+                    return;
+                }
+                let offset = 0;
+                let current = node;
+                while (current && current !== container) {
+                    offset += current.offsetTop;
+                    current = current.offsetParent;
+                }
+                if (current === container) {
+                    container.scrollTo({
+                        top: offset,
+                        behavior: 'smooth',
+                    });
+                } else if (typeof node.scrollIntoView === 'function') {
+                    node.scrollIntoView({block: 'start', behavior: 'smooth'});
+                } else {
+                    const containerRect = container.getBoundingClientRect();
+                    const fallbackOffset = nodeRect.top - containerRect.top;
+                    container.scrollTo({
+                        top: container.scrollTop + fallbackOffset,
+                        behavior: 'smooth',
+                    });
+                }
+                setPendingScrollId('');
+                return;
+            }
+            if (performance.now() - startedAt < 2000) {
+                window.requestAnimationFrame(tryScroll);
+                return;
+            }
+            setPendingScrollId('');
+        };
+        window.requestAnimationFrame(tryScroll);
+    }, []);
+
+    useEffect(() => {
+        if (searchTokens.length === 0 && selectedId) {
+            setPendingScrollId(selectedId);
+        }
+    }, [selectedId, searchTokens.length]);
+
+    useEffect(() => {
+        const prevTokens = prevSearchTokensRef.current;
+        prevSearchTokensRef.current = searchTokens.length;
+        if (prevTokens > 0 && searchTokens.length === 0 && selectedId) {
+            expandPathToItem(selectedId, {suppressAnimation: true});
+            setPendingScrollId(selectedId);
+        }
+    }, [expandPathToItem, searchTokens.length, selectedId]);
+
+    useEffect(() => {
+        if (!pendingScrollId || searchTokens.length > 0) {
+            return;
+        }
+        scrollToNodeId(pendingScrollId);
+    }, [pendingScrollId, scrollToNodeId, searchTokens.length]);
+
     return (
         <div
             className={`app ${isMobileLayout ? 'is-mobile' : 'is-desktop'} ${
@@ -590,27 +737,116 @@ export default function App() {
                         </button>
                     </div>
                 )}
+                {!error && tree.length > 0 && (
+                    <div className="tree-search">
+                        <span className="search-icon" aria-hidden="true">🔍</span>
+                        <input
+                            type="search"
+                            placeholder="Search service..."
+                            value={searchQuery}
+                            onChange={(event) => setSearchQuery(event.target.value)}
+                            aria-label="Search services by title, key, or type"
+                        />
+                        {searchQuery && (
+                            <button
+                                type="button"
+                                className="search-clear"
+                                aria-label="Clear search"
+                                onClick={() => setSearchQuery('')}
+                            >
+                                ✕
+                            </button>
+                        )}
+                    </div>
+                )}
                 {!error && tree.length === 0 && (
                     <div className="empty">Catalog is empty. Add items to catalog.yaml.</div>
                 )}
-                <ul className="catalog-tree">
-                    {tree.map((node) => (
-                        <CatalogNode
-                            key={node.item.id}
-                            node={node}
-                            selectedId={selectedId}
-                            onSelect={handleSelectItem}
-                            expandedIds={expandedIds}
-                            onToggleDirectChildren={handleToggleDirectChildren}
-                            onToggleAllChildren={handleToggleAllChildren}
-                            grafanaBaseUrl={grafanaBaseUrl}
-                            theme={theme}
-                            status={itemStatuses[node.item.id] || 'unknown'}
-                            statuses={itemStatuses}
-                            lastUpdated={lastUpdated}
-                        />
-                    ))}
-                </ul>
+                {searchTokens.length > 0 ? (
+                    <div className="search-results">
+                        <div className="search-results-header">
+                            Found {searchResults.length} service{searchResults.length === 1 ? '' : 's'}
+                        </div>
+                        {searchResults.length === 0 ? (
+                            <div className="empty">No services match the current search.</div>
+                        ) : (
+                            <ul className="catalog-tree">
+                                {searchResults.map(({item}) => (
+                                    <li key={item.id} className="node-leaf">
+                                        <div
+                                            className={`node-row ${selectedId === item.id ? 'is-selected' : ''}`}
+                                            data-node-id={item.id}
+                                        >
+                                            <div className="node-main">
+                                                <span className="node-toggle-spacer" aria-hidden="true"/>
+                                                <div
+                                                    className="node-label"
+                                                    onClick={(event) => {
+                                                        event.stopPropagation();
+                                                        handleSelectItem(item.id);
+                                                        expandPathToItem(item.id, {suppressAnimation: true});
+                                                    }}
+                                                    role="button"
+                                                    tabIndex={0}
+                                                    onKeyDown={(event) => {
+                                                        if (event.key === 'Enter' || event.key === ' ') {
+                                                            event.preventDefault();
+                                                            handleSelectItem(item.id);
+                                                            expandPathToItem(item.id, {suppressAnimation: true});
+                                                        }
+                                                    }}
+                                                >
+                          <span className="node-heading">
+                            <span
+                                className={`status-indicator status-${itemStatuses[item.id] || 'unknown'}`}
+                                aria-label={`Status: ${(itemStatuses[item.id] || 'unknown').toUpperCase()}${
+                                    lastUpdated ? ` (at ${lastUpdated})` : ''
+                                }`}
+                                title={`Status: ${(itemStatuses[item.id] || 'unknown').toUpperCase()}${
+                                    lastUpdated ? ` (at ${lastUpdated})` : ''
+                                }`}
+                            />
+                              {item.name && <span className="node-name">{item.name}</span>}
+                          </span>
+                                                    {(item.id || item.type) && (
+                                                        <span className="node-identity">
+                              {item.id}
+                                                            {item.type ? ` (${item.type})` : ''}
+                            </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+                ) : (
+                    <>
+                        <ul className="catalog-tree" ref={catalogTreeRef}>
+                            {filteredTree.map((node) => (
+                                <CatalogNode
+                                    key={node.item.id}
+                                    node={node}
+                                    selectedId={selectedId}
+                                    onSelect={handleSelectItem}
+                                    expandedIds={expandedIds}
+                                    onToggleNode={handleToggleNode}
+                                    disableAnimation={disableTreeAnimation}
+                                    grafanaBaseUrl={grafanaBaseUrl}
+                                    theme={theme}
+                                    status={itemStatuses[node.item.id] || 'unknown'}
+                                    statuses={itemStatuses}
+                                    lastUpdated={lastUpdated}
+                                />
+                            ))}
+                        </ul>
+                        {!error && tree.length > 0 && filteredTree.length === 0 && (
+                            <div className="empty">No services match the current search.</div>
+                        )}
+                    </>
+                )}
             </aside>
             <button
                 type="button"
