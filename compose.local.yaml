@@ -2,7 +2,7 @@ services:
   prometheus:
     image: prom/prometheus:v2.54.1
     volumes:
-      - ${PROMETHEUS_CONFIG_FILE:-./monitoring/prometheus/prometheus.yml}:/etc/prometheus/prometheus.yml:ro
+      - ${PROMETHEUS_CONFIG_FILE:-./services-extra/prometheus/prometheus.yml}:/etc/prometheus/prometheus.yml:ro
       - prometheus-data:/prometheus
 
   grafana:
@@ -17,7 +17,7 @@ services:
       GF_AUTH_BASIC_ENABLED: "false"
       GF_USERS_ANONYMOUS_DEVICE_PREFERENCES: "true"
     volumes:
-      - ${GRAFANA_PROVISIONING_DIR:-./monitoring/grafana/provisioning}:/etc/grafana/provisioning:ro
+      - ${GRAFANA_PROVISIONING_DIR:-./services-extra/grafana/provisioning}:/etc/grafana/provisioning:ro
       - grafana-data:/var/lib/grafana
 
 volumes:
