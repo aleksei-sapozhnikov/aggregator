@@ -1038,7 +1038,7 @@ export default function App() {
                     <div className="empty">Select a catalog item to view dashboards.</div>
                 ) : (
                     <>
-                        {selectedStatus !== 'up' && (
+                        {selectedStatus !== 'up' && affectedItems.length > 0 && (
                             <section className={`affected-panel ${isAffectedOpen ? 'is-open' : ''}`}>
                                 <button
                                     type="button"
