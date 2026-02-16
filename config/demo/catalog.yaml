@@ -14,11 +14,23 @@ items:
   - id: commerce-line-core
     name: Commerce Line Core
     type: product
+  - id: commerce-extensions
+    name: Commerce Extensions
+    type: product
   - id: commerce-core
     name: Commerce Core
     type: product
   - id: order-domain
     name: Order Domain
+    type: product
+  - id: order-intake-hub
+    name: Order Intake Hub
+    type: product
+  - id: order-guard-hub
+    name: Order Guard Hub
+    type: product
+  - id: order-finance-hub
+    name: Order Finance Hub
     type: product
   - id: order-workflow
     name: Order Workflow
@@ -27,11 +39,20 @@ items:
   - id: operations-line
     name: Operations Line
     type: product
+  - id: ops-accelerators
+    name: Operations Accelerators
+    type: product
   - id: fulfillment-hub
     name: Fulfillment Hub
     type: product
   - id: logistics-domain
     name: Logistics Domain
+    type: product
+  - id: logistics-routing-cell
+    name: Logistics Routing Cell
+    type: product
+  - id: logistics-inventory-cell
+    name: Logistics Inventory Cell
     type: product
   - id: distribution-core
     name: Distribution Core
@@ -39,6 +60,9 @@ items:
 
   - id: experience-line
     name: Experience Line
+    type: product
+  - id: experience-foundation
+    name: Experience Foundation
     type: product
   - id: engagement-suite
     name: Engagement Suite
@@ -48,6 +72,33 @@ items:
     type: product
   - id: touchpoint-core
     name: Touchpoint Core
+    type: product
+  - id: touchpoint-profile-pillar
+    name: Touchpoint Profile Pillar
+    type: product
+  - id: touchpoint-messaging-pillar
+    name: Touchpoint Messaging Pillar
+    type: product
+  - id: touchpoint-campaign-pillar
+    name: Touchpoint Campaign Pillar
+    type: product
+  - id: profile-core-nodes
+    name: Profile Core Nodes
+    type: product
+  - id: profile-identity-nodes
+    name: Profile Identity Nodes
+    type: product
+  - id: messaging-router-nodes
+    name: Messaging Router Nodes
+    type: product
+  - id: messaging-template-nodes
+    name: Messaging Template Nodes
+    type: product
+  - id: campaign-planner-nodes
+    name: Campaign Planner Nodes
+    type: product
+  - id: campaign-optimizer-nodes
+    name: Campaign Optimizer Nodes
     type: product
 
   # Services (real demo containers)
@@ -95,20 +146,36 @@ dependencies:
   - sourceId: commerce-platform
     targetId: commerce-line-core
     type: includes
+  - sourceId: commerce-platform
+    targetId: commerce-extensions
+    type: includes
   - sourceId: commerce-line-core
     targetId: commerce-core
     type: includes
+  - sourceId: commerce-extensions
+    targetId: order-domain
+    type: depends_on
   - sourceId: commerce-core
     targetId: order-domain
     type: depends_on
 
   - sourceId: order-domain
+    targetId: order-intake-hub
+    type: depends_on
+  - sourceId: order-domain
+    targetId: order-guard-hub
+    type: depends_on
+  - sourceId: order-domain
+    targetId: order-finance-hub
+    type: depends_on
+
+  - sourceId: order-intake-hub
     targetId: order-capture-svc
     type: depends_on
-  - sourceId: order-domain
+  - sourceId: order-guard-hub
     targetId: order-validation-svc
     type: depends_on
-  - sourceId: order-domain
+  - sourceId: order-finance-hub
     targetId: order-billing-svc
     type: depends_on
 
@@ -130,6 +197,9 @@ dependencies:
   - sourceId: operations-suite
     targetId: operations-line
     type: includes
+  - sourceId: operations-suite
+    targetId: ops-accelerators
+    type: includes
   - sourceId: operations-line
     targetId: fulfillment-hub
     type: includes
@@ -138,9 +208,16 @@ dependencies:
     type: depends_on
 
   - sourceId: logistics-domain
-    targetId: routing-engine-svc
+    targetId: logistics-routing-cell
     type: depends_on
   - sourceId: logistics-domain
+    targetId: logistics-inventory-cell
+    type: depends_on
+
+  - sourceId: logistics-routing-cell
+    targetId: routing-engine-svc
+    type: depends_on
+  - sourceId: logistics-inventory-cell
     targetId: inventory-sync-svc
     type: depends_on
 
@@ -158,13 +235,23 @@ dependencies:
     targetId: returns-processing-svc
     type: depends_on
 
+  - sourceId: ops-accelerators
+    targetId: routing-engine-svc
+    type: depends_on
+
   # Customer experience branch
   - sourceId: customer-experience
     targetId: experience-line
     type: includes
+  - sourceId: customer-experience
+    targetId: experience-foundation
+    type: includes
   - sourceId: experience-line
     targetId: engagement-suite
     type: includes
+  - sourceId: experience-foundation
+    targetId: engagement-suite
+    type: depends_on
   - sourceId: engagement-suite
     targetId: journey-domain
     type: depends_on
@@ -178,11 +265,48 @@ dependencies:
     type: depends_on
 
   - sourceId: touchpoint-core
+    targetId: touchpoint-profile-pillar
+    type: depends_on
+  - sourceId: touchpoint-core
+    targetId: touchpoint-messaging-pillar
+    type: depends_on
+  - sourceId: touchpoint-core
+    targetId: touchpoint-campaign-pillar
+    type: depends_on
+
+  - sourceId: touchpoint-profile-pillar
+    targetId: profile-core-nodes
+    type: depends_on
+  - sourceId: touchpoint-profile-pillar
+    targetId: profile-identity-nodes
+    type: depends_on
+  - sourceId: profile-core-nodes
     targetId: profile-store-svc
     type: depends_on
-  - sourceId: touchpoint-core
+  - sourceId: profile-identity-nodes
+    targetId: profile-store-svc
+    type: depends_on
+  - sourceId: touchpoint-messaging-pillar
+    targetId: messaging-router-nodes
+    type: depends_on
+  - sourceId: touchpoint-messaging-pillar
+    targetId: messaging-template-nodes
+    type: depends_on
+  - sourceId: messaging-router-nodes
     targetId: messaging-hub-svc
     type: depends_on
-  - sourceId: touchpoint-core
+  - sourceId: messaging-template-nodes
+    targetId: messaging-hub-svc
+    type: depends_on
+  - sourceId: touchpoint-campaign-pillar
+    targetId: campaign-planner-nodes
+    type: depends_on
+  - sourceId: touchpoint-campaign-pillar
+    targetId: campaign-optimizer-nodes
+    type: depends_on
+  - sourceId: campaign-planner-nodes
+    targetId: campaign-execution-svc
+    type: depends_on
+  - sourceId: campaign-optimizer-nodes
     targetId: campaign-execution-svc
     type: depends_on
