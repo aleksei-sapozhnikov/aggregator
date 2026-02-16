@@ -437,6 +437,7 @@ export default function App() {
     const [pendingScrollId, setPendingScrollId] = useState('');
     const [disableTreeAnimation, setDisableTreeAnimation] = useState(false);
     const [isAffectedOpen, setIsAffectedOpen] = useState(false);
+    const affectedAutoOpenRef = useRef(true);
     const [grafanaHeight, setGrafanaHeight] = useState(0);
     const prevSearchTokensRef = useRef(0);
     const clearSearchRequestedRef = useRef(false);
@@ -738,7 +739,18 @@ export default function App() {
 
     useEffect(() => {
         setIsAffectedOpen(false);
+        affectedAutoOpenRef.current = true;
     }, [selectedId]);
+
+    useEffect(() => {
+        if (!affectedAutoOpenRef.current) {
+            return;
+        }
+        if (selectedStatus !== 'up' && affectedItems.length > 0) {
+            setIsAffectedOpen(true);
+            affectedAutoOpenRef.current = false;
+        }
+    }, [affectedItems.length, selectedStatus]);
 
     useEffect(() => {
         if (!isSearchActive) {
