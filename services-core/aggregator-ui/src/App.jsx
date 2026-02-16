@@ -339,7 +339,12 @@ const CatalogNode = ({
                             onToggleNode(node);
                         }}
                     >
-                        {isExpanded ? 'v' : '>'}
+                        <span
+                            className={`affected-chevron ${isExpanded ? 'is-open' : ''}`}
+                            aria-hidden="true"
+                        >
+                            ›
+                        </span>
                     </button>
                 ) : (
                     <span className="node-toggle-spacer" aria-hidden="true"/>
@@ -1090,9 +1095,6 @@ export default function App() {
                                                         <div className="affected-row">
                                                             <span className="affected-name" title={entry.name}>
                                                                 {entry.name}
-                                                            </span>
-                                                            <span className={`affected-status status-${entry.status}`}>
-                                                                {entry.status.toUpperCase()}
                                                             </span>
                                                         </div>
                                                     </div>
