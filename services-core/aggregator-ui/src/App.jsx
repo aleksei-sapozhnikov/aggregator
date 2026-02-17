@@ -126,6 +126,21 @@ const findNodePath = (nodes, targetId) => {
     return null;
 };
 
+const findNodeById = (nodes, targetId) => {
+    for (const node of nodes) {
+        if (node.item.id === targetId) {
+            return node;
+        }
+        if (node.children.length) {
+            const found = findNodeById(node.children, targetId);
+            if (found) {
+                return found;
+            }
+        }
+    }
+    return null;
+};
+
 const rankSearchResults = (items, queryTokens) => {
     if (!queryTokens.length) {
         return [];
@@ -324,7 +339,12 @@ const CatalogNode = ({
                             onToggleNode(node);
                         }}
                     >
-                        {isExpanded ? 'v' : '>'}
+                        <span
+                            className={`affected-chevron ${isExpanded ? 'is-open' : ''}`}
+                            aria-hidden="true"
+                        >
+                            ›
+                        </span>
                     </button>
                 ) : (
                     <span className="node-toggle-spacer" aria-hidden="true"/>
@@ -421,11 +441,16 @@ export default function App() {
     const [searchQuery, setSearchQuery] = useState('');
     const [pendingScrollId, setPendingScrollId] = useState('');
     const [disableTreeAnimation, setDisableTreeAnimation] = useState(false);
+    const [isAffectedOpen, setIsAffectedOpen] = useState(false);
+    const affectedAutoOpenRef = useRef(true);
+    const [grafanaHeight, setGrafanaHeight] = useState(0);
     const prevSearchTokensRef = useRef(0);
     const clearSearchRequestedRef = useRef(false);
     const catalogTreeRef = useRef(null);
     const grafanaIframeRef = useRef(null);
     const grafanaEscHandlerRef = useRef(null);
+    const contentRef = useRef(null);
+    const headerRef = useRef(null);
 
     const grafanaBaseUrl = useMemo(resolveGrafanaBaseUrl, []);
     const prometheusBaseUrl = useMemo(resolvePrometheusBaseUrl, []);
@@ -474,6 +499,38 @@ export default function App() {
         document.body.dataset.theme = theme;
         localStorage.setItem('aggregator-ui-theme', theme);
     }, [theme]);
+
+    useEffect(() => {
+        const updateHeight = () => {
+            if (!contentRef.current || !headerRef.current) {
+                return;
+            }
+            const styles = window.getComputedStyle(contentRef.current);
+            const paddingTop = Number.parseFloat(styles.paddingTop) || 0;
+            const paddingBottom = Number.parseFloat(styles.paddingBottom) || 0;
+            const gap = Number.parseFloat(styles.rowGap || styles.gap) || 0;
+            const headerHeight = headerRef.current.getBoundingClientRect().height;
+            const nextHeight = Math.max(
+                320,
+                Math.floor(window.innerHeight - paddingTop - paddingBottom - headerHeight - gap),
+            );
+            setGrafanaHeight(nextHeight);
+        };
+
+        updateHeight();
+        window.addEventListener('resize', updateHeight);
+        let headerObserver;
+        if (window.ResizeObserver && headerRef.current) {
+            headerObserver = new ResizeObserver(updateHeight);
+            headerObserver.observe(headerRef.current);
+        }
+        return () => {
+            window.removeEventListener('resize', updateHeight);
+            if (headerObserver) {
+                headerObserver.disconnect();
+            }
+        };
+    }, []);
 
     useEffect(() => {
         const mediaQuery = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT}px)`);
@@ -579,6 +636,10 @@ export default function App() {
         () => buildCatalogTree(catalog.items, catalog.dependencies),
         [catalog.items, catalog.dependencies],
     );
+    const itemMap = useMemo(
+        () => new Map(catalog.items.map((item) => [item.id, item])),
+        [catalog.items],
+    );
     const searchTokens = useMemo(
         () => normalizeSearchText(searchQuery).split(' ').filter(Boolean),
         [searchQuery],
@@ -629,6 +690,36 @@ export default function App() {
     }, []);
 
     const selectedItem = catalog.items.find((item) => item.id === selectedId);
+    const selectedStatus = selectedItem ? itemStatuses[selectedItem.id] || 'unknown' : 'unknown';
+    const affectedItems = useMemo(() => {
+        if (!selectedItem) {
+            return [];
+        }
+        const node = findNodeById(tree, selectedItem.id);
+        if (!node) {
+            return [];
+        }
+        const descendants = collectDescendantIds(node);
+        const affected = [];
+        const seen = new Set();
+        descendants.forEach((id) => {
+            if (seen.has(id)) {
+                return;
+            }
+            seen.add(id);
+            const item = itemMap.get(id);
+            const status = itemStatuses[id] || 'unknown';
+            if (status === 'up') {
+                return;
+            }
+            affected.push({
+                id,
+                name: item?.name || id,
+                status,
+            });
+        });
+        return affected.sort((a, b) => a.name.localeCompare(b.name));
+    }, [itemMap, itemStatuses, selectedItem, tree]);
     const isSidebarOpen = isMobileLayout ? isMobileSidebarOpen : isDesktopSidebarOpen;
     const shouldOffsetContentHeader = isMobileLayout || !isSidebarOpen;
 
@@ -650,6 +741,21 @@ export default function App() {
         setSearchQuery('');
         setIsSearchActive(false);
     }, []);
+
+    useEffect(() => {
+        setIsAffectedOpen(false);
+        affectedAutoOpenRef.current = true;
+    }, [selectedId]);
+
+    useEffect(() => {
+        if (!affectedAutoOpenRef.current) {
+            return;
+        }
+        if (selectedStatus !== 'up' && affectedItems.length > 0) {
+            setIsAffectedOpen(true);
+            affectedAutoOpenRef.current = false;
+        }
+    }, [affectedItems.length, selectedStatus]);
 
     useEffect(() => {
         if (!isSearchActive) {
@@ -902,18 +1008,34 @@ export default function App() {
                     aria-label="Close catalog panel"
                 />
             )}
-            <main className="content">
+            <main className="content" ref={contentRef}>
                 <header
                     className={`content-header ${
                         shouldOffsetContentHeader ? 'content-header-with-toggle' : ''
                     }`}
+                    ref={headerRef}
                 >
                     <div className="content-header-main">
                         <div className="content-title">
-                            {selectedItem ? selectedItem.name || selectedItem.id : 'Select an item'}
-                        </div>
-                        <div className="content-subtitle">
-                            State Timeline
+                            {selectedItem && (
+                                <span
+                                    className={`status-indicator status-${selectedStatus}`}
+                                    aria-label={`Status: ${selectedStatus.toUpperCase()}${
+                                        lastUpdated ? ` (at ${lastUpdated})` : ''
+                                    }`}
+                                    title={`Status: ${selectedStatus.toUpperCase()}${
+                                        lastUpdated ? ` (at ${lastUpdated})` : ''
+                                    }`}
+                                />
+                            )}
+                            <span className="content-title-text">
+                                {selectedItem ? selectedItem.name || selectedItem.id : 'Select an item'}
+                            </span>
+                            {selectedItem && selectedStatus !== 'up' && (
+                                <span className={`content-status-label status-${selectedStatus}`}>
+                                    {selectedStatus.toUpperCase()}
+                                </span>
+                            )}
                         </div>
                     </div>
                     <button
@@ -932,8 +1054,62 @@ export default function App() {
                 {!selectedItem ? (
                     <div className="empty">Select a catalog item to view dashboards.</div>
                 ) : (
-                    <div className="grafana-grid">
-                        <section className="grafana-panel">
+                    <>
+                        {selectedStatus !== 'up' && affectedItems.length > 0 && (
+                            <section className={`affected-panel ${isAffectedOpen ? 'is-open' : ''}`}>
+                                <button
+                                    type="button"
+                                    className={`affected-toggle ${isAffectedOpen ? 'is-open' : ''}`}
+                                    onClick={() => setIsAffectedOpen((prev) => !prev)}
+                                    aria-expanded={isAffectedOpen}
+                                >
+                                    <span
+                                        className={`affected-chevron ${isAffectedOpen ? 'is-open' : ''}`}
+                                        aria-hidden="true"
+                                    >
+                                        ›
+                                    </span>
+                                    <span className={`affected-summary ${isAffectedOpen ? 'is-open' : ''}`}>
+                                        Affected by {affectedItems.length} item
+                                        {affectedItems.length === 1 ? '' : 's'}
+                                        {!isAffectedOpen && affectedItems.length > 0
+                                            ? `: ${affectedItems.map((entry) => entry.name).join(', ')}`
+                                            : ''}
+                                    </span>
+                                </button>
+                                {isAffectedOpen && (
+                                    <ul className="affected-list">
+                                        {affectedItems.length === 0 ? (
+                                            <li className="affected-empty">
+                                                No degraded dependent services detected.
+                                            </li>
+                                        ) : (
+                                            affectedItems.map((entry) => (
+                                                <li key={entry.id} className="affected-item">
+                                                    <span
+                                                        className={`status-indicator status-${entry.status}`}
+                                                        aria-label={`Status: ${entry.status.toUpperCase()}`}
+                                                        title={`Status: ${entry.status.toUpperCase()}`}
+                                                    />
+                                                    <div className="affected-meta">
+                                                        <div className="affected-row">
+                                                            <span className="affected-name" title={entry.name}>
+                                                                {entry.name}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                            ))
+                                        )}
+                                    </ul>
+                                )}
+                            </section>
+                        )}
+                        <div className="grafana-grid">
+                            <section
+                                className="grafana-panel"
+                                style={grafanaHeight ? {height: `${grafanaHeight}px`} : undefined}
+                            >
                             <iframe
                                 title="State Timeline"
                                 ref={grafanaIframeRef}
@@ -947,8 +1123,9 @@ export default function App() {
                                     DASHBOARDS.timeline.panelId,
                                 )}
                             />
-                        </section>
-                    </div>
+                            </section>
+                        </div>
+                    </>
                 )}
             </main>
         </div>
