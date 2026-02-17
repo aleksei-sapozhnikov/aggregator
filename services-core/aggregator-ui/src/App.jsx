@@ -31,6 +31,16 @@ const parsePrometheusHealthStatus = (value) => {
     return status;
 };
 
+const compareHealthStatus = (left, right) => {
+    const order = {down: 0, unknown: 1, up: 2};
+    const leftRank = order[left] ?? 3;
+    const rightRank = order[right] ?? 3;
+    if (leftRank !== rightRank) {
+        return leftRank - rightRank;
+    }
+    return 0;
+};
+
 const collectNodeIds = (nodes) => {
     const ids = [];
     const visit = (node) => {
@@ -412,6 +422,7 @@ export default function App() {
     const [expandedIds, setExpandedIds] = useState(() => new Set());
     const [itemStatuses, setItemStatuses] = useState({});
     const [itemCheckDown, setItemCheckDown] = useState({});
+    const [itemChecks, setItemChecks] = useState({});
     const [lastUpdated, setLastUpdated] = useState('');
     const [isMobileLayout, setIsMobileLayout] = useState(
         () => window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT}px)`).matches,
@@ -423,7 +434,9 @@ export default function App() {
     const [pendingScrollId, setPendingScrollId] = useState('');
     const [disableTreeAnimation, setDisableTreeAnimation] = useState(false);
     const [isAffectedOpen, setIsAffectedOpen] = useState(false);
+    const [isChecksOpen, setIsChecksOpen] = useState(false);
     const affectedAutoOpenRef = useRef(true);
+    const checksAutoOpenRef = useRef(true);
     const [grafanaHeight, setGrafanaHeight] = useState(0);
     const prevSearchTokensRef = useRef(0);
     const clearSearchRequestedRef = useRef(false);
@@ -602,19 +615,27 @@ export default function App() {
                         const payload = await checkResponse.json();
                         const results = payload?.data?.result ?? [];
                         const nextCheckDown = {};
+                        const nextItemChecks = {};
                         results.forEach((entry) => {
                             const itemId = entry?.metric?.item_id;
+                            const checkId = entry?.metric?.check_id;
                             if (!itemId) {
                                 return;
                             }
                             const value = Number.parseFloat(entry?.value?.[1]);
                             const status = parsePrometheusHealthStatus(value);
+                            if (checkId) {
+                                const list = nextItemChecks[itemId] || [];
+                                list.push({id: checkId, status});
+                                nextItemChecks[itemId] = list;
+                            }
                             if (status === 'down') {
                                 nextCheckDown[itemId] = true;
                             }
                         });
                         if (!cancelled) {
                             setItemCheckDown(nextCheckDown);
+                            setItemChecks(nextItemChecks);
                         }
                     }
                 } else {
@@ -723,6 +744,35 @@ export default function App() {
         return affected.sort((a, b) => a.name.localeCompare(b.name));
     }, [itemCheckDown, itemMap, selectedItem, tree]);
 
+    const selectedChecks = useMemo(() => {
+        if (!selectedItem) {
+            return [];
+        }
+        const checks = itemChecks[selectedItem.id] || [];
+        return [...checks].sort((a, b) => {
+            const statusCompare = compareHealthStatus(a.status, b.status);
+            if (statusCompare !== 0) {
+                return statusCompare;
+            }
+            return a.id.localeCompare(b.id);
+        });
+    }, [itemChecks, selectedItem]);
+
+    const checkSummary = useMemo(() => {
+        const okCount = selectedChecks.filter((check) => check.status === 'up').length;
+        const failingChecks = selectedChecks.filter((check) => check.status === 'down');
+        if (failingChecks.length === 0) {
+            return {
+                text: `Health checks: ${okCount} ok`,
+                failingList: '',
+            };
+        }
+        const failingList = failingChecks.map((check) => check.id).join(', ');
+        return {
+            text: `Health checks: ${okCount} ok, ${failingChecks.length} failing: ${failingList}`,
+            failingList,
+        };
+    }, [selectedChecks]);
     const isSidebarOpen = isMobileLayout ? isMobileSidebarOpen : isDesktopSidebarOpen;
     const shouldOffsetContentHeader = isMobileLayout || !isSidebarOpen;
 
@@ -756,6 +806,8 @@ export default function App() {
     useEffect(() => {
         setIsAffectedOpen(false);
         affectedAutoOpenRef.current = true;
+        setIsChecksOpen(false);
+        checksAutoOpenRef.current = true;
     }, [selectedId]);
 
     useEffect(() => {
@@ -767,6 +819,20 @@ export default function App() {
             affectedAutoOpenRef.current = false;
         }
     }, [affectedItems.length, selectedStatus]);
+
+    useEffect(() => {
+        if (!checksAutoOpenRef.current) {
+            return;
+        }
+        if (selectedChecks.length === 0) {
+            return;
+        }
+        const hasNonUp = selectedChecks.some((check) => check.status !== 'up');
+        if (hasNonUp) {
+            setIsChecksOpen(true);
+        }
+        checksAutoOpenRef.current = false;
+    }, [selectedChecks]);
 
     useEffect(() => {
         if (!isSearchActive) {
@@ -1117,6 +1183,46 @@ export default function App() {
                                                 </li>
                                             ))
                                         )}
+                                    </ul>
+                                )}
+                            </section>
+                        )}
+                        {selectedChecks.length > 0 && (
+                            <section className={`affected-panel ${isChecksOpen ? 'is-open' : ''}`}>
+                                <button
+                                    type="button"
+                                    className={`affected-toggle ${isChecksOpen ? 'is-open' : ''}`}
+                                    onClick={() => setIsChecksOpen((prev) => !prev)}
+                                    aria-expanded={isChecksOpen}
+                                >
+                                    <span
+                                        className={`affected-chevron ${isChecksOpen ? 'is-open' : ''}`}
+                                        aria-hidden="true"
+                                    >
+                                        ›
+                                    </span>
+                                    <span className={`affected-summary ${isChecksOpen ? 'is-open' : ''}`}>
+                                        {checkSummary.text}
+                                    </span>
+                                </button>
+                                {isChecksOpen && (
+                                    <ul className="affected-list">
+                                        {selectedChecks.map((entry) => (
+                                            <li key={entry.id} className="affected-item">
+                                                <span
+                                                    className={`status-indicator status-${entry.status}`}
+                                                    aria-label={`Status: ${entry.status.toUpperCase()}`}
+                                                    title={`Status: ${entry.status.toUpperCase()}`}
+                                                />
+                                                <div className="affected-meta">
+                                                    <div className="affected-row">
+                                                        <span className="affected-name" title={entry.id}>
+                                                            {entry.id}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                        ))}
                                     </ul>
                                 )}
                             </section>
