@@ -62,7 +62,7 @@ const buildCatalogTree = (items, dependencies) => {
 
     const rootItems = sortItemsByName(items.filter((item) => !childIds.has(item.id)));
 
-    const toNode = (itemId, visited = new Set()) => {
+    const toNode = (itemId, visited = new Set(), pathSegments = []) => {
         if (visited.has(itemId)) {
             return null;
         }
@@ -71,15 +71,20 @@ const buildCatalogTree = (items, dependencies) => {
         if (!item) {
             return null;
         }
+        const uid = pathSegments.join('/');
         const children = sortNodesByName(
             (childrenMap.get(itemId) || [])
-                .map((childId) => toNode(childId, new Set(visited)))
+                .map((childId, index) =>
+                    toNode(childId, new Set(visited), [...pathSegments, `${index}:${childId}`]),
+                )
                 .filter(Boolean),
         );
-        return {item, children};
+        return {item, children, uid};
     };
 
-    return rootItems.map((item) => toNode(item.id)).filter(Boolean);
+    return rootItems
+        .map((item, index) => toNode(item.id, new Set(), [`${index}:${item.id}`]))
+        .filter(Boolean);
 };
 
 const normalizeSearchText = (value) => value.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
@@ -141,6 +146,20 @@ const findNodeById = (nodes, targetId) => {
     return null;
 };
 
+const findNodeUidById = (nodes, targetId) => {
+    for (const node of nodes) {
+        if (node.item.id === targetId) {
+            return node.uid;
+        }
+        if (node.children.length) {
+            const found = findNodeUidById(node.children, targetId);
+            if (found) {
+                return found;
+            }
+        }
+    }
+    return null;
+};
 const rankSearchResults = (items, queryTokens) => {
     if (!queryTokens.length) {
         return [];
@@ -270,8 +289,6 @@ const CatalogNode = ({
                      }) => {
     const hasChildren = node.children.length > 0;
     const isExpanded = expandedIds.has(node.item.id);
-    const [isChildrenVisible, setIsChildrenVisible] = useState(isExpanded);
-    const [isChildrenExpanded, setIsChildrenExpanded] = useState(isExpanded);
     buildDashboardUrl(
         grafanaBaseUrl,
         DASHBOARDS.timeline.uid,
@@ -284,48 +301,10 @@ const CatalogNode = ({
         lastUpdated ? ` (at ${lastUpdated})` : ''
     }`;
 
-    useEffect(() => {
-        let animationFrameId;
-        let nestedAnimationFrameId;
-
-        if (disableAnimation) {
-            setIsChildrenVisible(isExpanded);
-            setIsChildrenExpanded(isExpanded);
-            return () => {
-                if (animationFrameId) {
-                    window.cancelAnimationFrame(animationFrameId);
-                }
-                if (nestedAnimationFrameId) {
-                    window.cancelAnimationFrame(nestedAnimationFrameId);
-                }
-            };
-        }
-
-        if (isExpanded) {
-            setIsChildrenVisible(true);
-            animationFrameId = window.requestAnimationFrame(() => {
-                nestedAnimationFrameId = window.requestAnimationFrame(() => {
-                    setIsChildrenExpanded(true);
-                });
-            });
-        } else {
-            setIsChildrenExpanded(false);
-        }
-
-        return () => {
-            if (animationFrameId) {
-                window.cancelAnimationFrame(animationFrameId);
-            }
-            if (nestedAnimationFrameId) {
-                window.cancelAnimationFrame(nestedAnimationFrameId);
-            }
-        };
-    }, [disableAnimation, isExpanded]);
-
     const row = (
         <div
             className={`node-row ${selectedId === node.item.id ? 'is-selected' : ''}`}
-            data-node-id={node.item.id}
+            data-node-id={node.uid}
         >
             <div className="node-main">
                 {hasChildren ? (
@@ -353,14 +332,14 @@ const CatalogNode = ({
                     className="node-label"
                     onClick={(event) => {
                         event.stopPropagation();
-                        onSelect(node.item.id);
+                        onSelect(node);
                     }}
                     role="button"
                     tabIndex={0}
                     onKeyDown={(event) => {
                         if (event.key === 'Enter' || event.key === ' ') {
                             event.preventDefault();
-                            onSelect(node.item.id);
+                            onSelect(node);
                         }
                     }}
                 >
@@ -384,25 +363,15 @@ const CatalogNode = ({
     );
 
     if (!hasChildren) {
-        return <li className="node-leaf">{row}</li>;
+        return <div className="catalog-item node-leaf">{row}</div>;
     }
 
     return (
-        <li>
+        <div className="catalog-item">
             {row}
-            {isChildrenVisible && (
-                <ul
-                    className={`node-children ${isChildrenExpanded ? 'is-expanded' : ''}`}
-                    onTransitionEnd={(event) => {
-                        if (event.target !== event.currentTarget) {
-                            return;
-                        }
-                        if (!isExpanded) {
-                            setIsChildrenVisible(false);
-                        }
-                    }}
-                >
-                    {node.children.map((child) => (
+            <div className={`node-children ${isExpanded ? 'is-expanded' : ''}`}>
+                {isExpanded &&
+                    node.children.map((child) => (
                         <CatalogNode
                             key={child.item.id}
                             node={child}
@@ -418,9 +387,8 @@ const CatalogNode = ({
                             lastUpdated={lastUpdated}
                         />
                     ))}
-                </ul>
-            )}
-        </li>
+            </div>
+        </div>
     );
 };
 
@@ -731,10 +699,18 @@ export default function App() {
         setIsDesktopSidebarOpen((prev) => !prev);
     }, [isMobileLayout]);
 
-    const handleSelectItem = useCallback((itemId) => {
-        setSelectedId(itemId);
+    const handleSelectItem = useCallback((node) => {
+        setSelectedId(node.item.id);
+        setPendingScrollId(node.uid);
         setIsMobileSidebarOpen(false);
     }, []);
+
+    const handleSelectItemById = useCallback((itemId) => {
+        setSelectedId(itemId);
+        const selectedUid = findNodeUidById(tree, itemId);
+        setPendingScrollId(selectedUid || '');
+        setIsMobileSidebarOpen(false);
+    }, [tree]);
 
     const handleClearSearch = useCallback(() => {
         clearSearchRequestedRef.current = true;
@@ -798,8 +774,10 @@ export default function App() {
                     current = current.offsetParent;
                 }
                 if (current === container) {
+                    const maxScrollTop = Math.max(0, container.scrollHeight - container.clientHeight);
+                    const nextTop = Math.min(offset, maxScrollTop);
                     container.scrollTo({
-                        top: offset,
+                        top: nextTop,
                         behavior: 'smooth',
                     });
                 } else if (typeof node.scrollIntoView === 'function') {
@@ -807,8 +785,10 @@ export default function App() {
                 } else {
                     const containerRect = container.getBoundingClientRect();
                     const fallbackOffset = nodeRect.top - containerRect.top;
+                    const maxScrollTop = Math.max(0, container.scrollHeight - container.clientHeight);
+                    const nextTop = Math.min(container.scrollTop + fallbackOffset, maxScrollTop);
                     container.scrollTo({
-                        top: container.scrollTop + fallbackOffset,
+                        top: nextTop,
                         behavior: 'smooth',
                     });
                 }
@@ -837,7 +817,8 @@ export default function App() {
         if (prevTokens > 0 && selectedId && clearSearchRequestedRef.current) {
             clearSearchRequestedRef.current = false;
             expandPathToItem(selectedId, {suppressAnimation: true});
-            setPendingScrollId(selectedId);
+            const selectedUid = findNodeUidById(tree, selectedId);
+            setPendingScrollId(selectedUid || '');
             return;
         }
         if (clearSearchRequestedRef.current) {
@@ -914,9 +895,9 @@ export default function App() {
                         {searchResults.length === 0 ? (
                             <div className="empty">No items match the current search.</div>
                         ) : (
-                            <ul className="catalog-tree">
+                            <div className="catalog-tree">
                                 {searchResults.map(({item}) => (
-                                    <li key={item.id} className="node-leaf">
+                                    <div key={item.id} className="catalog-item node-leaf">
                                         <div
                                             className={`node-row ${selectedId === item.id ? 'is-selected' : ''}`}
                                             data-node-id={item.id}
@@ -927,7 +908,7 @@ export default function App() {
                                                     className="node-label"
                                                     onClick={(event) => {
                                                         event.stopPropagation();
-                                                        handleSelectItem(item.id);
+                                                        handleSelectItemById(item.id);
                                                         expandPathToItem(item.id, {suppressAnimation: true});
                                                     }}
                                                     role="button"
@@ -935,7 +916,7 @@ export default function App() {
                                                     onKeyDown={(event) => {
                                                         if (event.key === 'Enter' || event.key === ' ') {
                                                             event.preventDefault();
-                                                            handleSelectItem(item.id);
+                                                            handleSelectItemById(item.id);
                                                             expandPathToItem(item.id, {suppressAnimation: true});
                                                         }
                                                     }}
@@ -961,14 +942,14 @@ export default function App() {
                                                 </div>
                                             </div>
                                         </div>
-                                    </li>
+                                    </div>
                                 ))}
-                            </ul>
+                            </div>
                         )}
                     </div>
                 ) : (
                     <>
-                        <ul className="catalog-tree" ref={catalogTreeRef}>
+                        <div className="catalog-tree" ref={catalogTreeRef}>
                             {filteredTree.map((node) => (
                                 <CatalogNode
                                     key={node.item.id}
@@ -985,7 +966,7 @@ export default function App() {
                                     lastUpdated={lastUpdated}
                                 />
                             ))}
-                        </ul>
+                        </div>
                         {!error && tree.length > 0 && filteredTree.length === 0 && (
                             <div className="empty">No services match the current search.</div>
                         )}

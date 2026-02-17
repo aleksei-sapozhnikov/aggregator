@@ -145,12 +145,14 @@ body {
 }
 
 .catalog-tree {
-  list-style: none;
   margin: 0;
   padding: 0;
   overflow-y: auto;
   flex: 1 1 auto;
   min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .tree-controls {
@@ -235,29 +237,17 @@ body {
   color: #ffffff;
 }
 
-.catalog-tree ul {
-  list-style: none;
-  margin: 8px 0 8px 16px;
+.node-children {
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+  margin: 8px 0 0 16px;
   padding: 0;
   border-left: 1px solid var(--border);
 }
 
-.catalog-tree li {
-  margin-bottom: 8px;
-}
-
-.node-children {
-  max-height: 0;
-  opacity: 0;
-  overflow: hidden;
-  transform: translateY(-6px);
-  transition: max-height 220ms ease, opacity 160ms ease, transform 220ms ease;
-}
-
 .node-children.is-expanded {
-  max-height: 1200px;
-  opacity: 1;
-  transform: translateY(0);
+  display: flex;
 }
 
 .node-row {
