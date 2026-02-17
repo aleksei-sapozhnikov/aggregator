@@ -19,6 +19,18 @@ const sortNodesByName = (nodes) =>
         (a.item.name || a.item.id).localeCompare(b.item.name || b.item.id),
     );
 
+const parsePrometheusHealthStatus = (value) => {
+    let status = 'unknown';
+    if (Number.isFinite(value)) {
+        if (value >= 0.9) {
+            status = 'up';
+        } else if (value <= 0.1) {
+            status = 'down';
+        }
+    }
+    return status;
+};
+
 const collectNodeIds = (nodes) => {
     const ids = [];
     const visit = (node) => {
@@ -399,6 +411,7 @@ export default function App() {
     const [theme, setTheme] = useState(getInitialTheme);
     const [expandedIds, setExpandedIds] = useState(() => new Set());
     const [itemStatuses, setItemStatuses] = useState({});
+    const [itemCheckDown, setItemCheckDown] = useState({});
     const [lastUpdated, setLastUpdated] = useState('');
     const [isMobileLayout, setIsMobileLayout] = useState(
         () => window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT}px)`).matches,
@@ -551,39 +564,61 @@ export default function App() {
 
         const fetchStatuses = async () => {
             try {
-                const response = await fetch(
-                    `${prometheusBaseUrl}/api/v1/query?query=${encodeURIComponent('catalog_item_state')}`,
-                );
-                if (!response.ok) {
-                    console.error(`Failed to load Prometheus data: ${response.status}`);
-                    return;
-                }
-                const contentType = response.headers.get('content-type') || '';
-                if (!contentType.includes('application/json')) {
-                    return;
-                }
-                const payload = await response.json();
-                const results = payload?.data?.result ?? [];
-                const nextStatuses = {};
-                results.forEach((entry) => {
-                    const itemId = entry?.metric?.item_id;
-                    if (!itemId) {
-                        return;
-                    }
-                    const value = Number.parseFloat(entry?.value?.[1]);
-                    let status = 'unknown';
-                    if (Number.isFinite(value)) {
-                        if (value >= 0.9) {
-                            status = 'up';
-                        } else if (value <= 0.1) {
-                            status = 'down';
+                const [itemResponse, checkResponse] = await Promise.all([
+                    fetch(
+                        `${prometheusBaseUrl}/api/v1/query?query=${encodeURIComponent('catalog_item_state')}`,
+                    ),
+                    fetch(
+                        `${prometheusBaseUrl}/api/v1/query?query=${encodeURIComponent('catalog_item_check_state')}`,
+                    ),
+                ]);
+
+                if (itemResponse.ok) {
+                    const contentType = itemResponse.headers.get('content-type') || '';
+                    if (contentType.includes('application/json')) {
+                        const payload = await itemResponse.json();
+                        const results = payload?.data?.result ?? [];
+                        const nextStatuses = {};
+                        results.forEach((entry) => {
+                            const itemId = entry?.metric?.item_id;
+                            if (!itemId) {
+                                return;
+                            }
+                            const value = Number.parseFloat(entry?.value?.[1]);
+                            nextStatuses[itemId] = parsePrometheusHealthStatus(value);
+                        });
+                        if (!cancelled) {
+                            setItemStatuses(nextStatuses);
+                            setLastUpdated(new Date().toLocaleTimeString());
                         }
                     }
-                    nextStatuses[itemId] = status;
-                });
-                if (!cancelled) {
-                    setItemStatuses(nextStatuses);
-                    setLastUpdated(new Date().toLocaleTimeString());
+                } else {
+                    console.error(`Failed to load Prometheus data: ${itemResponse.status}`);
+                }
+
+                if (checkResponse.ok) {
+                    const contentType = checkResponse.headers.get('content-type') || '';
+                    if (contentType.includes('application/json')) {
+                        const payload = await checkResponse.json();
+                        const results = payload?.data?.result ?? [];
+                        const nextCheckDown = {};
+                        results.forEach((entry) => {
+                            const itemId = entry?.metric?.item_id;
+                            if (!itemId) {
+                                return;
+                            }
+                            const value = Number.parseFloat(entry?.value?.[1]);
+                            const status = parsePrometheusHealthStatus(value);
+                            if (status === 'down') {
+                                nextCheckDown[itemId] = true;
+                            }
+                        });
+                        if (!cancelled) {
+                            setItemCheckDown(nextCheckDown);
+                        }
+                    }
+                } else {
+                    console.error(`Failed to load Prometheus data: ${checkResponse.status}`);
                 }
             } catch (err) {
                 if (!cancelled) {
@@ -675,19 +710,19 @@ export default function App() {
                 return;
             }
             seen.add(id);
-            const item = itemMap.get(id);
-            const status = itemStatuses[id] || 'unknown';
-            if (status === 'up') {
+            if (!itemCheckDown[id]) {
                 return;
             }
+            const item = itemMap.get(id);
             affected.push({
                 id,
                 name: item?.name || id,
-                status,
+                status: 'down',
             });
         });
         return affected.sort((a, b) => a.name.localeCompare(b.name));
-    }, [itemMap, itemStatuses, selectedItem, tree]);
+    }, [itemCheckDown, itemMap, selectedItem, tree]);
+
     const isSidebarOpen = isMobileLayout ? isMobileSidebarOpen : isDesktopSidebarOpen;
     const shouldOffsetContentHeader = isMobileLayout || !isSidebarOpen;
 
