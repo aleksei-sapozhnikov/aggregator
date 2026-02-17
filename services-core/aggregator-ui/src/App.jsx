@@ -270,8 +270,6 @@ const CatalogNode = ({
                      }) => {
     const hasChildren = node.children.length > 0;
     const isExpanded = expandedIds.has(node.item.id);
-    const [isChildrenVisible, setIsChildrenVisible] = useState(isExpanded);
-    const [isChildrenExpanded, setIsChildrenExpanded] = useState(isExpanded);
     buildDashboardUrl(
         grafanaBaseUrl,
         DASHBOARDS.timeline.uid,
@@ -283,44 +281,6 @@ const CatalogNode = ({
     const statusLabel = `Status: ${status.toUpperCase()}${
         lastUpdated ? ` (at ${lastUpdated})` : ''
     }`;
-
-    useEffect(() => {
-        let animationFrameId;
-        let nestedAnimationFrameId;
-
-        if (disableAnimation) {
-            setIsChildrenVisible(isExpanded);
-            setIsChildrenExpanded(isExpanded);
-            return () => {
-                if (animationFrameId) {
-                    window.cancelAnimationFrame(animationFrameId);
-                }
-                if (nestedAnimationFrameId) {
-                    window.cancelAnimationFrame(nestedAnimationFrameId);
-                }
-            };
-        }
-
-        if (isExpanded) {
-            setIsChildrenVisible(true);
-            animationFrameId = window.requestAnimationFrame(() => {
-                nestedAnimationFrameId = window.requestAnimationFrame(() => {
-                    setIsChildrenExpanded(true);
-                });
-            });
-        } else {
-            setIsChildrenExpanded(false);
-        }
-
-        return () => {
-            if (animationFrameId) {
-                window.cancelAnimationFrame(animationFrameId);
-            }
-            if (nestedAnimationFrameId) {
-                window.cancelAnimationFrame(nestedAnimationFrameId);
-            }
-        };
-    }, [disableAnimation, isExpanded]);
 
     const row = (
         <div
@@ -384,25 +344,15 @@ const CatalogNode = ({
     );
 
     if (!hasChildren) {
-        return <li className="node-leaf">{row}</li>;
+        return <div className="catalog-item node-leaf">{row}</div>;
     }
 
     return (
-        <li>
+        <div className="catalog-item">
             {row}
-            {isChildrenVisible && (
-                <ul
-                    className={`node-children ${isChildrenExpanded ? 'is-expanded' : ''}`}
-                    onTransitionEnd={(event) => {
-                        if (event.target !== event.currentTarget) {
-                            return;
-                        }
-                        if (!isExpanded) {
-                            setIsChildrenVisible(false);
-                        }
-                    }}
-                >
-                    {node.children.map((child) => (
+            <div className={`node-children ${isExpanded ? 'is-expanded' : ''}`}>
+                {isExpanded &&
+                    node.children.map((child) => (
                         <CatalogNode
                             key={child.item.id}
                             node={child}
@@ -418,9 +368,8 @@ const CatalogNode = ({
                             lastUpdated={lastUpdated}
                         />
                     ))}
-                </ul>
-            )}
-        </li>
+            </div>
+        </div>
     );
 };
 
@@ -914,9 +863,9 @@ export default function App() {
                         {searchResults.length === 0 ? (
                             <div className="empty">No items match the current search.</div>
                         ) : (
-                            <ul className="catalog-tree">
+                            <div className="catalog-tree">
                                 {searchResults.map(({item}) => (
-                                    <li key={item.id} className="node-leaf">
+                                    <div key={item.id} className="catalog-item node-leaf">
                                         <div
                                             className={`node-row ${selectedId === item.id ? 'is-selected' : ''}`}
                                             data-node-id={item.id}
@@ -961,14 +910,14 @@ export default function App() {
                                                 </div>
                                             </div>
                                         </div>
-                                    </li>
+                                    </div>
                                 ))}
-                            </ul>
+                            </div>
                         )}
                     </div>
                 ) : (
                     <>
-                        <ul className="catalog-tree" ref={catalogTreeRef}>
+                        <div className="catalog-tree" ref={catalogTreeRef}>
                             {filteredTree.map((node) => (
                                 <CatalogNode
                                     key={node.item.id}
@@ -985,7 +934,7 @@ export default function App() {
                                     lastUpdated={lastUpdated}
                                 />
                             ))}
-                        </ul>
+                        </div>
                         {!error && tree.length > 0 && filteredTree.length === 0 && (
                             <div className="empty">No services match the current search.</div>
                         )}
