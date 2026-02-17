@@ -14,6 +14,7 @@
 #   - CHAOS_MIN_DURATION:      e.g. 20s (default: 20s)
 #   - CHAOS_MAX_DURATION:      e.g. 45s (default: 45s)
 #   - CHAOS_MAX_CONCURRENT:    integer (default: 2)
+#   - CHAOS_ALWAYS_BROKEN:     "true" / "false" (default: false)
 #
 # Intended for demo and testing only.
 #
@@ -45,6 +46,7 @@ class ChaosConfig:
     max_duration: float
     max_concurrent: int
     checks_path: str
+    always_broken: bool
 
 
 @dataclass(frozen=True)
@@ -87,6 +89,7 @@ def load_config() -> ChaosConfig:
         max_duration=parse_duration(os.getenv("CHAOS_MAX_DURATION", "45s")),
         max_concurrent=int(os.getenv("CHAOS_MAX_CONCURRENT", "2")),
         checks_path=str(script_dir / "health-checks.yaml"),
+        always_broken=os.getenv("CHAOS_ALWAYS_BROKEN", "false").strip().lower() == "true",
     )
 
 
@@ -231,6 +234,30 @@ def restore_due_targets(active: Dict[str, float]) -> List[str]:
     return due
 
 
+def has_any_down(statuses: Dict[str, bool]) -> bool:
+    return any(not is_up for is_up in statuses.values())
+
+
+def force_break_random(
+    config: ChaosConfig,
+    targets: List[ChaosTarget],
+    statuses: Dict[str, bool],
+    active: Dict[str, float],
+) -> None:
+    if len(active) >= config.max_concurrent:
+        logger.info("Chaos limit reached; skipping forced break")
+        return
+    available = choose_available(targets, set(active.keys()), statuses)
+    if not available:
+        logger.info("No healthy targets available for forced break")
+        return
+    target = random.choice(available)
+    duration = jitter(config.min_duration, config.max_duration)
+    active[target.base_url] = time.time() + duration
+    set_health(target.base_url, "down")
+    statuses[target.base_url] = False
+
+
 def _try_inject_once(
     config: ChaosConfig,
     targets: List[ChaosTarget],
@@ -292,8 +319,11 @@ def run() -> None:
         statuses = fetch_health_statuses(targets)
         reconcile_active(active_targets, statuses)
         schedule_restores_for_down_targets(config, targets, statuses, active_targets)
-        if restore_due_targets(active_targets):
+        restored = restore_due_targets(active_targets)
+        if restored:
             statuses = fetch_health_statuses(targets)
+            if config.always_broken and not has_any_down(statuses):
+                force_break_random(config, targets, statuses, active_targets)
 
         _try_inject_once(config, targets, statuses, active_targets)
 
