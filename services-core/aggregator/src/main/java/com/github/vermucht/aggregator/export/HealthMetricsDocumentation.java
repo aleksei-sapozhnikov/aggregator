@@ -8,6 +8,7 @@ package com.github.vermucht.aggregator.export;
  * <ul>
  *   <li>{@code catalog_item_state} (gauge)
  *   <li>{@code catalog_item_own_state} (gauge)
+ *   <li>{@code catalog_item_check_state} (gauge)
  *   <li>{@code catalog_dependency} (gauge)
  * </ul>
  *
@@ -17,6 +18,8 @@ package com.github.vermucht.aggregator.export;
  *   <li>{@code item_id} - catalog item identifier
  *   <li>{@code item_name} - display name of the item
  *   <li>{@code item_type} - catalog item type
+ *   <li>{@code check_id} - health check identifier
+ *   <li>{@code check_source} - health check source identifier
  *   <li>{@code source_id} - source catalog item identifier
  *   <li>{@code target_id} - target catalog item identifier
  *   <li>{@code dep_type} - dependency classification

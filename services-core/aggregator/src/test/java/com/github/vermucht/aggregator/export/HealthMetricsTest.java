@@ -4,14 +4,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.github.vermucht.aggregator.aggregation.HealthStateStore;
 import com.github.vermucht.aggregator.aggregation.ProductHealthAggregator;
+import com.github.vermucht.aggregator.aggregation.HealthCheckStateStore;
 import com.github.vermucht.aggregator.catalog.model.Catalog;
 import com.github.vermucht.aggregator.catalog.model.Dependency;
 import com.github.vermucht.aggregator.catalog.model.Item;
 import com.github.vermucht.aggregator.catalog.model.ItemId;
 import com.github.vermucht.aggregator.healthcheck.model.HealthStatus;
+import com.github.vermucht.aggregator.healthcheck.model.HealthSignal;
+import com.github.vermucht.aggregator.healthcheck.polling.PollingHealthCheck;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.Collection;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,6 +26,7 @@ class HealthMetricsTest {
 
   private SimpleMeterRegistry meterRegistry;
   private HealthStateStore healthStateStore;
+  private HealthCheckStateStore checkStateStore;
 
   private static Catalog testCatalog() {
     // Create 4 items to match the expected gauge count.
@@ -48,8 +54,16 @@ class HealthMetricsTest {
     Catalog catalog = testCatalog();
     ProductHealthAggregator aggregator = new ProductHealthAggregator();
     healthStateStore = new HealthStateStore(catalog, aggregator);
+    checkStateStore = new HealthCheckStateStore();
+
     // Registers gauges in constructor.
-    HealthMetrics metrics = new HealthMetrics(meterRegistry, catalog, healthStateStore);
+    HealthMetrics metrics =
+        new HealthMetrics(
+            meterRegistry,
+            catalog,
+            healthStateStore,
+            checkStateStore,
+            List.of(new StubHealthCheck(ItemId.of("api-gateway"), "gateway-health", "http")));
     metrics.registerMetrics();
   }
 
@@ -130,4 +144,70 @@ class HealthMetricsTest {
     assertThat(suiteOwnGauge.value()).isEqualTo(HealthStatusMetrics.DOWN_VALUE);
   }
 
+  @Test
+  void updatesCheckMetricWithLatestSignal() {
+    Gauge checkGauge =
+        meterRegistry
+            .find(HealthMetrics.ITEM_CHECK_METRIC_NAME)
+            .tags(
+                HealthMetrics.LABEL_ITEM_ID, "api-gateway",
+                HealthMetrics.LABEL_ITEM_NAME, "API Gateway",
+                HealthMetrics.LABEL_ITEM_TYPE, "service",
+                HealthMetrics.LABEL_CHECK_ID, "gateway-health",
+                HealthMetrics.LABEL_CHECK_SOURCE, "http")
+            .gauge();
+
+    assertThat(checkGauge).isNotNull();
+    assertThat(checkGauge.value()).isEqualTo(HealthStatusMetrics.UNKNOWN_VALUE);
+
+    checkStateStore.updateSignal(
+        new HealthSignal(
+            ItemId.of("api-gateway"),
+            "gateway-health",
+            HealthStatus.DOWN,
+            Instant.now(),
+            "http",
+            null,
+            Map.of()));
+
+    assertThat(checkGauge.value()).isEqualTo(HealthStatusMetrics.DOWN_VALUE);
+  }
+
+  private static final class StubHealthCheck implements PollingHealthCheck {
+    private final ItemId itemId;
+    private final String checkId;
+    private final String source;
+
+    private StubHealthCheck(ItemId itemId, String checkId, String source) {
+      this.itemId = itemId;
+      this.checkId = checkId;
+      this.source = source;
+    }
+
+    @Override
+    public String getCheckId() {
+      return checkId;
+    }
+
+    @Override
+    public ItemId getCatalogItemId() {
+      return itemId;
+    }
+
+    @Override
+    public Duration getInterval() {
+      return Duration.ofSeconds(30);
+    }
+
+    @Override
+    public String getSource() {
+      return source;
+    }
+
+    @Override
+    public HealthSignal poll() {
+      return new HealthSignal(
+          itemId, checkId, HealthStatus.UP, Instant.now(), source, null, Map.of());
+    }
+  }
 }
