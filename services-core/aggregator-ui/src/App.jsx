@@ -62,7 +62,7 @@ const buildCatalogTree = (items, dependencies) => {
 
     const rootItems = sortItemsByName(items.filter((item) => !childIds.has(item.id)));
 
-    const toNode = (itemId, visited = new Set()) => {
+    const toNode = (itemId, visited = new Set(), pathSegments = []) => {
         if (visited.has(itemId)) {
             return null;
         }
@@ -71,15 +71,20 @@ const buildCatalogTree = (items, dependencies) => {
         if (!item) {
             return null;
         }
+        const uid = pathSegments.join('/');
         const children = sortNodesByName(
             (childrenMap.get(itemId) || [])
-                .map((childId) => toNode(childId, new Set(visited)))
+                .map((childId, index) =>
+                    toNode(childId, new Set(visited), [...pathSegments, `${index}:${childId}`]),
+                )
                 .filter(Boolean),
         );
-        return {item, children};
+        return {item, children, uid};
     };
 
-    return rootItems.map((item) => toNode(item.id)).filter(Boolean);
+    return rootItems
+        .map((item, index) => toNode(item.id, new Set(), [`${index}:${item.id}`]))
+        .filter(Boolean);
 };
 
 const normalizeSearchText = (value) => value.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
@@ -141,6 +146,20 @@ const findNodeById = (nodes, targetId) => {
     return null;
 };
 
+const findNodeUidById = (nodes, targetId) => {
+    for (const node of nodes) {
+        if (node.item.id === targetId) {
+            return node.uid;
+        }
+        if (node.children.length) {
+            const found = findNodeUidById(node.children, targetId);
+            if (found) {
+                return found;
+            }
+        }
+    }
+    return null;
+};
 const rankSearchResults = (items, queryTokens) => {
     if (!queryTokens.length) {
         return [];
@@ -285,7 +304,7 @@ const CatalogNode = ({
     const row = (
         <div
             className={`node-row ${selectedId === node.item.id ? 'is-selected' : ''}`}
-            data-node-id={node.item.id}
+            data-node-id={node.uid}
         >
             <div className="node-main">
                 {hasChildren ? (
@@ -313,14 +332,14 @@ const CatalogNode = ({
                     className="node-label"
                     onClick={(event) => {
                         event.stopPropagation();
-                        onSelect(node.item.id);
+                        onSelect(node);
                     }}
                     role="button"
                     tabIndex={0}
                     onKeyDown={(event) => {
                         if (event.key === 'Enter' || event.key === ' ') {
                             event.preventDefault();
-                            onSelect(node.item.id);
+                            onSelect(node);
                         }
                     }}
                 >
@@ -680,10 +699,18 @@ export default function App() {
         setIsDesktopSidebarOpen((prev) => !prev);
     }, [isMobileLayout]);
 
-    const handleSelectItem = useCallback((itemId) => {
-        setSelectedId(itemId);
+    const handleSelectItem = useCallback((node) => {
+        setSelectedId(node.item.id);
+        setPendingScrollId(node.uid);
         setIsMobileSidebarOpen(false);
     }, []);
+
+    const handleSelectItemById = useCallback((itemId) => {
+        setSelectedId(itemId);
+        const selectedUid = findNodeUidById(tree, itemId);
+        setPendingScrollId(selectedUid || '');
+        setIsMobileSidebarOpen(false);
+    }, [tree]);
 
     const handleClearSearch = useCallback(() => {
         clearSearchRequestedRef.current = true;
@@ -747,8 +774,10 @@ export default function App() {
                     current = current.offsetParent;
                 }
                 if (current === container) {
+                    const maxScrollTop = Math.max(0, container.scrollHeight - container.clientHeight);
+                    const nextTop = Math.min(offset, maxScrollTop);
                     container.scrollTo({
-                        top: offset,
+                        top: nextTop,
                         behavior: 'smooth',
                     });
                 } else if (typeof node.scrollIntoView === 'function') {
@@ -756,8 +785,10 @@ export default function App() {
                 } else {
                     const containerRect = container.getBoundingClientRect();
                     const fallbackOffset = nodeRect.top - containerRect.top;
+                    const maxScrollTop = Math.max(0, container.scrollHeight - container.clientHeight);
+                    const nextTop = Math.min(container.scrollTop + fallbackOffset, maxScrollTop);
                     container.scrollTo({
-                        top: container.scrollTop + fallbackOffset,
+                        top: nextTop,
                         behavior: 'smooth',
                     });
                 }
@@ -786,7 +817,8 @@ export default function App() {
         if (prevTokens > 0 && selectedId && clearSearchRequestedRef.current) {
             clearSearchRequestedRef.current = false;
             expandPathToItem(selectedId, {suppressAnimation: true});
-            setPendingScrollId(selectedId);
+            const selectedUid = findNodeUidById(tree, selectedId);
+            setPendingScrollId(selectedUid || '');
             return;
         }
         if (clearSearchRequestedRef.current) {
@@ -876,7 +908,7 @@ export default function App() {
                                                     className="node-label"
                                                     onClick={(event) => {
                                                         event.stopPropagation();
-                                                        handleSelectItem(item.id);
+                                                        handleSelectItemById(item.id);
                                                         expandPathToItem(item.id, {suppressAnimation: true});
                                                     }}
                                                     role="button"
@@ -884,7 +916,7 @@ export default function App() {
                                                     onKeyDown={(event) => {
                                                         if (event.key === 'Enter' || event.key === ' ') {
                                                             event.preventDefault();
-                                                            handleSelectItem(item.id);
+                                                            handleSelectItemById(item.id);
                                                             expandPathToItem(item.id, {suppressAnimation: true});
                                                         }
                                                     }}
