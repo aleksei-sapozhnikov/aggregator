@@ -23,7 +23,7 @@ class HealthMetricsTest {
   private HealthStateStore healthStateStore;
 
   private static Catalog testCatalog() {
-    // Create 4 items to match the original expectation (hasSize(4)).
+    // Create 4 items to match the expected gauge count.
     Item gateway = Item.of(ItemId.of("api-gateway"), "API Gateway", "service");
     Item paymentsApi = Item.of(ItemId.of("payments-api"), "Payments API", "service");
     Item paymentsDb = Item.of(ItemId.of("payments-db"), "Payments DB", "service");
@@ -48,7 +48,6 @@ class HealthMetricsTest {
     Catalog catalog = testCatalog();
     ProductHealthAggregator aggregator = new ProductHealthAggregator();
     healthStateStore = new HealthStateStore(catalog, aggregator);
-
     // Registers gauges in constructor.
     HealthMetrics metrics = new HealthMetrics(meterRegistry, catalog, healthStateStore);
     metrics.registerMetrics();
@@ -99,4 +98,36 @@ class HealthMetricsTest {
     assertThat(gatewayGauge.value()).isEqualTo(HealthStatusMetrics.DOWN_VALUE);
     assertThat(suiteGauge.value()).isEqualTo(HealthStatusMetrics.DOWN_VALUE);
   }
+
+  @Test
+  void updatesOwnMetricWithRawHealthStatus() {
+    Gauge gatewayOwnGauge =
+        meterRegistry
+            .find(HealthMetrics.ITEM_OWN_METRIC_NAME)
+            .tags(
+                HealthMetrics.LABEL_ITEM_ID, "api-gateway",
+                HealthMetrics.LABEL_ITEM_NAME, "API Gateway",
+                HealthMetrics.LABEL_ITEM_TYPE, "service")
+            .gauge();
+
+    Gauge suiteOwnGauge =
+        meterRegistry
+            .find(HealthMetrics.ITEM_OWN_METRIC_NAME)
+            .tags(
+                HealthMetrics.LABEL_ITEM_ID, "payments-suite",
+                HealthMetrics.LABEL_ITEM_NAME, "Payments Suite",
+                HealthMetrics.LABEL_ITEM_TYPE, "product")
+            .gauge();
+
+    assertThat(gatewayOwnGauge).isNotNull();
+    assertThat(suiteOwnGauge).isNotNull();
+
+    assertThat(gatewayOwnGauge.value()).isEqualTo(HealthStatusMetrics.UNKNOWN_VALUE);
+    assertThat(suiteOwnGauge.value()).isEqualTo(HealthStatusMetrics.UNKNOWN_VALUE);
+
+    healthStateStore.updateStatus(ItemId.of("payments-suite"), HealthStatus.DOWN);
+
+    assertThat(suiteOwnGauge.value()).isEqualTo(HealthStatusMetrics.DOWN_VALUE);
+  }
+
 }

@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class HealthMetrics {
   public static final String ITEM_METRIC_NAME = "catalog_item_state";
+  public static final String ITEM_OWN_METRIC_NAME = "catalog_item_own_state";
   public static final String DEPENDENCY_METRIC_NAME = "catalog_dependency";
   public static final String LABEL_ITEM_ID = "item_id";
   public static final String LABEL_ITEM_NAME = "item_name";
@@ -55,6 +56,15 @@ public class HealthMetrics {
           .tag(LABEL_ITEM_NAME, item.getName())
           .tag(LABEL_ITEM_TYPE, item.getType())
           .register(registry);
+      Gauge.builder(
+              ITEM_OWN_METRIC_NAME,
+              healthStateStore,
+              store -> HealthStatusMetrics.toGaugeValue(store.getRawStatus(itemId)))
+          .description("Raw health from item health checks (1=UP, 0.5=UNKNOWN, 0=DOWN)")
+          .tag(LABEL_ITEM_ID, itemId.getValue())
+          .tag(LABEL_ITEM_NAME, item.getName())
+          .tag(LABEL_ITEM_TYPE, item.getType())
+          .register(registry);
     }
 
     registerDependencyMetrics();
@@ -75,6 +85,15 @@ public class HealthMetrics {
               healthStateStore,
               store -> HealthStatusMetrics.toGaugeValue(store.getAggregatedStatus(itemId)))
           .description("Current health of a catalog item (1=UP, 0.5=UNKNOWN, 0=DOWN)")
+          .tag(LABEL_ITEM_ID, itemId.getValue())
+          .tag(LABEL_ITEM_NAME, item.getName())
+          .tag(LABEL_ITEM_TYPE, item.getType())
+          .register(registry);
+      Gauge.builder(
+              ITEM_OWN_METRIC_NAME,
+              healthStateStore,
+              store -> HealthStatusMetrics.toGaugeValue(store.getRawStatus(itemId)))
+          .description("Raw health from item health checks (1=UP, 0.5=UNKNOWN, 0=DOWN)")
           .tag(LABEL_ITEM_ID, itemId.getValue())
           .tag(LABEL_ITEM_NAME, item.getName())
           .tag(LABEL_ITEM_TYPE, item.getType())
