@@ -14,6 +14,7 @@
 #   - CHAOS_MIN_DURATION:      e.g. 20s (default: 20s)
 #   - CHAOS_MAX_DURATION:      e.g. 45s (default: 45s)
 #   - CHAOS_MAX_CONCURRENT:    integer (default: 2)
+#   - CHAOS_ALWAYS_BROKEN:     "true" / "false" (default: false)
 #
 # Intended for demo and testing only.
 #
@@ -22,12 +23,11 @@ import logging
 import os
 import random
 import requests
-import threading
 import time
 import yaml
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, List, Set
+from typing import Dict, Iterable, List, Set
 from urllib.parse import urlsplit
 
 logging.basicConfig(
@@ -46,6 +46,13 @@ class ChaosConfig:
     max_duration: float
     max_concurrent: int
     checks_path: str
+    always_broken: bool
+
+
+@dataclass(frozen=True)
+class ChaosTarget:
+    base_url: str
+    health_url: str
 
 
 def parse_duration(value: str | None) -> float:
@@ -82,6 +89,7 @@ def load_config() -> ChaosConfig:
         max_duration=parse_duration(os.getenv("CHAOS_MAX_DURATION", "45s")),
         max_concurrent=int(os.getenv("CHAOS_MAX_CONCURRENT", "2")),
         checks_path=str(script_dir / "health-checks.yaml"),
+        always_broken=os.getenv("CHAOS_ALWAYS_BROKEN", "false").strip().lower() == "true",
     )
 
 
@@ -112,24 +120,28 @@ def to_base_url(url: str) -> str:
     return f"{parsed.scheme}://{parsed.netloc}{path}"
 
 
-def extract_targets(checks_path: str) -> List[str]:
+def extract_targets(checks_path: str) -> List[ChaosTarget]:
     with open(checks_path, "r", encoding="utf-8") as handle:
         payload = yaml.safe_load(handle) or {}
 
     checks = payload.get("checks", [])
-    targets: Set[str] = set()
+    targets: Dict[str, ChaosTarget] = {}
 
     for check in checks:
         url = check.get("url")
         if not url:
             continue
-        targets.add(to_base_url(url))
+        base_url = to_base_url(url)
+        if base_url not in targets:
+            targets[base_url] = ChaosTarget(base_url=base_url, health_url=url)
 
-    return sorted(targets)
+    return [targets[key] for key in sorted(targets.keys())]
 
 
-def choose_available(targets: Iterable[str], active: Set[str]) -> List[str]:
-    return [t for t in targets if t not in active]
+def choose_available(
+    targets: Iterable[ChaosTarget], active: Set[str], statuses: Dict[str, bool]
+) -> List[ChaosTarget]:
+    return [t for t in targets if t.base_url not in active and statuses.get(t.base_url, False)]
 
 
 def set_health(base_url: str, state: str) -> None:
@@ -145,16 +157,115 @@ def set_health(base_url: str, state: str) -> None:
         logger.warning("Failed to set %s -> %s: %s", base_url, state.upper(), exc)
 
 
-def _restore_after(base_url: str, duration: float, active: Set[str], lock: threading.Lock) -> None:
-    time.sleep(duration)
-    set_health(base_url, "up")
-    with lock:
-        active.discard(base_url)
-
-
-def _try_inject_once(config: ChaosConfig, active: Set[str], lock: threading.Lock) -> None:
+def parse_health_status(response: requests.Response) -> str | None:
     try:
-        targets = extract_targets(config.checks_path)
+        payload = response.json()
+        if isinstance(payload, dict):
+            status = payload.get("status")
+            if isinstance(status, str):
+                return status.strip().upper()
+    except ValueError:
+        pass
+
+    text = response.text.strip()
+    if not text:
+        return None
+    upper = text.upper()
+    if "UP" in upper:
+        return "UP"
+    if "DOWN" in upper:
+        return "DOWN"
+    return None
+
+
+def fetch_health_statuses(targets: Iterable[ChaosTarget]) -> Dict[str, bool]:
+    statuses: Dict[str, bool] = {}
+    for target in targets:
+        try:
+            response = requests.get(target.health_url, timeout=5)
+            if response.ok:
+                status = parse_health_status(response)
+            else:
+                status = None
+                logger.warning(
+                    "Health check failed for %s: HTTP %s",
+                    target.health_url,
+                    response.status_code,
+                )
+        except requests.RequestException as exc:
+            status = None
+            logger.warning("Health check failed for %s: %s", target.health_url, exc)
+
+        statuses[target.base_url] = status == "UP"
+
+    return statuses
+
+
+def reconcile_active(active: Dict[str, float], statuses: Dict[str, bool]) -> None:
+    for base_url in list(active.keys()):
+        if statuses.get(base_url, False):
+            logger.info("Target %s recovered early; clearing scheduled restore", base_url)
+            del active[base_url]
+
+
+def schedule_restores_for_down_targets(
+    config: ChaosConfig,
+    targets: Iterable[ChaosTarget],
+    statuses: Dict[str, bool],
+    active: Dict[str, float],
+) -> None:
+    now = time.time()
+    for target in targets:
+        if statuses.get(target.base_url, False):
+            continue
+        if target.base_url in active:
+            continue
+        duration = jitter(config.min_duration, config.max_duration)
+        active[target.base_url] = now + duration
+        logger.info("Detected %s DOWN; scheduling restore in %.1fs", target.base_url, duration)
+
+
+def restore_due_targets(active: Dict[str, float]) -> List[str]:
+    now = time.time()
+    due = [base_url for base_url, restore_at in active.items() if now >= restore_at]
+    for base_url in due:
+        set_health(base_url, "up")
+        del active[base_url]
+    return due
+
+
+def has_any_down(statuses: Dict[str, bool]) -> bool:
+    return any(not is_up for is_up in statuses.values())
+
+
+def force_break_random(
+    config: ChaosConfig,
+    targets: List[ChaosTarget],
+    statuses: Dict[str, bool],
+    active: Dict[str, float],
+) -> None:
+    if len(active) >= config.max_concurrent:
+        logger.info("Chaos limit reached; skipping forced break")
+        return
+    available = choose_available(targets, set(active.keys()), statuses)
+    if not available:
+        logger.info("No healthy targets available for forced break")
+        return
+    target = random.choice(available)
+    duration = jitter(config.min_duration, config.max_duration)
+    active[target.base_url] = time.time() + duration
+    set_health(target.base_url, "down")
+    statuses[target.base_url] = False
+
+
+def _try_inject_once(
+    config: ChaosConfig,
+    targets: List[ChaosTarget],
+    statuses: Dict[str, bool],
+    active: Dict[str, float],
+) -> None:
+    try:
+        targets = targets or extract_targets(config.checks_path)
     except FileNotFoundError:
         logger.error("Checks file not found at %s", config.checks_path)
         return
@@ -166,28 +277,20 @@ def _try_inject_once(config: ChaosConfig, active: Set[str], lock: threading.Lock
         logger.warning("No chaos targets found in %s", config.checks_path)
         return
 
-    with lock:
-        if len(active) >= config.max_concurrent:
-            return
-        available = choose_available(targets, active)
-        if not available:
-            return
-        target = random.choice(available)
-        active.add(target)
-
+    if len(active) >= config.max_concurrent:
+        return
+    available = choose_available(targets, set(active.keys()), statuses)
+    if not available:
+        return
+    target = random.choice(available)
     duration = jitter(config.min_duration, config.max_duration)
-    set_health(target, "down")
+    active[target.base_url] = time.time() + duration
 
-    threading.Thread(
-        target=_restore_after,
-        args=(target, duration, active, lock),
-        daemon=True,
-    ).start()
+    set_health(target.base_url, "down")
 
 
 def run() -> None:
-    active_targets: Set[str] = set()
-    lock = threading.Lock()
+    active_targets: Dict[str, float] = {}
 
     logger.info("Chaos maker started")
     while True:
@@ -197,7 +300,32 @@ def run() -> None:
             time.sleep(5)
             continue
 
-        _try_inject_once(config, active_targets, lock)
+        try:
+            targets = extract_targets(config.checks_path)
+        except FileNotFoundError:
+            logger.error("Checks file not found at %s", config.checks_path)
+            time.sleep(5)
+            continue
+        except yaml.YAMLError as exc:
+            logger.error("Failed to parse checks file at %s: %s", config.checks_path, exc)
+            time.sleep(5)
+            continue
+
+        if not targets:
+            logger.warning("No chaos targets found in %s", config.checks_path)
+            time.sleep(5)
+            continue
+
+        statuses = fetch_health_statuses(targets)
+        reconcile_active(active_targets, statuses)
+        schedule_restores_for_down_targets(config, targets, statuses, active_targets)
+        restored = restore_due_targets(active_targets)
+        if restored:
+            statuses = fetch_health_statuses(targets)
+            if config.always_broken and not has_any_down(statuses):
+                force_break_random(config, targets, statuses, active_targets)
+
+        _try_inject_once(config, targets, statuses, active_targets)
 
         interval = jitter(config.min_interval, config.max_interval)
         time.sleep(interval)

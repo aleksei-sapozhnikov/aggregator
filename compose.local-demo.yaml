@@ -25,6 +25,7 @@ services:
         HEALTH_CHECKS_FILE: config/demo/health-checks.yaml
     environment:
       CHAOS_ENABLED: "true"
+      CHAOS_ALWAYS_BROKEN: "true"
       CHAOS_MIN_INTERVAL: 30s
       CHAOS_MAX_INTERVAL: 90s
       CHAOS_MIN_DURATION: 20s
