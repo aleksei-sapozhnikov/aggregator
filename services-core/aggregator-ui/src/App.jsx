@@ -563,10 +563,15 @@ export default function App() {
     const grafanaEscHandlerRef = useRef(null);
     const contentRef = useRef(null);
     const headerRef = useRef(null);
+    const lastHistoryUrlRef = useRef(window.location.href);
+    const lastHistoryKeyRef = useRef('');
+    const pendingGrafanaSrcRef = useRef('');
+    const grafanaFrameReadyRef = useRef(false);
 
     const grafanaBaseUrl = useMemo(resolveGrafanaBaseUrl, []);
     const prometheusBaseUrl = useMemo(resolvePrometheusBaseUrl, []);
     const basePath = useMemo(resolveBasePath, []);
+
 
     const updateUrlForItemId = useCallback((itemId, {replace} = {}) => {
         const url = new URL(window.location.href);
@@ -574,15 +579,26 @@ export default function App() {
         const prefix = normalizedBase === '' ? '' : normalizedBase;
         url.pathname = `${prefix}/item/${encodeURIComponent(itemId)}`;
         url.search = '';
+        const historyKey = `${itemId}::`;
         const nextUrl = url.toString();
-        if (nextUrl === window.location.href) {
+        const currentState = window.history.state;
+        if (currentState?.itemId === itemId && (!currentState.path || currentState.path.length === 0)) {
+            return;
+        }
+        if (
+            nextUrl === window.location.href ||
+            nextUrl === lastHistoryUrlRef.current ||
+            historyKey === lastHistoryKeyRef.current
+        ) {
             return;
         }
         if (replace) {
-            window.history.replaceState({}, '', url);
+            window.history.replaceState({itemId, path: []}, '', url);
         } else {
-            window.history.pushState({}, '', url);
+            window.history.pushState({itemId, path: []}, '', url);
         }
+        lastHistoryUrlRef.current = nextUrl;
+        lastHistoryKeyRef.current = historyKey;
     }, [basePath]);
 
     const updateUrlForNode = useCallback((node, {replace} = {}) => {
@@ -597,15 +613,30 @@ export default function App() {
         if (node.path?.length) {
             url.searchParams.set('path', buildServicePath(node.path));
         }
+        const historyKey = `${node.item.id}::${node.path?.join('/') || ''}`;
         const nextUrl = url.toString();
-        if (nextUrl === window.location.href) {
+        const currentState = window.history.state;
+        if (
+            currentState?.itemId === node.item.id &&
+            Array.isArray(currentState.path) &&
+            (currentState.path?.join('/') || '') === (node.path?.join('/') || '')
+        ) {
+            return;
+        }
+        if (
+            nextUrl === window.location.href ||
+            nextUrl === lastHistoryUrlRef.current ||
+            historyKey === lastHistoryKeyRef.current
+        ) {
             return;
         }
         if (replace) {
-            window.history.replaceState({}, '', url);
+            window.history.replaceState({itemId: node.item.id, path: node.path || []}, '', url);
         } else {
-            window.history.pushState({}, '', url);
+            window.history.pushState({itemId: node.item.id, path: node.path || []}, '', url);
         }
+        lastHistoryUrlRef.current = nextUrl;
+        lastHistoryKeyRef.current = historyKey;
     }, [basePath]);
 
     const normalizeUrlForRoute = useCallback((itemId, pathIds, {replace} = {}) => {
@@ -620,15 +651,30 @@ export default function App() {
         if (Array.isArray(pathIds) && pathIds.length > 0) {
             url.searchParams.set('path', buildServicePath(pathIds));
         }
+        const historyKey = `${itemId}::${Array.isArray(pathIds) ? pathIds.join('/') : ''}`;
         const nextUrl = url.toString();
-        if (nextUrl === window.location.href) {
+        const currentState = window.history.state;
+        if (
+            currentState?.itemId === itemId &&
+            Array.isArray(currentState.path) &&
+            (currentState.path?.join('/') || '') === (Array.isArray(pathIds) ? pathIds.join('/') : '')
+        ) {
+            return;
+        }
+        if (
+            nextUrl === window.location.href ||
+            nextUrl === lastHistoryUrlRef.current ||
+            historyKey === lastHistoryKeyRef.current
+        ) {
             return;
         }
         if (replace) {
-            window.history.replaceState({}, '', url);
+            window.history.replaceState({itemId, path: Array.isArray(pathIds) ? pathIds : []}, '', url);
         } else {
-            window.history.pushState({}, '', url);
+            window.history.pushState({itemId, path: Array.isArray(pathIds) ? pathIds : []}, '', url);
         }
+        lastHistoryUrlRef.current = nextUrl;
+        lastHistoryKeyRef.current = historyKey;
     }, [basePath]);
 
     const handleGrafanaLoad = useCallback(() => {
@@ -637,6 +683,13 @@ export default function App() {
             return;
         }
         try {
+            grafanaFrameReadyRef.current = true;
+            if (pendingGrafanaSrcRef.current) {
+                iframe.contentWindow.postMessage(
+                    {type: 'set-grafana-src', src: pendingGrafanaSrcRef.current},
+                    window.location.origin,
+                );
+            }
             const previousHandler = grafanaEscHandlerRef.current;
             if (previousHandler) {
                 iframe.contentWindow.removeEventListener('keydown', previousHandler, true);
@@ -1002,6 +1055,16 @@ export default function App() {
         return `${prefix}/item/${encodeURIComponent(itemId)}`;
     }, [basePath]);
 
+    const buildGrafanaFrameUrl = useCallback((grafanaUrl) => {
+        const frameUrl = new URL('grafana-frame.html', resolveBaseUrl());
+        if (grafanaUrl) {
+            frameUrl.searchParams.set('src', encodeURIComponent(grafanaUrl));
+        }
+        return frameUrl.toString();
+    }, []);
+
+    const grafanaFrameUrl = useMemo(() => buildGrafanaFrameUrl(''), [buildGrafanaFrameUrl]);
+
     const handleClearSearch = useCallback(() => {
         clearSearchRequestedRef.current = true;
         setSearchQuery('');
@@ -1012,12 +1075,19 @@ export default function App() {
         if (!tree.length) {
             return undefined;
         }
-        const applySelectionFromLocation = () => {
+        const applySelectionFromLocation = ({normalize} = {normalize: true}) => {
             const routeContext = readLocationRouteContext(basePath);
             const resolved = resolveNodeFromLocation(tree, basePath);
             if (!resolved) {
-                if (routeContext.hasRouteId) {
+                if (normalize && routeContext.hasRouteId) {
                     normalizeUrlForRoute(routeContext.routeId, routeContext.pathIds, {replace: true});
+                    return;
+                }
+                if (!routeContext.hasPathParam) {
+                    const fallbackId = catalog.items[0]?.id || '';
+                    setSelectedId(fallbackId);
+                    setPendingScrollId('');
+                    setIsMobileSidebarOpen(false);
                 }
                 return;
             }
@@ -1026,15 +1096,26 @@ export default function App() {
             setPendingScrollId(node.uid);
             setIsMobileSidebarOpen(false);
             expandPathToItem(node.item.id, {suppressAnimation: true, path: node.path});
-            if (routeContext.hasRouteId || routeContext.hasPathParam) {
+            if (normalize && (routeContext.hasRouteId || routeContext.hasPathParam)) {
                 updateUrlForNode(node, {replace: true});
             }
         };
 
-        applySelectionFromLocation();
+        applySelectionFromLocation({normalize: true});
 
         const handlePopState = () => {
-            applySelectionFromLocation();
+            lastHistoryUrlRef.current = window.location.href;
+            if (window.history.state?.itemId) {
+                const stateItemId = window.history.state.itemId;
+                const statePath = Array.isArray(window.history.state.path)
+                    ? window.history.state.path
+                    : [];
+                const historyKey = `${stateItemId}::${statePath.join('/')}`;
+                lastHistoryKeyRef.current = historyKey;
+            } else {
+                lastHistoryKeyRef.current = '';
+            }
+            applySelectionFromLocation({normalize: false});
         };
         window.addEventListener('popstate', handlePopState);
         return () => {
@@ -1172,6 +1253,29 @@ export default function App() {
         }
         scrollToNodeId(pendingScrollId);
     }, [pendingScrollId, scrollToNodeId, searchTokens.length]);
+
+    useEffect(() => {
+        if (!selectedItem) {
+            return;
+        }
+        const dashboardUrl = buildDashboardUrl(
+            grafanaBaseUrl,
+            DASHBOARDS.timeline.uid,
+            DASHBOARDS.timeline.slug,
+            selectedItem.id,
+            theme,
+            DASHBOARDS.timeline.panelId,
+        );
+        pendingGrafanaSrcRef.current = dashboardUrl;
+        const iframe = grafanaIframeRef.current;
+        if (iframe?.contentWindow && grafanaFrameReadyRef.current) {
+            iframe.contentWindow.postMessage(
+                {type: 'set-grafana-src', src: dashboardUrl},
+                window.location.origin,
+            );
+            return;
+        }
+    }, [grafanaBaseUrl, selectedItem, theme]);
 
     return (
         <div
@@ -1483,14 +1587,7 @@ export default function App() {
                                 title="State Timeline"
                                 ref={grafanaIframeRef}
                                 onLoad={handleGrafanaLoad}
-                                src={buildDashboardUrl(
-                                    grafanaBaseUrl,
-                                    DASHBOARDS.timeline.uid,
-                                    DASHBOARDS.timeline.slug,
-                                    selectedItem.id,
-                                    theme,
-                                    DASHBOARDS.timeline.panelId,
-                                )}
+                                src={grafanaFrameUrl}
                             />
                             </section>
                         </div>
