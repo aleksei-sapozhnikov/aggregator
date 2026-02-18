@@ -276,6 +276,95 @@ const resolvePrometheusBaseUrl = () => {
     return `${window.location.origin}/prometheus`;
 };
 
+const stripBasePath = (pathname, basePath) => {
+    if (!basePath || basePath === '/') {
+        return pathname.replace(/^\/+/, '');
+    }
+    const normalizedBase = basePath.endsWith('/') ? basePath : `${basePath}/`;
+    if (pathname.startsWith(normalizedBase)) {
+        return pathname.slice(normalizedBase.length);
+    }
+    if (pathname.startsWith(basePath)) {
+        return pathname.slice(basePath.length).replace(/^\/+/, '');
+    }
+    return pathname.replace(/^\/+/, '');
+};
+
+const parseServicePath = (value) => {
+    if (!value) {
+        return [];
+    }
+    return value
+        .split('/')
+        .map((segment) => decodeURIComponent(segment))
+        .filter(Boolean);
+};
+
+const buildServicePath = (pathIds) =>
+    pathIds.map((segment) => encodeURIComponent(segment)).join('/');
+
+const resolveNodeFromLocation = (nodes, basePath) => {
+    if (!nodes.length) {
+        return null;
+    }
+    const params = new URLSearchParams(window.location.search);
+    const servicePath = parseServicePath(params.get('path'));
+    const relativePath = stripBasePath(window.location.pathname, basePath);
+    let routeId = '';
+    if (relativePath.startsWith('item/')) {
+        const rest = relativePath.slice('item/'.length);
+        const [segment] = rest.split('/').filter(Boolean);
+        if (segment) {
+            routeId = decodeURIComponent(segment);
+        }
+    }
+
+    const hasRouteId = Boolean(routeId);
+    const hasPathParam = servicePath.length > 0;
+
+    if (hasPathParam) {
+        const byPath = findNodeByPath(nodes, servicePath);
+        if (byPath) {
+            return {node: byPath};
+        }
+        const fallbackId = servicePath[servicePath.length - 1];
+        if (fallbackId) {
+            const byId = findNodeById(nodes, fallbackId);
+            if (byId) {
+                return {node: byId};
+            }
+        }
+    }
+
+    if (hasRouteId) {
+        const byId = findNodeById(nodes, routeId);
+        return byId ? {node: byId} : null;
+    }
+
+    return null;
+};
+
+const readLocationRouteContext = (basePath) => {
+    const params = new URLSearchParams(window.location.search);
+    const pathParamRaw = params.get('path') || '';
+    const pathIds = parseServicePath(pathParamRaw);
+    const relativePath = stripBasePath(window.location.pathname, basePath);
+    let routeId = '';
+    if (relativePath.startsWith('item/')) {
+        const rest = relativePath.slice('item/'.length);
+        const [segment] = rest.split('/').filter(Boolean);
+        if (segment) {
+            routeId = decodeURIComponent(segment);
+        }
+    }
+    return {
+        routeId,
+        pathIds,
+        hasRouteId: Boolean(routeId),
+        hasPathParam: pathIds.length > 0,
+    };
+};
+
 const normalizeDashboardBaseUrl = (
     baseUrl,
     dashboardUid,
@@ -477,6 +566,70 @@ export default function App() {
 
     const grafanaBaseUrl = useMemo(resolveGrafanaBaseUrl, []);
     const prometheusBaseUrl = useMemo(resolvePrometheusBaseUrl, []);
+    const basePath = useMemo(resolveBasePath, []);
+
+    const updateUrlForItemId = useCallback((itemId, {replace} = {}) => {
+        const url = new URL(window.location.href);
+        const normalizedBase = basePath.endsWith('/') ? basePath.slice(0, -1) : basePath;
+        const prefix = normalizedBase === '' ? '' : normalizedBase;
+        url.pathname = `${prefix}/item/${encodeURIComponent(itemId)}`;
+        url.search = '';
+        const nextUrl = url.toString();
+        if (nextUrl === window.location.href) {
+            return;
+        }
+        if (replace) {
+            window.history.replaceState({}, '', url);
+        } else {
+            window.history.pushState({}, '', url);
+        }
+    }, [basePath]);
+
+    const updateUrlForNode = useCallback((node, {replace} = {}) => {
+        if (!node) {
+            return;
+        }
+        const url = new URL(window.location.href);
+        const normalizedBase = basePath.endsWith('/') ? basePath.slice(0, -1) : basePath;
+        const prefix = normalizedBase === '' ? '' : normalizedBase;
+        url.pathname = `${prefix}/item/${encodeURIComponent(node.item.id)}`;
+        url.search = '';
+        if (node.path?.length) {
+            url.searchParams.set('path', buildServicePath(node.path));
+        }
+        const nextUrl = url.toString();
+        if (nextUrl === window.location.href) {
+            return;
+        }
+        if (replace) {
+            window.history.replaceState({}, '', url);
+        } else {
+            window.history.pushState({}, '', url);
+        }
+    }, [basePath]);
+
+    const normalizeUrlForRoute = useCallback((itemId, pathIds, {replace} = {}) => {
+        if (!itemId) {
+            return;
+        }
+        const url = new URL(window.location.href);
+        const normalizedBase = basePath.endsWith('/') ? basePath.slice(0, -1) : basePath;
+        const prefix = normalizedBase === '' ? '' : normalizedBase;
+        url.pathname = `${prefix}/item/${encodeURIComponent(itemId)}`;
+        url.search = '';
+        if (Array.isArray(pathIds) && pathIds.length > 0) {
+            url.searchParams.set('path', buildServicePath(pathIds));
+        }
+        const nextUrl = url.toString();
+        if (nextUrl === window.location.href) {
+            return;
+        }
+        if (replace) {
+            window.history.replaceState({}, '', url);
+        } else {
+            window.history.pushState({}, '', url);
+        }
+    }, [basePath]);
 
     const handleGrafanaLoad = useCallback(() => {
         const iframe = grafanaIframeRef.current;
@@ -722,9 +875,9 @@ export default function App() {
         });
     }, []);
 
-    const expandPathToItem = useCallback((itemId, {suppressAnimation} = {}) => {
-        const path = findNodePath(tree, itemId);
-        const ancestors = path ? path.slice(0, -1) : [];
+    const expandPathToItem = useCallback((itemId, {suppressAnimation, path} = {}) => {
+        const resolvedPath = path && path.length ? path : findNodePath(tree, itemId);
+        const ancestors = resolvedPath ? resolvedPath.slice(0, -1) : [];
         setExpandedIds(new Set(ancestors));
         if (suppressAnimation) {
             setDisableTreeAnimation(true);
@@ -817,14 +970,22 @@ export default function App() {
         setSelectedId(node.item.id);
         setPendingScrollId(node.uid);
         setIsMobileSidebarOpen(false);
-    }, []);
+        updateUrlForNode(node);
+    }, [updateUrlForNode]);
 
     const handleSelectItemById = useCallback((itemId) => {
         setSelectedId(itemId);
-        const selectedUid = findNodeUidById(tree, itemId);
-        setPendingScrollId(selectedUid || '');
+        const selectedNode = findNodeById(tree, itemId);
+        if (selectedNode) {
+            setPendingScrollId(selectedNode.uid);
+            updateUrlForNode(selectedNode);
+        } else {
+            const selectedUid = findNodeUidById(tree, itemId);
+            setPendingScrollId(selectedUid || '');
+            updateUrlForItemId(itemId);
+        }
         setIsMobileSidebarOpen(false);
-    }, [tree]);
+    }, [tree, updateUrlForItemId, updateUrlForNode]);
 
     const handleClearSearch = useCallback(() => {
         clearSearchRequestedRef.current = true;
