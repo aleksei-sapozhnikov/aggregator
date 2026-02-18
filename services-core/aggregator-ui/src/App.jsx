@@ -84,7 +84,7 @@ const buildCatalogTree = (items, dependencies) => {
 
     const rootItems = sortItemsByName(items.filter((item) => !childIds.has(item.id)));
 
-    const toNode = (itemId, visited = new Set(), pathSegments = []) => {
+    const toNode = (itemId, visited = new Set(), pathSegments = [], pathIds = []) => {
         if (visited.has(itemId)) {
             return null;
         }
@@ -94,18 +94,24 @@ const buildCatalogTree = (items, dependencies) => {
             return null;
         }
         const uid = pathSegments.join('/');
+        const path = [...pathIds, itemId];
         const children = sortNodesByName(
             (childrenMap.get(itemId) || [])
                 .map((childId, index) =>
-                    toNode(childId, new Set(visited), [...pathSegments, `${index}:${childId}`]),
+                    toNode(
+                        childId,
+                        new Set(visited),
+                        [...pathSegments, `${index}:${childId}`],
+                        path,
+                    ),
                 )
                 .filter(Boolean),
         );
-        return {item, children, uid};
+        return {item, children, uid, path};
     };
 
     return rootItems
-        .map((item, index) => toNode(item.id, new Set(), [`${index}:${item.id}`]))
+        .map((item, index) => toNode(item.id, new Set(), [`${index}:${item.id}`], []))
         .filter(Boolean);
 };
 
@@ -168,6 +174,26 @@ const findNodeById = (nodes, targetId) => {
     return null;
 };
 
+const findNodeByPath = (nodes, pathIds) => {
+    if (!Array.isArray(pathIds) || pathIds.length === 0) {
+        return null;
+    }
+    const [head, ...rest] = pathIds;
+    for (const node of nodes) {
+        if (node.item.id !== head) {
+            continue;
+        }
+        if (rest.length === 0) {
+            return node;
+        }
+        const found = findNodeByPath(node.children, rest);
+        if (found) {
+            return found;
+        }
+    }
+    return null;
+};
+
 const findNodeUidById = (nodes, targetId) => {
     for (const node of nodes) {
         if (node.item.id === targetId) {
@@ -221,7 +247,10 @@ const getInitialTheme = () => {
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 };
 
-const resolveBasePath = () => new URL('.', window.location.href).pathname;
+const resolveBasePath = () => {
+    const baseUrl = import.meta.env.BASE_URL || '/';
+    return new URL(baseUrl, window.location.origin).pathname;
+};
 
 const resolveBaseUrl = () => `${window.location.origin}${resolveBasePath()}`;
 
