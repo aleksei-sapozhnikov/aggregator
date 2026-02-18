@@ -94,4 +94,6 @@ ssh -i ~/.ssh/demo_key \
    git fetch --prune; \
    git checkout '${DEPLOY_BRANCH}'; \
    git reset --hard 'origin/${DEPLOY_BRANCH}'; \
+   docker image prune -f || true; \
+   docker builder prune -af --filter 'keep-storage=500MB' || true; \
    make rebuild-recreate ENV=demo"
