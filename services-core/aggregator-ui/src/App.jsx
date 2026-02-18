@@ -772,7 +772,7 @@ export default function App() {
             text: `Health checks: ${okCount} ok, ${failingChecks.length} failing: ${failingList}`,
             failingList,
         };
-    }, [selectedChecks]);
+    }, [selectedChecks, selectedId]);
     const isSidebarOpen = isMobileLayout ? isMobileSidebarOpen : isDesktopSidebarOpen;
     const shouldOffsetContentHeader = isMobileLayout || !isSidebarOpen;
 
@@ -818,7 +818,7 @@ export default function App() {
             setIsAffectedOpen(true);
             affectedAutoOpenRef.current = false;
         }
-    }, [affectedItems.length, selectedStatus]);
+    }, [affectedItems.length, selectedId, selectedStatus]);
 
     useEffect(() => {
         if (!checksAutoOpenRef.current) {
