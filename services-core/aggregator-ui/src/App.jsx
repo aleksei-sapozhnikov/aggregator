@@ -994,6 +994,40 @@ export default function App() {
     }, []);
 
     useEffect(() => {
+        if (!tree.length) {
+            return undefined;
+        }
+        const applySelectionFromLocation = () => {
+            const routeContext = readLocationRouteContext(basePath);
+            const resolved = resolveNodeFromLocation(tree, basePath);
+            if (!resolved) {
+                if (routeContext.hasRouteId) {
+                    normalizeUrlForRoute(routeContext.routeId, routeContext.pathIds, {replace: true});
+                }
+                return;
+            }
+            const {node} = resolved;
+            setSelectedId(node.item.id);
+            setPendingScrollId(node.uid);
+            setIsMobileSidebarOpen(false);
+            expandPathToItem(node.item.id, {suppressAnimation: true, path: node.path});
+            if (routeContext.hasRouteId || routeContext.hasPathParam) {
+                updateUrlForNode(node, {replace: true});
+            }
+        };
+
+        applySelectionFromLocation();
+
+        const handlePopState = () => {
+            applySelectionFromLocation();
+        };
+        window.addEventListener('popstate', handlePopState);
+        return () => {
+            window.removeEventListener('popstate', handlePopState);
+        };
+    }, [basePath, expandPathToItem, normalizeUrlForRoute, tree, updateUrlForNode]);
+
+    useEffect(() => {
         setIsAffectedOpen(false);
         affectedAutoOpenRef.current = true;
         setIsChecksOpen(false);
