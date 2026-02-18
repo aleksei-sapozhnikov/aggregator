@@ -996,6 +996,12 @@ export default function App() {
         updateUrlForItemId(itemId);
     }, [expandPathToItem, tree, updateUrlForItemId]);
 
+    const buildItemLink = useCallback((itemId) => {
+        const normalizedBase = basePath.endsWith('/') ? basePath.slice(0, -1) : basePath;
+        const prefix = normalizedBase === '' ? '' : normalizedBase;
+        return `${prefix}/item/${encodeURIComponent(itemId)}`;
+    }, [basePath]);
+
     const handleClearSearch = useCallback(() => {
         clearSearchRequestedRef.current = true;
         setSearchQuery('');
@@ -1408,14 +1414,17 @@ export default function App() {
                                                     />
                                                     <div className="affected-meta">
                                                         <div className="affected-row">
-                                                            <button
-                                                                type="button"
+                                                            <a
                                                                 className="affected-link"
                                                                 title={entry.name}
-                                                                onClick={() => handleSelectItemByIdNoPath(entry.id)}
+                                                                href={buildItemLink(entry.id)}
+                                                                onClick={(event) => {
+                                                                    event.preventDefault();
+                                                                    handleSelectItemByIdNoPath(entry.id);
+                                                                }}
                                                             >
                                                                 {entry.name}
-                                                            </button>
+                                                            </a>
                                                         </div>
                                                     </div>
                                                 </li>
