@@ -18,7 +18,7 @@ public class PollingHealthCheckScheduler {
   private static final Logger LOGGER = LoggerFactory.getLogger(PollingHealthCheckScheduler.class);
 
   private final List<PollingHealthCheck> checks;
-  private final HealthSignalIngestor ingestor;
+  private final List<HealthSignalIngestor> ingestors;
   private final TaskScheduler scheduler;
   private final HealthStateStore stateStore;
 
@@ -31,11 +31,11 @@ public class PollingHealthCheckScheduler {
    */
   public PollingHealthCheckScheduler(
       @Nonnull List<PollingHealthCheck> checks,
-      @Nonnull HealthSignalIngestor ingestor,
+      @Nonnull List<HealthSignalIngestor> ingestors,
       @Nonnull TaskScheduler scheduler,
       @Nonnull HealthStateStore stateStore) {
     this.checks = List.copyOf(Objects.requireNonNull(checks, "checks"));
-    this.ingestor = Objects.requireNonNull(ingestor, "ingestor");
+    this.ingestors = List.copyOf(Objects.requireNonNull(ingestors, "ingestors"));
     this.scheduler = Objects.requireNonNull(scheduler, "scheduler");
     this.stateStore = Objects.requireNonNull(stateStore, "stateStore");
   }
@@ -52,7 +52,9 @@ public class PollingHealthCheckScheduler {
     try {
       HealthSignal signal = check.poll();
       stateStore.updateStatus(signal.catalogItemId(), signal.status());
-      ingestor.ingest(signal);
+      for (HealthSignalIngestor ingestor : ingestors) {
+        ingestor.ingest(signal);
+      }
     } catch (RuntimeException ex) {
       LOGGER.warn("Health check {} failed unexpectedly", check.getCheckId(), ex);
     }

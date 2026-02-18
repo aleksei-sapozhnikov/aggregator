@@ -19,6 +19,28 @@ const sortNodesByName = (nodes) =>
         (a.item.name || a.item.id).localeCompare(b.item.name || b.item.id),
     );
 
+const parsePrometheusHealthStatus = (value) => {
+    let status = 'unknown';
+    if (Number.isFinite(value)) {
+        if (value >= 0.9) {
+            status = 'up';
+        } else if (value <= 0.1) {
+            status = 'down';
+        }
+    }
+    return status;
+};
+
+const compareHealthStatus = (left, right) => {
+    const order = {down: 0, unknown: 1, up: 2};
+    const leftRank = order[left] ?? 3;
+    const rightRank = order[right] ?? 3;
+    if (leftRank !== rightRank) {
+        return leftRank - rightRank;
+    }
+    return 0;
+};
+
 const collectNodeIds = (nodes) => {
     const ids = [];
     const visit = (node) => {
@@ -399,6 +421,8 @@ export default function App() {
     const [theme, setTheme] = useState(getInitialTheme);
     const [expandedIds, setExpandedIds] = useState(() => new Set());
     const [itemStatuses, setItemStatuses] = useState({});
+    const [itemCheckDown, setItemCheckDown] = useState({});
+    const [itemChecks, setItemChecks] = useState({});
     const [lastUpdated, setLastUpdated] = useState('');
     const [isMobileLayout, setIsMobileLayout] = useState(
         () => window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT}px)`).matches,
@@ -410,7 +434,9 @@ export default function App() {
     const [pendingScrollId, setPendingScrollId] = useState('');
     const [disableTreeAnimation, setDisableTreeAnimation] = useState(false);
     const [isAffectedOpen, setIsAffectedOpen] = useState(false);
+    const [isChecksOpen, setIsChecksOpen] = useState(false);
     const affectedAutoOpenRef = useRef(true);
+    const checksAutoOpenRef = useRef(true);
     const [grafanaHeight, setGrafanaHeight] = useState(0);
     const prevSearchTokensRef = useRef(0);
     const clearSearchRequestedRef = useRef(false);
@@ -551,39 +577,69 @@ export default function App() {
 
         const fetchStatuses = async () => {
             try {
-                const response = await fetch(
-                    `${prometheusBaseUrl}/api/v1/query?query=${encodeURIComponent('catalog_item_state')}`,
-                );
-                if (!response.ok) {
-                    console.error(`Failed to load Prometheus data: ${response.status}`);
-                    return;
-                }
-                const contentType = response.headers.get('content-type') || '';
-                if (!contentType.includes('application/json')) {
-                    return;
-                }
-                const payload = await response.json();
-                const results = payload?.data?.result ?? [];
-                const nextStatuses = {};
-                results.forEach((entry) => {
-                    const itemId = entry?.metric?.item_id;
-                    if (!itemId) {
-                        return;
-                    }
-                    const value = Number.parseFloat(entry?.value?.[1]);
-                    let status = 'unknown';
-                    if (Number.isFinite(value)) {
-                        if (value >= 0.9) {
-                            status = 'up';
-                        } else if (value <= 0.1) {
-                            status = 'down';
+                const [itemResponse, checkResponse] = await Promise.all([
+                    fetch(
+                        `${prometheusBaseUrl}/api/v1/query?query=${encodeURIComponent('catalog_item_state')}`,
+                    ),
+                    fetch(
+                        `${prometheusBaseUrl}/api/v1/query?query=${encodeURIComponent('catalog_item_check_state')}`,
+                    ),
+                ]);
+
+                if (itemResponse.ok) {
+                    const contentType = itemResponse.headers.get('content-type') || '';
+                    if (contentType.includes('application/json')) {
+                        const payload = await itemResponse.json();
+                        const results = payload?.data?.result ?? [];
+                        const nextStatuses = {};
+                        results.forEach((entry) => {
+                            const itemId = entry?.metric?.item_id;
+                            if (!itemId) {
+                                return;
+                            }
+                            const value = Number.parseFloat(entry?.value?.[1]);
+                            nextStatuses[itemId] = parsePrometheusHealthStatus(value);
+                        });
+                        if (!cancelled) {
+                            setItemStatuses(nextStatuses);
+                            setLastUpdated(new Date().toLocaleTimeString());
                         }
                     }
-                    nextStatuses[itemId] = status;
-                });
-                if (!cancelled) {
-                    setItemStatuses(nextStatuses);
-                    setLastUpdated(new Date().toLocaleTimeString());
+                } else {
+                    console.error(`Failed to load Prometheus data: ${itemResponse.status}`);
+                }
+
+                if (checkResponse.ok) {
+                    const contentType = checkResponse.headers.get('content-type') || '';
+                    if (contentType.includes('application/json')) {
+                        const payload = await checkResponse.json();
+                        const results = payload?.data?.result ?? [];
+                        const nextCheckDown = {};
+                        const nextItemChecks = {};
+                        results.forEach((entry) => {
+                            const itemId = entry?.metric?.item_id;
+                            const checkId = entry?.metric?.check_id;
+                            if (!itemId) {
+                                return;
+                            }
+                            const value = Number.parseFloat(entry?.value?.[1]);
+                            const status = parsePrometheusHealthStatus(value);
+                            if (checkId) {
+                                const list = nextItemChecks[itemId] || [];
+                                list.push({id: checkId, status});
+                                nextItemChecks[itemId] = list;
+                            }
+                            if (status === 'down') {
+                                nextCheckDown[itemId] = true;
+                            }
+                        });
+                        if (!cancelled) {
+                            setItemCheckDown(nextCheckDown);
+                            setItemChecks(nextItemChecks);
+                        }
+                    }
+                } else {
+                    console.error(`Failed to load Prometheus data: ${checkResponse.status}`);
                 }
             } catch (err) {
                 if (!cancelled) {
@@ -675,19 +731,48 @@ export default function App() {
                 return;
             }
             seen.add(id);
-            const item = itemMap.get(id);
-            const status = itemStatuses[id] || 'unknown';
-            if (status === 'up') {
+            if (!itemCheckDown[id]) {
                 return;
             }
+            const item = itemMap.get(id);
             affected.push({
                 id,
                 name: item?.name || id,
-                status,
+                status: 'down',
             });
         });
         return affected.sort((a, b) => a.name.localeCompare(b.name));
-    }, [itemMap, itemStatuses, selectedItem, tree]);
+    }, [itemCheckDown, itemMap, selectedItem, tree]);
+
+    const selectedChecks = useMemo(() => {
+        if (!selectedItem) {
+            return [];
+        }
+        const checks = itemChecks[selectedItem.id] || [];
+        return [...checks].sort((a, b) => {
+            const statusCompare = compareHealthStatus(a.status, b.status);
+            if (statusCompare !== 0) {
+                return statusCompare;
+            }
+            return a.id.localeCompare(b.id);
+        });
+    }, [itemChecks, selectedItem]);
+
+    const checkSummary = useMemo(() => {
+        const okCount = selectedChecks.filter((check) => check.status === 'up').length;
+        const failingChecks = selectedChecks.filter((check) => check.status === 'down');
+        if (failingChecks.length === 0) {
+            return {
+                text: `Health checks: ${okCount} ok`,
+                failingList: '',
+            };
+        }
+        const failingList = failingChecks.map((check) => check.id).join(', ');
+        return {
+            text: `Health checks: ${okCount} ok, ${failingChecks.length} failing: ${failingList}`,
+            failingList,
+        };
+    }, [selectedChecks]);
     const isSidebarOpen = isMobileLayout ? isMobileSidebarOpen : isDesktopSidebarOpen;
     const shouldOffsetContentHeader = isMobileLayout || !isSidebarOpen;
 
@@ -721,6 +806,8 @@ export default function App() {
     useEffect(() => {
         setIsAffectedOpen(false);
         affectedAutoOpenRef.current = true;
+        setIsChecksOpen(false);
+        checksAutoOpenRef.current = true;
     }, [selectedId]);
 
     useEffect(() => {
@@ -732,6 +819,20 @@ export default function App() {
             affectedAutoOpenRef.current = false;
         }
     }, [affectedItems.length, selectedStatus]);
+
+    useEffect(() => {
+        if (!checksAutoOpenRef.current) {
+            return;
+        }
+        if (selectedChecks.length === 0) {
+            return;
+        }
+        const hasNonUp = selectedChecks.some((check) => check.status !== 'up');
+        if (hasNonUp) {
+            setIsChecksOpen(true);
+        }
+        checksAutoOpenRef.current = false;
+    }, [selectedChecks]);
 
     useEffect(() => {
         if (!isSearchActive) {
@@ -1082,6 +1183,46 @@ export default function App() {
                                                 </li>
                                             ))
                                         )}
+                                    </ul>
+                                )}
+                            </section>
+                        )}
+                        {selectedChecks.length > 0 && (
+                            <section className={`affected-panel ${isChecksOpen ? 'is-open' : ''}`}>
+                                <button
+                                    type="button"
+                                    className={`affected-toggle ${isChecksOpen ? 'is-open' : ''}`}
+                                    onClick={() => setIsChecksOpen((prev) => !prev)}
+                                    aria-expanded={isChecksOpen}
+                                >
+                                    <span
+                                        className={`affected-chevron ${isChecksOpen ? 'is-open' : ''}`}
+                                        aria-hidden="true"
+                                    >
+                                        ›
+                                    </span>
+                                    <span className={`affected-summary ${isChecksOpen ? 'is-open' : ''}`}>
+                                        {checkSummary.text}
+                                    </span>
+                                </button>
+                                {isChecksOpen && (
+                                    <ul className="affected-list">
+                                        {selectedChecks.map((entry) => (
+                                            <li key={entry.id} className="affected-item">
+                                                <span
+                                                    className={`status-indicator status-${entry.status}`}
+                                                    aria-label={`Status: ${entry.status.toUpperCase()}`}
+                                                    title={`Status: ${entry.status.toUpperCase()}`}
+                                                />
+                                                <div className="affected-meta">
+                                                    <div className="affected-row">
+                                                        <span className="affected-name" title={entry.id}>
+                                                            {entry.id}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                        ))}
                                     </ul>
                                 )}
                             </section>
