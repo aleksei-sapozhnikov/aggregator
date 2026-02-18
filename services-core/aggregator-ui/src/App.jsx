@@ -987,6 +987,15 @@ export default function App() {
         setIsMobileSidebarOpen(false);
     }, [tree, updateUrlForItemId, updateUrlForNode]);
 
+    const handleSelectItemByIdNoPath = useCallback((itemId) => {
+        setSelectedId(itemId);
+        const selectedUid = findNodeUidById(tree, itemId);
+        setPendingScrollId(selectedUid || '');
+        setIsMobileSidebarOpen(false);
+        expandPathToItem(itemId, {suppressAnimation: true});
+        updateUrlForItemId(itemId);
+    }, [expandPathToItem, tree, updateUrlForItemId]);
+
     const handleClearSearch = useCallback(() => {
         clearSearchRequestedRef.current = true;
         setSearchQuery('');
@@ -1399,9 +1408,14 @@ export default function App() {
                                                     />
                                                     <div className="affected-meta">
                                                         <div className="affected-row">
-                                                            <span className="affected-name" title={entry.name}>
+                                                            <button
+                                                                type="button"
+                                                                className="affected-link"
+                                                                title={entry.name}
+                                                                onClick={() => handleSelectItemByIdNoPath(entry.id)}
+                                                            >
                                                                 {entry.name}
-                                                            </span>
+                                                            </button>
                                                         </div>
                                                     </div>
                                                 </li>
