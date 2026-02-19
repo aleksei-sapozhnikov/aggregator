@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+<line x1="512.0" y1="512.0" x2="839.6800000000001" y2="512.0" stroke="#2ECC71" stroke-width="61.44" stroke-linecap="round"/>
+<line x1="512.0" y1="512.0" x2="163.83999999999997" y2="860.1600000000001" stroke="#2ECC71" stroke-width="61.44" stroke-linecap="round"/>
+<line x1="512.0" y1="512.0" x2="225.27999999999997" y2="225.27999999999997" stroke="#E74C3C" stroke-width="61.44" stroke-linecap="round"/>
+
+<circle cx="839.6800000000001" cy="512.0" r="122.88" fill="#2ECC71"/>
+<circle cx="163.83999999999997" cy="860.1600000000001" r="122.88" fill="#2ECC71"/>
+<circle cx="225.27999999999997" cy="225.27999999999997" r="122.88" fill="#E74C3C"/>
+
+<circle cx="512.0" cy="512.0" r="184.32" fill="#27AE60"/>
+
+</svg>
