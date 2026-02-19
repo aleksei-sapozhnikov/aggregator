@@ -437,55 +437,57 @@ const CatalogNode = ({
         <div
             className={`node-row ${selectedId === node.item.id ? 'is-selected' : ''}`}
             data-node-id={node.uid}
-            onClick={() => onSelect(node)}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(event) => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault();
-                    onSelect(node);
-                }
-            }}
         >
-            <div className="node-main">
-                {hasChildren ? (
-                    <button
-                        className={`node-toggle ${isExpanded ? 'is-expanded' : ''}`}
-                        type="button"
-                        aria-label={isExpanded ? 'Collapse children' : 'Expand children'}
-                        title={isExpanded ? 'Collapse children' : 'Expand children'}
-                        onClick={(event) => {
-                            event.stopPropagation();
-                            onToggleNode(node);
-                        }}
-                    >
-                        <span
-                            className={`affected-chevron ${isExpanded ? 'is-open' : ''}`}
-                            aria-hidden="true"
-                        >
-                            ›
-                        </span>
-                    </button>
-                ) : (
-                    <span className="node-toggle-spacer" aria-hidden="true"/>
-                )}
-                <div
-                    className="node-label"
+            {hasChildren ? (
+                <button
+                    className={`node-toggle-column ${isExpanded ? 'is-expanded' : ''}`}
+                    type="button"
+                    aria-label={isExpanded ? 'Collapse children' : 'Expand children'}
+                    title={isExpanded ? 'Collapse children' : 'Expand children'}
+                    onClick={(event) => {
+                        event.stopPropagation();
+                        onToggleNode(node);
+                    }}
                 >
-          <span className="node-heading">
-            <span
-                className={`status-indicator status-${status}`}
-                aria-label={statusLabel}
-                title={statusLabel}
-            />
-              {node.item.name && <span className="node-name">{node.item.name}</span>}
-          </span>
-                    {(node.item.id || node.item.type) && (
-                        <span className="node-identity">
-              {node.item.id}
-                            {node.item.type ? ` (${node.item.type})` : ''}
-            </span>
-                    )}
+                    <span
+                        className={`affected-chevron ${isExpanded ? 'is-open' : ''}`}
+                        aria-hidden="true"
+                    >
+                        ›
+                    </span>
+                </button>
+            ) : (
+                <span className="node-toggle-column node-toggle-spacer" aria-hidden="true"/>
+            )}
+            <div
+                className="node-content"
+                onClick={() => onSelect(node)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        onSelect(node);
+                    }
+                }}
+            >
+                <div className="node-main">
+                    <div className="node-label">
+                      <span className="node-heading">
+                        <span
+                            className={`status-indicator status-${status}`}
+                            aria-label={statusLabel}
+                            title={statusLabel}
+                        />
+                          {node.item.name && <span className="node-name">{node.item.name}</span>}
+                      </span>
+                        {(node.item.id || node.item.type) && (
+                            <span className="node-identity">
+                          {node.item.id}
+                                {node.item.type ? ` (${node.item.type})` : ''}
+                        </span>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>
@@ -1438,43 +1440,45 @@ export default function App() {
                                             className={`node-row ${selectedId === item.id ? 'is-selected' : ''}`}
                                             data-node-id={item.id}
                                         >
-                                            <div className="node-main">
-                                                <span className="node-toggle-spacer" aria-hidden="true"/>
-                                                <div
-                                                    className="node-label"
-                                                    onClick={(event) => {
-                                                        event.stopPropagation();
+                                            <span className="node-toggle-column node-toggle-spacer" aria-hidden="true"/>
+                                            <div
+                                                className="node-content"
+                                                onClick={(event) => {
+                                                    event.stopPropagation();
+                                                    handleSelectItemById(item.id);
+                                                    expandPathToItem(item.id, {suppressAnimation: true});
+                                                }}
+                                                role="button"
+                                                tabIndex={0}
+                                                onKeyDown={(event) => {
+                                                    if (event.key === 'Enter' || event.key === ' ') {
+                                                        event.preventDefault();
                                                         handleSelectItemById(item.id);
                                                         expandPathToItem(item.id, {suppressAnimation: true});
-                                                    }}
-                                                    role="button"
-                                                    tabIndex={0}
-                                                    onKeyDown={(event) => {
-                                                        if (event.key === 'Enter' || event.key === ' ') {
-                                                            event.preventDefault();
-                                                            handleSelectItemById(item.id);
-                                                            expandPathToItem(item.id, {suppressAnimation: true});
-                                                        }
-                                                    }}
-                                                >
-                          <span className="node-heading">
-                            <span
-                                className={`status-indicator status-${itemStatuses[item.id] || 'unknown'}`}
-                                aria-label={`Status: ${(itemStatuses[item.id] || 'unknown').toUpperCase()}${
-                                    lastUpdated ? ` (at ${lastUpdated})` : ''
-                                }`}
-                                title={`Status: ${(itemStatuses[item.id] || 'unknown').toUpperCase()}${
-                                    lastUpdated ? ` (at ${lastUpdated})` : ''
-                                }`}
-                            />
-                              {item.name && <span className="node-name">{item.name}</span>}
-                          </span>
-                                                    {(item.id || item.type) && (
-                                                        <span className="node-identity">
-                              {item.id}
-                                                            {item.type ? ` (${item.type})` : ''}
-                            </span>
-                                                    )}
+                                                    }
+                                                }}
+                                            >
+                                                <div className="node-main">
+                                                    <div className="node-label">
+                                                      <span className="node-heading">
+                                                        <span
+                                                            className={`status-indicator status-${itemStatuses[item.id] || 'unknown'}`}
+                                                            aria-label={`Status: ${(itemStatuses[item.id] || 'unknown').toUpperCase()}${
+                                                                lastUpdated ? ` (at ${lastUpdated})` : ''
+                                                            }`}
+                                                            title={`Status: ${(itemStatuses[item.id] || 'unknown').toUpperCase()}${
+                                                                lastUpdated ? ` (at ${lastUpdated})` : ''
+                                                            }`}
+                                                        />
+                                                          {item.name && <span className="node-name">{item.name}</span>}
+                                                      </span>
+                                                        {(item.id || item.type) && (
+                                                            <span className="node-identity">
+                                                          {item.id}
+                                                                {item.type ? ` (${item.type})` : ''}
+                                                        </span>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
