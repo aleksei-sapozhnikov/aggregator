@@ -429,14 +429,6 @@ const CatalogNode = ({
                      }) => {
     const hasChildren = node.children.length > 0;
     const isExpanded = expandedIds.has(node.item.id);
-    buildDashboardUrl(
-        grafanaBaseUrl,
-        DASHBOARDS.timeline.uid,
-        DASHBOARDS.timeline.slug,
-        node.item.id,
-        theme,
-        DASHBOARDS.timeline.panelId,
-    );
     const statusLabel = `Status: ${status.toUpperCase()}${
         lastUpdated ? ` (at ${lastUpdated})` : ''
     }`;
