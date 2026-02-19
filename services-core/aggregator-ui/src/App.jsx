@@ -987,6 +987,21 @@ export default function App() {
         setIsMobileSidebarOpen(false);
     }, [tree, updateUrlForItemId, updateUrlForNode]);
 
+    const handleSelectItemByIdNoPath = useCallback((itemId) => {
+        setSelectedId(itemId);
+        const selectedUid = findNodeUidById(tree, itemId);
+        setPendingScrollId(selectedUid || '');
+        setIsMobileSidebarOpen(false);
+        expandPathToItem(itemId, {suppressAnimation: true});
+        updateUrlForItemId(itemId);
+    }, [expandPathToItem, tree, updateUrlForItemId]);
+
+    const buildItemLink = useCallback((itemId) => {
+        const normalizedBase = basePath.endsWith('/') ? basePath.slice(0, -1) : basePath;
+        const prefix = normalizedBase === '' ? '' : normalizedBase;
+        return `${prefix}/item/${encodeURIComponent(itemId)}`;
+    }, [basePath]);
+
     const handleClearSearch = useCallback(() => {
         clearSearchRequestedRef.current = true;
         setSearchQuery('');
@@ -1399,9 +1414,17 @@ export default function App() {
                                                     />
                                                     <div className="affected-meta">
                                                         <div className="affected-row">
-                                                            <span className="affected-name" title={entry.name}>
+                                                            <a
+                                                                className="affected-link"
+                                                                title={entry.name}
+                                                                href={buildItemLink(entry.id)}
+                                                                onClick={(event) => {
+                                                                    event.preventDefault();
+                                                                    handleSelectItemByIdNoPath(entry.id);
+                                                                }}
+                                                            >
                                                                 {entry.name}
-                                                            </span>
+                                                            </a>
                                                         </div>
                                                     </div>
                                                 </li>
