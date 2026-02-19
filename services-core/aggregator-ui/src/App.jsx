@@ -445,6 +445,15 @@ const CatalogNode = ({
         <div
             className={`node-row ${selectedId === node.item.id ? 'is-selected' : ''}`}
             data-node-id={node.uid}
+            onClick={() => onSelect(node)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    onSelect(node);
+                }
+            }}
         >
             <div className="node-main">
                 {hasChildren ? (
@@ -470,18 +479,6 @@ const CatalogNode = ({
                 )}
                 <div
                     className="node-label"
-                    onClick={(event) => {
-                        event.stopPropagation();
-                        onSelect(node);
-                    }}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(event) => {
-                        if (event.key === 'Enter' || event.key === ' ') {
-                            event.preventDefault();
-                            onSelect(node);
-                        }
-                    }}
                 >
           <span className="node-heading">
             <span
@@ -1026,6 +1023,9 @@ export default function App() {
     }, [selectedChecks, selectedId]);
     const isSidebarOpen = isMobileLayout ? isMobileSidebarOpen : isDesktopSidebarOpen;
     const shouldOffsetContentHeader = isMobileLayout || !isSidebarOpen;
+    const homeHref = basePath || '/';
+    const homeIconSrc = `${basePath || '/'}logo.svg`;
+    const iconSpriteHref = `${basePath || '/'}icons.svg`;
 
     const handleToggleSidebar = useCallback(() => {
         if (isMobileLayout) {
@@ -1301,25 +1301,36 @@ export default function App() {
             }`}
         >
             <aside className="sidebar">
-                <div className="sidebar-header">
-                    <div>
-                        <div className="app-title">Catalog Explorer</div>
-                        <div className="app-subtitle">Current State</div>
-                    </div>
-                </div>
+                {isSidebarOpen && (
+                    <>
+                        <a
+                            className="home-link sidebar-toggle"
+                            href={homeHref}
+                            aria-label="Go to home page"
+                        >
+                            <img src={homeIconSrc} alt="" aria-hidden="true"/>
+                        </a>
+                        <button
+                            type="button"
+                            aria-label="Close catalog panel"
+                            className="sidebar-close sidebar-close-in"
+                            onClick={handleToggleSidebar}
+                        >
+                            <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                                <use href={`${iconSpriteHref}#icon-panel-close`} />
+                            </svg>
+                        </button>
+                    </>
+                )}
+                <div className="sidebar-header" aria-hidden="true" />
                 {error && <div className="error">{error}</div>}
                 {!error && tree.length > 0 && (
-                    <div className="tree-controls">
-                        <button type="button" title="Collapse all dependencies" onClick={handleCollapseAll}>Collapse
-                            all
-                        </button>
-                        <button type="button" title="Expand to all dependencies" onClick={handleExpandAll}>Expand all
-                        </button>
-                    </div>
-                )}
-                {!error && tree.length > 0 && (
                     <div className="tree-search">
-                        <span className="search-icon" aria-hidden="true">🔍</span>
+                        <span className="search-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                                <use href={`${iconSpriteHref}#icon-search`} />
+                            </svg>
+                        </span>
                         <input
                             type="text"
                             placeholder="Search item..."
@@ -1343,6 +1354,27 @@ export default function App() {
                                 ✕
                             </button>
                         )}
+                    </div>
+                )}
+                {!error && tree.length > 0 && (
+                    <div className="tree-controls">
+                        <button
+                            type="button"
+                            title="Collapse all dependencies"
+                            onClick={handleCollapseAll}
+                            disabled={isSearchActive}
+                        >
+                            Collapse
+                            all
+                        </button>
+                        <button
+                            type="button"
+                            title="Expand to all dependencies"
+                            onClick={handleExpandAll}
+                            disabled={isSearchActive}
+                        >
+                            Expand all
+                        </button>
                     </div>
                 )}
                 {!error && tree.length === 0 && (
@@ -1434,14 +1466,6 @@ export default function App() {
                     </>
                 )}
             </aside>
-            <button
-                type="button"
-                aria-label={isSidebarOpen ? 'Collapse catalog panel' : 'Open catalog panel'}
-                className="hamburger-toggle sidebar-toggle"
-                onClick={handleToggleSidebar}
-            >
-                ☰
-            </button>
             {isMobileLayout && isSidebarOpen && (
                 <button
                     type="button"
@@ -1451,6 +1475,18 @@ export default function App() {
                 />
             )}
             <main className="content" ref={contentRef}>
+                {!isSidebarOpen && (
+                    <button
+                        type="button"
+                        aria-label="Open catalog panel"
+                        className="hamburger-toggle sidebar-toggle"
+                        onClick={handleToggleSidebar}
+                    >
+                        <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                            <use href={`${iconSpriteHref}#icon-menu`} />
+                        </svg>
+                    </button>
+                )}
                 <header
                     className={`content-header ${
                         shouldOffsetContentHeader ? 'content-header-with-toggle' : ''
