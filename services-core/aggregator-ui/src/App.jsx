@@ -5,7 +5,7 @@ import AboutContent from './AboutContent';
 const DASHBOARDS = {
     timeline: {
         uid: 'item-health-state',
-        slug: 'item-health-state',
+        slug: 'item_health_state',
         panelId: 3001,
     },
 };
