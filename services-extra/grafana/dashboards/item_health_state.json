@@ -123,8 +123,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(\n  (catalog_item_own_state{item_id=~\"${deps:regex}\"} and on() (vector(${failing_only}) == 0))\n  or (catalog_item_own_state{item_id=~\"${deps:regex}\"} and on(item_id) (min_over_time(catalog_item_own_state{item_id=~\"${deps:regex}\"}[$__range] @ end()) < 1) and on() (vector(${failing_only}) == 1))\n) and on() (vector(${dependencies}) == 1)",
-          "legendFormat": "\u200b[dep] {{item_name}}",
+          "expr": "(\n  (catalog_item_own_state{item_id=~\"${deps:regex}\"} and on() (vector(${failing_only}) == 0))\n  or (catalog_item_own_state{item_id=~\"${deps:regex}\"} and on(item_id) (min_over_time(catalog_item_own_state{item_id=~\"${deps:regex}\"}[$__range] @ end()) < 1) and on() (vector(${failing_only}) == 1))\n) and on() (vector(${affecting_items}) == 1)",
+          "legendFormat": "\u200bstate: {{item_id}}",
           "range": true,
           "refId": "B"
         },
@@ -135,7 +135,7 @@
           },
           "editorMode": "code",
           "expr": "(\n  (\n    (\n      (catalog_item_check_state{item_id=~\"${item_id:regex}\"} and on() (vector(${failing_only}) == 0))\n      or (catalog_item_check_state{item_id=~\"${item_id:regex}\"} and on(item_id,check_id,check_source) (min_over_time(catalog_item_check_state{item_id=~\"${item_id:regex}\"}[$__range] @ end()) < 1) and on() (vector(${failing_only}) == 1))\n    )\n    or (\n      (catalog_item_check_state{item_id=~\"${deps:regex}\"} and on() (vector(${failing_only}) == 0))\n      or (catalog_item_check_state{item_id=~\"${deps:regex}\"} and on(item_id,check_id,check_source) (min_over_time(catalog_item_check_state{item_id=~\"${deps:regex}\"}[$__range] @ end()) < 1) and on() (vector(${failing_only}) == 1))\n    )\n  ) and on() (vector(${healthchecks}) == 2)\n  or (\n    (catalog_item_check_state{item_id=~\"${item_id:regex}\"} and on() (vector(${failing_only}) == 0))\n    or (catalog_item_check_state{item_id=~\"${item_id:regex}\"} and on(item_id,check_id,check_source) (min_over_time(catalog_item_check_state{item_id=~\"${item_id:regex}\"}[$__range] @ end()) < 1) and on() (vector(${failing_only}) == 1))\n  ) and on() (vector(${healthchecks}) == 1)\n)",
-          "legendFormat": "\u200b\u200b[check] {{check_name}}",
+          "legendFormat": "\u200b\u200bcheck: {{check_id}}",
           "range": true,
           "refId": "C"
         }
