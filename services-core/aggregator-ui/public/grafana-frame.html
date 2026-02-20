@@ -37,6 +37,30 @@
         const initialTarget = srcParam ? decodeURIComponent(srcParam) : '';
         const themeParam = params.get('theme');
         const iframe = document.getElementById('grafana-embed');
+        let detachEscHandler = null;
+
+        const bindEscGuard = (targetWindow) => {
+            if (detachEscHandler) {
+                detachEscHandler();
+                detachEscHandler = null;
+            }
+            if (!targetWindow?.addEventListener) {
+                return;
+            }
+            const escHandler = (event) => {
+                if (event.key === 'Escape' || event.keyCode === 27) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    if (typeof event.stopImmediatePropagation === 'function') {
+                        event.stopImmediatePropagation();
+                    }
+                }
+            };
+            targetWindow.addEventListener('keydown', escHandler, true);
+            detachEscHandler = () => {
+                targetWindow.removeEventListener('keydown', escHandler, true);
+            };
+        };
 
         const applyTheme = (value) => {
             const nextTheme = value === 'dark' ? 'dark' : 'light';
@@ -65,6 +89,7 @@
                 if (!innerWindow?.history) {
                     return;
                 }
+                bindEscGuard(innerWindow);
                 const history = innerWindow.history;
                 if (history.__disableHistory) {
                     return;
@@ -77,6 +102,11 @@
                     history.pushState = originalPushState;
                     history.replaceState = originalReplaceState;
                 };
+                const mousetrap = innerWindow.Mousetrap;
+                if (mousetrap) {
+                    mousetrap.unbindGlobal?.('esc');
+                    mousetrap.unbind?.('esc');
+                }
             } catch (error) {
                 // Ignore cross-origin errors if Grafana is hosted elsewhere.
             }

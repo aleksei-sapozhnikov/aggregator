@@ -568,7 +568,6 @@ export default function App() {
     const clearSearchRequestedRef = useRef(false);
     const catalogTreeRef = useRef(null);
     const grafanaIframeRef = useRef(null);
-    const grafanaEscHandlerRef = useRef(null);
     const contentRef = useRef(null);
     const headerRef = useRef(null);
     const lastHistoryUrlRef = useRef(window.location.href);
@@ -702,39 +701,10 @@ export default function App() {
                     window.location.origin,
                 );
             }
-            const previousHandler = grafanaEscHandlerRef.current;
-            if (previousHandler) {
-                iframe.contentWindow.removeEventListener('keydown', previousHandler, true);
-            }
-            const handler = (event) => {
-                if (event.key === 'Escape' || event.keyCode === 27) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                }
-            };
-            grafanaEscHandlerRef.current = handler;
-            iframe.contentWindow.addEventListener('keydown', handler, true);
-
-            const mousetrap = iframe.contentWindow.Mousetrap;
-            if (mousetrap) {
-                mousetrap.unbindGlobal?.('esc');
-                mousetrap.unbind?.('esc');
-            }
         } catch (error) {
             // Ignore cross-origin access issues when Grafana is hosted elsewhere.
         }
     }, [theme]);
-
-    useEffect(
-        () => () => {
-            const iframe = grafanaIframeRef.current;
-            const handler = grafanaEscHandlerRef.current;
-            if (iframe?.contentWindow && handler) {
-                iframe.contentWindow.removeEventListener('keydown', handler, true);
-            }
-        },
-        [],
-    );
 
     useEffect(() => {
         document.body.dataset.theme = theme;
