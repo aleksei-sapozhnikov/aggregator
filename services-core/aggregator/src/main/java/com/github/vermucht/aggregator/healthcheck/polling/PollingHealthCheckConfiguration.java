@@ -71,6 +71,7 @@ public class PollingHealthCheckConfiguration {
       @Nonnull RestTemplateBuilder restTemplateBuilder,
       @Nonnull Catalog catalog) {
     String checkId = requireText(definition.checkId(), "checkId");
+    String checkName = optionalText(definition.name()).orElse(checkId);
     String catalogItemId = requireText(definition.catalogItemId(), "catalogItemId");
     ItemId itemId = ItemId.of(catalogItemId);
     if (!catalog.items().containsKey(itemId)) {
@@ -88,7 +89,7 @@ public class PollingHealthCheckConfiguration {
     }
     RestTemplate restTemplate =
         restTemplateBuilder.setConnectTimeout(timeout).setReadTimeout(timeout).build();
-    return new HttpHealthCheck(itemId, checkId, uri, method, interval, restTemplate);
+    return new HttpHealthCheck(itemId, checkId, checkName, uri, method, interval, restTemplate);
   }
 
   @Nonnull
@@ -97,5 +98,13 @@ public class PollingHealthCheckConfiguration {
       throw new IllegalStateException("Health check must define " + field);
     }
     return value;
+  }
+
+  @Nonnull
+  private java.util.Optional<String> optionalText(String value) {
+    if (value == null || value.isBlank()) {
+      return java.util.Optional.empty();
+    }
+    return java.util.Optional.of(value);
   }
 }

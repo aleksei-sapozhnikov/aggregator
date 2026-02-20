@@ -19,6 +19,7 @@ package com.github.vermucht.aggregator.export;
  *   <li>{@code item_name} - display name of the item
  *   <li>{@code item_type} - catalog item type
  *   <li>{@code check_id} - health check identifier
+ *   <li>{@code check_name} - human-readable health check name
  *   <li>{@code check_source} - health check source identifier
  *   <li>{@code source_id} - source catalog item identifier
  *   <li>{@code target_id} - target catalog item identifier
