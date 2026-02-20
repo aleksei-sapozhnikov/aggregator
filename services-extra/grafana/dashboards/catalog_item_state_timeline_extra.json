@@ -1,0 +1,307 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed"
+          },
+          "custom": {
+            "axisPlacement": "auto",
+            "fillOpacity": 100,
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineWidth": 0,
+            "spanNulls": false
+          },
+          "fieldMinMax": false,
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "color": "red",
+                  "index": 1,
+                  "text": "DOWN"
+                },
+                "1": {
+                  "color": "green",
+                  "index": 0,
+                  "text": "UP"
+                },
+                "0.5": {
+                  "color": "yellow",
+                  "index": 2,
+                  "text": "UNKNOWN"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "noValue": "No data",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": 0
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 18,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 3001,
+      "options": {
+        "alignValue": "left",
+        "legend": {
+          "displayMode": "hidden",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "mergeValues": false,
+        "rowHeight": 0.5,
+        "showValue": "never",
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "catalog_item_state{item_id=~\"${item_id:regex}\"}",
+          "hide": false,
+          "instant": false,
+          "legendFormat": "{{item_id}}",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "(\n  (catalog_item_own_state{item_id=~\"${deps:regex}\"} and on() (vector(${failing_only}) == 0))\n  or (catalog_item_own_state{item_id=~\"${deps:regex}\"} and on(item_id) (min_over_time(catalog_item_own_state{item_id=~\"${deps:regex}\"}[$__range] @ end()) < 1) and on() (vector(${failing_only}) == 1))\n) and on() (vector(${affecting_items}) == 1)",
+          "legendFormat": "\u200b[state] {{item_id}}",
+          "range": true,
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "(\n  (\n    (catalog_item_check_state{item_id=~\"${deps:regex}\"} and on() (vector(${failing_only}) == 0))\n    or (catalog_item_check_state{item_id=~\"${deps:regex}\"} and on(item_id,check_id,check_source) (min_over_time(catalog_item_check_state{item_id=~\"${deps:regex}\"}[$__range] @ end()) < 1) and on() (vector(${failing_only}) == 1))\n  ) and on() (vector(${healthchecks}) == 1) and on() (vector(${affecting_items}) == 1)\n  or (\n    (catalog_item_check_state{item_id=~\"${item_id:regex}\"} and on() (vector(${failing_only}) == 0))\n    or (catalog_item_check_state{item_id=~\"${item_id:regex}\"} and on(item_id,check_id,check_source) (min_over_time(catalog_item_check_state{item_id=~\"${item_id:regex}\"}[$__range] @ end()) < 1) and on() (vector(${failing_only}) == 1))\n  ) and on() (vector(${healthchecks}) == 1)\n)",
+          "legendFormat": "\u200b\u200b[check] {{check_id}}",
+          "range": true,
+          "refId": "C"
+        }
+      ],
+      "title": "",
+      "type": "state-timeline"
+    }
+  ],
+  "preload": false,
+  "refresh": "10s",
+  "schemaVersion": 42,
+  "tags": [
+    "catalog",
+    "state",
+    "timeline"
+  ],
+  "templating": {
+    "list": [
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "definition": "label_values(catalog_item_state, item_id)",
+        "hide": 2,
+        "includeAll": false,
+        "name": "item_id",
+        "options": [],
+        "query": {
+          "query": "label_values(catalog_item_state, item_id)",
+          "refId": "PrometheusVariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "definition": "",
+        "includeAll": false,
+        "multi": false,
+        "name": "affecting_items",
+        "current": {
+          "selected": true,
+          "text": "show",
+          "value": "1"
+        },
+        "options": [
+          {
+            "selected": true,
+            "text": "show",
+            "value": "1"
+          },
+          {
+            "selected": false,
+            "text": "hide",
+            "value": "0"
+          }
+        ],
+        "query": "show : 1, hide : 0",
+        "refresh": 1,
+        "regex": "",
+        "sort": 1,
+        "type": "custom"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "definition": "",
+        "includeAll": false,
+        "multi": false,
+        "name": "healthchecks",
+        "current": {
+          "selected": true,
+          "text": "show",
+          "value": "1"
+        },
+        "options": [
+          {
+            "selected": true,
+            "text": "show",
+            "value": "1"
+          },
+          {
+            "selected": false,
+            "text": "hide",
+            "value": "0"
+          }
+        ],
+        "query": "show : 1, hide : 0",
+        "refresh": 1,
+        "regex": "",
+        "sort": 1,
+        "type": "custom"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "definition": "",
+        "includeAll": false,
+        "multi": false,
+        "name": "failing_only",
+        "current": {
+          "selected": false,
+          "text": "false",
+          "value": "0"
+        },
+        "options": [
+          {
+            "selected": false,
+            "text": "true",
+            "value": "1"
+          },
+          {
+            "selected": true,
+            "text": "false",
+            "value": "0"
+          }
+        ],
+        "query": "true : 1, false : 0",
+        "refresh": 1,
+        "regex": "",
+        "sort": 1,
+        "type": "custom"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "definition": "label_values(catalog_dependency{source_id=\"$item_id\"}, target_id)",
+        "hide": 2,
+        "includeAll": true,
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "multi": true,
+        "name": "deps",
+        "options": [],
+        "query": {
+          "query": "label_values(catalog_dependency{source_id=\"$item_id\"}, target_id)",
+          "refId": "PrometheusVariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-1d",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Catalog Item State - Timeline (Extra)",
+  "uid": "catalog-item-state-timeline-extra"
+}
