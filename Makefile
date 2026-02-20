@@ -63,6 +63,12 @@ endif
 
 COMPOSE_CMD := $(COMPOSE) --project-name $(PROJECT) $(STACK)
 
+# ---- Chaos-maker last-start control to ensure ----
+# ---- it starts when services ready            ----
+CHAOS_LAST_ENVS := demo local-demo
+CHAOS_SVC := chaos-maker
+CHAOS_LAST := $(filter $(ENV),$(CHAOS_LAST_ENVS))
+
 # ---- Local-only data dirs (if you still need them elsewhere) ----
 LOCAL_PROMETHEUS_DATA_DIR := ./.temp/prometheus/data
 LOCAL_GRAFANA_DATA_DIR := ./.temp/grafana/data
@@ -106,7 +112,12 @@ info:
 
 # ---- Common targets ----
 up: info
+ifneq ($(CHAOS_LAST),)
+	$(COMPOSE_CMD) up --detach --remove-orphans --scale $(CHAOS_SVC)=0
+	$(COMPOSE_CMD) up --detach --remove-orphans $(CHAOS_SVC)
+else
 	$(COMPOSE_CMD) up --detach --remove-orphans
+endif
 
 down: info
 	$(COMPOSE_CMD) down --remove-orphans
@@ -115,13 +126,28 @@ restart: info
 	$(COMPOSE_CMD) restart
 
 recreate: info
+ifneq ($(CHAOS_LAST),)
+	$(COMPOSE_CMD) up --detach --force-recreate --remove-orphans --scale $(CHAOS_SVC)=0
+	$(COMPOSE_CMD) up --detach --force-recreate --remove-orphans $(CHAOS_SVC)
+else
 	$(COMPOSE_CMD) up --detach --force-recreate --remove-orphans
+endif
 
 rebuild: info
+ifneq ($(CHAOS_LAST),)
+	$(COMPOSE_CMD) up --detach --build --remove-orphans --scale $(CHAOS_SVC)=0
+	$(COMPOSE_CMD) up --detach --build --remove-orphans $(CHAOS_SVC)
+else
 	$(COMPOSE_CMD) up --detach --build --remove-orphans
+endif
 
 rebuild-recreate: info
+ifneq ($(CHAOS_LAST),)
+	$(COMPOSE_CMD) up --detach --build --force-recreate --remove-orphans --scale $(CHAOS_SVC)=0
+	$(COMPOSE_CMD) up --detach --build --force-recreate --remove-orphans $(CHAOS_SVC)
+else
 	$(COMPOSE_CMD) up --detach --build --force-recreate --remove-orphans
+endif
 
 clean: info
 	$(COMPOSE_CMD) down --remove-orphans --volumes
