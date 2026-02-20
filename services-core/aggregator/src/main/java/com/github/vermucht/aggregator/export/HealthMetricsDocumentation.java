@@ -7,7 +7,7 @@ package com.github.vermucht.aggregator.export;
  *
  * <ul>
  *   <li>{@code catalog_item_state} (gauge)
- *   <li>{@code catalog_item_own_state} (gauge)
+ *   <li>{@code catalog_item_own_state} (gauge, emitted only for items with configured health checks)
  *   <li>{@code catalog_item_check_state} (gauge)
  *   <li>{@code catalog_dependency} (gauge)
  * </ul>

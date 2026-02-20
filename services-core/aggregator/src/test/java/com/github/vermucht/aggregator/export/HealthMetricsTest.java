@@ -139,14 +139,11 @@ class HealthMetricsTest {
             .gauge();
 
     assertThat(gatewayOwnGauge).isNotNull();
-    assertThat(suiteOwnGauge).isNotNull();
+    assertThat(suiteOwnGauge).isNull();
 
     assertThat(gatewayOwnGauge.value()).isEqualTo(HealthStatusMetrics.UNKNOWN_VALUE);
-    assertThat(suiteOwnGauge.value()).isEqualTo(HealthStatusMetrics.UNKNOWN_VALUE);
-
-    healthStateStore.updateStatus(ItemId.of("payments-suite"), HealthStatus.DOWN);
-
-    assertThat(suiteOwnGauge.value()).isEqualTo(HealthStatusMetrics.DOWN_VALUE);
+    healthStateStore.updateStatus(ItemId.of("api-gateway"), HealthStatus.DOWN);
+    assertThat(gatewayOwnGauge.value()).isEqualTo(HealthStatusMetrics.DOWN_VALUE);
   }
 
   @Test

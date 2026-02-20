@@ -14,9 +14,11 @@ import jakarta.annotation.PostConstruct;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import org.springframework.stereotype.Component;
 
 /** Registers Prometheus metrics for service and product health state. */
@@ -43,6 +45,7 @@ public class HealthMetrics {
   private final HealthStateStore healthStateStore;
   private final HealthCheckStateStore checkStateStore;
   private final List<PollingHealthCheck> checks;
+  private final Set<ItemId> itemsWithChecks;
 
   /** Creates and registers item-level health gauges based on the catalog and health state store. */
   public HealthMetrics(
@@ -56,6 +59,10 @@ public class HealthMetrics {
     this.healthStateStore = Objects.requireNonNull(healthStateStore, "healthStateStore");
     this.checkStateStore = Objects.requireNonNull(checkStateStore, "checkStateStore");
     this.checks = List.copyOf(Objects.requireNonNull(checks, "checks"));
+    this.itemsWithChecks = new HashSet<>();
+    for (PollingHealthCheck check : this.checks) {
+      itemsWithChecks.add(check.getCatalogItemId());
+    }
 
     for (Item item : catalog.items().values()) {
       ItemId itemId = item.getId();
@@ -68,15 +75,7 @@ public class HealthMetrics {
           .tag(LABEL_ITEM_NAME, item.getName())
           .tag(LABEL_ITEM_TYPE, item.getType())
           .register(registry);
-      Gauge.builder(
-              ITEM_OWN_METRIC_NAME,
-              healthStateStore,
-              store -> HealthStatusMetrics.toGaugeValue(store.getRawStatus(itemId)))
-          .description("Raw health from item health checks (1=UP, 0.5=UNKNOWN, 0=DOWN)")
-          .tag(LABEL_ITEM_ID, itemId.getValue())
-          .tag(LABEL_ITEM_NAME, item.getName())
-          .tag(LABEL_ITEM_TYPE, item.getType())
-          .register(registry);
+      registerOwnMetricIfHasChecks(item);
     }
 
     registerCheckMetrics();
@@ -102,19 +101,28 @@ public class HealthMetrics {
           .tag(LABEL_ITEM_NAME, item.getName())
           .tag(LABEL_ITEM_TYPE, item.getType())
           .register(registry);
-      Gauge.builder(
-              ITEM_OWN_METRIC_NAME,
-              healthStateStore,
-              store -> HealthStatusMetrics.toGaugeValue(store.getRawStatus(itemId)))
-          .description("Raw health from item health checks (1=UP, 0.5=UNKNOWN, 0=DOWN)")
-          .tag(LABEL_ITEM_ID, itemId.getValue())
-          .tag(LABEL_ITEM_NAME, item.getName())
-          .tag(LABEL_ITEM_TYPE, item.getType())
-          .register(registry);
+      registerOwnMetricIfHasChecks(item);
     }
 
     registerCheckMetrics();
     registerDependencyMetrics();
+  }
+
+  /** Registers own health metric only for items that have at least one health check. */
+  private void registerOwnMetricIfHasChecks(Item item) {
+    ItemId itemId = item.getId();
+    if (!itemsWithChecks.contains(itemId)) {
+      return;
+    }
+    Gauge.builder(
+            ITEM_OWN_METRIC_NAME,
+            healthStateStore,
+            store -> HealthStatusMetrics.toGaugeValue(store.getRawStatus(itemId)))
+        .description("Raw health from item health checks (1=UP, 0.5=UNKNOWN, 0=DOWN)")
+        .tag(LABEL_ITEM_ID, itemId.getValue())
+        .tag(LABEL_ITEM_NAME, item.getName())
+        .tag(LABEL_ITEM_TYPE, item.getType())
+        .register(registry);
   }
 
   /** Registers health check-level metrics. */
