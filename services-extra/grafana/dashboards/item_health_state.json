@@ -65,7 +65,7 @@
               "type": "value"
             }
           ],
-          "noValue": "No dependencies",
+          "noValue": "No data",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -79,12 +79,12 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 14,
+        "h": 18,
         "w": 24,
         "x": 0,
         "y": 0
       },
-      "id": 2001,
+      "id": 3001,
       "options": {
         "alignValue": "left",
         "legend": {
@@ -118,15 +118,29 @@
           "refId": "A"
         },
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
           "editorMode": "code",
-          "expr": "catalog_item_state{item_id=~\"${deps:regex}\"}",
-          "intervalFactor": 1,
-          "legendFormat": "{{item_id}}",
+          "expr": "(\n  (catalog_item_own_state{item_id=~\"${deps:regex}\"} and on() (vector(${failing_only}) == 0))\n  or (catalog_item_own_state{item_id=~\"${deps:regex}\"} and on(item_id) (min_over_time(catalog_item_own_state{item_id=~\"${deps:regex}\"}[$__range] @ end()) < 1) and on() (vector(${failing_only}) == 1))\n) and on() (vector(${affecting_items}) == 1)",
+          "legendFormat": "\u200bstate: {{item_id}}",
           "range": true,
           "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "(\n  (\n    (\n      (catalog_item_check_state{item_id=~\"${item_id:regex}\"} and on() (vector(${failing_only}) == 0))\n      or (catalog_item_check_state{item_id=~\"${item_id:regex}\"} and on(item_id,check_id,check_source) (min_over_time(catalog_item_check_state{item_id=~\"${item_id:regex}\"}[$__range] @ end()) < 1) and on() (vector(${failing_only}) == 1))\n    )\n    or (\n      (catalog_item_check_state{item_id=~\"${deps:regex}\"} and on() (vector(${failing_only}) == 0))\n      or (catalog_item_check_state{item_id=~\"${deps:regex}\"} and on(item_id,check_id,check_source) (min_over_time(catalog_item_check_state{item_id=~\"${deps:regex}\"}[$__range] @ end()) < 1) and on() (vector(${failing_only}) == 1))\n    )\n  ) and on() (vector(${healthchecks}) == 2)\n  or (\n    (catalog_item_check_state{item_id=~\"${item_id:regex}\"} and on() (vector(${failing_only}) == 0))\n    or (catalog_item_check_state{item_id=~\"${item_id:regex}\"} and on(item_id,check_id,check_source) (min_over_time(catalog_item_check_state{item_id=~\"${item_id:regex}\"}[$__range] @ end()) < 1) and on() (vector(${failing_only}) == 1))\n  ) and on() (vector(${healthchecks}) == 1)\n)",
+          "legendFormat": "\u200b\u200bcheck: {{check_id}}",
+          "range": true,
+          "refId": "C"
         }
       ],
-      "title": "Dependencies",
+      "title": "",
       "type": "state-timeline"
     }
   ],
@@ -135,7 +149,8 @@
   "schemaVersion": 42,
   "tags": [
     "catalog",
-    "state"
+    "state",
+    "timeline"
   ],
   "templating": {
     "list": [
@@ -164,43 +179,27 @@
           "uid": "prometheus"
         },
         "definition": "",
-        "includeAll": true,
-        "allValue": ".*",
+        "includeAll": false,
         "multi": false,
-        "name": "dep_depth",
+        "name": "affecting_items",
         "current": {
           "selected": true,
-          "text": "1 (direct)",
+          "text": "show",
           "value": "1"
         },
         "options": [
           {
             "selected": true,
-            "text": "1 (direct)",
+            "text": "show",
             "value": "1"
           },
           {
             "selected": false,
-            "text": "2",
-            "value": "1|2"
-          },
-          {
-            "selected": false,
-            "text": "3",
-            "value": "1|2|3"
-          },
-          {
-            "selected": false,
-            "text": "4",
-            "value": "1|2|3|4"
-          },
-          {
-            "selected": false,
-            "text": "5",
-            "value": "1|2|3|4|5"
+            "text": "hide",
+            "value": "0"
           }
         ],
-        "query": "1 (direct) : 1,2 : 1|2,3 : 1|2|3,4 : 1|2|3|4,5 : 1|2|3|4|5",
+        "query": "show : 1, hide : 0",
         "refresh": 1,
         "regex": "",
         "sort": 1,
@@ -211,13 +210,88 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "definition": "label_values(catalog_dependency{source_id=\"$item_id\",dep_depth=~\"^(${dep_depth:raw})$\"}, target_id)",
+        "definition": "",
+        "includeAll": false,
+        "multi": false,
+        "name": "healthchecks",
+        "current": {
+          "selected": true,
+          "text": "own only",
+          "value": "1"
+        },
+        "options": [
+          {
+            "selected": false,
+            "text": "own & affecting",
+            "value": "2"
+          },
+          {
+            "selected": true,
+            "text": "own only",
+            "value": "1"
+          },
+          {
+            "selected": false,
+            "text": "hide",
+            "value": "0"
+          }
+        ],
+        "query": "own & affecting : 2, own only : 1, hide : 0",
+        "refresh": 1,
+        "regex": "",
+        "sort": 1,
+        "type": "custom"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "definition": "",
+        "includeAll": false,
+        "multi": false,
+        "name": "failing_only",
+        "current": {
+          "selected": true,
+          "text": "true",
+          "value": "1"
+        },
+        "options": [
+          {
+            "selected": true,
+            "text": "true",
+            "value": "1"
+          },
+          {
+            "selected": false,
+            "text": "false",
+            "value": "0"
+          }
+        ],
+        "query": "true : 1, false : 0",
+        "refresh": 1,
+        "regex": "",
+        "sort": 1,
+        "type": "custom"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "definition": "label_values(catalog_dependency{source_id=\"$item_id\"}, target_id)",
+        "hide": 2,
         "includeAll": true,
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
         "multi": true,
         "name": "deps",
         "options": [],
         "query": {
-          "query": "label_values(catalog_dependency{source_id=\"$item_id\",dep_depth=~\"^(${dep_depth:raw})$\"}, target_id)",
+          "query": "label_values(catalog_dependency{source_id=\"$item_id\"}, target_id)",
           "refId": "PrometheusVariableQuery"
         },
         "refresh": 1,
@@ -233,6 +307,6 @@
   },
   "timepicker": {},
   "timezone": "",
-  "title": "Catalog Item State - Timeline [Not for use]",
-  "uid": "catalog-item-state-timeline"
+  "title": "Item Health State",
+  "uid": "item-health-state"
 }
