@@ -302,6 +302,6 @@
   },
   "timepicker": {},
   "timezone": "",
-  "title": "Catalog Item State - Timeline (Extra)",
-  "uid": "catalog-item-state-timeline-extra"
+  "title": "Item Health State",
+  "uid": "item-health-state"
 }
