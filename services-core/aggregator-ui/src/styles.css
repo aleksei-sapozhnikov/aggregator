@@ -123,9 +123,6 @@ body {
 
 .sidebar-header {
   min-height: 40px;
-  border-bottom: 1px solid var(--border);
-  margin-left: 56px;
-  margin-bottom: 12px;
 }
 
 .hamburger-toggle {
