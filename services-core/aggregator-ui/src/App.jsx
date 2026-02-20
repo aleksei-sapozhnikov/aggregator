@@ -537,6 +537,7 @@ export default function App() {
     const [selectedId, setSelectedId] = useState('');
     const [error, setError] = useState('');
     const [theme, setTheme] = useState(getInitialTheme);
+    const initialFrameThemeRef = useRef(theme);
     const [expandedIds, setExpandedIds] = useState(() => new Set());
     const [itemStatuses, setItemStatuses] = useState({});
     const [itemCheckDown, setItemCheckDown] = useState({});
@@ -684,6 +685,10 @@ export default function App() {
         }
         try {
             grafanaFrameReadyRef.current = true;
+            iframe.contentWindow.postMessage(
+                {type: 'set-frame-theme', theme},
+                window.location.origin,
+            );
             if (pendingGrafanaSrcRef.current) {
                 iframe.contentWindow.postMessage(
                     {type: 'set-grafana-src', src: pendingGrafanaSrcRef.current},
@@ -711,7 +716,7 @@ export default function App() {
         } catch (error) {
             // Ignore cross-origin access issues when Grafana is hosted elsewhere.
         }
-    }, []);
+    }, [theme]);
 
     useEffect(
         () => () => {
@@ -727,6 +732,17 @@ export default function App() {
     useEffect(() => {
         document.body.dataset.theme = theme;
         localStorage.setItem('aggregator-ui-theme', theme);
+    }, [theme]);
+
+    useEffect(() => {
+        const iframe = grafanaIframeRef.current;
+        if (!iframe?.contentWindow || !grafanaFrameReadyRef.current) {
+            return;
+        }
+        iframe.contentWindow.postMessage(
+            {type: 'set-frame-theme', theme},
+            window.location.origin,
+        );
     }, [theme]);
 
     useEffect(() => {
@@ -1057,6 +1073,7 @@ export default function App() {
 
     const buildGrafanaFrameUrl = useCallback((grafanaUrl) => {
         const frameUrl = new URL('grafana-frame.html', resolveBaseUrl());
+        frameUrl.searchParams.set('theme', initialFrameThemeRef.current);
         if (grafanaUrl) {
             frameUrl.searchParams.set('src', encodeURIComponent(grafanaUrl));
         }
@@ -1273,7 +1290,7 @@ export default function App() {
                 {type: 'set-grafana-src', src: dashboardUrl},
                 window.location.origin,
             );
-            return;
+
         }
     }, [grafanaBaseUrl, selectedItem, theme]);
 
