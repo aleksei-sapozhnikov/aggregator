@@ -867,14 +867,15 @@ export default function App() {
                         results.forEach((entry) => {
                             const itemId = entry?.metric?.item_id;
                             const checkId = entry?.metric?.check_id;
+                            const checkName = entry?.metric?.check_name || checkId;
                             if (!itemId) {
                                 return;
                             }
                             const value = Number.parseFloat(entry?.value?.[1]);
                             const status = parsePrometheusHealthStatus(value);
-                            if (checkId) {
+                            if (checkId && checkName) {
                                 const list = nextItemChecks[itemId] || [];
-                                list.push({id: checkId, status});
+                                list.push({id: checkId, name: checkName, status});
                                 nextItemChecks[itemId] = list;
                             }
                             if (status === 'down') {
@@ -1002,7 +1003,7 @@ export default function App() {
             if (statusCompare !== 0) {
                 return statusCompare;
             }
-            return a.id.localeCompare(b.id);
+            return (a.name || a.id).localeCompare(b.name || b.id) || a.id.localeCompare(b.id);
         });
     }, [itemChecks, selectedItem]);
 
@@ -1015,7 +1016,7 @@ export default function App() {
                 failingList: '',
             };
         }
-        const failingList = failingChecks.map((check) => check.id).join(', ');
+        const failingList = failingChecks.map((check) => check.name || check.id).join(', ');
         return {
             text: `Health checks: ${okCount} ok, ${failingChecks.length} failing: ${failingList}`,
             failingList,
@@ -1620,8 +1621,11 @@ export default function App() {
                                                 />
                                                 <div className="affected-meta">
                                                     <div className="affected-row">
-                                                        <span className="affected-name" title={entry.id}>
-                                                            {entry.id}
+                                                        <span
+                                                            className="affected-name"
+                                                            title={entry.name || entry.id}
+                                                        >
+                                                            {entry.name || entry.id}
                                                         </span>
                                                     </div>
                                                 </div>
