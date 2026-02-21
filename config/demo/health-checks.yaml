@@ -1,84 +1,300 @@
 # Health checks for demo environment services
 checks:
+  # Order Capture Service
   - type: http
-    checkId: order-capture-svc-check
+    checkId: order-capture-ingestion-latency-check
+    name: Ingestion latency is within SLO
     catalogItemId: order-capture-svc
     url: http://order-capture-svc:8080/health
     method: GET
     timeout: PT2S
 
   - type: http
-    checkId: order-validation-svc-check
+    checkId: order-capture-backlog-size-check
+    name: Intake backlog size is under threshold
+    catalogItemId: order-capture-svc
+    url: http://order-capture-svc:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: order-capture-schema-compatibility-check
+    name: Incoming payload schema compatibility
+    catalogItemId: order-capture-svc
+    url: http://order-capture-svc:8080/health
+    method: GET
+    timeout: PT2S
+
+  # Order Validation Service
+  - type: http
+    checkId: order-validation-ruleset-freshness-check
+    name: Validation ruleset freshness
     catalogItemId: order-validation-svc
     url: http://order-validation-svc:8080/health
     method: GET
     timeout: PT2S
 
   - type: http
-    checkId: order-billing-svc-check
+    checkId: order-validation-fraud-score-latency-check
+    name: Fraud scoring latency
+    catalogItemId: order-validation-svc
+    url: http://order-validation-svc:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: order-validation-error-rate-check
+    name: Validation error rate
+    catalogItemId: order-validation-svc
+    url: http://order-validation-svc:8080/health
+    method: GET
+    timeout: PT2S
+
+  # Order Billing Service
+  - type: http
+    checkId: order-billing-ledger-write-latency-check
+    name: Ledger write latency
     catalogItemId: order-billing-svc
     url: http://order-billing-svc:8080/health
     method: GET
     timeout: PT2S
 
   - type: http
-    checkId: order-dispatch-svc-check
+    checkId: order-billing-payment-gateway-connectivity-check
+    name: Payment gateway connectivity
+    catalogItemId: order-billing-svc
+    url: http://order-billing-svc:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: order-billing-refund-queue-backlog-check
+    name: Refund queue backlog
+    catalogItemId: order-billing-svc
+    url: http://order-billing-svc:8080/health
+    method: GET
+    timeout: PT2S
+
+  # Order Dispatch Service
+  - type: http
+    checkId: order-dispatch-routing-sync-check
+    name: Routing table sync status
     catalogItemId: order-dispatch-svc
     url: http://order-dispatch-svc:8080/health
     method: GET
     timeout: PT2S
 
   - type: http
-    checkId: routing-engine-svc-check
+    checkId: order-dispatch-worker-utilization-check
+    name: Dispatch worker utilization
+    catalogItemId: order-dispatch-svc
+    url: http://order-dispatch-svc:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: order-dispatch-retry-queue-check
+    name: Retry queue pressure
+    catalogItemId: order-dispatch-svc
+    url: http://order-dispatch-svc:8080/health
+    method: GET
+    timeout: PT2S
+
+  # Routing Engine Service
+  - type: http
+    checkId: routing-engine-cache-hit-ratio-check
+    name: Route cache hit ratio
     catalogItemId: routing-engine-svc
     url: http://routing-engine-svc:8080/health
     method: GET
     timeout: PT2S
 
   - type: http
-    checkId: inventory-sync-svc-check
+    checkId: routing-engine-compute-latency-check
+    name: Route computation latency
+    catalogItemId: routing-engine-svc
+    url: http://routing-engine-svc:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: routing-engine-fallback-path-rate-check
+    name: Fallback path usage rate
+    catalogItemId: routing-engine-svc
+    url: http://routing-engine-svc:8080/health
+    method: GET
+    timeout: PT2S
+
+  # Inventory Sync Service
+  - type: http
+    checkId: inventory-sync-feed-lag-check
+    name: Upstream feed lag
     catalogItemId: inventory-sync-svc
     url: http://inventory-sync-svc:8080/health
     method: GET
     timeout: PT2S
 
   - type: http
-    checkId: lastmile-dispatch-svc-check
+    checkId: inventory-sync-conflict-rate-check
+    name: Inventory conflict rate
+    catalogItemId: inventory-sync-svc
+    url: http://inventory-sync-svc:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: inventory-sync-reconciliation-window-check
+    name: Reconciliation window duration
+    catalogItemId: inventory-sync-svc
+    url: http://inventory-sync-svc:8080/health
+    method: GET
+    timeout: PT2S
+
+  # Last-Mile Dispatch Service
+  - type: http
+    checkId: lastmile-dispatch-driver-assignment-latency-check
+    name: Driver assignment latency
     catalogItemId: lastmile-dispatch-svc
     url: http://lastmile-dispatch-svc:8080/health
     method: GET
     timeout: PT2S
 
   - type: http
-    checkId: returns-processing-svc-check
+    checkId: lastmile-dispatch-routing-jitter-check
+    name: Last-mile routing jitter
+    catalogItemId: lastmile-dispatch-svc
+    url: http://lastmile-dispatch-svc:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: lastmile-dispatch-failed-handoff-rate-check
+    name: Failed handoff rate
+    catalogItemId: lastmile-dispatch-svc
+    url: http://lastmile-dispatch-svc:8080/health
+    method: GET
+    timeout: PT2S
+
+  # Returns Processing Service
+  - type: http
+    checkId: returns-processing-intake-throughput-check
+    name: Returns intake throughput
     catalogItemId: returns-processing-svc
     url: http://returns-processing-svc:8080/health
     method: GET
     timeout: PT2S
 
   - type: http
-    checkId: engagement-orchestrator-svc-check
+    checkId: returns-processing-triage-latency-check
+    name: Triage latency
+    catalogItemId: returns-processing-svc
+    url: http://returns-processing-svc:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: returns-processing-pending-claims-check
+    name: Pending claims volume
+    catalogItemId: returns-processing-svc
+    url: http://returns-processing-svc:8080/health
+    method: GET
+    timeout: PT2S
+
+  # Engagement Orchestrator Service
+  - type: http
+    checkId: engagement-orchestrator-campaign-scheduling-latency-check
+    name: Campaign scheduling latency
     catalogItemId: engagement-orchestrator-svc
     url: http://engagement-orchestrator-svc:8080/health
     method: GET
     timeout: PT2S
 
   - type: http
-    checkId: profile-store-svc-check
+    checkId: engagement-orchestrator-workflow-failover-check
+    name: Workflow failover readiness
+    catalogItemId: engagement-orchestrator-svc
+    url: http://engagement-orchestrator-svc:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: engagement-orchestrator-queue-drain-rate-check
+    name: Orchestration queue drain rate
+    catalogItemId: engagement-orchestrator-svc
+    url: http://engagement-orchestrator-svc:8080/health
+    method: GET
+    timeout: PT2S
+
+  # Profile Store Service
+  - type: http
+    checkId: profile-store-read-latency-check
+    name: Profile read latency
     catalogItemId: profile-store-svc
     url: http://profile-store-svc:8080/health
     method: GET
     timeout: PT2S
 
   - type: http
-    checkId: messaging-hub-svc-check
+    checkId: profile-store-write-amplification-check
+    name: Write amplification level
+    catalogItemId: profile-store-svc
+    url: http://profile-store-svc:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: profile-store-replication-lag-check
+    name: Replication lag
+    catalogItemId: profile-store-svc
+    url: http://profile-store-svc:8080/health
+    method: GET
+    timeout: PT2S
+
+  # Messaging Hub Service
+  - type: http
+    checkId: messaging-hub-queue-limits-check
+    name: Message queue is in limits
     catalogItemId: messaging-hub-svc
     url: http://messaging-hub-svc:8080/health
     method: GET
     timeout: PT2S
 
   - type: http
-    checkId: campaign-execution-svc-check
+    checkId: messaging-hub-throughput-check
+    name: Message throughput
+    catalogItemId: messaging-hub-svc
+    url: http://messaging-hub-svc:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: messaging-hub-queue-memory-consumption-check
+    name: Queue memory consumption
+    catalogItemId: messaging-hub-svc
+    url: http://messaging-hub-svc:8080/health
+    method: GET
+    timeout: PT2S
+
+  # Campaign Execution Service
+  - type: http
+    checkId: campaign-execution-launch-latency-check
+    name: Campaign launch latency
+    catalogItemId: campaign-execution-svc
+    url: http://campaign-execution-svc:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: campaign-execution-delivery-success-rate-check
+    name: Delivery success rate
+    catalogItemId: campaign-execution-svc
+    url: http://campaign-execution-svc:8080/health
+    method: GET
+    timeout: PT2S
+
+  - type: http
+    checkId: campaign-execution-segment-materialization-check
+    name: Segment materialization freshness
     catalogItemId: campaign-execution-svc
     url: http://campaign-execution-svc:8080/health
     method: GET

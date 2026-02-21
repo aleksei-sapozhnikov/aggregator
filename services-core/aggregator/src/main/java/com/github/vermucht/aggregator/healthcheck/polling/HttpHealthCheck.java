@@ -25,6 +25,7 @@ public final class HttpHealthCheck implements PollingHealthCheck {
 
   private final ItemId catalogItemId;
   private final String checkId;
+  private final String name;
   private final URI uri;
   private final HttpMethod method;
   private final Duration interval;
@@ -35,6 +36,7 @@ public final class HttpHealthCheck implements PollingHealthCheck {
    *
    * @param catalogItemId catalog item associated with this check
    * @param checkId identifier for the check
+   * @param name human-readable check name
    * @param uri target URI to call
    * @param method HTTP method to use
    * @param interval polling interval for the check
@@ -43,6 +45,7 @@ public final class HttpHealthCheck implements PollingHealthCheck {
   public HttpHealthCheck(
       @Nonnull ItemId catalogItemId,
       @Nonnull String checkId,
+      @Nonnull String name,
       @Nonnull URI uri,
       @Nonnull HttpMethod method,
       @Nonnull Duration interval,
@@ -51,6 +54,10 @@ public final class HttpHealthCheck implements PollingHealthCheck {
     this.checkId = Objects.requireNonNull(checkId, "checkId");
     if (checkId.isBlank()) {
       throw new IllegalArgumentException("checkId must not be blank");
+    }
+    this.name = Objects.requireNonNull(name, "name");
+    if (name.isBlank()) {
+      throw new IllegalArgumentException("name must not be blank");
     }
     this.uri = Objects.requireNonNull(uri, "uri");
     this.method = Objects.requireNonNull(method, "method");
@@ -62,6 +69,12 @@ public final class HttpHealthCheck implements PollingHealthCheck {
   @Override
   public String getCheckId() {
     return checkId;
+  }
+
+  @Nonnull
+  @Override
+  public String getName() {
+    return name;
   }
 
   @Nonnull

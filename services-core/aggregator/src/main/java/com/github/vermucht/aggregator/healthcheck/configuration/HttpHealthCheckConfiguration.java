@@ -9,6 +9,7 @@ import java.util.List;
  * Configuration for an HTTP health check entry.
  *
  * @param checkId identifier for the check
+ * @param name human-readable check name
  * @param catalogItemId catalog item identifier this check targets
  * @param url target URL to probe
  * @param method HTTP method to use
@@ -18,6 +19,7 @@ import java.util.List;
  */
 public record HttpHealthCheckConfiguration(
     @Nullable String checkId,
+    @Nullable String name,
     @Nullable String catalogItemId,
     @Nullable String url,
     @Nullable String method,

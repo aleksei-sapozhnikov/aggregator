@@ -16,6 +16,14 @@ public interface PollingHealthCheck {
   String getCheckId();
 
   /**
+   * Returns the human-readable check name.
+   *
+   * @return check name
+   */
+  @Nonnull
+  String getName();
+
+  /**
    * Returns the catalog item targeted by this health check.
    *
    * @return catalog item identifier

@@ -63,7 +63,12 @@ class HealthMetricsTest {
             catalog,
             healthStateStore,
             checkStateStore,
-            List.of(new StubHealthCheck(ItemId.of("api-gateway"), "gateway-health", "http")));
+            List.of(
+                new StubHealthCheck(
+                    ItemId.of("api-gateway"),
+                    "gateway-health",
+                    "Gateway readiness",
+                    "http")));
     metrics.registerMetrics();
   }
 
@@ -154,6 +159,7 @@ class HealthMetricsTest {
                 HealthMetrics.LABEL_ITEM_NAME, "API Gateway",
                 HealthMetrics.LABEL_ITEM_TYPE, "service",
                 HealthMetrics.LABEL_CHECK_ID, "gateway-health",
+                HealthMetrics.LABEL_CHECK_NAME, "Gateway readiness",
                 HealthMetrics.LABEL_CHECK_SOURCE, "http")
             .gauge();
 
@@ -176,17 +182,24 @@ class HealthMetricsTest {
   private static final class StubHealthCheck implements PollingHealthCheck {
     private final ItemId itemId;
     private final String checkId;
+    private final String name;
     private final String source;
 
-    private StubHealthCheck(ItemId itemId, String checkId, String source) {
+    private StubHealthCheck(ItemId itemId, String checkId, String name, String source) {
       this.itemId = itemId;
       this.checkId = checkId;
+      this.name = name;
       this.source = source;
     }
 
     @Override
     public String getCheckId() {
       return checkId;
+    }
+
+    @Override
+    public String getName() {
+      return name;
     }
 
     @Override

@@ -30,6 +30,7 @@ public class HealthMetrics {
   public static final String LABEL_ITEM_NAME = "item_name";
   public static final String LABEL_ITEM_TYPE = "item_type";
   public static final String LABEL_CHECK_ID = "check_id";
+  public static final String LABEL_CHECK_NAME = "check_name";
   public static final String LABEL_CHECK_SOURCE = "check_source";
   public static final String LABEL_SOURCE_ID = "source_id";
   public static final String LABEL_TARGET_ID = "target_id";
@@ -133,6 +134,7 @@ public class HealthMetrics {
           .tag(LABEL_ITEM_NAME, itemName)
           .tag(LABEL_ITEM_TYPE, itemType)
           .tag(LABEL_CHECK_ID, check.getCheckId())
+          .tag(LABEL_CHECK_NAME, check.getName())
           .tag(LABEL_CHECK_SOURCE, check.getSource())
           .register(registry);
     }
