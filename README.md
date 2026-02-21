@@ -42,10 +42,10 @@ Service state in the demo is collected from HTTP health checks (`UP`/`DOWN`) and
 
 ### Configuration
 
-Catalog items and health checks are configured in files:
+Catalog items and health checks are configured through YAML files. Demo example:
 
-- [catalog.yaml](config/demo/catalog.yaml)
-- [health-checks.yaml](config/demo/health-checks.yaml)
+- [demo/catalog.yaml](config/demo/catalog.yaml)
+- [demo/health-checks.yaml](config/demo/health-checks.yaml)
 
 ### Core Services (`services-core`)
 
