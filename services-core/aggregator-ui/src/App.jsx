@@ -1010,18 +1010,21 @@ export default function App() {
     const checkSummary = useMemo(() => {
         const okCount = selectedChecks.filter((check) => check.status === 'up').length;
         const failingChecks = selectedChecks.filter((check) => check.status === 'down');
-        if (failingChecks.length === 0) {
-            return {
-                text: `Health checks: ${okCount} ok`,
-                failingList: '',
-            };
-        }
-        const failingList = failingChecks.map((check) => check.name || check.id).join(', ');
         return {
-            text: `Health checks: ${okCount} ok, ${failingChecks.length} failing: ${failingList}`,
-            failingList,
+            okCount,
+            failingCount: failingChecks.length,
+            failingList: failingChecks.map((check) => check.name || check.id).join(', '),
         };
-    }, [selectedChecks, selectedId]);
+    }, [selectedChecks]);
+    const checksSummaryText = useMemo(() => {
+        const baseText = `Health checks: ${checkSummary.okCount} ok${
+            checkSummary.failingCount > 0 ? `, ${checkSummary.failingCount} failing` : ''
+        }`;
+        if (isChecksOpen || checkSummary.failingCount === 0) {
+            return baseText;
+        }
+        return `${baseText}: ${checkSummary.failingList}`;
+    }, [checkSummary, isChecksOpen]);
     const isSidebarOpen = isMobileLayout ? isMobileSidebarOpen : isDesktopSidebarOpen;
     const shouldOffsetContentHeader = isMobileLayout || !isSidebarOpen;
     const homeHref = basePath || '/';
@@ -1607,7 +1610,7 @@ export default function App() {
                                         ›
                                     </span>
                                     <span className={`affected-summary ${isChecksOpen ? 'is-open' : ''}`}>
-                                        {checkSummary.text}
+                                        {checksSummaryText}
                                     </span>
                                 </button>
                                 {isChecksOpen && (
