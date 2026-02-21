@@ -867,14 +867,15 @@ export default function App() {
                         results.forEach((entry) => {
                             const itemId = entry?.metric?.item_id;
                             const checkId = entry?.metric?.check_id;
+                            const checkName = entry?.metric?.check_name || checkId;
                             if (!itemId) {
                                 return;
                             }
                             const value = Number.parseFloat(entry?.value?.[1]);
                             const status = parsePrometheusHealthStatus(value);
-                            if (checkId) {
+                            if (checkId && checkName) {
                                 const list = nextItemChecks[itemId] || [];
-                                list.push({id: checkId, status});
+                                list.push({id: checkId, name: checkName, status});
                                 nextItemChecks[itemId] = list;
                             }
                             if (status === 'down') {
@@ -1002,25 +1003,28 @@ export default function App() {
             if (statusCompare !== 0) {
                 return statusCompare;
             }
-            return a.id.localeCompare(b.id);
+            return (a.name || a.id).localeCompare(b.name || b.id) || a.id.localeCompare(b.id);
         });
     }, [itemChecks, selectedItem]);
 
     const checkSummary = useMemo(() => {
         const okCount = selectedChecks.filter((check) => check.status === 'up').length;
         const failingChecks = selectedChecks.filter((check) => check.status === 'down');
-        if (failingChecks.length === 0) {
-            return {
-                text: `Health checks: ${okCount} ok`,
-                failingList: '',
-            };
-        }
-        const failingList = failingChecks.map((check) => check.id).join(', ');
         return {
-            text: `Health checks: ${okCount} ok, ${failingChecks.length} failing: ${failingList}`,
-            failingList,
+            okCount,
+            failingCount: failingChecks.length,
+            failingList: failingChecks.map((check) => check.name || check.id).join(', '),
         };
-    }, [selectedChecks, selectedId]);
+    }, [selectedChecks]);
+    const checksSummaryText = useMemo(() => {
+        const baseText = `Health checks: ${checkSummary.okCount} ok${
+            checkSummary.failingCount > 0 ? `, ${checkSummary.failingCount} failing` : ''
+        }`;
+        if (isChecksOpen || checkSummary.failingCount === 0) {
+            return baseText;
+        }
+        return `${baseText}: ${checkSummary.failingList}`;
+    }, [checkSummary, isChecksOpen]);
     const isSidebarOpen = isMobileLayout ? isMobileSidebarOpen : isDesktopSidebarOpen;
     const shouldOffsetContentHeader = isMobileLayout || !isSidebarOpen;
     const homeHref = basePath || '/';
@@ -1606,7 +1610,7 @@ export default function App() {
                                         ›
                                     </span>
                                     <span className={`affected-summary ${isChecksOpen ? 'is-open' : ''}`}>
-                                        {checkSummary.text}
+                                        {checksSummaryText}
                                     </span>
                                 </button>
                                 {isChecksOpen && (
@@ -1620,8 +1624,11 @@ export default function App() {
                                                 />
                                                 <div className="affected-meta">
                                                     <div className="affected-row">
-                                                        <span className="affected-name" title={entry.id}>
-                                                            {entry.id}
+                                                        <span
+                                                            className="affected-name"
+                                                            title={entry.name || entry.id}
+                                                        >
+                                                            {entry.name || entry.id}
                                                         </span>
                                                     </div>
                                                 </div>
