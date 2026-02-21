@@ -429,14 +429,6 @@ const CatalogNode = ({
                      }) => {
     const hasChildren = node.children.length > 0;
     const isExpanded = expandedIds.has(node.item.id);
-    buildDashboardUrl(
-        grafanaBaseUrl,
-        DASHBOARDS.timeline.uid,
-        DASHBOARDS.timeline.slug,
-        node.item.id,
-        theme,
-        DASHBOARDS.timeline.panelId,
-    );
     const statusLabel = `Status: ${status.toUpperCase()}${
         lastUpdated ? ` (at ${lastUpdated})` : ''
     }`;
@@ -536,6 +528,7 @@ export default function App() {
     const [theme, setTheme] = useState(getInitialTheme);
     const initialFrameThemeRef = useRef(theme);
     const [expandedIds, setExpandedIds] = useState(() => new Set());
+    const expandedIdsRef = useRef(expandedIds);
     const [itemStatuses, setItemStatuses] = useState({});
     const [itemCheckDown, setItemCheckDown] = useState({});
     const [itemChecks, setItemChecks] = useState({});
@@ -789,6 +782,10 @@ export default function App() {
     }, []);
 
     useEffect(() => {
+        expandedIdsRef.current = expandedIds;
+    }, [expandedIds]);
+
+    useEffect(() => {
         if (isMobileLayout) {
             setIsMobileSidebarOpen(false);
         }
@@ -954,6 +951,27 @@ export default function App() {
         }
     }, [tree]);
 
+    const ensurePathExpanded = useCallback((pathIds, {suppressAnimation} = {}) => {
+        if (!Array.isArray(pathIds) || pathIds.length === 0) {
+            return;
+        }
+        const ancestors = pathIds.slice(0, -1);
+        if (ancestors.length === 0) {
+            return;
+        }
+        setExpandedIds((prev) => {
+            const next = new Set(prev);
+            ancestors.forEach((id) => next.add(id));
+            return next;
+        });
+        if (suppressAnimation) {
+            setDisableTreeAnimation(true);
+            window.requestAnimationFrame(() => {
+                setDisableTreeAnimation(false);
+            });
+        }
+    }, []);
+
     const handleExpandAll = useCallback(() => {
         setExpandedIds(new Set(collectExpandableIds(tree)));
     }, [tree]);
@@ -1096,7 +1114,7 @@ export default function App() {
         if (!tree.length) {
             return undefined;
         }
-        const applySelectionFromLocation = ({normalize} = {normalize: true}) => {
+        const applySelectionFromLocation = ({normalize, preserveExpansion} = {normalize: true, preserveExpansion: false}) => {
             const routeContext = readLocationRouteContext(basePath);
             const resolved = resolveNodeFromLocation(tree, basePath);
             if (!resolved) {
@@ -1105,18 +1123,30 @@ export default function App() {
                     return;
                 }
                 if (!routeContext.hasPathParam) {
-                    const fallbackId = catalog.items[0]?.id || '';
+                    const fallbackNode = filteredTree[0] || null;
+                    const fallbackId = fallbackNode?.item?.id || '';
                     setSelectedId(fallbackId);
-                    setPendingScrollId('');
+                    setPendingScrollId(fallbackNode?.uid || '');
                     setIsMobileSidebarOpen(false);
+                    if (normalize && fallbackId) {
+                        updateUrlForNode(fallbackNode, {replace: true});
+                    }
                 }
                 return;
             }
             const {node} = resolved;
             setSelectedId(node.item.id);
             setPendingScrollId(node.uid);
-            setIsMobileSidebarOpen(false);
-            expandPathToItem(node.item.id, {suppressAnimation: true, path: node.path});
+            if (!preserveExpansion) {
+                setIsMobileSidebarOpen(false);
+                expandPathToItem(node.item.id, {suppressAnimation: true, path: node.path});
+            } else {
+                const ancestorIds = node.path?.slice(0, -1) || [];
+                const needsExpand = ancestorIds.some((id) => !expandedIdsRef.current.has(id));
+                if (needsExpand) {
+                    ensurePathExpanded(node.path, {suppressAnimation: true});
+                }
+            }
             if (normalize && (routeContext.hasRouteId || routeContext.hasPathParam)) {
                 updateUrlForNode(node, {replace: true});
             }
@@ -1136,13 +1166,22 @@ export default function App() {
             } else {
                 lastHistoryKeyRef.current = '';
             }
-            applySelectionFromLocation({normalize: false});
+            applySelectionFromLocation({normalize: false, preserveExpansion: true});
         };
         window.addEventListener('popstate', handlePopState);
         return () => {
             window.removeEventListener('popstate', handlePopState);
         };
-    }, [basePath, expandPathToItem, normalizeUrlForRoute, tree, updateUrlForNode]);
+    }, [
+        basePath,
+        ensurePathExpanded,
+        expandPathToItem,
+        filteredTree,
+        normalizeUrlForRoute,
+        tree,
+        updateUrlForItemId,
+        updateUrlForNode,
+    ]);
 
     useEffect(() => {
         setIsAffectedOpen(false);
