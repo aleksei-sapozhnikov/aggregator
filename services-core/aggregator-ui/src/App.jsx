@@ -1118,7 +1118,9 @@ export default function App() {
         if (!tree.length) {
             return undefined;
         }
-        const applySelectionFromLocation = ({normalize, preserveExpansion} = {normalize: true, preserveExpansion: false}) => {
+        const applySelectionFromLocation = ({normalize, preserveExpansion} = {
+            normalize: true, preserveExpansion: false
+        }) => {
             const routeContext = readLocationRouteContext(basePath);
             const resolved = resolveNodeFromLocation(tree, basePath);
             if (!resolved) {
@@ -1165,8 +1167,7 @@ export default function App() {
                 const statePath = Array.isArray(window.history.state.path)
                     ? window.history.state.path
                     : [];
-                const historyKey = `${stateItemId}::${statePath.join('/')}`;
-                lastHistoryKeyRef.current = historyKey;
+                lastHistoryKeyRef.current = `${stateItemId}::${statePath.join('/')}`;
             } else {
                 lastHistoryKeyRef.current = '';
             }
@@ -1380,18 +1381,20 @@ export default function App() {
                             onClick={handleToggleSidebar}
                         >
                             <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
-                                <use href={`${iconSpriteHref}#icon-panel-close`} />
+                                <use href={`${iconSpriteHref}#icon-panel-close`}/>
                             </svg>
                         </button>
                     </>
                 )}
-                <div className="sidebar-header" aria-hidden="true" />
+                <div className="sidebar-header">
+                    <span className="sidebar-header-title">Health Aggregator DEMO</span>
+                </div>
                 {error && <div className="error">{error}</div>}
                 {!error && tree.length > 0 && (
                     <div className="tree-search">
                         <span className="search-icon" aria-hidden="true">
                             <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
-                                <use href={`${iconSpriteHref}#icon-search`} />
+                                <use href={`${iconSpriteHref}#icon-search`}/>
                             </svg>
                         </span>
                         <input
@@ -1548,7 +1551,7 @@ export default function App() {
                         onClick={handleToggleSidebar}
                     >
                         <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
-                            <use href={`${iconSpriteHref}#icon-menu`} />
+                            <use href={`${iconSpriteHref}#icon-menu`}/>
                         </svg>
                     </button>
                 )}
@@ -1714,12 +1717,12 @@ export default function App() {
                                 className="grafana-panel"
                                 style={grafanaHeight ? {height: `${grafanaHeight}px`} : undefined}
                             >
-                            <iframe
-                                title="State Timeline"
-                                ref={grafanaIframeRef}
-                                onLoad={handleGrafanaLoad}
-                                src={grafanaFrameUrl}
-                            />
+                                <iframe
+                                    title="State Timeline"
+                                    ref={grafanaIframeRef}
+                                    onLoad={handleGrafanaLoad}
+                                    src={grafanaFrameUrl}
+                                />
                             </section>
                         </div>
                     </>
