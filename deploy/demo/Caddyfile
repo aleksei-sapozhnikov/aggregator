@@ -4,6 +4,10 @@
     }
 }
 
-alivion.cc, www.alivion.cc, aggregator.alivion.cc {
+alivion.cc {
+    redir https://aggregator.alivion.cc{uri} permanent
+}
+
+www.alivion.cc, aggregator.alivion.cc {
     reverse_proxy aggregator-ui:3000
 }
