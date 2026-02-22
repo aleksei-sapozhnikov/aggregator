@@ -1,249 +1,121 @@
-# Catalog health checks
+# Catalog Health Aggregator
 
-This project demonstrates a simple approach to aggregating service-level health signals into a product-level health view
-based on a static catalog definition.
+Catalog Health Aggregator transforms service-level health signals into a product-level view of complex systems.
 
-The core idea is that the health state of an item composed of other items is derived deterministically from the states
-of its dependencies. For example, a product consists of several services, and the overall product state is calculated
-from the states of those services.
+- Traditional observability focuses on service-level metrics and technical diagnostics.
+- Service health alone does not answer a product-level question: “What is broken for customers?”
+- Developers see their own service, while product and support teams need to understand customer impact across
+  dependencies.
 
-## Cloud Demo on AWS
+This pet project explores an approach to quickly identify why a specific product is not working by making
+dependency impact explicit and traceable.
 
-Available on EC2 public instance, uses Grafana for visualization:
+## Demo
 
 - https://aggregator.alivion.cc
 
-**Note:** A TLS certificate browser warning is expected because the certificate is self-signed.
+The link opens the web UI:
 
-For additional setup info, see  [README](deploy/demo/README.md).
+- Left panel: dependency tree with `🟢 UP / 🔴 DOWN / 🟡 UNKNOWN` markers near the title.
+- Right panel: details of the selected item, including affecting items and health check status.
+- Timeline at the bottom: selected item state over time, together with related dependencies and health checks.
 
-## Architecture / Components
+The demo simulates a complex hierarchical catalog of services, products, and product lines.
+It includes three product family branches, divided into products and services up to six levels deep.
+A product can depend on a service, which can depend on other services or products, and so on.
 
-Major runtime components and responsibilities:
+Service state in the demo is collected from HTTP health checks (`UP`/`DOWN`) and aggregated into three states:
+`UP`, `DOWN`, `UNKNOWN`.
 
-- **Aggregator service**: main Spring Boot application that loads the catalog, executes health checks, applies
-  aggregation rules, and exposes health and metrics endpoints. Submodules:
-- **Catalog loader**: reads the static catalog definition (`catalog.yaml` / `catalog.json`) and builds the in-memory
-  dependency graph used for aggregation.
-- **Health check runner**: executes configured checks (for example, HTTP checks) on a schedule and records raw
-  health
-  per catalog item.
-- **Health aggregation rules**: deterministic rules that roll up child service states into product and service
-  states.
-- **Metrics / Actuator exporter**: publishes raw and aggregated states (including dependencies) via Spring Boot
-  Actuator Prometheus metrics.
-- **Dummy services**: local HTTP services that simulate external dependencies for development and testing. They are
-  written in different languages (Java, JavaScript, Python). Each service exposes a `/health` endpoint and allows
-  changing its state via `/set-health/{up|down}`.
-- **Prometheus**: scrapes Actuator metrics and stores time-series data for local verification.
-- **Grafana**: visualizes aggregated states and trends using dashboards backed by Prometheus.
+## Technical Overview
 
-Key data flow:
+### Design Choices
 
-```
-catalog + checks → raw health → aggregated health → metrics → dashboards
-```
+- Health checks via HTTP endpoints: This is the simplest mechanism for the first working prototype and leaves room for
+  future push-based updates or external probes.
+- Deterministic state propagation: A strict _worst-of rule_ is used for dependencies: `DOWN` dominates, then
+  `UNKNOWN`, otherwise `UP`. This keeps impact analysis clear and predictable across the dependency graph.
+- Metrics and visualization stack: Prometheus stores metrics, Grafana visualizes them; both integrate well with
+  Spring Boot and keep dashboarding simple.
+- Dynamic demo behavior: [chaos-maker](services-demo/chaos-maker) injects failures into dummy services so dependency
+  impact remains visible without manual intervention.
 
-## Catalog
+### Configuration
 
-The catalog is a storage-agnostic domain model describing items and their relationships.
+Catalog items and health checks are configured through YAML files. Demo example:
 
-- **Item**: a catalog entry (for example, product or service) with a stable `ItemId`, name, and type.
-- **Dependency**: a directed relationship between two items with an explicit string `type` (for example, "includes" or
-  "depends on").
+- [demo/catalog.yaml](config/demo/catalog.yaml)
+- [demo/health-checks.yaml](config/demo/health-checks.yaml)
 
-### Catalog configuration
+### Core Services (`services-core`)
 
-The application loads a static catalog definition from the path configured by `catalog.path`.
-Both YAML and JSON formats are supported.
+- [aggregator](services-core/aggregator): Java backend (Spring Boot). Polls health check endpoints, aggregates
+  service/product state through dependency graph, and exposes Prometheus metrics at `/actuator/prometheus`.
+  Metric
+  semantics: [HealthMetricsDocumentation.java](services-core/aggregator/src/main/java/com/github/vermucht/aggregator/export/HealthMetricsDocumentation.java).
+- [aggregator-ui](services-core/aggregator-ui): User web interface built with React.
 
-See [config/demo/catalog.yaml](config/demo/catalog.yaml) for example.
+### Supporting Monitoring Services (`services-extra`)
 
-## Health aggregation
+- [prometheus](services-extra/prometheus): scrapes and stores metrics from [aggregator](services-core/aggregator).
+- [grafana](services-extra/grafana): visualizes collected metrics and powers dashboards used
+  by [aggregator-ui](services-core/aggregator-ui).
 
-The health state of a product or service that includes or depends on other items is derived deterministically from the
-states of its dependencies.
+### Demo Services (`services-demo`)
 
-The aggregator applies the following rules:
+- [chaos-maker](services-demo/chaos-maker): Python service that randomly breaks and restores services to keep the demo
+  realistic and dynamic.
+- [dummy-java](services-demo/dummy-java), [dummy-python](services-demo/dummy-python),
+  [dummy-javascript](services-demo/dummy-javascript): simulated product services (Java/Python/JavaScript) with health
+  endpoint for aggregator polling and a state-change endpoint (`UP`/`DOWN`) used
+  by [chaos-maker](services-demo/chaos-maker).
 
-- If **any child service is `DOWN`**, the parent is `DOWN`.
-- Otherwise, if **any child service is `UNKNOWN`**, the parent is `UNKNOWN`.
-- The parent is `UP` **only if all child services are `UP`**.
-- Products without child services default to `UNKNOWN` to avoid false positives.
+## Run Locally
 
-## Health check configuration
+You need:
 
-Health checks are configured separately from the catalog definition via the `health.checks-path` property.
-Each check entry is mapped to a catalog item and defines the HTTP request to run on a polling interval.
-The demo stack uses external config files; see [config/demo/health-checks.yaml](config/demo/health-checks.yaml)
-for an annotated example.
+- Docker or Podman with Compose support
+- Optionally `make` utility, available on Windows via [GnuWin](https://sourceforge.net/projects/gnuwin32/).
 
-## Limitations & Next Steps
+Clone or download the repository and open its root folder in terminal.
 
-This is a proof-of-concept (PoC). It is designed to demonstrate deterministic health aggregation and its inherent
-constraints.
+First run can take a while, as it will download Docker images.
 
-### Current limitations (PoC scope)
+### Option 1: Make (recommended)
 
-- **Static catalog only**: the catalog is loaded from a static YAML or JSON file at startup; there is no dynamic catalog
-  source, synchronization, or runtime updates.
-- **Limited check types**: health checks are currently focused on basic HTTP checks.
-- **Local-only stack**: the Compose stack assumes a local network and dummy services.
-- **No persistence**: aggregated state is emitted as metrics only.
-- **No authentication or authorization**: endpoints and dashboards are exposed without auth.
-
-### Next possible steps
-
-- **Dynamic catalog source**
-- **Expanded health check types**
-- **Alerting and incident flow**
-- **Historical storage**
-- **Authentication and RBAC**
-
-## Prometheus metrics
-
-The application exports current catalog item health via Spring Boot Actuator at:
-
-```
-/actuator/prometheus
-```
-
-Aggregation metrics are:
-
-```
-catalog_item_state
-catalog_dependency
-```
-
-Metric names, labels, and semantics are documented in
-[HealthMetricsDocumentation.java](services-core/aggregator/src/main/java/com/github/vermucht/aggregator/export/HealthMetricsDocumentation.java)
-
-See [Screenshots](#screenshots) for images.
-
-## Grafana visualization
-
-Grafana is available at:
-
-```
-http://localhost:3000
-```
-
-See [Screenshots](#screenshots) for images.
-
-## Dummy services
-
-Each dummy service exposes:
-
-- `GET /health`
-- `GET /set-health/{up|down}`
-
-## Local startup
+Start default stack (local-demo)
 
 ```bash
 make up
 ```
 
-## Using Local Demo
+Stop default stack (local-demo)
 
-This section describes the minimal end-to-end flow to run the PoC and reproduce the screenshots shown below.
+```bash
+make down
+```
 
-1. Start the stack:
+Show help and other available commands
 
-   ```bash
-   make up
-   ```
+```bash
+make help
+```
 
-2. Check that the dummy services are running and returning their `/health` endpoints:
+### Option 2: Manual Compose commands
 
-   ```
-   http://localhost:8081/health
-   http://localhost:8082/health
-   http://localhost:8083/health
-   ```
+Examples below are using Docker.
+If you use Podman, replace `docker compose` with `podman compose`.
 
-3. Verify that the aggregator exposes Prometheus metrics for item health and dependencies:
+Start default stack (local-demo)
 
-   ```
-   http://localhost:8080/actuator/health
-   ```
+```bash
+docker compose --project-name aggregator-local-demo -f compose.yaml -f compose.local-demo.yaml -f compose.overlay.demo-services.yaml -f compose.overlay.local-ports.yaml -f compose.overlay.demo-services-local-ports.yaml up --detach --remove-orphans
+```
 
-   Example output (truncated):
+Stop default stack (local-demo)
 
-   ```
-   # HELP catalog_item_state Current health of a catalog item (1=UP, 0.5=UNKNOWN, 0=DOWN)
-   # TYPE catalog_item_state gauge
-   catalog_item_state{item_id="dummy-java",item_name="Dummy Java service",item_type="service"} 1.0
-   catalog_item_state{item_id="dummy-javascript",item_name="Dummy JavaScript gateway",item_type="gateway"} 1.0
-   catalog_item_state{item_id="dummy-python",item_name="Dummy Python database",item_type="database"} 1.0
-   catalog_item_state{item_id="user-facing",item_name="User facing service",item_type="product"} 1.0
-   ```
+```bash
+docker compose --project-name aggregator-local-demo -f compose.yaml -f compose.local-demo.yaml -f compose.overlay.demo-services.yaml -f compose.overlay.local-ports.yaml -f compose.overlay.demo-services-local-ports.yaml down --remove-orphans
+```
 
-   Note: `user-facing` is not a running container. Its state is derived solely from the states of its dependency
-   services.
-
-   Dependency edges are exported as a separate metric:
-
-   ```
-   # HELP catalog_dependency Catalog dependency edge (1=present)
-   # TYPE catalog_dependency gauge
-   catalog_dependency{dep_depth="1",dep_type="relies_on",source_id="user-facing",target_id="dummy-javascript"} 1.0
-   catalog_dependency{dep_depth="1",dep_type="believes_in",source_id="user-facing",target_id="dummy-python"} 1.0
-   catalog_dependency{dep_depth="1",dep_type="depends_on",source_id="user-facing",target_id="dummy-java"} 1.0
-   catalog_dependency{dep_depth="2",dep_type="transitive",source_id="user-facing",target_id="dummy-rust"} 1.0
-   ```
-
-4. Flip a dummy service state to simulate an incident:
-
-   ```
-   http://localhost:8081/set-health/down
-   ```
-
-   Optionally restore it:
-
-   ```
-   http://localhost:8081/set-health/up
-   ```
-
-5. Observe propagated changes:
-
-- **Actuator**: `http://localhost:8080/actuator/health`
-- **Prometheus UI**: `http://localhost:9090`
-    * Item health:
-      [open query](http://localhost:9090/graph?g0.expr=avg%20by%20%28item_id%29%20%28catalog_item_state%29&g0.tab=0&g0.range_input=15m)
-    * Dependency edges:
-      [open query](http://localhost:9090/graph?g0.expr=avg%20by%20%28target_id%2Csource_id%29%20%28catalog_dependency%29&g0.tab=0&g0.range_input=15m)
-- **Grafana UI**: `http://localhost:3000`
-    * Current state dashboard:
-      [open dashboard](http://localhost:3000/d/catalog-item-state-current?var-item_id=user-facing&var-dep_depth=$__all&var-deps=$__all)
-    * Timeline dashboard:
-      [open dashboard](http://localhost:3000/d/catalog-item-state-timeline?var-item_id=user-facing&var-dep_depth=$__all&var-deps=$__all)
-
-## Demo chaos maker container
-
-The demo stack includes an optional `chaos-maker` container that flips service health endpoints to `DOWN` for a short
-window and then restores them to `UP`. This container is **disabled by default** and is only wired into the demo
-Compose stacks.
-
-Enable by setting `CHAOS_ENABLED=true` in the `chaos-maker` service environment. Disable by setting
-`CHAOS_ENABLED=false` (default).
-
-Default configuration is applied via environment variables.
-See the description in [chaos_maker.py](services-demo/chaos-maker/src/chaos_maker.py).
-
-### Screenshots
-
-#### Prometheus - Catalog Dependency Graph
-
-![Prometheus - Catalog Dependency Graph](docs/images/prometheus-catalog-dependency.png)
-
-#### Prometheus - Catalog Item State
-
-![Prometheus - Catalog Item State](docs/images/prometheus-catalog-item-state.png)
-
-#### Grafana - Current Catalog Item State
-
-![Grafana - Catalog Item State – Current](docs/images/grafana-state-current.png)
-
-#### Grafana - Catalog Item State Timeline
-
-![Grafana - Catalog Item State Timeline](docs/images/grafana-state-timeline.png)
+For additional options see [Makefile](./Makefile)
