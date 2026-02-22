@@ -1,5 +1,6 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import yaml from 'js-yaml';
+import AboutContent from './AboutContent';
 
 const DASHBOARDS = {
     timeline: {
@@ -546,6 +547,7 @@ export default function App() {
     const [disableTreeAnimation, setDisableTreeAnimation] = useState(false);
     const [isAffectedOpen, setIsAffectedOpen] = useState(false);
     const [isChecksOpen, setIsChecksOpen] = useState(false);
+    const [isAboutOpen, setIsAboutOpen] = useState(false);
     const affectedAutoOpenRef = useRef(true);
     const checksAutoOpenRef = useRef(true);
     const [grafanaHeight, setGrafanaHeight] = useState(0);
@@ -1116,7 +1118,9 @@ export default function App() {
         if (!tree.length) {
             return undefined;
         }
-        const applySelectionFromLocation = ({normalize, preserveExpansion} = {normalize: true, preserveExpansion: false}) => {
+        const applySelectionFromLocation = ({normalize, preserveExpansion} = {
+            normalize: true, preserveExpansion: false
+        }) => {
             const routeContext = readLocationRouteContext(basePath);
             const resolved = resolveNodeFromLocation(tree, basePath);
             if (!resolved) {
@@ -1163,8 +1167,7 @@ export default function App() {
                 const statePath = Array.isArray(window.history.state.path)
                     ? window.history.state.path
                     : [];
-                const historyKey = `${stateItemId}::${statePath.join('/')}`;
-                lastHistoryKeyRef.current = historyKey;
+                lastHistoryKeyRef.current = `${stateItemId}::${statePath.join('/')}`;
             } else {
                 lastHistoryKeyRef.current = '';
             }
@@ -1231,6 +1234,22 @@ export default function App() {
             window.removeEventListener('keydown', handleKeyDown);
         };
     }, [handleClearSearch, isSearchActive]);
+
+    useEffect(() => {
+        if (!isAboutOpen) {
+            return undefined;
+        }
+        const handleKeyDown = (event) => {
+            if (event.key === 'Escape' || event.keyCode === 27) {
+                event.preventDefault();
+                setIsAboutOpen(false);
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [isAboutOpen]);
 
     const scrollToNodeId = useCallback((targetId) => {
         const container = catalogTreeRef.current;
@@ -1362,18 +1381,20 @@ export default function App() {
                             onClick={handleToggleSidebar}
                         >
                             <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
-                                <use href={`${iconSpriteHref}#icon-panel-close`} />
+                                <use href={`${iconSpriteHref}#icon-panel-close`}/>
                             </svg>
                         </button>
                     </>
                 )}
-                <div className="sidebar-header" aria-hidden="true" />
+                <div className="sidebar-header">
+                    <span className="sidebar-header-title">Health Aggregator DEMO</span>
+                </div>
                 {error && <div className="error">{error}</div>}
                 {!error && tree.length > 0 && (
                     <div className="tree-search">
                         <span className="search-icon" aria-hidden="true">
                             <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
-                                <use href={`${iconSpriteHref}#icon-search`} />
+                                <use href={`${iconSpriteHref}#icon-search`}/>
                             </svg>
                         </span>
                         <input
@@ -1530,7 +1551,7 @@ export default function App() {
                         onClick={handleToggleSidebar}
                     >
                         <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
-                            <use href={`${iconSpriteHref}#icon-menu`} />
+                            <use href={`${iconSpriteHref}#icon-menu`}/>
                         </svg>
                     </button>
                 )}
@@ -1563,18 +1584,28 @@ export default function App() {
                             )}
                         </div>
                     </div>
-                    <button
-                        type="button"
-                        className="theme-toggle"
-                        onClick={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))}
-                    >
-                        <span className="theme-toggle-icon" aria-hidden="true">
-                            {theme === 'dark' ? '💡' : '🌙'}
-                        </span>
-                        <span className="theme-toggle-text">
-                            {theme === 'dark' ? 'Go light' : 'Go dark'}
-                        </span>
-                    </button>
+                    <div className="content-header-actions">
+                        <button
+                            type="button"
+                            className="theme-toggle"
+                            onClick={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))}
+                        >
+                            <span className="theme-toggle-icon" aria-hidden="true">
+                                {theme === 'dark' ? '💡' : '🌙'}
+                            </span>
+                            <span className="theme-toggle-text">
+                                {theme === 'dark' ? 'Go light' : 'Go dark'}
+                            </span>
+                        </button>
+                        <button
+                            type="button"
+                            className="theme-toggle about-toggle"
+                            onClick={() => setIsAboutOpen(true)}
+                        >
+                            <span className="theme-toggle-icon" aria-hidden="true">?</span>
+                            <span className="theme-toggle-text">About</span>
+                        </button>
+                    </div>
                 </header>
                 {!selectedItem ? (
                     <div className="empty">Select a catalog item to view dashboards.</div>
@@ -1686,17 +1717,38 @@ export default function App() {
                                 className="grafana-panel"
                                 style={grafanaHeight ? {height: `${grafanaHeight}px`} : undefined}
                             >
-                            <iframe
-                                title="State Timeline"
-                                ref={grafanaIframeRef}
-                                onLoad={handleGrafanaLoad}
-                                src={grafanaFrameUrl}
-                            />
+                                <iframe
+                                    title="State Timeline"
+                                    ref={grafanaIframeRef}
+                                    onLoad={handleGrafanaLoad}
+                                    src={grafanaFrameUrl}
+                                />
                             </section>
                         </div>
                     </>
                 )}
             </main>
+            {isAboutOpen && (
+                <div
+                    className="about-overlay"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label="About Catalog Health Aggregator"
+                    onClick={() => setIsAboutOpen(false)}
+                >
+                    <article className="about-modal" onClick={(event) => event.stopPropagation()}>
+                        <button
+                            type="button"
+                            className="about-close"
+                            aria-label="Close about page"
+                            onClick={() => setIsAboutOpen(false)}
+                        >
+                            ×
+                        </button>
+                        <AboutContent/>
+                    </article>
+                </div>
+            )}
         </div>
     );
 }
