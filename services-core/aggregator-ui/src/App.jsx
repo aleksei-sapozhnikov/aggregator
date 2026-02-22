@@ -277,6 +277,8 @@ const resolvePrometheusBaseUrl = () => {
     return `${window.location.origin}/prometheus`;
 };
 
+const resolveSidebarTitle = () => (import.meta.env.VITE_APP_TITLE ?? '').trim();
+
 const stripBasePath = (pathname, basePath) => {
     if (!basePath || basePath === '/') {
         return pathname.replace(/^\/+/, '');
@@ -525,6 +527,7 @@ const CatalogNode = ({
 };
 
 export default function App() {
+    const sidebarTitle = resolveSidebarTitle();
     const [catalog, setCatalog] = useState({items: [], dependencies: []});
     const [selectedId, setSelectedId] = useState('');
     const [error, setError] = useState('');
@@ -1387,7 +1390,7 @@ export default function App() {
                     </>
                 )}
                 <div className="sidebar-header">
-                    <span className="sidebar-header-title">Health Aggregator DEMO</span>
+                    <span className="sidebar-header-title" title={sidebarTitle}>{sidebarTitle}</span>
                 </div>
                 {error && <div className="error">{error}</div>}
                 {!error && tree.length > 0 && (
