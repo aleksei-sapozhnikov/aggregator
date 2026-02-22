@@ -180,6 +180,7 @@
         },
         "definition": "",
         "includeAll": false,
+        "label": "deps",
         "multi": false,
         "name": "dependencies",
         "current": {
@@ -212,6 +213,7 @@
         },
         "definition": "",
         "includeAll": false,
+        "label": "checks",
         "multi": false,
         "name": "healthchecks",
         "current": {
@@ -222,7 +224,7 @@
         "options": [
           {
             "selected": false,
-            "text": "own & dependencies",
+            "text": "own & deps",
             "value": "2"
           },
           {
@@ -236,7 +238,7 @@
             "value": "0"
           }
         ],
-        "query": "own & dependencies : 2, own only : 1, hide : 0",
+        "query": "own & deps : 2, own only : 1, hide : 0",
         "refresh": 1,
         "regex": "",
         "sort": 1,
