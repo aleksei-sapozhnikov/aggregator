@@ -1142,7 +1142,7 @@ export default function App() {
                     return;
                 }
                 if (!routeContext.hasPathParam) {
-                    const fallbackNode = filteredTree[0] || null;
+                    const fallbackNode = tree[0] || null;
                     const fallbackId = fallbackNode?.item?.id || '';
                     setSelectedId(fallbackId);
                     setPendingScrollId(fallbackNode?.uid || '');
@@ -1194,7 +1194,6 @@ export default function App() {
         basePath,
         ensurePathExpanded,
         expandPathToItem,
-        filteredTree,
         normalizeUrlForRoute,
         tree,
         updateUrlForItemId,
