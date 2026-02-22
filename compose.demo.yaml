@@ -15,6 +15,7 @@ services:
       args:
         CONTAINER_ROOT: services-core/aggregator-ui
         CATALOG_FILE: config/demo/catalog.yaml
+        VITE_APP_TITLE: "Health Aggregator DEMO"
 
   chaos-maker:
     build:

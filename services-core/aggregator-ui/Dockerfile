@@ -2,8 +2,11 @@
 FROM node:20-alpine AS build
 
 ARG CONTAINER_ROOT=.
+ARG VITE_APP_TITLE
 
 WORKDIR /app
+
+ENV VITE_APP_TITLE=${VITE_APP_TITLE:-}
 
 COPY ${CONTAINER_ROOT}/package.json ${CONTAINER_ROOT}/package-lock.json ./
 RUN --mount=type=cache,target=/root/.npm npm ci --no-audit --no-fund
