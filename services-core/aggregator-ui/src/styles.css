@@ -404,25 +404,17 @@ body {
 
 .node-row {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 10px 12px;
+  align-items: stretch;
+  gap: 0;
+  padding: 0;
   border-radius: 10px;
   background: var(--panel-alt);
   border: 1px solid transparent;
-  cursor: pointer;
 }
 
-.node-main {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-}
-
-.node-toggle {
-  width: 18px;
-  height: 18px;
-  border-radius: 999px;
+.node-toggle-column {
+  width: 32px;
+  min-width: 32px;
   border: none;
   background: transparent;
   color: var(--muted);
@@ -430,18 +422,45 @@ body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  flex: 0 0 auto;
-  transition: color 150ms ease;
+  padding: 10px 0;
+  border-radius: 10px 0 0 10px;
+  transition: color 150ms ease, background 150ms ease;
 }
 
-.node-toggle.is-expanded {
+.node-toggle-column:hover {
+  background: var(--panel-hover);
+}
+
+.node-toggle-column.is-expanded {
   color: var(--text);
 }
 
-.node-toggle-spacer {
-  width: 18px;
-  height: 18px;
-  flex: 0 0 auto;
+.node-toggle-column.node-toggle-spacer {
+  cursor: default;
+  background: transparent;
+}
+
+.node-toggle-column.node-toggle-spacer:hover {
+  background: transparent;
+}
+
+.node-content {
+  flex: 1 1 auto;
+  padding: 10px 12px;
+  display: flex;
+  align-items: flex-start;
+  cursor: pointer;
+}
+
+.node-content:hover {
+  background: var(--panel-hover);
+  border-radius: 0 10px 10px 0;
+}
+
+.node-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
 }
 
 .node-row.is-selected {
@@ -502,8 +521,9 @@ body {
 }
 
 .node-label:focus-visible,
+.node-content:focus-visible,
+.node-toggle-column:focus-visible,
 .tree-controls button:focus-visible,
-.node-toggle:focus-visible,
 .tree-search input:focus-visible,
 .search-clear:focus-visible,
 .theme-toggle:focus-visible,
