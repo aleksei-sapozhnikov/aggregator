@@ -128,12 +128,14 @@ body {
 .sidebar-header {
   min-height: 40px;
   display: flex;
+  justify-content: center;
   align-items: flex-start;
   padding: 0 52px;
 }
 
 .sidebar-header-title {
-  font-size: 15px;
+  font-size: 14px;
+  font-style: italic;
   font-weight: 400;
   letter-spacing: 0.02em;
   color: var(--text);
@@ -741,7 +743,7 @@ body {
   column-width: 260px;
   column-gap: 16px;
   row-gap: 6px;
-    background: var(--panel);
+  background: var(--panel);
   border-radius: 0 0 10px 10px;
 }
 
