@@ -3,15 +3,18 @@ FROM node:20-alpine AS build
 
 ARG CONTAINER_ROOT=.
 ARG VITE_APP_TITLE
+ARG VITE_TIMELINE_DEFAULT_RANGE
 
 WORKDIR /app
 
 ENV VITE_APP_TITLE=${VITE_APP_TITLE:-}
+ENV VITE_TIMELINE_DEFAULT_RANGE=${VITE_TIMELINE_DEFAULT_RANGE:-1d}
 
 COPY ${CONTAINER_ROOT}/package.json ${CONTAINER_ROOT}/package-lock.json ./
 RUN --mount=type=cache,target=/root/.npm npm ci --no-audit --no-fund
 
 COPY ${CONTAINER_ROOT}/ ./
+RUN test -n "$VITE_TIMELINE_DEFAULT_RANGE"
 RUN npm run build
 
 # -------- Runtime stage --------
