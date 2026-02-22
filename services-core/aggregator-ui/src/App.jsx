@@ -278,6 +278,14 @@ const resolvePrometheusBaseUrl = () => {
 };
 
 const resolveSidebarTitle = () => (import.meta.env.VITE_APP_TITLE ?? '').trim();
+const resolveTimelineDefaultRange = () => {
+    const configured = (import.meta.env.VITE_TIMELINE_DEFAULT_RANGE ?? '').trim();
+    if (!configured) {
+        throw new Error('VITE_TIMELINE_DEFAULT_RANGE is required');
+    }
+    return configured.startsWith('now-') ? configured.slice(4) : configured;
+};
+const TIMELINE_DEFAULT_RANGE = resolveTimelineDefaultRange();
 
 const stripBasePath = (pathname, basePath) => {
     if (!basePath || basePath === '/') {
@@ -409,6 +417,8 @@ const buildDashboardUrl = (
         orgId: '1',
         'var-item_id': itemId,
         theme,
+        from: `now-${TIMELINE_DEFAULT_RANGE}`,
+        to: 'now',
     });
     if (panelId) {
         params.set('viewPanel', panelId);

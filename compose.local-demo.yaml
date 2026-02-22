@@ -16,6 +16,7 @@ services:
         CONTAINER_ROOT: services-core/aggregator-ui
         CATALOG_FILE: config/demo/catalog.yaml
         VITE_APP_TITLE: "Health Aggregator LOCAL DEMO"
+        VITE_TIMELINE_DEFAULT_RANGE: "15m"
 
   chaos-maker:
     build:
