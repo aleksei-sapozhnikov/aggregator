@@ -43,6 +43,13 @@
             "spanNulls": false
           },
           "fieldMinMax": false,
+          "links": [
+            {
+              "targetBlank": false,
+              "title": "Open Item Page",
+              "url": "${app_base_url}/item/${__field.labels.item_id}"
+            }
+          ],
           "mappings": [
             {
               "options": {
@@ -172,6 +179,26 @@
         "regex": "",
         "sort": 1,
         "type": "query"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "",
+          "value": ""
+        },
+        "hide": 2,
+        "label": "App Base URL",
+        "name": "app_base_url",
+        "options": [
+          {
+            "selected": true,
+            "text": "",
+            "value": ""
+          }
+        ],
+        "query": "",
+        "skipUrlSync": false,
+        "type": "textbox"
       },
       {
         "datasource": {
