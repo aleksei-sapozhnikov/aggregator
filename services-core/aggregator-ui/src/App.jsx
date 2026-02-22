@@ -12,7 +12,7 @@ const DASHBOARDS = {
 
 // Cache-bust for the dedicated Grafana frame HTML entry.
 // Bump when changing the frame wrapper logic.
-const GRAFANA_FRAME_WRAPPER_REV = 'v1';
+const GRAFANA_FRAME_WRAPPER_REV = 'v2026-02-22';
 
 const MOBILE_BREAKPOINT = 1100;
 
