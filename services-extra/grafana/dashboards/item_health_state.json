@@ -43,13 +43,6 @@
             "spanNulls": false
           },
           "fieldMinMax": false,
-          "links": [
-            {
-              "targetBlank": false,
-              "title": "Open Item Page",
-              "url": "${app_base_url}/item/${__field.labels.item_id}"
-            }
-          ],
           "mappings": [
             {
               "options": {
@@ -83,7 +76,44 @@
             ]
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "B"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "targetBlank": false,
+                    "title": "Open Item Page",
+                    "url": "${app_base_url}/item/${__field.labels.item_id}"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "D"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "targetBlank": false,
+                    "title": "Open Item Page",
+                    "url": "${app_base_url}/item/${__field.labels.item_id}"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 18,
@@ -141,10 +171,21 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(\n  (\n    (\n      (catalog_item_check_state{item_id=~\"${item_id:regex}\"} and on() (vector(${failing_only}) == 0))\n      or (catalog_item_check_state{item_id=~\"${item_id:regex}\"} and on(item_id,check_id,check_source) (min_over_time(catalog_item_check_state{item_id=~\"${item_id:regex}\"}[$__range] @ end()) < 1) and on() (vector(${failing_only}) == 1))\n    )\n    or (\n      (catalog_item_check_state{item_id=~\"${deps:regex}\"} and on() (vector(${failing_only}) == 0))\n      or (catalog_item_check_state{item_id=~\"${deps:regex}\"} and on(item_id,check_id,check_source) (min_over_time(catalog_item_check_state{item_id=~\"${deps:regex}\"}[$__range] @ end()) < 1) and on() (vector(${failing_only}) == 1))\n    )\n  ) and on() (vector(${healthchecks}) == 2)\n  or (\n    (catalog_item_check_state{item_id=~\"${item_id:regex}\"} and on() (vector(${failing_only}) == 0))\n    or (catalog_item_check_state{item_id=~\"${item_id:regex}\"} and on(item_id,check_id,check_source) (min_over_time(catalog_item_check_state{item_id=~\"${item_id:regex}\"}[$__range] @ end()) < 1) and on() (vector(${failing_only}) == 1))\n  ) and on() (vector(${healthchecks}) == 1)\n)",
+          "expr": "(\n  (catalog_item_check_state{item_id=~\"${item_id:regex}\"} and on() (vector(${failing_only}) == 0))\n  or (catalog_item_check_state{item_id=~\"${item_id:regex}\"} and on(item_id,check_id,check_source) (min_over_time(catalog_item_check_state{item_id=~\"${item_id:regex}\"}[$__range] @ end()) < 1) and on() (vector(${failing_only}) == 1))\n) and on() (vector(${healthchecks}) > 0)",
           "legendFormat": "\u200b\u200b[check] {{check_name}}",
           "range": true,
           "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "(\n  (catalog_item_check_state{item_id=~\"${deps:regex}\"} and on() (vector(${failing_only}) == 0))\n  or (catalog_item_check_state{item_id=~\"${deps:regex}\"} and on(item_id,check_id,check_source) (min_over_time(catalog_item_check_state{item_id=~\"${deps:regex}\"}[$__range] @ end()) < 1) and on() (vector(${failing_only}) == 1))\n) and on() (vector(${healthchecks}) == 2)",
+          "legendFormat": "\u200b\u200b[check] {{check_name}}",
+          "range": true,
+          "refId": "D"
         }
       ],
       "title": "",
