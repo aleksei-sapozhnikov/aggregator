@@ -10,6 +10,10 @@ const DASHBOARDS = {
     },
 };
 
+// Cache-bust for the dedicated Grafana frame HTML entry.
+// Bump when changing the frame wrapper logic.
+const GRAFANA_FRAME_WRAPPER_REV = 'v1';
+
 const MOBILE_BREAKPOINT = 1100;
 
 const sortItemsByName = (items) =>
@@ -1082,6 +1086,7 @@ export default function App() {
 
     const buildGrafanaFrameUrl = useCallback((grafanaUrl) => {
         const frameUrl = new URL('grafana-frame.html', resolveBaseUrl());
+        frameUrl.searchParams.set('v', GRAFANA_FRAME_WRAPPER_REV);
         frameUrl.searchParams.set('theme', initialFrameThemeRef.current);
         if (grafanaUrl) {
             frameUrl.searchParams.set('src', encodeURIComponent(grafanaUrl));
