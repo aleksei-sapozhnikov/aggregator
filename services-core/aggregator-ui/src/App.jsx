@@ -1086,7 +1086,7 @@ export default function App() {
 
     const buildGrafanaFrameUrl = useCallback((grafanaUrl) => {
         const frameUrl = new URL('grafana-frame.html', resolveBaseUrl());
-        frameUrl.searchParams.set('v', GRAFANA_FRAME_WRAPPER_REV);
+        frameUrl.searchParams.set('rev', GRAFANA_FRAME_WRAPPER_REV);
         frameUrl.searchParams.set('theme', initialFrameThemeRef.current);
         if (grafanaUrl) {
             frameUrl.searchParams.set('src', encodeURIComponent(grafanaUrl));
