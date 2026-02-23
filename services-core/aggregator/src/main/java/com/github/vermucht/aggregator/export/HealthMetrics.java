@@ -9,6 +9,8 @@ import com.github.vermucht.aggregator.catalog.model.ItemId;
 import com.github.vermucht.aggregator.healthcheck.polling.PollingHealthCheck;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.MultiGauge;
+import io.micrometer.core.instrument.Tags;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.PostConstruct;
 import java.util.ArrayDeque;
@@ -43,6 +45,10 @@ public class HealthMetrics {
   private final HealthStateStore healthStateStore;
   private final HealthCheckStateStore checkStateStore;
   private final List<PollingHealthCheck> checks;
+  private final MultiGauge itemStateGauge;
+  private final MultiGauge itemOwnStateGauge;
+  private final MultiGauge itemCheckStateGauge;
+  private boolean dependencyMetricsRegistered;
 
   /** Creates and registers item-level health gauges based on the catalog and health state store. */
   public HealthMetrics(
@@ -56,31 +62,18 @@ public class HealthMetrics {
     this.healthStateStore = Objects.requireNonNull(healthStateStore, "healthStateStore");
     this.checkStateStore = Objects.requireNonNull(checkStateStore, "checkStateStore");
     this.checks = List.copyOf(Objects.requireNonNull(checks, "checks"));
-
-    for (Item item : catalog.items().values()) {
-      ItemId itemId = item.getId();
-      Gauge.builder(
-              ITEM_METRIC_NAME,
-              healthStateStore,
-              store -> HealthStatusMetrics.toGaugeValue(store.getAggregatedStatus(itemId)))
-          .description("Current health of a catalog item (1=UP, 0.5=UNKNOWN, 0=DOWN)")
-          .tag(LABEL_ITEM_ID, itemId.getValue())
-          .tag(LABEL_ITEM_NAME, item.getName())
-          .tag(LABEL_ITEM_TYPE, item.getType())
-          .register(registry);
-      Gauge.builder(
-              ITEM_OWN_METRIC_NAME,
-              healthStateStore,
-              store -> HealthStatusMetrics.toGaugeValue(store.getRawStatus(itemId)))
-          .description("Raw health from item health checks (1=UP, 0.5=UNKNOWN, 0=DOWN)")
-          .tag(LABEL_ITEM_ID, itemId.getValue())
-          .tag(LABEL_ITEM_NAME, item.getName())
-          .tag(LABEL_ITEM_TYPE, item.getType())
-          .register(registry);
-    }
-
-    registerCheckMetrics();
-    registerDependencyMetrics();
+    this.itemStateGauge =
+        MultiGauge.builder(ITEM_METRIC_NAME)
+            .description("Current health of a catalog item (1=UP, 0.5=UNKNOWN, 0=DOWN)")
+            .register(registry);
+    this.itemOwnStateGauge =
+        MultiGauge.builder(ITEM_OWN_METRIC_NAME)
+            .description("Raw health from item health checks (1=UP, 0.5=UNKNOWN, 0=DOWN)")
+            .register(registry);
+    this.itemCheckStateGauge =
+        MultiGauge.builder(ITEM_CHECK_METRIC_NAME)
+            .description("Health status for a specific check (1=UP, 0.5=UNKNOWN, 0=DOWN)")
+            .register(registry);
   }
 
   /** Initializes metric registration after Spring context construction. */
@@ -91,53 +84,83 @@ public class HealthMetrics {
 
   /** Registers all item and dependency metrics in the meter registry. */
   void registerMetrics() {
-    for (Item item : catalog.items().values()) {
-      ItemId itemId = item.getId();
-      Gauge.builder(
-              ITEM_METRIC_NAME,
-              healthStateStore,
-              store -> HealthStatusMetrics.toGaugeValue(store.getAggregatedStatus(itemId)))
-          .description("Current health of a catalog item (1=UP, 0.5=UNKNOWN, 0=DOWN)")
-          .tag(LABEL_ITEM_ID, itemId.getValue())
-          .tag(LABEL_ITEM_NAME, item.getName())
-          .tag(LABEL_ITEM_TYPE, item.getType())
-          .register(registry);
-      Gauge.builder(
-              ITEM_OWN_METRIC_NAME,
-              healthStateStore,
-              store -> HealthStatusMetrics.toGaugeValue(store.getRawStatus(itemId)))
-          .description("Raw health from item health checks (1=UP, 0.5=UNKNOWN, 0=DOWN)")
-          .tag(LABEL_ITEM_ID, itemId.getValue())
-          .tag(LABEL_ITEM_NAME, item.getName())
-          .tag(LABEL_ITEM_TYPE, item.getType())
-          .register(registry);
+    refreshDynamicMetrics();
+    if (!dependencyMetricsRegistered) {
+      registerDependencyMetrics();
+      dependencyMetricsRegistered = true;
     }
-
-    registerCheckMetrics();
-    registerDependencyMetrics();
   }
 
-  /** Registers health check-level metrics. */
-  private void registerCheckMetrics() {
+  /** Refreshes dynamic item/check gauges using the current catalog and checks snapshot. */
+  void refreshDynamicMetrics() {
+    List<MultiGauge.Row<?>> itemRows =
+        catalog.items().values().stream()
+            .<MultiGauge.Row<?>>map(
+                item ->
+                    MultiGauge.Row.of(
+                        Tags.of(
+                            LABEL_ITEM_ID,
+                            item.getId().getValue(),
+                            LABEL_ITEM_NAME,
+                            item.getName(),
+                            LABEL_ITEM_TYPE,
+                            item.getType()),
+                        healthStateStore,
+                        store ->
+                            HealthStatusMetrics.toGaugeValue(
+                                store.getAggregatedStatus(item.getId()))))
+            .toList();
+    itemStateGauge.register(itemRows, true);
+
+    Map<ItemId, Boolean> itemsWithChecks = new HashMap<>();
+    for (PollingHealthCheck check : checks) {
+      itemsWithChecks.put(check.getCatalogItemId(), Boolean.TRUE);
+    }
+    List<MultiGauge.Row<?>> ownRows =
+        catalog.items().values().stream()
+            .filter(item -> itemsWithChecks.containsKey(item.getId()))
+            .<MultiGauge.Row<?>>map(
+                item ->
+                    MultiGauge.Row.of(
+                        Tags.of(
+                            LABEL_ITEM_ID,
+                            item.getId().getValue(),
+                            LABEL_ITEM_NAME,
+                            item.getName(),
+                            LABEL_ITEM_TYPE,
+                            item.getType()),
+                        healthStateStore,
+                        store ->
+                            HealthStatusMetrics.toGaugeValue(store.getRawStatus(item.getId()))))
+            .toList();
+    itemOwnStateGauge.register(ownRows, true);
+
+    List<MultiGauge.Row<?>> checkRows = new java.util.ArrayList<>(checks.size());
     for (PollingHealthCheck check : checks) {
       ItemId itemId = check.getCatalogItemId();
       Item item = catalog.items().get(itemId);
       String itemName = item != null ? item.getName() : itemId.getValue();
       String itemType = item != null ? item.getType() : "unknown";
-
-      Gauge.builder(
-              ITEM_CHECK_METRIC_NAME,
+      checkRows.add(
+          MultiGauge.Row.of(
+              Tags.of(
+                  LABEL_ITEM_ID,
+                  itemId.getValue(),
+                  LABEL_ITEM_NAME,
+                  itemName,
+                  LABEL_ITEM_TYPE,
+                  itemType,
+                  LABEL_CHECK_ID,
+                  check.getCheckId(),
+                  LABEL_CHECK_NAME,
+                  check.getName(),
+                  LABEL_CHECK_SOURCE,
+                  check.getSource()),
               checkStateStore,
-              store -> HealthStatusMetrics.toGaugeValue(store.getStatus(itemId, check.getCheckId())))
-          .description("Health status for a specific check (1=UP, 0.5=UNKNOWN, 0=DOWN)")
-          .tag(LABEL_ITEM_ID, itemId.getValue())
-          .tag(LABEL_ITEM_NAME, itemName)
-          .tag(LABEL_ITEM_TYPE, itemType)
-          .tag(LABEL_CHECK_ID, check.getCheckId())
-          .tag(LABEL_CHECK_NAME, check.getName())
-          .tag(LABEL_CHECK_SOURCE, check.getSource())
-          .register(registry);
+              store ->
+                  HealthStatusMetrics.toGaugeValue(store.getStatus(itemId, check.getCheckId()))));
     }
+    itemCheckStateGauge.register(checkRows, true);
   }
 
   /** Registers dependency edge metrics. */
