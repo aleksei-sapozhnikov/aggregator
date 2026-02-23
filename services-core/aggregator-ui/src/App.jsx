@@ -1421,19 +1421,22 @@ export default function App() {
                         <button
                             type="button"
                             title="Collapse all dependencies"
+                            className="tree-control-button"
                             onClick={handleCollapseAll}
                             disabled={isSearchActive}
                         >
-                            Collapse
-                            all
+                            <span className="tree-control-icon" aria-hidden="true">⇧</span>
+                            <span className="tree-control-text">Collapse all</span>
                         </button>
                         <button
                             type="button"
                             title="Expand to all dependencies"
+                            className="tree-control-button"
                             onClick={handleExpandAll}
                             disabled={isSearchActive}
                         >
-                            Expand all
+                            <span className="tree-control-icon" aria-hidden="true">⇩</span>
+                            <span className="tree-control-text">Expand all</span>
                         </button>
                     </div>
                 )}
