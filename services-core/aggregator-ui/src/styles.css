@@ -281,6 +281,13 @@ body {
   transform: translateY(-1px);
 }
 
+.top-control-button:not(.top-control-accent):hover {
+  background: var(--theme-toggle-hover-bg);
+  border-color: var(--border);
+  box-shadow: var(--shadow-strong);
+  transform: translateY(-1px);
+}
+
 .theme-toggle-icon {
   display: inline-flex;
   align-items: center;
@@ -302,6 +309,16 @@ body {
   gap: 8px;
 }
 
+.catalog-tree::after {
+  content: "";
+  display: block;
+  flex: 0 0 0;
+}
+
+.app.is-mobile .catalog-tree::after {
+  flex-basis: clamp(240px, 70dvh, 520px);
+}
+
 .tree-controls {
   display: flex;
   gap: 8px;
@@ -318,6 +335,27 @@ body {
   padding: 8px 12px;
   box-shadow: var(--shadow);
   transition: background 150ms ease, border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
+}
+
+.tree-control-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.tree-control-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  text-align: center;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.tree-control-text {
+  display: inline;
 }
 
 .tree-controls button:hover:not(:disabled) {
@@ -926,8 +964,15 @@ body {
     padding-right: 52px;
   }
 
-  .content-header-with-toggle {
+  .content-header-with-toggle .content-header-main {
     padding-left: 52px;
+  }
+
+  .sidebar .home-link.top-control-button,
+  .sidebar .sidebar-close.top-control-button {
+    border-color: var(--theme-toggle-border);
+    background: var(--theme-toggle-bg);
+    box-shadow: var(--shadow);
   }
 
   .grafana-grid {
@@ -940,16 +985,123 @@ body {
     gap: 6px;
   }
 
-  .theme-toggle {
-    width: 38px;
-    height: 38px;
+  .top-control-pill {
+    width: var(--top-control-size);
+    height: var(--top-control-size);
     padding: 0;
     border-radius: 999px;
-    justify-content: center;
-    flex: 0 0 38px;
+    flex: 0 0 var(--top-control-size);
   }
 
   .theme-toggle-text {
     display: none;
+  }
+}
+
+@media (max-height: 560px) and (orientation: landscape) {
+  .catalog-tree::after {
+    flex-basis: clamp(280px, 90dvh, 680px);
+  }
+
+  .sidebar {
+    display: grid;
+    grid-template-columns: var(--top-control-size) minmax(0, 1fr) var(--top-control-size);
+    grid-template-rows: auto minmax(0, 1fr);
+    width: min(560px, 92vw);
+    min-width: min(560px, 92vw);
+    align-items: start;
+    column-gap: 10px;
+    row-gap: 10px;
+    min-height: 0;
+  }
+
+  .sidebar > .sidebar-header {
+    display: none;
+  }
+
+  .sidebar > .sidebar-toggle {
+    position: static;
+    grid-column: 1;
+    grid-row: 1;
+    z-index: auto;
+    align-self: start;
+    justify-self: start;
+  }
+
+  .sidebar > .tree-search {
+    grid-column: 2;
+    grid-row: 1;
+    min-width: 0;
+    margin: 0;
+  }
+
+  .sidebar > .sidebar-close-in {
+    position: static;
+    grid-column: 3;
+    grid-row: 1;
+    z-index: auto;
+    align-self: start;
+    justify-self: end;
+  }
+
+  .sidebar > .tree-controls {
+    grid-column: 3;
+    grid-row: 2;
+    align-self: start;
+    justify-self: end;
+    flex-direction: column;
+    gap: 8px;
+    transform: translateY(calc(var(--top-control-size) + 8px));
+    min-width: 0;
+  }
+
+  .sidebar > .tree-controls .tree-control-button {
+    width: var(--top-control-size);
+    height: var(--top-control-size);
+    padding: 0;
+    border-radius: 999px;
+    flex: 0 0 var(--top-control-size);
+    border: 1px solid var(--theme-toggle-border);
+    background: var(--theme-toggle-bg);
+    box-shadow: var(--shadow);
+  }
+
+  .sidebar > .tree-controls .tree-control-button:hover:not(:disabled) {
+    background: var(--theme-toggle-hover-bg);
+    border-color: var(--border);
+    box-shadow: var(--shadow-strong);
+  }
+
+  .sidebar > .tree-controls .tree-control-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    color: var(--theme-toggle-text);
+    font-size: 18px;
+  }
+
+  .sidebar > .tree-controls .tree-control-text {
+    display: none;
+  }
+
+  .sidebar > .catalog-tree,
+  .sidebar > .search-results,
+  .sidebar > .empty,
+  .sidebar > .error {
+    grid-column: 1 / span 2;
+    grid-row: 2;
+    min-height: 0;
+    align-self: stretch;
+  }
+
+  .sidebar > .catalog-tree,
+  .sidebar > .search-results {
+    height: 100%;
+    align-self: stretch;
+  }
+
+  .sidebar > .search-results .catalog-tree {
+    min-height: 0;
   }
 }
