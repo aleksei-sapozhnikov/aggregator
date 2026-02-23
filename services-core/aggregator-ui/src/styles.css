@@ -620,6 +620,11 @@ body {
   padding-left: 56px;
 }
 
+.content-header.content-header-primary-below-controls.content-header-with-toggle .content-header-main {
+  clear: right;
+  padding-left: 0;
+}
+
 .content-header-main {
   min-width: 0;
   min-height: var(--top-control-size);
@@ -992,6 +997,11 @@ body {
 
   .content-header-with-toggle .content-header-main {
     padding-left: 52px;
+  }
+
+  .content-header.content-header-primary-below-controls.content-header-with-toggle .content-header-main {
+    clear: right;
+    padding-left: 0;
   }
 
   .sidebar .home-link.top-control-button,

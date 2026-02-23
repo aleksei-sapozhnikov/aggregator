@@ -565,6 +565,7 @@ export default function App() {
     const [isAffectedOpen, setIsAffectedOpen] = useState(false);
     const [isChecksOpen, setIsChecksOpen] = useState(false);
     const [isAboutOpen, setIsAboutOpen] = useState(false);
+    const [isTitlePrimaryBelowControls, setIsTitlePrimaryBelowControls] = useState(false);
     const affectedAutoOpenRef = useRef(true);
     const checksAutoOpenRef = useRef(true);
     const [grafanaHeight, setGrafanaHeight] = useState(0);
@@ -982,7 +983,7 @@ export default function App() {
     const selectedItem = catalog.items.find((item) => item.id === selectedId);
     const selectedStatus = selectedItem ? itemStatuses[selectedItem.id] || 'unknown' : 'unknown';
     const selectedTitleText = selectedItem ? selectedItem.name || selectedItem.id : 'Select an item';
-    const selectedTitleMatch = selectedTitleText.match(/^(\\S+)([\\s\\S]*)$/);
+    const selectedTitleMatch = selectedTitleText.match(/^(\S+)([\s\S]*)$/);
     const selectedTitleFirstWord = selectedTitleMatch?.[1] || selectedTitleText;
     const selectedTitleRest = selectedTitleMatch?.[2] || '';
     const affectedItems = useMemo(() => {
@@ -1561,6 +1562,7 @@ export default function App() {
                 <header
                     className={`content-header ${
                         shouldOffsetContentHeader ? 'content-header-with-toggle' : ''
+                    } ${isTitlePrimaryBelowControls ? 'content-header-primary-below-controls' : ''
                     }`}
                     ref={headerRef}
                 >
