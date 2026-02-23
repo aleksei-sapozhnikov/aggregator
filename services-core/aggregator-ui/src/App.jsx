@@ -574,6 +574,8 @@ export default function App() {
     const grafanaIframeRef = useRef(null);
     const contentRef = useRef(null);
     const headerRef = useRef(null);
+    const headerActionsRef = useRef(null);
+    const contentTitlePrimaryRef = useRef(null);
     const lastHistoryUrlRef = useRef(window.location.href);
     const lastHistoryKeyRef = useRef('');
     const pendingGrafanaSrcRef = useRef('');
@@ -979,6 +981,10 @@ export default function App() {
 
     const selectedItem = catalog.items.find((item) => item.id === selectedId);
     const selectedStatus = selectedItem ? itemStatuses[selectedItem.id] || 'unknown' : 'unknown';
+    const selectedTitleText = selectedItem ? selectedItem.name || selectedItem.id : 'Select an item';
+    const selectedTitleMatch = selectedTitleText.match(/^(\\S+)([\\s\\S]*)$/);
+    const selectedTitleFirstWord = selectedTitleMatch?.[1] || selectedTitleText;
+    const selectedTitleRest = selectedTitleMatch?.[2] || '';
     const affectedItems = useMemo(() => {
         if (!selectedItem) {
             return [];
@@ -1558,33 +1564,10 @@ export default function App() {
                     }`}
                     ref={headerRef}
                 >
-                    <div className="content-header-main">
-                        <div className="content-title">
-                            {selectedItem && (
-                                <span
-                                    className={`status-indicator status-${selectedStatus}`}
-                                    aria-label={`Status: ${selectedStatus.toUpperCase()}${
-                                        lastUpdated ? ` (at ${lastUpdated})` : ''
-                                    }`}
-                                    title={`Status: ${selectedStatus.toUpperCase()}${
-                                        lastUpdated ? ` (at ${lastUpdated})` : ''
-                                    }`}
-                                />
-                            )}
-                            <span className="content-title-text">
-                                {selectedItem ? selectedItem.name || selectedItem.id : 'Select an item'}
-                            </span>
-                            {selectedItem && selectedStatus !== 'up' && (
-                                <span className={`content-status-label status-${selectedStatus}`}>
-                                    {selectedStatus.toUpperCase()}
-                                </span>
-                            )}
-                        </div>
-                    </div>
-                    <div className="content-header-actions">
+                    <div className="content-header-actions" ref={headerActionsRef}>
                         <button
                             type="button"
-                            className="theme-toggle"
+                            className="theme-toggle top-control top-control-button top-control-pill top-control-surface"
                             onClick={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))}
                         >
                             <span className="theme-toggle-icon" aria-hidden="true">
@@ -1596,12 +1579,42 @@ export default function App() {
                         </button>
                         <button
                             type="button"
-                            className="theme-toggle about-toggle"
+                            className="about-toggle top-control top-control-button top-control-pill top-control-surface top-control-accent"
                             onClick={() => setIsAboutOpen(true)}
                         >
                             <span className="theme-toggle-icon" aria-hidden="true">?</span>
                             <span className="theme-toggle-text">About</span>
                         </button>
+                    </div>
+                    <div className="content-header-main">
+                        <div className="content-title">
+                            <span className="content-title-primary" ref={contentTitlePrimaryRef}>
+                                {selectedItem && (
+                                    <span
+                                        className={`status-indicator status-${selectedStatus}`}
+                                        aria-label={`Status: ${selectedStatus.toUpperCase()}${
+                                            lastUpdated ? ` (at ${lastUpdated})` : ''
+                                        }`}
+                                        title={`Status: ${selectedStatus.toUpperCase()}${
+                                            lastUpdated ? ` (at ${lastUpdated})` : ''
+                                        }`}
+                                    />
+                                )}
+                                <span className="content-title-text content-title-text-first">
+                                    {selectedTitleFirstWord}
+                                </span>
+                            </span>
+                            {selectedTitleRest && (
+                                <span className="content-title-text content-title-text-rest">
+                                    {selectedTitleRest}
+                                </span>
+                            )}
+                            {selectedItem && selectedStatus !== 'up' && (
+                                <span className={`content-status-label status-${selectedStatus}`}>
+                                    {selectedStatus.toUpperCase()}
+                                </span>
+                            )}
+                        </div>
                     </div>
                 </header>
                 {!selectedItem ? (
