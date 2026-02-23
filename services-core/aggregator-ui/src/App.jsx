@@ -4,9 +4,9 @@ import AboutContent from './AboutContent';
 
 const DASHBOARDS = {
     timeline: {
-        uid: 'catalog-item-state-timeline',
-        slug: 'catalog-item-state-timeline',
-        panelId: 2001,
+        uid: 'item-health-state',
+        slug: 'item_health_state',
+        panelId: 3001,
     },
 };
 
