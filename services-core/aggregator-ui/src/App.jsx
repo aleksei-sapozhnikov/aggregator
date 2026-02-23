@@ -969,6 +969,12 @@ export default function App() {
 
     const handleCollapseAll = useCallback(() => {
         setExpandedIds(new Set());
+        window.requestAnimationFrame(() => {
+            catalogTreeRef.current?.scrollTo({
+                top: 0,
+                behavior: 'auto',
+            });
+        });
     }, []);
 
     const selectedItem = catalog.items.find((item) => item.id === selectedId);
