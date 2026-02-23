@@ -986,6 +986,83 @@ export default function App() {
     const selectedTitleMatch = selectedTitleText.match(/^(\S+)([\s\S]*)$/);
     const selectedTitleFirstWord = selectedTitleMatch?.[1] || selectedTitleText;
     const selectedTitleRest = selectedTitleMatch?.[2] || '';
+
+    useEffect(() => {
+        const measurePrimaryWidth = (element) => {
+            const clone = element.cloneNode(true);
+            clone.style.position = 'fixed';
+            clone.style.left = '-99999px';
+            clone.style.top = '-99999px';
+            clone.style.visibility = 'hidden';
+            clone.style.pointerEvents = 'none';
+            clone.style.width = 'max-content';
+            clone.style.maxWidth = 'none';
+            clone.style.whiteSpace = 'nowrap';
+            document.body.appendChild(clone);
+            const width = clone.getBoundingClientRect().width;
+            clone.remove();
+            return width;
+        };
+
+        const updateTitlePrimaryPlacement = () => {
+            if (!headerRef.current || !headerActionsRef.current || !contentTitlePrimaryRef.current) {
+                setIsTitlePrimaryBelowControls(false);
+                return;
+            }
+
+            const sidebarOpen = isMobileLayout ? isMobileSidebarOpen : isDesktopSidebarOpen;
+            const shouldOffsetHeaderInline = isMobileLayout || !sidebarOpen;
+            const inlineLeftOffset = shouldOffsetHeaderInline ? (isMobileLayout ? 52 : 56) : 0;
+            const headerStyles = window.getComputedStyle(headerRef.current);
+            const gap = Number.parseFloat(headerStyles.columnGap || headerStyles.gap) || 12;
+            const actionsRectWidth = headerActionsRef.current.getBoundingClientRect().width;
+            const actionsStyles = window.getComputedStyle(headerActionsRef.current);
+            const actionsMarginLeft = Number.parseFloat(actionsStyles.marginLeft) || 0;
+            const actionsMarginRight = Number.parseFloat(actionsStyles.marginRight) || 0;
+            const actionsWidth = Math.ceil(actionsRectWidth + actionsMarginLeft + actionsMarginRight);
+            const primaryWidth = Math.ceil(measurePrimaryWidth(contentTitlePrimaryRef.current));
+            const availableInlineWidth = Math.max(
+                0,
+                headerRef.current.clientWidth - actionsWidth - gap - inlineLeftOffset,
+            );
+            const actionsRect = headerActionsRef.current.getBoundingClientRect();
+            const primaryRect = contentTitlePrimaryRef.current.getBoundingClientRect();
+            const primaryAlreadyBelowControls = primaryRect.top >= (actionsRect.bottom - 2);
+            const shouldForceBelowByWidth = primaryWidth > availableInlineWidth + 6;
+            const canReturnInlineByWidth = primaryWidth <= availableInlineWidth - 16;
+
+            setIsTitlePrimaryBelowControls((prev) => {
+                if (prev) {
+                    return !canReturnInlineByWidth;
+                }
+                return shouldForceBelowByWidth || primaryAlreadyBelowControls;
+            });
+        };
+
+        updateTitlePrimaryPlacement();
+
+        window.addEventListener('resize', updateTitlePrimaryPlacement);
+        let observer;
+        if (window.ResizeObserver) {
+            observer = new ResizeObserver(updateTitlePrimaryPlacement);
+            [headerRef.current, headerActionsRef.current, contentTitlePrimaryRef.current]
+                .filter(Boolean)
+                .forEach((element) => observer.observe(element));
+        }
+
+        return () => {
+            window.removeEventListener('resize', updateTitlePrimaryPlacement);
+            if (observer) {
+                observer.disconnect();
+            }
+        };
+    }, [
+        isMobileLayout,
+        isMobileSidebarOpen,
+        isDesktopSidebarOpen,
+        selectedId,
+        selectedTitleFirstWord,
+    ]);
     const affectedItems = useMemo(() => {
         if (!selectedItem) {
             return [];
