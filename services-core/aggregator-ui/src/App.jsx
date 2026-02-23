@@ -10,6 +10,10 @@ const DASHBOARDS = {
     },
 };
 
+// Cache-bust for the dedicated Grafana frame HTML entry.
+// Bump when changing the frame wrapper logic.
+const GRAFANA_FRAME_WRAPPER_REV = 'v2026-02-22';
+
 const MOBILE_BREAKPOINT = 1100;
 
 const sortItemsByName = (items) =>
@@ -568,7 +572,6 @@ export default function App() {
     const clearSearchRequestedRef = useRef(false);
     const catalogTreeRef = useRef(null);
     const grafanaIframeRef = useRef(null);
-    const grafanaEscHandlerRef = useRef(null);
     const contentRef = useRef(null);
     const headerRef = useRef(null);
     const lastHistoryUrlRef = useRef(window.location.href);
@@ -702,39 +705,10 @@ export default function App() {
                     window.location.origin,
                 );
             }
-            const previousHandler = grafanaEscHandlerRef.current;
-            if (previousHandler) {
-                iframe.contentWindow.removeEventListener('keydown', previousHandler, true);
-            }
-            const handler = (event) => {
-                if (event.key === 'Escape' || event.keyCode === 27) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                }
-            };
-            grafanaEscHandlerRef.current = handler;
-            iframe.contentWindow.addEventListener('keydown', handler, true);
-
-            const mousetrap = iframe.contentWindow.Mousetrap;
-            if (mousetrap) {
-                mousetrap.unbindGlobal?.('esc');
-                mousetrap.unbind?.('esc');
-            }
         } catch (error) {
             // Ignore cross-origin access issues when Grafana is hosted elsewhere.
         }
     }, [theme]);
-
-    useEffect(
-        () => () => {
-            const iframe = grafanaIframeRef.current;
-            const handler = grafanaEscHandlerRef.current;
-            if (iframe?.contentWindow && handler) {
-                iframe.contentWindow.removeEventListener('keydown', handler, true);
-            }
-        },
-        [],
-    );
 
     useEffect(() => {
         document.body.dataset.theme = theme;
@@ -1112,6 +1086,7 @@ export default function App() {
 
     const buildGrafanaFrameUrl = useCallback((grafanaUrl) => {
         const frameUrl = new URL('grafana-frame.html', resolveBaseUrl());
+        frameUrl.searchParams.set('rev', GRAFANA_FRAME_WRAPPER_REV);
         frameUrl.searchParams.set('theme', initialFrameThemeRef.current);
         if (grafanaUrl) {
             frameUrl.searchParams.set('src', encodeURIComponent(grafanaUrl));
