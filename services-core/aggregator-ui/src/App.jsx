@@ -1361,7 +1361,7 @@ export default function App() {
                 {isSidebarOpen && (
                     <>
                         <a
-                            className="home-link sidebar-toggle"
+                            className="home-link sidebar-toggle top-control top-control-button top-control-icon"
                             href={homeHref}
                             aria-label="Go to home page"
                         >
@@ -1370,7 +1370,8 @@ export default function App() {
                         <button
                             type="button"
                             aria-label="Close catalog panel"
-                            className="sidebar-close sidebar-close-in"
+                            title="Close sidebar"
+                            className="sidebar-close sidebar-close-in top-control top-control-button top-control-icon"
                             onClick={handleToggleSidebar}
                         >
                             <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
@@ -1540,7 +1541,7 @@ export default function App() {
                     <button
                         type="button"
                         aria-label="Open catalog panel"
-                        className="hamburger-toggle sidebar-toggle"
+                        className="hamburger-toggle sidebar-toggle top-control top-control-button top-control-icon top-control-surface"
                         onClick={handleToggleSidebar}
                     >
                         <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
