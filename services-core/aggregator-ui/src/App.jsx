@@ -565,6 +565,7 @@ export default function App() {
     const [isAffectedOpen, setIsAffectedOpen] = useState(false);
     const [isChecksOpen, setIsChecksOpen] = useState(false);
     const [isAboutOpen, setIsAboutOpen] = useState(false);
+    const [isTitlePrimaryBelowControls, setIsTitlePrimaryBelowControls] = useState(false);
     const affectedAutoOpenRef = useRef(true);
     const checksAutoOpenRef = useRef(true);
     const [grafanaHeight, setGrafanaHeight] = useState(0);
@@ -574,6 +575,8 @@ export default function App() {
     const grafanaIframeRef = useRef(null);
     const contentRef = useRef(null);
     const headerRef = useRef(null);
+    const headerActionsRef = useRef(null);
+    const contentTitlePrimaryRef = useRef(null);
     const lastHistoryUrlRef = useRef(window.location.href);
     const lastHistoryKeyRef = useRef('');
     const pendingGrafanaSrcRef = useRef('');
@@ -979,6 +982,87 @@ export default function App() {
 
     const selectedItem = catalog.items.find((item) => item.id === selectedId);
     const selectedStatus = selectedItem ? itemStatuses[selectedItem.id] || 'unknown' : 'unknown';
+    const selectedTitleText = selectedItem ? selectedItem.name || selectedItem.id : 'Select an item';
+    const selectedTitleMatch = selectedTitleText.match(/^(\S+)([\s\S]*)$/);
+    const selectedTitleFirstWord = selectedTitleMatch?.[1] || selectedTitleText;
+    const selectedTitleRest = selectedTitleMatch?.[2] || '';
+
+    useEffect(() => {
+        const measurePrimaryWidth = (element) => {
+            const clone = element.cloneNode(true);
+            clone.style.position = 'fixed';
+            clone.style.left = '-99999px';
+            clone.style.top = '-99999px';
+            clone.style.visibility = 'hidden';
+            clone.style.pointerEvents = 'none';
+            clone.style.width = 'max-content';
+            clone.style.maxWidth = 'none';
+            clone.style.whiteSpace = 'nowrap';
+            document.body.appendChild(clone);
+            const width = clone.getBoundingClientRect().width;
+            clone.remove();
+            return width;
+        };
+
+        const updateTitlePrimaryPlacement = () => {
+            if (!headerRef.current || !headerActionsRef.current || !contentTitlePrimaryRef.current) {
+                setIsTitlePrimaryBelowControls(false);
+                return;
+            }
+
+            const sidebarOpen = isMobileLayout ? isMobileSidebarOpen : isDesktopSidebarOpen;
+            const shouldOffsetHeaderInline = isMobileLayout || !sidebarOpen;
+            const inlineLeftOffset = shouldOffsetHeaderInline ? (isMobileLayout ? 52 : 56) : 0;
+            const headerStyles = window.getComputedStyle(headerRef.current);
+            const gap = Number.parseFloat(headerStyles.columnGap || headerStyles.gap) || 12;
+            const actionsRectWidth = headerActionsRef.current.getBoundingClientRect().width;
+            const actionsStyles = window.getComputedStyle(headerActionsRef.current);
+            const actionsMarginLeft = Number.parseFloat(actionsStyles.marginLeft) || 0;
+            const actionsMarginRight = Number.parseFloat(actionsStyles.marginRight) || 0;
+            const actionsWidth = Math.ceil(actionsRectWidth + actionsMarginLeft + actionsMarginRight);
+            const primaryWidth = Math.ceil(measurePrimaryWidth(contentTitlePrimaryRef.current));
+            const availableInlineWidth = Math.max(
+                0,
+                headerRef.current.clientWidth - actionsWidth - gap - inlineLeftOffset,
+            );
+            const actionsRect = headerActionsRef.current.getBoundingClientRect();
+            const primaryRect = contentTitlePrimaryRef.current.getBoundingClientRect();
+            const primaryAlreadyBelowControls = primaryRect.top >= (actionsRect.bottom - 2);
+            const shouldForceBelowByWidth = primaryWidth > availableInlineWidth + 6;
+            const canReturnInlineByWidth = primaryWidth <= availableInlineWidth - 16;
+
+            setIsTitlePrimaryBelowControls((prev) => {
+                if (prev) {
+                    return !canReturnInlineByWidth;
+                }
+                return shouldForceBelowByWidth || primaryAlreadyBelowControls;
+            });
+        };
+
+        updateTitlePrimaryPlacement();
+
+        window.addEventListener('resize', updateTitlePrimaryPlacement);
+        let observer;
+        if (window.ResizeObserver) {
+            observer = new ResizeObserver(updateTitlePrimaryPlacement);
+            [headerRef.current, headerActionsRef.current, contentTitlePrimaryRef.current]
+                .filter(Boolean)
+                .forEach((element) => observer.observe(element));
+        }
+
+        return () => {
+            window.removeEventListener('resize', updateTitlePrimaryPlacement);
+            if (observer) {
+                observer.disconnect();
+            }
+        };
+    }, [
+        isMobileLayout,
+        isMobileSidebarOpen,
+        isDesktopSidebarOpen,
+        selectedId,
+        selectedTitleFirstWord,
+    ]);
     const affectedItems = useMemo(() => {
         if (!selectedItem) {
             return [];
@@ -1555,36 +1639,14 @@ export default function App() {
                 <header
                     className={`content-header ${
                         shouldOffsetContentHeader ? 'content-header-with-toggle' : ''
+                    } ${isTitlePrimaryBelowControls ? 'content-header-primary-below-controls' : ''
                     }`}
                     ref={headerRef}
                 >
-                    <div className="content-header-main">
-                        <div className="content-title">
-                            {selectedItem && (
-                                <span
-                                    className={`status-indicator status-${selectedStatus}`}
-                                    aria-label={`Status: ${selectedStatus.toUpperCase()}${
-                                        lastUpdated ? ` (at ${lastUpdated})` : ''
-                                    }`}
-                                    title={`Status: ${selectedStatus.toUpperCase()}${
-                                        lastUpdated ? ` (at ${lastUpdated})` : ''
-                                    }`}
-                                />
-                            )}
-                            <span className="content-title-text">
-                                {selectedItem ? selectedItem.name || selectedItem.id : 'Select an item'}
-                            </span>
-                            {selectedItem && selectedStatus !== 'up' && (
-                                <span className={`content-status-label status-${selectedStatus}`}>
-                                    {selectedStatus.toUpperCase()}
-                                </span>
-                            )}
-                        </div>
-                    </div>
-                    <div className="content-header-actions">
+                    <div className="content-header-actions" ref={headerActionsRef}>
                         <button
                             type="button"
-                            className="theme-toggle"
+                            className="theme-toggle top-control top-control-button top-control-pill top-control-surface"
                             onClick={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))}
                         >
                             <span className="theme-toggle-icon" aria-hidden="true">
@@ -1596,12 +1658,42 @@ export default function App() {
                         </button>
                         <button
                             type="button"
-                            className="theme-toggle about-toggle"
+                            className="about-toggle top-control top-control-button top-control-pill top-control-surface top-control-accent"
                             onClick={() => setIsAboutOpen(true)}
                         >
                             <span className="theme-toggle-icon" aria-hidden="true">?</span>
                             <span className="theme-toggle-text">About</span>
                         </button>
+                    </div>
+                    <div className="content-header-main">
+                        <div className="content-title">
+                            <span className="content-title-primary" ref={contentTitlePrimaryRef}>
+                                {selectedItem && (
+                                    <span
+                                        className={`status-indicator status-${selectedStatus}`}
+                                        aria-label={`Status: ${selectedStatus.toUpperCase()}${
+                                            lastUpdated ? ` (at ${lastUpdated})` : ''
+                                        }`}
+                                        title={`Status: ${selectedStatus.toUpperCase()}${
+                                            lastUpdated ? ` (at ${lastUpdated})` : ''
+                                        }`}
+                                    />
+                                )}
+                                <span className="content-title-text content-title-text-first">
+                                    {selectedTitleFirstWord}
+                                </span>
+                            </span>
+                            {selectedTitleRest && (
+                                <span className="content-title-text content-title-text-rest">
+                                    {selectedTitleRest}
+                                </span>
+                            )}
+                            {selectedItem && selectedStatus !== 'up' && (
+                                <span className={`content-status-label status-${selectedStatus}`}>
+                                    {selectedStatus.toUpperCase()}
+                                </span>
+                            )}
+                        </div>
                     </div>
                 </header>
                 {!selectedItem ? (
