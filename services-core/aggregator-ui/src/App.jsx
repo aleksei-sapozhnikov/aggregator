@@ -318,6 +318,26 @@ const parseServicePath = (value) => {
 const buildServicePath = (pathIds) =>
     pathIds.map((segment) => encodeURIComponent(segment)).join('/');
 
+const buildItemRouteHref = (basePath, itemId, pathIds = []) => {
+    const normalizedBase = basePath.endsWith('/') ? basePath.slice(0, -1) : basePath;
+    const prefix = normalizedBase === '' ? '' : normalizedBase;
+    const pathname = `${prefix}/item/${encodeURIComponent(itemId)}`;
+    if (!Array.isArray(pathIds) || pathIds.length === 0) {
+        return pathname;
+    }
+    const params = new URLSearchParams();
+    params.set('path', buildServicePath(pathIds));
+    return `${pathname}?${params.toString()}`;
+};
+
+const isPlainLeftClick = (event) =>
+    event.button === 0 &&
+    !event.defaultPrevented &&
+    !event.metaKey &&
+    !event.ctrlKey &&
+    !event.shiftKey &&
+    !event.altKey;
+
 const resolveNodeFromLocation = (nodes, basePath) => {
     if (!nodes.length) {
         return null;
@@ -437,6 +457,7 @@ const CatalogNode = ({
                          node,
                          selectedId,
                          onSelect,
+                         basePath,
                          expandedIds,
                          onToggleNode,
                          disableAnimation,
@@ -451,6 +472,7 @@ const CatalogNode = ({
     const statusLabel = `Status: ${status.toUpperCase()}${
         lastUpdated ? ` (at ${lastUpdated})` : ''
     }`;
+    const itemHref = buildItemRouteHref(basePath, node.item.id, node.path);
 
     const row = (
         <div
@@ -478,16 +500,15 @@ const CatalogNode = ({
             ) : (
                 <span className="node-toggle-column node-toggle-spacer" aria-hidden="true"/>
             )}
-            <div
+            <a
                 className="node-content"
-                onClick={() => onSelect(node)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(event) => {
-                    if (event.key === 'Enter' || event.key === ' ') {
-                        event.preventDefault();
-                        onSelect(node);
+                href={itemHref}
+                onClick={(event) => {
+                    if (!isPlainLeftClick(event)) {
+                        return;
                     }
+                    event.preventDefault();
+                    onSelect(node);
                 }}
             >
                 <div className="node-main">
@@ -508,7 +529,7 @@ const CatalogNode = ({
                         )}
                     </div>
                 </div>
-            </div>
+            </a>
         </div>
     );
 
@@ -527,6 +548,7 @@ const CatalogNode = ({
                             node={child}
                             selectedId={selectedId}
                             onSelect={onSelect}
+                            basePath={basePath}
                             expandedIds={expandedIds}
                             onToggleNode={onToggleNode}
                             disableAnimation={disableAnimation}
@@ -1575,21 +1597,17 @@ export default function App() {
                                             data-node-id={item.id}
                                         >
                                             <span className="node-toggle-column node-toggle-spacer" aria-hidden="true"/>
-                                            <div
+                                            <a
                                                 className="node-content"
+                                                href={buildItemRouteHref(basePath, item.id, [item.id])}
                                                 onClick={(event) => {
+                                                    if (!isPlainLeftClick(event)) {
+                                                        return;
+                                                    }
+                                                    event.preventDefault();
                                                     event.stopPropagation();
                                                     handleSelectItemById(item.id);
                                                     expandPathToItem(item.id, {suppressAnimation: true});
-                                                }}
-                                                role="button"
-                                                tabIndex={0}
-                                                onKeyDown={(event) => {
-                                                    if (event.key === 'Enter' || event.key === ' ') {
-                                                        event.preventDefault();
-                                                        handleSelectItemById(item.id);
-                                                        expandPathToItem(item.id, {suppressAnimation: true});
-                                                    }
                                                 }}
                                             >
                                                 <div className="node-main">
@@ -1614,7 +1632,7 @@ export default function App() {
                                                         )}
                                                     </div>
                                                 </div>
-                                            </div>
+                                            </a>
                                         </div>
                                     </div>
                                 ))}
@@ -1630,6 +1648,7 @@ export default function App() {
                                     node={node}
                                     selectedId={selectedId}
                                     onSelect={handleSelectItem}
+                                    basePath={basePath}
                                     expandedIds={expandedIds}
                                     onToggleNode={handleToggleNode}
                                     disableAnimation={disableTreeAnimation}
