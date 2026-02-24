@@ -969,6 +969,12 @@ export default function App() {
 
     const handleCollapseAll = useCallback(() => {
         setExpandedIds(new Set());
+        window.requestAnimationFrame(() => {
+            catalogTreeRef.current?.scrollTo({
+                top: 0,
+                behavior: 'auto',
+            });
+        });
     }, []);
 
     const selectedItem = catalog.items.find((item) => item.id === selectedId);
@@ -1355,7 +1361,7 @@ export default function App() {
                 {isSidebarOpen && (
                     <>
                         <a
-                            className="home-link sidebar-toggle"
+                            className="home-link sidebar-toggle top-control top-control-button top-control-icon"
                             href={homeHref}
                             aria-label="Go to home page"
                         >
@@ -1364,7 +1370,8 @@ export default function App() {
                         <button
                             type="button"
                             aria-label="Close catalog panel"
-                            className="sidebar-close sidebar-close-in"
+                            title="Close sidebar"
+                            className="sidebar-close sidebar-close-in top-control top-control-button top-control-icon"
                             onClick={handleToggleSidebar}
                         >
                             <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
@@ -1414,19 +1421,22 @@ export default function App() {
                         <button
                             type="button"
                             title="Collapse all dependencies"
+                            className="tree-control-button"
                             onClick={handleCollapseAll}
                             disabled={isSearchActive}
                         >
-                            Collapse
-                            all
+                            <span className="tree-control-icon" aria-hidden="true">⇧</span>
+                            <span className="tree-control-text">Collapse all</span>
                         </button>
                         <button
                             type="button"
                             title="Expand to all dependencies"
+                            className="tree-control-button"
                             onClick={handleExpandAll}
                             disabled={isSearchActive}
                         >
-                            Expand all
+                            <span className="tree-control-icon" aria-hidden="true">⇩</span>
+                            <span className="tree-control-text">Expand all</span>
                         </button>
                     </div>
                 )}
@@ -1534,7 +1544,7 @@ export default function App() {
                     <button
                         type="button"
                         aria-label="Open catalog panel"
-                        className="hamburger-toggle sidebar-toggle"
+                        className="hamburger-toggle sidebar-toggle top-control top-control-button top-control-icon top-control-surface"
                         onClick={handleToggleSidebar}
                     >
                         <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
