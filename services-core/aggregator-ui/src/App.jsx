@@ -377,10 +377,16 @@ export default function App() {
         });
     }, []);
 
+    /**
+     * Expands all nodes currently present in the tree.
+     */
     const handleExpandAll = useCallback(() => {
         setExpandedIds(new Set(collectExpandableIds(tree)));
     }, [tree]);
 
+    /**
+     * Collapses the full tree and resets scroll to the top of the sidebar.
+     */
     const handleCollapseAll = useCallback(() => {
         setExpandedIds(new Set());
         window.requestAnimationFrame(() => {
@@ -542,6 +548,9 @@ export default function App() {
     const iconSpriteHref = `${basePath || '/'}icons.svg`;
     const searchSuggestionsListId = 'item-search-suggestions';
 
+    /**
+     * Toggles sidebar visibility for desktop and mobile layouts.
+     */
     const handleToggleSidebar = useCallback(() => {
         if (isMobileLayout) {
             setIsMobileSidebarOpen((prev) => !prev);
@@ -550,6 +559,9 @@ export default function App() {
         setIsDesktopSidebarOpen((prev) => !prev);
     }, [isMobileLayout]);
 
+    /**
+     * Selects a node from the tree and updates route with resolved path information.
+     */
     const handleSelectItem = useCallback((node) => {
         setSelectedId(node.item.id);
         setPendingScrollId(node.uid);
@@ -557,6 +569,9 @@ export default function App() {
         updateUrlForNode(node);
     }, [updateUrlForNode]);
 
+    /**
+     * Selects an item by id, using a resolved node path when available.
+     */
     const handleSelectItemById = useCallback((itemId) => {
         setSelectedId(itemId);
         const selectedNode = findNodeById(tree, itemId);
@@ -571,6 +586,9 @@ export default function App() {
         setIsMobileSidebarOpen(false);
     }, [tree, updateUrlForItemId, updateUrlForNode]);
 
+    /**
+     * Selects an item by id and writes a pathless route (used by dependent item links).
+     */
     const handleSelectItemByIdNoPath = useCallback((itemId) => {
         setSelectedId(itemId);
         const selectedUid = findNodeUidById(tree, itemId);
@@ -580,6 +598,9 @@ export default function App() {
         updateUrlForItemId(itemId);
     }, [expandPathToItem, tree, updateUrlForItemId]);
 
+    /**
+     * Builds an item link under the current base path.
+     */
     const buildItemLink = useCallback((itemId) => {
         return buildItemPathname(basePath, itemId);
     }, [basePath]);
@@ -589,6 +610,9 @@ export default function App() {
         [],
     );
 
+    /**
+     * Clears search text and exits search-results mode.
+     */
     const handleClearSearch = useCallback(() => {
         clearSearchRequestedRef.current = true;
         setSearchQuery('');
