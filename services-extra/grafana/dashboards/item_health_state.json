@@ -160,7 +160,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(\n  (catalog_item_own_state{item_id=~\"${deps:regex}\"} and on() (vector(${failing_only}) == 0))\n  or (catalog_item_own_state{item_id=~\"${deps:regex}\"} and on(item_id) (min_over_time(catalog_item_own_state{item_id=~\"${deps:regex}\"}[$__range] @ end()) < 1) and on() (vector(${failing_only}) == 1))\n) and on() (vector(${dependencies}) == 1)",
+          "expr": "(\n  (catalog_item_own_state{item_id=~\"${deps:regex}\"} and on() (vector(${graphs}) == 0))\n  or (catalog_item_own_state{item_id=~\"${deps:regex}\"} and on(item_id) (min_over_time(catalog_item_own_state{item_id=~\"${deps:regex}\"}[$__range] @ end()) < 1) and on() (vector(${graphs}) == 1))\n) and on() (vector(${dependencies}) == 1)",
           "legendFormat": "\u200b[dep] {{item_name}}",
           "range": true,
           "refId": "B"
@@ -171,7 +171,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(\n  (catalog_item_check_state{item_id=~\"${item_id:regex}\"} and on() (vector(${failing_only}) == 0))\n  or (catalog_item_check_state{item_id=~\"${item_id:regex}\"} and on(item_id,check_id,check_source) (min_over_time(catalog_item_check_state{item_id=~\"${item_id:regex}\"}[$__range] @ end()) < 1) and on() (vector(${failing_only}) == 1))\n) and on() (vector(${healthchecks}) > 0)",
+          "expr": "(\n  (\n    (\n      (catalog_item_check_state{item_id=~\"${item_id:regex}\"} and on() (vector(${graphs}) == 0))\n      or (catalog_item_check_state{item_id=~\"${item_id:regex}\"} and on(item_id,check_id,check_source) (min_over_time(catalog_item_check_state{item_id=~\"${item_id:regex}\"}[$__range] @ end()) < 1) and on() (vector(${graphs}) == 1))\n    )\n    or (\n      (catalog_item_check_state{item_id=~\"${deps:regex}\"} and on() (vector(${graphs}) == 0))\n      or (catalog_item_check_state{item_id=~\"${deps:regex}\"} and on(item_id,check_id,check_source) (min_over_time(catalog_item_check_state{item_id=~\"${deps:regex}\"}[$__range] @ end()) < 1) and on() (vector(${graphs}) == 1))\n    )\n  ) and on() (vector(${healthchecks}) == 2)\n  or (\n    (catalog_item_check_state{item_id=~\"${item_id:regex}\"} and on() (vector(${graphs}) == 0))\n    or (catalog_item_check_state{item_id=~\"${item_id:regex}\"} and on(item_id,check_id,check_source) (min_over_time(catalog_item_check_state{item_id=~\"${item_id:regex}\"}[$__range] @ end()) < 1) and on() (vector(${graphs}) == 1))\n  ) and on() (vector(${healthchecks}) == 1)\n)",
           "legendFormat": "\u200b\u200b[check] {{check_name}}",
           "range": true,
           "refId": "C"
@@ -182,7 +182,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(\n  (catalog_item_check_state{item_id=~\"${deps:regex}\"} and on() (vector(${failing_only}) == 0))\n  or (catalog_item_check_state{item_id=~\"${deps:regex}\"} and on(item_id,check_id,check_source) (min_over_time(catalog_item_check_state{item_id=~\"${deps:regex}\"}[$__range] @ end()) < 1) and on() (vector(${failing_only}) == 1))\n) and on() (vector(${healthchecks}) == 2)",
+          "expr": "(\n  (catalog_item_check_state{item_id=~\"${deps:regex}\"} and on() (vector(${graphs}) == 0))\n  or (catalog_item_check_state{item_id=~\"${deps:regex}\"} and on(item_id,check_id,check_source) (min_over_time(catalog_item_check_state{item_id=~\"${deps:regex}\"}[$__range] @ end()) < 1) and on() (vector(${graphs}) == 1))\n) and on() (vector(${healthchecks}) == 2)",
           "legendFormat": "\u200b\u200b[check] {{check_name}}",
           "range": true,
           "refId": "D"
@@ -320,25 +320,25 @@
         "definition": "",
         "includeAll": false,
         "multi": false,
-        "name": "failing_only",
+        "name": "graphs",
         "current": {
           "selected": true,
-          "text": "true",
+          "text": "failing only",
           "value": "1"
         },
         "options": [
           {
-            "selected": true,
-            "text": "true",
-            "value": "1"
+            "selected": false,
+            "text": "all",
+            "value": "0"
           },
           {
-            "selected": false,
-            "text": "false",
-            "value": "0"
+            "selected": true,
+            "text": "failing only",
+            "value": "1"
           }
         ],
-        "query": "true : 1, false : 0",
+        "query": "all : 0, failing only : 1",
         "refresh": 1,
         "regex": "",
         "sort": 1,
