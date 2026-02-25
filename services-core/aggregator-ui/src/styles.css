@@ -522,6 +522,8 @@ body {
   display: flex;
   align-items: flex-start;
   cursor: pointer;
+  color: inherit;
+  text-decoration: none;
 }
 
 .node-content:hover {
