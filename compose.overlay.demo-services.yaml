@@ -1,48 +1,12 @@
 services:
-  order-capture-svc:
+  dummy-java:
     build:
       context: services-demo/dummy-java
 
-  order-validation-svc:
+  dummy-python:
     build:
       context: services-demo/dummy-python
 
-  order-billing-svc:
-    build:
-      context: services-demo/dummy-javascript
-
-  order-dispatch-svc:
-    build:
-      context: services-demo/dummy-java
-
-  routing-engine-svc:
-    build:
-      context: services-demo/dummy-python
-
-  inventory-sync-svc:
-    build:
-      context: services-demo/dummy-javascript
-
-  lastmile-dispatch-svc:
-    build:
-      context: services-demo/dummy-java
-
-  returns-processing-svc:
-    build:
-      context: services-demo/dummy-python
-
-  engagement-orchestrator-svc:
-    build:
-      context: services-demo/dummy-javascript
-
-  profile-store-svc:
-    build:
-      context: services-demo/dummy-java
-
-  messaging-hub-svc:
-    build:
-      context: services-demo/dummy-python
-
-  campaign-execution-svc:
+  dummy-javascript:
     build:
       context: services-demo/dummy-javascript
