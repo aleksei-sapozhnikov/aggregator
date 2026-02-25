@@ -1,617 +1,50 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import yaml from 'js-yaml';
-import AboutContent from './AboutContent';
-
-const DASHBOARDS = {
-    timeline: {
-        uid: 'item-health-state',
-        slug: 'item_health_state',
-        panelId: 3001,
-    },
-};
-
-// Cache-bust for the dedicated Grafana frame HTML entry.
-// Bump when changing the frame wrapper logic.
-const GRAFANA_FRAME_WRAPPER_REV = 'v2026-02-22';
+import SidebarPanel from './components/SidebarPanel';
+import DetailsPanel from './components/DetailsPanel';
+import AboutModal from './components/AboutModal';
+import {
+    buildCatalogTree,
+    buildItemPathname,
+    buildNameWordVocabulary,
+    buildSearchAutocompleteOptions,
+    buildServicePath,
+    collectDescendantIds,
+    collectExpandableIds,
+    filterCatalogTree,
+    findNodeById,
+    findNodePath,
+    findNodeUidById,
+    normalizeSearchText,
+    rankSearchResults,
+    readLocationRouteContext,
+    resolveNodeFromLocation,
+} from './shared/catalogUtils';
+import {
+    buildDashboardUrl,
+    buildGrafanaFrameUrl,
+    compareHealthStatus,
+    DASHBOARDS,
+    fetchPrometheusStatuses,
+    getInitialTheme,
+    loadCatalog,
+    resolveBasePath,
+    resolveBaseUrl,
+    resolveGrafanaBaseUrl,
+    resolvePrometheusBaseUrl,
+    resolveSidebarTitle,
+} from './services/aggregatorApi';
 
 const MOBILE_BREAKPOINT = 1100;
 
-const sortItemsByName = (items) =>
-    [...items].sort((a, b) => (a.name || a.id).localeCompare(b.name || b.id));
+/**
+ * @file Main React application orchestrator for aggregator-ui.
+ */
 
-const sortNodesByName = (nodes) =>
-    [...nodes].sort((a, b) =>
-        (a.item.name || a.item.id).localeCompare(b.item.name || b.item.id),
-    );
-
-const parsePrometheusHealthStatus = (value) => {
-    let status = 'unknown';
-    if (Number.isFinite(value)) {
-        if (value >= 0.9) {
-            status = 'up';
-        } else if (value <= 0.1) {
-            status = 'down';
-        }
-    }
-    return status;
-};
-
-const compareHealthStatus = (left, right) => {
-    const order = {down: 0, unknown: 1, up: 2};
-    const leftRank = order[left] ?? 3;
-    const rightRank = order[right] ?? 3;
-    if (leftRank !== rightRank) {
-        return leftRank - rightRank;
-    }
-    return 0;
-};
-
-const collectNodeIds = (nodes) => {
-    const ids = [];
-    const visit = (node) => {
-        ids.push(node.item.id);
-        node.children.forEach(visit);
-    };
-    nodes.forEach(visit);
-    return ids;
-};
-
-const collectDescendantIds = (node) => {
-    const descendants = [];
-    const visit = (children) => {
-        children.forEach((child) => {
-            descendants.push(child.item.id);
-            visit(child.children);
-        });
-    };
-    visit(node.children);
-    return descendants;
-};
-
-const collectExpandableIds = (nodes) =>
-    collectNodeIds(nodes).filter((id, index, arr) => arr.indexOf(id) === index);
-
-const buildCatalogTree = (items, dependencies) => {
-    const itemMap = new Map(items.map((item) => [item.id, item]));
-    const childrenMap = new Map();
-    const childIds = new Set();
-
-    dependencies
-        .forEach((dep) => {
-            if (!itemMap.has(dep.sourceId) || !itemMap.has(dep.targetId)) {
-                return;
-            }
-            childIds.add(dep.targetId);
-            const list = childrenMap.get(dep.sourceId) || [];
-            list.push(dep.targetId);
-            childrenMap.set(dep.sourceId, list);
-        });
-
-    const rootItems = sortItemsByName(items.filter((item) => !childIds.has(item.id)));
-
-    const toNode = (itemId, visited = new Set(), pathSegments = [], pathIds = []) => {
-        if (visited.has(itemId)) {
-            return null;
-        }
-        visited.add(itemId);
-        const item = itemMap.get(itemId);
-        if (!item) {
-            return null;
-        }
-        const uid = pathSegments.join('/');
-        const path = [...pathIds, itemId];
-        const children = sortNodesByName(
-            (childrenMap.get(itemId) || [])
-                .map((childId, index) =>
-                    toNode(
-                        childId,
-                        new Set(visited),
-                        [...pathSegments, `${index}:${childId}`],
-                        path,
-                    ),
-                )
-                .filter(Boolean),
-        );
-        return {item, children, uid, path};
-    };
-
-    return rootItems
-        .map((item, index) => toNode(item.id, new Set(), [`${index}:${item.id}`], []))
-        .filter(Boolean);
-};
-
-const normalizeSearchText = (value) => value.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
-
-const matchSearch = (item, queryTokens) => {
-    if (!queryTokens.length) {
-        return true;
-    }
-    const name = normalizeSearchText(item.name || '');
-    const id = normalizeSearchText(item.id || '');
-    const type = normalizeSearchText(item.type || '');
-    const haystack = `${name} ${id} ${type}`.trim();
-    return queryTokens.every((token) => haystack.includes(token));
-};
-
-const filterCatalogTree = (nodes, queryTokens) => {
-    if (!queryTokens.length) {
-        return nodes;
-    }
-    const visit = (node) => {
-        const filteredChildren = node.children
-            .map(visit)
-            .filter(Boolean);
-        if (matchSearch(node.item, queryTokens) || filteredChildren.length > 0) {
-            return {...node, children: filteredChildren};
-        }
-        return null;
-    };
-    return nodes.map(visit).filter(Boolean);
-};
-
-const findNodePath = (nodes, targetId) => {
-    for (const node of nodes) {
-        if (node.item.id === targetId) {
-            return [node.item.id];
-        }
-        if (node.children.length) {
-            const childPath = findNodePath(node.children, targetId);
-            if (childPath) {
-                return [node.item.id, ...childPath];
-            }
-        }
-    }
-    return null;
-};
-
-const findNodeById = (nodes, targetId) => {
-    for (const node of nodes) {
-        if (node.item.id === targetId) {
-            return node;
-        }
-        if (node.children.length) {
-            const found = findNodeById(node.children, targetId);
-            if (found) {
-                return found;
-            }
-        }
-    }
-    return null;
-};
-
-const findNodeByPath = (nodes, pathIds) => {
-    if (!Array.isArray(pathIds) || pathIds.length === 0) {
-        return null;
-    }
-    const [head, ...rest] = pathIds;
-    for (const node of nodes) {
-        if (node.item.id !== head) {
-            continue;
-        }
-        if (rest.length === 0) {
-            return node;
-        }
-        const found = findNodeByPath(node.children, rest);
-        if (found) {
-            return found;
-        }
-    }
-    return null;
-};
-
-const findNodeUidById = (nodes, targetId) => {
-    for (const node of nodes) {
-        if (node.item.id === targetId) {
-            return node.uid;
-        }
-        if (node.children.length) {
-            const found = findNodeUidById(node.children, targetId);
-            if (found) {
-                return found;
-            }
-        }
-    }
-    return null;
-};
-const rankSearchResults = (items, queryTokens) => {
-    if (!queryTokens.length) {
-        return [];
-    }
-    const results = [];
-    items.forEach((item) => {
-        const name = normalizeSearchText(item.name || '');
-        const id = normalizeSearchText(item.id || '');
-        const type = normalizeSearchText(item.type || '');
-        const haystack = `${name} ${id} ${type}`.trim();
-        if (!queryTokens.every((token) => haystack.includes(token))) {
-            return;
-        }
-        let score = 0;
-        queryTokens.forEach((token) => {
-            if (name.includes(token)) {
-                score += 3;
-            }
-            if (id.includes(token)) {
-                score += 2;
-            }
-            if (type.includes(token)) {
-                score += 1;
-            }
-        });
-        results.push({item, score});
-    });
-    return results
-        .sort((a, b) => b.score - a.score || (a.item.name || a.item.id).localeCompare(b.item.name || b.item.id));
-};
-
-const buildNameWordVocabulary = (items) => {
-    const seen = new Set();
-    const words = [];
-    items.forEach((item) => {
-        normalizeSearchText(item.name || '')
-            .split(' ')
-            .filter(Boolean)
-            .forEach((word) => {
-                if (seen.has(word)) {
-                    return;
-                }
-                seen.add(word);
-                words.push(word);
-            });
-    });
-    return words.sort((a, b) => a.localeCompare(b));
-};
-
-const parseSearchAutocompleteQuery = (query) => {
-    const rawQuery = query || '';
-    const endsWithSpace = /\s$/.test(rawQuery);
-    const normalizedQuery = normalizeSearchText(rawQuery);
-    const tokens = normalizedQuery ? normalizedQuery.split(' ').filter(Boolean) : [];
-    const baseTokens = endsWithSpace ? tokens : tokens.slice(0, -1);
-    const currentToken = endsWithSpace ? '' : (tokens[tokens.length - 1] || '');
-    return {baseTokens, currentToken};
-};
-
-const buildSearchAutocompleteOptions = (query, vocabulary, limit = 12) => {
-    const {baseTokens, currentToken} = parseSearchAutocompleteQuery(query);
-    if (!currentToken) {
-        return [];
-    }
-
-    const options = [];
-    for (const word of vocabulary) {
-        if (!word.startsWith(currentToken) || word === currentToken) {
-            continue;
-        }
-        const fullQuery = [...baseTokens, word].join(' ');
-        options.push({word, fullQuery});
-        if (options.length >= limit) {
-            break;
-        }
-    }
-    return options;
-};
-
-const getInitialTheme = () => {
-    const stored = localStorage.getItem('aggregator-ui-theme');
-    if (stored) {
-        return stored;
-    }
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-};
-
-const resolveBasePath = () => {
-    const baseUrl = import.meta.env.BASE_URL || '/';
-    return new URL(baseUrl, window.location.origin).pathname;
-};
-
-const resolveBaseUrl = () => `${window.location.origin}${resolveBasePath()}`;
-
-const resolveGrafanaBaseUrl = () => {
-    const configured = window.__AGGREGATOR_UI__?.grafanaUrl;
-    if (configured) {
-        return configured;
-    }
-    if (import.meta.env.VITE_GRAFANA_URL) {
-        return import.meta.env.VITE_GRAFANA_URL;
-    }
-    return `${resolveBaseUrl()}grafana`;
-};
-
-const resolvePrometheusBaseUrl = () => {
-    const configured = window.__AGGREGATOR_UI__?.prometheusUrl;
-    if (configured) {
-        return configured;
-    }
-    if (import.meta.env.VITE_PROMETHEUS_URL) {
-        return import.meta.env.VITE_PROMETHEUS_URL;
-    }
-    return `${window.location.origin}/prometheus`;
-};
-
-const resolveSidebarTitle = () => (import.meta.env.VITE_APP_TITLE ?? '').trim();
-const resolveTimelineDefaultRange = () => {
-    const configured = (import.meta.env.VITE_TIMELINE_DEFAULT_RANGE ?? '').trim();
-    if (!configured) {
-        throw new Error('VITE_TIMELINE_DEFAULT_RANGE is required');
-    }
-    return configured.startsWith('now-') ? configured.slice(4) : configured;
-};
-const TIMELINE_DEFAULT_RANGE = resolveTimelineDefaultRange();
-
-const stripBasePath = (pathname, basePath) => {
-    if (!basePath || basePath === '/') {
-        return pathname.replace(/^\/+/, '');
-    }
-    const normalizedBase = basePath.endsWith('/') ? basePath : `${basePath}/`;
-    if (pathname.startsWith(normalizedBase)) {
-        return pathname.slice(normalizedBase.length);
-    }
-    if (pathname.startsWith(basePath)) {
-        return pathname.slice(basePath.length).replace(/^\/+/, '');
-    }
-    return pathname.replace(/^\/+/, '');
-};
-
-const parseServicePath = (value) => {
-    if (!value) {
-        return [];
-    }
-    return value
-        .split('/')
-        .map((segment) => decodeURIComponent(segment))
-        .filter(Boolean);
-};
-
-const buildServicePath = (pathIds) =>
-    pathIds.map((segment) => encodeURIComponent(segment)).join('/');
-
-const buildItemRouteHref = (basePath, itemId, pathIds = []) => {
-    const normalizedBase = basePath.endsWith('/') ? basePath.slice(0, -1) : basePath;
-    const prefix = normalizedBase === '' ? '' : normalizedBase;
-    const pathname = `${prefix}/item/${encodeURIComponent(itemId)}`;
-    if (!Array.isArray(pathIds) || pathIds.length === 0) {
-        return pathname;
-    }
-    const params = new URLSearchParams();
-    params.set('path', buildServicePath(pathIds));
-    return `${pathname}?${params.toString()}`;
-};
-
-const isPlainLeftClick = (event) =>
-    event.button === 0 &&
-    !event.defaultPrevented &&
-    !event.metaKey &&
-    !event.ctrlKey &&
-    !event.shiftKey &&
-    !event.altKey;
-
-const resolveNodeFromLocation = (nodes, basePath) => {
-    if (!nodes.length) {
-        return null;
-    }
-    const params = new URLSearchParams(window.location.search);
-    const servicePath = parseServicePath(params.get('path'));
-    const relativePath = stripBasePath(window.location.pathname, basePath);
-    let routeId = '';
-    if (relativePath.startsWith('item/')) {
-        const rest = relativePath.slice('item/'.length);
-        const [segment] = rest.split('/').filter(Boolean);
-        if (segment) {
-            routeId = decodeURIComponent(segment);
-        }
-    }
-
-    const hasRouteId = Boolean(routeId);
-    const hasPathParam = servicePath.length > 0;
-
-    if (hasPathParam) {
-        const byPath = findNodeByPath(nodes, servicePath);
-        if (byPath) {
-            return {node: byPath};
-        }
-        const fallbackId = servicePath[servicePath.length - 1];
-        if (fallbackId) {
-            const byId = findNodeById(nodes, fallbackId);
-            if (byId) {
-                return {node: byId};
-            }
-        }
-    }
-
-    if (hasRouteId) {
-        const byId = findNodeById(nodes, routeId);
-        return byId ? {node: byId} : null;
-    }
-
-    return null;
-};
-
-const readLocationRouteContext = (basePath) => {
-    const params = new URLSearchParams(window.location.search);
-    const pathParamRaw = params.get('path') || '';
-    const pathIds = parseServicePath(pathParamRaw);
-    const relativePath = stripBasePath(window.location.pathname, basePath);
-    let routeId = '';
-    if (relativePath.startsWith('item/')) {
-        const rest = relativePath.slice('item/'.length);
-        const [segment] = rest.split('/').filter(Boolean);
-        if (segment) {
-            routeId = decodeURIComponent(segment);
-        }
-    }
-    return {
-        routeId,
-        pathIds,
-        hasRouteId: Boolean(routeId),
-        hasPathParam: pathIds.length > 0,
-    };
-};
-
-const normalizeDashboardBaseUrl = (
-    baseUrl,
-    dashboardUid,
-    dashboardSlug = dashboardUid,
-) => {
-    const url = new URL(baseUrl, window.location.origin);
-    const segments = url.pathname.split('/').filter(Boolean);
-    const dashboardSegment = 'd';
-    const dashboardIndex = segments.findIndex((segment) => segment === 'd' || segment === 'd-solo');
-
-    if (dashboardIndex !== -1 && segments[dashboardIndex + 1] === dashboardUid) {
-        segments[dashboardIndex] = dashboardSegment;
-        if (segments[dashboardIndex + 2]) {
-            segments.length = dashboardIndex + 3;
-        } else {
-            segments.length = dashboardIndex + 2;
-            segments.push(dashboardSlug);
-        }
-    } else {
-        segments.push(dashboardSegment, dashboardUid, dashboardSlug);
-    }
-
-    url.pathname = `/${segments.join('/')}`;
-    url.search = '';
-    url.hash = '';
-
-    return url.toString().replace(/\/$/, '');
-};
-
-const buildDashboardUrl = (
-    baseUrl,
-    dashboardUid,
-    dashboardSlug,
-    itemId,
-    theme,
-    panelId,
-    appBaseUrl = '',
-) => {
-    const params = new URLSearchParams({
-        orgId: '1',
-        'var-item_id': itemId,
-        'var-app_base_url': appBaseUrl,
-        theme,
-        from: `now-${TIMELINE_DEFAULT_RANGE}`,
-        to: 'now',
-    });
-    if (panelId) {
-        params.set('viewPanel', panelId);
-    }
-    const normalizedBaseUrl = normalizeDashboardBaseUrl(baseUrl, dashboardUid, dashboardSlug);
-    return `${normalizedBaseUrl}?${params.toString()}&kiosk`;
-};
-
-const CatalogNode = ({
-                         node,
-                         selectedId,
-                         onSelect,
-                         basePath,
-                         expandedIds,
-                         onToggleNode,
-                         disableAnimation,
-                         grafanaBaseUrl,
-                         theme,
-                         status,
-                         statuses,
-                         lastUpdated,
-                     }) => {
-    const hasChildren = node.children.length > 0;
-    const isExpanded = expandedIds.has(node.item.id);
-    const statusLabel = `Status: ${status.toUpperCase()}${
-        lastUpdated ? ` (at ${lastUpdated})` : ''
-    }`;
-    const itemHref = buildItemRouteHref(basePath, node.item.id, node.path);
-
-    const row = (
-        <div
-            className={`node-row ${selectedId === node.item.id ? 'is-selected' : ''}`}
-            data-node-id={node.uid}
-        >
-            {hasChildren ? (
-                <button
-                    className={`node-toggle-column ${isExpanded ? 'is-expanded' : ''}`}
-                    type="button"
-                    aria-label={isExpanded ? 'Collapse children' : 'Expand children'}
-                    title={isExpanded ? 'Collapse children' : 'Expand children'}
-                    onClick={(event) => {
-                        event.stopPropagation();
-                        onToggleNode(node);
-                    }}
-                >
-                    <span
-                        className={`affected-chevron ${isExpanded ? 'is-open' : ''}`}
-                        aria-hidden="true"
-                    >
-                        ›
-                    </span>
-                </button>
-            ) : (
-                <span className="node-toggle-column node-toggle-spacer" aria-hidden="true"/>
-            )}
-            <a
-                className="node-content"
-                href={itemHref}
-                onClick={(event) => {
-                    if (!isPlainLeftClick(event)) {
-                        return;
-                    }
-                    event.preventDefault();
-                    onSelect(node);
-                }}
-            >
-                <div className="node-main">
-                    <div className="node-label">
-                      <span className="node-heading">
-                        <span
-                            className={`status-indicator status-${status}`}
-                            aria-label={statusLabel}
-                            title={statusLabel}
-                        />
-                          {node.item.name && <span className="node-name">{node.item.name}</span>}
-                      </span>
-                        {(node.item.id || node.item.type) && (
-                            <span className="node-identity">
-                          {node.item.id}
-                                {node.item.type ? ` (${node.item.type})` : ''}
-                        </span>
-                        )}
-                    </div>
-                </div>
-            </a>
-        </div>
-    );
-
-    if (!hasChildren) {
-        return <div className="catalog-item node-leaf">{row}</div>;
-    }
-
-    return (
-        <div className="catalog-item">
-            {row}
-            <div className={`node-children ${isExpanded ? 'is-expanded' : ''}`}>
-                {isExpanded &&
-                    node.children.map((child) => (
-                        <CatalogNode
-                            key={child.item.id}
-                            node={child}
-                            selectedId={selectedId}
-                            onSelect={onSelect}
-                            basePath={basePath}
-                            expandedIds={expandedIds}
-                            onToggleNode={onToggleNode}
-                            disableAnimation={disableAnimation}
-                            grafanaBaseUrl={grafanaBaseUrl}
-                            theme={theme}
-                            status={statuses[child.item.id] || 'unknown'}
-                            statuses={statuses}
-                            lastUpdated={lastUpdated}
-                        />
-                    ))}
-            </div>
-        </div>
-    );
-};
-
+/**
+ * Application orchestrator.
+ * Owns cross-cutting state (selection, routing, polling, theme, responsive shell state)
+ * and wires large UI blocks (SidebarPanel, DetailsPanel, AboutModal).
+ */
 export default function App() {
     const sidebarTitle = resolveSidebarTitle();
     const [catalog, setCatalog] = useState({items: [], dependencies: []});
@@ -633,7 +66,6 @@ export default function App() {
     const [isSearchActive, setIsSearchActive] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [pendingScrollId, setPendingScrollId] = useState('');
-    const [disableTreeAnimation, setDisableTreeAnimation] = useState(false);
     const [isAffectedOpen, setIsAffectedOpen] = useState(false);
     const [isChecksOpen, setIsChecksOpen] = useState(false);
     const [isAboutOpen, setIsAboutOpen] = useState(false);
@@ -659,17 +91,28 @@ export default function App() {
     const basePath = useMemo(resolveBasePath, []);
     const appBaseUrl = useMemo(() => resolveBaseUrl().replace(/\/$/, ''), []);
 
-
-    const updateUrlForItemId = useCallback((itemId, {replace} = {}) => {
+    /**
+     * Pushes/replaces browser history for an item route while deduplicating no-op updates.
+     */
+    const updateHistoryForRoute = useCallback((itemId, pathIds, {replace} = {}) => {
+        if (!itemId) {
+            return;
+        }
+        const normalizedPath = Array.isArray(pathIds) ? pathIds : [];
         const url = new URL(window.location.href);
-        const normalizedBase = basePath.endsWith('/') ? basePath.slice(0, -1) : basePath;
-        const prefix = normalizedBase === '' ? '' : normalizedBase;
-        url.pathname = `${prefix}/item/${encodeURIComponent(itemId)}`;
+        url.pathname = buildItemPathname(basePath, itemId);
         url.search = '';
-        const historyKey = `${itemId}::`;
+        if (normalizedPath.length > 0) {
+            url.searchParams.set('path', buildServicePath(normalizedPath));
+        }
+        const currentPathKey = Array.isArray(window.history.state?.path)
+            ? window.history.state.path.join('/')
+            : '';
+        const targetPathKey = normalizedPath.join('/');
+        const historyKey = `${itemId}::${targetPathKey}`;
         const nextUrl = url.toString();
-        const currentState = window.history.state;
-        if (currentState?.itemId === itemId && (!currentState.path || currentState.path.length === 0)) {
+
+        if (window.history.state?.itemId === itemId && currentPathKey === targetPathKey) {
             return;
         }
         if (
@@ -679,91 +122,44 @@ export default function App() {
         ) {
             return;
         }
+
+        const nextState = {itemId, path: normalizedPath};
         if (replace) {
-            window.history.replaceState({itemId, path: []}, '', url);
+            window.history.replaceState(nextState, '', url);
         } else {
-            window.history.pushState({itemId, path: []}, '', url);
+            window.history.pushState(nextState, '', url);
         }
         lastHistoryUrlRef.current = nextUrl;
         lastHistoryKeyRef.current = historyKey;
     }, [basePath]);
 
+    /**
+     * Updates route for an item id without preserving an explicit tree path.
+     */
+    const updateUrlForItemId = useCallback((itemId, {replace} = {}) => {
+        updateHistoryForRoute(itemId, [], {replace});
+    }, [updateHistoryForRoute]);
+
+    /**
+     * Updates route using the selected tree node and its resolved path.
+     */
     const updateUrlForNode = useCallback((node, {replace} = {}) => {
         if (!node) {
             return;
         }
-        const url = new URL(window.location.href);
-        const normalizedBase = basePath.endsWith('/') ? basePath.slice(0, -1) : basePath;
-        const prefix = normalizedBase === '' ? '' : normalizedBase;
-        url.pathname = `${prefix}/item/${encodeURIComponent(node.item.id)}`;
-        url.search = '';
-        if (node.path?.length) {
-            url.searchParams.set('path', buildServicePath(node.path));
-        }
-        const historyKey = `${node.item.id}::${node.path?.join('/') || ''}`;
-        const nextUrl = url.toString();
-        const currentState = window.history.state;
-        if (
-            currentState?.itemId === node.item.id &&
-            Array.isArray(currentState.path) &&
-            (currentState.path?.join('/') || '') === (node.path?.join('/') || '')
-        ) {
-            return;
-        }
-        if (
-            nextUrl === window.location.href ||
-            nextUrl === lastHistoryUrlRef.current ||
-            historyKey === lastHistoryKeyRef.current
-        ) {
-            return;
-        }
-        if (replace) {
-            window.history.replaceState({itemId: node.item.id, path: node.path || []}, '', url);
-        } else {
-            window.history.pushState({itemId: node.item.id, path: node.path || []}, '', url);
-        }
-        lastHistoryUrlRef.current = nextUrl;
-        lastHistoryKeyRef.current = historyKey;
-    }, [basePath]);
+        updateHistoryForRoute(node.item.id, node.path || [], {replace});
+    }, [updateHistoryForRoute]);
 
+    /**
+     * Normalizes route state after parsing browser location (same semantics, normalized path).
+     */
     const normalizeUrlForRoute = useCallback((itemId, pathIds, {replace} = {}) => {
-        if (!itemId) {
-            return;
-        }
-        const url = new URL(window.location.href);
-        const normalizedBase = basePath.endsWith('/') ? basePath.slice(0, -1) : basePath;
-        const prefix = normalizedBase === '' ? '' : normalizedBase;
-        url.pathname = `${prefix}/item/${encodeURIComponent(itemId)}`;
-        url.search = '';
-        if (Array.isArray(pathIds) && pathIds.length > 0) {
-            url.searchParams.set('path', buildServicePath(pathIds));
-        }
-        const historyKey = `${itemId}::${Array.isArray(pathIds) ? pathIds.join('/') : ''}`;
-        const nextUrl = url.toString();
-        const currentState = window.history.state;
-        if (
-            currentState?.itemId === itemId &&
-            Array.isArray(currentState.path) &&
-            (currentState.path?.join('/') || '') === (Array.isArray(pathIds) ? pathIds.join('/') : '')
-        ) {
-            return;
-        }
-        if (
-            nextUrl === window.location.href ||
-            nextUrl === lastHistoryUrlRef.current ||
-            historyKey === lastHistoryKeyRef.current
-        ) {
-            return;
-        }
-        if (replace) {
-            window.history.replaceState({itemId, path: Array.isArray(pathIds) ? pathIds : []}, '', url);
-        } else {
-            window.history.pushState({itemId, path: Array.isArray(pathIds) ? pathIds : []}, '', url);
-        }
-        lastHistoryUrlRef.current = nextUrl;
-        lastHistoryKeyRef.current = historyKey;
-    }, [basePath]);
+        updateHistoryForRoute(itemId, pathIds, {replace});
+    }, [updateHistoryForRoute]);
 
+    /**
+     * Marks the Grafana wrapper iframe as ready and flushes pending theme/src messages.
+     */
     const handleGrafanaLoad = useCallback(() => {
         const iframe = grafanaIframeRef.current;
         if (!iframe?.contentWindow) {
@@ -791,6 +187,10 @@ export default function App() {
         localStorage.setItem('aggregator-ui-theme', theme);
     }, [theme]);
 
+    /**
+     * Keep the Grafana wrapper iframe in sync with the current app theme
+     * after the wrapper page reports it is ready.
+     */
     useEffect(() => {
         const iframe = grafanaIframeRef.current;
         if (!iframe?.contentWindow || !grafanaFrameReadyRef.current) {
@@ -859,17 +259,9 @@ export default function App() {
     }, [isMobileLayout]);
 
     useEffect(() => {
-        const loadCatalog = async () => {
+        const loadInitialCatalog = async () => {
             try {
-                const response = await fetch(new URL('catalog.yaml', resolveBaseUrl()));
-                if (!response.ok) {
-                    setError(`Failed to load catalog: ${response.status}`);
-                    return;
-                }
-                const text = await response.text();
-                const data = yaml.load(text) || {};
-                const items = Array.isArray(data.items) ? data.items : [];
-                const dependencies = Array.isArray(data.dependencies) ? data.dependencies : [];
+                const {items, dependencies} = await loadCatalog();
                 setCatalog({items, dependencies});
                 setSelectedId((prev) => prev || items[0]?.id || '');
             } catch (err) {
@@ -877,7 +269,7 @@ export default function App() {
             }
         };
 
-        loadCatalog();
+        void loadInitialCatalog();
     }, []);
 
     useEffect(() => {
@@ -889,70 +281,12 @@ export default function App() {
 
         const fetchStatuses = async () => {
             try {
-                const [itemResponse, checkResponse] = await Promise.all([
-                    fetch(
-                        `${prometheusBaseUrl}/api/v1/query?query=${encodeURIComponent('catalog_item_state')}`,
-                    ),
-                    fetch(
-                        `${prometheusBaseUrl}/api/v1/query?query=${encodeURIComponent('catalog_item_check_state')}`,
-                    ),
-                ]);
-
-                if (itemResponse.ok) {
-                    const contentType = itemResponse.headers.get('content-type') || '';
-                    if (contentType.includes('application/json')) {
-                        const payload = await itemResponse.json();
-                        const results = payload?.data?.result ?? [];
-                        const nextStatuses = {};
-                        results.forEach((entry) => {
-                            const itemId = entry?.metric?.item_id;
-                            if (!itemId) {
-                                return;
-                            }
-                            const value = Number.parseFloat(entry?.value?.[1]);
-                            nextStatuses[itemId] = parsePrometheusHealthStatus(value);
-                        });
-                        if (!cancelled) {
-                            setItemStatuses(nextStatuses);
-                            setLastUpdated(new Date().toLocaleTimeString());
-                        }
-                    }
-                } else {
-                    console.error(`Failed to load Prometheus data: ${itemResponse.status}`);
-                }
-
-                if (checkResponse.ok) {
-                    const contentType = checkResponse.headers.get('content-type') || '';
-                    if (contentType.includes('application/json')) {
-                        const payload = await checkResponse.json();
-                        const results = payload?.data?.result ?? [];
-                        const nextCheckDown = {};
-                        const nextItemChecks = {};
-                        results.forEach((entry) => {
-                            const itemId = entry?.metric?.item_id;
-                            const checkId = entry?.metric?.check_id;
-                            const checkName = entry?.metric?.check_name || checkId;
-                            if (!itemId) {
-                                return;
-                            }
-                            const value = Number.parseFloat(entry?.value?.[1]);
-                            const status = parsePrometheusHealthStatus(value);
-                            if (checkId && checkName) {
-                                const list = nextItemChecks[itemId] || [];
-                                list.push({id: checkId, name: checkName, status});
-                                nextItemChecks[itemId] = list;
-                            }
-                            if (status === 'down') {
-                                nextCheckDown[itemId] = true;
-                            }
-                        });
-                        if (!cancelled) {
-                            setItemCheckDown(nextCheckDown);
-                            setItemChecks(nextItemChecks);
-                        }
-                    }
-                } else {
-                    console.error(`Failed to load Prometheus data: ${checkResponse.status}`);
+                const next = await fetchPrometheusStatuses(prometheusBaseUrl);
+                if (!cancelled) {
+                    setItemStatuses(next.itemStatuses);
+                    setItemCheckDown(next.itemCheckDown);
+                    setItemChecks(next.itemChecks);
+                    setLastUpdated(new Date().toLocaleTimeString());
                 }
             } catch (err) {
                 if (!cancelled) {
@@ -961,8 +295,10 @@ export default function App() {
             }
         };
 
-        fetchStatuses();
-        const interval = window.setInterval(fetchStatuses, 10000);
+        void fetchStatuses();
+        const interval = window.setInterval(() => {
+            void fetchStatuses();
+        }, 10000);
         return () => {
             cancelled = true;
             window.clearInterval(interval);
@@ -1014,19 +350,19 @@ export default function App() {
         });
     }, []);
 
-    const expandPathToItem = useCallback((itemId, {suppressAnimation, path} = {}) => {
+    /**
+     * Expands ancestors for the selected item so it is visible in the tree.
+     */
+    const expandPathToItem = useCallback((itemId, {path} = {}) => {
         const resolvedPath = path && path.length ? path : findNodePath(tree, itemId);
         const ancestors = resolvedPath ? resolvedPath.slice(0, -1) : [];
         setExpandedIds(new Set(ancestors));
-        if (suppressAnimation) {
-            setDisableTreeAnimation(true);
-            window.requestAnimationFrame(() => {
-                setDisableTreeAnimation(false);
-            });
-        }
     }, [tree]);
 
-    const ensurePathExpanded = useCallback((pathIds, {suppressAnimation} = {}) => {
+    /**
+     * Ensures ancestors in a known path are expanded without resetting other expanded branches.
+     */
+    const ensurePathExpanded = useCallback((pathIds) => {
         if (!Array.isArray(pathIds) || pathIds.length === 0) {
             return;
         }
@@ -1039,12 +375,6 @@ export default function App() {
             ancestors.forEach((id) => next.add(id));
             return next;
         });
-        if (suppressAnimation) {
-            setDisableTreeAnimation(true);
-            window.requestAnimationFrame(() => {
-                setDisableTreeAnimation(false);
-            });
-        }
     }, []);
 
     const handleExpandAll = useCallback(() => {
@@ -1246,27 +576,18 @@ export default function App() {
         const selectedUid = findNodeUidById(tree, itemId);
         setPendingScrollId(selectedUid || '');
         setIsMobileSidebarOpen(false);
-        expandPathToItem(itemId, {suppressAnimation: true});
+        expandPathToItem(itemId);
         updateUrlForItemId(itemId);
     }, [expandPathToItem, tree, updateUrlForItemId]);
 
     const buildItemLink = useCallback((itemId) => {
-        const normalizedBase = basePath.endsWith('/') ? basePath.slice(0, -1) : basePath;
-        const prefix = normalizedBase === '' ? '' : normalizedBase;
-        return `${prefix}/item/${encodeURIComponent(itemId)}`;
+        return buildItemPathname(basePath, itemId);
     }, [basePath]);
 
-    const buildGrafanaFrameUrl = useCallback((grafanaUrl) => {
-        const frameUrl = new URL('grafana-frame.html', resolveBaseUrl());
-        frameUrl.searchParams.set('rev', GRAFANA_FRAME_WRAPPER_REV);
-        frameUrl.searchParams.set('theme', initialFrameThemeRef.current);
-        if (grafanaUrl) {
-            frameUrl.searchParams.set('src', encodeURIComponent(grafanaUrl));
-        }
-        return frameUrl.toString();
-    }, []);
-
-    const grafanaFrameUrl = useMemo(() => buildGrafanaFrameUrl(''), [buildGrafanaFrameUrl]);
+    const grafanaFrameUrl = useMemo(
+        () => buildGrafanaFrameUrl({initialTheme: initialFrameThemeRef.current}),
+        [],
+    );
 
     const handleClearSearch = useCallback(() => {
         clearSearchRequestedRef.current = true;
@@ -1302,13 +623,19 @@ export default function App() {
         };
     }, [handleSelectItemByIdNoPath, itemMap]);
 
+    /**
+     * Sync selected item with browser URL and handle browser back/forward navigation.
+     * Also normalizes invalid/missing route states to the closest resolvable node.
+     */
     useEffect(() => {
         if (!tree.length) {
             return undefined;
         }
-        const applySelectionFromLocation = ({normalize, preserveExpansion} = {
-            normalize: true, preserveExpansion: false
-        }) => {
+        const applySelectionFromLocation = (options = {}) => {
+            const {
+                normalize = true,
+                preserveExpansion = false,
+            } = options;
             const routeContext = readLocationRouteContext(basePath);
             const resolved = resolveNodeFromLocation(tree, basePath);
             if (!resolved) {
@@ -1333,12 +660,12 @@ export default function App() {
             setPendingScrollId(node.uid);
             if (!preserveExpansion) {
                 setIsMobileSidebarOpen(false);
-                expandPathToItem(node.item.id, {suppressAnimation: true, path: node.path});
+                expandPathToItem(node.item.id, {path: node.path});
             } else {
                 const ancestorIds = node.path?.slice(0, -1) || [];
                 const needsExpand = ancestorIds.some((id) => !expandedIdsRef.current.has(id));
                 if (needsExpand) {
-                    ensurePathExpanded(node.path, {suppressAnimation: true});
+                    ensurePathExpanded(node.path);
                 }
             }
             if (normalize && (routeContext.hasRouteId || routeContext.hasPathParam)) {
@@ -1438,6 +765,9 @@ export default function App() {
         };
     }, [isAboutOpen]);
 
+    /**
+     * Scrolls the tree container to a node once it is rendered and measurable.
+     */
     const scrollToNodeId = useCallback((targetId) => {
         const container = catalogTreeRef.current;
         if (!container) {
@@ -1505,7 +835,7 @@ export default function App() {
         }
         if (prevTokens > 0 && selectedId && clearSearchRequestedRef.current) {
             clearSearchRequestedRef.current = false;
-            expandPathToItem(selectedId, {suppressAnimation: true});
+            expandPathToItem(selectedId);
             const selectedUid = findNodeUidById(tree, selectedId);
             setPendingScrollId(selectedUid || '');
             return;
@@ -1552,203 +882,37 @@ export default function App() {
                 isSidebarOpen ? 'sidebar-open' : 'sidebar-collapsed'
             }`}
         >
-            <aside className="sidebar">
-                {isSidebarOpen && (
-                    <>
-                        <a
-                            className="home-link sidebar-toggle top-control top-control-button top-control-icon"
-                            href={homeHref}
-                            aria-label="Go to home page"
-                        >
-                            <img src={homeIconSrc} alt="" aria-hidden="true"/>
-                        </a>
-                        <button
-                            type="button"
-                            aria-label="Close catalog panel"
-                            title="Close sidebar"
-                            className="sidebar-close sidebar-close-in top-control top-control-button top-control-icon"
-                            onClick={handleToggleSidebar}
-                        >
-                            <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
-                                <use href={`${iconSpriteHref}#icon-panel-close`}/>
-                            </svg>
-                        </button>
-                    </>
-                )}
-                <div className="sidebar-header">
-                    <span className="sidebar-header-title" title={sidebarTitle}>{sidebarTitle}</span>
-                </div>
-                {error && <div className="error">{error}</div>}
-                {!error && tree.length > 0 && (
-                    <div className="tree-search">
-                        <span className="search-icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
-                                <use href={`${iconSpriteHref}#icon-search`}/>
-                            </svg>
-                        </span>
-                        <input
-                            type="text"
-                            placeholder="Search item..."
-                            value={searchQuery}
-                            list={searchSuggestionsListId}
-                            onKeyDown={(event) => {
-                                if (
-                                    event.key !== 'Tab' ||
-                                    event.shiftKey ||
-                                    event.ctrlKey ||
-                                    event.metaKey ||
-                                    event.altKey
-                                ) {
-                                    return;
-                                }
-                                const firstSuggestion = searchAutocompleteOptions[0];
-                                if (!firstSuggestion) {
-                                    return;
-                                }
-                                event.preventDefault();
-                                setSearchQuery(`${firstSuggestion.fullQuery} `);
-                                if (!isSearchActive) {
-                                    setIsSearchActive(true);
-                                }
-                            }}
-                            onChange={(event) => {
-                                const nextValue = event.target.value;
-                                setSearchQuery(nextValue);
-                                if (!isSearchActive && nextValue.trim()) {
-                                    setIsSearchActive(true);
-                                }
-                            }}
-                            aria-label="Search items by title, key, or type"
-                        />
-                        <datalist id={searchSuggestionsListId}>
-                            {searchAutocompleteOptions.map((option) => (
-                                <option key={option.fullQuery} value={option.fullQuery} label={option.word}/>
-                            ))}
-                        </datalist>
-                        {(searchQuery || isSearchActive) && (
-                            <button
-                                type="button"
-                                className="search-clear"
-                                aria-label="Clear search"
-                                onClick={handleClearSearch}
-                            >
-                                ✕
-                            </button>
-                        )}
-                    </div>
-                )}
-                {!error && tree.length > 0 && (
-                    <div className="tree-controls">
-                        <button
-                            type="button"
-                            title="Collapse all dependencies"
-                            className="tree-control-button"
-                            onClick={handleCollapseAll}
-                            disabled={isSearchActive}
-                        >
-                            <span className="tree-control-icon" aria-hidden="true">⇧</span>
-                            <span className="tree-control-text">Collapse all</span>
-                        </button>
-                        <button
-                            type="button"
-                            title="Expand to all dependencies"
-                            className="tree-control-button"
-                            onClick={handleExpandAll}
-                            disabled={isSearchActive}
-                        >
-                            <span className="tree-control-icon" aria-hidden="true">⇩</span>
-                            <span className="tree-control-text">Expand all</span>
-                        </button>
-                    </div>
-                )}
-                {!error && tree.length === 0 && (
-                    <div className="empty">Catalog is empty. Add items to catalog.yaml.</div>
-                )}
-                {isSearchActive ? (
-                    <div className="search-results">
-                        <div className="search-results-header">
-                            Found {searchResults.length} item{searchResults.length === 1 ? '' : 's'}
-                        </div>
-                        {searchResults.length === 0 ? (
-                            <div className="empty">No items match the current search.</div>
-                        ) : (
-                            <div className="catalog-tree">
-                                {searchResults.map(({item}) => (
-                                    <div key={item.id} className="catalog-item node-leaf">
-                                        <div
-                                            className={`node-row ${selectedId === item.id ? 'is-selected' : ''}`}
-                                            data-node-id={item.id}
-                                        >
-                                            <span className="node-toggle-column node-toggle-spacer" aria-hidden="true"/>
-                                            <a
-                                                className="node-content"
-                                                href={buildItemRouteHref(basePath, item.id, [item.id])}
-                                                onClick={(event) => {
-                                                    if (!isPlainLeftClick(event)) {
-                                                        return;
-                                                    }
-                                                    event.preventDefault();
-                                                    event.stopPropagation();
-                                                    handleSelectItemById(item.id);
-                                                    expandPathToItem(item.id, {suppressAnimation: true});
-                                                }}
-                                            >
-                                                <div className="node-main">
-                                                    <div className="node-label">
-                                                      <span className="node-heading">
-                                                        <span
-                                                            className={`status-indicator status-${itemStatuses[item.id] || 'unknown'}`}
-                                                            aria-label={`Status: ${(itemStatuses[item.id] || 'unknown').toUpperCase()}${
-                                                                lastUpdated ? ` (at ${lastUpdated})` : ''
-                                                            }`}
-                                                            title={`Status: ${(itemStatuses[item.id] || 'unknown').toUpperCase()}${
-                                                                lastUpdated ? ` (at ${lastUpdated})` : ''
-                                                            }`}
-                                                        />
-                                                          {item.name && <span className="node-name">{item.name}</span>}
-                                                      </span>
-                                                        {(item.id || item.type) && (
-                                                            <span className="node-identity">
-                                                          {item.id}
-                                                                {item.type ? ` (${item.type})` : ''}
-                                                        </span>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </a>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                ) : (
-                    <>
-                        <div className="catalog-tree" ref={catalogTreeRef}>
-                            {filteredTree.map((node) => (
-                                <CatalogNode
-                                    key={node.item.id}
-                                    node={node}
-                                    selectedId={selectedId}
-                                    onSelect={handleSelectItem}
-                                    basePath={basePath}
-                                    expandedIds={expandedIds}
-                                    onToggleNode={handleToggleNode}
-                                    disableAnimation={disableTreeAnimation}
-                                    grafanaBaseUrl={grafanaBaseUrl}
-                                    theme={theme}
-                                    status={itemStatuses[node.item.id] || 'unknown'}
-                                    statuses={itemStatuses}
-                                    lastUpdated={lastUpdated}
-                                />
-                            ))}
-                        </div>
-                        {!error && tree.length > 0 && filteredTree.length === 0 && (
-                            <div className="empty">No services match the current search.</div>
-                        )}
-                    </>
-                )}
-            </aside>
+            <SidebarPanel
+                isSidebarOpen={isSidebarOpen}
+                homeHref={homeHref}
+                homeIconSrc={homeIconSrc}
+                iconSpriteHref={iconSpriteHref}
+                onToggleSidebar={handleToggleSidebar}
+                sidebarTitle={sidebarTitle}
+                error={error}
+                tree={tree}
+                searchQuery={searchQuery}
+                searchSuggestionsListId={searchSuggestionsListId}
+                searchAutocompleteOptions={searchAutocompleteOptions}
+                setSearchQuery={setSearchQuery}
+                isSearchActive={isSearchActive}
+                setIsSearchActive={setIsSearchActive}
+                onClearSearch={handleClearSearch}
+                onCollapseAll={handleCollapseAll}
+                onExpandAll={handleExpandAll}
+                searchResults={searchResults}
+                selectedId={selectedId}
+                basePath={basePath}
+                onSelectItemById={handleSelectItemById}
+                onExpandPathToItem={expandPathToItem}
+                itemStatuses={itemStatuses}
+                lastUpdated={lastUpdated}
+                catalogTreeRef={catalogTreeRef}
+                filteredTree={filteredTree}
+                expandedIds={expandedIds}
+                onToggleNode={handleToggleNode}
+                onSelectNode={handleSelectItem}
+            />
             {isMobileLayout && isSidebarOpen && (
                 <button
                     type="button"
@@ -1757,221 +921,42 @@ export default function App() {
                     aria-label="Close catalog panel"
                 />
             )}
-            <main className="content" ref={contentRef}>
-                {!isSidebarOpen && (
-                    <button
-                        type="button"
-                        aria-label="Open catalog panel"
-                        className="hamburger-toggle sidebar-toggle top-control top-control-button top-control-icon top-control-surface"
-                        onClick={handleToggleSidebar}
-                    >
-                        <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
-                            <use href={`${iconSpriteHref}#icon-menu`}/>
-                        </svg>
-                    </button>
-                )}
-                <header
-                    className={`content-header ${
-                        shouldOffsetContentHeader ? 'content-header-with-toggle' : ''
-                    } ${isTitlePrimaryBelowControls ? 'content-header-primary-below-controls' : ''
-                    }`}
-                    ref={headerRef}
-                >
-                    <div className="content-header-actions" ref={headerActionsRef}>
-                        <button
-                            type="button"
-                            className="theme-toggle top-control top-control-button top-control-pill top-control-surface"
-                            onClick={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))}
-                        >
-                            <span className="theme-toggle-icon" aria-hidden="true">
-                                {theme === 'dark' ? '💡' : '🌙'}
-                            </span>
-                            <span className="theme-toggle-text">
-                                {theme === 'dark' ? 'Go light' : 'Go dark'}
-                            </span>
-                        </button>
-                        <button
-                            type="button"
-                            className="about-toggle top-control top-control-button top-control-pill top-control-surface top-control-accent"
-                            onClick={() => setIsAboutOpen(true)}
-                        >
-                            <span className="theme-toggle-icon" aria-hidden="true">?</span>
-                            <span className="theme-toggle-text">About</span>
-                        </button>
-                    </div>
-                    <div className="content-header-main">
-                        <div className="content-title">
-                            <span className="content-title-primary" ref={contentTitlePrimaryRef}>
-                                {selectedItem && (
-                                    <span
-                                        className={`status-indicator status-${selectedStatus}`}
-                                        aria-label={`Status: ${selectedStatus.toUpperCase()}${
-                                            lastUpdated ? ` (at ${lastUpdated})` : ''
-                                        }`}
-                                        title={`Status: ${selectedStatus.toUpperCase()}${
-                                            lastUpdated ? ` (at ${lastUpdated})` : ''
-                                        }`}
-                                    />
-                                )}
-                                <span className="content-title-text content-title-text-first">
-                                    {selectedTitleFirstWord}
-                                </span>
-                            </span>
-                            {selectedTitleRest && (
-                                <span className="content-title-text content-title-text-rest">
-                                    {selectedTitleRest}
-                                </span>
-                            )}
-                            {selectedItem && selectedStatus !== 'up' && (
-                                <span className={`content-status-label status-${selectedStatus}`}>
-                                    {selectedStatus.toUpperCase()}
-                                </span>
-                            )}
-                        </div>
-                    </div>
-                </header>
-                {!selectedItem ? (
-                    <div className="empty">Select a catalog item to view dashboards.</div>
-                ) : (
-                    <>
-                        {selectedStatus !== 'up' && affectedItems.length > 0 && (
-                            <section className={`affected-panel ${isAffectedOpen ? 'is-open' : ''}`}>
-                                <button
-                                    type="button"
-                                    className={`affected-toggle ${isAffectedOpen ? 'is-open' : ''}`}
-                                    onClick={() => setIsAffectedOpen((prev) => !prev)}
-                                    aria-expanded={isAffectedOpen}
-                                >
-                                    <span
-                                        className={`affected-chevron ${isAffectedOpen ? 'is-open' : ''}`}
-                                        aria-hidden="true"
-                                    >
-                                        ›
-                                    </span>
-                                    <span className={`affected-summary ${isAffectedOpen ? 'is-open' : ''}`}>
-                                        Affected by {affectedItems.length} item
-                                        {affectedItems.length === 1 ? '' : 's'}
-                                        {!isAffectedOpen && affectedItems.length > 0
-                                            ? `: ${affectedItems.map((entry) => entry.name).join(', ')}`
-                                            : ''}
-                                    </span>
-                                </button>
-                                {isAffectedOpen && (
-                                    <ul className="affected-list">
-                                        {affectedItems.length === 0 ? (
-                                            <li className="affected-empty">
-                                                No degraded dependent services detected.
-                                            </li>
-                                        ) : (
-                                            affectedItems.map((entry) => (
-                                                <li key={entry.id} className="affected-item">
-                                                    <span
-                                                        className={`status-indicator status-${entry.status}`}
-                                                        aria-label={`Status: ${entry.status.toUpperCase()}`}
-                                                        title={`Status: ${entry.status.toUpperCase()}`}
-                                                    />
-                                                    <div className="affected-meta">
-                                                        <div className="affected-row">
-                                                            <a
-                                                                className="affected-link"
-                                                                title={entry.name}
-                                                                href={buildItemLink(entry.id)}
-                                                                onClick={(event) => {
-                                                                    event.preventDefault();
-                                                                    handleSelectItemByIdNoPath(entry.id);
-                                                                }}
-                                                            >
-                                                                {entry.name}
-                                                            </a>
-                                                        </div>
-                                                    </div>
-                                                </li>
-                                            ))
-                                        )}
-                                    </ul>
-                                )}
-                            </section>
-                        )}
-                        {selectedChecks.length > 0 && (
-                            <section className={`affected-panel ${isChecksOpen ? 'is-open' : ''}`}>
-                                <button
-                                    type="button"
-                                    className={`affected-toggle ${isChecksOpen ? 'is-open' : ''}`}
-                                    onClick={() => setIsChecksOpen((prev) => !prev)}
-                                    aria-expanded={isChecksOpen}
-                                >
-                                    <span
-                                        className={`affected-chevron ${isChecksOpen ? 'is-open' : ''}`}
-                                        aria-hidden="true"
-                                    >
-                                        ›
-                                    </span>
-                                    <span className={`affected-summary ${isChecksOpen ? 'is-open' : ''}`}>
-                                        {checksSummaryText}
-                                    </span>
-                                </button>
-                                {isChecksOpen && (
-                                    <ul className="affected-list">
-                                        {selectedChecks.map((entry) => (
-                                            <li key={entry.id} className="affected-item">
-                                                <span
-                                                    className={`status-indicator status-${entry.status}`}
-                                                    aria-label={`Status: ${entry.status.toUpperCase()}`}
-                                                    title={`Status: ${entry.status.toUpperCase()}`}
-                                                />
-                                                <div className="affected-meta">
-                                                    <div className="affected-row">
-                                                        <span
-                                                            className="affected-name"
-                                                            title={entry.name || entry.id}
-                                                        >
-                                                            {entry.name || entry.id}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                )}
-                            </section>
-                        )}
-                        <div className="grafana-grid">
-                            <section
-                                className="grafana-panel"
-                                style={grafanaHeight ? {height: `${grafanaHeight}px`} : undefined}
-                            >
-                                <iframe
-                                    title="State Timeline"
-                                    ref={grafanaIframeRef}
-                                    onLoad={handleGrafanaLoad}
-                                    src={grafanaFrameUrl}
-                                />
-                            </section>
-                        </div>
-                    </>
-                )}
-            </main>
-            {isAboutOpen && (
-                <div
-                    className="about-overlay"
-                    role="dialog"
-                    aria-modal="true"
-                    aria-label="About Catalog Health Aggregator"
-                    onClick={() => setIsAboutOpen(false)}
-                >
-                    <article className="about-modal" onClick={(event) => event.stopPropagation()}>
-                        <button
-                            type="button"
-                            className="about-close"
-                            aria-label="Close about page"
-                            onClick={() => setIsAboutOpen(false)}
-                        >
-                            ×
-                        </button>
-                        <AboutContent/>
-                    </article>
-                </div>
-            )}
+            <DetailsPanel
+                contentRef={contentRef}
+                isSidebarOpen={isSidebarOpen}
+                iconSpriteHref={iconSpriteHref}
+                onToggleSidebar={handleToggleSidebar}
+                shouldOffsetContentHeader={shouldOffsetContentHeader}
+                isTitlePrimaryBelowControls={isTitlePrimaryBelowControls}
+                headerRef={headerRef}
+                headerActionsRef={headerActionsRef}
+                theme={theme}
+                onToggleTheme={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))}
+                onOpenAbout={() => setIsAboutOpen(true)}
+                selectedItem={selectedItem}
+                selectedStatus={selectedStatus}
+                lastUpdated={lastUpdated}
+                selectedTitleFirstWord={selectedTitleFirstWord}
+                selectedTitleRest={selectedTitleRest}
+                contentTitlePrimaryRef={contentTitlePrimaryRef}
+                affectedItems={affectedItems}
+                isAffectedOpen={isAffectedOpen}
+                onToggleAffected={() => setIsAffectedOpen((prev) => !prev)}
+                buildItemLink={buildItemLink}
+                onSelectItemByIdNoPath={handleSelectItemByIdNoPath}
+                selectedChecks={selectedChecks}
+                isChecksOpen={isChecksOpen}
+                onToggleChecks={() => setIsChecksOpen((prev) => !prev)}
+                checksSummaryText={checksSummaryText}
+                grafanaHeight={grafanaHeight}
+                grafanaIframeRef={grafanaIframeRef}
+                onGrafanaLoad={handleGrafanaLoad}
+                grafanaFrameUrl={grafanaFrameUrl}
+            />
+            <AboutModal
+                isOpen={isAboutOpen}
+                onClose={() => setIsAboutOpen(false)}
+            />
         </div>
     );
 }
