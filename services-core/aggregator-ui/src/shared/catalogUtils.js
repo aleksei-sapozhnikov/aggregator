@@ -2,9 +2,15 @@
  * @file Catalog/tree/search/routing helpers used by App and SidebarPanel.
  * These functions are intentionally pure (or close to pure) and UI-agnostic.
  */
+/**
+ * Returns items sorted by display name fallbacking to id.
+ */
 const sortItemsByName = (items) =>
     [...items].sort((a, b) => (a.name || a.id).localeCompare(b.name || b.id));
 
+/**
+ * Returns tree nodes sorted by display name fallbacking to id.
+ */
 const sortNodesByName = (nodes) =>
     [...nodes].sort((a, b) =>
         (a.item.name || a.item.id).localeCompare(b.item.name || b.item.id),
@@ -104,6 +110,9 @@ export const buildCatalogTree = (items, dependencies) => {
 export const normalizeSearchText = (value) =>
     value.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 
+/**
+ * Checks whether an item matches all normalized search tokens.
+ */
 const matchSearch = (item, queryTokens) => {
     if (!queryTokens.length) {
         return true;
@@ -303,6 +312,9 @@ export const buildSearchAutocompleteOptions = (query, vocabulary, limit = 12) =>
     return options;
 };
 
+/**
+ * Removes app base path prefix from a browser pathname.
+ */
 const stripBasePath = (pathname, basePath) => {
     if (!basePath || basePath === '/') {
         return pathname.replace(/^\/+/, '');
