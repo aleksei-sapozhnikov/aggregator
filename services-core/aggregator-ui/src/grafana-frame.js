@@ -5,6 +5,7 @@ const themeParam = params.get('theme');
 const iframe = document.getElementById('grafana-embed');
 
 let detachEscHandlers = [];
+let detachItemLinkHandlers = [];
 
 const bindEscGuard = (targetWindow) => {
     detachEscHandlers.forEach((detach) => {
@@ -84,6 +85,127 @@ const bindEscGuard = (targetWindow) => {
     bindWindow(targetWindow);
 };
 
+const bindItemLinkInterceptor = (targetWindow) => {
+    detachItemLinkHandlers.forEach((detach) => {
+        try {
+            detach();
+        } catch (error) {
+            // Ignore stale handlers.
+        }
+    });
+    detachItemLinkHandlers = [];
+    if (!targetWindow) {
+        return;
+    }
+
+    const boundWindows = new WeakSet();
+    const trackedFrames = new WeakSet();
+
+    const emitItemLinkClick = (href) => {
+        if (typeof href !== 'string' || href.trim() === '') {
+            return;
+        }
+        let parsed;
+        try {
+            parsed = new URL(href, window.location.href);
+        } catch (error) {
+            return;
+        }
+        const match = parsed.pathname.match(/\/item\/([^/]+)\/?$/);
+        if (!match) {
+            return;
+        }
+        const itemId = decodeURIComponent(match[1]);
+        window.parent?.postMessage(
+            {
+                type: 'grafana-item-link-click',
+                href: parsed.toString(),
+                itemId,
+            },
+            window.location.origin,
+        );
+    };
+
+    const bindWindow = (windowRef) => {
+        if (!windowRef?.addEventListener || boundWindows.has(windowRef)) {
+            return;
+        }
+        boundWindows.add(windowRef);
+
+        const onClickCapture = (event) => {
+            const target = event.target;
+            if (!target?.closest) {
+                return;
+            }
+            const anchor = target.closest('a[href]');
+            if (!anchor) {
+                return;
+            }
+            const href = anchor.getAttribute('href') || anchor.href;
+            if (typeof href !== 'string' || href.trim() === '') {
+                return;
+            }
+            let parsed;
+            try {
+                parsed = new URL(href, windowRef.location.href);
+            } catch (error) {
+                return;
+            }
+            if (!/\/item\/[^/]+\/?$/.test(parsed.pathname)) {
+                return;
+            }
+            event.preventDefault();
+            event.stopPropagation();
+            if (typeof event.stopImmediatePropagation === 'function') {
+                event.stopImmediatePropagation();
+            }
+            emitItemLinkClick(parsed.toString());
+        };
+
+        windowRef.addEventListener('click', onClickCapture, true);
+        detachItemLinkHandlers.push(() => {
+            windowRef.removeEventListener('click', onClickCapture, true);
+        });
+
+        try {
+            const doc = windowRef.document;
+            if (!doc?.querySelectorAll) {
+                return;
+            }
+            const attachNestedFrames = () => {
+                doc.querySelectorAll('iframe').forEach((childFrame) => {
+                    if (trackedFrames.has(childFrame)) {
+                        return;
+                    }
+                    trackedFrames.add(childFrame);
+                    const bindChild = () => {
+                        try {
+                            bindWindow(childFrame.contentWindow);
+                        } catch (error) {
+                            // Ignore cross-origin child frames.
+                        }
+                    };
+                    childFrame.addEventListener('load', bindChild, true);
+                    detachItemLinkHandlers.push(() => {
+                        childFrame.removeEventListener('load', bindChild, true);
+                    });
+                    bindChild();
+                });
+            };
+            attachNestedFrames();
+            if (windowRef.MutationObserver && doc.documentElement) {
+                const observer = new windowRef.MutationObserver(attachNestedFrames);
+                observer.observe(doc.documentElement, {childList: true, subtree: true});
+                detachItemLinkHandlers.push(() => observer.disconnect());
+            }
+        } catch (error) {
+            // Ignore cross-origin errors if Grafana embeds third-party frames.
+        }
+    };
+
+    bindWindow(targetWindow);
+};
+
 const applyTheme = (value) => {
     const nextTheme = value === 'dark' ? 'dark' : 'light';
     document.documentElement.dataset.theme = nextTheme;
@@ -112,6 +234,7 @@ iframe.addEventListener('load', () => {
             return;
         }
         bindEscGuard(innerWindow);
+        bindItemLinkInterceptor(innerWindow);
         const history = innerWindow.history;
         if (history.__disableHistory) {
             return;

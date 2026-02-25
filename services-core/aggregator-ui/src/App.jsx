@@ -416,10 +416,12 @@ const buildDashboardUrl = (
     itemId,
     theme,
     panelId,
+    appBaseUrl = '',
 ) => {
     const params = new URLSearchParams({
         orgId: '1',
         'var-item_id': itemId,
+        'var-app_base_url': appBaseUrl,
         theme,
         from: `now-${TIMELINE_DEFAULT_RANGE}`,
         to: 'now',
@@ -585,6 +587,7 @@ export default function App() {
     const grafanaBaseUrl = useMemo(resolveGrafanaBaseUrl, []);
     const prometheusBaseUrl = useMemo(resolvePrometheusBaseUrl, []);
     const basePath = useMemo(resolveBasePath, []);
+    const appBaseUrl = useMemo(() => resolveBaseUrl().replace(/\/$/, ''), []);
 
 
     const updateUrlForItemId = useCallback((itemId, {replace} = {}) => {
@@ -1193,6 +1196,34 @@ export default function App() {
     }, []);
 
     useEffect(() => {
+        const handleGrafanaItemLinkClick = (event) => {
+            if (event.origin !== window.location.origin) {
+                return;
+            }
+            if (event.data?.type !== 'grafana-item-link-click') {
+                return;
+            }
+            const itemId = typeof event.data.itemId === 'string' ? event.data.itemId : '';
+            if (!itemId) {
+                return;
+            }
+            if (itemMap.has(itemId)) {
+                handleSelectItemByIdNoPath(itemId);
+                return;
+            }
+            const href = typeof event.data.href === 'string' ? event.data.href : '';
+            if (href) {
+                window.location.assign(href);
+            }
+        };
+
+        window.addEventListener('message', handleGrafanaItemLinkClick);
+        return () => {
+            window.removeEventListener('message', handleGrafanaItemLinkClick);
+        };
+    }, [handleSelectItemByIdNoPath, itemMap]);
+
+    useEffect(() => {
         if (!tree.length) {
             return undefined;
         }
@@ -1423,6 +1454,7 @@ export default function App() {
             selectedItem.id,
             theme,
             DASHBOARDS.timeline.panelId,
+            appBaseUrl,
         );
         pendingGrafanaSrcRef.current = dashboardUrl;
         const iframe = grafanaIframeRef.current;
@@ -1433,7 +1465,7 @@ export default function App() {
             );
 
         }
-    }, [grafanaBaseUrl, selectedItem, theme]);
+    }, [appBaseUrl, grafanaBaseUrl, selectedItem, theme]);
 
     return (
         <div
