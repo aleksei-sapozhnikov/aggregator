@@ -4,6 +4,7 @@ import com.github.vermucht.aggregator.catalog.model.ItemId;
 import com.github.vermucht.aggregator.healthcheck.model.HealthSignal;
 import com.github.vermucht.aggregator.healthcheck.model.HealthStatus;
 import jakarta.annotation.Nonnull;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,5 +31,22 @@ public class HealthCheckStateStore {
     return checkStatuses
         .getOrDefault(itemId, Map.of())
         .getOrDefault(checkId, HealthStatus.UNKNOWN);
+  }
+
+  /** Aggregates the current item status from the latest statuses of its known checks. */
+  @Nonnull
+  public HealthStatus getAggregatedItemStatus(@Nonnull ItemId itemId) {
+    Objects.requireNonNull(itemId, "itemId");
+    Collection<HealthStatus> statuses = checkStatuses.getOrDefault(itemId, Map.of()).values();
+    if (statuses.isEmpty()) {
+      return HealthStatus.UNKNOWN;
+    }
+    if (statuses.contains(HealthStatus.DOWN)) {
+      return HealthStatus.DOWN;
+    }
+    if (statuses.contains(HealthStatus.UNKNOWN)) {
+      return HealthStatus.UNKNOWN;
+    }
+    return HealthStatus.UP;
   }
 }
