@@ -244,6 +244,54 @@ const rankSearchResults = (items, queryTokens) => {
         .sort((a, b) => b.score - a.score || (a.item.name || a.item.id).localeCompare(b.item.name || b.item.id));
 };
 
+const buildNameWordVocabulary = (items) => {
+    const seen = new Set();
+    const words = [];
+    items.forEach((item) => {
+        normalizeSearchText(item.name || '')
+            .split(' ')
+            .filter(Boolean)
+            .forEach((word) => {
+                if (seen.has(word)) {
+                    return;
+                }
+                seen.add(word);
+                words.push(word);
+            });
+    });
+    return words.sort((a, b) => a.localeCompare(b));
+};
+
+const parseSearchAutocompleteQuery = (query) => {
+    const rawQuery = query || '';
+    const endsWithSpace = /\s$/.test(rawQuery);
+    const normalizedQuery = normalizeSearchText(rawQuery);
+    const tokens = normalizedQuery ? normalizedQuery.split(' ').filter(Boolean) : [];
+    const baseTokens = endsWithSpace ? tokens : tokens.slice(0, -1);
+    const currentToken = endsWithSpace ? '' : (tokens[tokens.length - 1] || '');
+    return {baseTokens, currentToken};
+};
+
+const buildSearchAutocompleteOptions = (query, vocabulary, limit = 12) => {
+    const {baseTokens, currentToken} = parseSearchAutocompleteQuery(query);
+    if (!currentToken) {
+        return [];
+    }
+
+    const options = [];
+    for (const word of vocabulary) {
+        if (!word.startsWith(currentToken) || word === currentToken) {
+            continue;
+        }
+        const fullQuery = [...baseTokens, word].join(' ');
+        options.push({word, fullQuery});
+        if (options.length >= limit) {
+            break;
+        }
+    }
+    return options;
+};
+
 const getInitialTheme = () => {
     const stored = localStorage.getItem('aggregator-ui-theme');
     if (stored) {
@@ -941,6 +989,14 @@ export default function App() {
         () => rankSearchResults(catalog.items, searchTokens),
         [catalog.items, searchTokens],
     );
+    const searchNameWordVocabulary = useMemo(
+        () => buildNameWordVocabulary(catalog.items),
+        [catalog.items],
+    );
+    const searchAutocompleteOptions = useMemo(
+        () => buildSearchAutocompleteOptions(searchQuery, searchNameWordVocabulary),
+        [searchQuery, searchNameWordVocabulary],
+    );
 
     const handleToggleNode = useCallback((node) => {
         setExpandedIds((prev) => {
@@ -1154,6 +1210,7 @@ export default function App() {
     const homeHref = basePath || '/';
     const homeIconSrc = `${basePath || '/'}logo.svg`;
     const iconSpriteHref = `${basePath || '/'}icons.svg`;
+    const searchSuggestionsListId = 'item-search-suggestions';
 
     const handleToggleSidebar = useCallback(() => {
         if (isMobileLayout) {
@@ -1533,6 +1590,27 @@ export default function App() {
                             type="text"
                             placeholder="Search item..."
                             value={searchQuery}
+                            list={searchSuggestionsListId}
+                            onKeyDown={(event) => {
+                                if (
+                                    event.key !== 'Tab' ||
+                                    event.shiftKey ||
+                                    event.ctrlKey ||
+                                    event.metaKey ||
+                                    event.altKey
+                                ) {
+                                    return;
+                                }
+                                const firstSuggestion = searchAutocompleteOptions[0];
+                                if (!firstSuggestion) {
+                                    return;
+                                }
+                                event.preventDefault();
+                                setSearchQuery(`${firstSuggestion.fullQuery} `);
+                                if (!isSearchActive) {
+                                    setIsSearchActive(true);
+                                }
+                            }}
                             onChange={(event) => {
                                 const nextValue = event.target.value;
                                 setSearchQuery(nextValue);
@@ -1542,6 +1620,11 @@ export default function App() {
                             }}
                             aria-label="Search items by title, key, or type"
                         />
+                        <datalist id={searchSuggestionsListId}>
+                            {searchAutocompleteOptions.map((option) => (
+                                <option key={option.fullQuery} value={option.fullQuery} label={option.word}/>
+                            ))}
+                        </datalist>
                         {(searchQuery || isSearchActive) && (
                             <button
                                 type="button"
