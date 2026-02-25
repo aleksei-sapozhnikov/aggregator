@@ -33,6 +33,9 @@ const bindEscGuard = (targetWindow) => {
     const boundWindows = new WeakSet();
     const trackedFrames = new WeakSet();
 
+    /**
+     * Captures Escape to prevent Grafana shortcuts/dialogs from leaking outside the wrapper.
+     */
     const stopEsc = (event) => {
         if (event.key === 'Escape' || event.keyCode === 27) {
             event.preventDefault();
@@ -43,6 +46,9 @@ const bindEscGuard = (targetWindow) => {
         }
     };
 
+    /**
+     * Recursively binds Escape interception to a same-origin window and nested iframes.
+     */
     const bindWindow = (windowRef) => {
         if (!windowRef?.addEventListener || boundWindows.has(windowRef)) {
             return;
@@ -114,6 +120,9 @@ const bindItemLinkInterceptor = (targetWindow) => {
     const boundWindows = new WeakSet();
     const trackedFrames = new WeakSet();
 
+    /**
+     * Emits a normalized item-link click event to the parent aggregator application.
+     */
     const emitItemLinkClick = (href) => {
         if (typeof href !== 'string' || href.trim() === '') {
             return;
@@ -139,12 +148,18 @@ const bindItemLinkInterceptor = (targetWindow) => {
         );
     };
 
+    /**
+     * Recursively binds click interception to a same-origin window and nested iframes.
+     */
     const bindWindow = (windowRef) => {
         if (!windowRef?.addEventListener || boundWindows.has(windowRef)) {
             return;
         }
         boundWindows.add(windowRef);
 
+        /**
+         * Captures anchor clicks to rewrite Grafana item links into parent app navigation.
+         */
         const onClickCapture = (event) => {
             const target = event.target;
             if (!target?.closest) {
@@ -246,6 +261,9 @@ const applyTarget = (target) => {
     }
 };
 
+/**
+ * Initializes history/keyboard patches each time the inner Grafana iframe navigates.
+ */
 iframe.addEventListener('load', () => {
     try {
         const innerWindow = iframe.contentWindow;
@@ -282,6 +300,9 @@ if (initialTarget) {
     applyTarget(initialTarget);
 }
 
+/**
+ * Receives commands from the parent app to update theme or target Grafana URL.
+ */
 window.addEventListener('message', (event) => {
     if (!event.data) {
         return;
