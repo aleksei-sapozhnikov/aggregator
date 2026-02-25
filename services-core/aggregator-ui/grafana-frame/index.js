@@ -1,3 +1,9 @@
+/**
+ * @file Dedicated Grafana iframe wrapper page script.
+ * Intercepts selected keyboard/history behaviors and proxies item-link clicks
+ * back to the parent aggregator UI via postMessage.
+ */
+
 const params = new URLSearchParams(window.location.search);
 const srcParam = params.get('src');
 const initialTarget = srcParam ? decodeURIComponent(srcParam) : '';
@@ -7,6 +13,10 @@ const iframe = document.getElementById('grafana-embed');
 let detachEscHandlers = [];
 let detachItemLinkHandlers = [];
 
+/**
+ * Prevents Escape key handling inside Grafana and nested same-origin frames
+ * so parent UI dialogs/search state are not unintentionally affected.
+ */
 const bindEscGuard = (targetWindow) => {
     detachEscHandlers.forEach((detach) => {
         try {
@@ -85,6 +95,9 @@ const bindEscGuard = (targetWindow) => {
     bindWindow(targetWindow);
 };
 
+/**
+ * Intercepts item links rendered inside Grafana and forwards them to the parent app.
+ */
 const bindItemLinkInterceptor = (targetWindow) => {
     detachItemLinkHandlers.forEach((detach) => {
         try {
@@ -206,12 +219,18 @@ const bindItemLinkInterceptor = (targetWindow) => {
     bindWindow(targetWindow);
 };
 
+/**
+ * Applies wrapper background theme so Grafana transitions look consistent.
+ */
 const applyTheme = (value) => {
     const nextTheme = value === 'dark' ? 'dark' : 'light';
     document.documentElement.dataset.theme = nextTheme;
     document.body.dataset.theme = nextTheme;
 };
 
+/**
+ * Navigates the inner iframe to a Grafana URL while preserving wrapper lifecycle.
+ */
 const applyTarget = (target) => {
     if (!target) {
         return;

@@ -8,7 +8,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),
-        grafanaFrame: resolve(__dirname, 'grafana-frame.html'),
+        grafanaFrame: resolve(__dirname, 'grafana-frame/index.html'),
       },
     },
   },
