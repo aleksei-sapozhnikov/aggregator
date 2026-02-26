@@ -30,7 +30,7 @@ public class DummyService {
   private static final Logger LOG = Logger.getLogger(DummyService.class.getName());
   private static final Map<String, String> STATUSES = new ConcurrentHashMap<>();
 
-  static void main(String[] args) throws IOException {
+  static void main(String[] ignoredArgs) throws IOException {
     configureLogging();
 
     int port = 8080;
@@ -57,12 +57,11 @@ public class DummyService {
     return String.format("{\n  \"status\": \"%s\"\n}", getStatus(pointId));
   }
 
-  private static void sendJson(HttpExchange exchange, int statusCode, String payload)
-      throws IOException {
+  private static void sendJson(HttpExchange exchange, String payload) throws IOException {
     Headers headers = exchange.getResponseHeaders();
     headers.set("Content-Type", "application/json");
     byte[] body = payload.getBytes(StandardCharsets.UTF_8);
-    exchange.sendResponseHeaders(statusCode, body.length);
+    exchange.sendResponseHeaders(200, body.length);
     try (OutputStream output = exchange.getResponseBody()) {
       output.write(body);
     }
@@ -104,7 +103,7 @@ public class DummyService {
         return;
       }
 
-      sendJson(exchange, 200, statusPayload(pointId));
+      sendJson(exchange, statusPayload(pointId));
       LOG.info("GET " + path + " -> " + getStatus(pointId));
     }
   }
@@ -148,7 +147,7 @@ public class DummyService {
       }
 
       STATUSES.put(pointId, normalized);
-      sendJson(exchange, 200, statusPayload(pointId));
+      sendJson(exchange, statusPayload(pointId));
       LOG.info("GET " + path + " -> " + normalized);
     }
   }
