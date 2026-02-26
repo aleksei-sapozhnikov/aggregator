@@ -160,10 +160,10 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(\n  (catalog_item_own_state{item_id=~\"${deps:regex}\"} and on() (vector(${graphs}) == 0))\n  or (catalog_item_own_state{item_id=~\"${deps:regex}\"} and on(item_id) (min_over_time(catalog_item_own_state{item_id=~\"${deps:regex}\"}[$__range] @ end()) < 1) and on() (vector(${graphs}) == 1))\n) and on() ((vector(${items}) == 2) or (vector(${items}) == 3))",
-          "legendFormat": "\u200c[dep it] {{item_name}}",
+          "expr": "(\n  (\n    (catalog_item_check_state{item_id=~\"${item_id:regex}\"} and on() (vector(${graphs}) == 0))\n    or (\n      catalog_item_check_state{item_id=~\"${item_id:regex}\"}\n      and on(item_id,check_id,check_source) (min_over_time(catalog_item_check_state{item_id=~\"${item_id:regex}\"}[$__range] @ end()) < 1)\n      and on() (vector(${graphs}) == 1)\n    )\n  )\n  and on() ((vector(${healthchecks}) == 1) or (vector(${healthchecks}) == 2))\n)",
+          "legendFormat": "\u200b[cur hc] {{check_name}} ({{item_name}})",
           "range": true,
-          "refId": "B"
+          "refId": "C"
         },
         {
           "datasource": {
@@ -171,10 +171,10 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(\n  (\n    (catalog_item_check_state{item_id=~\"${item_id:regex}\"} and on() (vector(${graphs}) == 0))\n    or (\n      catalog_item_check_state{item_id=~\"${item_id:regex}\"}\n      and on(item_id,check_id,check_source) (min_over_time(catalog_item_check_state{item_id=~\"${item_id:regex}\"}[$__range] @ end()) < 1)\n      and on() (vector(${graphs}) == 1)\n    )\n  )\n  and on() ((vector(${healthchecks}) == 1) or (vector(${healthchecks}) == 2))\n)",
-          "legendFormat": "\u200b[cur hc] {{check_name}} ({{item_name}})",
+          "expr": "(\n  (catalog_item_own_state{item_id=~\"${deps:regex}\"} and on() (vector(${graphs}) == 0))\n  or (catalog_item_own_state{item_id=~\"${deps:regex}\"} and on(item_id) (min_over_time(catalog_item_own_state{item_id=~\"${deps:regex}\"}[$__range] @ end()) < 1) and on() (vector(${graphs}) == 1))\n) and on() ((vector(${items}) == 2) or (vector(${items}) == 3))",
+          "legendFormat": "\u200c[dep it] {{item_name}}",
           "range": true,
-          "refId": "C"
+          "refId": "B"
         },
         {
           "datasource": {
