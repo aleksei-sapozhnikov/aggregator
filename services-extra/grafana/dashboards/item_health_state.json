@@ -281,24 +281,29 @@
         },
         "definition": "",
         "includeAll": false,
-        "label": "checks",
+        "label": "hchecks",
         "multi": false,
         "name": "healthchecks",
         "current": {
           "selected": true,
-          "text": "own only",
+          "text": "[cur]rent",
           "value": "1"
         },
         "options": [
           {
             "selected": false,
-            "text": "own & deps",
+            "text": "all",
             "value": "2"
           },
           {
             "selected": true,
-            "text": "own only",
+            "text": "[cur]rent",
             "value": "1"
+          },
+          {
+            "selected": false,
+            "text": "[dep]endencies",
+            "value": "3"
           },
           {
             "selected": false,
@@ -306,7 +311,7 @@
             "value": "0"
           }
         ],
-        "query": "own & deps : 2, own only : 1, hide : 0",
+        "query": "all : 2, [cur]rent : 1, [dep]endencies : 3, hide : 0",
         "refresh": 1,
         "regex": "",
         "sort": 1,
