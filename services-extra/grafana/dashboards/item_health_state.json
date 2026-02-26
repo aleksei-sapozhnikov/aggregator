@@ -323,7 +323,7 @@
         "name": "graphs",
         "current": {
           "selected": true,
-          "text": "failing only",
+          "text": "failing",
           "value": "1"
         },
         "options": [
@@ -334,11 +334,11 @@
           },
           {
             "selected": true,
-            "text": "failing only",
+            "text": "failing",
             "value": "1"
           }
         ],
-        "query": "all : 0, failing only : 1",
+        "query": "all : 0, failing : 1",
         "refresh": 1,
         "regex": "",
         "sort": 1,
