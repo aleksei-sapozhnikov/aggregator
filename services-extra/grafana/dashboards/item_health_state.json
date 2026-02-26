@@ -147,7 +147,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "catalog_item_state{item_id=~\"${item_id:regex}\"}",
+          "expr": "catalog_item_state{item_id=~\"${item_id:regex}\"} and on() ((vector(${items}) == 1) or (vector(${items}) == 2))",
           "hide": false,
           "instant": false,
           "legendFormat": "[main] {{item_name}}",
@@ -160,7 +160,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(\n  (catalog_item_own_state{item_id=~\"${deps:regex}\"} and on() (vector(${graphs}) == 0))\n  or (catalog_item_own_state{item_id=~\"${deps:regex}\"} and on(item_id) (min_over_time(catalog_item_own_state{item_id=~\"${deps:regex}\"}[$__range] @ end()) < 1) and on() (vector(${graphs}) == 1))\n) and on() (vector(${dependencies}) == 1)",
+          "expr": "(\n  (catalog_item_own_state{item_id=~\"${deps:regex}\"} and on() (vector(${graphs}) == 0))\n  or (catalog_item_own_state{item_id=~\"${deps:regex}\"} and on(item_id) (min_over_time(catalog_item_own_state{item_id=~\"${deps:regex}\"}[$__range] @ end()) < 1) and on() (vector(${graphs}) == 1))\n) and on() ((vector(${items}) == 2) or (vector(${items}) == 3))",
           "legendFormat": "\u200b[dep] {{item_name}}",
           "range": true,
           "refId": "B"
@@ -248,19 +248,29 @@
         },
         "definition": "",
         "includeAll": false,
-        "label": "deps",
+        "label": "items",
         "multi": false,
-        "name": "dependencies",
+        "name": "items",
         "current": {
           "selected": true,
-          "text": "show",
-          "value": "1"
+          "text": "all",
+          "value": "2"
         },
         "options": [
           {
             "selected": true,
-            "text": "show",
+            "text": "all",
+            "value": "2"
+          },
+          {
+            "selected": false,
+            "text": "[cur]rent",
             "value": "1"
+          },
+          {
+            "selected": false,
+            "text": "[dep]endencies",
+            "value": "3"
           },
           {
             "selected": false,
@@ -268,7 +278,7 @@
             "value": "0"
           }
         ],
-        "query": "show : 1, hide : 0",
+        "query": "all : 2, [cur]rent : 1, [dep]endencies : 3, hide : 0",
         "refresh": 1,
         "regex": "",
         "sort": 1,
