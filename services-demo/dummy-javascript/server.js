@@ -2,11 +2,11 @@
  * Dummy JavaScript service used to simulate a simple service health endpoint.
  *
  * Exposes the following HTTP endpoints:
- *   - /health
+ *   - /health/{pointId}
  *       Returns the current health status ("UP" or "DOWN")
  *
- *   - /set-health/{UP|DOWN}
- *       Updates the health status returned by /health
+ *   - /set-health/{pointId}/{UP|DOWN}
+ *       Updates the health status returned by /health/{pointId}
  *
  * Intended for testing and demonstration purposes.
  */
@@ -25,10 +25,12 @@ const log = {
   debug: (...args) => shouldLog("debug") && console.log(new Date().toISOString(), "DEBUG", ...args),
 };
 
-let status = "UP";
+const statuses = new Map();
 
-const statusPayload = () => `{
-  "status": "${status}"
+const getStatus = (pointId) => statuses.get(pointId) || "UP";
+
+const statusPayload = (pointId) => `{
+  "status": "${getStatus(pointId)}"
 }`;
 
 const sendJson = (res, code, payload) => {
@@ -41,45 +43,71 @@ const sendText = (res, code, message) => {
   res.end(message);
 };
 
+const parseHealthPointId = (path) => {
+  const parts = path.split("/").filter(Boolean);
+  if (parts[0] !== "health") {
+    return {matched: false};
+  }
+  if (parts.length === 2) {
+    return {matched: true, pointId: parts[1]};
+  }
+  return {matched: true, invalid: true};
+};
+
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
-  const path = url.pathname; // e.g. /set-health/up
+  const path = url.pathname; // e.g. /set-health/1/up
 
-  if (path === "/health") {
+  const healthPath = parseHealthPointId(path);
+  if (healthPath.matched) {
     if (req.method !== "GET") {
       sendText(res, 405, "Method Not Allowed");
       log.warn(`${req.method} ${path} -> 405`);
       return;
     }
-    sendJson(res, 200, statusPayload());
-    log.info(`GET /health -> ${status}`);
+    if (healthPath.invalid) {
+      sendText(res, 404, "Not Found");
+      log.warn(`${req.method} ${path} -> 404`);
+      return;
+    }
+    sendJson(res, 200, statusPayload(healthPath.pointId));
+    log.info(`GET ${path} -> ${getStatus(healthPath.pointId)}`);
     return;
   }
 
-  if (path.startsWith("/set-health")) {
+  if (path.startsWith("/set-health/")) {
     if (req.method !== "GET") {
       sendText(res, 405, "Only GET method allowed");
       log.warn(`${req.method} ${path} -> 405`);
       return;
     }
 
-    const parts = path.split("/").filter(Boolean); // ["set-health", "up"]
-    if (parts.length !== 2) {
-      sendText(res, 400, "Expected /set-health/up or /set-health/down");
+    const parts = path.split("/").filter(Boolean);
+    let pointId;
+    let stateValue;
+    if (parts.length === 3) {
+      pointId = parts[1];
+      stateValue = parts[2];
+    } else {
+      sendText(
+          res,
+          400,
+          "Expected /set-health/{pointId}/{up|down}",
+      );
       log.warn(`GET ${path} -> 400 (bad path)`);
       return;
     }
 
-    const normalized = parts[1].trim().toUpperCase();
+    const normalized = stateValue.trim().toUpperCase();
     if (!["UP", "DOWN"].includes(normalized)) {
       sendText(res, 400, "value must be up or down");
-      log.warn(`GET ${path} -> 400 (bad value: ${parts[1]})`);
+      log.warn(`GET ${path} -> 400 (bad value: ${stateValue})`);
       return;
     }
 
-    status = normalized;
-    sendJson(res, 200, statusPayload());
-    log.info(`GET ${path} -> ${status}`);
+    statuses.set(pointId, normalized);
+    sendJson(res, 200, statusPayload(pointId));
+    log.info(`GET ${path} -> ${normalized}`);
     return;
   }
 

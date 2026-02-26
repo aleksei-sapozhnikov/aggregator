@@ -2,11 +2,11 @@
 # Dummy Python service used to simulate a simple service health endpoint.
 #
 # Exposes the following HTTP endpoints:
-#   - /health
+#   - /health/{pointId}
 #       Returns the current health status ("UP" or "DOWN")
 #
-#   - /set-health/{UP|DOWN}
-#       Updates the health status returned by /health
+#   - /set-health/{pointId}/{UP|DOWN}
+#       Updates the health status returned by /health/{pointId}
 #
 # Intended for testing and demonstration purposes.
 #
@@ -22,11 +22,15 @@ logging.basicConfig(
 )
 logger = logging.getLogger("dummy-service")
 
-STATUS = "UP"
+STATUSES: dict[str, str] = {}
 
 
-def status_payload() -> str:
-    return f"{{\n  \"status\": \"{STATUS}\"\n}}"
+def get_status(point_id: str) -> str:
+    return STATUSES.get(point_id, "UP")
+
+
+def status_payload(point_id: str) -> str:
+    return f"{{\n  \"status\": \"{get_status(point_id)}\"\n}}"
 
 
 class DummyHandler(BaseHTTPRequestHandler):
@@ -35,37 +39,51 @@ class DummyHandler(BaseHTTPRequestHandler):
 
     def _handle_request(self):
         parsed = urlparse(self.path)
+        path = parsed.path
 
-        if parsed.path == "/health":
-            self._send_json(HTTPStatus.OK, status_payload())
-            logger.info("GET /health -> %s", STATUS)
+        health_match, point_id = self._parse_health_point_id(path)
+        if health_match:
+            if point_id is None:
+                self.send_error(HTTPStatus.NOT_FOUND, "Not Found")
+                return
+            self._send_json(HTTPStatus.OK, status_payload(point_id))
+            logger.info("GET %s -> %s", path, get_status(point_id))
             return
 
-        if parsed.path.startswith("/set-health"):
-            self._handle_set_state(parsed.path)
+        if path.startswith("/set-health/"):
+            self._handle_set_state(path)
             return
 
         self.send_error(HTTPStatus.NOT_FOUND, "Not Found")
 
-    def _handle_set_state(self, path: str):
-        global STATUS
+    def _parse_health_point_id(self, path: str) -> tuple[bool, str | None]:
+        parts = [p for p in path.split("/") if p]
+        if not parts or parts[0] != "health":
+            return False, None
+        if len(parts) == 2:
+            return True, parts[1]
+        return True, None
 
-        parts = [p for p in path.split("/") if p]  # ["set-health", "up"]
-        if len(parts) != 2:
+    def _handle_set_state(self, path: str):
+        parts = [p for p in path.split("/") if p]
+        if len(parts) == 3:
+            point_id = parts[1]
+            state_value = parts[2]
+        else:
             self.send_error(
                 HTTPStatus.BAD_REQUEST,
-                "Expected /set-health/up or /set-health/down",
+                "Expected /set-health/{pointId}/{up|down}",
             )
             return
 
-        normalized = parts[1].strip().upper()
+        normalized = state_value.strip().upper()
         if normalized not in {"UP", "DOWN"}:
             self.send_error(HTTPStatus.BAD_REQUEST, "value must be up or down")
             return
 
-        STATUS = normalized
-        self._send_json(HTTPStatus.OK, status_payload())
-        logger.info("GET %s -> %s", path, STATUS)
+        STATUSES[point_id] = normalized
+        self._send_json(HTTPStatus.OK, status_payload(point_id))
+        logger.info("GET %s -> %s", path, normalized)
 
     def _send_json(self, status: HTTPStatus, payload: str):
         body = payload.encode("utf-8")
