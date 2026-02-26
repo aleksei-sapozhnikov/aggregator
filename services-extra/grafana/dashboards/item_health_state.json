@@ -171,7 +171,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(\n  (\n    (catalog_item_check_state{item_id=~\"${item_id:regex}\"} and on() (vector(${graphs}) == 0))\n    or (\n      catalog_item_check_state{item_id=~\"${item_id:regex}\"}\n      and on(item_id,check_id,check_source) (min_over_time(catalog_item_check_state{item_id=~\"${item_id:regex}\"}[$__range] @ end()) < 1)\n      and on() (vector(${graphs}) == 1)\n    )\n  )\n  and on() (vector(${healthchecks}) >= 1)\n)",
+          "expr": "(\n  (\n    (catalog_item_check_state{item_id=~\"${item_id:regex}\"} and on() (vector(${graphs}) == 0))\n    or (\n      catalog_item_check_state{item_id=~\"${item_id:regex}\"}\n      and on(item_id,check_id,check_source) (min_over_time(catalog_item_check_state{item_id=~\"${item_id:regex}\"}[$__range] @ end()) < 1)\n      and on() (vector(${graphs}) == 1)\n    )\n  )\n  and on() ((vector(${healthchecks}) == 1) or (vector(${healthchecks}) == 2))\n)",
           "legendFormat": "\u200b\u200b[check] {{check_name}}",
           "range": true,
           "refId": "C"
@@ -182,7 +182,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(\n  (\n    (catalog_item_check_state{item_id=~\"${deps:regex}\"} and on() (vector(${graphs}) == 0))\n    or (\n      catalog_item_check_state{item_id=~\"${deps:regex}\"}\n      and on(item_id,check_id,check_source) (min_over_time(catalog_item_check_state{item_id=~\"${deps:regex}\"}[$__range] @ end()) < 1)\n      and on() (vector(${graphs}) == 1)\n    )\n  )\n  and on() (vector(${healthchecks}) == 2)\n)",
+          "expr": "(\n  (\n    (catalog_item_check_state{item_id=~\"${deps:regex}\"} and on() (vector(${graphs}) == 0))\n    or (\n      catalog_item_check_state{item_id=~\"${deps:regex}\"}\n      and on(item_id,check_id,check_source) (min_over_time(catalog_item_check_state{item_id=~\"${deps:regex}\"}[$__range] @ end()) < 1)\n      and on() (vector(${graphs}) == 1)\n    )\n  )\n  and on() ((vector(${healthchecks}) == 2) or (vector(${healthchecks}) == 3))\n)",
           "legendFormat": "\u200b\u200b[check] {{check_name}}",
           "range": true,
           "refId": "D"
