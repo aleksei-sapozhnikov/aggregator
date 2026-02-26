@@ -88,7 +88,7 @@
                 "value": [
                   {
                     "targetBlank": false,
-                    "title": "Open Item Page",
+                    "title": "Item: ${__field.labels.item_name}",
                     "url": "${app_base_url}/item/${__field.labels.item_id}"
                   }
                 ]
@@ -106,7 +106,7 @@
                 "value": [
                   {
                     "targetBlank": false,
-                    "title": "Open Item Page",
+                    "title": "Item: ${__field.labels.item_name}",
                     "url": "${app_base_url}/item/${__field.labels.item_id}"
                   }
                 ]
