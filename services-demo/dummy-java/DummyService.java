@@ -30,7 +30,7 @@ public class DummyService {
   private static final Logger LOG = Logger.getLogger(DummyService.class.getName());
   private static final Map<String, String> STATUSES = new ConcurrentHashMap<>();
 
-  static void main(String[] args) throws IOException {
+  static void main(String[] ignoredArgs) throws IOException {
     configureLogging();
 
     int port = 8080;

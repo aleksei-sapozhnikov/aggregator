@@ -1,5 +1,5 @@
 # -------- Build stage --------
-FROM eclipse-temurin:21-jdk-jammy AS build
+FROM eclipse-temurin:25-jdk-jammy AS build
 
 WORKDIR /app
 
@@ -9,7 +9,7 @@ RUN javac DummyService.java \
     && jar cfm dummy-service.jar manifest.mf DummyService*.class
 
 # -------- Runtime stage --------
-FROM eclipse-temurin:21-jre-jammy
+FROM eclipse-temurin:25-jre-jammy
 
 WORKDIR /app
 
