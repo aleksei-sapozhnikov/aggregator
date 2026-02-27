@@ -128,7 +128,7 @@ export default function DetailsPanel({
                                     ›
                                 </span>
                                 <span className={`details-panel-title ${isFailingSignalsOpen ? 'is-open' : ''}`}>
-                                    Failing signals
+                                    Failing
                                     {' '}
                                     <span className="details-panel-count">({failingSignalsCount})</span>
                                 </span>
@@ -150,7 +150,15 @@ export default function DetailsPanel({
                                         </li>
                                     ))}
                                     {failingDependencies.length > 0 && (
-                                        <li className="dependency-group-title">Dependencies</li>
+                                        <li
+                                            className={`dependency-group-title ${
+                                                selectedFailingSignals.length > 0
+                                                    ? 'has-separator'
+                                                    : ''
+                                            }`}
+                                        >
+                                            Affected by
+                                        </li>
                                     )}
                                     {failingDependencies.map((entry) => (
                                         <li key={entry.id} className="dependency">
@@ -176,11 +184,6 @@ export default function DetailsPanel({
                                                 <ul className="dependency-signals">
                                                     {entry.failingSignals.map((signal) => (
                                                         <li key={signal.id} className="dependency-signal">
-                                                            <span
-                                                                className={`status-indicator status-${signal.status}`}
-                                                                aria-label={buildStatusText(signal.status)}
-                                                                title={buildStatusText(signal.status)}
-                                                            />
                                                             <span
                                                                 className="signal-name"
                                                                 title={signal.name || signal.id}
@@ -215,7 +218,7 @@ export default function DetailsPanel({
                                 ›
                             </span>
                             <span className={`details-panel-title ${isPassingSignalsOpen ? 'is-open' : ''}`}>
-                                Passing signals
+                                Passing
                                 {' '}
                                 <span className="details-panel-count">({passingSignalsCount})</span>
                             </span>
