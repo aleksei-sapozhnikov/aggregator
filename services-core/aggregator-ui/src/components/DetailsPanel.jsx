@@ -8,7 +8,7 @@ import {buildStatusText} from '../shared/statusText';
 /**
  * Renders the right-side content area:
  * - selected item title/status
- * - affected items and health checks panels
+ * - failing/passing signals panels
  * - Grafana iframe container
  *
  * Layout and adaptive header behavior are controlled by props from App.
@@ -31,15 +31,19 @@ export default function DetailsPanel({
     selectedTitleFirstWord,
     selectedTitleRest,
     contentTitlePrimaryRef,
-    affectedItems,
-    isAffectedOpen,
-    onToggleAffected,
+    failingSignalsCount,
+    selectedFailingSignals,
+    failingDependencies,
+    hasFailingSignals,
+    isFailingSignalsOpen,
+    onToggleFailingSignals,
     buildItemLink,
     onSelectItemByIdNoPath,
-    selectedChecks,
-    isChecksOpen,
-    onToggleChecks,
-    checksSummaryText,
+    passingSignalsCount,
+    selectedPassingSignals,
+    hasOwnHealthSignals,
+    isPassingSignalsOpen,
+    onTogglePassingSignals,
     grafanaHeight,
     grafanaIframeRef,
     onGrafanaLoad,
@@ -105,107 +109,148 @@ export default function DetailsPanel({
                 <div className="empty">Select a catalog item to view dashboards.</div>
             ) : (
                 <>
-                    {selectedStatus !== 'up' && affectedItems.length > 0 && (
-                        <section className={`affected-panel ${isAffectedOpen ? 'is-open' : ''}`}>
+                    {hasFailingSignals && (
+                        <section
+                            className={`details-panel details-panel-failing ${
+                                isFailingSignalsOpen ? 'is-open' : ''
+                            }`}
+                        >
                             <button
                                 type="button"
-                                className={`affected-toggle ${isAffectedOpen ? 'is-open' : ''}`}
-                                onClick={onToggleAffected}
-                                aria-expanded={isAffectedOpen}
+                                className={`details-panel-toggle ${isFailingSignalsOpen ? 'is-open' : ''}`}
+                                onClick={onToggleFailingSignals}
+                                aria-expanded={isFailingSignalsOpen}
                             >
                                 <span
-                                    className={`affected-chevron ${isAffectedOpen ? 'is-open' : ''}`}
+                                    className={`details-panel-chevron ${isFailingSignalsOpen ? 'is-open' : ''}`}
                                     aria-hidden="true"
                                 >
                                     ›
                                 </span>
-                                <span className={`affected-summary ${isAffectedOpen ? 'is-open' : ''}`}>
-                                    Affected by {affectedItems.length} item
-                                    {affectedItems.length === 1 ? '' : 's'}
-                                    {!isAffectedOpen && affectedItems.length > 0
-                                        ? `: ${affectedItems.map((entry) => entry.name).join(', ')}`
-                                        : ''}
+                                <span className={`details-panel-title ${isFailingSignalsOpen ? 'is-open' : ''}`}>
+                                    Failing signals
+                                    {' '}
+                                    <span className="details-panel-count">({failingSignalsCount})</span>
                                 </span>
                             </button>
-                            {isAffectedOpen && (
-                                <ul className="affected-list">
-                                    {affectedItems.length === 0 ? (
-                                        <li className="affected-empty">
-                                            No degraded dependent services detected.
-                                        </li>
-                                    ) : (
-                                        affectedItems.map((entry) => (
-                                            <li key={entry.id} className="affected-item">
+                            {isFailingSignalsOpen && (
+                                <ul className="signals-list">
+                                    {selectedFailingSignals.map((entry) => (
+                                        <li key={entry.id} className="signal">
+                                            <div className="signal-row">
                                                 <span
                                                     className={`status-indicator status-${entry.status}`}
                                                     aria-label={buildStatusText(entry.status)}
                                                     title={buildStatusText(entry.status)}
                                                 />
-                                                <div className="affected-meta">
-                                                    <div className="affected-row">
-                                                        <a
-                                                            className="affected-link"
-                                                            title={entry.name}
-                                                            href={buildItemLink(entry.id)}
-                                                            onClick={(event) => {
-                                                                event.preventDefault();
-                                                                onSelectItemByIdNoPath(entry.id);
-                                                            }}
-                                                        >
-                                                            {entry.name}
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                            </li>
-                                        ))
-                                    )}
-                                </ul>
-                            )}
-                        </section>
-                    )}
-                    {selectedChecks.length > 0 && (
-                        <section className={`affected-panel ${isChecksOpen ? 'is-open' : ''}`}>
-                            <button
-                                type="button"
-                                className={`affected-toggle ${isChecksOpen ? 'is-open' : ''}`}
-                                onClick={onToggleChecks}
-                                aria-expanded={isChecksOpen}
-                            >
-                                <span
-                                    className={`affected-chevron ${isChecksOpen ? 'is-open' : ''}`}
-                                    aria-hidden="true"
-                                >
-                                    ›
-                                </span>
-                                <span className={`affected-summary ${isChecksOpen ? 'is-open' : ''}`}>
-                                    {checksSummaryText}
-                                </span>
-                            </button>
-                            {isChecksOpen && (
-                                <ul className="affected-list">
-                                    {selectedChecks.map((entry) => (
-                                        <li key={entry.id} className="affected-item">
-                                            <span
-                                                className={`status-indicator status-${entry.status}`}
-                                                aria-label={buildStatusText(entry.status)}
-                                                title={buildStatusText(entry.status)}
-                                            />
-                                            <div className="affected-meta">
-                                                <div className="affected-row">
-                                                    <span
-                                                        className="affected-name"
-                                                        title={entry.name || entry.id}
-                                                    >
-                                                        {entry.name || entry.id}
-                                                    </span>
-                                                </div>
+                                                <span className="signal-name" title={entry.name || entry.id}>
+                                                    {entry.name || entry.id}
+                                                </span>
                                             </div>
+                                        </li>
+                                    ))}
+                                    {failingDependencies.length > 0 && (
+                                        <li className="dependency-group-title">Dependencies</li>
+                                    )}
+                                    {failingDependencies.map((entry) => (
+                                        <li key={entry.id} className="dependency">
+                                            <div className="dependency-title">
+                                                <span
+                                                    className={`status-indicator status-${entry.status}`}
+                                                    aria-label={buildStatusText(entry.status)}
+                                                    title={buildStatusText(entry.status)}
+                                                />
+                                                <a
+                                                    className="signal-link"
+                                                    title={entry.name}
+                                                    href={buildItemLink(entry.id)}
+                                                    onClick={(event) => {
+                                                        event.preventDefault();
+                                                        onSelectItemByIdNoPath(entry.id);
+                                                    }}
+                                                >
+                                                    {entry.name}
+                                                </a>
+                                            </div>
+                                            {entry.failingSignals.length > 0 && (
+                                                <ul className="dependency-signals">
+                                                    {entry.failingSignals.map((signal) => (
+                                                        <li key={signal.id} className="dependency-signal">
+                                                            <span
+                                                                className={`status-indicator status-${signal.status}`}
+                                                                aria-label={buildStatusText(signal.status)}
+                                                                title={buildStatusText(signal.status)}
+                                                            />
+                                                            <span
+                                                                className="signal-name"
+                                                                title={signal.name || signal.id}
+                                                            >
+                                                                {signal.name || signal.id}
+                                                            </span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            )}
                                         </li>
                                     ))}
                                 </ul>
                             )}
                         </section>
                     )}
+                    <section
+                        className={`details-panel details-panel-passing ${
+                            isPassingSignalsOpen ? 'is-open' : ''
+                        }`}
+                    >
+                        <button
+                            type="button"
+                            className={`details-panel-toggle ${isPassingSignalsOpen ? 'is-open' : ''}`}
+                            onClick={onTogglePassingSignals}
+                            aria-expanded={isPassingSignalsOpen}
+                        >
+                            <span
+                                className={`details-panel-chevron ${isPassingSignalsOpen ? 'is-open' : ''}`}
+                                aria-hidden="true"
+                            >
+                                ›
+                            </span>
+                            <span className={`details-panel-title ${isPassingSignalsOpen ? 'is-open' : ''}`}>
+                                Passing signals
+                                {' '}
+                                <span className="details-panel-count">({passingSignalsCount})</span>
+                            </span>
+                        </button>
+                        {isPassingSignalsOpen && (
+                            <ul className="signals-list">
+                                {selectedPassingSignals.length > 0 ? (
+                                    selectedPassingSignals.map((entry) => (
+                                        <li key={entry.id} className="signal">
+                                            <div className="signal-row">
+                                                <span
+                                                    className={`status-indicator status-${entry.status}`}
+                                                    aria-label={buildStatusText(entry.status)}
+                                                    title={buildStatusText(entry.status)}
+                                                />
+                                                <span className="signal-name" title={entry.name || entry.id}>
+                                                    {entry.name || entry.id}
+                                                </span>
+                                            </div>
+                                        </li>
+                                    ))
+                                ) : (
+                                    <li className="signal">
+                                        <div className="signal-row">
+                                            <span className="signal-name">
+                                                {hasOwnHealthSignals
+                                                    ? 'No passing health signals right now.'
+                                                    : 'This item does not have own health signals.'}
+                                            </span>
+                                        </div>
+                                    </li>
+                                )}
+                            </ul>
+                        )}
+                    </section>
                     <div className="grafana-grid">
                         <section
                             className="grafana-panel"
