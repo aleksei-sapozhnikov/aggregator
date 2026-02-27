@@ -36,6 +36,8 @@
   --status-up: #73bf69;
   --status-unknown: #f2c94c;
   --status-down: #e24d42;
+  --details-panel-title-color: var(--text);
+  --details-panel-meta-color: var(--muted);
 }
 
 body[data-theme='dark'] {
@@ -74,6 +76,8 @@ body[data-theme='dark'] {
   --status-up: #73bf69;
   --status-unknown: #f2c94c;
   --status-down: #e24d42;
+  --details-panel-title-color: rgba(255, 255, 255, 0.88);
+  --details-panel-meta-color: rgba(255, 255, 255, 0.72);
 }
 
 * {
@@ -729,7 +733,7 @@ body {
   background: var(--panel);
 }
 
-.affected-panel {
+.details-panel {
   background: transparent;
   border-radius: 12px;
   box-shadow: none;
@@ -740,12 +744,12 @@ body {
   gap: 0;
 }
 
-.affected-panel.is-open {
+.details-panel.is-open {
   background: var(--panel-inner-border-background);
   box-shadow: var(--shadow);
 }
 
-.affected-toggle {
+.details-panel-toggle {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -759,33 +763,59 @@ body {
   text-align: left;
 }
 
-.affected-toggle.is-open {
+.details-panel-toggle.is-open {
   border-radius: 10px 10px 0 0;
   padding: 10px 12px;
   margin: 0;
 }
 
-.affected-chevron {
+.details-panel-failing .details-panel-toggle {
+  background: color-mix(in srgb, var(--outer-background) 92%, var(--status-down));
+}
+
+.details-panel-passing .details-panel-toggle {
+  background: color-mix(in srgb, var(--outer-background) 92%, var(--status-up));
+}
+
+.details-panel-chevron {
+  font-size: 16px;
+  line-height: 1;
+  color: var(--details-panel-meta-color);
+  transform: rotate(0deg);
+  transition: transform 180ms ease;
+}
+
+.details-panel-chevron.is-open {
+  transform: rotate(90deg);
+}
+
+.expand-chevron {
   font-size: 16px;
   line-height: 1;
   transform: rotate(0deg);
   transition: transform 180ms ease;
 }
 
-.affected-chevron.is-open {
+.expand-chevron.is-open {
   transform: rotate(90deg);
 }
 
-.affected-summary {
+.details-panel-title {
   position: relative;
   flex: 1 1 auto;
   min-width: 0;
-  font-size: 12px;
+  font-size: 15px;
+  line-height: 1.25;
+  color: var(--details-panel-title-color);
   white-space: nowrap;
   overflow: hidden;
 }
 
-.affected-summary::after {
+.details-panel-count {
+  color: var(--details-panel-meta-color);
+}
+
+.details-panel-title::after {
   content: "";
   position: absolute;
   top: 0;
@@ -796,46 +826,37 @@ body {
   pointer-events: none;
 }
 
-.affected-summary.is-open::after {
+.details-panel-title.is-open::after {
   display: none;
 }
 
-.affected-list {
+.signals-list {
   list-style: none;
   margin: 0;
   padding: 8px;
   border: 1px solid var(--border);
-  column-width: 260px;
-  column-gap: 16px;
-  row-gap: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   background: var(--panel);
   border-radius: 0 0 10px 10px;
 }
 
-.affected-item {
+.signal {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 8px;
-  break-inside: avoid;
 }
 
-.affected-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
-.affected-row {
+.signal-row {
   display: flex;
   align-items: center;
   gap: 8px;
   min-width: 0;
 }
 
-.affected-name {
+.signal-name {
   font-size: 14px;
   font-weight: 400;
   min-width: 0;
@@ -844,7 +865,7 @@ body {
   white-space: nowrap;
 }
 
-.affected-link {
+.signal-link {
   text-decoration: none;
   font-size: 14px;
   font-weight: 400;
@@ -860,23 +881,55 @@ body {
   text-align: left;
 }
 
-.affected-link:hover {
+.signal-link:hover {
   text-decoration: underline;
 }
 
-.affected-link:focus-visible {
+.signal-link:focus-visible {
   outline: 2px solid var(--link);
   outline-offset: 2px;
   border-radius: 6px;
 }
 
-.affected-empty {
-  border: 1px dashed var(--border);
-  background: var(--panel-alt);
+.dependency-group-title {
   color: var(--muted);
-  border-radius: 10px;
-  padding: 8px 10px;
   font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 10px 8px 6px;
+  margin-top: 2px;
+  border-top: 1px solid var(--border);
+}
+
+.dependency {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  padding: 8px;
+}
+
+.dependency-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.dependency-signals {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0 0 0 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dependency-signal {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .empty,
