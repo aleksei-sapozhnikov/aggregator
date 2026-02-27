@@ -544,7 +544,7 @@ export default function App() {
                 name: item?.name || dependencyId,
                 status: dependencyStatus,
                 failingSignals,
-                failingCountContribution: 1,
+                failingCountContribution: failingSignals.length > 0 ? failingSignals.length : 1,
             });
         });
         return result.sort((a, b) => a.name.localeCompare(b.name));
