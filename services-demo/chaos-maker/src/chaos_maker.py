@@ -5,7 +5,7 @@
 # then restores them back to UP.
 #
 # Targets are discovered from a health checks YAML file (same format as the
-# aggregator uses), by extracting base URLs from check URLs.
+# aggregator uses), by deriving control URLs from check URLs.
 #
 # Configuration is controlled via environment variables:
 #   - CHAOS_ENABLED:           "true" / "false" (default: false)
@@ -22,13 +22,14 @@
 import logging
 import os
 import random
-import requests
 import time
-import yaml
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, Iterable, List, Set
 from urllib.parse import urlsplit
+
+import requests
+import yaml
 
 logging.basicConfig(
     level=logging.INFO,
@@ -51,7 +52,7 @@ class ChaosConfig:
 
 @dataclass(frozen=True)
 class ChaosTarget:
-    base_url: str
+    control_url: str
     health_url: str
 
 
@@ -101,23 +102,27 @@ def jitter(min_value: float, max_value: float) -> float:
     return random.uniform(min_value, max_value)
 
 
-def to_base_url(url: str) -> str:
+def to_control_url(url: str) -> str:
     """
-    Convert a check URL into a base URL that supports /set-health/<state>.
+    Convert a check URL into a control URL that supports /set-health/<state>.
 
     Examples:
-      - http://svc:8080/health        -> http://svc:8080
-      - http://svc:8080/api/health    -> http://svc:8080/api
+      - http://svc:8080/health        -> http://svc:8080/set-health
+      - http://svc:8080/health/2      -> http://svc:8080/set-health/2
+      - http://svc:8080/api/health    -> http://svc:8080/api/set-health
     """
     parsed = urlsplit(url)
-    path = parsed.path or ""
+    segments = [segment for segment in (parsed.path or "").split("/") if segment]
 
-    if path.endswith("/health"):
-        path = path[: -len("/health")]
-    if path.endswith("/"):
-        path = path[:-1]
+    for index in range(len(segments) - 1, -1, -1):
+        if segments[index] == "health":
+            segments[index] = "set-health"
+            path = "/" + "/".join(segments)
+            return f"{parsed.scheme}://{parsed.netloc}{path}"
 
-    return f"{parsed.scheme}://{parsed.netloc}{path}"
+    # Fallback for non-standard paths: append /set-health after trimming a trailing slash.
+    path = (parsed.path or "").rstrip("/")
+    return f"{parsed.scheme}://{parsed.netloc}{path}/set-health"
 
 
 def extract_targets(checks_path: str) -> List[ChaosTarget]:
@@ -131,9 +136,9 @@ def extract_targets(checks_path: str) -> List[ChaosTarget]:
         url = check.get("url")
         if not url:
             continue
-        base_url = to_base_url(url)
-        if base_url not in targets:
-            targets[base_url] = ChaosTarget(base_url=base_url, health_url=url)
+        control_url = to_control_url(url)
+        if control_url not in targets:
+            targets[control_url] = ChaosTarget(control_url=control_url, health_url=url)
 
     return [targets[key] for key in sorted(targets.keys())]
 
@@ -141,20 +146,20 @@ def extract_targets(checks_path: str) -> List[ChaosTarget]:
 def choose_available(
     targets: Iterable[ChaosTarget], active: Set[str], statuses: Dict[str, bool]
 ) -> List[ChaosTarget]:
-    return [t for t in targets if t.base_url not in active and statuses.get(t.base_url, False)]
+    return [t for t in targets if t.control_url not in active and statuses.get(t.control_url, False)]
 
 
-def set_health(base_url: str, state: str) -> None:
+def set_health(control_url: str, state: str) -> None:
     """
-    The dummy services accept lowercase "up"/"down" in the URL, and normalize internally.
+    The dummy services accept lowercase "up"/"down" in the URL and normalize internally.
     """
-    url = f"{base_url}/set-health/{state}"
+    url = f"{control_url}/{state}"
     try:
         response = requests.get(url, timeout=5)
         response.raise_for_status()
-        logger.info("Set %s -> %s", base_url, state.upper())
+        logger.info("Set %s -> %s", control_url, state.upper())
     except requests.RequestException as exc:
-        logger.warning("Failed to set %s -> %s: %s", base_url, state.upper(), exc)
+        logger.warning("Failed to set %s -> %s: %s", control_url, state.upper(), exc)
 
 
 def parse_health_status(response: requests.Response) -> str | None:
@@ -196,16 +201,16 @@ def fetch_health_statuses(targets: Iterable[ChaosTarget]) -> Dict[str, bool]:
             status = None
             logger.warning("Health check failed for %s: %s", target.health_url, exc)
 
-        statuses[target.base_url] = status == "UP"
+        statuses[target.control_url] = status == "UP"
 
     return statuses
 
 
 def reconcile_active(active: Dict[str, float], statuses: Dict[str, bool]) -> None:
-    for base_url in list(active.keys()):
-        if statuses.get(base_url, False):
-            logger.info("Target %s recovered early; clearing scheduled restore", base_url)
-            del active[base_url]
+    for control_url in list(active.keys()):
+        if statuses.get(control_url, False):
+            logger.info("Target %s recovered early; clearing scheduled restore", control_url)
+            del active[control_url]
 
 
 def schedule_restores_for_down_targets(
@@ -216,21 +221,21 @@ def schedule_restores_for_down_targets(
 ) -> None:
     now = time.time()
     for target in targets:
-        if statuses.get(target.base_url, False):
+        if statuses.get(target.control_url, False):
             continue
-        if target.base_url in active:
+        if target.control_url in active:
             continue
         duration = jitter(config.min_duration, config.max_duration)
-        active[target.base_url] = now + duration
-        logger.info("Detected %s DOWN; scheduling restore in %.1fs", target.base_url, duration)
+        active[target.control_url] = now + duration
+        logger.info("Detected %s DOWN; scheduling restore in %.1fs", target.control_url, duration)
 
 
 def restore_due_targets(active: Dict[str, float]) -> List[str]:
     now = time.time()
-    due = [base_url for base_url, restore_at in active.items() if now >= restore_at]
-    for base_url in due:
-        set_health(base_url, "up")
-        del active[base_url]
+    due = [control_url for control_url, restore_at in active.items() if now >= restore_at]
+    for control_url in due:
+        set_health(control_url, "up")
+        del active[control_url]
     return due
 
 
@@ -253,9 +258,9 @@ def force_break_random(
         return
     target = random.choice(available)
     duration = jitter(config.min_duration, config.max_duration)
-    active[target.base_url] = time.time() + duration
-    set_health(target.base_url, "down")
-    statuses[target.base_url] = False
+    active[target.control_url] = time.time() + duration
+    set_health(target.control_url, "down")
+    statuses[target.control_url] = False
 
 
 def _try_inject_once(
@@ -284,9 +289,9 @@ def _try_inject_once(
         return
     target = random.choice(available)
     duration = jitter(config.min_duration, config.max_duration)
-    active[target.base_url] = time.time() + duration
+    active[target.control_url] = time.time() + duration
 
-    set_health(target.base_url, "down")
+    set_health(target.control_url, "down")
 
 
 def run() -> None:

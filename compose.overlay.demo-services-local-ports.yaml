@@ -1,48 +1,12 @@
 services:
-  order-capture-svc:
+  dummy-java:
     ports:
       - "8081:8080"
 
-  order-validation-svc:
+  dummy-python:
     ports:
       - "8082:8080"
 
-  order-billing-svc:
+  dummy-javascript:
     ports:
       - "8083:8080"
-
-  order-dispatch-svc:
-    ports:
-      - "8084:8080"
-
-  routing-engine-svc:
-    ports:
-      - "8085:8080"
-
-  inventory-sync-svc:
-    ports:
-      - "8086:8080"
-
-  lastmile-dispatch-svc:
-    ports:
-      - "8087:8080"
-
-  returns-processing-svc:
-    ports:
-      - "8088:8080"
-
-  engagement-orchestrator-svc:
-    ports:
-      - "8089:8080"
-
-  profile-store-svc:
-    ports:
-      - "8090:8080"
-
-  messaging-hub-svc:
-    ports:
-      - "8091:8080"
-
-  campaign-execution-svc:
-    ports:
-      - "8092:8080"

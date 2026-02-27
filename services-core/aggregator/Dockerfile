@@ -1,5 +1,5 @@
 # -------- Build stage --------
-FROM maven:3.9-eclipse-temurin-21 AS build
+FROM maven:3.9-eclipse-temurin-25 AS build
 
 ARG CONTAINER_ROOT=.
 
@@ -12,7 +12,7 @@ COPY ${CONTAINER_ROOT}/src ./src
 RUN mvn -B package -DskipTests
 
 # -------- Runtime stage --------
-FROM eclipse-temurin:21-jre-jammy
+FROM eclipse-temurin:25-jre-jammy
 
 ARG CATALOG_FILE
 ARG HEALTH_CHECKS_FILE

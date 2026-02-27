@@ -8,8 +8,9 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -19,17 +20,17 @@ import java.util.logging.Logger;
  * <p>The service exposes two HTTP endpoints:
  *
  * <ul>
- *   <li>{@code /health} – returns the current health status ("UP" or "DOWN")
- *   <li>{@code /set-health/{UP|DOWN}} – updates the health status returned by {@code /health}
+ *   <li>{@code /health/{pointId}} – returns the current health status
+ *   <li>{@code /set-health/{pointId}/{UP|DOWN}} – updates the specified health point
  * </ul>
  *
  * <p>This service is intended for testing and demonstration purposes only.
  */
 public class DummyService {
   private static final Logger LOG = Logger.getLogger(DummyService.class.getName());
-  private static final AtomicReference<String> STATUS = new AtomicReference<>("UP");
+  private static final Map<String, String> STATUSES = new ConcurrentHashMap<>();
 
-  public static void main(String[] args) throws IOException {
+  static void main(String[] ignoredArgs) throws IOException {
     configureLogging();
 
     int port = 8080;
@@ -48,16 +49,19 @@ public class DummyService {
     System.setProperty("java.util.logging.SimpleFormatter.format", "%1$tF %1$tT %4$s %5$s%n");
   }
 
-  private static String statusPayload() {
-    return String.format("{\n  \"status\": \"%s\"\n}", STATUS.get());
+  private static String getStatus(String pointId) {
+    return STATUSES.getOrDefault(pointId, "UP");
   }
 
-  private static void sendJson(HttpExchange exchange, int statusCode, String payload)
-      throws IOException {
+  private static String statusPayload(String pointId) {
+    return String.format("{\n  \"status\": \"%s\"\n}", getStatus(pointId));
+  }
+
+  private static void sendJson(HttpExchange exchange, String payload) throws IOException {
     Headers headers = exchange.getResponseHeaders();
     headers.set("Content-Type", "application/json");
     byte[] body = payload.getBytes(StandardCharsets.UTF_8);
-    exchange.sendResponseHeaders(statusCode, body.length);
+    exchange.sendResponseHeaders(200, body.length);
     try (OutputStream output = exchange.getResponseBody()) {
       output.write(body);
     }
@@ -76,13 +80,31 @@ public class DummyService {
     @Override
     public void handle(HttpExchange exchange) throws IOException {
       String method = exchange.getRequestMethod();
+      String path = exchange.getRequestURI().getPath();
       if (!"GET".equalsIgnoreCase(method)) {
         sendResponse(exchange, 405, "Method Not Allowed");
-        LOG.warning(method + " /health -> 405");
+        LOG.warning(method + " " + path + " -> 405");
         return;
       }
-      sendJson(exchange, 200, statusPayload());
-      LOG.info("GET /health -> " + STATUS.get());
+
+      String[] parts = path.split("/");
+      if (parts.length < 2 || !"health".equals(parts[1])) {
+        sendResponse(exchange, 404, "Not Found");
+        LOG.warning(method + " " + path + " -> 404");
+        return;
+      }
+
+      String pointId;
+      if (parts.length == 3) {
+        pointId = parts[2];
+      } else {
+        sendResponse(exchange, 404, "Not Found");
+        LOG.warning(method + " " + path + " -> 404");
+        return;
+      }
+
+      sendJson(exchange, statusPayload(pointId));
+      LOG.info("GET " + path + " -> " + getStatus(pointId));
     }
   }
 
@@ -97,25 +119,36 @@ public class DummyService {
       }
 
       URI uri = exchange.getRequestURI();
-      String path = uri.getPath(); // e.g. /set-health/up
+      String path = uri.getPath(); // e.g. /set-health/1/down
 
       String[] parts = path.split("/");
-      if (parts.length < 3) {
-        sendResponse(exchange, 400, "Expected /set-health/up or /set-health/down");
+      if (parts.length < 3 || !"set-health".equals(parts[1])) {
+        sendResponse(exchange, 400, "Expected /set-health/{pointId}/{up|down}");
         LOG.warning("GET " + path + " -> 400 (bad path)");
         return;
       }
 
-      String normalized = parts[parts.length - 1].trim().toUpperCase(Locale.ROOT);
+      String pointId;
+      String stateValue;
+      if (parts.length == 4) {
+        pointId = parts[2];
+        stateValue = parts[3];
+      } else {
+        sendResponse(exchange, 400, "Expected /set-health/{pointId}/{up|down}");
+        LOG.warning("GET " + path + " -> 400 (bad path)");
+        return;
+      }
+
+      String normalized = stateValue.trim().toUpperCase(Locale.ROOT);
       if (!"UP".equals(normalized) && !"DOWN".equals(normalized)) {
         sendResponse(exchange, 400, "value must be up or down");
         LOG.warning("GET " + path + " -> 400 (bad value)");
         return;
       }
 
-      STATUS.set(normalized);
-      sendJson(exchange, 200, statusPayload());
-      LOG.info("GET " + path + " -> " + STATUS.get());
+      STATUSES.put(pointId, normalized);
+      sendJson(exchange, statusPayload(pointId));
+      LOG.info("GET " + path + " -> " + normalized);
     }
   }
 }

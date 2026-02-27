@@ -1,5 +1,5 @@
+# Demo catalog with expanded service topology
 items:
-  # Product families
   - id: commerce-platform
     name: Commerce Platform
     type: product-family
@@ -9,8 +9,6 @@ items:
   - id: customer-experience
     name: Customer Experience
     type: product-family
-
-  # Product lines and products
   - id: commerce-line-core
     name: Commerce Line Core
     type: product
@@ -35,7 +33,6 @@ items:
   - id: order-workflow
     name: Order Workflow
     type: product
-
   - id: operations-line
     name: Operations Line
     type: product
@@ -57,7 +54,6 @@ items:
   - id: distribution-core
     name: Distribution Core
     type: product
-
   - id: experience-line
     name: Experience Line
     type: product
@@ -100,8 +96,6 @@ items:
   - id: campaign-optimizer-nodes
     name: Campaign Optimizer Nodes
     type: product
-
-  # Services (real demo containers)
   - id: order-capture-svc
     name: Order Capture Service
     type: service
@@ -114,7 +108,6 @@ items:
   - id: order-dispatch-svc
     name: Order Dispatch Service
     type: service
-
   - id: routing-engine-svc
     name: Routing Engine Service
     type: service
@@ -127,7 +120,6 @@ items:
   - id: returns-processing-svc
     name: Returns Processing Service
     type: service
-
   - id: engagement-orchestrator-svc
     name: Engagement Orchestrator Service
     type: service
@@ -140,9 +132,94 @@ items:
   - id: campaign-execution-svc
     name: Campaign Execution Service
     type: service
-
+  - id: commerce-core-pricing-sync-svc
+    name: Commerce Core Pricing Sync Service
+    type: service
+  - id: order-domain-events-svc
+    name: Order Domain Events Service
+    type: service
+  - id: order-intake-api-svc
+    name: Order Intake API Service
+    type: service
+  - id: order-intake-buffer-svc
+    name: Order Intake Buffer Service
+    type: service
+  - id: fraud-screening-svc
+    name: Fraud Screening Service
+    type: service
+  - id: policy-evaluator-svc
+    name: Policy Evaluator Service
+    type: service
+  - id: invoice-orchestrator-svc
+    name: Invoice Orchestrator Service
+    type: service
+  - id: payment-auth-adapter-svc
+    name: Payment Authorization Adapter Service
+    type: service
+  - id: order-state-projection-svc
+    name: Order State Projection Service
+    type: service
+  - id: order-sla-tracker-svc
+    name: Order SLA Tracker Service
+    type: service
+  - id: fulfillment-control-plane-svc
+    name: Fulfillment Control Plane Service
+    type: service
+  - id: logistics-event-router-svc
+    name: Logistics Event Router Service
+    type: service
+  - id: route-cache-writer-svc
+    name: Route Cache Writer Service
+    type: service
+  - id: route-cost-model-svc
+    name: Route Cost Model Service
+    type: service
+  - id: inventory-reconciler-svc
+    name: Inventory Reconciler Service
+    type: service
+  - id: stock-reservation-svc
+    name: Stock Reservation Service
+    type: service
+  - id: depot-slotting-svc
+    name: Depot Slotting Service
+    type: service
+  - id: carrier-capacity-broker-svc
+    name: Carrier Capacity Broker Service
+    type: service
+  - id: dispatch-simulation-svc
+    name: Dispatch Simulation Service
+    type: service
+  - id: customer-consent-ledger-svc
+    name: Customer Consent Ledger Service
+    type: service
+  - id: audience-intent-processor-svc
+    name: Audience Intent Processor Service
+    type: service
+  - id: journey-rules-engine-svc
+    name: Journey Rules Engine Service
+    type: service
+  - id: journey-experimentation-svc
+    name: Journey Experimentation Service
+    type: service
+  - id: touchpoint-session-state-svc
+    name: Touchpoint Session State Service
+    type: service
+  - id: profile-merge-orchestrator-svc
+    name: Profile Merge Orchestrator Service
+    type: service
+  - id: template-renderer-svc
+    name: Template Renderer Service
+    type: service
+  - id: channel-delivery-router-svc
+    name: Channel Delivery Router Service
+    type: service
+  - id: campaign-segmentation-svc
+    name: Campaign Segmentation Service
+    type: service
+  - id: campaign-budget-guard-svc
+    name: Campaign Budget Guard Service
+    type: service
 dependencies:
-  # Commerce branch
   - sourceId: commerce-platform
     targetId: commerce-line-core
     type: includes
@@ -158,7 +235,6 @@ dependencies:
   - sourceId: commerce-core
     targetId: order-domain
     type: depends_on
-
   - sourceId: order-domain
     targetId: order-intake-hub
     type: depends_on
@@ -168,7 +244,6 @@ dependencies:
   - sourceId: order-domain
     targetId: order-finance-hub
     type: depends_on
-
   - sourceId: order-intake-hub
     targetId: order-capture-svc
     type: depends_on
@@ -178,7 +253,6 @@ dependencies:
   - sourceId: order-finance-hub
     targetId: order-billing-svc
     type: depends_on
-
   - sourceId: order-capture-svc
     targetId: order-workflow
     type: depends_on
@@ -188,12 +262,9 @@ dependencies:
   - sourceId: order-billing-svc
     targetId: order-workflow
     type: depends_on
-
   - sourceId: order-workflow
     targetId: order-dispatch-svc
     type: depends_on
-
-  # Operations branch
   - sourceId: operations-suite
     targetId: operations-line
     type: includes
@@ -206,40 +277,33 @@ dependencies:
   - sourceId: fulfillment-hub
     targetId: logistics-domain
     type: depends_on
-
   - sourceId: logistics-domain
     targetId: logistics-routing-cell
     type: depends_on
   - sourceId: logistics-domain
     targetId: logistics-inventory-cell
     type: depends_on
-
   - sourceId: logistics-routing-cell
     targetId: routing-engine-svc
     type: depends_on
   - sourceId: logistics-inventory-cell
     targetId: inventory-sync-svc
     type: depends_on
-
   - sourceId: routing-engine-svc
     targetId: distribution-core
     type: depends_on
   - sourceId: inventory-sync-svc
     targetId: distribution-core
     type: depends_on
-
   - sourceId: distribution-core
     targetId: lastmile-dispatch-svc
     type: depends_on
   - sourceId: distribution-core
     targetId: returns-processing-svc
     type: depends_on
-
   - sourceId: ops-accelerators
     targetId: routing-engine-svc
     type: depends_on
-
-  # Customer experience branch
   - sourceId: customer-experience
     targetId: experience-line
     type: includes
@@ -255,15 +319,12 @@ dependencies:
   - sourceId: engagement-suite
     targetId: journey-domain
     type: depends_on
-
   - sourceId: journey-domain
     targetId: engagement-orchestrator-svc
     type: depends_on
-
   - sourceId: engagement-orchestrator-svc
     targetId: touchpoint-core
     type: depends_on
-
   - sourceId: touchpoint-core
     targetId: touchpoint-profile-pillar
     type: depends_on
@@ -273,7 +334,6 @@ dependencies:
   - sourceId: touchpoint-core
     targetId: touchpoint-campaign-pillar
     type: depends_on
-
   - sourceId: touchpoint-profile-pillar
     targetId: profile-core-nodes
     type: depends_on
@@ -309,4 +369,91 @@ dependencies:
     type: depends_on
   - sourceId: campaign-optimizer-nodes
     targetId: campaign-execution-svc
+    type: depends_on
+  - sourceId: commerce-core
+    targetId: commerce-core-pricing-sync-svc
+    type: depends_on
+  - sourceId: order-domain
+    targetId: order-domain-events-svc
+    type: depends_on
+  - sourceId: order-intake-hub
+    targetId: order-intake-api-svc
+    type: depends_on
+  - sourceId: order-intake-hub
+    targetId: order-intake-buffer-svc
+    type: depends_on
+  - sourceId: order-guard-hub
+    targetId: fraud-screening-svc
+    type: depends_on
+  - sourceId: order-guard-hub
+    targetId: policy-evaluator-svc
+    type: depends_on
+  - sourceId: order-finance-hub
+    targetId: invoice-orchestrator-svc
+    type: depends_on
+  - sourceId: order-finance-hub
+    targetId: payment-auth-adapter-svc
+    type: depends_on
+  - sourceId: order-workflow
+    targetId: order-state-projection-svc
+    type: depends_on
+  - sourceId: order-workflow
+    targetId: order-sla-tracker-svc
+    type: depends_on
+  - sourceId: fulfillment-hub
+    targetId: fulfillment-control-plane-svc
+    type: depends_on
+  - sourceId: logistics-domain
+    targetId: logistics-event-router-svc
+    type: depends_on
+  - sourceId: logistics-routing-cell
+    targetId: route-cache-writer-svc
+    type: depends_on
+  - sourceId: logistics-routing-cell
+    targetId: route-cost-model-svc
+    type: depends_on
+  - sourceId: logistics-inventory-cell
+    targetId: inventory-reconciler-svc
+    type: depends_on
+  - sourceId: logistics-inventory-cell
+    targetId: stock-reservation-svc
+    type: depends_on
+  - sourceId: distribution-core
+    targetId: depot-slotting-svc
+    type: depends_on
+  - sourceId: distribution-core
+    targetId: carrier-capacity-broker-svc
+    type: depends_on
+  - sourceId: ops-accelerators
+    targetId: dispatch-simulation-svc
+    type: depends_on
+  - sourceId: experience-foundation
+    targetId: customer-consent-ledger-svc
+    type: depends_on
+  - sourceId: engagement-suite
+    targetId: audience-intent-processor-svc
+    type: depends_on
+  - sourceId: journey-domain
+    targetId: journey-rules-engine-svc
+    type: depends_on
+  - sourceId: journey-domain
+    targetId: journey-experimentation-svc
+    type: depends_on
+  - sourceId: touchpoint-core
+    targetId: touchpoint-session-state-svc
+    type: depends_on
+  - sourceId: touchpoint-profile-pillar
+    targetId: profile-merge-orchestrator-svc
+    type: depends_on
+  - sourceId: touchpoint-messaging-pillar
+    targetId: template-renderer-svc
+    type: depends_on
+  - sourceId: touchpoint-messaging-pillar
+    targetId: channel-delivery-router-svc
+    type: depends_on
+  - sourceId: touchpoint-campaign-pillar
+    targetId: campaign-segmentation-svc
+    type: depends_on
+  - sourceId: touchpoint-campaign-pillar
+    targetId: campaign-budget-guard-svc
     type: depends_on
