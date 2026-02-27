@@ -1,3 +1,10 @@
+/**
+ * @file Static About dialog content.
+ */
+
+/**
+ * Renders descriptive text shown inside the About modal.
+ */
 export default function AboutContent() {
     return (
         <>
