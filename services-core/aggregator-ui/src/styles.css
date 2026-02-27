@@ -815,6 +815,21 @@ body {
   color: var(--details-panel-meta-color);
 }
 
+.details-panel-title::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 48px;
+  background: linear-gradient(90deg, var(--transparent), var(--outer-background));
+  pointer-events: none;
+}
+
+.details-panel-title.is-open::after {
+  display: none;
+}
+
 .signals-list {
   list-style: none;
   margin: 0;
@@ -884,9 +899,6 @@ body {
   text-transform: uppercase;
   padding: 10px 8px 6px;
   margin-top: 2px;
-}
-
-.dependency-group-title.has-separator {
   border-top: 1px solid var(--border);
 }
 
@@ -894,13 +906,8 @@ body {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 4px;
-  padding: 6px 8px;
-  background: transparent;
-}
-
-.dependency + .dependency {
-  margin-top: 4px;
+  gap: 6px;
+  padding: 8px;
 }
 
 .dependency-title {
@@ -912,24 +919,17 @@ body {
 
 .dependency-signals {
   list-style: none;
-  margin: 0;
-  padding: 0 0 0 12px;
+  margin: 6px 0 0;
+  padding: 0 0 0 18px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  border-left: 1px solid var(--border);
+  gap: 6px;
 }
 
 .dependency-signal {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding-left: 4px;
-}
-
-.dependency-signal .signal-name {
-  color: var(--muted);
-  font-size: 13px;
 }
 
 .empty,
