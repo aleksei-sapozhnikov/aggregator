@@ -55,8 +55,7 @@ export default function App() {
     const [expandedIds, setExpandedIds] = useState(() => new Set());
     const expandedIdsRef = useRef(expandedIds);
     const [itemStatuses, setItemStatuses] = useState({});
-    const [itemCheckDown, setItemCheckDown] = useState({});
-    const [itemChecks, setItemChecks] = useState({});
+    const [itemSignals, setItemSignals] = useState({});
     const [lastUpdated, setLastUpdated] = useState('');
     const [isMobileLayout, setIsMobileLayout] = useState(
         () => window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT}px)`).matches,
@@ -66,12 +65,11 @@ export default function App() {
     const [isSearchActive, setIsSearchActive] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [pendingScrollId, setPendingScrollId] = useState('');
-    const [isAffectedOpen, setIsAffectedOpen] = useState(false);
-    const [isChecksOpen, setIsChecksOpen] = useState(false);
+    const [isFailingSignalsOpen, setIsFailingSignalsOpen] = useState(false);
+    const [isPassingSignalsOpen, setIsPassingSignalsOpen] = useState(false);
     const [isAboutOpen, setIsAboutOpen] = useState(false);
     const [isTitlePrimaryBelowControls, setIsTitlePrimaryBelowControls] = useState(false);
-    const affectedAutoOpenRef = useRef(true);
-    const checksAutoOpenRef = useRef(true);
+    const failingSignalsAutoOpenRef = useRef(true);
     const [grafanaHeight, setGrafanaHeight] = useState(0);
     const prevSearchTokensRef = useRef(0);
     const clearSearchRequestedRef = useRef(false);
@@ -284,8 +282,7 @@ export default function App() {
                 const next = await fetchPrometheusStatuses(prometheusBaseUrl);
                 if (!cancelled) {
                     setItemStatuses(next.itemStatuses);
-                    setItemCheckDown(next.itemCheckDown);
-                    setItemChecks(next.itemChecks);
+                    setItemSignals(next.itemSignals);
                     setLastUpdated(new Date().toLocaleTimeString());
                 }
             } catch (err) {
@@ -480,7 +477,30 @@ export default function App() {
         selectedId,
         selectedTitleFirstWord,
     ]);
-    const affectedItems = useMemo(() => {
+    const selectedSignals = useMemo(() => {
+        if (!selectedItem) {
+            return [];
+        }
+        const signals = itemSignals[selectedItem.id] || [];
+        return [...signals].sort((a, b) => {
+            const statusCompare = compareHealthStatus(a.status, b.status);
+            if (statusCompare !== 0) {
+                return statusCompare;
+            }
+            return (a.name || a.id).localeCompare(b.name || b.id) || a.id.localeCompare(b.id);
+        });
+    }, [itemSignals, selectedItem]);
+
+    const selectedFailingSignals = useMemo(
+        () => selectedSignals.filter((signal) => signal.status === 'down'),
+        [selectedSignals],
+    );
+    const selectedPassingSignals = useMemo(
+        () => selectedSignals.filter((signal) => signal.status === 'up'),
+        [selectedSignals],
+    );
+    const hasOwnHealthSignals = selectedSignals.length > 0;
+    const failingDependencyIds = useMemo(() => {
         if (!selectedItem) {
             return [];
         }
@@ -488,59 +508,55 @@ export default function App() {
         if (!node) {
             return [];
         }
-        const descendants = collectDescendantIds(node);
-        const affected = [];
         const seen = new Set();
-        descendants.forEach((id) => {
-            if (seen.has(id)) {
+        const result = [];
+        collectDescendantIds(node).forEach((dependencyId) => {
+            if (seen.has(dependencyId)) {
                 return;
             }
-            seen.add(id);
-            if (!itemCheckDown[id]) {
+            seen.add(dependencyId);
+            result.push(dependencyId);
+        });
+        return result;
+    }, [selectedItem, tree]);
+    const failingDependencies = useMemo(() => {
+        const dependencySources = new Set(catalog.dependencies.map((dep) => dep.sourceId));
+        const result = [];
+        failingDependencyIds.forEach((dependencyId) => {
+            const dependencyStatus = itemStatuses[dependencyId] || 'unknown';
+            const hasOwnDependencies = dependencySources.has(dependencyId);
+            const failingSignals = (itemSignals[dependencyId] || [])
+                .filter((signal) => signal.status === 'down')
+                .sort((a, b) => {
+                    const statusCompare = compareHealthStatus(a.status, b.status);
+                    if (statusCompare !== 0) {
+                        return statusCompare;
+                    }
+                    return (a.name || a.id).localeCompare(b.name || b.id) || a.id.localeCompare(b.id);
+                });
+            const shouldIncludeLeafNonUp = !hasOwnDependencies && dependencyStatus !== 'up';
+            if (failingSignals.length === 0 && !shouldIncludeLeafNonUp) {
                 return;
             }
-            const item = itemMap.get(id);
-            affected.push({
-                id,
-                name: item?.name || id,
-                status: 'down',
+            const item = itemMap.get(dependencyId);
+            result.push({
+                id: dependencyId,
+                name: item?.name || dependencyId,
+                status: dependencyStatus,
+                failingSignals,
+                failingCountContribution: failingSignals.length > 0 ? failingSignals.length : 1,
             });
         });
-        return affected.sort((a, b) => a.name.localeCompare(b.name));
-    }, [itemCheckDown, itemMap, selectedItem, tree]);
-
-    const selectedChecks = useMemo(() => {
-        if (!selectedItem) {
-            return [];
-        }
-        const checks = itemChecks[selectedItem.id] || [];
-        return [...checks].sort((a, b) => {
-            const statusCompare = compareHealthStatus(a.status, b.status);
-            if (statusCompare !== 0) {
-                return statusCompare;
-            }
-            return (a.name || a.id).localeCompare(b.name || b.id) || a.id.localeCompare(b.id);
-        });
-    }, [itemChecks, selectedItem]);
-
-    const checkSummary = useMemo(() => {
-        const okCount = selectedChecks.filter((check) => check.status === 'up').length;
-        const failingChecks = selectedChecks.filter((check) => check.status === 'down');
-        return {
-            okCount,
-            failingCount: failingChecks.length,
-            failingList: failingChecks.map((check) => check.name || check.id).join(', '),
-        };
-    }, [selectedChecks]);
-    const checksSummaryText = useMemo(() => {
-        const baseText = `Health checks: ${checkSummary.okCount} ok${
-            checkSummary.failingCount > 0 ? `, ${checkSummary.failingCount} failing` : ''
-        }`;
-        if (isChecksOpen || checkSummary.failingCount === 0) {
-            return baseText;
-        }
-        return `${baseText}: ${checkSummary.failingList}`;
-    }, [checkSummary, isChecksOpen]);
+        return result.sort((a, b) => a.name.localeCompare(b.name));
+    }, [catalog.dependencies, failingDependencyIds, itemMap, itemSignals, itemStatuses]);
+    const failingSignalsCount = useMemo(
+        () =>
+            selectedFailingSignals.length +
+            failingDependencies.reduce((sum, entry) => sum + entry.failingCountContribution, 0),
+        [failingDependencies, selectedFailingSignals.length],
+    );
+    const passingSignalsCount = selectedPassingSignals.length;
+    const hasFailingSignals = failingSignalsCount > 0;
     const isSidebarOpen = isMobileLayout ? isMobileSidebarOpen : isDesktopSidebarOpen;
     const shouldOffsetContentHeader = isMobileLayout || !isSidebarOpen;
     const homeHref = basePath || '/';
@@ -727,35 +743,20 @@ export default function App() {
     ]);
 
     useEffect(() => {
-        setIsAffectedOpen(false);
-        affectedAutoOpenRef.current = true;
-        setIsChecksOpen(false);
-        checksAutoOpenRef.current = true;
+        setIsFailingSignalsOpen(false);
+        failingSignalsAutoOpenRef.current = true;
+        setIsPassingSignalsOpen(false);
     }, [selectedId]);
 
     useEffect(() => {
-        if (!affectedAutoOpenRef.current) {
+        if (!failingSignalsAutoOpenRef.current) {
             return;
         }
-        if (selectedStatus !== 'up' && affectedItems.length > 0) {
-            setIsAffectedOpen(true);
-            affectedAutoOpenRef.current = false;
+        if (hasFailingSignals) {
+            setIsFailingSignalsOpen(true);
+            failingSignalsAutoOpenRef.current = false;
         }
-    }, [affectedItems.length, selectedId, selectedStatus]);
-
-    useEffect(() => {
-        if (!checksAutoOpenRef.current) {
-            return;
-        }
-        if (selectedChecks.length === 0) {
-            return;
-        }
-        const hasNonUp = selectedChecks.some((check) => check.status !== 'up');
-        if (hasNonUp) {
-            setIsChecksOpen(true);
-        }
-        checksAutoOpenRef.current = false;
-    }, [selectedChecks]);
+    }, [hasFailingSignals, selectedId]);
 
     useEffect(() => {
         if (!isSearchActive) {
@@ -963,15 +964,19 @@ export default function App() {
                 selectedTitleFirstWord={selectedTitleFirstWord}
                 selectedTitleRest={selectedTitleRest}
                 contentTitlePrimaryRef={contentTitlePrimaryRef}
-                affectedItems={affectedItems}
-                isAffectedOpen={isAffectedOpen}
-                onToggleAffected={() => setIsAffectedOpen((prev) => !prev)}
+                failingSignalsCount={failingSignalsCount}
+                selectedFailingSignals={selectedFailingSignals}
+                failingDependencies={failingDependencies}
+                hasFailingSignals={hasFailingSignals}
+                isFailingSignalsOpen={isFailingSignalsOpen}
+                onToggleFailingSignals={() => setIsFailingSignalsOpen((prev) => !prev)}
                 buildItemLink={buildItemLink}
                 onSelectItemByIdNoPath={handleSelectItemByIdNoPath}
-                selectedChecks={selectedChecks}
-                isChecksOpen={isChecksOpen}
-                onToggleChecks={() => setIsChecksOpen((prev) => !prev)}
-                checksSummaryText={checksSummaryText}
+                passingSignalsCount={passingSignalsCount}
+                selectedPassingSignals={selectedPassingSignals}
+                hasOwnHealthSignals={hasOwnHealthSignals}
+                isPassingSignalsOpen={isPassingSignalsOpen}
+                onTogglePassingSignals={() => setIsPassingSignalsOpen((prev) => !prev)}
                 grafanaHeight={grafanaHeight}
                 grafanaIframeRef={grafanaIframeRef}
                 onGrafanaLoad={handleGrafanaLoad}
