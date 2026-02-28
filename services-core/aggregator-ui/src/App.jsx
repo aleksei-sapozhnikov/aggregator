@@ -67,6 +67,7 @@ export default function App() {
     const [pendingScrollId, setPendingScrollId] = useState('');
     const [isFailingSignalsOpen, setIsFailingSignalsOpen] = useState(false);
     const [isPassingSignalsOpen, setIsPassingSignalsOpen] = useState(false);
+    const [isGrafanaOpen, setIsGrafanaOpen] = useState(true);
     const [isAboutOpen, setIsAboutOpen] = useState(false);
     const [isTitlePrimaryBelowControls, setIsTitlePrimaryBelowControls] = useState(false);
     const failingSignalsAutoOpenRef = useRef(true);
@@ -759,6 +760,12 @@ export default function App() {
     }, [hasFailingSignals, selectedId]);
 
     useEffect(() => {
+    useEffect(() => {
+        if (!isGrafanaOpen) {
+            grafanaFrameReadyRef.current = false;
+        }
+    }, [isGrafanaOpen]);
+
         if (!isSearchActive) {
             return undefined;
         }
@@ -989,3 +996,5 @@ export default function App() {
         </div>
     );
 }
+                isGrafanaOpen={isGrafanaOpen}
+                onToggleGrafana={() => setIsGrafanaOpen((prev) => !prev)}
