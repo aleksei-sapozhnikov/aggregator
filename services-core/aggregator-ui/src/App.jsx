@@ -71,6 +71,7 @@ export default function App() {
     const [isAboutOpen, setIsAboutOpen] = useState(false);
     const [isTitlePrimaryBelowControls, setIsTitlePrimaryBelowControls] = useState(false);
     const failingSignalsAutoOpenRef = useRef(true);
+    const grafanaPanelInitializedRef = useRef(false);
     const [grafanaHeight, setGrafanaHeight] = useState(0);
     const prevSearchTokensRef = useRef(0);
     const clearSearchRequestedRef = useRef(false);
@@ -750,6 +751,24 @@ export default function App() {
     }, [selectedId]);
 
     useEffect(() => {
+        if (!selectedId) {
+            return;
+        }
+        if (!grafanaPanelInitializedRef.current) {
+            setIsGrafanaOpen(!isMobileLayout);
+            grafanaPanelInitializedRef.current = true;
+            return;
+        }
+        setIsGrafanaOpen(true);
+    }, [isMobileLayout, selectedId]);
+
+    useEffect(() => {
+        if (!isGrafanaOpen) {
+            grafanaFrameReadyRef.current = false;
+        }
+    }, [isGrafanaOpen]);
+
+    useEffect(() => {
         if (!failingSignalsAutoOpenRef.current) {
             return;
         }
@@ -760,12 +779,6 @@ export default function App() {
     }, [hasFailingSignals, selectedId]);
 
     useEffect(() => {
-    useEffect(() => {
-        if (!isGrafanaOpen) {
-            grafanaFrameReadyRef.current = false;
-        }
-    }, [isGrafanaOpen]);
-
         if (!isSearchActive) {
             return undefined;
         }
@@ -984,6 +997,8 @@ export default function App() {
                 hasOwnHealthSignals={hasOwnHealthSignals}
                 isPassingSignalsOpen={isPassingSignalsOpen}
                 onTogglePassingSignals={() => setIsPassingSignalsOpen((prev) => !prev)}
+                isGrafanaOpen={isGrafanaOpen}
+                onToggleGrafana={() => setIsGrafanaOpen((prev) => !prev)}
                 grafanaHeight={grafanaHeight}
                 grafanaIframeRef={grafanaIframeRef}
                 onGrafanaLoad={handleGrafanaLoad}
@@ -996,5 +1011,3 @@ export default function App() {
         </div>
     );
 }
-                isGrafanaOpen={isGrafanaOpen}
-                onToggleGrafana={() => setIsGrafanaOpen((prev) => !prev)}
