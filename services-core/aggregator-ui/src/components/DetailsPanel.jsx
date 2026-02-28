@@ -44,6 +44,8 @@ export default function DetailsPanel({
     hasOwnHealthSignals,
     isPassingSignalsOpen,
     onTogglePassingSignals,
+    isGrafanaOpen,
+    onToggleGrafana,
     grafanaHeight,
     grafanaIframeRef,
     onGrafanaLoad,
@@ -254,19 +256,43 @@ export default function DetailsPanel({
                             </ul>
                         )}
                     </section>
-                    <div className="grafana-grid">
-                        <section
-                            className="grafana-panel"
-                            style={grafanaHeight ? {height: `${grafanaHeight}px`} : undefined}
+                    <section
+                        className={`details-panel details-panel-grafana ${isGrafanaOpen ? 'is-open' : ''}`}
+                    >
+                        <button
+                            type="button"
+                            className={`details-panel-toggle ${isGrafanaOpen ? 'is-open' : ''}`}
+                            onClick={onToggleGrafana}
+                            aria-expanded={isGrafanaOpen}
                         >
-                            <iframe
-                                title="State Timeline"
-                                ref={grafanaIframeRef}
-                                onLoad={onGrafanaLoad}
-                                src={grafanaFrameUrl}
-                            />
-                        </section>
-                    </div>
+                            <span
+                                className={`details-panel-chevron ${isGrafanaOpen ? 'is-open' : ''}`}
+                                aria-hidden="true"
+                            >
+                                ›
+                            </span>
+                            <span className={`details-panel-title ${isGrafanaOpen ? 'is-open' : ''}`}>
+                                Timeline
+                            </span>
+                        </button>
+                        {isGrafanaOpen && (
+                            <div className="details-panel-body details-panel-body-grafana">
+                                <div className="grafana-grid">
+                                    <section
+                                        className="grafana-panel"
+                                        style={grafanaHeight ? {height: `${grafanaHeight}px`} : undefined}
+                                    >
+                                        <iframe
+                                            title="State Timeline"
+                                            ref={grafanaIframeRef}
+                                            onLoad={onGrafanaLoad}
+                                            src={grafanaFrameUrl}
+                                        />
+                                    </section>
+                                </div>
+                            </div>
+                        )}
+                    </section>
                 </>
             )}
         </main>
