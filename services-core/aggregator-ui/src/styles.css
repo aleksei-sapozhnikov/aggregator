@@ -777,6 +777,10 @@ body {
   background: color-mix(in srgb, var(--outer-background) 92%, var(--status-up));
 }
 
+.details-panel-grafana .details-panel-toggle {
+  background: var(--outer-background);
+}
+
 .details-panel-chevron {
   font-size: 16px;
   line-height: 1;
@@ -825,6 +829,16 @@ body {
   gap: 6px;
   background: var(--panel);
   border-radius: 0 0 10px 10px;
+}
+
+.details-panel-body {
+  border: 1px solid var(--border);
+  background: var(--panel);
+  border-radius: 0 0 10px 10px;
+}
+
+.details-panel-body-grafana {
+  padding: 8px;
 }
 
 .signal {
