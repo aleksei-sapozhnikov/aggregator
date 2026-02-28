@@ -160,7 +160,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(\n  (\n    (catalog_item_check_state{item_id=~\"${item_id:regex}\"} and on() (vector(${graphs}) == 0))\n    or (\n      catalog_item_check_state{item_id=~\"${item_id:regex}\"}\n      and on(item_id,check_id,check_source) (min_over_time(catalog_item_check_state{item_id=~\"${item_id:regex}\"}[$__range] @ end()) < 1)\n      and on() (vector(${graphs}) == 1)\n    )\n  )\n  and on() ((vector(${hchecks}) == 1) or (vector(${hchecks}) == 2))\n)",
+          "expr": "(\n  (\n    (catalog_item_check_state{item_id=~\"${item_id:regex}\"} and on() (vector(${graphs}) == 0))\n    or (\n      catalog_item_check_state{item_id=~\"${item_id:regex}\"}\n      and on(item_id,check_id,check_source) (min_over_time(catalog_item_check_state{item_id=~\"${item_id:regex}\"}[$__range] @ end()) < 1)\n      and on() (vector(${graphs}) == 1)\n    )\n  )\n  and on() ((vector(${signals}) == 1) or (vector(${signals}) == 2))\n)",
           "legendFormat": "\u200b[cur hc] {{check_name}} ({{item_name}})",
           "range": true,
           "refId": "C"
@@ -182,7 +182,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(\n  (\n    (catalog_item_check_state{item_id=~\"${deps:regex}\"} and on() (vector(${graphs}) == 0))\n    or (\n      catalog_item_check_state{item_id=~\"${deps:regex}\"}\n      and on(item_id,check_id,check_source) (min_over_time(catalog_item_check_state{item_id=~\"${deps:regex}\"}[$__range] @ end()) < 1)\n      and on() (vector(${graphs}) == 1)\n    )\n  )\n  and on() ((vector(${hchecks}) == 2) or (vector(${hchecks}) == 3))\n)",
+          "expr": "(\n  (\n    (catalog_item_check_state{item_id=~\"${deps:regex}\"} and on() (vector(${graphs}) == 0))\n    or (\n      catalog_item_check_state{item_id=~\"${deps:regex}\"}\n      and on(item_id,check_id,check_source) (min_over_time(catalog_item_check_state{item_id=~\"${deps:regex}\"}[$__range] @ end()) < 1)\n      and on() (vector(${graphs}) == 1)\n    )\n  )\n  and on() ((vector(${signals}) == 2) or (vector(${signals}) == 3))\n)",
           "legendFormat": "\u200d[dep hc] {{check_name}}",
           "range": true,
           "refId": "D"
@@ -291,9 +291,9 @@
         },
         "definition": "",
         "includeAll": false,
-        "label": "hchecks",
+        "label": "\u25B6 signals",
         "multi": false,
-        "name": "hchecks",
+        "name": "signals",
         "current": {
           "selected": true,
           "text": "[cur]rent",
