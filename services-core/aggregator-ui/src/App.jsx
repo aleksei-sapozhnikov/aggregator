@@ -13,6 +13,7 @@ import {
     filterCatalogTree,
     findNodeById,
     findNodePath,
+    findNodeByPath,
     findNodeUidById,
     normalizeSearchText,
     rankSearchResults,
@@ -50,6 +51,7 @@ export default function App() {
     const [catalog, setCatalog] = useState({items: [], dependencies: []});
     const [selectedId, setSelectedId] = useState('');
     const [error, setError] = useState('');
+    const [selectedPath, setSelectedPath] = useState([]);
     const [theme, setTheme] = useState(getInitialTheme);
     const initialFrameThemeRef = useRef(theme);
     const [expandedIds, setExpandedIds] = useState(() => new Set());
@@ -396,7 +398,19 @@ export default function App() {
         });
     }, []);
 
-    const selectedItem = catalog.items.find((item) => item.id === selectedId);
+    const selectedNode = useMemo(() => {
+        if (!selectedId) {
+            return null;
+        }
+        if (selectedPath.length > 0) {
+            const byPath = findNodeByPath(tree, selectedPath);
+            if (byPath?.item?.id === selectedId) {
+                return byPath;
+            }
+        }
+        return findNodeById(tree, selectedId);
+    }, [selectedId, selectedPath, tree]);
+    const selectedItem = selectedNode?.item || itemMap.get(selectedId);
     const selectedStatus = selectedItem ? itemStatuses[selectedItem.id] || 'unknown' : 'unknown';
     const selectedTitleText = selectedItem ? selectedItem.name || selectedItem.id : 'Select an item';
     const selectedTitleMatch = selectedTitleText.match(/^(\S+)([\s\S]*)$/);
@@ -585,6 +599,7 @@ export default function App() {
         setPendingScrollId(node.uid);
         setIsMobileSidebarOpen(false);
         updateUrlForNode(node);
+        setSelectedPath(node.path || [node.item.id]);
     }, [updateUrlForNode]);
 
     /**
@@ -597,9 +612,11 @@ export default function App() {
             setPendingScrollId(selectedNode.uid);
             updateUrlForNode(selectedNode);
         } else {
+            setSelectedPath(selectedNode.path || [itemId]);
             const selectedUid = findNodeUidById(tree, itemId);
             setPendingScrollId(selectedUid || '');
             updateUrlForItemId(itemId);
+            setSelectedPath([]);
         }
         setIsMobileSidebarOpen(false);
     }, [tree, updateUrlForItemId, updateUrlForNode]);
@@ -611,8 +628,10 @@ export default function App() {
         setSelectedId(itemId);
         const selectedUid = findNodeUidById(tree, itemId);
         setPendingScrollId(selectedUid || '');
+        const resolvedPath = findNodePath(tree, itemId) || [];
         setIsMobileSidebarOpen(false);
-        expandPathToItem(itemId);
+        setSelectedPath(resolvedPath);
+        expandPathToItem(itemId, {path: resolvedPath});
         updateUrlForItemId(itemId);
     }, [expandPathToItem, tree, updateUrlForItemId]);
 
@@ -718,6 +737,7 @@ export default function App() {
         applySelectionFromLocation({normalize: true});
 
         const handlePopState = () => {
+                    setSelectedPath(fallbackNode?.path || (fallbackId ? [fallbackId] : []));
             lastHistoryUrlRef.current = window.location.href;
             if (window.history.state?.itemId) {
                 const stateItemId = window.history.state.itemId;
@@ -728,6 +748,7 @@ export default function App() {
             } else {
                 lastHistoryKeyRef.current = '';
             }
+            setSelectedPath(node.path || [node.item.id]);
             applySelectionFromLocation({normalize: false, preserveExpansion: true});
         };
         window.addEventListener('popstate', handlePopState);
@@ -880,15 +901,20 @@ export default function App() {
         }
         if (prevTokens > 0 && selectedId && clearSearchRequestedRef.current) {
             clearSearchRequestedRef.current = false;
-            expandPathToItem(selectedId);
-            const selectedUid = findNodeUidById(tree, selectedId);
-            setPendingScrollId(selectedUid || '');
+            if (selectedNode?.path?.length) {
+                ensurePathExpanded(selectedNode.path);
+                setPendingScrollId(selectedNode.uid || '');
+            } else {
+                expandPathToItem(selectedId);
+                const selectedUid = findNodeUidById(tree, selectedId);
+                setPendingScrollId(selectedUid || '');
+            }
             return;
         }
         if (clearSearchRequestedRef.current) {
             clearSearchRequestedRef.current = false;
         }
-    }, [expandPathToItem, isSearchActive, searchTokens.length, selectedId]);
+    }, [ensurePathExpanded, expandPathToItem, isSearchActive, searchTokens.length, selectedId, selectedNode, tree]);
 
     useEffect(() => {
         if (!pendingScrollId || searchTokens.length > 0) {
