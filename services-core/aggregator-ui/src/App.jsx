@@ -5,6 +5,7 @@ import AboutModal from './components/AboutModal';
 import {
     buildCatalogTree,
     buildItemPathname,
+    buildItemRouteHref,
     buildNameWordVocabulary,
     buildSearchAutocompleteOptions,
     buildServicePath,
@@ -12,8 +13,8 @@ import {
     collectExpandableIds,
     filterCatalogTree,
     findNodeById,
-    findNodePath,
     findNodeByPath,
+    findNodePath,
     findNodeUidById,
     normalizeSearchText,
     rankSearchResults,
@@ -50,8 +51,8 @@ export default function App() {
     const sidebarTitle = resolveSidebarTitle();
     const [catalog, setCatalog] = useState({items: [], dependencies: []});
     const [selectedId, setSelectedId] = useState('');
-    const [error, setError] = useState('');
     const [selectedPath, setSelectedPath] = useState([]);
+    const [error, setError] = useState('');
     const [theme, setTheme] = useState(getInitialTheme);
     const initialFrameThemeRef = useRef(theme);
     const [expandedIds, setExpandedIds] = useState(() => new Set());
@@ -520,7 +521,6 @@ export default function App() {
         if (!selectedNode) {
             return [];
         }
-        const seen = new Set();
         const result = [];
         const visit = (children) => {
             children.forEach((child) => {
@@ -533,6 +533,7 @@ export default function App() {
     }, [selectedNode]);
     const failingDependencies = useMemo(() => {
         const dependencySources = new Set(catalog.dependencies.map((dep) => dep.sourceId));
+        const seen = new Set();
         const result = [];
         failingDependencyNodes.forEach((dependencyNode) => {
             const dependencyId = dependencyNode.item.id;
@@ -559,8 +560,8 @@ export default function App() {
             result.push({
                 id: dependencyId,
                 name: item?.name || dependencyId,
-                status: dependencyStatus,
                 path: dependencyNode.path || [dependencyId],
+                status: dependencyStatus,
                 failingSignals,
                 failingCountContribution: 1,
             });
@@ -598,10 +599,10 @@ export default function App() {
      */
     const handleSelectItem = useCallback((node) => {
         setSelectedId(node.item.id);
+        setSelectedPath(node.path || [node.item.id]);
         setPendingScrollId(node.uid);
         setIsMobileSidebarOpen(false);
         updateUrlForNode(node);
-        setSelectedPath(node.path || [node.item.id]);
     }, [updateUrlForNode]);
 
     /**
@@ -611,14 +612,14 @@ export default function App() {
         setSelectedId(itemId);
         const selectedNode = findNodeById(tree, itemId);
         if (selectedNode) {
+            setSelectedPath(selectedNode.path || [itemId]);
             setPendingScrollId(selectedNode.uid);
             updateUrlForNode(selectedNode);
         } else {
-            setSelectedPath(selectedNode.path || [itemId]);
+            setSelectedPath([]);
             const selectedUid = findNodeUidById(tree, itemId);
             setPendingScrollId(selectedUid || '');
             updateUrlForItemId(itemId);
-            setSelectedPath([]);
         }
         setIsMobileSidebarOpen(false);
     }, [tree, updateUrlForItemId, updateUrlForNode]);
@@ -627,21 +628,47 @@ export default function App() {
      * Selects an item by id and writes a pathless route (used by dependent item links).
      */
     const handleSelectItemByIdNoPath = useCallback((itemId) => {
+        const resolvedPath = findNodePath(tree, itemId) || [];
         setSelectedId(itemId);
+        setSelectedPath(resolvedPath);
         const selectedUid = findNodeUidById(tree, itemId);
         setPendingScrollId(selectedUid || '');
-        const resolvedPath = findNodePath(tree, itemId) || [];
         setIsMobileSidebarOpen(false);
-        setSelectedPath(resolvedPath);
         expandPathToItem(itemId, {path: resolvedPath});
         updateUrlForItemId(itemId);
     }, [expandPathToItem, tree, updateUrlForItemId]);
 
     /**
+     * Selects an item by an exact tree path to preserve duplicate-id branch context.
+     */
+    const handleSelectItemByPath = useCallback((pathIds) => {
+        const normalizedPath = Array.isArray(pathIds) ? pathIds : [];
+        const itemId = normalizedPath[normalizedPath.length - 1] || '';
+        if (!itemId) {
+            return;
+        }
+        setSelectedId(itemId);
+        setSelectedPath(normalizedPath);
+        const selectedNode = findNodeByPath(tree, normalizedPath);
+        if (selectedNode) {
+            setPendingScrollId(selectedNode.uid);
+            setIsMobileSidebarOpen(false);
+            ensurePathExpanded(selectedNode.path);
+            updateUrlForNode(selectedNode);
+            return;
+        }
+        const selectedUid = findNodeUidById(tree, itemId);
+        setPendingScrollId(selectedUid || '');
+        setIsMobileSidebarOpen(false);
+        ensurePathExpanded(normalizedPath);
+        normalizeUrlForRoute(itemId, normalizedPath);
+    }, [ensurePathExpanded, normalizeUrlForRoute, tree, updateUrlForNode]);
+
+    /**
      * Builds an item link under the current base path.
      */
-    const buildItemLink = useCallback((itemId) => {
-        return buildItemPathname(basePath, itemId);
+    const buildItemLink = useCallback((itemId, pathIds = []) => {
+        return buildItemRouteHref(basePath, itemId, pathIds);
     }, [basePath]);
 
     const grafanaFrameUrl = useMemo(
@@ -710,6 +737,7 @@ export default function App() {
                     const fallbackNode = tree[0] || null;
                     const fallbackId = fallbackNode?.item?.id || '';
                     setSelectedId(fallbackId);
+                    setSelectedPath(fallbackNode?.path || (fallbackId ? [fallbackId] : []));
                     setPendingScrollId(fallbackNode?.uid || '');
                     setIsMobileSidebarOpen(false);
                     if (normalize && fallbackId) {
@@ -720,6 +748,7 @@ export default function App() {
             }
             const {node} = resolved;
             setSelectedId(node.item.id);
+            setSelectedPath(node.path || [node.item.id]);
             setPendingScrollId(node.uid);
             if (!preserveExpansion) {
                 setIsMobileSidebarOpen(false);
@@ -739,7 +768,6 @@ export default function App() {
         applySelectionFromLocation({normalize: true});
 
         const handlePopState = () => {
-                    setSelectedPath(fallbackNode?.path || (fallbackId ? [fallbackId] : []));
             lastHistoryUrlRef.current = window.location.href;
             if (window.history.state?.itemId) {
                 const stateItemId = window.history.state.itemId;
@@ -750,7 +778,6 @@ export default function App() {
             } else {
                 lastHistoryKeyRef.current = '';
             }
-            setSelectedPath(node.path || [node.item.id]);
             applySelectionFromLocation({normalize: false, preserveExpansion: true});
         };
         window.addEventListener('popstate', handlePopState);
@@ -1019,7 +1046,7 @@ export default function App() {
                 isFailingSignalsOpen={isFailingSignalsOpen}
                 onToggleFailingSignals={() => setIsFailingSignalsOpen((prev) => !prev)}
                 buildItemLink={buildItemLink}
-                onSelectItemByIdNoPath={handleSelectItemByIdNoPath}
+                onSelectItemByPath={handleSelectItemByPath}
                 passingSignalsCount={passingSignalsCount}
                 selectedPassingSignals={selectedPassingSignals}
                 hasOwnHealthSignals={hasOwnHealthSignals}
