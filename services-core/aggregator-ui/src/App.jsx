@@ -516,29 +516,30 @@ export default function App() {
         [selectedSignals],
     );
     const hasOwnHealthSignals = selectedSignals.length > 0;
-    const failingDependencyIds = useMemo(() => {
-        if (!selectedItem) {
-            return [];
-        }
-        const node = findNodeById(tree, selectedItem.id);
-        if (!node) {
+    const failingDependencyNodes = useMemo(() => {
+        if (!selectedNode) {
             return [];
         }
         const seen = new Set();
         const result = [];
-        collectDescendantIds(node).forEach((dependencyId) => {
+        const visit = (children) => {
+            children.forEach((child) => {
+                result.push(child);
+                visit(child.children);
+            });
+        };
+        visit(selectedNode.children);
+        return result;
+    }, [selectedNode]);
+    const failingDependencies = useMemo(() => {
+        const dependencySources = new Set(catalog.dependencies.map((dep) => dep.sourceId));
+        const result = [];
+        failingDependencyNodes.forEach((dependencyNode) => {
+            const dependencyId = dependencyNode.item.id;
             if (seen.has(dependencyId)) {
                 return;
             }
             seen.add(dependencyId);
-            result.push(dependencyId);
-        });
-        return result;
-    }, [selectedItem, tree]);
-    const failingDependencies = useMemo(() => {
-        const dependencySources = new Set(catalog.dependencies.map((dep) => dep.sourceId));
-        const result = [];
-        failingDependencyIds.forEach((dependencyId) => {
             const dependencyStatus = itemStatuses[dependencyId] || 'unknown';
             const hasOwnDependencies = dependencySources.has(dependencyId);
             const failingSignals = (itemSignals[dependencyId] || [])
@@ -559,12 +560,13 @@ export default function App() {
                 id: dependencyId,
                 name: item?.name || dependencyId,
                 status: dependencyStatus,
+                path: dependencyNode.path || [dependencyId],
                 failingSignals,
                 failingCountContribution: 1,
             });
         });
         return result.sort((a, b) => a.name.localeCompare(b.name));
-    }, [catalog.dependencies, failingDependencyIds, itemMap, itemSignals, itemStatuses]);
+    }, [catalog.dependencies, failingDependencyNodes, itemMap, itemSignals, itemStatuses]);
     const failingSignalsCount = useMemo(
         () =>
             selectedFailingSignals.length +
