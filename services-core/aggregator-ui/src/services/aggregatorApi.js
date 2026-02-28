@@ -225,8 +225,7 @@ export const fetchPrometheusStatuses = async (prometheusBaseUrl) => {
     ]);
 
     const nextStatuses = {};
-    const nextCheckDown = {};
-    const nextItemChecks = {};
+    const nextItemSignals = {};
 
     if (itemResponse.ok) {
         const itemContentType = itemResponse.headers.get('content-type') || '';
@@ -259,12 +258,9 @@ export const fetchPrometheusStatuses = async (prometheusBaseUrl) => {
                 const value = Number.parseFloat(entry?.value?.[1]);
                 const status = parsePrometheusHealthStatus(value);
                 if (checkId && checkName) {
-                    const list = nextItemChecks[itemId] || [];
+                    const list = nextItemSignals[itemId] || [];
                     list.push({id: checkId, name: checkName, status});
-                    nextItemChecks[itemId] = list;
-                }
-                if (status === 'down') {
-                    nextCheckDown[itemId] = true;
+                    nextItemSignals[itemId] = list;
                 }
             });
         }
@@ -272,7 +268,6 @@ export const fetchPrometheusStatuses = async (prometheusBaseUrl) => {
 
     return {
         itemStatuses: nextStatuses,
-        itemCheckDown: nextCheckDown,
-        itemChecks: nextItemChecks,
+        itemSignals: nextItemSignals,
     };
 };

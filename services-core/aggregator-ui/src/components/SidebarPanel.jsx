@@ -42,7 +42,7 @@ const CatalogNode = ({
                     }}
                 >
                     <span
-                        className={`affected-chevron ${isExpanded ? 'is-open' : ''}`}
+                        className={`expand-chevron ${isExpanded ? 'is-open' : ''}`}
                         aria-hidden="true"
                     >
                         ›
