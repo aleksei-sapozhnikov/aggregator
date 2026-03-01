@@ -401,14 +401,18 @@ export default function App() {
     const handleCollapseAll = useCallback(() => {
         setExpandedIds(new Set());
         if (selectedId) {
-            const selectedUid = selectedPath.length > 0
-                ? findNodeByPath(tree, selectedPath)?.uid || ''
-                : findNodeUidById(tree, selectedId) || '';
-            if (selectedUid) {
+            const selectedNode = selectedPath.length > 0
+                ? findNodeByPath(tree, selectedPath)
+                : findNodeById(tree, selectedId);
+            const resolvedPath = selectedNode?.path || selectedPath;
+            const isSelectedRootItem = resolvedPath.length === 1;
+            const selectedUid = selectedNode?.uid || findNodeUidById(tree, selectedId) || '';
+            if (isSelectedRootItem && selectedUid) {
                 setPendingScrollId(selectedUid);
                 return;
             }
         }
+        setPendingScrollId('');
         window.requestAnimationFrame(() => {
             catalogTreeRef.current?.scrollTo({
                 top: 0,
