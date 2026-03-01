@@ -11,7 +11,7 @@ import yaml from 'js-yaml';
 export const DASHBOARDS = {
     timeline: {
         uid: 'item-health-state',
-        slug: 'item_health_state',
+        slug: 'item-health-state',
         panelId: 3001,
     },
 };
