@@ -1,18 +1,21 @@
 /**
- * @file Vite configuration for the main app and Grafana wrapper multi-page entries.
+ * @file Vite configuration for the main app and Grafana wrapper multipage entries.
  */
 
 import {defineConfig} from 'vite';
 import react from '@vitejs/plugin-react';
-import {resolve} from 'node:path';
+import {dirname, resolve} from 'node:path';
+import {fileURLToPath} from 'node:url';
+
+const currentDir = dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   plugins: [react()],
   build: {
     rollupOptions: {
       input: {
-        main: resolve(__dirname, 'index.html'),
-        grafanaFrame: resolve(__dirname, 'grafana-frame/index.html'),
+        main: resolve(currentDir, 'index.html'),
+        grafanaFrame: resolve(currentDir, 'grafana-frame/index.html'),
       },
     },
   },
