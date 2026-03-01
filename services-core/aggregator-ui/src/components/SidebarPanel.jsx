@@ -11,7 +11,7 @@ import {buildStatusText} from '../shared/statusText';
  */
 const CatalogNode = ({
     node,
-    selectedId,
+                         selectedNodeUid,
     onSelect,
     basePath,
     expandedIds,
@@ -27,7 +27,7 @@ const CatalogNode = ({
 
     const row = (
         <div
-            className={`node-row ${selectedId === node.item.id ? 'is-selected' : ''}`}
+            className={`node-row ${selectedNodeUid === node.uid ? 'is-selected' : ''}`}
             data-node-id={node.uid}
         >
             {hasChildren ? (
@@ -97,7 +97,7 @@ const CatalogNode = ({
                         <CatalogNode
                             key={child.item.id}
                             node={child}
-                            selectedId={selectedId}
+                            selectedNodeUid={selectedNodeUid}
                             onSelect={onSelect}
                             basePath={basePath}
                             expandedIds={expandedIds}
@@ -140,6 +140,7 @@ export default function SidebarPanel({
     onExpandAll,
     searchResults,
     selectedId,
+                                         selectedNodeUid,
     basePath,
     onSelectItemById,
     onExpandPathToItem,
@@ -331,7 +332,7 @@ export default function SidebarPanel({
                             <CatalogNode
                                 key={node.item.id}
                                 node={node}
-                                selectedId={selectedId}
+                                selectedNodeUid={selectedNodeUid}
                                 onSelect={onSelectNode}
                                 basePath={basePath}
                                 expandedIds={expandedIds}

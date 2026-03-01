@@ -1020,6 +1020,7 @@ export default function App() {
                 onExpandAll={handleExpandAll}
                 searchResults={searchResults}
                 selectedId={selectedId}
+                selectedNodeUid={selectedNode?.uid || ''}
                 basePath={basePath}
                 onSelectItemById={handleSelectItemById}
                 onExpandPathToItem={expandPathToItem}
