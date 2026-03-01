@@ -1,11 +1,12 @@
-package com.github.vermucht.aggregator.healthcheck.polling;
+package com.github.vermucht.aggregator.signalsource.polling.http;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.vermucht.aggregator.catalog.model.ItemId;
-import com.github.vermucht.aggregator.healthcheck.model.HealthSignal;
-import com.github.vermucht.aggregator.healthcheck.model.HealthStatus;
+import com.github.vermucht.aggregator.signal.model.HealthSignal;
+import com.github.vermucht.aggregator.signal.model.HealthStatus;
+import com.github.vermucht.aggregator.signalsource.polling.PollingSignalSource;
 import jakarta.annotation.Nonnull;
 import java.net.URI;
 import java.time.Duration;
@@ -17,14 +18,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-/** Polling health check that executes an HTTP request and evaluates the response. */
-public final class HttpHealthCheck implements PollingHealthCheck {
+/** Polling signal source that executes an HTTP request and evaluates the response. */
+public final class HttpPollingSignalSource implements PollingSignalSource {
   private static final String SOURCE = "http";
 
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
   private final ItemId catalogItemId;
-  private final String checkId;
+  private final String signalId;
   private final String name;
   private final URI uri;
   private final HttpMethod method;
@@ -32,28 +33,28 @@ public final class HttpHealthCheck implements PollingHealthCheck {
   private final RestTemplate restTemplate;
 
   /**
-   * Creates an HTTP-based polling health check.
+   * Creates an HTTP-based polling signal source.
    *
-   * @param catalogItemId catalog item associated with this check
-   * @param checkId identifier for the check
-   * @param name human-readable check name
+   * @param catalogItemId catalog item associated with this signal source
+   * @param signalId identifier for the signal stream
+   * @param name human-readable signal name
    * @param uri target URI to call
    * @param method HTTP method to use
-   * @param interval polling interval for the check
+   * @param interval polling interval for the source
    * @param restTemplate HTTP client to execute the request
    */
-  public HttpHealthCheck(
+  public HttpPollingSignalSource(
       @Nonnull ItemId catalogItemId,
-      @Nonnull String checkId,
+      @Nonnull String signalId,
       @Nonnull String name,
       @Nonnull URI uri,
       @Nonnull HttpMethod method,
       @Nonnull Duration interval,
       @Nonnull RestTemplate restTemplate) {
     this.catalogItemId = Objects.requireNonNull(catalogItemId, "catalogItemId");
-    this.checkId = Objects.requireNonNull(checkId, "checkId");
-    if (checkId.isBlank()) {
-      throw new IllegalArgumentException("checkId must not be blank");
+    this.signalId = Objects.requireNonNull(signalId, "signalId");
+    if (signalId.isBlank()) {
+      throw new IllegalArgumentException("signalId must not be blank");
     }
     this.name = Objects.requireNonNull(name, "name");
     if (name.isBlank()) {
@@ -67,8 +68,8 @@ public final class HttpHealthCheck implements PollingHealthCheck {
 
   @Nonnull
   @Override
-  public String getCheckId() {
-    return checkId;
+  public String getSignalId() {
+    return signalId;
   }
 
   @Nonnull
@@ -108,7 +109,7 @@ public final class HttpHealthCheck implements PollingHealthCheck {
         String message = "Empty response body";
         return new HealthSignal(
             catalogItemId,
-            checkId,
+            signalId,
             HealthStatus.DOWN,
             observedAt,
             SOURCE,
@@ -125,7 +126,7 @@ public final class HttpHealthCheck implements PollingHealthCheck {
         String message = "Invalid JSON response";
         return new HealthSignal(
             catalogItemId,
-            checkId,
+            signalId,
             HealthStatus.DOWN,
             observedAt,
             SOURCE,
@@ -137,7 +138,7 @@ public final class HttpHealthCheck implements PollingHealthCheck {
         String message = "Missing 'status' field in response";
         return new HealthSignal(
             catalogItemId,
-            checkId,
+            signalId,
             HealthStatus.DOWN,
             observedAt,
             SOURCE,
@@ -149,7 +150,7 @@ public final class HttpHealthCheck implements PollingHealthCheck {
       if ("UP".equals(normalized)) {
         return new HealthSignal(
             catalogItemId,
-            checkId,
+            signalId,
             HealthStatus.UP,
             observedAt,
             SOURCE,
@@ -163,7 +164,7 @@ public final class HttpHealthCheck implements PollingHealthCheck {
       if ("DOWN".equals(normalized)) {
         return new HealthSignal(
             catalogItemId,
-            checkId,
+            signalId,
             HealthStatus.DOWN,
             observedAt,
             SOURCE,
@@ -177,7 +178,7 @@ public final class HttpHealthCheck implements PollingHealthCheck {
       String message = "Unexpected status value: " + parsedStatus;
       return new HealthSignal(
           catalogItemId,
-          checkId,
+          signalId,
           HealthStatus.DOWN,
           observedAt,
           SOURCE,
@@ -187,10 +188,10 @@ public final class HttpHealthCheck implements PollingHealthCheck {
               "statusCode", String.valueOf(statusCode),
               "url", uri.toString()));
     } catch (RestClientException ex) {
-      String message = ex.getMessage() == null ? "HTTP check failed" : ex.getMessage();
+      String message = ex.getMessage() == null ? "HTTP signal polling failed" : ex.getMessage();
       return new HealthSignal(
           catalogItemId,
-          checkId,
+          signalId,
           HealthStatus.DOWN,
           observedAt,
           SOURCE,
