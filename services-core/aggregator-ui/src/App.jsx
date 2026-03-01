@@ -5,6 +5,7 @@ import AboutModal from './components/AboutModal';
 import {
     buildCatalogTree,
     buildItemPathname,
+    buildItemRouteHref,
     buildNameWordVocabulary,
     buildSearchAutocompleteOptions,
     buildServicePath,
@@ -12,6 +13,7 @@ import {
     collectExpandableIds,
     filterCatalogTree,
     findNodeById,
+    findNodeByPath,
     findNodePath,
     findNodeUidById,
     normalizeSearchText,
@@ -49,6 +51,7 @@ export default function App() {
     const sidebarTitle = resolveSidebarTitle();
     const [catalog, setCatalog] = useState({items: [], dependencies: []});
     const [selectedId, setSelectedId] = useState('');
+    const [selectedPath, setSelectedPath] = useState([]);
     const [error, setError] = useState('');
     const [theme, setTheme] = useState(getInitialTheme);
     const initialFrameThemeRef = useRef(theme);
@@ -381,22 +384,52 @@ export default function App() {
      */
     const handleExpandAll = useCallback(() => {
         setExpandedIds(new Set(collectExpandableIds(tree)));
-    }, [tree]);
+        if (!selectedId) {
+            return;
+        }
+        const selectedUid = selectedPath.length > 0
+            ? findNodeByPath(tree, selectedPath)?.uid || ''
+            : findNodeUidById(tree, selectedId) || '';
+        if (selectedUid) {
+            setPendingScrollId(selectedUid);
+        }
+    }, [selectedId, selectedPath, tree]);
 
     /**
-     * Collapses the full tree and resets scroll to the top of the sidebar.
+     * Collapses the full tree and keeps the selected root item in view when possible.
      */
     const handleCollapseAll = useCallback(() => {
         setExpandedIds(new Set());
+        if (selectedId) {
+            const selectedUid = selectedPath.length > 0
+                ? findNodeByPath(tree, selectedPath)?.uid || ''
+                : findNodeUidById(tree, selectedId) || '';
+            if (selectedUid) {
+                setPendingScrollId(selectedUid);
+                return;
+            }
+        }
         window.requestAnimationFrame(() => {
             catalogTreeRef.current?.scrollTo({
                 top: 0,
                 behavior: 'auto',
             });
         });
-    }, []);
+    }, [selectedId, selectedPath, tree]);
 
-    const selectedItem = catalog.items.find((item) => item.id === selectedId);
+    const selectedNode = useMemo(() => {
+        if (!selectedId) {
+            return null;
+        }
+        if (selectedPath.length > 0) {
+            const byPath = findNodeByPath(tree, selectedPath);
+            if (byPath?.item?.id === selectedId) {
+                return byPath;
+            }
+        }
+        return findNodeById(tree, selectedId);
+    }, [selectedId, selectedPath, tree]);
+    const selectedItem = selectedNode?.item || itemMap.get(selectedId);
     const selectedStatus = selectedItem ? itemStatuses[selectedItem.id] || 'unknown' : 'unknown';
     const selectedTitleText = selectedItem ? selectedItem.name || selectedItem.id : 'Select an item';
     const selectedTitleMatch = selectedTitleText.match(/^(\S+)([\s\S]*)$/);
@@ -502,29 +535,30 @@ export default function App() {
         [selectedSignals],
     );
     const hasOwnHealthSignals = selectedSignals.length > 0;
-    const failingDependencyIds = useMemo(() => {
-        if (!selectedItem) {
+    const failingDependencyNodes = useMemo(() => {
+        if (!selectedNode) {
             return [];
         }
-        const node = findNodeById(tree, selectedItem.id);
-        if (!node) {
-            return [];
-        }
+        const result = [];
+        const visit = (children) => {
+            children.forEach((child) => {
+                result.push(child);
+                visit(child.children);
+            });
+        };
+        visit(selectedNode.children);
+        return result;
+    }, [selectedNode]);
+    const failingDependencies = useMemo(() => {
+        const dependencySources = new Set(catalog.dependencies.map((dep) => dep.sourceId));
         const seen = new Set();
         const result = [];
-        collectDescendantIds(node).forEach((dependencyId) => {
+        failingDependencyNodes.forEach((dependencyNode) => {
+            const dependencyId = dependencyNode.item.id;
             if (seen.has(dependencyId)) {
                 return;
             }
             seen.add(dependencyId);
-            result.push(dependencyId);
-        });
-        return result;
-    }, [selectedItem, tree]);
-    const failingDependencies = useMemo(() => {
-        const dependencySources = new Set(catalog.dependencies.map((dep) => dep.sourceId));
-        const result = [];
-        failingDependencyIds.forEach((dependencyId) => {
             const dependencyStatus = itemStatuses[dependencyId] || 'unknown';
             const hasOwnDependencies = dependencySources.has(dependencyId);
             const failingSignals = (itemSignals[dependencyId] || [])
@@ -544,13 +578,14 @@ export default function App() {
             result.push({
                 id: dependencyId,
                 name: item?.name || dependencyId,
+                path: dependencyNode.path || [dependencyId],
                 status: dependencyStatus,
                 failingSignals,
                 failingCountContribution: 1,
             });
         });
         return result.sort((a, b) => a.name.localeCompare(b.name));
-    }, [catalog.dependencies, failingDependencyIds, itemMap, itemSignals, itemStatuses]);
+    }, [catalog.dependencies, failingDependencyNodes, itemMap, itemSignals, itemStatuses]);
     const failingSignalsCount = useMemo(
         () =>
             selectedFailingSignals.length +
@@ -582,6 +617,7 @@ export default function App() {
      */
     const handleSelectItem = useCallback((node) => {
         setSelectedId(node.item.id);
+        setSelectedPath(node.path || [node.item.id]);
         setPendingScrollId(node.uid);
         setIsMobileSidebarOpen(false);
         updateUrlForNode(node);
@@ -594,9 +630,11 @@ export default function App() {
         setSelectedId(itemId);
         const selectedNode = findNodeById(tree, itemId);
         if (selectedNode) {
+            setSelectedPath(selectedNode.path || [itemId]);
             setPendingScrollId(selectedNode.uid);
             updateUrlForNode(selectedNode);
         } else {
+            setSelectedPath([]);
             const selectedUid = findNodeUidById(tree, itemId);
             setPendingScrollId(selectedUid || '');
             updateUrlForItemId(itemId);
@@ -608,19 +646,47 @@ export default function App() {
      * Selects an item by id and writes a pathless route (used by dependent item links).
      */
     const handleSelectItemByIdNoPath = useCallback((itemId) => {
+        const resolvedPath = findNodePath(tree, itemId) || [];
         setSelectedId(itemId);
+        setSelectedPath(resolvedPath);
         const selectedUid = findNodeUidById(tree, itemId);
         setPendingScrollId(selectedUid || '');
         setIsMobileSidebarOpen(false);
-        expandPathToItem(itemId);
+        expandPathToItem(itemId, {path: resolvedPath});
         updateUrlForItemId(itemId);
     }, [expandPathToItem, tree, updateUrlForItemId]);
 
     /**
+     * Selects an item by an exact tree path to preserve duplicate-id branch context.
+     */
+    const handleSelectItemByPath = useCallback((pathIds) => {
+        const normalizedPath = Array.isArray(pathIds) ? pathIds : [];
+        const itemId = normalizedPath[normalizedPath.length - 1] || '';
+        if (!itemId) {
+            return;
+        }
+        setSelectedId(itemId);
+        setSelectedPath(normalizedPath);
+        const selectedNode = findNodeByPath(tree, normalizedPath);
+        if (selectedNode) {
+            setPendingScrollId(selectedNode.uid);
+            setIsMobileSidebarOpen(false);
+            ensurePathExpanded(selectedNode.path);
+            updateUrlForNode(selectedNode);
+            return;
+        }
+        const selectedUid = findNodeUidById(tree, itemId);
+        setPendingScrollId(selectedUid || '');
+        setIsMobileSidebarOpen(false);
+        ensurePathExpanded(normalizedPath);
+        normalizeUrlForRoute(itemId, normalizedPath);
+    }, [ensurePathExpanded, normalizeUrlForRoute, tree, updateUrlForNode]);
+
+    /**
      * Builds an item link under the current base path.
      */
-    const buildItemLink = useCallback((itemId) => {
-        return buildItemPathname(basePath, itemId);
+    const buildItemLink = useCallback((itemId, pathIds = []) => {
+        return buildItemRouteHref(basePath, itemId, pathIds);
     }, [basePath]);
 
     const grafanaFrameUrl = useMemo(
@@ -689,6 +755,7 @@ export default function App() {
                     const fallbackNode = tree[0] || null;
                     const fallbackId = fallbackNode?.item?.id || '';
                     setSelectedId(fallbackId);
+                    setSelectedPath(fallbackNode?.path || (fallbackId ? [fallbackId] : []));
                     setPendingScrollId(fallbackNode?.uid || '');
                     setIsMobileSidebarOpen(false);
                     if (normalize && fallbackId) {
@@ -699,6 +766,7 @@ export default function App() {
             }
             const {node} = resolved;
             setSelectedId(node.item.id);
+            setSelectedPath(node.path || [node.item.id]);
             setPendingScrollId(node.uid);
             if (!preserveExpansion) {
                 setIsMobileSidebarOpen(false);
@@ -880,15 +948,20 @@ export default function App() {
         }
         if (prevTokens > 0 && selectedId && clearSearchRequestedRef.current) {
             clearSearchRequestedRef.current = false;
-            expandPathToItem(selectedId);
-            const selectedUid = findNodeUidById(tree, selectedId);
-            setPendingScrollId(selectedUid || '');
+            if (selectedNode?.path?.length) {
+                ensurePathExpanded(selectedNode.path);
+                setPendingScrollId(selectedNode.uid || '');
+            } else {
+                expandPathToItem(selectedId);
+                const selectedUid = findNodeUidById(tree, selectedId);
+                setPendingScrollId(selectedUid || '');
+            }
             return;
         }
         if (clearSearchRequestedRef.current) {
             clearSearchRequestedRef.current = false;
         }
-    }, [expandPathToItem, isSearchActive, searchTokens.length, selectedId]);
+    }, [ensurePathExpanded, expandPathToItem, isSearchActive, searchTokens.length, selectedId, selectedNode, tree]);
 
     useEffect(() => {
         if (!pendingScrollId || searchTokens.length > 0) {
@@ -947,6 +1020,7 @@ export default function App() {
                 onExpandAll={handleExpandAll}
                 searchResults={searchResults}
                 selectedId={selectedId}
+                selectedNodeUid={selectedNode?.uid || ''}
                 basePath={basePath}
                 onSelectItemById={handleSelectItemById}
                 onExpandPathToItem={expandPathToItem}
@@ -991,7 +1065,7 @@ export default function App() {
                 isFailingSignalsOpen={isFailingSignalsOpen}
                 onToggleFailingSignals={() => setIsFailingSignalsOpen((prev) => !prev)}
                 buildItemLink={buildItemLink}
-                onSelectItemByIdNoPath={handleSelectItemByIdNoPath}
+                onSelectItemByPath={handleSelectItemByPath}
                 passingSignalsCount={passingSignalsCount}
                 selectedPassingSignals={selectedPassingSignals}
                 hasOwnHealthSignals={hasOwnHealthSignals}

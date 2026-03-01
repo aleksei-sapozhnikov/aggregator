@@ -3,6 +3,7 @@
  */
 
 import TopBarActions from './TopBarActions';
+import {isPlainLeftClick} from '../shared/catalogUtils';
 import {buildStatusText} from '../shared/statusText';
 
 /**
@@ -38,7 +39,7 @@ export default function DetailsPanel({
     isFailingSignalsOpen,
     onToggleFailingSignals,
     buildItemLink,
-    onSelectItemByIdNoPath,
+    onSelectItemByPath,
     passingSignalsCount,
     selectedPassingSignals,
     hasOwnHealthSignals,
@@ -173,10 +174,13 @@ export default function DetailsPanel({
                                                 <a
                                                     className="signal-link"
                                                     title={entry.name}
-                                                    href={buildItemLink(entry.id)}
+                                                    href={buildItemLink(entry.id, entry.path)}
                                                     onClick={(event) => {
+                                                        if (!isPlainLeftClick(event)) {
+                                                            return;
+                                                        }
                                                         event.preventDefault();
-                                                        onSelectItemByIdNoPath(entry.id);
+                                                        onSelectItemByPath(entry.path);
                                                     }}
                                                 >
                                                     {entry.name}
