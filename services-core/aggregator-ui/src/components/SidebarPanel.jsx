@@ -188,6 +188,8 @@ export default function SidebarPanel({
                         </svg>
                     </span>
                     <input
+                        id="item-search-input"
+                        name="item-search"
                         type="text"
                         placeholder="Search item..."
                         value={searchQuery}
