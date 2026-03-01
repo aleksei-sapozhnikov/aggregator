@@ -1,4 +1,20 @@
 import yaml from 'js-yaml';
+/** @typedef {import('../shared/types').AggregatorUiRuntimeConfig} AggregatorUiRuntimeConfig */
+/** @typedef {import('../shared/types').HealthStatus} HealthStatus */
+/** @typedef {import('../shared/types').ItemSignal} ItemSignal */
+/**
+ * @typedef {Object} PrometheusMetricLabels
+ * @property {string} [item_id]
+ * @property {string} [check_id]
+ * @property {string} [check_name]
+ * @property {string} [signal_id]
+ * @property {string} [signal_name]
+ */
+/**
+ * @typedef {Object} PrometheusVectorEntry
+ * @property {PrometheusMetricLabels} [metric]
+ * @property {[number | string, string]?} [value]
+ */
 
 /**
  * @file Data access and URL-construction helpers for aggregator-ui.
@@ -63,7 +79,8 @@ export const resolveBaseUrl = () => `${window.location.origin}${resolveBasePath(
  * Resolves Grafana base URL from runtime config, env, or local proxy fallback.
  */
 export const resolveGrafanaBaseUrl = () => {
-    const configured = window.__AGGREGATOR_UI__?.grafanaUrl;
+    const runtimeConfig = /** @type {AggregatorUiRuntimeConfig | undefined} */ (window.__AGGREGATOR_UI__);
+    const configured = runtimeConfig?.grafanaUrl;
     if (configured) {
         return configured;
     }
@@ -77,7 +94,8 @@ export const resolveGrafanaBaseUrl = () => {
  * Resolves Prometheus base URL from runtime config, env, or local proxy fallback.
  */
 export const resolvePrometheusBaseUrl = () => {
-    const configured = window.__AGGREGATOR_UI__?.prometheusUrl;
+    const runtimeConfig = /** @type {AggregatorUiRuntimeConfig | undefined} */ (window.__AGGREGATOR_UI__);
+    const configured = runtimeConfig?.prometheusUrl;
     if (configured) {
         return configured;
     }
@@ -94,6 +112,9 @@ export const resolveSidebarTitle = () => (import.meta.env.VITE_APP_TITLE ?? '').
 
 /**
  * Maps numeric Prometheus health value to UI status.
+ *
+ * @param {number} value
+ * @returns {HealthStatus}
  */
 export const parsePrometheusHealthStatus = (value) => {
     let status = 'unknown';
@@ -109,6 +130,10 @@ export const parsePrometheusHealthStatus = (value) => {
 
 /**
  * Sort comparator helper for statuses (down -> unknown -> up).
+ *
+ * @param {HealthStatus} left
+ * @param {HealthStatus} right
+ * @returns {number}
  */
 export const compareHealthStatus = (left, right) => {
     const order = {down: 0, unknown: 1, up: 2};
@@ -153,6 +178,15 @@ const normalizeDashboardBaseUrl = (
 
 /**
  * Builds a Grafana dashboard URL for the selected item and theme.
+ *
+ * @param {string} baseUrl
+ * @param {string} dashboardUid
+ * @param {string} dashboardSlug
+ * @param {string} itemId
+ * @param {'dark' | 'light'} theme
+ * @param {string | number} panelId
+ * @param {string} [appBaseUrl='']
+ * @returns {string}
  */
 export const buildDashboardUrl = (
     baseUrl,
@@ -181,6 +215,9 @@ export const buildDashboardUrl = (
 /**
  * Builds URL for the dedicated Grafana wrapper page (iframe host).
  * The wrapper isolates keyboard/history behavior from the main app.
+ *
+ * @param {{initialTheme?: string, grafanaUrl?: string}} [options]
+ * @returns {string}
  */
 export const buildGrafanaFrameUrl = ({initialTheme, grafanaUrl = ''} = {}) => {
     const frameUrl = new URL('grafana-frame/index.html', resolveBaseUrl());
@@ -194,7 +231,9 @@ export const buildGrafanaFrameUrl = ({initialTheme, grafanaUrl = ''} = {}) => {
 
 /**
  * Loads and parses the catalog definition.
- * Currently reads `catalog-definition.yaml`; later can be replaced with HTTP without UI changes.
+ * Currently, reads `catalog-definition.yaml`; later can be replaced with HTTP without UI changes.
+ *
+ * @returns {Promise<{items: import('../shared/types').CatalogItem[], dependencies: import('../shared/types').CatalogDependency[]}>}
  */
 export const loadCatalog = async () => {
     const response = await fetch(new URL('catalog-definition.yaml', resolveBaseUrl()));
@@ -202,7 +241,7 @@ export const loadCatalog = async () => {
         throw new Error(`Failed to load catalog: ${response.status}`);
     }
     const text = await response.text();
-    const data = yaml.load(text) || {};
+    const data = yaml.load(text, {}) || {};
     return {
         items: Array.isArray(data.items) ? data.items : [],
         dependencies: Array.isArray(data.dependencies) ? data.dependencies : [],
@@ -213,6 +252,9 @@ export const loadCatalog = async () => {
  * Best-effort Prometheus polling:
  * parses item health and per-item health checks into UI-ready maps.
  * If one endpoint fails, successful data from the other endpoint is still returned.
+ *
+ * @param {string} prometheusBaseUrl
+ * @returns {Promise<{itemStatuses: Record<string, HealthStatus>, itemSignals: Record<string, ItemSignal[]>}>}
  */
 export const fetchPrometheusStatuses = async (prometheusBaseUrl) => {
     const [itemResponse, signalResponse] = await Promise.all([
@@ -224,13 +266,16 @@ export const fetchPrometheusStatuses = async (prometheusBaseUrl) => {
         ),
     ]);
 
+    /** @type {Record<string, HealthStatus>} */
     const nextStatuses = {};
+    /** @type {Record<string, ItemSignal[]>} */
     const nextItemSignals = {};
 
     if (itemResponse.ok) {
         const itemContentType = itemResponse.headers.get('content-type') || '';
         if (itemContentType.includes('application/json')) {
             const payload = await itemResponse.json();
+            /** @type {PrometheusVectorEntry[]} */
             const results = payload?.data?.result ?? [];
             results.forEach((entry) => {
                 const itemId = entry?.metric?.item_id;
@@ -247,6 +292,7 @@ export const fetchPrometheusStatuses = async (prometheusBaseUrl) => {
         const signalContentType = signalResponse.headers.get('content-type') || '';
         if (signalContentType.includes('application/json')) {
             const payload = await signalResponse.json();
+            /** @type {PrometheusVectorEntry[]} */
             const results = payload?.data?.result ?? [];
             results.forEach((entry) => {
                 const itemId = entry?.metric?.item_id;
