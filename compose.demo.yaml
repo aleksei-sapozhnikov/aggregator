@@ -31,7 +31,7 @@ services:
       CHAOS_MAX_INTERVAL: 120m
       CHAOS_MIN_DURATION: 5m
       CHAOS_MAX_DURATION: 60m
-      CHAOS_MAX_CONCURRENT: "1"
+      CHAOS_MAX_CONCURRENT: "2"
     volumes:
       - ./config/demo:/config/demo:ro
 
