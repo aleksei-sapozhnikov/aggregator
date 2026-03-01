@@ -194,10 +194,10 @@ export const buildGrafanaFrameUrl = ({initialTheme, grafanaUrl = ''} = {}) => {
 
 /**
  * Loads and parses the catalog definition.
- * Currently reads `catalog.yaml`; later can be replaced with HTTP without UI changes.
+ * Currently reads `catalog-definition.yaml`; later can be replaced with HTTP without UI changes.
  */
 export const loadCatalog = async () => {
-    const response = await fetch(new URL('catalog.yaml', resolveBaseUrl()));
+    const response = await fetch(new URL('catalog-definition.yaml', resolveBaseUrl()));
     if (!response.ok) {
         throw new Error(`Failed to load catalog: ${response.status}`);
     }
@@ -215,12 +215,12 @@ export const loadCatalog = async () => {
  * If one endpoint fails, successful data from the other endpoint is still returned.
  */
 export const fetchPrometheusStatuses = async (prometheusBaseUrl) => {
-    const [itemResponse, checkResponse] = await Promise.all([
+    const [itemResponse, signalResponse] = await Promise.all([
         fetch(
             `${prometheusBaseUrl}/api/v1/query?query=${encodeURIComponent('catalog_item_state')}`,
         ),
         fetch(
-            `${prometheusBaseUrl}/api/v1/query?query=${encodeURIComponent('catalog_item_check_state')}`,
+            `${prometheusBaseUrl}/api/v1/query?query=${encodeURIComponent('catalog_item_signal_state')}`,
         ),
     ]);
 
@@ -243,23 +243,23 @@ export const fetchPrometheusStatuses = async (prometheusBaseUrl) => {
         }
     }
 
-    if (checkResponse.ok) {
-        const checkContentType = checkResponse.headers.get('content-type') || '';
-        if (checkContentType.includes('application/json')) {
-            const payload = await checkResponse.json();
+    if (signalResponse.ok) {
+        const signalContentType = signalResponse.headers.get('content-type') || '';
+        if (signalContentType.includes('application/json')) {
+            const payload = await signalResponse.json();
             const results = payload?.data?.result ?? [];
             results.forEach((entry) => {
                 const itemId = entry?.metric?.item_id;
-                const checkId = entry?.metric?.check_id;
-                const checkName = entry?.metric?.check_name || checkId;
+                const signalId = entry?.metric?.signal_id;
+                const signalName = entry?.metric?.signal_name || signalId;
                 if (!itemId) {
                     return;
                 }
                 const value = Number.parseFloat(entry?.value?.[1]);
                 const status = parsePrometheusHealthStatus(value);
-                if (checkId && checkName) {
+                if (signalId && signalName) {
                     const list = nextItemSignals[itemId] || [];
-                    list.push({id: checkId, name: checkName, status});
+                    list.push({id: signalId, name: signalName, status});
                     nextItemSignals[itemId] = list;
                 }
             });
