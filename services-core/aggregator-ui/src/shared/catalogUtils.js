@@ -2,14 +2,25 @@
  * @file Catalog/tree/search/routing helpers used by App and SidebarPanel.
  * These functions are intentionally pure (or close to pure) and UI-agnostic.
  */
+/** @typedef {import('./types').CatalogItem} CatalogItem */
+/** @typedef {import('./types').CatalogDependency} CatalogDependency */
+/** @typedef {import('./types').CatalogTreeNode} CatalogTreeNode */
+/** @typedef {import('./types').SearchResult} SearchResult */
+/** @typedef {import('./types').SearchAutocompleteOption} SearchAutocompleteOption */
 /**
- * Returns items sorted by display name fallbacking to id.
+ * Returns items sorted by display name falling back to id.
+ *
+ * @param {CatalogItem[]} items
+ * @returns {CatalogItem[]}
  */
 const sortItemsByName = (items) =>
     [...items].sort((a, b) => (a.name || a.id).localeCompare(b.name || b.id));
 
 /**
- * Returns tree nodes sorted by display name fallbacking to id.
+ * Returns tree nodes sorted by display name falling back to id.
+ *
+ * @param {CatalogTreeNode[]} nodes
+ * @returns {CatalogTreeNode[]}
  */
 const sortNodesByName = (nodes) =>
     [...nodes].sort((a, b) =>
@@ -18,6 +29,9 @@ const sortNodesByName = (nodes) =>
 
 /**
  * Collects item ids from all nodes in traversal order.
+ *
+ * @param {CatalogTreeNode[]} nodes
+ * @returns {string[]}
  */
 export const collectNodeIds = (nodes) => {
     const ids = [];
@@ -31,6 +45,9 @@ export const collectNodeIds = (nodes) => {
 
 /**
  * Collects ids of all descendants for a single node.
+ *
+ * @param {CatalogTreeNode} node
+ * @returns {string[]}
  */
 export const collectDescendantIds = (node) => {
     const descendants = [];
@@ -46,6 +63,9 @@ export const collectDescendantIds = (node) => {
 
 /**
  * Returns unique ids for all nodes that can participate in expand/collapse actions.
+ *
+ * @param {CatalogTreeNode[]} nodes
+ * @returns {string[]}
  */
 export const collectExpandableIds = (nodes) =>
     collectNodeIds(nodes).filter((id, index, arr) => arr.indexOf(id) === index);
@@ -55,6 +75,10 @@ export const collectExpandableIds = (nodes) =>
  * Each node includes:
  * - `uid`: stable UI key/path for scrolling
  * - `path`: logical item path for URL sync
+ *
+ * @param {CatalogItem[]} items
+ * @param {CatalogDependency[]} dependencies
+ * @returns {CatalogTreeNode[]}
  */
 export const buildCatalogTree = (items, dependencies) => {
     const itemMap = new Map(items.map((item) => [item.id, item]));
@@ -126,6 +150,10 @@ const matchSearch = (item, queryTokens) => {
 
 /**
  * Filters the tree while preserving ancestors of matching descendants.
+ *
+ * @param {CatalogTreeNode[]} nodes
+ * @param {string[]} queryTokens
+ * @returns {CatalogTreeNode[]}
  */
 export const filterCatalogTree = (nodes, queryTokens) => {
     if (!queryTokens.length) {
@@ -143,6 +171,10 @@ export const filterCatalogTree = (nodes, queryTokens) => {
 
 /**
  * Finds a tree path (item id chain) to the target item.
+ *
+ * @param {CatalogTreeNode[]} nodes
+ * @param {string} targetId
+ * @returns {string[] | null}
  */
 export const findNodePath = (nodes, targetId) => {
     for (const node of nodes) {
@@ -161,6 +193,10 @@ export const findNodePath = (nodes, targetId) => {
 
 /**
  * Finds the first node with the given item id.
+ *
+ * @param {CatalogTreeNode[]} nodes
+ * @param {string} targetId
+ * @returns {CatalogTreeNode | null}
  */
 export const findNodeById = (nodes, targetId) => {
     for (const node of nodes) {
@@ -179,6 +215,10 @@ export const findNodeById = (nodes, targetId) => {
 
 /**
  * Resolves a node by exact path of item ids.
+ *
+ * @param {CatalogTreeNode[]} nodes
+ * @param {string[]} pathIds
+ * @returns {CatalogTreeNode | null}
  */
 export const findNodeByPath = (nodes, pathIds) => {
     if (!Array.isArray(pathIds) || pathIds.length === 0) {
@@ -202,6 +242,10 @@ export const findNodeByPath = (nodes, pathIds) => {
 
 /**
  * Returns UI uid for the first node matching the item id.
+ *
+ * @param {CatalogTreeNode[]} nodes
+ * @param {string} targetId
+ * @returns {string | null}
  */
 export const findNodeUidById = (nodes, targetId) => {
     for (const node of nodes) {
@@ -220,6 +264,10 @@ export const findNodeUidById = (nodes, targetId) => {
 
 /**
  * Ranks flat search results by field match quality (name > id > type).
+ *
+ * @param {CatalogItem[]} items
+ * @param {string[]} queryTokens
+ * @returns {SearchResult[]}
  */
 export const rankSearchResults = (items, queryTokens) => {
     if (!queryTokens.length) {
@@ -257,6 +305,9 @@ export const rankSearchResults = (items, queryTokens) => {
 
 /**
  * Builds a unique sorted vocabulary from item names for search autocomplete.
+ *
+ * @param {CatalogItem[]} items
+ * @returns {string[]}
  */
 export const buildNameWordVocabulary = (items) => {
     const seen = new Set();
@@ -291,6 +342,11 @@ const parseSearchAutocompleteQuery = (query) => {
 
 /**
  * Builds autocomplete suggestions for the current partial search token.
+ *
+ * @param {string} query
+ * @param {string[]} vocabulary
+ * @param {number} [limit=12]
+ * @returns {SearchAutocompleteOption[]}
  */
 export const buildSearchAutocompleteOptions = (query, vocabulary, limit = 12) => {
     const {baseTokens, currentToken} = parseSearchAutocompleteQuery(query);
@@ -384,6 +440,10 @@ export const isPlainLeftClick = (event) =>
 /**
  * Resolves selected tree node from current browser location.
  * Supports both `/item/:id` and `?path=` route context.
+ *
+ * @param {CatalogTreeNode[]} nodes
+ * @param {string} basePath
+ * @returns {{node: CatalogTreeNode} | null}
  */
 export const resolveNodeFromLocation = (nodes, basePath) => {
     if (!nodes.length) {
