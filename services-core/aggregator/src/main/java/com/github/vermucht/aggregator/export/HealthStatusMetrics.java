@@ -1,6 +1,6 @@
 package com.github.vermucht.aggregator.export;
 
-import com.github.vermucht.aggregator.healthcheck.model.HealthStatus;
+import com.github.vermucht.aggregator.signal.model.HealthStatus;
 import jakarta.annotation.Nonnull;
 
 /** Maps health status values to numeric metric representations. */
