@@ -755,12 +755,12 @@ export default function App() {
             return;
         }
         if (!grafanaPanelInitializedRef.current) {
-            setIsGrafanaOpen(!isMobileLayout);
+            setIsGrafanaOpen(true);
             grafanaPanelInitializedRef.current = true;
             return;
         }
         setIsGrafanaOpen(true);
-    }, [isMobileLayout, selectedId]);
+    }, [selectedId]);
 
     useEffect(() => {
         if (!isGrafanaOpen) {

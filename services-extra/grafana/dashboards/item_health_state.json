@@ -150,7 +150,7 @@
           "expr": "catalog_item_state{item_id=~\"${item_id:regex}\"} and on() ((vector(${items}) == 1) or (vector(${items}) == 2))",
           "hide": false,
           "instant": false,
-          "legendFormat": "[cur it] {{item_name}}",
+          "legendFormat": "\u25CF\u21BA {{item_name}}",
           "range": true,
           "refId": "A"
         },
@@ -160,8 +160,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(\n  (\n    (catalog_item_check_state{item_id=~\"${item_id:regex}\"} and on() (vector(${graphs}) == 0))\n    or (\n      catalog_item_check_state{item_id=~\"${item_id:regex}\"}\n      and on(item_id,check_id,check_source) (min_over_time(catalog_item_check_state{item_id=~\"${item_id:regex}\"}[$__range] @ end()) < 1)\n      and on() (vector(${graphs}) == 1)\n    )\n  )\n  and on() ((vector(${hchecks}) == 1) or (vector(${hchecks}) == 2))\n)",
-          "legendFormat": "\u200b[cur hc] {{check_name}} ({{item_name}})",
+          "expr": "(\n  (\n    (catalog_item_check_state{item_id=~\"${item_id:regex}\"} and on() (vector(${show}) == 0))\n    or (\n      catalog_item_check_state{item_id=~\"${item_id:regex}\"}\n      and on(item_id,check_id,check_source) (min_over_time(catalog_item_check_state{item_id=~\"${item_id:regex}\"}[$__range] @ end()) < 1)\n      and on() (vector(${show}) == 1)\n    )\n  )\n  and on() ((vector(${signals}) == 1) or (vector(${signals}) == 2))\n)",
+          "legendFormat": "\u200b\u25B6\u21BA {{check_name}}",
           "range": true,
           "refId": "C"
         },
@@ -171,8 +171,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(\n  (catalog_item_own_state{item_id=~\"${deps:regex}\"} and on() (vector(${graphs}) == 0))\n  or (catalog_item_own_state{item_id=~\"${deps:regex}\"} and on(item_id) (min_over_time(catalog_item_own_state{item_id=~\"${deps:regex}\"}[$__range] @ end()) < 1) and on() (vector(${graphs}) == 1))\n) and on() ((vector(${items}) == 2) or (vector(${items}) == 3))",
-          "legendFormat": "\u200c[dep it] {{item_name}}",
+          "expr": "(\n  (catalog_item_own_state{item_id=~\"${deps:regex}\"} and on() (vector(${show}) == 0))\n  or (catalog_item_own_state{item_id=~\"${deps:regex}\"} and on(item_id) (min_over_time(catalog_item_own_state{item_id=~\"${deps:regex}\"}[$__range] @ end()) < 1) and on() (vector(${show}) == 1))\n) and on() ((vector(${items}) == 2) or (vector(${items}) == 3))",
+          "legendFormat": "\u200c\u25CF\u21B3 {{item_name}}",
           "range": true,
           "refId": "B"
         },
@@ -182,8 +182,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(\n  (\n    (catalog_item_check_state{item_id=~\"${deps:regex}\"} and on() (vector(${graphs}) == 0))\n    or (\n      catalog_item_check_state{item_id=~\"${deps:regex}\"}\n      and on(item_id,check_id,check_source) (min_over_time(catalog_item_check_state{item_id=~\"${deps:regex}\"}[$__range] @ end()) < 1)\n      and on() (vector(${graphs}) == 1)\n    )\n  )\n  and on() ((vector(${hchecks}) == 2) or (vector(${hchecks}) == 3))\n)",
-          "legendFormat": "\u200d[dep hc] {{check_name}}",
+          "expr": "(\n  (\n    (catalog_item_check_state{item_id=~\"${deps:regex}\"} and on() (vector(${show}) == 0))\n    or (\n      catalog_item_check_state{item_id=~\"${deps:regex}\"}\n      and on(item_id,check_id,check_source) (min_over_time(catalog_item_check_state{item_id=~\"${deps:regex}\"}[$__range] @ end()) < 1)\n      and on() (vector(${show}) == 1)\n    )\n  )\n  and on() ((vector(${signals}) == 2) or (vector(${signals}) == 3))\n)",
+          "legendFormat": "\u200d\u25B6\u21B3 {{check_name}}",
           "range": true,
           "refId": "D"
         }
@@ -248,28 +248,28 @@
         },
         "definition": "",
         "includeAll": false,
-        "label": "items",
+        "label": "\u25CF state",
         "multi": false,
         "name": "items",
         "current": {
           "selected": true,
-          "text": "all",
+          "text": "all \u21BA\u21B3",
           "value": "2"
         },
         "options": [
           {
             "selected": true,
-            "text": "all",
+            "text": "all \u21BA\u21B3",
             "value": "2"
           },
           {
             "selected": false,
-            "text": "[cur]rent",
+            "text": "current \u21BA",
             "value": "1"
           },
           {
             "selected": false,
-            "text": "[dep]endencies",
+            "text": "dependency \u21B3",
             "value": "3"
           },
           {
@@ -278,7 +278,7 @@
             "value": "0"
           }
         ],
-        "query": "all : 2, [cur]rent : 1, [dep]endencies : 3, hide : 0",
+        "query": "all \u21BA\u21B3 : 2, current \u21BA : 1, dependency \u21B3 : 3, hide : 0",
         "refresh": 1,
         "regex": "",
         "sort": 1,
@@ -291,28 +291,28 @@
         },
         "definition": "",
         "includeAll": false,
-        "label": "hchecks",
+        "label": "\u25B6 signals",
         "multi": false,
-        "name": "hchecks",
+        "name": "signals",
         "current": {
           "selected": true,
-          "text": "[cur]rent",
+          "text": "current \u21BA",
           "value": "1"
         },
         "options": [
           {
             "selected": false,
-            "text": "all",
+            "text": "all \u21BA\u21B3",
             "value": "2"
           },
           {
             "selected": true,
-            "text": "[cur]rent",
+            "text": "current \u21BA",
             "value": "1"
           },
           {
             "selected": false,
-            "text": "[dep]endencies",
+            "text": "dependency \u21B3",
             "value": "3"
           },
           {
@@ -321,7 +321,7 @@
             "value": "0"
           }
         ],
-        "query": "all : 2, [cur]rent : 1, [dep]endencies : 3, hide : 0",
+        "query": "all \u21BA\u21B3 : 2, current \u21BA : 1, dependency \u21B3 : 3, hide : 0",
         "refresh": 1,
         "regex": "",
         "sort": 1,
@@ -335,7 +335,8 @@
         "definition": "",
         "includeAll": false,
         "multi": false,
-        "name": "graphs",
+        "label": "show",
+        "name": "show",
         "current": {
           "selected": true,
           "text": "failing",
@@ -343,17 +344,17 @@
         },
         "options": [
           {
-            "selected": false,
-            "text": "all",
-            "value": "0"
-          },
-          {
             "selected": true,
             "text": "failing",
             "value": "1"
+          },
+          {
+            "selected": false,
+            "text": "all",
+            "value": "0"
           }
         ],
-        "query": "all : 0, failing : 1",
+        "query": "failing : 1, all : 0",
         "refresh": 1,
         "regex": "",
         "sort": 1,
