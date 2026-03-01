@@ -384,20 +384,38 @@ export default function App() {
      */
     const handleExpandAll = useCallback(() => {
         setExpandedIds(new Set(collectExpandableIds(tree)));
-    }, [tree]);
+        if (!selectedId) {
+            return;
+        }
+        const selectedUid = selectedPath.length > 0
+            ? findNodeByPath(tree, selectedPath)?.uid || ''
+            : findNodeUidById(tree, selectedId) || '';
+        if (selectedUid) {
+            setPendingScrollId(selectedUid);
+        }
+    }, [selectedId, selectedPath, tree]);
 
     /**
-     * Collapses the full tree and resets scroll to the top of the sidebar.
+     * Collapses the full tree and keeps the selected root item in view when possible.
      */
     const handleCollapseAll = useCallback(() => {
         setExpandedIds(new Set());
+        if (selectedId) {
+            const selectedUid = selectedPath.length > 0
+                ? findNodeByPath(tree, selectedPath)?.uid || ''
+                : findNodeUidById(tree, selectedId) || '';
+            if (selectedUid) {
+                setPendingScrollId(selectedUid);
+                return;
+            }
+        }
         window.requestAnimationFrame(() => {
             catalogTreeRef.current?.scrollTo({
                 top: 0,
                 behavior: 'auto',
             });
         });
-    }, []);
+    }, [selectedId, selectedPath, tree]);
 
     const selectedNode = useMemo(() => {
         if (!selectedId) {
