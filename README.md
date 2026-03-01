@@ -44,8 +44,8 @@ Service state in the demo is collected from HTTP health checks (`UP`/`DOWN`) and
 
 Catalog items and health checks are configured through YAML files. Demo example:
 
-- [demo/catalog.yaml](config/demo/catalog.yaml)
-- [demo/health-checks.yaml](config/demo/health-checks.yaml)
+- [demo/catalog-definition.yaml](config/demo/catalog-definition.yaml)
+- [demo/http-poll-signals.yaml](config/demo/http-poll-signals.yaml)
 
 ### Core Services (`services-core`)
 

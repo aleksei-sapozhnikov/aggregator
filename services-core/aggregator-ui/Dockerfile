@@ -20,11 +20,11 @@ RUN npm run build
 # -------- Runtime stage --------
 FROM caddy:2-alpine
 
-ARG CATALOG_FILE
+ARG CATALOG_DEFINITION_FILE
 
 COPY --from=build /app/dist /usr/share/caddy
 COPY --from=build /app/Caddyfile /etc/caddy/Caddyfile
-COPY ${CATALOG_FILE} /usr/share/caddy/catalog.yaml
+COPY ${CATALOG_DEFINITION_FILE} /usr/share/caddy/catalog-definition.yaml
 
 EXPOSE 3000
 ENTRYPOINT ["caddy", "run", "--config", "/etc/caddy/Caddyfile"]

@@ -5,8 +5,8 @@ services:
       dockerfile: services-core/aggregator/Dockerfile
       args:
         CONTAINER_ROOT: services-core/aggregator
-        CATALOG_FILE: config/empty/catalog.yaml
-        HEALTH_CHECKS_FILE: config/empty/health-checks.yaml
+        CATALOG_DEFINITION_FILE: config/empty/catalog-definition.yaml
+        HTTP_POLL_SIGNALS_FILE: config/empty/http-poll-signals.yaml
 
   aggregator-ui:
     build:
@@ -14,7 +14,7 @@ services:
       dockerfile: services-core/aggregator-ui/Dockerfile
       args:
         CONTAINER_ROOT: services-core/aggregator-ui
-        CATALOG_FILE: config/empty/catalog.yaml
+        CATALOG_DEFINITION_FILE: config/empty/catalog-definition.yaml
         VITE_APP_TITLE: ""
 
   prometheus:

@@ -1,1101 +1,1103 @@
-# Health checks for demo services and product SLIs
-checks:
-  - type: http
-    checkId: order-capture-availability-check
+# HTTP polling signals for demo services and product SLIs
+signals:
+  -
+    signalId: order-capture-availability-check
     name: Availability heartbeat responds
     catalogItemId: order-capture-svc
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/order-capture-availability-check
-  - type: http
-    checkId: order-capture-latency-check
+  -
+    signalId: order-capture-latency-check
     name: Request latency is within SLO
     catalogItemId: order-capture-svc
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/order-capture-latency-check
-  - type: http
-    checkId: order-capture-error-rate-check
+  -
+    signalId: order-capture-error-rate-check
     name: Error rate is below threshold
     catalogItemId: order-capture-svc
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/order-capture-error-rate-check
-  - type: http
-    checkId: order-capture-backlog-check
+  -
+    signalId: order-capture-backlog-check
     name: Work backlog is within limits
     catalogItemId: order-capture-svc
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/order-capture-backlog-check
-  - type: http
-    checkId: order-validation-availability-check
+  -
+    signalId: order-validation-availability-check
     name: Availability heartbeat responds
     catalogItemId: order-validation-svc
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/order-validation-availability-check
-  - type: http
-    checkId: order-validation-latency-check
+  -
+    signalId: order-validation-latency-check
     name: Request latency is within SLO
     catalogItemId: order-validation-svc
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/order-validation-latency-check
-  - type: http
-    checkId: order-validation-error-rate-check
+  -
+    signalId: order-validation-error-rate-check
     name: Error rate is below threshold
     catalogItemId: order-validation-svc
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/order-validation-error-rate-check
-  - type: http
-    checkId: order-validation-backlog-check
+  -
+    signalId: order-validation-backlog-check
     name: Work backlog is within limits
     catalogItemId: order-validation-svc
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/order-validation-backlog-check
-  - type: http
-    checkId: order-validation-dependency-connectivity-check
+  -
+    signalId: order-validation-dependency-connectivity-check
     name: Critical dependency connectivity is healthy
     catalogItemId: order-validation-svc
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/order-validation-dependency-connectivity-check
-  - type: http
-    checkId: order-billing-availability-check
+  -
+    signalId: order-billing-availability-check
     name: Availability heartbeat responds
     catalogItemId: order-billing-svc
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/order-billing-availability-check
-  - type: http
-    checkId: order-billing-latency-check
+  -
+    signalId: order-billing-latency-check
     name: Request latency is within SLO
     catalogItemId: order-billing-svc
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/order-billing-latency-check
-  - type: http
-    checkId: order-billing-error-rate-check
+  -
+    signalId: order-billing-error-rate-check
     name: Error rate is below threshold
     catalogItemId: order-billing-svc
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/order-billing-error-rate-check
-  - type: http
-    checkId: order-billing-backlog-check
+  -
+    signalId: order-billing-backlog-check
     name: Work backlog is within limits
     catalogItemId: order-billing-svc
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/order-billing-backlog-check
-  - type: http
-    checkId: order-billing-dependency-connectivity-check
+  -
+    signalId: order-billing-dependency-connectivity-check
     name: Critical dependency connectivity is healthy
     catalogItemId: order-billing-svc
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/order-billing-dependency-connectivity-check
-  - type: http
-    checkId: order-dispatch-availability-check
+  -
+    signalId: order-dispatch-availability-check
     name: Availability heartbeat responds
     catalogItemId: order-dispatch-svc
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/order-dispatch-availability-check
-  - type: http
-    checkId: routing-engine-availability-check
+  -
+    signalId: routing-engine-availability-check
     name: Availability heartbeat responds
     catalogItemId: routing-engine-svc
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/routing-engine-availability-check
-  - type: http
-    checkId: routing-engine-latency-check
+  -
+    signalId: routing-engine-latency-check
     name: Request latency is within SLO
     catalogItemId: routing-engine-svc
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/routing-engine-latency-check
-  - type: http
-    checkId: routing-engine-error-rate-check
+  -
+    signalId: routing-engine-error-rate-check
     name: Error rate is below threshold
     catalogItemId: routing-engine-svc
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/routing-engine-error-rate-check
-  - type: http
-    checkId: routing-engine-backlog-check
+  -
+    signalId: routing-engine-backlog-check
     name: Work backlog is within limits
     catalogItemId: routing-engine-svc
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/routing-engine-backlog-check
-  - type: http
-    checkId: inventory-sync-availability-check
+  -
+    signalId: inventory-sync-availability-check
     name: Availability heartbeat responds
     catalogItemId: inventory-sync-svc
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/inventory-sync-availability-check
-  - type: http
-    checkId: inventory-sync-latency-check
+  -
+    signalId: inventory-sync-latency-check
     name: Request latency is within SLO
     catalogItemId: inventory-sync-svc
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/inventory-sync-latency-check
-  - type: http
-    checkId: inventory-sync-error-rate-check
+  -
+    signalId: inventory-sync-error-rate-check
     name: Error rate is below threshold
     catalogItemId: inventory-sync-svc
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/inventory-sync-error-rate-check
-  - type: http
-    checkId: inventory-sync-backlog-check
+  -
+    signalId: inventory-sync-backlog-check
     name: Work backlog is within limits
     catalogItemId: inventory-sync-svc
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/inventory-sync-backlog-check
-  - type: http
-    checkId: lastmile-dispatch-availability-check
+  -
+    signalId: lastmile-dispatch-availability-check
     name: Availability heartbeat responds
     catalogItemId: lastmile-dispatch-svc
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/lastmile-dispatch-availability-check
-  - type: http
-    checkId: lastmile-dispatch-latency-check
+  -
+    signalId: lastmile-dispatch-latency-check
     name: Request latency is within SLO
     catalogItemId: lastmile-dispatch-svc
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/lastmile-dispatch-latency-check
-  - type: http
-    checkId: lastmile-dispatch-error-rate-check
+  -
+    signalId: lastmile-dispatch-error-rate-check
     name: Error rate is below threshold
     catalogItemId: lastmile-dispatch-svc
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/lastmile-dispatch-error-rate-check
-  - type: http
-    checkId: lastmile-dispatch-backlog-check
+  -
+    signalId: lastmile-dispatch-backlog-check
     name: Work backlog is within limits
     catalogItemId: lastmile-dispatch-svc
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/lastmile-dispatch-backlog-check
-  - type: http
-    checkId: lastmile-dispatch-dependency-connectivity-check
+  -
+    signalId: lastmile-dispatch-dependency-connectivity-check
     name: Critical dependency connectivity is healthy
     catalogItemId: lastmile-dispatch-svc
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/lastmile-dispatch-dependency-connectivity-check
-  - type: http
-    checkId: returns-processing-availability-check
+  -
+    signalId: returns-processing-availability-check
     name: Availability heartbeat responds
     catalogItemId: returns-processing-svc
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/returns-processing-availability-check
-  - type: http
-    checkId: returns-processing-latency-check
+  -
+    signalId: returns-processing-latency-check
     name: Request latency is within SLO
     catalogItemId: returns-processing-svc
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/returns-processing-latency-check
-  - type: http
-    checkId: returns-processing-error-rate-check
+  -
+    signalId: returns-processing-error-rate-check
     name: Error rate is below threshold
     catalogItemId: returns-processing-svc
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/returns-processing-error-rate-check
-  - type: http
-    checkId: returns-processing-backlog-check
+  -
+    signalId: returns-processing-backlog-check
     name: Work backlog is within limits
     catalogItemId: returns-processing-svc
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/returns-processing-backlog-check
-  - type: http
-    checkId: returns-processing-dependency-connectivity-check
+  -
+    signalId: returns-processing-dependency-connectivity-check
     name: Critical dependency connectivity is healthy
     catalogItemId: returns-processing-svc
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/returns-processing-dependency-connectivity-check
-  - type: http
-    checkId: engagement-orchestrator-availability-check
+  -
+    signalId: engagement-orchestrator-availability-check
     name: Availability heartbeat responds
     catalogItemId: engagement-orchestrator-svc
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/engagement-orchestrator-availability-check
-  - type: http
-    checkId: profile-store-availability-check
+  -
+    signalId: profile-store-availability-check
     name: Availability heartbeat responds
     catalogItemId: profile-store-svc
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/profile-store-availability-check
-  - type: http
-    checkId: profile-store-latency-check
+  -
+    signalId: profile-store-latency-check
     name: Request latency is within SLO
     catalogItemId: profile-store-svc
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/profile-store-latency-check
-  - type: http
-    checkId: profile-store-error-rate-check
+  -
+    signalId: profile-store-error-rate-check
     name: Error rate is below threshold
     catalogItemId: profile-store-svc
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/profile-store-error-rate-check
-  - type: http
-    checkId: messaging-hub-availability-check
+  -
+    signalId: messaging-hub-availability-check
     name: Availability heartbeat responds
     catalogItemId: messaging-hub-svc
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/messaging-hub-availability-check
-  - type: http
-    checkId: messaging-hub-latency-check
+  -
+    signalId: messaging-hub-latency-check
     name: Request latency is within SLO
     catalogItemId: messaging-hub-svc
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/messaging-hub-latency-check
-  - type: http
-    checkId: messaging-hub-error-rate-check
+  -
+    signalId: messaging-hub-error-rate-check
     name: Error rate is below threshold
     catalogItemId: messaging-hub-svc
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/messaging-hub-error-rate-check
-  - type: http
-    checkId: messaging-hub-backlog-check
+  -
+    signalId: messaging-hub-backlog-check
     name: Work backlog is within limits
     catalogItemId: messaging-hub-svc
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/messaging-hub-backlog-check
-  - type: http
-    checkId: messaging-hub-dependency-connectivity-check
+  -
+    signalId: messaging-hub-dependency-connectivity-check
     name: Critical dependency connectivity is healthy
     catalogItemId: messaging-hub-svc
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/messaging-hub-dependency-connectivity-check
-  - type: http
-    checkId: campaign-execution-availability-check
+  -
+    signalId: campaign-execution-availability-check
     name: Availability heartbeat responds
     catalogItemId: campaign-execution-svc
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/campaign-execution-availability-check
-  - type: http
-    checkId: campaign-execution-latency-check
+  -
+    signalId: campaign-execution-latency-check
     name: Request latency is within SLO
     catalogItemId: campaign-execution-svc
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/campaign-execution-latency-check
-  - type: http
-    checkId: campaign-execution-error-rate-check
+  -
+    signalId: campaign-execution-error-rate-check
     name: Error rate is below threshold
     catalogItemId: campaign-execution-svc
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/campaign-execution-error-rate-check
-  - type: http
-    checkId: campaign-execution-backlog-check
+  -
+    signalId: campaign-execution-backlog-check
     name: Work backlog is within limits
     catalogItemId: campaign-execution-svc
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/campaign-execution-backlog-check
-  - type: http
-    checkId: campaign-execution-dependency-connectivity-check
+  -
+    signalId: campaign-execution-dependency-connectivity-check
     name: Critical dependency connectivity is healthy
     catalogItemId: campaign-execution-svc
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/campaign-execution-dependency-connectivity-check
-  - type: http
-    checkId: commerce-core-pricing-sync-availability-check
+  -
+    signalId: commerce-core-pricing-sync-availability-check
     name: Availability heartbeat responds
     catalogItemId: commerce-core-pricing-sync-svc
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/commerce-core-pricing-sync-availability-check
-  - type: http
-    checkId: commerce-core-pricing-sync-latency-check
+  -
+    signalId: commerce-core-pricing-sync-latency-check
     name: Request latency is within SLO
     catalogItemId: commerce-core-pricing-sync-svc
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/commerce-core-pricing-sync-latency-check
-  - type: http
-    checkId: commerce-core-pricing-sync-error-rate-check
+  -
+    signalId: commerce-core-pricing-sync-error-rate-check
     name: Error rate is below threshold
     catalogItemId: commerce-core-pricing-sync-svc
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/commerce-core-pricing-sync-error-rate-check
-  - type: http
-    checkId: commerce-core-pricing-sync-backlog-check
+  -
+    signalId: commerce-core-pricing-sync-backlog-check
     name: Work backlog is within limits
     catalogItemId: commerce-core-pricing-sync-svc
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/commerce-core-pricing-sync-backlog-check
-  - type: http
-    checkId: order-domain-events-availability-check
+  -
+    signalId: order-domain-events-availability-check
     name: Availability heartbeat responds
     catalogItemId: order-domain-events-svc
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/order-domain-events-availability-check
-  - type: http
-    checkId: order-intake-api-availability-check
+  -
+    signalId: order-intake-api-availability-check
     name: Availability heartbeat responds
     catalogItemId: order-intake-api-svc
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/order-intake-api-availability-check
-  - type: http
-    checkId: order-intake-api-latency-check
+  -
+    signalId: order-intake-api-latency-check
     name: Request latency is within SLO
     catalogItemId: order-intake-api-svc
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/order-intake-api-latency-check
-  - type: http
-    checkId: order-intake-api-error-rate-check
+  -
+    signalId: order-intake-api-error-rate-check
     name: Error rate is below threshold
     catalogItemId: order-intake-api-svc
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/order-intake-api-error-rate-check
-  - type: http
-    checkId: order-intake-buffer-availability-check
+  -
+    signalId: order-intake-buffer-availability-check
     name: Availability heartbeat responds
     catalogItemId: order-intake-buffer-svc
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/order-intake-buffer-availability-check
-  - type: http
-    checkId: order-intake-buffer-latency-check
+  -
+    signalId: order-intake-buffer-latency-check
     name: Request latency is within SLO
     catalogItemId: order-intake-buffer-svc
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/order-intake-buffer-latency-check
-  - type: http
-    checkId: order-intake-buffer-error-rate-check
+  -
+    signalId: order-intake-buffer-error-rate-check
     name: Error rate is below threshold
     catalogItemId: order-intake-buffer-svc
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/order-intake-buffer-error-rate-check
-  - type: http
-    checkId: fraud-screening-availability-check
+  -
+    signalId: fraud-screening-availability-check
     name: Availability heartbeat responds
     catalogItemId: fraud-screening-svc
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/fraud-screening-availability-check
-  - type: http
-    checkId: policy-evaluator-availability-check
+  -
+    signalId: policy-evaluator-availability-check
     name: Availability heartbeat responds
     catalogItemId: policy-evaluator-svc
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/policy-evaluator-availability-check
-  - type: http
-    checkId: policy-evaluator-latency-check
+  -
+    signalId: policy-evaluator-latency-check
     name: Request latency is within SLO
     catalogItemId: policy-evaluator-svc
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/policy-evaluator-latency-check
-  - type: http
-    checkId: policy-evaluator-error-rate-check
+  -
+    signalId: policy-evaluator-error-rate-check
     name: Error rate is below threshold
     catalogItemId: policy-evaluator-svc
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/policy-evaluator-error-rate-check
-  - type: http
-    checkId: invoice-orchestrator-availability-check
+  -
+    signalId: invoice-orchestrator-availability-check
     name: Availability heartbeat responds
     catalogItemId: invoice-orchestrator-svc
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/invoice-orchestrator-availability-check
-  - type: http
-    checkId: invoice-orchestrator-latency-check
+  -
+    signalId: invoice-orchestrator-latency-check
     name: Request latency is within SLO
     catalogItemId: invoice-orchestrator-svc
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/invoice-orchestrator-latency-check
-  - type: http
-    checkId: invoice-orchestrator-error-rate-check
+  -
+    signalId: invoice-orchestrator-error-rate-check
     name: Error rate is below threshold
     catalogItemId: invoice-orchestrator-svc
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/invoice-orchestrator-error-rate-check
-  - type: http
-    checkId: invoice-orchestrator-backlog-check
+  -
+    signalId: invoice-orchestrator-backlog-check
     name: Work backlog is within limits
     catalogItemId: invoice-orchestrator-svc
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/invoice-orchestrator-backlog-check
-  - type: http
-    checkId: payment-auth-adapter-availability-check
+  -
+    signalId: payment-auth-adapter-availability-check
     name: Availability heartbeat responds
     catalogItemId: payment-auth-adapter-svc
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/payment-auth-adapter-availability-check
-  - type: http
-    checkId: payment-auth-adapter-latency-check
+  -
+    signalId: payment-auth-adapter-latency-check
     name: Request latency is within SLO
     catalogItemId: payment-auth-adapter-svc
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/payment-auth-adapter-latency-check
-  - type: http
-    checkId: payment-auth-adapter-error-rate-check
+  -
+    signalId: payment-auth-adapter-error-rate-check
     name: Error rate is below threshold
     catalogItemId: payment-auth-adapter-svc
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/payment-auth-adapter-error-rate-check
-  - type: http
-    checkId: payment-auth-adapter-backlog-check
+  -
+    signalId: payment-auth-adapter-backlog-check
     name: Work backlog is within limits
     catalogItemId: payment-auth-adapter-svc
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/payment-auth-adapter-backlog-check
-  - type: http
-    checkId: payment-auth-adapter-dependency-connectivity-check
+  -
+    signalId: payment-auth-adapter-dependency-connectivity-check
     name: Critical dependency connectivity is healthy
     catalogItemId: payment-auth-adapter-svc
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/payment-auth-adapter-dependency-connectivity-check
-  - type: http
-    checkId: order-state-projection-availability-check
+  -
+    signalId: order-state-projection-availability-check
     name: Availability heartbeat responds
     catalogItemId: order-state-projection-svc
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/order-state-projection-availability-check
-  - type: http
-    checkId: order-state-projection-latency-check
+  -
+    signalId: order-state-projection-latency-check
     name: Request latency is within SLO
     catalogItemId: order-state-projection-svc
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/order-state-projection-latency-check
-  - type: http
-    checkId: order-state-projection-error-rate-check
+  -
+    signalId: order-state-projection-error-rate-check
     name: Error rate is below threshold
     catalogItemId: order-state-projection-svc
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/order-state-projection-error-rate-check
-  - type: http
-    checkId: order-sla-tracker-availability-check
+  -
+    signalId: order-sla-tracker-availability-check
     name: Availability heartbeat responds
     catalogItemId: order-sla-tracker-svc
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/order-sla-tracker-availability-check
-  - type: http
-    checkId: fulfillment-control-plane-availability-check
+  -
+    signalId: fulfillment-control-plane-availability-check
     name: Availability heartbeat responds
     catalogItemId: fulfillment-control-plane-svc
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/fulfillment-control-plane-availability-check
-  - type: http
-    checkId: logistics-event-router-availability-check
+  -
+    signalId: logistics-event-router-availability-check
     name: Availability heartbeat responds
     catalogItemId: logistics-event-router-svc
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/logistics-event-router-availability-check
-  - type: http
-    checkId: logistics-event-router-latency-check
+  -
+    signalId: logistics-event-router-latency-check
     name: Request latency is within SLO
     catalogItemId: logistics-event-router-svc
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/logistics-event-router-latency-check
-  - type: http
-    checkId: logistics-event-router-error-rate-check
+  -
+    signalId: logistics-event-router-error-rate-check
     name: Error rate is below threshold
     catalogItemId: logistics-event-router-svc
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/logistics-event-router-error-rate-check
-  - type: http
-    checkId: logistics-event-router-backlog-check
+  -
+    signalId: logistics-event-router-backlog-check
     name: Work backlog is within limits
     catalogItemId: logistics-event-router-svc
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/logistics-event-router-backlog-check
-  - type: http
-    checkId: route-cache-writer-availability-check
+  -
+    signalId: route-cache-writer-availability-check
     name: Availability heartbeat responds
     catalogItemId: route-cache-writer-svc
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/route-cache-writer-availability-check
-  - type: http
-    checkId: route-cost-model-availability-check
+  -
+    signalId: route-cost-model-availability-check
     name: Availability heartbeat responds
     catalogItemId: route-cost-model-svc
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/route-cost-model-availability-check
-  - type: http
-    checkId: route-cost-model-latency-check
+  -
+    signalId: route-cost-model-latency-check
     name: Request latency is within SLO
     catalogItemId: route-cost-model-svc
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/route-cost-model-latency-check
-  - type: http
-    checkId: inventory-reconciler-availability-check
+  -
+    signalId: inventory-reconciler-availability-check
     name: Availability heartbeat responds
     catalogItemId: inventory-reconciler-svc
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/inventory-reconciler-availability-check
-  - type: http
-    checkId: stock-reservation-availability-check
+  -
+    signalId: stock-reservation-availability-check
     name: Availability heartbeat responds
     catalogItemId: stock-reservation-svc
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/stock-reservation-availability-check
-  - type: http
-    checkId: stock-reservation-latency-check
+  -
+    signalId: stock-reservation-latency-check
     name: Request latency is within SLO
     catalogItemId: stock-reservation-svc
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/stock-reservation-latency-check
-  - type: http
-    checkId: stock-reservation-error-rate-check
+  -
+    signalId: stock-reservation-error-rate-check
     name: Error rate is below threshold
     catalogItemId: stock-reservation-svc
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/stock-reservation-error-rate-check
-  - type: http
-    checkId: depot-slotting-availability-check
+  -
+    signalId: depot-slotting-availability-check
     name: Availability heartbeat responds
     catalogItemId: depot-slotting-svc
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/depot-slotting-availability-check
-  - type: http
-    checkId: depot-slotting-latency-check
+  -
+    signalId: depot-slotting-latency-check
     name: Request latency is within SLO
     catalogItemId: depot-slotting-svc
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/depot-slotting-latency-check
-  - type: http
-    checkId: carrier-capacity-broker-availability-check
+  -
+    signalId: carrier-capacity-broker-availability-check
     name: Availability heartbeat responds
     catalogItemId: carrier-capacity-broker-svc
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/carrier-capacity-broker-availability-check
-  - type: http
-    checkId: carrier-capacity-broker-latency-check
+  -
+    signalId: carrier-capacity-broker-latency-check
     name: Request latency is within SLO
     catalogItemId: carrier-capacity-broker-svc
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/carrier-capacity-broker-latency-check
-  - type: http
-    checkId: carrier-capacity-broker-error-rate-check
+  -
+    signalId: carrier-capacity-broker-error-rate-check
     name: Error rate is below threshold
     catalogItemId: carrier-capacity-broker-svc
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/carrier-capacity-broker-error-rate-check
-  - type: http
-    checkId: dispatch-simulation-availability-check
+  -
+    signalId: dispatch-simulation-availability-check
     name: Availability heartbeat responds
     catalogItemId: dispatch-simulation-svc
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/dispatch-simulation-availability-check
-  - type: http
-    checkId: dispatch-simulation-latency-check
+  -
+    signalId: dispatch-simulation-latency-check
     name: Request latency is within SLO
     catalogItemId: dispatch-simulation-svc
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/dispatch-simulation-latency-check
-  - type: http
-    checkId: dispatch-simulation-error-rate-check
+  -
+    signalId: dispatch-simulation-error-rate-check
     name: Error rate is below threshold
     catalogItemId: dispatch-simulation-svc
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/dispatch-simulation-error-rate-check
-  - type: http
-    checkId: dispatch-simulation-backlog-check
+  -
+    signalId: dispatch-simulation-backlog-check
     name: Work backlog is within limits
     catalogItemId: dispatch-simulation-svc
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/dispatch-simulation-backlog-check
-  - type: http
-    checkId: customer-consent-ledger-availability-check
+  -
+    signalId: customer-consent-ledger-availability-check
     name: Availability heartbeat responds
     catalogItemId: customer-consent-ledger-svc
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/customer-consent-ledger-availability-check
-  - type: http
-    checkId: customer-consent-ledger-latency-check
+  -
+    signalId: customer-consent-ledger-latency-check
     name: Request latency is within SLO
     catalogItemId: customer-consent-ledger-svc
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/customer-consent-ledger-latency-check
-  - type: http
-    checkId: customer-consent-ledger-error-rate-check
+  -
+    signalId: customer-consent-ledger-error-rate-check
     name: Error rate is below threshold
     catalogItemId: customer-consent-ledger-svc
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/customer-consent-ledger-error-rate-check
-  - type: http
-    checkId: customer-consent-ledger-backlog-check
+  -
+    signalId: customer-consent-ledger-backlog-check
     name: Work backlog is within limits
     catalogItemId: customer-consent-ledger-svc
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/customer-consent-ledger-backlog-check
-  - type: http
-    checkId: audience-intent-processor-availability-check
+  -
+    signalId: audience-intent-processor-availability-check
     name: Availability heartbeat responds
     catalogItemId: audience-intent-processor-svc
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/audience-intent-processor-availability-check
-  - type: http
-    checkId: audience-intent-processor-latency-check
+  -
+    signalId: audience-intent-processor-latency-check
     name: Request latency is within SLO
     catalogItemId: audience-intent-processor-svc
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/audience-intent-processor-latency-check
-  - type: http
-    checkId: audience-intent-processor-error-rate-check
+  -
+    signalId: audience-intent-processor-error-rate-check
     name: Error rate is below threshold
     catalogItemId: audience-intent-processor-svc
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/audience-intent-processor-error-rate-check
-  - type: http
-    checkId: journey-rules-engine-availability-check
+  -
+    signalId: journey-rules-engine-availability-check
     name: Availability heartbeat responds
     catalogItemId: journey-rules-engine-svc
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/journey-rules-engine-availability-check
-  - type: http
-    checkId: journey-rules-engine-latency-check
+  -
+    signalId: journey-rules-engine-latency-check
     name: Request latency is within SLO
     catalogItemId: journey-rules-engine-svc
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/journey-rules-engine-latency-check
-  - type: http
-    checkId: journey-rules-engine-error-rate-check
+  -
+    signalId: journey-rules-engine-error-rate-check
     name: Error rate is below threshold
     catalogItemId: journey-rules-engine-svc
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/journey-rules-engine-error-rate-check
-  - type: http
-    checkId: journey-experimentation-availability-check
+  -
+    signalId: journey-experimentation-availability-check
     name: Availability heartbeat responds
     catalogItemId: journey-experimentation-svc
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/journey-experimentation-availability-check
-  - type: http
-    checkId: touchpoint-session-state-availability-check
+  -
+    signalId: touchpoint-session-state-availability-check
     name: Availability heartbeat responds
     catalogItemId: touchpoint-session-state-svc
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/touchpoint-session-state-availability-check
-  - type: http
-    checkId: profile-merge-orchestrator-availability-check
+  -
+    signalId: profile-merge-orchestrator-availability-check
     name: Availability heartbeat responds
     catalogItemId: profile-merge-orchestrator-svc
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/profile-merge-orchestrator-availability-check
-  - type: http
-    checkId: template-renderer-availability-check
+  -
+    signalId: template-renderer-availability-check
     name: Availability heartbeat responds
     catalogItemId: template-renderer-svc
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/template-renderer-availability-check
-  - type: http
-    checkId: template-renderer-latency-check
+  -
+    signalId: template-renderer-latency-check
     name: Request latency is within SLO
     catalogItemId: template-renderer-svc
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/template-renderer-latency-check
-  - type: http
-    checkId: template-renderer-error-rate-check
+  -
+    signalId: template-renderer-error-rate-check
     name: Error rate is below threshold
     catalogItemId: template-renderer-svc
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/template-renderer-error-rate-check
-  - type: http
-    checkId: channel-delivery-router-availability-check
+  -
+    signalId: channel-delivery-router-availability-check
     name: Availability heartbeat responds
     catalogItemId: channel-delivery-router-svc
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/channel-delivery-router-availability-check
-  - type: http
-    checkId: channel-delivery-router-latency-check
+  -
+    signalId: channel-delivery-router-latency-check
     name: Request latency is within SLO
     catalogItemId: channel-delivery-router-svc
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/channel-delivery-router-latency-check
-  - type: http
-    checkId: channel-delivery-router-error-rate-check
+  -
+    signalId: channel-delivery-router-error-rate-check
     name: Error rate is below threshold
     catalogItemId: channel-delivery-router-svc
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/channel-delivery-router-error-rate-check
-  - type: http
-    checkId: campaign-segmentation-availability-check
+  -
+    signalId: campaign-segmentation-availability-check
     name: Availability heartbeat responds
     catalogItemId: campaign-segmentation-svc
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/campaign-segmentation-availability-check
-  - type: http
-    checkId: campaign-segmentation-latency-check
+  -
+    signalId: campaign-segmentation-latency-check
     name: Request latency is within SLO
     catalogItemId: campaign-segmentation-svc
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/campaign-segmentation-latency-check
-  - type: http
-    checkId: campaign-segmentation-error-rate-check
+  -
+    signalId: campaign-segmentation-error-rate-check
     name: Error rate is below threshold
     catalogItemId: campaign-segmentation-svc
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/campaign-segmentation-error-rate-check
-  - type: http
-    checkId: campaign-segmentation-backlog-check
+  -
+    signalId: campaign-segmentation-backlog-check
     name: Work backlog is within limits
     catalogItemId: campaign-segmentation-svc
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/campaign-segmentation-backlog-check
-  - type: http
-    checkId: campaign-budget-guard-availability-check
+  -
+    signalId: campaign-budget-guard-availability-check
     name: Availability heartbeat responds
     catalogItemId: campaign-budget-guard-svc
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/campaign-budget-guard-availability-check
-  - type: http
-    checkId: sli-commerce-line-core-customer-availability-check
+  -
+    signalId: sli-commerce-line-core-customer-availability-check
     name: 'SLI: Customer-visible availability'
     catalogItemId: commerce-line-core
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/sli-commerce-line-core-customer-availability-check
-  - type: http
-    checkId: sli-commerce-line-core-journey-latency-check
+  -
+    signalId: sli-commerce-line-core-journey-latency-check
     name: 'SLI: Customer journey latency'
     catalogItemId: commerce-line-core
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/sli-commerce-line-core-journey-latency-check
-  - type: http
-    checkId: sli-commerce-extensions-customer-availability-check
+  -
+    signalId: sli-commerce-extensions-customer-availability-check
     name: 'SLI: Customer-visible availability'
     catalogItemId: commerce-extensions
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/sli-commerce-extensions-customer-availability-check
-  - type: http
-    checkId: sli-commerce-core-customer-availability-check
+  -
+    signalId: sli-commerce-core-customer-availability-check
     name: 'SLI: Customer-visible availability'
     catalogItemId: commerce-core
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/sli-commerce-core-customer-availability-check
-  - type: http
-    checkId: sli-order-domain-customer-availability-check
+  -
+    signalId: sli-order-domain-customer-availability-check
     name: 'SLI: Customer-visible availability'
     catalogItemId: order-domain
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/sli-order-domain-customer-availability-check
-  - type: http
-    checkId: sli-order-intake-hub-customer-availability-check
+  -
+    signalId: sli-order-intake-hub-customer-availability-check
     name: 'SLI: Customer-visible availability'
     catalogItemId: order-intake-hub
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/sli-order-intake-hub-customer-availability-check
-  - type: http
-    checkId: sli-order-intake-hub-journey-latency-check
+  -
+    signalId: sli-order-intake-hub-journey-latency-check
     name: 'SLI: Customer journey latency'
     catalogItemId: order-intake-hub
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/sli-order-intake-hub-journey-latency-check
-  - type: http
-    checkId: sli-order-guard-hub-customer-availability-check
+  -
+    signalId: sli-order-guard-hub-customer-availability-check
     name: 'SLI: Customer-visible availability'
     catalogItemId: order-guard-hub
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/sli-order-guard-hub-customer-availability-check
-  - type: http
-    checkId: sli-order-finance-hub-customer-availability-check
+  -
+    signalId: sli-order-finance-hub-customer-availability-check
     name: 'SLI: Customer-visible availability'
     catalogItemId: order-finance-hub
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/sli-order-finance-hub-customer-availability-check
-  - type: http
-    checkId: sli-order-workflow-customer-availability-check
+  -
+    signalId: sli-order-workflow-customer-availability-check
     name: 'SLI: Customer-visible availability'
     catalogItemId: order-workflow
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/sli-order-workflow-customer-availability-check
-  - type: http
-    checkId: sli-operations-line-customer-availability-check
+  -
+    signalId: sli-operations-line-customer-availability-check
     name: 'SLI: Customer-visible availability'
     catalogItemId: operations-line
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/sli-operations-line-customer-availability-check
-  - type: http
-    checkId: sli-operations-line-journey-latency-check
+  -
+    signalId: sli-operations-line-journey-latency-check
     name: 'SLI: Customer journey latency'
     catalogItemId: operations-line
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/sli-operations-line-journey-latency-check
-  - type: http
-    checkId: sli-ops-accelerators-customer-availability-check
+  -
+    signalId: sli-ops-accelerators-customer-availability-check
     name: 'SLI: Customer-visible availability'
     catalogItemId: ops-accelerators
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/sli-ops-accelerators-customer-availability-check
-  - type: http
-    checkId: sli-fulfillment-hub-customer-availability-check
+  -
+    signalId: sli-fulfillment-hub-customer-availability-check
     name: 'SLI: Customer-visible availability'
     catalogItemId: fulfillment-hub
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/sli-fulfillment-hub-customer-availability-check
-  - type: http
-    checkId: sli-logistics-domain-customer-availability-check
+  -
+    signalId: sli-logistics-domain-customer-availability-check
     name: 'SLI: Customer-visible availability'
     catalogItemId: logistics-domain
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/sli-logistics-domain-customer-availability-check
-  - type: http
-    checkId: sli-logistics-routing-cell-customer-availability-check
+  -
+    signalId: sli-logistics-routing-cell-customer-availability-check
     name: 'SLI: Customer-visible availability'
     catalogItemId: logistics-routing-cell
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/sli-logistics-routing-cell-customer-availability-check
-  - type: http
-    checkId: sli-logistics-routing-cell-journey-latency-check
+  -
+    signalId: sli-logistics-routing-cell-journey-latency-check
     name: 'SLI: Customer journey latency'
     catalogItemId: logistics-routing-cell
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/sli-logistics-routing-cell-journey-latency-check
-  - type: http
-    checkId: sli-logistics-inventory-cell-customer-availability-check
+  -
+    signalId: sli-logistics-inventory-cell-customer-availability-check
     name: 'SLI: Customer-visible availability'
     catalogItemId: logistics-inventory-cell
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/sli-logistics-inventory-cell-customer-availability-check
-  - type: http
-    checkId: sli-distribution-core-customer-availability-check
+  -
+    signalId: sli-distribution-core-customer-availability-check
     name: 'SLI: Customer-visible availability'
     catalogItemId: distribution-core
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/sli-distribution-core-customer-availability-check
-  - type: http
-    checkId: sli-experience-line-customer-availability-check
+  -
+    signalId: sli-experience-line-customer-availability-check
     name: 'SLI: Customer-visible availability'
     catalogItemId: experience-line
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/sli-experience-line-customer-availability-check
-  - type: http
-    checkId: sli-experience-foundation-customer-availability-check
+  -
+    signalId: sli-experience-foundation-customer-availability-check
     name: 'SLI: Customer-visible availability'
     catalogItemId: experience-foundation
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/sli-experience-foundation-customer-availability-check
-  - type: http
-    checkId: sli-experience-foundation-journey-latency-check
+  -
+    signalId: sli-experience-foundation-journey-latency-check
     name: 'SLI: Customer journey latency'
     catalogItemId: experience-foundation
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/sli-experience-foundation-journey-latency-check
-  - type: http
-    checkId: sli-engagement-suite-customer-availability-check
+  -
+    signalId: sli-engagement-suite-customer-availability-check
     name: 'SLI: Customer-visible availability'
     catalogItemId: engagement-suite
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/sli-engagement-suite-customer-availability-check
-  - type: http
-    checkId: sli-journey-domain-customer-availability-check
+  -
+    signalId: sli-journey-domain-customer-availability-check
     name: 'SLI: Customer-visible availability'
     catalogItemId: journey-domain
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/sli-journey-domain-customer-availability-check
-  - type: http
-    checkId: sli-touchpoint-core-customer-availability-check
+  -
+    signalId: sli-touchpoint-core-customer-availability-check
     name: 'SLI: Customer-visible availability'
     catalogItemId: touchpoint-core
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/sli-touchpoint-core-customer-availability-check
-  - type: http
-    checkId: sli-touchpoint-profile-pillar-customer-availability-check
+  -
+    signalId: sli-touchpoint-profile-pillar-customer-availability-check
     name: 'SLI: Customer-visible availability'
     catalogItemId: touchpoint-profile-pillar
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/sli-touchpoint-profile-pillar-customer-availability-check
-  - type: http
-    checkId: sli-touchpoint-profile-pillar-journey-latency-check
+  -
+    signalId: sli-touchpoint-profile-pillar-journey-latency-check
     name: 'SLI: Customer journey latency'
     catalogItemId: touchpoint-profile-pillar
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/sli-touchpoint-profile-pillar-journey-latency-check
-  - type: http
-    checkId: sli-touchpoint-messaging-pillar-customer-availability-check
+  -
+    signalId: sli-touchpoint-messaging-pillar-customer-availability-check
     name: 'SLI: Customer-visible availability'
     catalogItemId: touchpoint-messaging-pillar
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/sli-touchpoint-messaging-pillar-customer-availability-check
-  - type: http
-    checkId: sli-touchpoint-campaign-pillar-customer-availability-check
+  -
+    signalId: sli-touchpoint-campaign-pillar-customer-availability-check
     name: 'SLI: Customer-visible availability'
     catalogItemId: touchpoint-campaign-pillar
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/sli-touchpoint-campaign-pillar-customer-availability-check
-  - type: http
-    checkId: sli-profile-core-nodes-customer-availability-check
+  -
+    signalId: sli-profile-core-nodes-customer-availability-check
     name: 'SLI: Customer-visible availability'
     catalogItemId: profile-core-nodes
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/sli-profile-core-nodes-customer-availability-check
-  - type: http
-    checkId: sli-profile-identity-nodes-customer-availability-check
+  -
+    signalId: sli-profile-identity-nodes-customer-availability-check
     name: 'SLI: Customer-visible availability'
     catalogItemId: profile-identity-nodes
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/sli-profile-identity-nodes-customer-availability-check
-  - type: http
-    checkId: sli-profile-identity-nodes-journey-latency-check
+  -
+    signalId: sli-profile-identity-nodes-journey-latency-check
     name: 'SLI: Customer journey latency'
     catalogItemId: profile-identity-nodes
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/sli-profile-identity-nodes-journey-latency-check
-  - type: http
-    checkId: sli-messaging-router-nodes-customer-availability-check
+  -
+    signalId: sli-messaging-router-nodes-customer-availability-check
     name: 'SLI: Customer-visible availability'
     catalogItemId: messaging-router-nodes
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/sli-messaging-router-nodes-customer-availability-check
-  - type: http
-    checkId: sli-messaging-template-nodes-customer-availability-check
+  -
+    signalId: sli-messaging-template-nodes-customer-availability-check
     name: 'SLI: Customer-visible availability'
     catalogItemId: messaging-template-nodes
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/sli-messaging-template-nodes-customer-availability-check
-  - type: http
-    checkId: sli-campaign-planner-nodes-customer-availability-check
+  -
+    signalId: sli-campaign-planner-nodes-customer-availability-check
     name: 'SLI: Customer-visible availability'
     catalogItemId: campaign-planner-nodes
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/sli-campaign-planner-nodes-customer-availability-check
-  - type: http
-    checkId: sli-campaign-optimizer-nodes-customer-availability-check
+  -
+    signalId: sli-campaign-optimizer-nodes-customer-availability-check
     name: 'SLI: Customer-visible availability'
     catalogItemId: campaign-optimizer-nodes
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/sli-campaign-optimizer-nodes-customer-availability-check
-  - type: http
-    checkId: sli-campaign-optimizer-nodes-journey-latency-check
+  -
+    signalId: sli-campaign-optimizer-nodes-journey-latency-check
     name: 'SLI: Customer journey latency'
     catalogItemId: campaign-optimizer-nodes
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/sli-campaign-optimizer-nodes-journey-latency-check
+
+

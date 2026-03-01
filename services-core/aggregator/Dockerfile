@@ -14,14 +14,14 @@ RUN mvn -B package -DskipTests
 # -------- Runtime stage --------
 FROM eclipse-temurin:25-jre-jammy
 
-ARG CATALOG_FILE
-ARG HEALTH_CHECKS_FILE
+ARG CATALOG_DEFINITION_FILE
+ARG HTTP_POLL_SIGNALS_FILE
 
 WORKDIR /app
 
 COPY --from=build /app/target/*.jar ./app.jar
-COPY ${CATALOG_FILE} ./catalog.yaml
-COPY ${HEALTH_CHECKS_FILE} ./health-checks.yaml
+COPY ${CATALOG_DEFINITION_FILE} ./catalog-definition.yaml
+COPY ${HTTP_POLL_SIGNALS_FILE} ./http-poll-signals.yaml
 
 RUN useradd --system --uid 1001 --create-home appuser \
   && chown -R appuser:appuser /app
