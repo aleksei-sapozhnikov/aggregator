@@ -4,22 +4,76 @@
 
 import {buildItemRouteHref, isPlainLeftClick} from '../shared/catalogUtils';
 import {buildStatusText} from '../shared/statusText';
+/** @typedef {import('../shared/types').CatalogItem} CatalogItem */
+/** @typedef {import('../shared/types').CatalogTreeNode} CatalogTreeNode */
+/** @typedef {import('../shared/types').HealthStatus} HealthStatus */
+/** @typedef {import('../shared/types').SearchAutocompleteOption} SearchAutocompleteOption */
+/** @typedef {import('../shared/types').SearchResult} SearchResult */
+
+/**
+ * @typedef {Object} CatalogNodeProps
+ * @property {CatalogTreeNode} node
+ * @property {string} selectedNodeUid
+ * @property {(node: CatalogTreeNode) => void} onSelect
+ * @property {string} basePath
+ * @property {Set<string>} expandedIds
+ * @property {(node: CatalogTreeNode) => void} onToggleNode
+ * @property {HealthStatus} status
+ * @property {Record<string, HealthStatus>} statuses
+ * @property {string} lastUpdated
+ */
+
+/**
+ * @typedef {Object} SidebarPanelProps
+ * @property {boolean} isSidebarOpen
+ * @property {string} homeHref
+ * @property {string} homeIconSrc
+ * @property {string} iconSpriteHref
+ * @property {() => void} onToggleSidebar
+ * @property {string} sidebarTitle
+ * @property {string} error
+ * @property {CatalogTreeNode[]} tree
+ * @property {string} searchQuery
+ * @property {string} searchSuggestionsListId
+ * @property {SearchAutocompleteOption[]} searchAutocompleteOptions
+ * @property {(value: string) => void} setSearchQuery
+ * @property {boolean} isSearchActive
+ * @property {(value: boolean) => void} setIsSearchActive
+ * @property {() => void} onClearSearch
+ * @property {() => void} onCollapseAll
+ * @property {() => void} onExpandAll
+ * @property {SearchResult[]} searchResults
+ * @property {string} selectedId
+ * @property {string} selectedNodeUid
+ * @property {string} basePath
+ * @property {(itemId: string) => void} onSelectItemById
+ * @property {(itemId: string) => void} onExpandPathToItem
+ * @property {Record<string, HealthStatus>} itemStatuses
+ * @property {string} lastUpdated
+ * @property {{current: HTMLDivElement | null}} catalogTreeRef
+ * @property {CatalogTreeNode[]} filteredTree
+ * @property {Set<string>} expandedIds
+ * @property {(node: CatalogTreeNode) => void} onToggleNode
+ * @property {(node: CatalogTreeNode) => void} onSelectNode
+ */
 
 /**
  * Recursive tree node renderer used only by SidebarPanel.
  * Kept local to preserve the coarse-grained component split.
+ *
+ * @param {CatalogNodeProps} props
  */
 const CatalogNode = ({
-    node,
+                         node,
                          selectedNodeUid,
-    onSelect,
-    basePath,
-    expandedIds,
-    onToggleNode,
-    status,
-    statuses,
-    lastUpdated,
-}) => {
+                         onSelect,
+                         basePath,
+                         expandedIds,
+                         onToggleNode,
+                         status,
+                         statuses,
+                         lastUpdated,
+                     }) => {
     const hasChildren = node.children.length > 0;
     const isExpanded = expandedIds.has(node.item.id);
     const statusLabel = buildStatusText(status, {lastUpdated});
@@ -119,39 +173,41 @@ const CatalogNode = ({
  * - search results mode
  *
  * App owns orchestration state and passes callbacks / derived data.
+ *
+ * @param {SidebarPanelProps} props
  */
 export default function SidebarPanel({
-    isSidebarOpen,
-    homeHref,
-    homeIconSrc,
-    iconSpriteHref,
-    onToggleSidebar,
-    sidebarTitle,
-    error,
-    tree,
-    searchQuery,
-    searchSuggestionsListId,
-    searchAutocompleteOptions,
-    setSearchQuery,
-    isSearchActive,
-    setIsSearchActive,
-    onClearSearch,
-    onCollapseAll,
-    onExpandAll,
-    searchResults,
-    selectedId,
+                                         isSidebarOpen,
+                                         homeHref,
+                                         homeIconSrc,
+                                         iconSpriteHref,
+                                         onToggleSidebar,
+                                         sidebarTitle,
+                                         error,
+                                         tree,
+                                         searchQuery,
+                                         searchSuggestionsListId,
+                                         searchAutocompleteOptions,
+                                         setSearchQuery,
+                                         isSearchActive,
+                                         setIsSearchActive,
+                                         onClearSearch,
+                                         onCollapseAll,
+                                         onExpandAll,
+                                         searchResults,
+                                         selectedId,
                                          selectedNodeUid,
-    basePath,
-    onSelectItemById,
-    onExpandPathToItem,
-    itemStatuses,
-    lastUpdated,
-    catalogTreeRef,
-    filteredTree,
-    expandedIds,
-    onToggleNode,
-    onSelectNode,
-}) {
+                                         basePath,
+                                         onSelectItemById,
+                                         onExpandPathToItem,
+                                         itemStatuses,
+                                         lastUpdated,
+                                         catalogTreeRef,
+                                         filteredTree,
+                                         expandedIds,
+                                         onToggleNode,
+                                         onSelectNode,
+                                     }) {
     return (
         <aside className="sidebar">
             {isSidebarOpen && (
@@ -309,7 +365,8 @@ export default function SidebarPanel({
                                                                 aria-label={searchItemStatusText}
                                                                 title={searchItemStatusText}
                                                             />
-                                                            {item.name && <span className="node-name">{item.name}</span>}
+                                                            {item.name &&
+                                                                <span className="node-name">{item.name}</span>}
                                                         </span>
                                                         {(item.id || item.type) && (
                                                             <span className="node-identity">

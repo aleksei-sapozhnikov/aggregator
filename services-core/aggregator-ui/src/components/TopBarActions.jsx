@@ -3,7 +3,16 @@
  */
 
 /**
+ * @typedef {Object} TopBarActionsProps
+ * @property {'dark' | 'light'} theme
+ * @property {() => void} onToggleTheme
+ * @property {() => void} onOpenAbout
+ */
+
+/**
  * Renders top-bar actions for theme switching and opening the About dialog.
+ *
+ * @param {TopBarActionsProps} props
  */
 export default function TopBarActions({
     theme,
