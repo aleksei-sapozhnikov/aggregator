@@ -77,11 +77,12 @@ export default function App() {
     const [searchQuery, setSearchQuery] = useState('');
     const [pendingScrollId, setPendingScrollId] = useState('');
     const [isFailingSignalsOpen, setIsFailingSignalsOpen] = useState(false);
-    const [isPassingSignalsOpen, setIsPassingSignalsOpen] = useState(false);
+    const [isPassingSignalsOpen, setIsPassingSignalsOpen] = useState(true);
     const [isGrafanaOpen, setIsGrafanaOpen] = useState(true);
     const [isAboutOpen, setIsAboutOpen] = useState(false);
     const [isTitlePrimaryBelowControls, setIsTitlePrimaryBelowControls] = useState(false);
     const failingSignalsAutoOpenRef = useRef(true);
+    const passingSignalsInitialStateRef = useRef(true);
     const grafanaPanelInitializedRef = useRef(false);
     const [grafanaHeight, setGrafanaHeight] = useState(0);
     const prevSearchTokensRef = useRef(0);
@@ -815,6 +816,10 @@ export default function App() {
     useEffect(() => {
         setIsFailingSignalsOpen(false);
         failingSignalsAutoOpenRef.current = true;
+        if (passingSignalsInitialStateRef.current) {
+            passingSignalsInitialStateRef.current = false;
+            return;
+        }
         setIsPassingSignalsOpen(false);
     }, [selectedId]);
 
