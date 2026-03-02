@@ -993,6 +993,12 @@ body {
   line-height: 1.5;
 }
 
+.about-divider {
+  height: 1px;
+  margin: 16px 0 18px;
+  background: linear-gradient(90deg, transparent, var(--border) 18%, var(--border) 82%, transparent);
+}
+
 .about-modal ul {
   margin: 0 0 14px;
   padding-left: 20px;

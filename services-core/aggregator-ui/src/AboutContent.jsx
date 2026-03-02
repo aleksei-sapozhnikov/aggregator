@@ -17,14 +17,22 @@ export default function AboutContent() {
                 levels deeper in a small technical service owned by another team.
             </p>
             <p>
-                The Aggregator keeps a catalog of product items and services, their interdependencies, and
-                definitions of how to collect their health signals. Currently, it only polls HTTP health check pages,
-                while ingested signals can be added later.
+                The Aggregator keeps a catalog of product items and services, their interdependencies, and definitions
+                of how to collect their health signals. Currently, it polls HTTP health check pages and converts the
+                results into Prometheus metrics used by the UI.
             </p>
+            <div
+                aria-hidden="true"
+                className="about-divider"
+            />
             <p>
-                The practical goal is simple: clearly show what is broken and why, instead of making guesses and asking
+                The practical goal is simple: show what is broken and why, instead of making guesses and asking
                 every nearby team, "Is it on your side?"
             </p>
+            <div
+                aria-hidden="true"
+                className="about-divider"
+            />
             <p>
                 The demo includes three product lines with a dependency hierarchy up to 6 levels deep. It also adds
                 random failures to provide hands-on investigation scenarios.
@@ -39,12 +47,16 @@ export default function AboutContent() {
                     and other signal types.
                 </li>
                 <li>
-                    If it fails, see failed signals together with dependencies contributing to the failure.
+                    If an item is down, see unhealthy signals together with dependencies contributing to the issue.
                 </li>
                 <li>
                     Track changes in item and dependency signals over time to find correlations.
                 </li>
             </ul>
+            <div
+                aria-hidden="true"
+                className="about-divider"
+            />
             <p>
                 <a
                     href="https://github.com/aleksei-sapozhnikov/aggregator"
