@@ -817,6 +817,16 @@ export default function App() {
     }, [selectedId]);
 
     useEffect(() => {
+        if (!selectedId) {
+            return;
+        }
+        contentRef.current?.scrollTo({
+            top: 0,
+            behavior: 'auto',
+        });
+    }, [selectedId]);
+
+    useEffect(() => {
         if (!isGrafanaOpen) {
             grafanaFrameReadyRef.current = false;
         }
