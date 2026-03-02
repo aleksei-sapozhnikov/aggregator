@@ -404,22 +404,10 @@ export default function App() {
     }, [selectedId, selectedPath, tree]);
 
     /**
-     * Collapses the full tree and keeps the selected root item in view when possible.
+     * Collapses the full tree and resets the catalog scroll position to the top.
      */
     const handleCollapseAll = useCallback(() => {
         setExpandedIds(new Set());
-        if (selectedId) {
-            const selectedNode = selectedPath.length > 0
-                ? findNodeByPath(tree, selectedPath)
-                : findNodeById(tree, selectedId);
-            const resolvedPath = selectedNode?.path || selectedPath;
-            const isSelectedRootItem = resolvedPath.length === 1;
-            const selectedUid = selectedNode?.uid || findNodeUidById(tree, selectedId) || '';
-            if (isSelectedRootItem && selectedUid) {
-                setPendingScrollId(selectedUid);
-                return;
-            }
-        }
         setPendingScrollId('');
         window.requestAnimationFrame(() => {
             catalogTreeRef.current?.scrollTo({
@@ -427,7 +415,7 @@ export default function App() {
                 behavior: 'auto',
             });
         });
-    }, [selectedId, selectedPath, tree]);
+    }, []);
 
     const selectedNode = useMemo(() => {
         if (!selectedId) {
