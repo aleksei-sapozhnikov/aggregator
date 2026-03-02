@@ -925,15 +925,22 @@ export default function App() {
                     offset += current.offsetTop;
                     current = current.offsetParent;
                 }
+                const targetViewportOffset = container.clientHeight / 3;
                 let nextTop;
                 if (current === container) {
                     const maxScrollTop = Math.max(0, container.scrollHeight - container.clientHeight);
-                    nextTop = Math.min(offset, maxScrollTop);
+                    nextTop = Math.min(
+                        Math.max(0, offset - targetViewportOffset),
+                        maxScrollTop,
+                    );
                 } else {
                     const containerRect = container.getBoundingClientRect();
                     const fallbackOffset = nodeRect.top - containerRect.top;
                     const maxScrollTop = Math.max(0, container.scrollHeight - container.clientHeight);
-                    nextTop = Math.min(container.scrollTop + fallbackOffset, maxScrollTop);
+                    nextTop = Math.min(
+                        Math.max(0, container.scrollTop + fallbackOffset - targetViewportOffset),
+                        maxScrollTop,
+                    );
                 }
                 animateScrollTo(nextTop);
                 setPendingScrollId('');
