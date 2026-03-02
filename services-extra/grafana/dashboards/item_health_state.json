@@ -160,8 +160,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(\n  (\n    (catalog_item_check_state{item_id=~\"${item_id:regex}\"} and on() (vector(${show}) == 0))\n    or (\n      catalog_item_check_state{item_id=~\"${item_id:regex}\"}\n      and on(item_id,check_id,check_source) (min_over_time(catalog_item_check_state{item_id=~\"${item_id:regex}\"}[$__range] @ end()) < 1)\n      and on() (vector(${show}) == 1)\n    )\n  )\n  and on() ((vector(${signals}) == 1) or (vector(${signals}) == 2))\n)",
-          "legendFormat": "\u200b\u25B6\u21BA {{check_name}}",
+          "expr": "(\n  (\n    (catalog_item_signal_state{item_id=~\"${item_id:regex}\"} and on() (vector(${show}) == 0))\n    or (\n      catalog_item_signal_state{item_id=~\"${item_id:regex}\"}\n      and on(item_id,signal_id,signal_source) (min_over_time(catalog_item_signal_state{item_id=~\"${item_id:regex}\"}[$__range] @ end()) < 1)\n      and on() (vector(${show}) == 1)\n    )\n  )\n  and on() ((vector(${signals}) == 1) or (vector(${signals}) == 2))\n)",
+          "legendFormat": "\u200b\u25B6\u21BA {{signal_name}}",
           "range": true,
           "refId": "C"
         },
@@ -182,8 +182,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(\n  (\n    (catalog_item_check_state{item_id=~\"${deps:regex}\"} and on() (vector(${show}) == 0))\n    or (\n      catalog_item_check_state{item_id=~\"${deps:regex}\"}\n      and on(item_id,check_id,check_source) (min_over_time(catalog_item_check_state{item_id=~\"${deps:regex}\"}[$__range] @ end()) < 1)\n      and on() (vector(${show}) == 1)\n    )\n  )\n  and on() ((vector(${signals}) == 2) or (vector(${signals}) == 3))\n)",
-          "legendFormat": "\u200d\u25B6\u21B3 {{check_name}}",
+          "expr": "(\n  (\n    (catalog_item_signal_state{item_id=~\"${deps:regex}\"} and on() (vector(${show}) == 0))\n    or (\n      catalog_item_signal_state{item_id=~\"${deps:regex}\"}\n      and on(item_id,signal_id,signal_source) (min_over_time(catalog_item_signal_state{item_id=~\"${deps:regex}\"}[$__range] @ end()) < 1)\n      and on() (vector(${show}) == 1)\n    )\n  )\n  and on() ((vector(${signals}) == 2) or (vector(${signals}) == 3))\n)",
+          "legendFormat": "\u200d\u25B6\u21B3 {{signal_name}}",
           "range": true,
           "refId": "D"
         }

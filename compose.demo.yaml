@@ -3,8 +3,8 @@ services:
     build:
       args:
         CONTAINER_ROOT: services-core/aggregator
-        CATALOG_FILE: config/demo/catalog.yaml
-        HEALTH_CHECKS_FILE: config/demo/health-checks.yaml
+        CATALOG_DEFINITION_FILE: config/demo/catalog-definition.yaml
+        HTTP_POLL_SIGNALS_FILE: config/demo/http-poll-signals.yaml
     volumes:
       - ./config/demo:/app/config/demo:ro
 
@@ -14,7 +14,7 @@ services:
       dockerfile: services-core/aggregator-ui/Dockerfile
       args:
         CONTAINER_ROOT: services-core/aggregator-ui
-        CATALOG_FILE: config/demo/catalog.yaml
+        CATALOG_DEFINITION_FILE: config/demo/catalog-definition.yaml
         VITE_APP_TITLE: "Health Aggregator DEMO"
 
   chaos-maker:
@@ -23,7 +23,7 @@ services:
       dockerfile: services-demo/chaos-maker/Dockerfile
       args:
         CONTAINER_ROOT: services-demo/chaos-maker
-        HEALTH_CHECKS_FILE: config/demo/health-checks.yaml
+        HTTP_POLL_SIGNALS_FILE: config/demo/http-poll-signals.yaml
     environment:
       CHAOS_ENABLED: "true"
       CHAOS_ALWAYS_BROKEN: "true"
@@ -31,7 +31,7 @@ services:
       CHAOS_MAX_INTERVAL: 120m
       CHAOS_MIN_DURATION: 5m
       CHAOS_MAX_DURATION: 60m
-      CHAOS_MAX_CONCURRENT: "1"
+      CHAOS_MAX_CONCURRENT: "2"
     volumes:
       - ./config/demo:/config/demo:ro
 

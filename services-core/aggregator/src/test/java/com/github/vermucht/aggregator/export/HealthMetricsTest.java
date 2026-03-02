@@ -2,16 +2,16 @@ package com.github.vermucht.aggregator.export;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.github.vermucht.aggregator.aggregation.HealthStateStore;
-import com.github.vermucht.aggregator.aggregation.ProductHealthAggregator;
-import com.github.vermucht.aggregator.aggregation.HealthCheckStateStore;
+import com.github.vermucht.aggregator.aggregation.CatalogHealthAggregator;
 import com.github.vermucht.aggregator.catalog.model.Catalog;
 import com.github.vermucht.aggregator.catalog.model.Dependency;
 import com.github.vermucht.aggregator.catalog.model.Item;
 import com.github.vermucht.aggregator.catalog.model.ItemId;
-import com.github.vermucht.aggregator.healthcheck.model.HealthStatus;
-import com.github.vermucht.aggregator.healthcheck.model.HealthSignal;
-import com.github.vermucht.aggregator.healthcheck.polling.PollingHealthCheck;
+import com.github.vermucht.aggregator.signal.model.HealthSignal;
+import com.github.vermucht.aggregator.signal.model.HealthStatus;
+import com.github.vermucht.aggregator.signal.state.HealthSignalStateStore;
+import com.github.vermucht.aggregator.signal.state.ItemHealthStateStore;
+import com.github.vermucht.aggregator.signalsource.polling.PollingSignalSource;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.Collection;
@@ -25,8 +25,8 @@ import org.junit.jupiter.api.Test;
 class HealthMetricsTest {
 
   private SimpleMeterRegistry meterRegistry;
-  private HealthStateStore healthStateStore;
-  private HealthCheckStateStore checkStateStore;
+  private ItemHealthStateStore healthStateStore;
+  private HealthSignalStateStore signalStateStore;
 
   private static Catalog testCatalog() {
     // Create 4 items to match the expected gauge count.
@@ -52,9 +52,9 @@ class HealthMetricsTest {
     meterRegistry = new SimpleMeterRegistry();
 
     Catalog catalog = testCatalog();
-    ProductHealthAggregator aggregator = new ProductHealthAggregator();
-    healthStateStore = new HealthStateStore(catalog, aggregator);
-    checkStateStore = new HealthCheckStateStore();
+    CatalogHealthAggregator aggregator = new CatalogHealthAggregator();
+    healthStateStore = new ItemHealthStateStore(catalog, aggregator);
+    signalStateStore = new HealthSignalStateStore();
 
     // Registers gauges in constructor.
     HealthMetrics metrics =
@@ -62,9 +62,9 @@ class HealthMetricsTest {
             meterRegistry,
             catalog,
             healthStateStore,
-            checkStateStore,
+            signalStateStore,
             List.of(
-                new StubHealthCheck(
+                new StubSignalSource(
                     ItemId.of("api-gateway"),
                     "gateway-health",
                     "Gateway readiness",
@@ -147,23 +147,23 @@ class HealthMetricsTest {
   }
 
   @Test
-  void updatesCheckMetricWithLatestSignal() {
-    Gauge checkGauge =
+  void updatesSignalMetricWithLatestSignal() {
+    Gauge signalGauge =
         meterRegistry
-            .find(HealthMetrics.ITEM_CHECK_METRIC_NAME)
+            .find(HealthMetrics.ITEM_SIGNAL_METRIC_NAME)
             .tags(
                 HealthMetrics.LABEL_ITEM_ID, "api-gateway",
                 HealthMetrics.LABEL_ITEM_NAME, "API Gateway",
                 HealthMetrics.LABEL_ITEM_TYPE, "service",
-                HealthMetrics.LABEL_CHECK_ID, "gateway-health",
-                HealthMetrics.LABEL_CHECK_NAME, "Gateway readiness",
-                HealthMetrics.LABEL_CHECK_SOURCE, "http")
+                HealthMetrics.LABEL_SIGNAL_ID, "gateway-health",
+                HealthMetrics.LABEL_SIGNAL_NAME, "Gateway readiness",
+                HealthMetrics.LABEL_SIGNAL_SOURCE, "http")
             .gauge();
 
-    assertThat(checkGauge).isNotNull();
-    assertThat(checkGauge.value()).isEqualTo(HealthStatusMetrics.UNKNOWN_VALUE);
+    assertThat(signalGauge).isNotNull();
+    assertThat(signalGauge.value()).isEqualTo(HealthStatusMetrics.UNKNOWN_VALUE);
 
-    checkStateStore.updateSignal(
+    signalStateStore.updateSignal(
         new HealthSignal(
             ItemId.of("api-gateway"),
             "gateway-health",
@@ -173,25 +173,25 @@ class HealthMetricsTest {
             null,
             Map.of()));
 
-    assertThat(checkGauge.value()).isEqualTo(HealthStatusMetrics.DOWN_VALUE);
+    assertThat(signalGauge.value()).isEqualTo(HealthStatusMetrics.DOWN_VALUE);
   }
 
-  private static final class StubHealthCheck implements PollingHealthCheck {
+  private static final class StubSignalSource implements PollingSignalSource {
     private final ItemId itemId;
-    private final String checkId;
+    private final String signalId;
     private final String name;
     private final String source;
 
-    private StubHealthCheck(ItemId itemId, String checkId, String name, String source) {
+    private StubSignalSource(ItemId itemId, String signalId, String name, String source) {
       this.itemId = itemId;
-      this.checkId = checkId;
+      this.signalId = signalId;
       this.name = name;
       this.source = source;
     }
 
     @Override
-    public String getCheckId() {
-      return checkId;
+    public String getSignalId() {
+      return signalId;
     }
 
     @Override
@@ -217,7 +217,7 @@ class HealthMetricsTest {
     @Override
     public HealthSignal poll() {
       return new HealthSignal(
-          itemId, checkId, HealthStatus.UP, Instant.now(), source, null, Map.of());
+          itemId, signalId, HealthStatus.UP, Instant.now(), source, null, Map.of());
     }
   }
 }

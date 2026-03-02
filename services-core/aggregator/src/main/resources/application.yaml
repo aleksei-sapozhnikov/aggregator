@@ -9,7 +9,8 @@ management:
           - prometheus
 
 catalog:
-  path: file:./catalog.yaml
+  path: file:./catalog-definition.yaml
 
 health:
-  checks-path: file:./health-checks.yaml
+  http-poll:
+    definition-path: file:./http-poll-signals.yaml

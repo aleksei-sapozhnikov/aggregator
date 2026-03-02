@@ -188,6 +188,8 @@ export default function SidebarPanel({
                         </svg>
                     </span>
                     <input
+                        id="item-search-input"
+                        name="item-search"
                         type="text"
                         placeholder="Search item..."
                         value={searchQuery}
@@ -263,7 +265,7 @@ export default function SidebarPanel({
                 </div>
             )}
             {!error && tree.length === 0 && (
-                <div className="empty">Catalog is empty. Add items to catalog.yaml.</div>
+                <div className="empty">Catalog is empty. Add items to catalog-definition.yaml.</div>
             )}
             {isSearchActive ? (
                 <div className="search-results">

@@ -4,8 +4,8 @@
 # Periodically forces random demo services into a DOWN state for a short window,
 # then restores them back to UP.
 #
-# Targets are discovered from a health checks YAML file (same format as the
-# aggregator uses), by deriving control URLs from check URLs.
+# Targets are discovered from an HTTP polling signals YAML file (same format as the
+# aggregator uses), by deriving control URLs from signal URLs.
 #
 # Configuration is controlled via environment variables:
 #   - CHAOS_ENABLED:           "true" / "false" (default: false)
@@ -46,7 +46,7 @@ class ChaosConfig:
     min_duration: float
     max_duration: float
     max_concurrent: int
-    checks_path: str
+    signals_path: str
     always_broken: bool
 
 
@@ -89,7 +89,7 @@ def load_config() -> ChaosConfig:
         min_duration=parse_duration(os.getenv("CHAOS_MIN_DURATION", "20s")),
         max_duration=parse_duration(os.getenv("CHAOS_MAX_DURATION", "45s")),
         max_concurrent=int(os.getenv("CHAOS_MAX_CONCURRENT", "2")),
-        checks_path=str(script_dir / "health-checks.yaml"),
+        signals_path=str(script_dir / "http-poll-signals.yaml"),
         always_broken=os.getenv("CHAOS_ALWAYS_BROKEN", "false").strip().lower() == "true",
     )
 
@@ -125,15 +125,15 @@ def to_control_url(url: str) -> str:
     return f"{parsed.scheme}://{parsed.netloc}{path}/set-health"
 
 
-def extract_targets(checks_path: str) -> List[ChaosTarget]:
-    with open(checks_path, "r", encoding="utf-8") as handle:
+def extract_targets(signals_path: str) -> List[ChaosTarget]:
+    with open(signals_path, "r", encoding="utf-8") as handle:
         payload = yaml.safe_load(handle) or {}
 
-    checks = payload.get("checks", [])
+    signals = payload.get("signals", [])
     targets: Dict[str, ChaosTarget] = {}
 
-    for check in checks:
-        url = check.get("url")
+    for signal in signals:
+        url = signal.get("url")
         if not url:
             continue
         control_url = to_control_url(url)
@@ -270,16 +270,16 @@ def _try_inject_once(
     active: Dict[str, float],
 ) -> None:
     try:
-        targets = targets or extract_targets(config.checks_path)
+        targets = targets or extract_targets(config.signals_path)
     except FileNotFoundError:
-        logger.error("Checks file not found at %s", config.checks_path)
+        logger.error("Signals file not found at %s", config.signals_path)
         return
     except yaml.YAMLError as exc:
-        logger.error("Failed to parse checks file at %s: %s", config.checks_path, exc)
+        logger.error("Failed to parse signals file at %s: %s", config.signals_path, exc)
         return
 
     if not targets:
-        logger.warning("No chaos targets found in %s", config.checks_path)
+        logger.warning("No chaos targets found in %s", config.signals_path)
         return
 
     if len(active) >= config.max_concurrent:
@@ -306,18 +306,18 @@ def run() -> None:
             continue
 
         try:
-            targets = extract_targets(config.checks_path)
+            targets = extract_targets(config.signals_path)
         except FileNotFoundError:
-            logger.error("Checks file not found at %s", config.checks_path)
+            logger.error("Signals file not found at %s", config.signals_path)
             time.sleep(5)
             continue
         except yaml.YAMLError as exc:
-            logger.error("Failed to parse checks file at %s: %s", config.checks_path, exc)
+            logger.error("Failed to parse signals file at %s: %s", config.signals_path, exc)
             time.sleep(5)
             continue
 
         if not targets:
-            logger.warning("No chaos targets found in %s", config.checks_path)
+            logger.warning("No chaos targets found in %s", config.signals_path)
             time.sleep(5)
             continue
 

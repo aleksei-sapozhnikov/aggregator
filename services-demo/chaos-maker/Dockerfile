@@ -1,12 +1,12 @@
 FROM python:3.11-slim
 
 ARG CONTAINER_ROOT=.
-ARG HEALTH_CHECKS_FILE
+ARG HTTP_POLL_SIGNALS_FILE
 
 WORKDIR /app
 
 COPY ${CONTAINER_ROOT}/src ./
-COPY ${HEALTH_CHECKS_FILE} ./health-checks.yaml
+COPY ${HTTP_POLL_SIGNALS_FILE} ./http-poll-signals.yaml
 
 RUN python -m venv /opt/venv \
  && /opt/venv/bin/pip install --no-cache-dir -r requirements.txt

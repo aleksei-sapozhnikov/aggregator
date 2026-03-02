@@ -1,8 +1,9 @@
-package com.github.vermucht.aggregator.aggregation;
+package com.github.vermucht.aggregator.signal.state;
 
+import com.github.vermucht.aggregator.aggregation.CatalogHealthAggregator;
 import com.github.vermucht.aggregator.catalog.model.Catalog;
 import com.github.vermucht.aggregator.catalog.model.ItemId;
-import com.github.vermucht.aggregator.healthcheck.model.HealthStatus;
+import com.github.vermucht.aggregator.signal.model.HealthStatus;
 import jakarta.annotation.Nonnull;
 import java.util.Map;
 import java.util.Objects;
@@ -11,21 +12,21 @@ import org.springframework.stereotype.Component;
 
 /** Stores the latest raw health signals and provides aggregated health for catalog items. */
 @Component
-public class HealthStateStore {
+public class ItemHealthStateStore {
 
   private final Catalog catalog;
-  private final ProductHealthAggregator productHealthAggregator;
+  private final CatalogHealthAggregator catalogHealthAggregator;
 
   /**
    * Raw (ingested) health status per item. Aggregation is computed on demand via the catalog graph.
    */
   private final Map<ItemId, HealthStatus> rawStatuses;
 
-  public HealthStateStore(
-      @Nonnull Catalog catalog, @Nonnull ProductHealthAggregator productHealthAggregator) {
+  public ItemHealthStateStore(
+      @Nonnull Catalog catalog, @Nonnull CatalogHealthAggregator catalogHealthAggregator) {
     this.catalog = Objects.requireNonNull(catalog, "catalog");
-    this.productHealthAggregator =
-        Objects.requireNonNull(productHealthAggregator, "productHealthAggregator");
+    this.catalogHealthAggregator =
+        Objects.requireNonNull(catalogHealthAggregator, "catalogHealthAggregator");
     this.rawStatuses = new ConcurrentHashMap<>();
     initializeDefaults();
   }
@@ -48,7 +49,7 @@ public class HealthStateStore {
   @Nonnull
   public HealthStatus getAggregatedStatus(@Nonnull ItemId itemId) {
     Objects.requireNonNull(itemId, "itemId");
-    return productHealthAggregator.getState(itemId, catalog, rawStatuses);
+    return catalogHealthAggregator.getState(itemId, catalog, rawStatuses);
   }
 
   private void initializeDefaults() {

@@ -4,7 +4,7 @@ import com.github.vermucht.aggregator.catalog.model.Catalog;
 import com.github.vermucht.aggregator.catalog.model.Dependency;
 import com.github.vermucht.aggregator.catalog.model.Item;
 import com.github.vermucht.aggregator.catalog.model.ItemId;
-import com.github.vermucht.aggregator.healthcheck.model.HealthStatus;
+import com.github.vermucht.aggregator.signal.model.HealthStatus;
 import jakarta.annotation.Nonnull;
 import java.util.*;
 import org.springframework.stereotype.Component;
@@ -24,9 +24,9 @@ import org.springframework.stereotype.Component;
  * </ul>
  */
 @Component
-public final class ProductHealthAggregator {
+public final class CatalogHealthAggregator {
   /**
-   * Aggregates product health from service health based on catalog relationships.
+   * Aggregates catalog item health from direct item health based on catalog relationships.
    *
    * @param catalog catalog defining products, services, and dependencies
    * @param serviceStatuses map of service health status keyed by catalog item identifier
