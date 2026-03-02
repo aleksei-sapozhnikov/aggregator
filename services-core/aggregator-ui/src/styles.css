@@ -568,11 +568,6 @@ body {
   font-weight: 600
 }
 
-.node-identity {
-  font-size: 11px;
-  color: var(--muted);
-}
-
 .node-leaf {
   padding-left: 0;
 }
