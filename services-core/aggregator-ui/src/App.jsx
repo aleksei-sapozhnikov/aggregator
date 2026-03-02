@@ -82,7 +82,6 @@ export default function App() {
     const [isAboutOpen, setIsAboutOpen] = useState(false);
     const [isTitlePrimaryBelowControls, setIsTitlePrimaryBelowControls] = useState(false);
     const failingSignalsAutoOpenRef = useRef(true);
-    const grafanaPanelInitializedRef = useRef(false);
     const [grafanaHeight, setGrafanaHeight] = useState(0);
     const prevSearchTokensRef = useRef(0);
     const clearSearchRequestedRef = useRef(false);
@@ -815,18 +814,6 @@ export default function App() {
     useEffect(() => {
         setIsFailingSignalsOpen(false);
         failingSignalsAutoOpenRef.current = true;
-    }, [selectedId]);
-
-    useEffect(() => {
-        if (!selectedId) {
-            return;
-        }
-        if (!grafanaPanelInitializedRef.current) {
-            setIsGrafanaOpen(true);
-            grafanaPanelInitializedRef.current = true;
-            return;
-        }
-        setIsGrafanaOpen(true);
     }, [selectedId]);
 
     useEffect(() => {
