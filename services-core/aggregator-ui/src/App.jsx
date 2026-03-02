@@ -77,12 +77,11 @@ export default function App() {
     const [searchQuery, setSearchQuery] = useState('');
     const [pendingScrollId, setPendingScrollId] = useState('');
     const [isFailingSignalsOpen, setIsFailingSignalsOpen] = useState(false);
-    const [isPassingSignalsOpen, setIsPassingSignalsOpen] = useState(false);
+    const [isPassingSignalsOpen, setIsPassingSignalsOpen] = useState(true);
     const [isGrafanaOpen, setIsGrafanaOpen] = useState(true);
     const [isAboutOpen, setIsAboutOpen] = useState(false);
     const [isTitlePrimaryBelowControls, setIsTitlePrimaryBelowControls] = useState(false);
     const failingSignalsAutoOpenRef = useRef(true);
-    const grafanaPanelInitializedRef = useRef(false);
     const [grafanaHeight, setGrafanaHeight] = useState(0);
     const prevSearchTokensRef = useRef(0);
     const clearSearchRequestedRef = useRef(false);
@@ -404,22 +403,10 @@ export default function App() {
     }, [selectedId, selectedPath, tree]);
 
     /**
-     * Collapses the full tree and keeps the selected root item in view when possible.
+     * Collapses the full tree and resets the catalog scroll position to the top.
      */
     const handleCollapseAll = useCallback(() => {
         setExpandedIds(new Set());
-        if (selectedId) {
-            const selectedNode = selectedPath.length > 0
-                ? findNodeByPath(tree, selectedPath)
-                : findNodeById(tree, selectedId);
-            const resolvedPath = selectedNode?.path || selectedPath;
-            const isSelectedRootItem = resolvedPath.length === 1;
-            const selectedUid = selectedNode?.uid || findNodeUidById(tree, selectedId) || '';
-            if (isSelectedRootItem && selectedUid) {
-                setPendingScrollId(selectedUid);
-                return;
-            }
-        }
         setPendingScrollId('');
         window.requestAnimationFrame(() => {
             catalogTreeRef.current?.scrollTo({
@@ -427,7 +414,7 @@ export default function App() {
                 behavior: 'auto',
             });
         });
-    }, [selectedId, selectedPath, tree]);
+    }, []);
 
     const selectedNode = useMemo(() => {
         if (!selectedId) {
@@ -827,19 +814,6 @@ export default function App() {
     useEffect(() => {
         setIsFailingSignalsOpen(false);
         failingSignalsAutoOpenRef.current = true;
-        setIsPassingSignalsOpen(false);
-    }, [selectedId]);
-
-    useEffect(() => {
-        if (!selectedId) {
-            return;
-        }
-        if (!grafanaPanelInitializedRef.current) {
-            setIsGrafanaOpen(true);
-            grafanaPanelInitializedRef.current = true;
-            return;
-        }
-        setIsGrafanaOpen(true);
     }, [selectedId]);
 
     useEffect(() => {

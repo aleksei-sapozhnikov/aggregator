@@ -126,12 +126,6 @@ const CatalogNode = ({
                             />
                             {node.item.name && <span className="node-name">{node.item.name}</span>}
                         </span>
-                        {(node.item.id || node.item.type) && (
-                            <span className="node-identity">
-                                {node.item.id}
-                                {node.item.type ? ` (${node.item.type})` : ''}
-                            </span>
-                        )}
                     </div>
                 </div>
             </a>
@@ -368,12 +362,6 @@ export default function SidebarPanel({
                                                             {item.name &&
                                                                 <span className="node-name">{item.name}</span>}
                                                         </span>
-                                                        {(item.id || item.type) && (
-                                                            <span className="node-identity">
-                                                                {item.id}
-                                                                {item.type ? ` (${item.type})` : ''}
-                                                            </span>
-                                                        )}
                                                     </div>
                                                 </div>
                                             </a>
