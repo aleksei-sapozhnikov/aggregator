@@ -4,6 +4,15 @@
  * back to the parent aggregator UI via postMessage.
  */
 
+/**
+ * @typedef {Window & {
+ *   Mousetrap?: {
+ *     unbind?: (shortcut: string) => void,
+ *     unbindGlobal?: (shortcut: string) => void
+ *   }
+ * }} GrafanaInnerWindow
+ */
+
 const params = new URLSearchParams(window.location.search);
 const srcParam = params.get('src');
 const initialTarget = srcParam ? decodeURIComponent(srcParam) : '';
@@ -16,6 +25,8 @@ let detachItemLinkHandlers = [];
 /**
  * Prevents Escape key handling inside Grafana and nested same-origin frames
  * so parent UI dialogs/search state are not unintentionally affected.
+ *
+ * @param {GrafanaInnerWindow | null | undefined} targetWindow
  */
 const bindEscGuard = (targetWindow) => {
     detachEscHandlers.forEach((detach) => {
@@ -48,6 +59,8 @@ const bindEscGuard = (targetWindow) => {
 
     /**
      * Recursively binds Escape interception to a same-origin window and nested iframes.
+     *
+     * @param {GrafanaInnerWindow | null | undefined} windowRef
      */
     const bindWindow = (windowRef) => {
         if (!windowRef?.addEventListener || boundWindows.has(windowRef)) {
@@ -88,8 +101,9 @@ const bindEscGuard = (targetWindow) => {
                 });
             };
             attachNestedFrames();
-            if (windowRef.MutationObserver && doc.documentElement) {
-                const observer = new windowRef.MutationObserver(attachNestedFrames);
+            const MutationObserverCtor = windowRef['MutationObserver'];
+            if (typeof MutationObserverCtor === 'function' && doc.documentElement) {
+                const observer = new MutationObserverCtor(attachNestedFrames);
                 observer.observe(doc.documentElement, {childList: true, subtree: true});
                 detachEscHandlers.push(() => observer.disconnect());
             }
@@ -103,6 +117,8 @@ const bindEscGuard = (targetWindow) => {
 
 /**
  * Intercepts item links rendered inside Grafana and forwards them to the parent app.
+ *
+ * @param {GrafanaInnerWindow | null | undefined} targetWindow
  */
 const bindItemLinkInterceptor = (targetWindow) => {
     detachItemLinkHandlers.forEach((detach) => {
@@ -150,6 +166,8 @@ const bindItemLinkInterceptor = (targetWindow) => {
 
     /**
      * Recursively binds click interception to a same-origin window and nested iframes.
+     *
+     * @param {GrafanaInnerWindow | null | undefined} windowRef
      */
     const bindWindow = (windowRef) => {
         if (!windowRef?.addEventListener || boundWindows.has(windowRef)) {
@@ -221,8 +239,9 @@ const bindItemLinkInterceptor = (targetWindow) => {
                 });
             };
             attachNestedFrames();
-            if (windowRef.MutationObserver && doc.documentElement) {
-                const observer = new windowRef.MutationObserver(attachNestedFrames);
+            const MutationObserverCtor = windowRef['MutationObserver'];
+            if (typeof MutationObserverCtor === 'function' && doc.documentElement) {
+                const observer = new MutationObserverCtor(attachNestedFrames);
                 observer.observe(doc.documentElement, {childList: true, subtree: true});
                 detachItemLinkHandlers.push(() => observer.disconnect());
             }
@@ -266,6 +285,7 @@ const applyTarget = (target) => {
  */
 iframe.addEventListener('load', () => {
     try {
+        /** @type {GrafanaInnerWindow | null} */
         const innerWindow = iframe.contentWindow;
         if (!innerWindow?.history) {
             return;
@@ -284,10 +304,14 @@ iframe.addEventListener('load', () => {
             history.pushState = originalPushState;
             history.replaceState = originalReplaceState;
         };
-        const mousetrap = innerWindow.Mousetrap;
+        const mousetrap = innerWindow['Mousetrap'];
         if (mousetrap) {
-            mousetrap.unbindGlobal?.('esc');
-            mousetrap.unbind?.('esc');
+            if (typeof mousetrap.unbindGlobal === 'function') {
+                mousetrap.unbindGlobal('esc');
+            }
+            if (typeof mousetrap.unbind === 'function') {
+                mousetrap.unbind('esc');
+            }
         }
     } catch (error) {
         // Ignore cross-origin errors if Grafana is hosted elsewhere.

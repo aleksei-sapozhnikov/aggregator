@@ -704,11 +704,6 @@ body {
   color: var(--status-up);
 }
 
-.content-subtitle {
-  font-size: 13px;
-  color: var(--muted);
-}
-
 .grafana-grid {
   display: grid;
   grid-template-rows: 1fr;

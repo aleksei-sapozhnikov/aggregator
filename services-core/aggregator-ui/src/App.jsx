@@ -35,8 +35,14 @@ import {
     resolvePrometheusBaseUrl,
     resolveSidebarTitle,
 } from './services/aggregatorApi';
+/** @typedef {import('./shared/types').CatalogDependency} CatalogDependency */
+/** @typedef {import('./shared/types').CatalogItem} CatalogItem */
+/** @typedef {import('./shared/types').HealthStatus} HealthStatus */
+/** @typedef {import('./shared/types').ItemSignal} ItemSignal */
 
 const MOBILE_BREAKPOINT = 1100;
+/** @type {{items: CatalogItem[], dependencies: CatalogDependency[]}} */
+const EMPTY_CATALOG = {items: [], dependencies: []};
 
 /**
  * @file Main React application orchestrator for aggregator-ui.
@@ -49,7 +55,7 @@ const MOBILE_BREAKPOINT = 1100;
  */
 export default function App() {
     const sidebarTitle = resolveSidebarTitle();
-    const [catalog, setCatalog] = useState({items: [], dependencies: []});
+    const [catalog, setCatalog] = useState(EMPTY_CATALOG);
     const [selectedId, setSelectedId] = useState('');
     const [selectedPath, setSelectedPath] = useState([]);
     const [error, setError] = useState('');
@@ -57,7 +63,9 @@ export default function App() {
     const initialFrameThemeRef = useRef(theme);
     const [expandedIds, setExpandedIds] = useState(() => new Set());
     const expandedIdsRef = useRef(expandedIds);
+    /** @type {[Record<string, HealthStatus>, import('react').Dispatch<import('react').SetStateAction<Record<string, HealthStatus>>>]} */
     const [itemStatuses, setItemStatuses] = useState({});
+    /** @type {[Record<string, ItemSignal[]>, import('react').Dispatch<import('react').SetStateAction<Record<string, ItemSignal[]>>>]} */
     const [itemSignals, setItemSignals] = useState({});
     const [lastUpdated, setLastUpdated] = useState('');
     const [isMobileLayout, setIsMobileLayout] = useState(
