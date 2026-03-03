@@ -271,7 +271,7 @@ export default function SidebarPanel({
                                 setIsSearchActive(true);
                             }
                         }}
-                        aria-label="Search items by title, key, or type"
+                        aria-label="Search items by title"
                     />
                     <datalist id={searchSuggestionsListId}>
                         {searchAutocompleteOptions.map((option) => (

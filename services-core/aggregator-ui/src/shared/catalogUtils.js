@@ -142,10 +142,7 @@ const matchSearch = (item, queryTokens) => {
         return true;
     }
     const name = normalizeSearchText(item.name || '');
-    const id = normalizeSearchText(item.id || '');
-    const type = normalizeSearchText(item.type || '');
-    const haystack = `${name} ${id} ${type}`.trim();
-    return queryTokens.every((token) => haystack.includes(token));
+    return queryTokens.every((token) => name.includes(token));
 };
 
 /**
@@ -263,7 +260,7 @@ export const findNodeUidById = (nodes, targetId) => {
 };
 
 /**
- * Ranks flat search results by field match quality (name > id > type).
+ * Ranks flat search results by title match quality.
  *
  * @param {CatalogItem[]} items
  * @param {string[]} queryTokens
@@ -276,22 +273,13 @@ export const rankSearchResults = (items, queryTokens) => {
     const results = [];
     items.forEach((item) => {
         const name = normalizeSearchText(item.name || '');
-        const id = normalizeSearchText(item.id || '');
-        const type = normalizeSearchText(item.type || '');
-        const haystack = `${name} ${id} ${type}`.trim();
-        if (!queryTokens.every((token) => haystack.includes(token))) {
+        if (!queryTokens.every((token) => name.includes(token))) {
             return;
         }
         let score = 0;
         queryTokens.forEach((token) => {
             if (name.includes(token)) {
                 score += 3;
-            }
-            if (id.includes(token)) {
-                score += 2;
-            }
-            if (type.includes(token)) {
-                score += 1;
             }
         });
         results.push({item, score});
