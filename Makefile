@@ -9,7 +9,7 @@
 # Service-scoped (positional args):
 #   make down-svc caddy grafana
 #   make rebuild-svc aggregator
-#   make recreate-svc ENV=demo caddy
+#   make clean-svc ENV=demo caddy
 # ============================================================
 
 # ---- Environment selector ----
@@ -83,7 +83,7 @@ LOCAL_GRAFANA_DATA_DIR := ./.temp/grafana/data
 
 .PHONY: help info env \
         up down restart recreate rebuild rebuild-recreate clean \
-        up-svc down-svc restart-svc recreate-svc rebuild-svc rebuild-recreate-svc
+        up-svc down-svc restart-svc recreate-svc rebuild-svc rebuild-recreate-svc clean-svc
 
 help:
 	@echo "Usage:"
@@ -99,10 +99,11 @@ help:
 	@echo "  recreate         -> force re-create containers (keep volumes)"
 	@echo "  rebuild          -> build images + start/update (keep volumes)"
 	@echo "  rebuild-recreate -> build images + force re-create containers (keep volumes)"
-	@echo "  clean            -> down + remove volumes (DATA LOSS)"
+	@echo "  clean            -> down + remove containers, network, and volumes (DATA LOSS)"
 	@echo ""
 	@echo "Service-scoped (positional args):"
 	@echo "  make down-svc caddy grafana"
+	@echo "  make clean-svc ENV=demo caddy"
 	@echo "  make rebuild-recreate-svc ENV=demo caddy"
 	@echo ""
 	@echo "Defaults:"
@@ -118,6 +119,7 @@ info:
 	@echo "PROJECT=$(PROJECT)"
 	@echo "STACK=$(STACK)"
 	@echo "COMPOSE_CMD=$(COMPOSE_CMD)"
+	@echo "SERVICE_TARGETS=up-svc down-svc restart-svc recreate-svc rebuild-svc rebuild-recreate-svc clean-svc"
 
 # ---- Common targets ----
 up: info
@@ -164,7 +166,7 @@ clean: info
 # ---- Service-scoped commands (positional service args) ----
 # Positional services are passed after the target:
 #   make down-svc caddy grafana
-SERVICE_TARGETS := up-svc down-svc restart-svc recreate-svc rebuild-svc rebuild-recreate-svc
+SERVICE_TARGETS := up-svc down-svc restart-svc recreate-svc rebuild-svc rebuild-recreate-svc clean-svc
 
 ifneq ($(filter $(SERVICE_TARGETS),$(MAKECMDGOALS)),)
 SERVICES := $(filter-out $(SERVICE_TARGETS),$(MAKECMDGOALS))
@@ -199,3 +201,16 @@ rebuild-svc: info
 rebuild-recreate-svc: info
 	$(call require_services,rebuild-recreate-svc)
 	$(COMPOSE_CMD) up --detach --build --force-recreate --remove-orphans $(SERVICES)
+
+clean-svc: info
+	$(call require_services,clean-svc)
+	@volume_names="$$(container_ids=`$(COMPOSE_CMD) ps -q $(SERVICES)`; \
+		if [ -n "$$container_ids" ]; then \
+			$(CONTAINER_RUNTIME) inspect $$container_ids --format '{{range .Mounts}}{{if eq .Type "volume"}}{{println .Name}}{{end}}{{end}}'; \
+		fi)"; \
+	$(COMPOSE_CMD) rm --stop --force $(SERVICES); \
+	if [ -n "$$volume_names" ]; then \
+		for volume_name in `printf '%s\n' "$$volume_names" | sort -u`; do \
+			$(CONTAINER_RUNTIME) volume rm --force $$volume_name; \
+		done; \
+	fi
