@@ -36,6 +36,10 @@
   --status-up: #73bf69;
   --status-unknown: #f2c94c;
   --status-down: #e24d42;
+  --sidebar-selected-accent: #2F6FEB;
+  --sidebar-selected-bg: #EEF4FF;
+  --sidebar-selected-hover: #E4EDFF;
+  --sidebar-selected-text: var(--text);
   --timeline-panel-accent: #EAF2FF;
   --details-panel-title-color: var(--text);
   --details-panel-meta-color: var(--muted);
@@ -77,6 +81,10 @@ body[data-theme='dark'] {
   --status-up: #73bf69;
   --status-unknown: #f2c94c;
   --status-down: #e24d42;
+  --sidebar-selected-accent: #3B82F6;
+  --sidebar-selected-bg: #141C2B;
+  --sidebar-selected-hover: #1A2334;
+  --sidebar-selected-text: #E6EDF3;
   --timeline-panel-accent: #1B2A4A;
   --details-panel-title-color: rgba(255, 255, 255, 0.88);
   --details-panel-meta-color: rgba(255, 255, 255, 0.72);
@@ -485,6 +493,8 @@ body {
   align-items: stretch;
   gap: 0;
   padding: 0;
+  position: relative;
+  overflow: hidden;
   border-radius: 10px;
   background: var(--panel-alt);
   border: 1px solid transparent;
@@ -544,8 +554,19 @@ body {
 }
 
 .node-row.is-selected {
-  border-color: var(--selection-accent);
-  box-shadow: var(--shadow);
+  background: var(--sidebar-selected-bg);
+  border-color: transparent;
+  color: var(--sidebar-selected-text);
+  box-shadow: inset -4px 0 0 var(--sidebar-selected-accent);
+}
+
+.node-row.is-selected:hover {
+  background: var(--sidebar-selected-hover);
+}
+
+.node-row.is-selected .node-content:hover,
+.node-row.is-selected .node-toggle-column:hover {
+  background: transparent;
 }
 
 .node-label {
@@ -567,7 +588,11 @@ body {
 
 .node-name {
   font-size: 12px;
-  font-weight: 600
+  font-weight: 500;
+}
+
+.node-row.is-selected .node-name {
+  font-weight: 600;
 }
 
 .node-leaf {

@@ -41,6 +41,8 @@ import {
 /** @typedef {import('./shared/types').ItemSignal} ItemSignal */
 
 const MOBILE_BREAKPOINT = 1100;
+const TREE_SCROLL_LONG_DISTANCE_PX = 600;
+const TREE_SCROLL_SMOOTH_SEGMENT_PX = 360;
 /** @type {{items: CatalogItem[], dependencies: CatalogDependency[]}} */
 const EMPTY_CATALOG = {items: [], dependencies: []};
 
@@ -817,6 +819,16 @@ export default function App() {
     }, [selectedId]);
 
     useEffect(() => {
+        if (!selectedId) {
+            return;
+        }
+        contentRef.current?.scrollTo({
+            top: 0,
+            behavior: 'auto',
+        });
+    }, [selectedId]);
+
+    useEffect(() => {
         if (!isGrafanaOpen) {
             grafanaFrameReadyRef.current = false;
         }
@@ -872,6 +884,28 @@ export default function App() {
         if (!container) {
             return;
         }
+        const animateScrollTo = (nextTop) => {
+            const startTop = container.scrollTop;
+            const targetTop = Math.max(0, nextTop);
+            const distance = Math.abs(targetTop - startTop);
+            if (distance < 1) {
+                container.scrollTop = targetTop;
+                return;
+            }
+            if (distance > TREE_SCROLL_LONG_DISTANCE_PX) {
+                const direction = targetTop > startTop ? 1 : -1;
+                const prejumpTop = direction > 0
+                    ? Math.max(startTop, targetTop - TREE_SCROLL_SMOOTH_SEGMENT_PX)
+                    : Math.min(startTop, targetTop + TREE_SCROLL_SMOOTH_SEGMENT_PX);
+                if (Math.abs(prejumpTop - startTop) >= 1) {
+                    container.scrollTop = prejumpTop;
+                }
+            }
+            container.scrollTo({
+                top: targetTop,
+                behavior: 'smooth',
+            });
+        };
         const startedAt = performance.now();
         const tryScroll = () => {
             const node = container.querySelector(`[data-node-id="${targetId}"]`);
@@ -891,25 +925,24 @@ export default function App() {
                     offset += current.offsetTop;
                     current = current.offsetParent;
                 }
+                const targetViewportOffset = container.clientHeight / 3;
+                let nextTop;
                 if (current === container) {
                     const maxScrollTop = Math.max(0, container.scrollHeight - container.clientHeight);
-                    const nextTop = Math.min(offset, maxScrollTop);
-                    container.scrollTo({
-                        top: nextTop,
-                        behavior: 'smooth',
-                    });
-                } else if (typeof node.scrollIntoView === 'function') {
-                    node.scrollIntoView({block: 'start', behavior: 'smooth'});
+                    nextTop = Math.min(
+                        Math.max(0, offset - targetViewportOffset),
+                        maxScrollTop,
+                    );
                 } else {
                     const containerRect = container.getBoundingClientRect();
                     const fallbackOffset = nodeRect.top - containerRect.top;
                     const maxScrollTop = Math.max(0, container.scrollHeight - container.clientHeight);
-                    const nextTop = Math.min(container.scrollTop + fallbackOffset, maxScrollTop);
-                    container.scrollTo({
-                        top: nextTop,
-                        behavior: 'smooth',
-                    });
+                    nextTop = Math.min(
+                        Math.max(0, container.scrollTop + fallbackOffset - targetViewportOffset),
+                        maxScrollTop,
+                    );
                 }
+                animateScrollTo(nextTop);
                 setPendingScrollId('');
                 return;
             }
@@ -976,7 +1009,6 @@ export default function App() {
                 {type: 'set-grafana-src', src: dashboardUrl},
                 window.location.origin,
             );
-
         }
     }, [appBaseUrl, grafanaBaseUrl, selectedItem, theme]);
 
