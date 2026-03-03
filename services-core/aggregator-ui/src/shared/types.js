@@ -47,6 +47,12 @@
  */
 
 /**
+ * @typedef {Object} SearchAutocompleteIndex
+ * @property {Map<string, Set<number>>} tokenToItemIds
+ * @property {string[][]} itemIdToTokens
+ */
+
+/**
  * @typedef {Object} FailingDependencyEntry
  * @property {string} id
  * @property {string} name
