@@ -1000,8 +1000,16 @@ body {
   position: relative;
 }
 
+.about-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 56px 14px 0;
+}
+
 .about-modal h2 {
-  margin: 0 40px 14px 0;
+  margin: 0;
   font-size: 24px;
 }
 
@@ -1025,6 +1033,38 @@ body {
   margin-bottom: 6px;
 }
 
+.about-github-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  opacity: 0.84;
+  white-space: nowrap;
+  transition: color 150ms ease, border-color 150ms ease, background 150ms ease, opacity 150ms ease;
+}
+
+.about-github-link:hover {
+  border-color: var(--link);
+  background: var(--panel-alt);
+  color: var(--text);
+  opacity: 1;
+}
+
+.about-github-icon {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+  flex: 0 0 auto;
+}
+
 .about-close {
   position: absolute;
   top: 10px;
@@ -1045,6 +1085,14 @@ body {
   background: var(--danger-hover);
   box-shadow: var(--shadow);
   transform: translateY(-1px);
+}
+
+@media (max-width: 640px) {
+  .about-header {
+    align-items: flex-start;
+    flex-direction: column;
+    margin-right: 56px;
+  }
 }
 
 @media (max-width: 1100px) {

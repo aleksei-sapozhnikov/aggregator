@@ -8,7 +8,23 @@
 export default function AboutContent() {
     return (
         <>
-            <h2>About</h2>
+            <div className="about-header">
+                <h2>About</h2>
+                <a
+                    className="about-github-link"
+                    href="https://github.com/aleksei-sapozhnikov/aggregator"
+                    target="_blank"
+                    rel="noreferrer"
+                >
+                    <svg
+                        className="about-github-icon"
+                        aria-hidden="true"
+                    >
+                        <use href="/github-mark.svg#github-mark"/>
+                    </svg>
+                    <span>GitHub</span>
+                </a>
+            </div>
             <div
                 aria-hidden="true"
                 className="about-divider"
@@ -57,19 +73,6 @@ export default function AboutContent() {
                     Track changes in item and dependency signals over time to find correlations.
                 </li>
             </ul>
-            <div
-                aria-hidden="true"
-                className="about-divider"
-            />
-            <p>
-                <a
-                    href="https://github.com/aleksei-sapozhnikov/aggregator"
-                    target="_blank"
-                    rel="noreferrer"
-                >
-                    GitHub repository
-                </a>
-            </p>
         </>
     );
 }
