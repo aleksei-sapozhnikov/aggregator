@@ -9,6 +9,10 @@ export default function AboutContent() {
     return (
         <>
             <h2>About</h2>
+            <div
+                aria-hidden="true"
+                className="about-divider"
+            />
             <p>
                 Catalog Health Aggregator turns service-level health signals into a product-level state overview.
             </p>
