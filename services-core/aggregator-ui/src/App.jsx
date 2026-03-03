@@ -879,7 +879,7 @@ export default function App() {
     /**
      * Scrolls the tree container to a node once it is rendered and measurable.
      */
-    const scrollToNodeId = useCallback((targetId) => {
+    const scrollToNodeId = useCallback((targetId, behavior) => {
         const container = catalogTreeRef.current;
         if (!container) {
             return;
@@ -889,6 +889,10 @@ export default function App() {
             const targetTop = Math.max(0, nextTop);
             const distance = Math.abs(targetTop - startTop);
             if (distance < 1) {
+                container.scrollTop = targetTop;
+                return;
+            }
+            if (behavior !== 'smooth') {
                 container.scrollTop = targetTop;
                 return;
             }
@@ -986,8 +990,9 @@ export default function App() {
         if (!pendingScrollId || searchTokens.length > 0) {
             return;
         }
-        scrollToNodeId(pendingScrollId);
-    }, [pendingScrollId, scrollToNodeId, searchTokens.length]);
+        const shouldAnimateScroll = !isMobileLayout && isSidebarOpen;
+        scrollToNodeId(pendingScrollId, shouldAnimateScroll ? 'smooth' : 'auto');
+    }, [isMobileLayout, isSidebarOpen, pendingScrollId, scrollToNodeId, searchTokens.length]);
 
     useEffect(() => {
         if (!selectedItem) {
