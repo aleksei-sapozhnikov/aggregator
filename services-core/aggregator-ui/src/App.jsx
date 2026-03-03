@@ -6,7 +6,7 @@ import {
     buildCatalogTree,
     buildItemPathname,
     buildItemRouteHref,
-    buildNameWordVocabulary,
+    buildSearchAutocompleteIndex,
     buildSearchAutocompleteOptions,
     buildServicePath,
     collectDescendantIds,
@@ -77,6 +77,8 @@ export default function App() {
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
     const [isSearchActive, setIsSearchActive] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [searchAutocompleteIndex, setSearchAutocompleteIndex] = useState(null);
+    const [isSearchAutocompleteReady, setIsSearchAutocompleteReady] = useState(false);
     const [pendingScrollId, setPendingScrollId] = useState('');
     const [isFailingSignalsOpen, setIsFailingSignalsOpen] = useState(false);
     const [isPassingSignalsOpen, setIsPassingSignalsOpen] = useState(true);
@@ -286,6 +288,46 @@ export default function App() {
 
     useEffect(() => {
         if (!catalog.items.length) {
+            setSearchAutocompleteIndex(null);
+            setIsSearchAutocompleteReady(false);
+            return undefined;
+        }
+
+        let cancelled = false;
+        setSearchAutocompleteIndex(null);
+        setIsSearchAutocompleteReady(false);
+
+        const buildIndex = () => {
+            const nextIndex = buildSearchAutocompleteIndex(catalog.items);
+            if (cancelled) {
+                return;
+            }
+            setSearchAutocompleteIndex(nextIndex);
+            setIsSearchAutocompleteReady(true);
+        };
+
+        let timeoutId = 0;
+        let idleId = 0;
+
+        if (typeof window.requestIdleCallback === 'function') {
+            idleId = window.requestIdleCallback(buildIndex);
+        } else {
+            timeoutId = window.setTimeout(buildIndex, 0);
+        }
+
+        return () => {
+            cancelled = true;
+            if (idleId && typeof window.cancelIdleCallback === 'function') {
+                window.cancelIdleCallback(idleId);
+            }
+            if (timeoutId) {
+                window.clearTimeout(timeoutId);
+            }
+        };
+    }, [catalog.items]);
+
+    useEffect(() => {
+        if (!catalog.items.length) {
             return undefined;
         }
 
@@ -336,13 +378,9 @@ export default function App() {
         () => rankSearchResults(catalog.items, searchTokens),
         [catalog.items, searchTokens],
     );
-    const searchNameWordVocabulary = useMemo(
-        () => buildNameWordVocabulary(catalog.items),
-        [catalog.items],
-    );
     const searchAutocompleteOptions = useMemo(
-        () => buildSearchAutocompleteOptions(searchQuery, searchNameWordVocabulary),
-        [searchQuery, searchNameWordVocabulary],
+        () => buildSearchAutocompleteOptions(searchQuery, searchAutocompleteIndex),
+        [searchQuery, searchAutocompleteIndex],
     );
 
     const handleToggleNode = useCallback((node) => {
@@ -1029,6 +1067,7 @@ export default function App() {
                 tree={tree}
                 searchQuery={searchQuery}
                 searchSuggestionsListId={searchSuggestionsListId}
+                isSearchAutocompleteReady={isSearchAutocompleteReady}
                 searchAutocompleteOptions={searchAutocompleteOptions}
                 setSearchQuery={setSearchQuery}
                 isSearchActive={isSearchActive}

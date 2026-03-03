@@ -293,30 +293,6 @@ export const rankSearchResults = (items, queryTokens) => {
 };
 
 /**
- * Builds a unique sorted vocabulary from item names for search autocomplete.
- *
- * @param {CatalogItem[]} items
- * @returns {string[]}
- */
-export const buildNameWordVocabulary = (items) => {
-    const seen = new Set();
-    const words = [];
-    items.forEach((item) => {
-        normalizeSearchText(item.name || '')
-            .split(' ')
-            .filter(Boolean)
-            .forEach((word) => {
-                if (seen.has(word)) {
-                    return;
-                }
-                seen.add(word);
-                words.push(word);
-            });
-    });
-    return words.sort((a, b) => a.localeCompare(b));
-};
-
-/**
  * Builds an autocomplete index from item titles.
  *
  * `tokenToItemIds` maps a token to numeric item indexes containing it.
@@ -362,33 +338,13 @@ const parseSearchAutocompleteQuery = (query) => {
  * Builds autocomplete suggestions for the current partial search token.
  *
  * @param {string} query
- * @param {string[] | SearchAutocompleteIndex | null} source
+ * @param {SearchAutocompleteIndex | null} searchIndex
  * @param {number} [limit=12]
  * @returns {SearchAutocompleteOption[]}
  */
-export const buildSearchAutocompleteOptions = (query, source, limit = 12) => {
+export const buildSearchAutocompleteOptions = (query, searchIndex, limit = 12) => {
     const {baseTokens, currentToken} = parseSearchAutocompleteQuery(query);
-    if (!currentToken) {
-        return [];
-    }
-
-    if (Array.isArray(source)) {
-        const options = [];
-        for (const word of source) {
-            if (!word.startsWith(currentToken) || word === currentToken) {
-                continue;
-            }
-            const fullQuery = [...baseTokens, word].join(' ');
-            options.push({word, fullQuery});
-            if (options.length >= limit) {
-                break;
-            }
-        }
-        return options;
-    }
-
-    const searchIndex = source;
-    if (!searchIndex) {
+    if (!currentToken || !searchIndex) {
         return [];
     }
 
