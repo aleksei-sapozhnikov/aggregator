@@ -44,7 +44,7 @@ export default function AboutContent() {
             <ul>
                 <li>
                     See a dependency tree with clear health status markers: {"\u{1F7E2}"} UP, {"\u{1F534}"} DOWN,
-                    {"\u{1F7E1}"} UNKNOWN.
+                    {"\u{1F7E1}"} UNKNOWN. The UNKNOWN state usually means no usable signal is available for that item.
                 </li>
                 <li>
                     Select any item to see its health signals, such as health checks, customer-facing status indicators,

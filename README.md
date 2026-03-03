@@ -31,8 +31,10 @@ The demo simulates a hierarchical catalog of services, products, and product lin
 It includes three product family branches, split into products and services up to six levels deep.
 A product can depend on a service, which can depend on other services or products, and so on.
 
-The current version builds product state from signals collected through HTTP health checks. Services expose an
-endpoint, the aggregator polls it periodically, and converts the result into `UP`, `DOWN`, or `UNKNOWN`.
+The current version builds product state from signals collected through HTTP endpoints. These signals can represent
+different kinds of checks, such as health checks, SLI-style indicators, and other service-specific status signals.
+Services expose an endpoint, the aggregator polls it periodically, and converts the result into `UP`, `DOWN`, or
+`UNKNOWN`.
 `UNKNOWN` is used when no usable health signal is available, most often because a service does not provide one.
 
 Polling is used here because it is the simplest way to get a working signal path in the first version. A future
