@@ -39,9 +39,13 @@ PROJECT_demo := aggregator-demo
 STACK := $(STACK_$(ENV))
 PROJECT := $(PROJECT_$(ENV))
 
+CONTAINER_RUNTIME :=
 COMPOSE_CMD :=
 
-# ---- Compose command (docker/podman autodetect; override via COMPOSE=...) ----
+# ---- Container runtime / compose command autodetect ----
+# Override via:
+#   make ... CONTAINER_RUNTIME=docker
+#   make ... COMPOSE="docker compose"
 COMPOSE ?=
 ifeq ($(OS),Windows_NT)
 DOCKER := $(shell powershell -NoProfile -Command "Get-Command docker -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source")
@@ -51,14 +55,18 @@ DOCKER := $(shell command -v docker 2>/dev/null)
 PODMAN := $(shell command -v podman 2>/dev/null)
 endif
 
-ifeq ($(COMPOSE),)
+ifeq ($(CONTAINER_RUNTIME),)
   ifneq ($(DOCKER),)
-    COMPOSE := docker compose
+    CONTAINER_RUNTIME := docker
   else ifneq ($(PODMAN),)
-    COMPOSE := podman compose
+    CONTAINER_RUNTIME := podman
   else
     $(error Neither docker nor podman is installed. Please install one of them.)
   endif
+endif
+
+ifeq ($(COMPOSE),)
+COMPOSE := $(CONTAINER_RUNTIME) compose
 endif
 
 COMPOSE_CMD := $(COMPOSE) --project-name $(PROJECT) $(STACK)
@@ -104,7 +112,8 @@ env:
 	@echo $(SUPPORTED_ENVS)
 
 info:
-	@echo "Using compose command: $(COMPOSE)"
+	@echo "Runtime: $(CONTAINER_RUNTIME)"
+	@echo "Compose: $(COMPOSE)"
 	@echo "ENV=$(ENV)"
 	@echo "PROJECT=$(PROJECT)"
 	@echo "STACK=$(STACK)"
