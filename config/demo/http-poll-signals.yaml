@@ -48,12 +48,12 @@ signals:
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/order-validation-backlog-check
-  - signalId: order-validation-dependency-connectivity-check
-    name: Critical dependency connectivity is healthy
+  - signalId: order-validation-policy-turnaround-check
+    name: Validation decisions complete within the policy window
     catalogItemId: order-validation-svc
     method: GET
     timeout: PT2S
-    url: http://dummy-javascript:8080/health/order-validation-dependency-connectivity-check
+    url: http://dummy-javascript:8080/health/order-validation-policy-turnaround-check
   - signalId: order-billing-availability-check
     name: Availability heartbeat responds
     catalogItemId: order-billing-svc
@@ -78,12 +78,12 @@ signals:
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/order-billing-backlog-check
-  - signalId: order-billing-dependency-connectivity-check
-    name: Critical dependency connectivity is healthy
+  - signalId: order-billing-invoice-balance-check
+    name: Billing totals remain internally balanced before issue
     catalogItemId: order-billing-svc
     method: GET
     timeout: PT2S
-    url: http://dummy-python:8080/health/order-billing-dependency-connectivity-check
+    url: http://dummy-python:8080/health/order-billing-invoice-balance-check
   - signalId: order-dispatch-availability-check
     name: Availability heartbeat responds
     catalogItemId: order-dispatch-svc
@@ -162,12 +162,12 @@ signals:
     method: GET
     timeout: PT2S
     url: http://dummy-javascript:8080/health/lastmile-dispatch-backlog-check
-  - signalId: lastmile-dispatch-dependency-connectivity-check
-    name: Critical dependency connectivity is healthy
+  - signalId: lastmile-dispatch-route-commit-check
+    name: Route commitments are produced within the dispatch window
     catalogItemId: lastmile-dispatch-svc
     method: GET
     timeout: PT2S
-    url: http://dummy-java:8080/health/lastmile-dispatch-dependency-connectivity-check
+    url: http://dummy-java:8080/health/lastmile-dispatch-route-commit-check
   - signalId: returns-processing-availability-check
     name: Availability heartbeat responds
     catalogItemId: returns-processing-svc
@@ -192,12 +192,12 @@ signals:
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/returns-processing-backlog-check
-  - signalId: returns-processing-dependency-connectivity-check
-    name: Critical dependency connectivity is healthy
+  - signalId: returns-processing-case-closure-check
+    name: Return cases close within the expected handling window
     catalogItemId: returns-processing-svc
     method: GET
     timeout: PT2S
-    url: http://dummy-javascript:8080/health/returns-processing-dependency-connectivity-check
+    url: http://dummy-javascript:8080/health/returns-processing-case-closure-check
   - signalId: engagement-orchestrator-availability-check
     name: Availability heartbeat responds
     catalogItemId: engagement-orchestrator-svc
@@ -246,12 +246,12 @@ signals:
     method: GET
     timeout: PT2S
     url: http://dummy-python:8080/health/messaging-hub-backlog-check
-  - signalId: messaging-hub-dependency-connectivity-check
-    name: Critical dependency connectivity is healthy
+  - signalId: messaging-hub-delivery-window-check
+    name: Message batches enter delivery within the target window
     catalogItemId: messaging-hub-svc
     method: GET
     timeout: PT2S
-    url: http://dummy-javascript:8080/health/messaging-hub-dependency-connectivity-check
+    url: http://dummy-javascript:8080/health/messaging-hub-delivery-window-check
   - signalId: campaign-execution-availability-check
     name: Availability heartbeat responds
     catalogItemId: campaign-execution-svc
@@ -276,12 +276,12 @@ signals:
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/campaign-execution-backlog-check
-  - signalId: campaign-execution-dependency-connectivity-check
-    name: Critical dependency connectivity is healthy
+  - signalId: campaign-execution-launch-window-check
+    name: Campaign launches start within the scheduled execution window
     catalogItemId: campaign-execution-svc
     method: GET
     timeout: PT2S
-    url: http://dummy-python:8080/health/campaign-execution-dependency-connectivity-check
+    url: http://dummy-python:8080/health/campaign-execution-launch-window-check
   - signalId: commerce-core-pricing-sync-availability-check
     name: Availability heartbeat responds
     catalogItemId: commerce-core-pricing-sync-svc
@@ -420,12 +420,12 @@ signals:
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/payment-auth-adapter-backlog-check
-  - signalId: payment-auth-adapter-dependency-connectivity-check
-    name: Critical dependency connectivity is healthy
+  - signalId: payment-auth-adapter-decision-window-check
+    name: Authorization decisions return within the allowed window
     catalogItemId: payment-auth-adapter-svc
     method: GET
     timeout: PT2S
-    url: http://dummy-python:8080/health/payment-auth-adapter-dependency-connectivity-check
+    url: http://dummy-python:8080/health/payment-auth-adapter-decision-window-check
   - signalId: order-state-projection-availability-check
     name: Availability heartbeat responds
     catalogItemId: order-state-projection-svc
@@ -942,5 +942,597 @@ signals:
     method: GET
     timeout: PT2S
     url: http://dummy-java:8080/health/sli-campaign-optimizer-nodes-journey-latency-check
-
-
+  - signalId: sli-commerce-platform-customer-availability-check
+    name: 'SLI: Commerce entrypoints stay available for buyers'
+    catalogItemId: commerce-platform
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/sli-commerce-platform-customer-availability-check
+  - signalId: sli-commerce-platform-journey-latency-check
+    name: 'SLI: Checkout journey latency stays within budget'
+    catalogItemId: commerce-platform
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/sli-commerce-platform-journey-latency-check
+  - signalId: commerce-platform-order-throughput-check
+    name: Order handling throughput sustains peak demand
+    catalogItemId: commerce-platform
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/commerce-platform-order-throughput-check
+  - signalId: sli-customer-experience-customer-availability-check
+    name: 'SLI: Customer touchpoints stay reachable end to end'
+    catalogItemId: customer-experience
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/sli-customer-experience-customer-availability-check
+  - signalId: sli-customer-experience-journey-latency-check
+    name: 'SLI: Engagement journey latency stays within target'
+    catalogItemId: customer-experience
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/sli-customer-experience-journey-latency-check
+  - signalId: customer-experience-channel-readiness-check
+    name: Customer-facing channels remain ready for traffic shifts
+    catalogItemId: customer-experience
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/customer-experience-channel-readiness-check
+  - signalId: sli-operations-suite-customer-availability-check
+    name: 'SLI: Operations workflows remain available to operators'
+    catalogItemId: operations-suite
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/sli-operations-suite-customer-availability-check
+  - signalId: sli-operations-suite-journey-latency-check
+    name: 'SLI: Operator flow latency stays within control limits'
+    catalogItemId: operations-suite
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/sli-operations-suite-journey-latency-check
+  - signalId: operations-suite-fulfillment-cycle-check
+    name: Operational cycle time stays within the expected envelope
+    catalogItemId: operations-suite
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/operations-suite-fulfillment-cycle-check
+  - signalId: sli-campaign-planner-nodes-journey-latency-check
+    name: 'SLI: Customer journey latency'
+    catalogItemId: campaign-planner-nodes
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/sli-campaign-planner-nodes-journey-latency-check
+  - signalId: campaign-planner-nodes-output-quality-check
+    name: Produced output passes self-validation before publication
+    catalogItemId: campaign-planner-nodes
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/campaign-planner-nodes-output-quality-check
+  - signalId: sli-commerce-core-journey-latency-check
+    name: 'SLI: Customer journey latency'
+    catalogItemId: commerce-core
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/sli-commerce-core-journey-latency-check
+  - signalId: commerce-core-self-validation-check
+    name: Own generated results pass internal self-validation
+    catalogItemId: commerce-core
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/commerce-core-self-validation-check
+  - signalId: sli-commerce-extensions-journey-latency-check
+    name: 'SLI: Customer journey latency'
+    catalogItemId: commerce-extensions
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/sli-commerce-extensions-journey-latency-check
+  - signalId: commerce-extensions-release-readiness-check
+    name: Extension release path stays ready for controlled rollouts
+    catalogItemId: commerce-extensions
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/commerce-extensions-release-readiness-check
+  - signalId: sli-distribution-core-journey-latency-check
+    name: 'SLI: Customer journey latency'
+    catalogItemId: distribution-core
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/sli-distribution-core-journey-latency-check
+  - signalId: distribution-core-state-consistency-check
+    name: Internal state transitions remain self-consistent
+    catalogItemId: distribution-core
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/distribution-core-state-consistency-check
+  - signalId: sli-engagement-suite-journey-latency-check
+    name: 'SLI: Customer journey latency'
+    catalogItemId: engagement-suite
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/sli-engagement-suite-journey-latency-check
+  - signalId: engagement-suite-journey-completion-check
+    name: Critical engagement flows finish without internal stalls
+    catalogItemId: engagement-suite
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/engagement-suite-journey-completion-check
+  - signalId: sli-experience-line-journey-latency-check
+    name: 'SLI: Customer journey latency'
+    catalogItemId: experience-line
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/sli-experience-line-journey-latency-check
+  - signalId: experience-line-personalization-freshness-check
+    name: Personalization signals stay within the freshness window
+    catalogItemId: experience-line
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/experience-line-personalization-freshness-check
+  - signalId: sli-fulfillment-hub-journey-latency-check
+    name: 'SLI: Customer journey latency'
+    catalogItemId: fulfillment-hub
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/sli-fulfillment-hub-journey-latency-check
+  - signalId: fulfillment-hub-queue-turnover-check
+    name: Own task queue turns over before local saturation
+    catalogItemId: fulfillment-hub
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/fulfillment-hub-queue-turnover-check
+  - signalId: sli-journey-domain-journey-latency-check
+    name: 'SLI: Customer journey latency'
+    catalogItemId: journey-domain
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/sli-journey-domain-journey-latency-check
+  - signalId: journey-domain-rule-application-check
+    name: Journey rules are applied within the local decision budget
+    catalogItemId: journey-domain
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/journey-domain-rule-application-check
+  - signalId: sli-logistics-domain-journey-latency-check
+    name: 'SLI: Customer journey latency'
+    catalogItemId: logistics-domain
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/sli-logistics-domain-journey-latency-check
+  - signalId: logistics-domain-schedule-adherence-check
+    name: Planning cycles complete within the dispatch schedule window
+    catalogItemId: logistics-domain
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/logistics-domain-schedule-adherence-check
+  - signalId: sli-logistics-inventory-cell-journey-latency-check
+    name: 'SLI: Customer journey latency'
+    catalogItemId: logistics-inventory-cell
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/sli-logistics-inventory-cell-journey-latency-check
+  - signalId: logistics-inventory-cell-count-drift-check
+    name: Local inventory state stays within acceptable drift
+    catalogItemId: logistics-inventory-cell
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/logistics-inventory-cell-count-drift-check
+  - signalId: sli-messaging-router-nodes-journey-latency-check
+    name: 'SLI: Customer journey latency'
+    catalogItemId: messaging-router-nodes
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/sli-messaging-router-nodes-journey-latency-check
+  - signalId: messaging-router-nodes-route-accuracy-check
+    name: Route selection stays accurate under current load
+    catalogItemId: messaging-router-nodes
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/messaging-router-nodes-route-accuracy-check
+  - signalId: sli-messaging-template-nodes-journey-latency-check
+    name: 'SLI: Customer journey latency'
+    catalogItemId: messaging-template-nodes
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/sli-messaging-template-nodes-journey-latency-check
+  - signalId: messaging-template-nodes-render-quality-check
+    name: Template payloads pass internal render validation
+    catalogItemId: messaging-template-nodes
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/messaging-template-nodes-render-quality-check
+  - signalId: sli-ops-accelerators-journey-latency-check
+    name: 'SLI: Customer journey latency'
+    catalogItemId: ops-accelerators
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/sli-ops-accelerators-journey-latency-check
+  - signalId: ops-accelerators-simulation-readiness-check
+    name: Acceleration routines stay ready for burst simulations
+    catalogItemId: ops-accelerators
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/ops-accelerators-simulation-readiness-check
+  - signalId: sli-order-domain-journey-latency-check
+    name: 'SLI: Customer journey latency'
+    catalogItemId: order-domain
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/sli-order-domain-journey-latency-check
+  - signalId: order-domain-state-consistency-check
+    name: Order state transitions remain internally consistent
+    catalogItemId: order-domain
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/order-domain-state-consistency-check
+  - signalId: sli-order-finance-hub-journey-latency-check
+    name: 'SLI: Customer journey latency'
+    catalogItemId: order-finance-hub
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/sli-order-finance-hub-journey-latency-check
+  - signalId: order-finance-hub-ledger-balance-check
+    name: Finance ledger updates stay internally balanced
+    catalogItemId: order-finance-hub
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/order-finance-hub-ledger-balance-check
+  - signalId: sli-order-guard-hub-journey-latency-check
+    name: 'SLI: Customer journey latency'
+    catalogItemId: order-guard-hub
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/sli-order-guard-hub-journey-latency-check
+  - signalId: order-guard-hub-policy-coverage-check
+    name: Guard policies cover the current intake mix
+    catalogItemId: order-guard-hub
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/order-guard-hub-policy-coverage-check
+  - signalId: sli-order-workflow-journey-latency-check
+    name: 'SLI: Customer journey latency'
+    catalogItemId: order-workflow
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/sli-order-workflow-journey-latency-check
+  - signalId: order-workflow-stage-progress-check
+    name: Workflow stages advance without local stalls
+    catalogItemId: order-workflow
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/order-workflow-stage-progress-check
+  - signalId: sli-profile-core-nodes-journey-latency-check
+    name: 'SLI: Customer journey latency'
+    catalogItemId: profile-core-nodes
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/sli-profile-core-nodes-journey-latency-check
+  - signalId: profile-core-nodes-merge-quality-check
+    name: Core profile merges pass internal validation
+    catalogItemId: profile-core-nodes
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/profile-core-nodes-merge-quality-check
+  - signalId: sli-touchpoint-campaign-pillar-journey-latency-check
+    name: 'SLI: Customer journey latency'
+    catalogItemId: touchpoint-campaign-pillar
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/sli-touchpoint-campaign-pillar-journey-latency-check
+  - signalId: touchpoint-campaign-pillar-budget-timeliness-check
+    name: Campaign budget calculations stay current
+    catalogItemId: touchpoint-campaign-pillar
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/touchpoint-campaign-pillar-budget-timeliness-check
+  - signalId: sli-touchpoint-core-journey-latency-check
+    name: 'SLI: Customer journey latency'
+    catalogItemId: touchpoint-core
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/sli-touchpoint-core-journey-latency-check
+  - signalId: touchpoint-core-session-timeliness-check
+    name: Session updates land before the expiry budget
+    catalogItemId: touchpoint-core
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/touchpoint-core-session-timeliness-check
+  - signalId: sli-touchpoint-messaging-pillar-journey-latency-check
+    name: 'SLI: Customer journey latency'
+    catalogItemId: touchpoint-messaging-pillar
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/sli-touchpoint-messaging-pillar-journey-latency-check
+  - signalId: touchpoint-messaging-pillar-channel-readiness-check
+    name: Messaging channels stay ready for delivery bursts
+    catalogItemId: touchpoint-messaging-pillar
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/touchpoint-messaging-pillar-channel-readiness-check
+  - signalId: campaign-optimizer-nodes-optimization-quality-check
+    name: Optimization output passes internal quality gates
+    catalogItemId: campaign-optimizer-nodes
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/campaign-optimizer-nodes-optimization-quality-check
+  - signalId: commerce-line-core-order-freshness-check
+    name: Commerce line data stays fresh through the order window
+    catalogItemId: commerce-line-core
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/commerce-line-core-order-freshness-check
+  - signalId: experience-foundation-profile-freshness-check
+    name: Experience foundation state stays within freshness targets
+    catalogItemId: experience-foundation
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/experience-foundation-profile-freshness-check
+  - signalId: logistics-routing-cell-plan-stability-check
+    name: Routing plans stay stable during recalculation bursts
+    catalogItemId: logistics-routing-cell
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/logistics-routing-cell-plan-stability-check
+  - signalId: operations-line-workload-balance-check
+    name: Operational workload stays balanced across local cycles
+    catalogItemId: operations-line
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/operations-line-workload-balance-check
+  - signalId: order-intake-hub-intake-drain-check
+    name: Intake backlog drains before local buffer pressure rises
+    catalogItemId: order-intake-hub
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/order-intake-hub-intake-drain-check
+  - signalId: profile-identity-nodes-match-quality-check
+    name: Identity matching stays within the accepted confidence band
+    catalogItemId: profile-identity-nodes
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/profile-identity-nodes-match-quality-check
+  - signalId: touchpoint-profile-pillar-profile-latency-check
+    name: Profile enrichment finishes within the interaction budget
+    catalogItemId: touchpoint-profile-pillar
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/touchpoint-profile-pillar-profile-latency-check
+  - signalId: sli-campaign-budget-guard-customer-latency-check
+    name: 'SLI: Client request latency is within SLO'
+    catalogItemId: campaign-budget-guard-svc
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/sli-campaign-budget-guard-customer-latency-check
+  - signalId: campaign-budget-guard-budget-freshness-check
+    name: Budget guardrail snapshots stay within the freshness window
+    catalogItemId: campaign-budget-guard-svc
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/campaign-budget-guard-budget-freshness-check
+  - signalId: sli-engagement-orchestrator-customer-latency-check
+    name: 'SLI: Client request latency is within SLO'
+    catalogItemId: engagement-orchestrator-svc
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/sli-engagement-orchestrator-customer-latency-check
+  - signalId: engagement-orchestrator-state-consistency-check
+    name: Orchestration state remains internally consistent
+    catalogItemId: engagement-orchestrator-svc
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/engagement-orchestrator-state-consistency-check
+  - signalId: sli-fraud-screening-customer-latency-check
+    name: 'SLI: Client request latency is within SLO'
+    catalogItemId: fraud-screening-svc
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/sli-fraud-screening-customer-latency-check
+  - signalId: fraud-screening-score-quality-check
+    name: Fraud scoring output passes internal quality thresholds
+    catalogItemId: fraud-screening-svc
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/fraud-screening-score-quality-check
+  - signalId: sli-fulfillment-control-plane-customer-latency-check
+    name: 'SLI: Client request latency is within SLO'
+    catalogItemId: fulfillment-control-plane-svc
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/sli-fulfillment-control-plane-customer-latency-check
+  - signalId: fulfillment-control-plane-cycle-timeliness-check
+    name: Control-plane cycles finish within the operating window
+    catalogItemId: fulfillment-control-plane-svc
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/fulfillment-control-plane-cycle-timeliness-check
+  - signalId: sli-inventory-reconciler-customer-latency-check
+    name: 'SLI: Client request latency is within SLO'
+    catalogItemId: inventory-reconciler-svc
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/sli-inventory-reconciler-customer-latency-check
+  - signalId: inventory-reconciler-drift-check
+    name: Reconciliation drift stays within the accepted band
+    catalogItemId: inventory-reconciler-svc
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/inventory-reconciler-drift-check
+  - signalId: sli-journey-experimentation-customer-latency-check
+    name: 'SLI: Client request latency is within SLO'
+    catalogItemId: journey-experimentation-svc
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/sli-journey-experimentation-customer-latency-check
+  - signalId: journey-experimentation-evaluation-window-check
+    name: Experiment evaluation closes within the expected window
+    catalogItemId: journey-experimentation-svc
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/journey-experimentation-evaluation-window-check
+  - signalId: sli-order-dispatch-customer-latency-check
+    name: 'SLI: Client request latency is within SLO'
+    catalogItemId: order-dispatch-svc
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/sli-order-dispatch-customer-latency-check
+  - signalId: order-dispatch-queue-health-check
+    name: Dispatch work queue drains before local saturation
+    catalogItemId: order-dispatch-svc
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/order-dispatch-queue-health-check
+  - signalId: sli-order-domain-events-customer-latency-check
+    name: 'SLI: Client request latency is within SLO'
+    catalogItemId: order-domain-events-svc
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/sli-order-domain-events-customer-latency-check
+  - signalId: order-domain-events-publication-freshness-check
+    name: Domain event publication stays within freshness bounds
+    catalogItemId: order-domain-events-svc
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/order-domain-events-publication-freshness-check
+  - signalId: sli-order-sla-tracker-customer-latency-check
+    name: 'SLI: Client request latency is within SLO'
+    catalogItemId: order-sla-tracker-svc
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/sli-order-sla-tracker-customer-latency-check
+  - signalId: order-sla-tracker-deadline-accuracy-check
+    name: Deadline calculations stay within the tolerance band
+    catalogItemId: order-sla-tracker-svc
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/order-sla-tracker-deadline-accuracy-check
+  - signalId: sli-profile-merge-orchestrator-customer-latency-check
+    name: 'SLI: Client request latency is within SLO'
+    catalogItemId: profile-merge-orchestrator-svc
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/sli-profile-merge-orchestrator-customer-latency-check
+  - signalId: profile-merge-orchestrator-merge-consistency-check
+    name: Merge orchestration stays internally consistent
+    catalogItemId: profile-merge-orchestrator-svc
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/profile-merge-orchestrator-merge-consistency-check
+  - signalId: sli-route-cache-writer-customer-latency-check
+    name: 'SLI: Client request latency is within SLO'
+    catalogItemId: route-cache-writer-svc
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/sli-route-cache-writer-customer-latency-check
+  - signalId: route-cache-writer-write-freshness-check
+    name: Cache writes complete before the freshness budget expires
+    catalogItemId: route-cache-writer-svc
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/route-cache-writer-write-freshness-check
+  - signalId: sli-touchpoint-session-state-customer-latency-check
+    name: 'SLI: Client request latency is within SLO'
+    catalogItemId: touchpoint-session-state-svc
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/sli-touchpoint-session-state-customer-latency-check
+  - signalId: touchpoint-session-state-expiry-window-check
+    name: Session state refresh lands before the expiry window
+    catalogItemId: touchpoint-session-state-svc
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/touchpoint-session-state-expiry-window-check
+  - signalId: sli-depot-slotting-customer-availability-check
+    name: 'SLI: Client-visible availability'
+    catalogItemId: depot-slotting-svc
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/sli-depot-slotting-customer-availability-check
+  - signalId: sli-route-cost-model-customer-availability-check
+    name: 'SLI: Client-visible availability'
+    catalogItemId: route-cost-model-svc
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/sli-route-cost-model-customer-availability-check
+  - signalId: commerce-platform-checkout-capacity-check
+    name: Checkout capacity holds during promotional spikes
+    catalogItemId: commerce-platform
+    method: GET
+    timeout: PT2S
+    url: http://dummy-python:8080/health/commerce-platform-checkout-capacity-check
+  - signalId: sli-customer-experience-engagement-latency-check
+    name: 'SLI: Engagement response stays within journey budget'
+    catalogItemId: customer-experience
+    method: GET
+    timeout: PT2S
+    url: http://dummy-javascript:8080/health/sli-customer-experience-engagement-latency-check
+  - signalId: customer-experience-personalization-freshness-check
+    name: Personalization decisions stay within the freshness window
+    catalogItemId: customer-experience
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/customer-experience-personalization-freshness-check
+  - signalId: campaign-planner-nodes-plan-freshness-check
+    name: Campaign plans stay current through the execution window
+    catalogItemId: campaign-planner-nodes
+    method: GET
+    timeout: PT2S
+    url: http://dummy-python:8080/health/campaign-planner-nodes-plan-freshness-check
+  - signalId: distribution-core-slotting-timeliness-check
+    name: Slot allocation completes within the dispatch window
+    catalogItemId: distribution-core
+    method: GET
+    timeout: PT2S
+    url: http://dummy-javascript:8080/health/distribution-core-slotting-timeliness-check
+  - signalId: sli-fulfillment-hub-flow-availability-check
+    name: 'SLI: Fulfillment flow availability stays above target'
+    catalogItemId: fulfillment-hub
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/sli-fulfillment-hub-flow-availability-check
+  - signalId: fulfillment-hub-allocation-accuracy-check
+    name: Allocation outcomes stay within the accepted variance
+    catalogItemId: fulfillment-hub
+    method: GET
+    timeout: PT2S
+    url: http://dummy-python:8080/health/fulfillment-hub-allocation-accuracy-check
+  - signalId: sli-operations-line-workload-latency-check
+    name: 'SLI: Operational response stays within cycle budget'
+    catalogItemId: operations-line
+    method: GET
+    timeout: PT2S
+    url: http://dummy-javascript:8080/health/sli-operations-line-workload-latency-check
+  - signalId: engagement-orchestrator-decision-freshness-check
+    name: Decision payloads stay fresh through the send window
+    catalogItemId: engagement-orchestrator-svc
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/engagement-orchestrator-decision-freshness-check
+  - signalId: sli-inventory-reconciler-reconcile-availability-check
+    name: 'SLI: Reconciliation path availability stays above target'
+    catalogItemId: inventory-reconciler-svc
+    method: GET
+    timeout: PT2S
+    url: http://dummy-python:8080/health/sli-inventory-reconciler-reconcile-availability-check
+  - signalId: inventory-reconciler-batch-timeliness-check
+    name: Reconciliation batches complete within the close window
+    catalogItemId: inventory-reconciler-svc
+    method: GET
+    timeout: PT2S
+    url: http://dummy-javascript:8080/health/inventory-reconciler-batch-timeliness-check
+  - signalId: order-dispatch-routing-accuracy-check
+    name: Dispatch routing stays within the accepted variance
+    catalogItemId: order-dispatch-svc
+    method: GET
+    timeout: PT2S
+    url: http://dummy-java:8080/health/order-dispatch-routing-accuracy-check
+  - signalId: sli-route-cache-writer-write-latency-check
+    name: 'SLI: Cache write latency stays within budget'
+    catalogItemId: route-cache-writer-svc
+    method: GET
+    timeout: PT2S
+    url: http://dummy-python:8080/health/sli-route-cache-writer-write-latency-check
+  - signalId: route-cache-writer-batch-stability-check
+    name: Cache write batches stay stable during burst updates
+    catalogItemId: route-cache-writer-svc
+    method: GET
+    timeout: PT2S
+    url: http://dummy-javascript:8080/health/route-cache-writer-batch-stability-check

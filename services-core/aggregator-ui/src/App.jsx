@@ -35,8 +35,16 @@ import {
     resolvePrometheusBaseUrl,
     resolveSidebarTitle,
 } from './services/aggregatorApi';
+/** @typedef {import('./shared/types').CatalogDependency} CatalogDependency */
+/** @typedef {import('./shared/types').CatalogItem} CatalogItem */
+/** @typedef {import('./shared/types').HealthStatus} HealthStatus */
+/** @typedef {import('./shared/types').ItemSignal} ItemSignal */
 
 const MOBILE_BREAKPOINT = 1100;
+const TREE_SCROLL_LONG_DISTANCE_PX = 600;
+const TREE_SCROLL_SMOOTH_SEGMENT_PX = 360;
+/** @type {{items: CatalogItem[], dependencies: CatalogDependency[]}} */
+const EMPTY_CATALOG = {items: [], dependencies: []};
 
 /**
  * @file Main React application orchestrator for aggregator-ui.
@@ -49,7 +57,7 @@ const MOBILE_BREAKPOINT = 1100;
  */
 export default function App() {
     const sidebarTitle = resolveSidebarTitle();
-    const [catalog, setCatalog] = useState({items: [], dependencies: []});
+    const [catalog, setCatalog] = useState(EMPTY_CATALOG);
     const [selectedId, setSelectedId] = useState('');
     const [selectedPath, setSelectedPath] = useState([]);
     const [error, setError] = useState('');
@@ -57,7 +65,9 @@ export default function App() {
     const initialFrameThemeRef = useRef(theme);
     const [expandedIds, setExpandedIds] = useState(() => new Set());
     const expandedIdsRef = useRef(expandedIds);
+    /** @type {[Record<string, HealthStatus>, import('react').Dispatch<import('react').SetStateAction<Record<string, HealthStatus>>>]} */
     const [itemStatuses, setItemStatuses] = useState({});
+    /** @type {[Record<string, ItemSignal[]>, import('react').Dispatch<import('react').SetStateAction<Record<string, ItemSignal[]>>>]} */
     const [itemSignals, setItemSignals] = useState({});
     const [lastUpdated, setLastUpdated] = useState('');
     const [isMobileLayout, setIsMobileLayout] = useState(
@@ -69,12 +79,11 @@ export default function App() {
     const [searchQuery, setSearchQuery] = useState('');
     const [pendingScrollId, setPendingScrollId] = useState('');
     const [isFailingSignalsOpen, setIsFailingSignalsOpen] = useState(false);
-    const [isPassingSignalsOpen, setIsPassingSignalsOpen] = useState(false);
+    const [isPassingSignalsOpen, setIsPassingSignalsOpen] = useState(true);
     const [isGrafanaOpen, setIsGrafanaOpen] = useState(true);
     const [isAboutOpen, setIsAboutOpen] = useState(false);
     const [isTitlePrimaryBelowControls, setIsTitlePrimaryBelowControls] = useState(false);
     const failingSignalsAutoOpenRef = useRef(true);
-    const grafanaPanelInitializedRef = useRef(false);
     const [grafanaHeight, setGrafanaHeight] = useState(0);
     const prevSearchTokensRef = useRef(0);
     const clearSearchRequestedRef = useRef(false);
@@ -396,22 +405,10 @@ export default function App() {
     }, [selectedId, selectedPath, tree]);
 
     /**
-     * Collapses the full tree and keeps the selected root item in view when possible.
+     * Collapses the full tree and resets the catalog scroll position to the top.
      */
     const handleCollapseAll = useCallback(() => {
         setExpandedIds(new Set());
-        if (selectedId) {
-            const selectedNode = selectedPath.length > 0
-                ? findNodeByPath(tree, selectedPath)
-                : findNodeById(tree, selectedId);
-            const resolvedPath = selectedNode?.path || selectedPath;
-            const isSelectedRootItem = resolvedPath.length === 1;
-            const selectedUid = selectedNode?.uid || findNodeUidById(tree, selectedId) || '';
-            if (isSelectedRootItem && selectedUid) {
-                setPendingScrollId(selectedUid);
-                return;
-            }
-        }
         setPendingScrollId('');
         window.requestAnimationFrame(() => {
             catalogTreeRef.current?.scrollTo({
@@ -419,7 +416,7 @@ export default function App() {
                 behavior: 'auto',
             });
         });
-    }, [selectedId, selectedPath, tree]);
+    }, []);
 
     const selectedNode = useMemo(() => {
         if (!selectedId) {
@@ -819,19 +816,16 @@ export default function App() {
     useEffect(() => {
         setIsFailingSignalsOpen(false);
         failingSignalsAutoOpenRef.current = true;
-        setIsPassingSignalsOpen(false);
     }, [selectedId]);
 
     useEffect(() => {
         if (!selectedId) {
             return;
         }
-        if (!grafanaPanelInitializedRef.current) {
-            setIsGrafanaOpen(true);
-            grafanaPanelInitializedRef.current = true;
-            return;
-        }
-        setIsGrafanaOpen(true);
+        contentRef.current?.scrollTo({
+            top: 0,
+            behavior: 'auto',
+        });
     }, [selectedId]);
 
     useEffect(() => {
@@ -890,6 +884,28 @@ export default function App() {
         if (!container) {
             return;
         }
+        const animateScrollTo = (nextTop) => {
+            const startTop = container.scrollTop;
+            const targetTop = Math.max(0, nextTop);
+            const distance = Math.abs(targetTop - startTop);
+            if (distance < 1) {
+                container.scrollTop = targetTop;
+                return;
+            }
+            if (distance > TREE_SCROLL_LONG_DISTANCE_PX) {
+                const direction = targetTop > startTop ? 1 : -1;
+                const prejumpTop = direction > 0
+                    ? Math.max(startTop, targetTop - TREE_SCROLL_SMOOTH_SEGMENT_PX)
+                    : Math.min(startTop, targetTop + TREE_SCROLL_SMOOTH_SEGMENT_PX);
+                if (Math.abs(prejumpTop - startTop) >= 1) {
+                    container.scrollTop = prejumpTop;
+                }
+            }
+            container.scrollTo({
+                top: targetTop,
+                behavior: 'smooth',
+            });
+        };
         const startedAt = performance.now();
         const tryScroll = () => {
             const node = container.querySelector(`[data-node-id="${targetId}"]`);
@@ -909,25 +925,24 @@ export default function App() {
                     offset += current.offsetTop;
                     current = current.offsetParent;
                 }
+                const targetViewportOffset = container.clientHeight / 3;
+                let nextTop;
                 if (current === container) {
                     const maxScrollTop = Math.max(0, container.scrollHeight - container.clientHeight);
-                    const nextTop = Math.min(offset, maxScrollTop);
-                    container.scrollTo({
-                        top: nextTop,
-                        behavior: 'smooth',
-                    });
-                } else if (typeof node.scrollIntoView === 'function') {
-                    node.scrollIntoView({block: 'start', behavior: 'smooth'});
+                    nextTop = Math.min(
+                        Math.max(0, offset - targetViewportOffset),
+                        maxScrollTop,
+                    );
                 } else {
                     const containerRect = container.getBoundingClientRect();
                     const fallbackOffset = nodeRect.top - containerRect.top;
                     const maxScrollTop = Math.max(0, container.scrollHeight - container.clientHeight);
-                    const nextTop = Math.min(container.scrollTop + fallbackOffset, maxScrollTop);
-                    container.scrollTo({
-                        top: nextTop,
-                        behavior: 'smooth',
-                    });
+                    nextTop = Math.min(
+                        Math.max(0, container.scrollTop + fallbackOffset - targetViewportOffset),
+                        maxScrollTop,
+                    );
                 }
+                animateScrollTo(nextTop);
                 setPendingScrollId('');
                 return;
             }
@@ -994,7 +1009,6 @@ export default function App() {
                 {type: 'set-grafana-src', src: dashboardUrl},
                 window.location.origin,
             );
-
         }
     }, [appBaseUrl, grafanaBaseUrl, selectedItem, theme]);
 
