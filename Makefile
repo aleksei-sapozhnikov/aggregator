@@ -7,7 +7,7 @@
 #   make rebuild-recreate ENV=demo
 #
 # Service-scoped (positional args):
-#   make restart-svc caddy grafana
+#   make down-svc caddy grafana
 #   make rebuild-svc aggregator
 #   make recreate-svc ENV=demo caddy
 # ============================================================
@@ -83,7 +83,7 @@ LOCAL_GRAFANA_DATA_DIR := ./.temp/grafana/data
 
 .PHONY: help info env \
         up down restart recreate rebuild rebuild-recreate clean \
-        up-svc stop-svc restart-svc recreate-svc rebuild-svc rebuild-recreate-svc
+        up-svc down-svc restart-svc recreate-svc rebuild-svc rebuild-recreate-svc
 
 help:
 	@echo "Usage:"
@@ -102,7 +102,7 @@ help:
 	@echo "  clean            -> down + remove volumes (DATA LOSS)"
 	@echo ""
 	@echo "Service-scoped (positional args):"
-	@echo "  make restart-svc caddy grafana"
+	@echo "  make down-svc caddy grafana"
 	@echo "  make rebuild-recreate-svc ENV=demo caddy"
 	@echo ""
 	@echo "Defaults:"
@@ -163,8 +163,8 @@ clean: info
 
 # ---- Service-scoped commands (positional service args) ----
 # Positional services are passed after the target:
-#   make restart-svc caddy grafana
-SERVICE_TARGETS := up-svc stop-svc restart-svc recreate-svc rebuild-svc rebuild-recreate-svc
+#   make down-svc caddy grafana
+SERVICE_TARGETS := up-svc down-svc restart-svc recreate-svc rebuild-svc rebuild-recreate-svc
 
 ifneq ($(filter $(SERVICE_TARGETS),$(MAKECMDGOALS)),)
 SERVICES := $(filter-out $(SERVICE_TARGETS),$(MAKECMDGOALS))
@@ -180,9 +180,9 @@ up-svc: info
 	$(call require_services,up-svc)
 	$(COMPOSE_CMD) up --detach --remove-orphans $(SERVICES)
 
-stop-svc: info
-	$(call require_services,stop-svc)
-	$(COMPOSE_CMD) stop $(SERVICES)
+down-svc: info
+	$(call require_services,down-svc)
+	$(COMPOSE_CMD) rm --stop --force $(SERVICES)
 
 restart-svc: info
 	$(call require_services,restart-svc)
@@ -190,12 +190,12 @@ restart-svc: info
 
 recreate-svc: info
 	$(call require_services,recreate-svc)
-	$(COMPOSE_CMD) up --detach --force-recreate $(SERVICES)
+	$(COMPOSE_CMD) up --detach --force-recreate --remove-orphans $(SERVICES)
 
 rebuild-svc: info
 	$(call require_services,rebuild-svc)
-	$(COMPOSE_CMD) up --detach --build $(SERVICES)
+	$(COMPOSE_CMD) up --detach --build --remove-orphans $(SERVICES)
 
 rebuild-recreate-svc: info
 	$(call require_services,rebuild-recreate-svc)
-	$(COMPOSE_CMD) up --detach --build --force-recreate $(SERVICES)
+	$(COMPOSE_CMD) up --detach --build --force-recreate --remove-orphans $(SERVICES)
