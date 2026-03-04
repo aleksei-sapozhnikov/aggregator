@@ -1125,6 +1125,10 @@ export default function App() {
             className={`app ${isMobileLayout ? 'is-mobile' : 'is-desktop'} ${
                 isSidebarOpen ? 'sidebar-open' : 'sidebar-collapsed'
             }`}
+            onTouchStart={handleMobileSidebarSwipeStart}
+            onTouchMove={handleMobileSidebarSwipeMove}
+            onTouchEnd={handleMobileSidebarSwipeEnd}
+            onTouchCancel={handleMobileSidebarSwipeEnd}
         >
             <SidebarPanel
                 isSidebarOpen={isSidebarOpen}
