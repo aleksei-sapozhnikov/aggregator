@@ -7,6 +7,7 @@
 /** @typedef {import('./types').CatalogTreeNode} CatalogTreeNode */
 /** @typedef {import('./types').SearchResult} SearchResult */
 /** @typedef {import('./types').SearchAutocompleteOption} SearchAutocompleteOption */
+/** @typedef {import('./types').SearchAutocompleteIndex} SearchAutocompleteIndex */
 /**
  * Returns items sorted by display name falling back to id.
  *
@@ -142,10 +143,7 @@ const matchSearch = (item, queryTokens) => {
         return true;
     }
     const name = normalizeSearchText(item.name || '');
-    const id = normalizeSearchText(item.id || '');
-    const type = normalizeSearchText(item.type || '');
-    const haystack = `${name} ${id} ${type}`.trim();
-    return queryTokens.every((token) => haystack.includes(token));
+    return queryTokens.every((token) => name.includes(token));
 };
 
 /**
@@ -263,7 +261,7 @@ export const findNodeUidById = (nodes, targetId) => {
 };
 
 /**
- * Ranks flat search results by field match quality (name > id > type).
+ * Ranks flat search results by title match quality.
  *
  * @param {CatalogItem[]} items
  * @param {string[]} queryTokens
@@ -276,22 +274,13 @@ export const rankSearchResults = (items, queryTokens) => {
     const results = [];
     items.forEach((item) => {
         const name = normalizeSearchText(item.name || '');
-        const id = normalizeSearchText(item.id || '');
-        const type = normalizeSearchText(item.type || '');
-        const haystack = `${name} ${id} ${type}`.trim();
-        if (!queryTokens.every((token) => haystack.includes(token))) {
+        if (!queryTokens.every((token) => name.includes(token))) {
             return;
         }
         let score = 0;
         queryTokens.forEach((token) => {
             if (name.includes(token)) {
                 score += 3;
-            }
-            if (id.includes(token)) {
-                score += 2;
-            }
-            if (type.includes(token)) {
-                score += 1;
             }
         });
         results.push({item, score});
@@ -304,27 +293,32 @@ export const rankSearchResults = (items, queryTokens) => {
 };
 
 /**
- * Builds a unique sorted vocabulary from item names for search autocomplete.
+ * Builds an autocomplete index from item titles.
+ *
+ * `tokenToItemIds` maps a token to numeric item indexes containing it.
+ * `itemIdToTokens` stores unique normalized title tokens for each item index.
  *
  * @param {CatalogItem[]} items
- * @returns {string[]}
+ * @returns {SearchAutocompleteIndex}
  */
-export const buildNameWordVocabulary = (items) => {
-    const seen = new Set();
-    const words = [];
-    items.forEach((item) => {
-        normalizeSearchText(item.name || '')
-            .split(' ')
-            .filter(Boolean)
-            .forEach((word) => {
-                if (seen.has(word)) {
-                    return;
-                }
-                seen.add(word);
-                words.push(word);
-            });
+export const buildSearchAutocompleteIndex = (items) => {
+    const tokenToItemIds = new Map();
+    const itemIdToTokens = [];
+
+    items.forEach((item, index) => {
+        const tokens = [...new Set(normalizeSearchText(item.name || '').split(' ').filter(Boolean))];
+        itemIdToTokens[index] = tokens;
+        tokens.forEach((token) => {
+            const itemIds = tokenToItemIds.get(token);
+            if (itemIds) {
+                itemIds.add(index);
+                return;
+            }
+            tokenToItemIds.set(token, new Set([index]));
+        });
     });
-    return words.sort((a, b) => a.localeCompare(b));
+
+    return {tokenToItemIds, itemIdToTokens};
 };
 
 /**
@@ -344,28 +338,60 @@ const parseSearchAutocompleteQuery = (query) => {
  * Builds autocomplete suggestions for the current partial search token.
  *
  * @param {string} query
- * @param {string[]} vocabulary
+ * @param {SearchAutocompleteIndex | null} searchIndex
  * @param {number} [limit=12]
  * @returns {SearchAutocompleteOption[]}
  */
-export const buildSearchAutocompleteOptions = (query, vocabulary, limit = 12) => {
+export const buildSearchAutocompleteOptions = (query, searchIndex, limit = 12) => {
     const {baseTokens, currentToken} = parseSearchAutocompleteQuery(query);
-    if (!currentToken) {
+    if (!currentToken || !searchIndex) {
         return [];
     }
 
-    const options = [];
-    for (const word of vocabulary) {
-        if (!word.startsWith(currentToken) || word === currentToken) {
-            continue;
+    const baseTokenSet = new Set(baseTokens);
+    const uniqueBaseTokens = [...baseTokenSet];
+    const candidateWords = new Set();
+    const baseItemSets = uniqueBaseTokens.map((token) => searchIndex.tokenToItemIds.get(token));
+
+    if (baseItemSets.some((itemSet) => !itemSet)) {
+        return [];
+    }
+
+    const matchingItemIds = [];
+    if (!baseItemSets.length) {
+        for (let index = 0; index < searchIndex.itemIdToTokens.length; index += 1) {
+            matchingItemIds.push(index);
         }
-        const fullQuery = [...baseTokens, word].join(' ');
-        options.push({word, fullQuery});
-        if (options.length >= limit) {
-            break;
+    } else {
+        const [smallestSet, ...otherSets] = [...baseItemSets].sort((a, b) => a.size - b.size);
+        for (const itemId of smallestSet) {
+            if (otherSets.every((itemSet) => itemSet.has(itemId))) {
+                matchingItemIds.push(itemId);
+            }
         }
     }
-    return options;
+
+    const options = [];
+    for (const itemId of matchingItemIds) {
+        const titleTokens = searchIndex.itemIdToTokens[itemId] || [];
+        for (const word of titleTokens) {
+            if (
+                !word.startsWith(currentToken) ||
+                word === currentToken ||
+                baseTokenSet.has(word) ||
+                candidateWords.has(word)
+            ) {
+                continue;
+            }
+            candidateWords.add(word);
+            const fullQuery = [...baseTokens, word].join(' ');
+            options.push({word, fullQuery});
+            if (options.length >= limit) {
+                return options.sort((a, b) => a.word.localeCompare(b.word));
+            }
+        }
+    }
+    return options.sort((a, b) => a.word.localeCompare(b.word));
 };
 
 /**

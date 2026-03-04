@@ -35,6 +35,7 @@ import {buildStatusText} from '../shared/statusText';
  * @property {CatalogTreeNode[]} tree
  * @property {string} searchQuery
  * @property {string} searchSuggestionsListId
+ * @property {boolean} isSearchAutocompleteReady
  * @property {SearchAutocompleteOption[]} searchAutocompleteOptions
  * @property {(value: string) => void} setSearchQuery
  * @property {boolean} isSearchActive
@@ -181,6 +182,7 @@ export default function SidebarPanel({
                                          tree,
                                          searchQuery,
                                          searchSuggestionsListId,
+                                         isSearchAutocompleteReady,
                                          searchAutocompleteOptions,
                                          setSearchQuery,
                                          isSearchActive,
@@ -254,6 +256,9 @@ export default function SidebarPanel({
                             ) {
                                 return;
                             }
+                            if (!isSearchAutocompleteReady) {
+                                return;
+                            }
                             const firstSuggestion = searchAutocompleteOptions[0];
                             if (!firstSuggestion) {
                                 return;
@@ -271,7 +276,8 @@ export default function SidebarPanel({
                                 setIsSearchActive(true);
                             }
                         }}
-                        aria-label="Search items by title, key, or type"
+                        aria-label="Search items by title"
+                        aria-busy={!isSearchAutocompleteReady}
                     />
                     <datalist id={searchSuggestionsListId}>
                         {searchAutocompleteOptions.map((option) => (
