@@ -98,6 +98,8 @@ export default function App() {
     const headerRef = useRef(null);
     const headerActionsRef = useRef(null);
     const contentTitlePrimaryRef = useRef(null);
+    const sidebarSwipeStartXRef = useRef(null);
+    const sidebarSwipeStartYRef = useRef(null);
     const lastHistoryUrlRef = useRef(window.location.href);
     const lastHistoryKeyRef = useRef('');
     const pendingGrafanaSrcRef = useRef('');
