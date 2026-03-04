@@ -4,19 +4,32 @@
     <meta charset="UTF-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <title>Grafana Frame</title>
+    <script>
+        const theme = new URLSearchParams(window.location.search).get('theme') === 'dark'
+            ? 'dark'
+            : 'light';
+        document.documentElement.dataset.theme = theme;
+    </script>
     <style>
+        :root {
+            color-scheme: light;
+            --frame-background-light: #ffffff;
+            --frame-background-dark: #181b1f;
+            --frame-background: var(--frame-background-light);
+        }
+
+        html[data-theme='dark'] {
+            color-scheme: dark;
+            --frame-background: var(--frame-background-dark);
+        }
+
         html, body {
             margin: 0;
             padding: 0;
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background: #ffffff;
-        }
-
-        html[data-theme='dark'],
-        body[data-theme='dark'] {
-            background: #181b1f;
+            background: var(--frame-background);
         }
 
         #grafana-embed {
