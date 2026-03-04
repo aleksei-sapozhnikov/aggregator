@@ -7,9 +7,9 @@
 #   make rebuild-recreate ENV=demo
 #
 # Service-scoped (positional args):
-#   make restart-svc caddy grafana
+#   make down-svc caddy grafana
 #   make rebuild-svc aggregator
-#   make recreate-svc ENV=demo caddy
+#   make clean-svc ENV=demo caddy
 # ============================================================
 
 # ---- Environment selector ----
@@ -39,9 +39,13 @@ PROJECT_demo := aggregator-demo
 STACK := $(STACK_$(ENV))
 PROJECT := $(PROJECT_$(ENV))
 
+CONTAINER_RUNTIME :=
 COMPOSE_CMD :=
 
-# ---- Compose command (docker/podman autodetect; override via COMPOSE=...) ----
+# ---- Container runtime / compose command autodetect ----
+# Override via:
+#   make ... CONTAINER_RUNTIME=docker
+#   make ... COMPOSE="docker compose"
 COMPOSE ?=
 ifeq ($(OS),Windows_NT)
 DOCKER := $(shell powershell -NoProfile -Command "Get-Command docker -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source")
@@ -51,14 +55,18 @@ DOCKER := $(shell command -v docker 2>/dev/null)
 PODMAN := $(shell command -v podman 2>/dev/null)
 endif
 
-ifeq ($(COMPOSE),)
+ifeq ($(CONTAINER_RUNTIME),)
   ifneq ($(DOCKER),)
-    COMPOSE := docker compose
+    CONTAINER_RUNTIME := docker
   else ifneq ($(PODMAN),)
-    COMPOSE := podman compose
+    CONTAINER_RUNTIME := podman
   else
     $(error Neither docker nor podman is installed. Please install one of them.)
   endif
+endif
+
+ifeq ($(COMPOSE),)
+COMPOSE := $(CONTAINER_RUNTIME) compose
 endif
 
 COMPOSE_CMD := $(COMPOSE) --project-name $(PROJECT) $(STACK)
@@ -75,7 +83,7 @@ LOCAL_GRAFANA_DATA_DIR := ./.temp/grafana/data
 
 .PHONY: help info env \
         up down restart recreate rebuild rebuild-recreate clean \
-        up-svc stop-svc restart-svc recreate-svc rebuild-svc rebuild-recreate-svc
+        up-svc down-svc restart-svc recreate-svc rebuild-svc rebuild-recreate-svc clean-svc
 
 help:
 	@echo "Usage:"
@@ -91,10 +99,11 @@ help:
 	@echo "  recreate         -> force re-create containers (keep volumes)"
 	@echo "  rebuild          -> build images + start/update (keep volumes)"
 	@echo "  rebuild-recreate -> build images + force re-create containers (keep volumes)"
-	@echo "  clean            -> down + remove volumes (DATA LOSS)"
+	@echo "  clean            -> down + remove containers, network, and volumes (DATA LOSS)"
 	@echo ""
 	@echo "Service-scoped (positional args):"
-	@echo "  make restart-svc caddy grafana"
+	@echo "  make down-svc caddy grafana"
+	@echo "  make clean-svc ENV=demo caddy"
 	@echo "  make rebuild-recreate-svc ENV=demo caddy"
 	@echo ""
 	@echo "Defaults:"
@@ -104,11 +113,13 @@ env:
 	@echo $(SUPPORTED_ENVS)
 
 info:
-	@echo "Using compose command: $(COMPOSE)"
+	@echo "Runtime: $(CONTAINER_RUNTIME)"
+	@echo "Compose: $(COMPOSE)"
 	@echo "ENV=$(ENV)"
 	@echo "PROJECT=$(PROJECT)"
 	@echo "STACK=$(STACK)"
 	@echo "COMPOSE_CMD=$(COMPOSE_CMD)"
+	@echo "SERVICE_TARGETS=up-svc down-svc restart-svc recreate-svc rebuild-svc rebuild-recreate-svc clean-svc"
 
 # ---- Common targets ----
 up: info
@@ -154,8 +165,8 @@ clean: info
 
 # ---- Service-scoped commands (positional service args) ----
 # Positional services are passed after the target:
-#   make restart-svc caddy grafana
-SERVICE_TARGETS := up-svc stop-svc restart-svc recreate-svc rebuild-svc rebuild-recreate-svc
+#   make down-svc caddy grafana
+SERVICE_TARGETS := up-svc down-svc restart-svc recreate-svc rebuild-svc rebuild-recreate-svc clean-svc
 
 ifneq ($(filter $(SERVICE_TARGETS),$(MAKECMDGOALS)),)
 SERVICES := $(filter-out $(SERVICE_TARGETS),$(MAKECMDGOALS))
@@ -171,9 +182,9 @@ up-svc: info
 	$(call require_services,up-svc)
 	$(COMPOSE_CMD) up --detach --remove-orphans $(SERVICES)
 
-stop-svc: info
-	$(call require_services,stop-svc)
-	$(COMPOSE_CMD) stop $(SERVICES)
+down-svc: info
+	$(call require_services,down-svc)
+	$(COMPOSE_CMD) rm --stop --force $(SERVICES)
 
 restart-svc: info
 	$(call require_services,restart-svc)
@@ -181,12 +192,25 @@ restart-svc: info
 
 recreate-svc: info
 	$(call require_services,recreate-svc)
-	$(COMPOSE_CMD) up --detach --force-recreate $(SERVICES)
+	$(COMPOSE_CMD) up --detach --force-recreate --remove-orphans $(SERVICES)
 
 rebuild-svc: info
 	$(call require_services,rebuild-svc)
-	$(COMPOSE_CMD) up --detach --build $(SERVICES)
+	$(COMPOSE_CMD) up --detach --build --remove-orphans $(SERVICES)
 
 rebuild-recreate-svc: info
 	$(call require_services,rebuild-recreate-svc)
-	$(COMPOSE_CMD) up --detach --build --force-recreate $(SERVICES)
+	$(COMPOSE_CMD) up --detach --build --force-recreate --remove-orphans $(SERVICES)
+
+clean-svc: info
+	$(call require_services,clean-svc)
+	@volume_names="$$(container_ids=`$(COMPOSE_CMD) ps -q $(SERVICES)`; \
+		if [ -n "$$container_ids" ]; then \
+			$(CONTAINER_RUNTIME) inspect $$container_ids --format '{{range .Mounts}}{{if eq .Type "volume"}}{{println .Name}}{{end}}{{end}}'; \
+		fi)"; \
+	$(COMPOSE_CMD) rm --stop --force $(SERVICES); \
+	if [ -n "$$volume_names" ]; then \
+		for volume_name in `printf '%s\n' "$$volume_names" | sort -u`; do \
+			$(CONTAINER_RUNTIME) volume rm --force $$volume_name; \
+		done; \
+	fi
