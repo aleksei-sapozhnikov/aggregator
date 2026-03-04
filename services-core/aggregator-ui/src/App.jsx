@@ -657,6 +657,66 @@ export default function App() {
     }, [isMobileLayout]);
 
     /**
+     * Tracks swipe state for mobile sidebar gestures.
+     */
+    const handleMobileSidebarSwipeStart = useCallback((event) => {
+        if (!isMobileLayout) {
+            sidebarSwipeStartXRef.current = null;
+            sidebarSwipeStartYRef.current = null;
+            return;
+        }
+        const touch = event.touches?.[0];
+        if (!touch) {
+            sidebarSwipeStartXRef.current = null;
+            sidebarSwipeStartYRef.current = null;
+            return;
+        }
+        sidebarSwipeStartXRef.current = touch.clientX;
+        sidebarSwipeStartYRef.current = touch.clientY;
+    }, [isMobileLayout]);
+
+    /**
+     * Opens or closes the mobile sidebar when a horizontal swipe is detected.
+     */
+    const handleMobileSidebarSwipeMove = useCallback((event) => {
+        const startX = sidebarSwipeStartXRef.current;
+        const startY = sidebarSwipeStartYRef.current;
+        if (startX === null || startY === null || !isMobileLayout) {
+            return;
+        }
+        const touch = event.touches?.[0];
+        if (!touch) {
+            return;
+        }
+        const deltaX = touch.clientX - startX;
+        const deltaY = Math.abs(touch.clientY - startY);
+        if (deltaY > MOBILE_SWIPE_MAX_VERTICAL_DRIFT_PX) {
+            sidebarSwipeStartXRef.current = null;
+            sidebarSwipeStartYRef.current = null;
+            return;
+        }
+        if (!isMobileSidebarOpen && deltaX >= MOBILE_SWIPE_OPEN_DISTANCE_PX) {
+            setIsMobileSidebarOpen(true);
+            sidebarSwipeStartXRef.current = null;
+            sidebarSwipeStartYRef.current = null;
+            return;
+        }
+        if (isMobileSidebarOpen && deltaX <= -MOBILE_SWIPE_CLOSE_DISTANCE_PX) {
+            setIsMobileSidebarOpen(false);
+            sidebarSwipeStartXRef.current = null;
+            sidebarSwipeStartYRef.current = null;
+        }
+    }, [isMobileLayout, isMobileSidebarOpen]);
+
+    /**
+     * Resets swipe tracking after touch end/cancel.
+     */
+    const handleMobileSidebarSwipeEnd = useCallback(() => {
+        sidebarSwipeStartXRef.current = null;
+        sidebarSwipeStartYRef.current = null;
+    }, []);
+
+    /**
      * Selects a node from the tree and updates route with resolved path information.
      */
     const handleSelectItem = useCallback((node) => {
