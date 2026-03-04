@@ -47,6 +47,9 @@ import {
 const MOBILE_BREAKPOINT = 1100;
 const TREE_SCROLL_LONG_DISTANCE_PX = 600;
 const TREE_SCROLL_SMOOTH_SEGMENT_PX = 360;
+const MOBILE_SWIPE_OPEN_DISTANCE_PX = 96;
+const MOBILE_SWIPE_CLOSE_DISTANCE_PX = 96;
+const MOBILE_SWIPE_MAX_VERTICAL_DRIFT_PX = 48;
 /** @type {{items: CatalogItem[], dependencies: CatalogDependency[]}} */
 const EMPTY_CATALOG = {items: [], dependencies: []};
 
