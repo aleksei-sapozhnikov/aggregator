@@ -2,60 +2,74 @@
 
 Catalog Health Aggregator transforms service-level health signals into a product-level view of complex systems.
 
+In systems built from many shared services and multi-level dependencies, the visible product failure is often only
+the last symptom. The real cause may sit several levels deeper in a small technical service owned by another team.
+This project makes that chain explicit, so teams can get from "something is broken" to a likely root cause faster.
+
 - Traditional observability focuses on service-level metrics and technical diagnostics.
 - Service health alone does not answer a product-level question: “What is broken for customers?”
 - Developers see their own service, while product and support teams need to understand customer impact across
   dependencies.
 
-This pet project explores an approach to quickly identify why a specific product is not working by making
-dependency impact explicit and traceable.
+This pet project explores a simple way to make dependency impact explicit and traceable.
+When a product is down, owners should not have to message every team asking "is this yours?" Instead, the dependency
+graph should point to the most probable broken service and help route the incident directly to the team that can
+actually fix it.
 
 ## Demo
 
 - https://aggregator.alivion.cc
 
-The link opens the web UI:
+The demo provides a web UI:
 
-- Left panel: dependency tree with `🟢 UP / 🔴 DOWN / 🟡 UNKNOWN` markers near the title.
-- Right panel: details of the selected item, including affecting items and health check status.
-- Timeline at the bottom: selected item state over time, together with related dependencies and health checks.
+- Left panel: dependency tree with health state markers near the title.
+- Right panel: details for the selected item, including its own health signals, items contributing to the failure (if
+  present) and their signals.
+- Timeline at the bottom: selected item state over time, together with related dependencies and signal history.
 
-The demo simulates a complex hierarchical catalog of services, products, and product lines.
-It includes three product family branches, divided into products and services up to six levels deep.
+The demo simulates a hierarchical catalog of services, products, and product lines.
+It includes three product family branches, split into products and services up to six levels deep.
 A product can depend on a service, which can depend on other services or products, and so on.
 
-Service state in the demo is collected from HTTP health checks (`UP`/`DOWN`) and aggregated into three states:
-`UP`, `DOWN`, `UNKNOWN`.
+The current version builds product state from signals collected through HTTP endpoints. These signals can represent
+different kinds of checks, such as health checks, SLI-style indicators, and other service-specific status signals.
+Services expose an endpoint, the aggregator polls it periodically, and converts the result into `UP`, `DOWN`, or
+`UNKNOWN`.
+`UNKNOWN` is used when no usable health signal is available, most often because a service does not provide one.
+
+Polling is used here because it is the simplest way to get a working signal path in the first version. A future
+extension can add ingestion, where services push updates into the aggregator directly.
 
 ## Technical Overview
 
 ### Design Choices
 
-- Health checks via HTTP endpoints: This is the simplest mechanism for the first working prototype and leaves room for
-  future push-based updates or external probes.
+- Health signals via HTTP health checks: Simple for the first working prototype and compatible with future push-based
+  updates or external probes.
 - Deterministic state propagation: A strict _worst-of rule_ is used for dependencies: `DOWN` dominates, then
   `UNKNOWN`, otherwise `UP`. This keeps impact analysis clear and predictable across the dependency graph.
 - Metrics and visualization stack: Prometheus stores metrics, Grafana visualizes them; both integrate well with
   Spring Boot and keep dashboarding simple.
-- Dynamic demo behavior: [chaos-maker](services-demo/chaos-maker) injects failures into dummy services so dependency
+- Dynamic demo behavior: [chaos-maker](services-demo/chaos-maker) injects failures into dummy services so that
+  dependency
   impact remains visible without manual intervention.
 
 ### Configuration
 
-Catalog items and health checks are configured through YAML files. Demo example:
+Catalog items and health signal sources are configured in YAML files. Demo example:
 
 - [demo/catalog-definition.yaml](config/demo/catalog-definition.yaml)
 - [demo/http-poll-signals.yaml](config/demo/http-poll-signals.yaml)
 
 ### Core Services (`services-core`)
 
-- [aggregator](services-core/aggregator): Java backend (Spring Boot). Polls health check endpoints, aggregates
-  service/product state through dependency graph, and exposes Prometheus metrics at `/actuator/prometheus`.
-  Metric
-  semantics: [HealthMetricsDocumentation.java](services-core/aggregator/src/main/java/com/github/vermucht/aggregator/export/HealthMetricsDocumentation.java).
+- [aggregator](services-core/aggregator): Java backend (Spring Boot). Collects signals from service health check
+  endpoints, aggregates service/product state through the dependency graph, and exposes Prometheus metrics at
+  `/actuator/prometheus`. Metric semantics:
+  [HealthMetricsDocumentation.java](services-core/aggregator/src/main/java/com/github/vermucht/aggregator/export/HealthMetricsDocumentation.java).
 - [aggregator-ui](services-core/aggregator-ui): User web interface built with React.
 
-### Supporting Monitoring Services (`services-extra`)
+### Supporting Services (`services-extra`)
 
 - [prometheus](services-extra/prometheus): scrapes and stores metrics from [aggregator](services-core/aggregator).
 - [grafana](services-extra/grafana): visualizes collected metrics and powers dashboards used
@@ -67,7 +81,7 @@ Catalog items and health checks are configured through YAML files. Demo example:
   realistic and dynamic.
 - [dummy-java](services-demo/dummy-java), [dummy-python](services-demo/dummy-python),
   [dummy-javascript](services-demo/dummy-javascript): simulated product services (Java/Python/JavaScript) with health
-  endpoint for aggregator polling and a state-change endpoint (`UP`/`DOWN`) used
+  check endpoint for aggregator polling and a state-change endpoint (`UP`/`DOWN`) used
   by [chaos-maker](services-demo/chaos-maker).
 
 ## Run Locally
