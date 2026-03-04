@@ -1171,6 +1171,11 @@ export default function App() {
                     aria-label="Close catalog panel"
                 />
             )}
+            {isMobileLayout && !isSidebarOpen && (
+                <div className="sidebar-swipe-hint" aria-hidden="true">
+                    <span className="sidebar-swipe-hint-edge"/>
+                </div>
+            )}
             <DetailsPanel
                 contentRef={contentRef}
                 isSidebarOpen={isSidebarOpen}
