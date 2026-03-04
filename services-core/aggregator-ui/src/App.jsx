@@ -1,3 +1,7 @@
+/**
+ * @file Main React application orchestrator for aggregator-ui.
+ */
+
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import SidebarPanel from './components/SidebarPanel';
 import DetailsPanel from './components/DetailsPanel';
@@ -45,10 +49,6 @@ const TREE_SCROLL_LONG_DISTANCE_PX = 600;
 const TREE_SCROLL_SMOOTH_SEGMENT_PX = 360;
 /** @type {{items: CatalogItem[], dependencies: CatalogDependency[]}} */
 const EMPTY_CATALOG = {items: [], dependencies: []};
-
-/**
- * @file Main React application orchestrator for aggregator-ui.
- */
 
 /**
  * Application orchestrator.
