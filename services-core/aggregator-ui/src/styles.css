@@ -43,6 +43,7 @@
     --timeline-panel-accent: #EAF2FF;
     --details-panel-title-color: var(--text);
     --details-panel-meta-color: var(--muted);
+    --sidebar-swipe-hint-color: rgba(0, 0, 0, 0.5);
 }
 
 body[data-theme='dark'] {
@@ -88,6 +89,7 @@ body[data-theme='dark'] {
     --timeline-panel-accent: #1B2A4A;
     --details-panel-title-color: rgba(255, 255, 255, 0.88);
     --details-panel-meta-color: rgba(255, 255, 255, 0.72);
+    --sidebar-swipe-hint-color: rgba(255, 255, 255, 0.5);
 }
 
 * {
