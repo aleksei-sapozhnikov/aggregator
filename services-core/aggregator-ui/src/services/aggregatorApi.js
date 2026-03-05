@@ -36,7 +36,7 @@ export const DASHBOARDS = {
  * Cache-bust revision for the dedicated Grafana wrapper page.
  * Bump when changing wrapper behavior (`grafana-frame/index.js` or `grafana-frame/index.html`).
  */
-export const GRAFANA_FRAME_WRAPPER_REV = 'v2026-02-22';
+export const GRAFANA_FRAME_WRAPPER_REV = 'v2026-03-04';
 
 /**
  * Reads and validates default Grafana time range from env.
