@@ -1,10 +1,11 @@
 services:
   aggregator:
     environment:
-      FEEDBACK_STORE_TYPE: dynamo
+      FEEDBACK_STORE_TYPE: ${FEEDBACK_STORE_TYPE?Missing FEEDBACK_STORE_TYPE}
       FEEDBACK_DYNAMO_TABLE_NAME: aggregator_feedback
-      ADMIN_USERNAME: ${ADMIN_USERNAME-}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD-}
+      ADMIN_USERNAME: ${ADMIN_USERNAME?Missing ADMIN_USERNAME}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD?Missing ADMIN_PASSWORD}
+      AWS_REGION: ${AWS_REGION-}
     build:
       args:
         CONTAINER_ROOT: services-core/aggregator
