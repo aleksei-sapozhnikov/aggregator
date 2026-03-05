@@ -44,6 +44,11 @@
     --details-panel-title-color: var(--text);
     --details-panel-meta-color: var(--muted);
     --sidebar-swipe-hint-color: rgba(0, 0, 0, 0.5);
+    --toast-success-bg: #E8F5EC;
+    --toast-success-border: #9BD3A7;
+    --toast-success-text: #1F3D2B;
+    --toast-success-icon: #2E7D32;
+    --toast-success-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
 }
 
 body[data-theme='dark'] {
@@ -90,6 +95,11 @@ body[data-theme='dark'] {
     --details-panel-title-color: rgba(255, 255, 255, 0.88);
     --details-panel-meta-color: rgba(255, 255, 255, 0.72);
     --sidebar-swipe-hint-color: rgba(255, 255, 255, 0.5);
+    --toast-success-bg: #1E2A23;
+    --toast-success-border: #2F7A4C;
+    --toast-success-text: #D6F5E3;
+    --toast-success-icon: #4ADE80;
+    --toast-success-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
 }
 
 * {
@@ -1198,18 +1208,86 @@ body {
 
 .app-notification {
     position: fixed;
-    right: 20px;
-    bottom: 20px;
-    max-width: min(460px, calc(100vw - 32px));
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    background: var(--panel);
-    color: var(--text);
-    padding: 10px 12px;
-    box-shadow: var(--shadow-strong);
-    z-index: 90;
-    font-size: 13px;
+    top: 64px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 70;
+    pointer-events: none;
+    max-width: min(320px, calc(100vw - 32px));
+    padding: 10px 18px;
+    border-radius: 8px;
+    border: 1px solid var(--toast-success-border);
+    background: var(--toast-success-bg);
+    color: var(--toast-success-text);
+    box-shadow: var(--toast-success-shadow);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 500;
     line-height: 1.4;
+    white-space: nowrap;
+    animation: app-notification-enter 180ms ease-out forwards;
+    overflow: hidden;
+}
+
+.app-notification.is-exiting {
+    animation: app-notification-exit 200ms ease-out forwards;
+}
+
+.app-notification-icon {
+    color: var(--toast-success-icon);
+    font-size: 16px;
+    line-height: 1;
+    flex: 0 0 auto;
+}
+
+.app-notification-text {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.app-notification-progress {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    background: var(--toast-success-border);
+    transform-origin: left center;
+    animation: app-notification-progress 3000ms linear forwards;
+}
+
+@keyframes app-notification-enter {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -8px);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}
+
+@keyframes app-notification-exit {
+    from {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+    to {
+        opacity: 0;
+        transform: translate(-50%, 0);
+    }
+}
+
+@keyframes app-notification-progress {
+    from {
+        transform: scaleX(1);
+    }
+    to {
+        transform: scaleX(0);
+    }
 }
 
 @media (max-width: 640px) {

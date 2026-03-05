@@ -96,7 +96,11 @@ export default function App() {
     );
     const [feedbackError, setFeedbackError] = useState('');
     const [isFeedbackSending, setIsFeedbackSending] = useState(false);
-    const [notificationMessage, setNotificationMessage] = useState('');
+    const [notification, setNotification] = useState({
+        id: 0,
+        message: '',
+        phase: 'hidden',
+    });
     const [isTitlePrimaryBelowControls, setIsTitlePrimaryBelowControls] = useState(false);
     const failingSignalsAutoOpenRef = useRef(true);
     const [grafanaHeight, setGrafanaHeight] = useState(0);
@@ -221,16 +225,24 @@ export default function App() {
     }, [feedbackDraft]);
 
     useEffect(() => {
-        if (!notificationMessage) {
+        if (!notification.message || !notification.id) {
             return undefined;
         }
-        const timeoutId = window.setTimeout(() => {
-            setNotificationMessage('');
-        }, 3500);
+        const startExitTimeoutId = window.setTimeout(() => {
+            setNotification((prev) => (
+                prev.id === notification.id ? {...prev, phase: 'exiting'} : prev
+            ));
+        }, 3000);
+        const clearTimeoutId = window.setTimeout(() => {
+            setNotification((prev) => (
+                prev.id === notification.id ? {id: 0, message: '', phase: 'hidden'} : prev
+            ));
+        }, 3200);
         return () => {
-            window.clearTimeout(timeoutId);
+            window.clearTimeout(startExitTimeoutId);
+            window.clearTimeout(clearTimeoutId);
         };
-    }, [notificationMessage]);
+    }, [notification.id, notification.message]);
 
     /**
      * Keep the Grafana wrapper iframe in sync with the current app theme
@@ -1173,7 +1185,11 @@ export default function App() {
             await submitFeedback(feedbackDraft);
             setFeedbackDraft('');
             setIsFeedbackOpen(false);
-            setNotificationMessage('Фидбек успешно принят, спасибо.');
+            setNotification({
+                id: Date.now(),
+                message: 'Feedback received. Thank you for your time!',
+                phase: 'visible',
+            });
         } catch (submitError) {
             const nextError = submitError instanceof Error
                 ? submitError.message
@@ -1298,9 +1314,15 @@ export default function App() {
                 }}
                 onSend={handleSendFeedback}
             />
-            {notificationMessage && (
-                <div className="app-notification" role="status" aria-live="polite">
-                    {notificationMessage}
+            {notification.message && (
+                <div
+                    className={`app-notification ${notification.phase === 'exiting' ? 'is-exiting' : ''}`}
+                    role="status"
+                    aria-live="polite"
+                >
+                    <span className="app-notification-icon" aria-hidden="true">✔</span>
+                    <span className="app-notification-text">{notification.message}</span>
+                    <span className="app-notification-progress" aria-hidden="true"/>
                 </div>
             )}
         </div>
