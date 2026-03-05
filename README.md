@@ -95,6 +95,10 @@ Clone or download the repository and open its root folder in terminal.
 
 First run can take a while, as it will download Docker images.
 
+For local and local-demo runs, set:
+`ADMIN_USERNAME` and `ADMIN_PASSWORD` (defaults are `admin/admin`).
+Admin feedback page is available at `/admin/feedback`.
+
 ### Option 1: Make (recommended)
 
 Start default stack (local-demo)
