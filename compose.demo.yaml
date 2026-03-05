@@ -1,5 +1,10 @@
 services:
   aggregator:
+    environment:
+      FEEDBACK_STORE_TYPE: dynamo
+      FEEDBACK_DYNAMO_TABLE_NAME: aggregator_feedback
+      ADMIN_USERNAME: ${ADMIN_USERNAME-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD-}
     build:
       args:
         CONTAINER_ROOT: services-core/aggregator
