@@ -1213,7 +1213,7 @@ body {
     transform: translateX(-50%);
     z-index: 70;
     pointer-events: none;
-    max-width: min(320px, calc(100vw - 32px));
+    max-width: min(380px, calc(100vw - 32px));
     padding: 10px 18px;
     border-radius: 8px;
     border: 1px solid var(--toast-success-border);
@@ -1221,12 +1221,11 @@ body {
     color: var(--toast-success-text);
     box-shadow: var(--toast-success-shadow);
     display: inline-flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 8px;
     font-size: 14px;
     font-weight: 500;
     line-height: 1.4;
-    white-space: nowrap;
     animation: app-notification-enter 180ms ease-out forwards;
     overflow: hidden;
 }
@@ -1244,8 +1243,7 @@ body {
 
 .app-notification-text {
     min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: pre-line;
 }
 
 .app-notification-progress {

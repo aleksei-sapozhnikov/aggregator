@@ -1187,7 +1187,7 @@ export default function App() {
             setIsFeedbackOpen(false);
             setNotification({
                 id: Date.now(),
-                message: 'Feedback received. Thank you for your time!',
+                message: 'Feedback received.\nThank you for your time!',
                 phase: 'visible',
             });
         } catch (submitError) {
