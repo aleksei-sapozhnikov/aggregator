@@ -1,4 +1,14 @@
 services:
+  aggregator:
+    environment:
+      FEEDBACK_STORE_TYPE: ${FEEDBACK_STORE_TYPE?Missing FEEDBACK_STORE_TYPE}
+      FEEDBACK_LOCAL_FILES_PATH: /home/appuser/feedback/feedback.ndjson
+      ADMIN_USERNAME: ${ADMIN_USERNAME?Missing ADMIN_USERNAME}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD?Missing ADMIN_PASSWORD}
+      AWS_REGION: ${AWS_REGION-}
+    volumes:
+      - feedback-data:/home/appuser/feedback
+
   prometheus:
     image: prom/prometheus:v2.54.1
     volumes:
@@ -23,3 +33,4 @@ services:
 volumes:
   prometheus-data:
   grafana-data:
+  feedback-data:

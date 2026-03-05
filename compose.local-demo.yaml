@@ -1,5 +1,11 @@
 services:
   aggregator:
+    environment:
+      FEEDBACK_STORE_TYPE: ${FEEDBACK_STORE_TYPE?Missing FEEDBACK_STORE_TYPE}
+      FEEDBACK_LOCAL_FILES_PATH: /home/appuser/feedback/feedback.ndjson
+      ADMIN_USERNAME: ${ADMIN_USERNAME?Missing ADMIN_USERNAME}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD?Missing ADMIN_PASSWORD}
+      AWS_REGION: ${AWS_REGION-}
     build:
       args:
         CONTAINER_ROOT: services-core/aggregator
@@ -7,6 +13,7 @@ services:
         HTTP_POLL_SIGNALS_FILE: config/demo/http-poll-signals.yaml
     volumes:
       - ./config/demo:/app/config/demo:ro
+      - feedback-data:/home/appuser/feedback
 
   aggregator-ui:
     build:
@@ -60,3 +67,4 @@ services:
 volumes:
   prometheus-data:
   grafana-data:
+  feedback-data:
