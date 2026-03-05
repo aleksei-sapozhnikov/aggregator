@@ -6,6 +6,7 @@
  * @typedef {Object} TopBarActionsProps
  * @property {'dark' | 'light'} theme
  * @property {() => void} onToggleTheme
+ * @property {() => void} onOpenFeedback
  * @property {() => void} onOpenAbout
  */
 
@@ -17,6 +18,7 @@
 export default function TopBarActions({
     theme,
     onToggleTheme,
+    onOpenFeedback,
     onOpenAbout,
 }) {
     return (
@@ -32,6 +34,14 @@ export default function TopBarActions({
                 <span className="theme-toggle-text">
                     {theme === 'dark' ? 'Go light' : 'Go dark'}
                 </span>
+            </button>
+            <button
+                type="button"
+                className="feedback-toggle top-control top-control-button top-control-pill top-control-surface"
+                onClick={onOpenFeedback}
+            >
+                <span className="theme-toggle-icon" aria-hidden="true">F</span>
+                <span className="theme-toggle-text">Feedback</span>
             </button>
             <button
                 type="button"

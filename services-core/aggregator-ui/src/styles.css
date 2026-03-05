@@ -319,6 +319,11 @@ body {
     transform: translateY(-1px);
 }
 
+.feedback-toggle:hover {
+    box-shadow: var(--shadow-strong);
+    transform: translateY(-1px);
+}
+
 .top-control-button:not(.top-control-accent):hover {
     background: var(--theme-toggle-hover-bg);
     border-color: var(--border);
@@ -652,6 +657,8 @@ body {
 .search-clear:focus-visible,
 .top-control-button:focus-visible,
 .about-close:focus-visible,
+.feedback-send:focus-visible,
+.feedback-textarea:focus-visible,
 .home-link:focus-visible,
 .sidebar-close:focus-visible {
     outline: 2px solid var(--link);
@@ -1109,6 +1116,100 @@ body {
     background: var(--danger-hover);
     box-shadow: var(--shadow);
     transform: translateY(-1px);
+}
+
+.feedback-modal {
+    width: min(700px, 100%);
+}
+
+.feedback-header {
+    margin: 0 56px 12px 0;
+}
+
+.feedback-header h2 {
+    margin: 0;
+    font-size: 24px;
+}
+
+.feedback-note {
+    margin: 0 0 14px;
+    color: var(--muted);
+    line-height: 1.5;
+}
+
+.feedback-label {
+    display: inline-block;
+    margin: 0 0 8px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.feedback-textarea {
+    width: 100%;
+    min-height: 180px;
+    resize: vertical;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--panel-alt);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+.feedback-textarea::placeholder {
+    color: var(--muted);
+}
+
+.feedback-actions {
+    margin-top: 12px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.feedback-send {
+    height: 40px;
+    padding: 0 18px;
+    border-radius: 10px;
+    border: 1px solid var(--theme-toggle-border);
+    background: var(--theme-toggle-bg);
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.feedback-send:hover:not(:disabled) {
+    background: var(--theme-toggle-hover-bg);
+    box-shadow: var(--shadow-strong);
+    transform: translateY(-1px);
+}
+
+.feedback-send:disabled {
+    cursor: progress;
+    opacity: 0.8;
+}
+
+.feedback-error {
+    margin: 10px 0 0;
+    color: var(--danger);
+    font-size: 13px;
+}
+
+.app-notification {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    max-width: min(460px, calc(100vw - 32px));
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--panel);
+    color: var(--text);
+    padding: 10px 12px;
+    box-shadow: var(--shadow-strong);
+    z-index: 90;
+    font-size: 13px;
+    line-height: 1.4;
 }
 
 @media (max-width: 640px) {

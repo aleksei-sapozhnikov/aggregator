@@ -22,6 +22,7 @@ import {buildStatusText} from '../shared/statusText';
  * @property {{current: HTMLElement | null}} headerActionsRef
  * @property {'dark' | 'light'} theme
  * @property {() => void} onToggleTheme
+ * @property {() => void} onOpenFeedback
  * @property {() => void} onOpenAbout
  * @property {CatalogItem | undefined} selectedItem
  * @property {HealthStatus} selectedStatus
@@ -71,6 +72,7 @@ export default function DetailsPanel({
     headerActionsRef,
     theme,
     onToggleTheme,
+    onOpenFeedback,
     onOpenAbout,
     selectedItem,
     selectedStatus,
@@ -124,6 +126,7 @@ export default function DetailsPanel({
                     <TopBarActions
                         theme={theme}
                         onToggleTheme={onToggleTheme}
+                        onOpenFeedback={onOpenFeedback}
                         onOpenAbout={onOpenAbout}
                     />
                 </div>
