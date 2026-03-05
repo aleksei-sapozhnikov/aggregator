@@ -1,3 +1,7 @@
+/**
+ * @file Main React application orchestrator for aggregator-ui.
+ */
+
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import SidebarPanel from './components/SidebarPanel';
 import DetailsPanel from './components/DetailsPanel';
@@ -43,12 +47,11 @@ import {
 const MOBILE_BREAKPOINT = 1100;
 const TREE_SCROLL_LONG_DISTANCE_PX = 600;
 const TREE_SCROLL_SMOOTH_SEGMENT_PX = 360;
+const MOBILE_SWIPE_OPEN_DISTANCE_PX = 96;
+const MOBILE_SWIPE_CLOSE_DISTANCE_PX = 96;
+const MOBILE_SWIPE_MAX_VERTICAL_DRIFT_PX = 48;
 /** @type {{items: CatalogItem[], dependencies: CatalogDependency[]}} */
 const EMPTY_CATALOG = {items: [], dependencies: []};
-
-/**
- * @file Main React application orchestrator for aggregator-ui.
- */
 
 /**
  * Application orchestrator.
@@ -95,6 +98,8 @@ export default function App() {
     const headerRef = useRef(null);
     const headerActionsRef = useRef(null);
     const contentTitlePrimaryRef = useRef(null);
+    const sidebarSwipeStartXRef = useRef(null);
+    const sidebarSwipeStartYRef = useRef(null);
     const lastHistoryUrlRef = useRef(window.location.href);
     const lastHistoryKeyRef = useRef('');
     const pendingGrafanaSrcRef = useRef('');
@@ -652,6 +657,66 @@ export default function App() {
     }, [isMobileLayout]);
 
     /**
+     * Tracks swipe state for mobile sidebar gestures.
+     */
+    const handleMobileSidebarSwipeStart = useCallback((event) => {
+        if (!isMobileLayout) {
+            sidebarSwipeStartXRef.current = null;
+            sidebarSwipeStartYRef.current = null;
+            return;
+        }
+        const touch = event.touches?.[0];
+        if (!touch) {
+            sidebarSwipeStartXRef.current = null;
+            sidebarSwipeStartYRef.current = null;
+            return;
+        }
+        sidebarSwipeStartXRef.current = touch.clientX;
+        sidebarSwipeStartYRef.current = touch.clientY;
+    }, [isMobileLayout]);
+
+    /**
+     * Opens or closes the mobile sidebar when a horizontal swipe is detected.
+     */
+    const handleMobileSidebarSwipeMove = useCallback((event) => {
+        const startX = sidebarSwipeStartXRef.current;
+        const startY = sidebarSwipeStartYRef.current;
+        if (startX === null || startY === null || !isMobileLayout) {
+            return;
+        }
+        const touch = event.touches?.[0];
+        if (!touch) {
+            return;
+        }
+        const deltaX = touch.clientX - startX;
+        const deltaY = Math.abs(touch.clientY - startY);
+        if (deltaY > MOBILE_SWIPE_MAX_VERTICAL_DRIFT_PX) {
+            sidebarSwipeStartXRef.current = null;
+            sidebarSwipeStartYRef.current = null;
+            return;
+        }
+        if (!isMobileSidebarOpen && deltaX >= MOBILE_SWIPE_OPEN_DISTANCE_PX) {
+            setIsMobileSidebarOpen(true);
+            sidebarSwipeStartXRef.current = null;
+            sidebarSwipeStartYRef.current = null;
+            return;
+        }
+        if (isMobileSidebarOpen && deltaX <= -MOBILE_SWIPE_CLOSE_DISTANCE_PX) {
+            setIsMobileSidebarOpen(false);
+            sidebarSwipeStartXRef.current = null;
+            sidebarSwipeStartYRef.current = null;
+        }
+    }, [isMobileLayout, isMobileSidebarOpen]);
+
+    /**
+     * Resets swipe tracking after touch end/cancel.
+     */
+    const handleMobileSidebarSwipeEnd = useCallback(() => {
+        sidebarSwipeStartXRef.current = null;
+        sidebarSwipeStartYRef.current = null;
+    }, []);
+
+    /**
      * Selects a node from the tree and updates route with resolved path information.
      */
     const handleSelectItem = useCallback((node) => {
@@ -1060,6 +1125,10 @@ export default function App() {
             className={`app ${isMobileLayout ? 'is-mobile' : 'is-desktop'} ${
                 isSidebarOpen ? 'sidebar-open' : 'sidebar-collapsed'
             }`}
+            onTouchStart={handleMobileSidebarSwipeStart}
+            onTouchMove={handleMobileSidebarSwipeMove}
+            onTouchEnd={handleMobileSidebarSwipeEnd}
+            onTouchCancel={handleMobileSidebarSwipeEnd}
         >
             <SidebarPanel
                 isSidebarOpen={isSidebarOpen}
@@ -1101,6 +1170,11 @@ export default function App() {
                     onClick={() => setIsMobileSidebarOpen(false)}
                     aria-label="Close catalog panel"
                 />
+            )}
+            {isMobileLayout && !isSidebarOpen && (
+                <div className="sidebar-swipe-hint" aria-hidden="true">
+                    <span className="sidebar-swipe-hint-edge"/>
+                </div>
             )}
             <DetailsPanel
                 contentRef={contentRef}
