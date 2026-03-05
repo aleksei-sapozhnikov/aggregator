@@ -23,6 +23,20 @@ let detachEscHandlers = [];
 let detachItemLinkHandlers = [];
 
 /**
+ * Renders a blank themed document inside the inner iframe so the browser does not
+ * flash the default white `about:blank` page before Grafana is loaded.
+ *
+ * @param {'dark' | 'light'} theme
+ */
+const applyPlaceholder = (theme) => {
+    const background = getComputedStyle(document.documentElement)
+        .getPropertyValue('--frame-background')
+        .trim();
+    const colorScheme = theme === 'dark' ? 'dark' : 'light';
+    iframe.srcdoc = `<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;width:100%;height:100%;background:${background};color-scheme:${colorScheme};overflow:hidden;}</style></head><body></body></html>`;
+};
+
+/**
  * Prevents Escape key handling inside Grafana and nested same-origin frames
  * so parent UI dialogs/search state are not unintentionally affected.
  *
@@ -260,6 +274,7 @@ const applyTheme = (value) => {
     const nextTheme = value === 'dark' ? 'dark' : 'light';
     document.documentElement.dataset.theme = nextTheme;
     document.body.dataset.theme = nextTheme;
+    applyPlaceholder(nextTheme);
 };
 
 /**
@@ -318,7 +333,6 @@ iframe.addEventListener('load', () => {
     }
 });
 
-iframe.src = 'about:blank';
 applyTheme(themeParam);
 if (initialTarget) {
     applyTarget(initialTarget);
