@@ -11,6 +11,18 @@ const currentDir = dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   plugins: [react()],
+  server: {
+    proxy: {
+      '/api/feedback': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+      '/api/admin/feedback': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+    },
+  },
   build: {
     rollupOptions: {
       input: {
