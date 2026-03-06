@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta content="width=device-width, initial-scale=1" name="viewport"/>
     <title>Admin Feedback</title>
     <style>
         :root {
@@ -99,13 +99,13 @@
 <main>
     <h1>Feedback</h1>
     <div class="login">
-        <input id="username" type="text" placeholder="Username" autocomplete="username"/>
-        <input id="password" type="password" placeholder="Password" autocomplete="current-password"/>
+        <input autocomplete="username" id="username" placeholder="Username" type="text"/>
+        <input autocomplete="current-password" id="password" placeholder="Password" type="password"/>
         <button id="signin" type="button">Sign in</button>
         <button id="reload" type="button">Reload</button>
     </div>
-    <p id="meta" class="meta">Sign in to load messages.</p>
-    <section id="list" class="list"></section>
+    <p class="meta" id="meta">Sign in to load messages.</p>
+    <section class="list" id="list"></section>
 </main>
 <script>
     const AUTH_KEY = 'admin_feedback_auth';
@@ -162,7 +162,7 @@
         setMeta('Loading...');
         try {
             const response = await fetch('/api/admin/feedback?limit=300', {
-                headers: { Authorization: `Basic ${token}` },
+                headers: {Authorization: `Basic ${token}`},
             });
             if (response.status === 401 || response.status === 403) {
                 sessionStorage.removeItem(AUTH_KEY);

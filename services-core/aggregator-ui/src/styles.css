@@ -44,6 +44,11 @@
     --details-panel-title-color: var(--text);
     --details-panel-meta-color: var(--muted);
     --sidebar-swipe-hint-color: rgba(0, 0, 0, 0.5);
+    --toast-success-bg: #E8F5EC;
+    --toast-success-border: #9BD3A7;
+    --toast-success-text: #1F3D2B;
+    --toast-success-icon: #2E7D32;
+    --toast-success-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
 }
 
 body[data-theme='dark'] {
@@ -90,6 +95,11 @@ body[data-theme='dark'] {
     --details-panel-title-color: rgba(255, 255, 255, 0.88);
     --details-panel-meta-color: rgba(255, 255, 255, 0.72);
     --sidebar-swipe-hint-color: rgba(255, 255, 255, 0.5);
+    --toast-success-bg: #1E2A23;
+    --toast-success-border: #2F7A4C;
+    --toast-success-text: #D6F5E3;
+    --toast-success-icon: #4ADE80;
+    --toast-success-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
 }
 
 * {
@@ -315,6 +325,11 @@ body {
 .about-toggle:hover {
     background: var(--about-toggle-hover-bg);
     border-color: transparent;
+    box-shadow: var(--shadow-strong);
+    transform: translateY(-1px);
+}
+
+.feedback-toggle:hover {
     box-shadow: var(--shadow-strong);
     transform: translateY(-1px);
 }
@@ -652,6 +667,8 @@ body {
 .search-clear:focus-visible,
 .top-control-button:focus-visible,
 .about-close:focus-visible,
+.feedback-send:focus-visible,
+.feedback-textarea:focus-visible,
 .home-link:focus-visible,
 .sidebar-close:focus-visible {
     outline: 2px solid var(--link);
@@ -1109,6 +1126,166 @@ body {
     background: var(--danger-hover);
     box-shadow: var(--shadow);
     transform: translateY(-1px);
+}
+
+.feedback-modal {
+    width: min(700px, 100%);
+}
+
+.feedback-header {
+    margin: 0 56px 12px 0;
+}
+
+.feedback-header h2 {
+    margin: 0;
+    font-size: 24px;
+}
+
+.feedback-note {
+    margin: 0 0 14px;
+    color: var(--muted);
+    line-height: 1.5;
+}
+
+.feedback-label {
+    display: inline-block;
+    margin: 0 0 8px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.feedback-textarea {
+    width: 100%;
+    min-height: 180px;
+    resize: vertical;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--panel-alt);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+.feedback-textarea::placeholder {
+    color: var(--muted);
+}
+
+.feedback-actions {
+    margin-top: 12px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.feedback-send {
+    height: 40px;
+    padding: 0 18px;
+    border-radius: 10px;
+    border: 1px solid var(--theme-toggle-border);
+    background: var(--theme-toggle-bg);
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.feedback-send:hover:not(:disabled) {
+    background: var(--theme-toggle-hover-bg);
+    box-shadow: var(--shadow-strong);
+    transform: translateY(-1px);
+}
+
+.feedback-send:disabled {
+    cursor: progress;
+    opacity: 0.8;
+}
+
+.feedback-error {
+    margin: 10px 0 0;
+    color: var(--danger);
+    font-size: 13px;
+}
+
+.app-notification {
+    position: fixed;
+    top: 64px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 70;
+    pointer-events: none;
+    max-width: min(380px, calc(100vw - 32px));
+    padding: 10px 18px;
+    border-radius: 8px;
+    border: 1px solid var(--toast-success-border);
+    background: var(--toast-success-bg);
+    color: var(--toast-success-text);
+    box-shadow: var(--toast-success-shadow);
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
+    animation: app-notification-enter 180ms ease-out forwards;
+    overflow: hidden;
+}
+
+.app-notification.is-exiting {
+    animation: app-notification-exit 200ms ease-out forwards;
+}
+
+.app-notification-icon {
+    color: var(--toast-success-icon);
+    font-size: 16px;
+    line-height: 1;
+    flex: 0 0 auto;
+}
+
+.app-notification-text {
+    min-width: 0;
+    white-space: pre-line;
+}
+
+.app-notification-progress {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    background: var(--toast-success-border);
+    transform-origin: left center;
+    animation: app-notification-progress 3000ms linear forwards;
+}
+
+@keyframes app-notification-enter {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -8px);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}
+
+@keyframes app-notification-exit {
+    from {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+    to {
+        opacity: 0;
+        transform: translate(-50%, 0);
+    }
+}
+
+@keyframes app-notification-progress {
+    from {
+        transform: scaleX(1);
+    }
+    to {
+        transform: scaleX(0);
+    }
 }
 
 @media (max-width: 640px) {

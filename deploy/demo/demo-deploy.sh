@@ -55,6 +55,21 @@ set -euo pipefail
 #     DEPLOY_BRANCH=main
 #   or:
 #     DEPLOY_BRANCH=release/demo
+#
+# ADMIN_USERNAME
+#   Admin username for protected application endpoints.
+#
+# ADMIN_PASSWORD
+#   Admin password for protected application endpoints.
+#
+# FEEDBACK_STORE_TYPE
+#   Feedback storage type for aggregator service.
+#   Example: dynamo | local-files
+#   For demo environment, use: dynamo
+#
+# AWS_REGION (optional)
+#   AWS region override for SDK.
+#   Usually not required on EC2 when instance profile + metadata are available.
 # -------------------------------------------------------------------
 
 : "${SSH_HOST:?Missing SSH_HOST}"
@@ -64,6 +79,18 @@ set -euo pipefail
 : "${SSH_HOST_KEY:?Missing SSH_HOST_KEY}"
 : "${REPO_PATH:?Missing REPO_PATH}"
 : "${DEPLOY_BRANCH:?Missing DEPLOY_BRANCH}"
+: "${ADMIN_USERNAME:?Missing ADMIN_USERNAME}"
+: "${ADMIN_PASSWORD:?Missing ADMIN_PASSWORD}"
+: "${FEEDBACK_STORE_TYPE:?Missing FEEDBACK_STORE_TYPE}"
+
+ADMIN_USERNAME_ESCAPED="$(printf '%q' "${ADMIN_USERNAME}")"
+ADMIN_PASSWORD_ESCAPED="$(printf '%q' "${ADMIN_PASSWORD}")"
+FEEDBACK_STORE_TYPE_ESCAPED="$(printf '%q' "${FEEDBACK_STORE_TYPE}")"
+AWS_REGION_ASSIGNMENT=""
+if [[ -n "${AWS_REGION-}" ]]; then
+  AWS_REGION_ESCAPED="$(printf '%q' "${AWS_REGION}")"
+  AWS_REGION_ASSIGNMENT="AWS_REGION=${AWS_REGION_ESCAPED}"
+fi
 
 # -------------------------------------------------------------------
 # Prepare SSH environment
@@ -96,4 +123,8 @@ ssh -i ~/.ssh/demo_key \
    git reset --hard 'origin/${DEPLOY_BRANCH}'; \
    docker image prune -f || true; \
    docker builder prune -af --keep-storage 500m || true; \
+   ADMIN_USERNAME=${ADMIN_USERNAME_ESCAPED} \
+   ADMIN_PASSWORD=${ADMIN_PASSWORD_ESCAPED} \
+   FEEDBACK_STORE_TYPE=${FEEDBACK_STORE_TYPE_ESCAPED} \
+   ${AWS_REGION_ASSIGNMENT} \
    make rebuild-recreate ENV=demo"
