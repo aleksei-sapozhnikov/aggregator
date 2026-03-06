@@ -29,7 +29,9 @@ export default function TopBarActions({
                 onClick={onToggleTheme}
             >
                 <span className="theme-toggle-icon" aria-hidden="true">
-                    {theme === 'dark' ? '💡' : '🌙'}
+                    <svg className="theme-toggle-glyph" viewBox="0 0 24 24" width="14" height="14" focusable="false">
+                        <use href={theme === 'dark' ? '/icons.svg#icon-theme-light' : '/icons.svg#icon-theme-dark'}/>
+                    </svg>
                 </span>
                 <span className="theme-toggle-text">
                     {theme === 'dark' ? 'Go light' : 'Go dark'}

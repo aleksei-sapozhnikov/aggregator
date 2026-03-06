@@ -23,6 +23,7 @@
     --theme-toggle-border: #cdd3dc;
     --theme-toggle-text: #3a4a5e;
     --theme-toggle-hover-bg: #e4e8ee;
+    --theme-toggle-icon-accent: #c48a00;
     --about-toggle-bg: #3b82f6;
     --about-toggle-hover-bg: #2f6fdd;
     --about-toggle-text: #ffffff;
@@ -74,6 +75,7 @@ body[data-theme='dark'] {
     --theme-toggle-border: #353d48;
     --theme-toggle-text: #f5f7fa;
     --theme-toggle-hover-bg: #2f3641;
+    --theme-toggle-icon-accent: #d9b24b;
     --about-toggle-bg: #1e3a8a;
     --about-toggle-hover-bg: #2447a5;
     --about-toggle-text: #ffffff;
@@ -345,6 +347,10 @@ body {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+}
+
+.theme-toggle-glyph {
+    color: var(--theme-toggle-icon-accent);
 }
 
 .theme-toggle-text {
