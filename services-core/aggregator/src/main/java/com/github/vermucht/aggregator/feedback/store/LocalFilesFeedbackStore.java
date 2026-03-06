@@ -67,7 +67,7 @@ public class LocalFilesFeedbackStore implements FeedbackStore {
       }
       List<FeedbackEntry> entries = new ArrayList<>();
       for (String line : Files.readAllLines(filePath)) {
-        String trimmed = line == null ? "" : line.trim();
+        String trimmed = line.trim();
         if (trimmed.isEmpty()) {
           continue;
         }
