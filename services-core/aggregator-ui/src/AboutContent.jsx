@@ -46,7 +46,8 @@ export default function AboutContent() {
                 className="about-divider"
             />
             <p>
-                Catalog Health Aggregator turns service-level health signals into a product-level state overview.
+                This is a live demo of the Catalog Health Aggregator, which turns service-level health signals into a
+                product-level health overview.
             </p>
             <p>
                 In complex systems, the visible product failure is only the last symptom. The real cause may sit several
