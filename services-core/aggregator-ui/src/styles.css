@@ -1049,6 +1049,12 @@ body {
   margin: 0 56px 14px 0;
 }
 
+.about-social-links {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .about-modal h2 {
   margin: 0;
   font-size: 24px;
@@ -1074,7 +1080,7 @@ body {
     margin-bottom: 6px;
 }
 
-.about-github-link {
+.about-social-link {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1092,18 +1098,22 @@ body {
   transition: color 150ms ease, border-color 150ms ease, background 150ms ease, opacity 150ms ease;
 }
 
-.about-github-link:hover {
+.about-social-link:hover {
   border-color: var(--link);
   background: var(--panel-alt);
   color: var(--text);
   opacity: 1;
 }
 
-.about-github-icon {
+.about-social-icon {
   width: 14px;
   height: 14px;
   fill: currentColor;
   flex: 0 0 auto;
+}
+
+.about-social-icon-linkedin {
+    color: #0a66c2;
 }
 
 .about-close {
