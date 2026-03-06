@@ -317,3 +317,30 @@ export const fetchPrometheusStatuses = async (prometheusBaseUrl) => {
         itemSignals: nextItemSignals,
     };
 };
+
+/**
+ * Sends user feedback to the backend API.
+ *
+ * @param {string} text
+ * @returns {Promise<{id: string, receivedAt: string}>}
+ */
+export const submitFeedback = async (text) => {
+    const response = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({text}),
+    });
+    if (!response.ok) {
+        let details = '';
+        try {
+            const payload = await response.json();
+            details = payload?.message || payload?.error || '';
+        } catch {
+            // Ignore non-JSON error payloads and fall back to status.
+        }
+        throw new Error(details || `Failed to submit feedback: ${response.status}`);
+    }
+    return response.json();
+};

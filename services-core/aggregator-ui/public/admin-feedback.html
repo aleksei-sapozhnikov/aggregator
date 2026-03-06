@@ -14,7 +14,6 @@
             --border: #d8dadd;
             --danger: #b93931;
         }
-
         @media (prefers-color-scheme: dark) {
             :root {
                 --bg: #111217;
@@ -25,32 +24,27 @@
                 --danger: #ff6b5f;
             }
         }
-
         body {
             margin: 0;
             background: var(--bg);
             color: var(--text);
             font-family: "Segoe UI", system-ui, sans-serif;
         }
-
         main {
             max-width: 980px;
             margin: 0 auto;
             padding: 20px;
         }
-
         h1 {
             margin: 0 0 10px;
             font-size: 22px;
         }
-
         .login {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
             margin-bottom: 14px;
         }
-
         input, button {
             border: 1px solid var(--border);
             border-radius: 8px;
@@ -59,23 +53,19 @@
             padding: 8px 10px;
             font-size: 13px;
         }
-
         .meta {
             margin: 0 0 12px;
             color: var(--muted);
             font-size: 13px;
         }
-
         .meta.error {
             color: var(--danger);
         }
-
         .list {
             display: flex;
             flex-direction: column;
             gap: 10px;
         }
-
         .message {
             border: 1px solid var(--border);
             border-radius: 10px;
@@ -85,21 +75,18 @@
             flex-direction: column;
             gap: 8px;
         }
-
         .text {
             white-space: pre-wrap;
             word-break: break-word;
             font-size: 14px;
             line-height: 1.45;
         }
-
         .stamp {
             align-self: flex-end;
             color: var(--muted);
             font-size: 11px;
             line-height: 1.2;
         }
-
         .empty {
             border: 1px dashed var(--border);
             border-radius: 10px;
