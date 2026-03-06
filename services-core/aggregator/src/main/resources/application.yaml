@@ -14,3 +14,13 @@ catalog:
 health:
   http-poll:
     definition-path: file:./http-poll-signals.yaml
+
+feedback:
+  store-type: local
+  admin:
+    username: ${ADMIN_USERNAME}
+    password: ${ADMIN_PASSWORD}
+  local-files:
+    path: ./feedback.ndjson
+  dynamo:
+    table-name: aggregator_feedback
