@@ -1,4 +1,16 @@
 :3000 {
+    handle /api/feedback {
+        reverse_proxy aggregator:8080
+    }
+    handle /api/admin/feedback {
+        reverse_proxy aggregator:8080
+    }
+    handle /admin/feedback {
+        rewrite * /admin-feedback.html
+        root * /usr/share/caddy
+        file_server
+    }
+
     handle /grafana/* {
         reverse_proxy grafana:3000
     }

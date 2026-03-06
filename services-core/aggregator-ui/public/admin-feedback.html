@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta content="width=device-width, initial-scale=1" name="viewport"/>
+    <title>Admin Feedback</title>
+    <style>
+        :root {
+            color-scheme: light dark;
+            --bg: #f4f5f7;
+            --panel: #ffffff;
+            --text: #1f1f1f;
+            --muted: #5b616f;
+            --border: #d8dadd;
+            --danger: #b93931;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #111217;
+                --panel: #181b1f;
+                --text: #f5f7fa;
+                --muted: #a4a9b4;
+                --border: #2c323a;
+                --danger: #ff6b5f;
+            }
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: "Segoe UI", system-ui, sans-serif;
+        }
+
+        main {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1 {
+            margin: 0 0 10px;
+            font-size: 22px;
+        }
+
+        .login {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        input, button {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--panel);
+            color: var(--text);
+            padding: 8px 10px;
+            font-size: 13px;
+        }
+
+        .meta {
+            margin: 0 0 12px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .meta.error {
+            color: var(--danger);
+        }
+
+        .list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .message {
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--panel);
+            padding: 12px 12px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .text {
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-size: 14px;
+            line-height: 1.45;
+        }
+
+        .stamp {
+            align-self: flex-end;
+            color: var(--muted);
+            font-size: 11px;
+            line-height: 1.2;
+        }
+
+        .empty {
+            border: 1px dashed var(--border);
+            border-radius: 10px;
+            padding: 18px;
+            color: var(--muted);
+        }
+    </style>
+</head>
+<body>
+<main>
+    <h1>Feedback</h1>
+    <div class="login">
+        <input autocomplete="username" id="username" placeholder="Username" type="text"/>
+        <input autocomplete="current-password" id="password" placeholder="Password" type="password"/>
+        <button id="signin" type="button">Sign in</button>
+        <button id="reload" type="button">Reload</button>
+    </div>
+    <p class="meta" id="meta">Sign in to load messages.</p>
+    <section class="list" id="list"></section>
+</main>
+<script>
+    const AUTH_KEY = 'admin_feedback_auth';
+    const listEl = document.getElementById('list');
+    const metaEl = document.getElementById('meta');
+    const usernameEl = document.getElementById('username');
+    const passwordEl = document.getElementById('password');
+    const signInEl = document.getElementById('signin');
+    const reloadEl = document.getElementById('reload');
+
+    function setMeta(text, isError = false) {
+        metaEl.textContent = text;
+        metaEl.classList.toggle('error', isError);
+    }
+
+    function render(entries) {
+        listEl.innerHTML = '';
+        if (!Array.isArray(entries) || entries.length === 0) {
+            const empty = document.createElement('div');
+            empty.className = 'empty';
+            empty.textContent = 'No feedback messages.';
+            listEl.appendChild(empty);
+            return;
+        }
+        for (const entry of entries) {
+            const card = document.createElement('article');
+            card.className = 'message';
+
+            const text = document.createElement('div');
+            text.className = 'text';
+            text.textContent = entry.text || '';
+            card.appendChild(text);
+
+            const stamp = document.createElement('div');
+            stamp.className = 'stamp';
+            const date = entry.receivedAt ? new Date(entry.receivedAt) : null;
+            stamp.textContent = date && !Number.isNaN(date.getTime())
+                ? `${date.toLocaleString()}`
+                : (entry.receivedAt || '');
+            card.appendChild(stamp);
+
+            listEl.appendChild(card);
+        }
+    }
+
+    async function load() {
+        const token = sessionStorage.getItem(AUTH_KEY);
+        if (!token) {
+            render([]);
+            setMeta('Sign in to load messages.');
+            return;
+        }
+
+        setMeta('Loading...');
+        try {
+            const response = await fetch('/api/admin/feedback?limit=300', {
+                headers: {Authorization: `Basic ${token}`},
+            });
+            if (response.status === 401 || response.status === 403) {
+                sessionStorage.removeItem(AUTH_KEY);
+                render([]);
+                setMeta('Unauthorized. Check username and password.', true);
+                return;
+            }
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            const entries = await response.json();
+            render(entries);
+            setMeta(`Loaded ${Array.isArray(entries) ? entries.length : 0} messages.`);
+        } catch (error) {
+            render([]);
+            setMeta(`Failed to load messages: ${error instanceof Error ? error.message : String(error)}`, true);
+        }
+    }
+
+    signInEl.addEventListener('click', () => {
+        const username = usernameEl.value.trim();
+        const password = passwordEl.value;
+        if (!username || !password) {
+            setMeta('Username and password are required.', true);
+            return;
+        }
+        sessionStorage.setItem(AUTH_KEY, btoa(`${username}:${password}`));
+        passwordEl.value = '';
+        void load();
+    });
+
+    reloadEl.addEventListener('click', () => {
+        void load();
+    });
+
+    if (sessionStorage.getItem(AUTH_KEY)) {
+        void load();
+    }
+</script>
+</body>
+</html>
