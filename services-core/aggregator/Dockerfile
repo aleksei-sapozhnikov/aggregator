@@ -24,7 +24,8 @@ COPY ${CATALOG_DEFINITION_FILE} ./catalog-definition.yaml
 COPY ${HTTP_POLL_SIGNALS_FILE} ./http-poll-signals.yaml
 
 RUN useradd --system --uid 1001 --create-home appuser \
-  && chown -R appuser:appuser /app
+  && mkdir -p /home/appuser/feedback \
+  && chown -R appuser:appuser /app /home/appuser
 USER appuser
 
 EXPOSE 8080

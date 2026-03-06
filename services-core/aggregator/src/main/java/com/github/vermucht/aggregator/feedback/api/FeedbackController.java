@@ -24,7 +24,8 @@ public class FeedbackController {
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   @Nonnull
-  public FeedbackSubmissionResponse submit(@RequestBody @Nonnull FeedbackSubmissionRequest request) {
+  public FeedbackSubmissionResponse submit(
+      @RequestBody @Nonnull FeedbackSubmissionRequest request) {
     try {
       FeedbackEntry entry = feedbackService.submit(request.text());
       return new FeedbackSubmissionResponse(entry.id(), entry.receivedAt());

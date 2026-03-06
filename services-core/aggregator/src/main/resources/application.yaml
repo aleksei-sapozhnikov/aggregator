@@ -16,7 +16,7 @@ health:
     definition-path: file:./http-poll-signals.yaml
 
 feedback:
-  store-type: local-files
+  store-type: local
   admin:
     username: ${ADMIN_USERNAME}
     password: ${ADMIN_PASSWORD}

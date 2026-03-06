@@ -1,0 +1,31 @@
+{
+  "properties": [
+    {
+      "name": "feedback.store-type",
+      "type": "java.lang.String",
+      "description": "Feedback storage implementation. Supported values: local, dynamo.",
+      "defaultValue": "local"
+    },
+    {
+      "name": "feedback.admin.username",
+      "type": "java.lang.String",
+      "description": "Admin username for feedback admin endpoint HTTP Basic authentication."
+    },
+    {
+      "name": "feedback.admin.password",
+      "type": "java.lang.String",
+      "description": "Admin password for feedback admin endpoint HTTP Basic authentication."
+    },
+    {
+      "name": "feedback.local-files.path",
+      "type": "java.lang.String",
+      "description": "Filesystem path to the local NDJSON file used by LocalFilesFeedbackStore."
+    },
+    {
+      "name": "feedback.dynamo.table-name",
+      "type": "java.lang.String",
+      "description": "DynamoDB table name used by DynamoFeedbackStore.",
+      "defaultValue": "aggregator_feedback"
+    }
+  ]
+}
