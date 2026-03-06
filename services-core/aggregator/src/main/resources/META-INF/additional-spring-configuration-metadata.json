@@ -1,10 +1,9 @@
 {
   "properties": [
     {
-      "name": "feedback.store-type",
+      "name": "FEEDBACK_STORAGE_CONFIG",
       "type": "java.lang.String",
-      "description": "Feedback storage implementation. Supported values: local, dynamo.",
-      "defaultValue": "local"
+      "description": "JSON config for feedback storage. Example local: {\"type\":\"local\",\"local\":{\"path\":\"/home/appuser/feedback/feedback.ndjson\"}}. Example dynamo: {\"type\":\"dynamo\",\"dynamo\":{\"table_name\":\"aggregator_feedback\",\"aws_region\":\"eu-central-1\"}}."
     },
     {
       "name": "feedback.admin.username",
@@ -15,17 +14,6 @@
       "name": "feedback.admin.password",
       "type": "java.lang.String",
       "description": "Admin password for feedback admin endpoint HTTP Basic authentication."
-    },
-    {
-      "name": "feedback.local-files.path",
-      "type": "java.lang.String",
-      "description": "Filesystem path to the local NDJSON file used by LocalFilesFeedbackStore."
-    },
-    {
-      "name": "feedback.dynamo.table-name",
-      "type": "java.lang.String",
-      "description": "DynamoDB table name used by DynamoFeedbackStore.",
-      "defaultValue": "aggregator_feedback"
     }
   ]
 }

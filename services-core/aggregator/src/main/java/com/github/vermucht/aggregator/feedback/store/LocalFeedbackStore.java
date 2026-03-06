@@ -13,25 +13,18 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.stereotype.Component;
 
 /**
  * Appends feedback entries to an NDJSON file.
  *
  * <p>Each entry is stored as one JSON line to keep writes simple and cheap.
  */
-@Component
-@ConditionalOnExpression("'${feedback.store-type:local}'.equalsIgnoreCase('local')")
-public class LocalFilesFeedbackStore implements FeedbackStore {
+public class LocalFeedbackStore implements FeedbackStore {
   private final ObjectMapper objectMapper;
   private final Path filePath;
   private final Lock writeLock = new ReentrantLock();
 
-  public LocalFilesFeedbackStore(
-      @Nonnull ObjectMapper objectMapper,
-      @Value("${feedback.local-files.path:./feedback.ndjson}") @Nonnull String storagePath) {
+  public LocalFeedbackStore(@Nonnull ObjectMapper objectMapper, @Nonnull String storagePath) {
     this.objectMapper = objectMapper;
     this.filePath = Path.of(storagePath).toAbsolutePath().normalize();
   }

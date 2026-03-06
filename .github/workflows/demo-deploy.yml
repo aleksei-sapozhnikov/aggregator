@@ -32,5 +32,4 @@ jobs:
           DEPLOY_BRANCH: ${{ github.ref_name }}
           ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
           ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
-          AWS_REGION: eu-central-1
-          FEEDBACK_STORE_TYPE: dynamo
+          FEEDBACK_STORAGE_CONFIG: '{"type":"dynamo","dynamo":{"table_name":"aggregator_feedback","aws_region":"eu-central-1"}}'

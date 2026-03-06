@@ -1,11 +1,9 @@
 services:
   aggregator:
     environment:
-      FEEDBACK_STORE_TYPE: ${FEEDBACK_STORE_TYPE:-local}
-      FEEDBACK_LOCAL_FILES_PATH: /home/appuser/feedback/feedback.ndjson
+      FEEDBACK_STORAGE_CONFIG: '{"type":"local","local":{"path":"/home/appuser/feedback/feedback.ndjson"}}'
       ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin}
-      AWS_REGION: ${AWS_REGION-}
     build:
       args:
         CONTAINER_ROOT: services-core/aggregator

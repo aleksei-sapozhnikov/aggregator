@@ -7,9 +7,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.stereotype.Component;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
@@ -17,15 +14,11 @@ import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
 import software.amazon.awssdk.services.dynamodb.model.ScanResponse;
 
 /** Persists feedback entries in DynamoDB. */
-@Component
-@ConditionalOnExpression("'${feedback.store-type:local}'.equalsIgnoreCase('dynamo')")
 public class DynamoFeedbackStore implements FeedbackStore {
   private final DynamoDbClient dynamoDbClient;
   private final String tableName;
 
-  public DynamoFeedbackStore(
-      @Nonnull DynamoDbClient dynamoDbClient,
-      @Value("${feedback.dynamo.table-name:aggregator_feedback}") @Nonnull String tableName) {
+  public DynamoFeedbackStore(@Nonnull DynamoDbClient dynamoDbClient, @Nonnull String tableName) {
     this.dynamoDbClient = dynamoDbClient;
     this.tableName = tableName;
   }

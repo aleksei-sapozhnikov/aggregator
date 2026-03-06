@@ -1,6 +1,6 @@
 package com.github.vermucht.aggregator.feedback.api;
 
-import jakarta.annotation.Nullable;
+import jakarta.annotation.Nonnull;
 
 /** Incoming feedback payload submitted by the UI. */
-public record FeedbackSubmissionRequest(@Nullable String text) {}
+public record FeedbackSubmissionRequest(@Nonnull String text) {}
