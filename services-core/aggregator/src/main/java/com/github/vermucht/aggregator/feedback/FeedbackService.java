@@ -30,8 +30,7 @@ public class FeedbackService {
   }
 
   @Nonnull
-  public FeedbackEntry submit(@Nonnull String rawText) {
-    String text = rawText == null ? "" : rawText;
+  public FeedbackEntry submit(@Nonnull String text) {
     if (text.isBlank()) {
       throw new IllegalArgumentException("Feedback text must not be blank");
     }

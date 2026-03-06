@@ -80,12 +80,10 @@ CHAOS_LAST := $(filter $(ENV),$(CHAOS_LAST_ENVS))
 # ---- Local runtime variables ----
 ADMIN_USERNAME ?=
 ADMIN_PASSWORD ?=
-FEEDBACK_STORE_TYPE ?=
-AWS_REGION ?=
+FEEDBACK_STORAGE_CONFIG ?=
 export ADMIN_USERNAME
 export ADMIN_PASSWORD
-export FEEDBACK_STORE_TYPE
-export AWS_REGION
+export FEEDBACK_STORAGE_CONFIG
 
 .PHONY: help info env \
         up down restart recreate rebuild rebuild-recreate clean \

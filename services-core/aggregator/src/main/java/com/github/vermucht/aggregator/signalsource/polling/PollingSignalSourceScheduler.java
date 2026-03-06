@@ -66,7 +66,7 @@ public class PollingSignalSourceScheduler {
           signal.catalogItemId(),
           signalStateStore.getAggregatedItemStatus(signal.catalogItemId()));
     } catch (RuntimeException ex) {
-      LOGGER.warn("Health signal source {} failed unexpectedly", signalSource.getSignalId(), ex);
+      LOGGER.warn("Health signal source {} failed unexpectedly", signalSource.signalId(), ex);
     }
   }
 }

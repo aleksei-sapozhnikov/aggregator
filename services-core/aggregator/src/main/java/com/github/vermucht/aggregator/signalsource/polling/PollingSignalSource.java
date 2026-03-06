@@ -13,7 +13,7 @@ public interface PollingSignalSource {
    * @return signal identifier
    */
   @Nonnull
-  String getSignalId();
+  String signalId();
 
   /**
    * Returns the human-readable signal name.
@@ -21,7 +21,7 @@ public interface PollingSignalSource {
    * @return signal name
    */
   @Nonnull
-  String getName();
+  String name();
 
   /**
    * Returns the catalog item targeted by this signal source.
@@ -45,7 +45,7 @@ public interface PollingSignalSource {
    * @return source identifier
    */
   @Nonnull
-  String getSource();
+  String source();
 
   /**
    * Polls the source and returns the observed signal.

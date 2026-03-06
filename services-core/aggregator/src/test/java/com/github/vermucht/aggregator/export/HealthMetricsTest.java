@@ -14,13 +14,14 @@ import com.github.vermucht.aggregator.signal.state.ItemHealthStateStore;
 import com.github.vermucht.aggregator.signalsource.polling.PollingSignalSource;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-import java.util.Collection;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.lang.NonNull;
 
 class HealthMetricsTest {
 
@@ -176,44 +177,22 @@ class HealthMetricsTest {
     assertThat(signalGauge.value()).isEqualTo(HealthStatusMetrics.DOWN_VALUE);
   }
 
-  private static final class StubSignalSource implements PollingSignalSource {
-    private final ItemId itemId;
-    private final String signalId;
-    private final String name;
-    private final String source;
+  private record StubSignalSource(ItemId itemId, String signalId, String name, String source)
+      implements PollingSignalSource {
 
-    private StubSignalSource(ItemId itemId, String signalId, String name, String source) {
-      this.itemId = itemId;
-      this.signalId = signalId;
-      this.name = name;
-      this.source = source;
-    }
-
-    @Override
-    public String getSignalId() {
-      return signalId;
-    }
-
-    @Override
-    public String getName() {
-      return name;
-    }
-
+    @NonNull
     @Override
     public ItemId getCatalogItemId() {
       return itemId;
     }
 
+    @NonNull
     @Override
     public Duration getInterval() {
       return Duration.ofSeconds(30);
     }
 
-    @Override
-    public String getSource() {
-      return source;
-    }
-
+    @NonNull
     @Override
     public HealthSignal poll() {
       return new HealthSignal(

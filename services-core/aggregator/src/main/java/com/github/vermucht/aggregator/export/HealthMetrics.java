@@ -14,6 +14,7 @@ import io.micrometer.core.instrument.Tags;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.PostConstruct;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
@@ -135,7 +136,7 @@ public class HealthMetrics {
             .toList();
     itemOwnStateGauge.register(ownRows, true);
 
-    List<MultiGauge.Row<?>> signalRows = new java.util.ArrayList<>(signalSources.size());
+    List<MultiGauge.Row<?>> signalRows = new ArrayList<>(signalSources.size());
     for (PollingSignalSource signalSource : signalSources) {
       ItemId itemId = signalSource.getCatalogItemId();
       Item item = catalog.items().get(itemId);
@@ -151,15 +152,15 @@ public class HealthMetrics {
                   LABEL_ITEM_TYPE,
                   itemType,
                   LABEL_SIGNAL_ID,
-                  signalSource.getSignalId(),
+                  signalSource.signalId(),
                   LABEL_SIGNAL_NAME,
-                  signalSource.getName(),
+                  signalSource.name(),
                   LABEL_SIGNAL_SOURCE,
-                  signalSource.getSource()),
+                  signalSource.source()),
               signalStateStore,
               store ->
                   HealthStatusMetrics.toGaugeValue(
-                      store.getStatus(itemId, signalSource.getSignalId()))));
+                      store.getStatus(itemId, signalSource.signalId()))));
     }
     itemSignalStateGauge.register(signalRows, true);
   }
@@ -169,7 +170,7 @@ public class HealthMetrics {
     Map<ItemId, Map<ItemId, String>> directTypes = new HashMap<>();
     for (Dependency dependency : catalog.dependencies()) {
       directTypes
-          .computeIfAbsent(dependency.getSourceId(), key -> new HashMap<>())
+          .computeIfAbsent(dependency.getSourceId(), _ -> new HashMap<>())
           .put(dependency.getTargetId(), dependency.getType());
     }
 
@@ -196,7 +197,7 @@ public class HealthMetrics {
     Map<ItemId, List<ItemId>> adjacency = new HashMap<>();
     for (Dependency dependency : catalog.dependencies()) {
       adjacency
-          .computeIfAbsent(dependency.getSourceId(), key -> new java.util.ArrayList<>())
+          .computeIfAbsent(dependency.getSourceId(), _ -> new ArrayList<>())
           .add(dependency.getTargetId());
     }
 

@@ -68,13 +68,13 @@ public final class HttpPollingSignalSource implements PollingSignalSource {
 
   @Nonnull
   @Override
-  public String getSignalId() {
+  public String signalId() {
     return signalId;
   }
 
   @Nonnull
   @Override
-  public String getName() {
+  public String name() {
     return name;
   }
 
@@ -92,7 +92,7 @@ public final class HttpPollingSignalSource implements PollingSignalSource {
 
   @Nonnull
   @Override
-  public String getSource() {
+  public String source() {
     return SOURCE;
   }
 
