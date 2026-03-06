@@ -3,8 +3,8 @@
     {
       "name": "feedback.store-type",
       "type": "java.lang.String",
-      "description": "Feedback storage implementation. Supported values: local-files, dynamo.",
-      "defaultValue": "local-files"
+      "description": "Feedback storage implementation. Supported values: local, dynamo.",
+      "defaultValue": "local"
     },
     {
       "name": "feedback.admin.username",

@@ -13,7 +13,7 @@ public class FeedbackStorageConfigurationValidator {
   private final String dynamoTableName;
 
   public FeedbackStorageConfigurationValidator(
-      @Value("${feedback.store-type:local-files}") String storeType,
+      @Value("${feedback.store-type:local}") String storeType,
       @Value("${feedback.local-files.path:}") String localFilesPath,
       @Value("${feedback.dynamo.table-name:}") String dynamoTableName) {
     this.storeType = storeType;
@@ -26,14 +26,14 @@ public class FeedbackStorageConfigurationValidator {
     if (!StringUtils.hasText(storeType)) {
       throw new IllegalStateException("feedback.store-type must be configured.");
     }
-    if ("local-files".equals(storeType)) {
+    if ("local".equalsIgnoreCase(storeType)) {
       if (!StringUtils.hasText(localFilesPath)) {
         throw new IllegalStateException(
-            "Missing feedback.local-files.path for feedback.store-type=local-files.");
+            "Missing feedback.local-files.path for feedback.store-type=local.");
       }
       return;
     }
-    if ("dynamo".equals(storeType)) {
+    if ("dynamo".equalsIgnoreCase(storeType)) {
       if (!StringUtils.hasText(dynamoTableName)) {
         throw new IllegalStateException(
             "Missing feedback.dynamo.table-name for feedback.store-type=dynamo.");
@@ -41,8 +41,6 @@ public class FeedbackStorageConfigurationValidator {
       return;
     }
     throw new IllegalStateException(
-        "Unsupported feedback.store-type: "
-            + storeType
-            + ". Supported values: local-files, dynamo.");
+        "Unsupported feedback.store-type: " + storeType + ". Supported values: local, dynamo.");
   }
 }
