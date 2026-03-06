@@ -77,9 +77,15 @@ CHAOS_LAST_ENVS := demo local-demo
 CHAOS_SVC := chaos-maker
 CHAOS_LAST := $(filter $(ENV),$(CHAOS_LAST_ENVS))
 
-# ---- Local-only data dirs (if you still need them elsewhere) ----
-LOCAL_PROMETHEUS_DATA_DIR := ./.temp/prometheus/data
-LOCAL_GRAFANA_DATA_DIR := ./.temp/grafana/data
+# ---- Local runtime variables ----
+ADMIN_USERNAME ?=
+ADMIN_PASSWORD ?=
+FEEDBACK_STORE_TYPE ?=
+AWS_REGION ?=
+export ADMIN_USERNAME
+export ADMIN_PASSWORD
+export FEEDBACK_STORE_TYPE
+export AWS_REGION
 
 .PHONY: help info env \
         up down restart recreate rebuild rebuild-recreate clean \
@@ -113,21 +119,16 @@ env:
 	@echo $(SUPPORTED_ENVS)
 
 info:
-	@echo "Runtime: $(CONTAINER_RUNTIME)"
-	@echo "Compose: $(COMPOSE)"
-	@echo "ENV=$(ENV)"
-	@echo "PROJECT=$(PROJECT)"
-	@echo "STACK=$(STACK)"
-	@echo "COMPOSE_CMD=$(COMPOSE_CMD)"
-	@echo "SERVICE_TARGETS=up-svc down-svc restart-svc recreate-svc rebuild-svc rebuild-recreate-svc clean-svc"
+	@echo COMPOSE_CMD=$(COMPOSE_CMD)
+	@echo
 
 # ---- Common targets ----
 up: info
 ifneq ($(CHAOS_LAST),)
-	$(COMPOSE_CMD) up --detach --remove-orphans --scale $(CHAOS_SVC)=0
-	$(COMPOSE_CMD) up --detach --remove-orphans $(CHAOS_SVC)
+	$(COMPOSE_CMD) up --detach --wait --remove-orphans --scale $(CHAOS_SVC)=0
+	$(COMPOSE_CMD) up --detach --wait --remove-orphans $(CHAOS_SVC)
 else
-	$(COMPOSE_CMD) up --detach --remove-orphans
+	$(COMPOSE_CMD) up --detach --wait --remove-orphans
 endif
 
 down: info
@@ -138,26 +139,26 @@ restart: info
 
 recreate: info
 ifneq ($(CHAOS_LAST),)
-	$(COMPOSE_CMD) up --detach --force-recreate --remove-orphans --scale $(CHAOS_SVC)=0
-	$(COMPOSE_CMD) up --detach --force-recreate --remove-orphans $(CHAOS_SVC)
+	$(COMPOSE_CMD) up --detach --wait --force-recreate --remove-orphans --scale $(CHAOS_SVC)=0
+	$(COMPOSE_CMD) up --detach --wait --force-recreate --remove-orphans $(CHAOS_SVC)
 else
-	$(COMPOSE_CMD) up --detach --force-recreate --remove-orphans
+	$(COMPOSE_CMD) up --detach --wait --force-recreate --remove-orphans
 endif
 
 rebuild: info
 ifneq ($(CHAOS_LAST),)
-	$(COMPOSE_CMD) up --detach --build --remove-orphans --scale $(CHAOS_SVC)=0
-	$(COMPOSE_CMD) up --detach --build --remove-orphans $(CHAOS_SVC)
+	$(COMPOSE_CMD) up --detach --wait --build --remove-orphans --scale $(CHAOS_SVC)=0
+	$(COMPOSE_CMD) up --detach --wait --build --remove-orphans $(CHAOS_SVC)
 else
-	$(COMPOSE_CMD) up --detach --build --remove-orphans
+	$(COMPOSE_CMD) up --detach --wait --build --remove-orphans
 endif
 
 rebuild-recreate: info
 ifneq ($(CHAOS_LAST),)
-	$(COMPOSE_CMD) up --detach --build --force-recreate --remove-orphans --scale $(CHAOS_SVC)=0
-	$(COMPOSE_CMD) up --detach --build --force-recreate --remove-orphans $(CHAOS_SVC)
+	$(COMPOSE_CMD) up --detach --wait --build --force-recreate --remove-orphans --scale $(CHAOS_SVC)=0
+	$(COMPOSE_CMD) up --detach --wait --build --force-recreate --remove-orphans $(CHAOS_SVC)
 else
-	$(COMPOSE_CMD) up --detach --build --force-recreate --remove-orphans
+	$(COMPOSE_CMD) up --detach --wait --build --force-recreate --remove-orphans
 endif
 
 clean: info
@@ -180,7 +181,7 @@ endef
 
 up-svc: info
 	$(call require_services,up-svc)
-	$(COMPOSE_CMD) up --detach --remove-orphans $(SERVICES)
+	$(COMPOSE_CMD) up --detach --wait --remove-orphans $(SERVICES)
 
 down-svc: info
 	$(call require_services,down-svc)
@@ -192,15 +193,15 @@ restart-svc: info
 
 recreate-svc: info
 	$(call require_services,recreate-svc)
-	$(COMPOSE_CMD) up --detach --force-recreate --remove-orphans $(SERVICES)
+	$(COMPOSE_CMD) up --detach --wait --force-recreate --remove-orphans $(SERVICES)
 
 rebuild-svc: info
 	$(call require_services,rebuild-svc)
-	$(COMPOSE_CMD) up --detach --build --remove-orphans $(SERVICES)
+	$(COMPOSE_CMD) up --detach --wait --build --remove-orphans $(SERVICES)
 
 rebuild-recreate-svc: info
 	$(call require_services,rebuild-recreate-svc)
-	$(COMPOSE_CMD) up --detach --build --force-recreate --remove-orphans $(SERVICES)
+	$(COMPOSE_CMD) up --detach --wait --build --force-recreate --remove-orphans $(SERVICES)
 
 clean-svc: info
 	$(call require_services,clean-svc)

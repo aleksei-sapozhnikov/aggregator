@@ -95,6 +95,8 @@ Clone or download the repository and open its root folder in terminal.
 
 First run can take a while, as it will download Docker images.
 
+After startup, open the service in your browser at http://localhost:3000.
+
 ### Option 1: Make (recommended)
 
 Start default stack (local-demo)
