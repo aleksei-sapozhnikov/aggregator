@@ -21,7 +21,7 @@ export default function AboutContent() {
                             className="about-social-icon about-social-icon-linkedin"
                             aria-hidden="true"
                         >
-                            <use href="/linkedin-mark.svg#linkedin-mark"/>
+                            <use href="/icons.svg#linkedin-mark"/>
                         </svg>
                         <span>LinkedIn</span>
                     </a>
@@ -35,7 +35,7 @@ export default function AboutContent() {
                             className="about-social-icon"
                             aria-hidden="true"
                         >
-                            <use href="/github-mark.svg#github-mark"/>
+                            <use href="/icons.svg#github-mark"/>
                         </svg>
                         <span>GitHub</span>
                     </a>
