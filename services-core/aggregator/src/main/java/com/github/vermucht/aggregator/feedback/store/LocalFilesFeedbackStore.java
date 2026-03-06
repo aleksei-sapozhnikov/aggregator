@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
 /**
@@ -23,10 +23,7 @@ import org.springframework.stereotype.Component;
  * <p>Each entry is stored as one JSON line to keep writes simple and cheap.
  */
 @Component
-@ConditionalOnProperty(
-    name = "feedback.store-type",
-    havingValue = "local-files",
-    matchIfMissing = true)
+@ConditionalOnExpression("'${feedback.store-type:local}'.equalsIgnoreCase('local')")
 public class LocalFilesFeedbackStore implements FeedbackStore {
   private final ObjectMapper objectMapper;
   private final Path filePath;
@@ -54,8 +51,7 @@ public class LocalFilesFeedbackStore implements FeedbackStore {
           StandardOpenOption.APPEND,
           StandardOpenOption.WRITE);
     } catch (IOException exception) {
-      throw new IllegalStateException(
-          "Failed to persist feedback entry to " + filePath, exception);
+      throw new IllegalStateException("Failed to persist feedback entry to " + filePath, exception);
     } finally {
       writeLock.unlock();
     }
@@ -87,7 +83,8 @@ public class LocalFilesFeedbackStore implements FeedbackStore {
       }
       return List.copyOf(entries.subList(0, limit));
     } catch (IOException exception) {
-      throw new IllegalStateException("Failed to read feedback entries from " + filePath, exception);
+      throw new IllegalStateException(
+          "Failed to read feedback entries from " + filePath, exception);
     } finally {
       writeLock.unlock();
     }
