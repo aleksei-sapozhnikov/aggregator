@@ -23,6 +23,7 @@
     --theme-toggle-border: #cdd3dc;
     --theme-toggle-text: #3a4a5e;
     --theme-toggle-hover-bg: #e4e8ee;
+    --theme-toggle-icon-accent: #c48a00;
     --about-toggle-bg: #3b82f6;
     --about-toggle-hover-bg: #2f6fdd;
     --about-toggle-text: #ffffff;
@@ -74,6 +75,7 @@ body[data-theme='dark'] {
     --theme-toggle-border: #353d48;
     --theme-toggle-text: #f5f7fa;
     --theme-toggle-hover-bg: #2f3641;
+    --theme-toggle-icon-accent: #d9b24b;
     --about-toggle-bg: #1e3a8a;
     --about-toggle-hover-bg: #2447a5;
     --about-toggle-text: #ffffff;
@@ -345,6 +347,10 @@ body {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+}
+
+.theme-toggle-glyph {
+    color: var(--theme-toggle-icon-accent);
 }
 
 .theme-toggle-text {
@@ -1049,6 +1055,12 @@ body {
   margin: 0 56px 14px 0;
 }
 
+.about-social-links {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .about-modal h2 {
   margin: 0;
   font-size: 24px;
@@ -1074,7 +1086,7 @@ body {
     margin-bottom: 6px;
 }
 
-.about-github-link {
+.about-social-link {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1092,18 +1104,22 @@ body {
   transition: color 150ms ease, border-color 150ms ease, background 150ms ease, opacity 150ms ease;
 }
 
-.about-github-link:hover {
+.about-social-link:hover {
   border-color: var(--link);
   background: var(--panel-alt);
   color: var(--text);
   opacity: 1;
 }
 
-.about-github-icon {
+.about-social-icon {
   width: 14px;
   height: 14px;
   fill: currentColor;
   flex: 0 0 auto;
+}
+
+.about-social-icon-linkedin {
+    color: #0a66c2;
 }
 
 .about-close {

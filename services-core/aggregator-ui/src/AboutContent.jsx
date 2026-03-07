@@ -10,27 +10,44 @@ export default function AboutContent() {
         <>
             <div className="about-header">
                 <h2>About</h2>
-                <a
-                    className="about-github-link"
-                    href="https://github.com/aleksei-sapozhnikov/aggregator"
-                    target="_blank"
-                    rel="noreferrer"
-                >
-                    <svg
-                        className="about-github-icon"
-                        aria-hidden="true"
+                <div className="about-social-links">
+                    <a
+                        className="about-social-link"
+                        href="https://www.linkedin.com/in/aleksei-sapozhnikov1/"
+                        target="_blank"
+                        rel="noreferrer"
                     >
-                        <use href="/github-mark.svg#github-mark"/>
-                    </svg>
-                    <span>GitHub</span>
-                </a>
+                        <svg
+                            className="about-social-icon about-social-icon-linkedin"
+                            aria-hidden="true"
+                        >
+                            <use href="/icons.svg#linkedin-mark"/>
+                        </svg>
+                        <span>LinkedIn</span>
+                    </a>
+                    <a
+                        className="about-social-link"
+                        href="https://github.com/aleksei-sapozhnikov/aggregator"
+                        target="_blank"
+                        rel="noreferrer"
+                    >
+                        <svg
+                            className="about-social-icon"
+                            aria-hidden="true"
+                        >
+                            <use href="/icons.svg#github-mark"/>
+                        </svg>
+                        <span>GitHub</span>
+                    </a>
+                </div>
             </div>
             <div
                 aria-hidden="true"
                 className="about-divider"
             />
             <p>
-                Catalog Health Aggregator turns service-level health signals into a product-level state overview.
+                This is a live demo of the Catalog Health Aggregator, which turns service-level health signals into a
+                product-level health overview.
             </p>
             <p>
                 In complex systems, the visible product failure is only the last symptom. The real cause may sit several
