@@ -4,45 +4,48 @@
  * back to the parent aggregator UI via postMessage.
  */
 
-/**
- * @typedef {Window & {
- *   Mousetrap?: {
- *     unbind?: (shortcut: string) => void,
- *     unbindGlobal?: (shortcut: string) => void
- *   }
- * }} GrafanaInnerWindow
- */
+type GrafanaInnerWindow = Window & {
+    MutationObserver?: typeof MutationObserver;
+    Mousetrap?: {
+        unbind?: (shortcut: string) => void;
+        unbindGlobal?: (shortcut: string) => void;
+    };
+};
+type PatchedHistory = History & {
+    __disableHistory?: () => void;
+};
 
 const params = new URLSearchParams(window.location.search);
 const srcParam = params.get('src');
 const initialTarget = srcParam ? decodeURIComponent(srcParam) : '';
-const themeParam = params.get('theme');
-const iframe = document.getElementById('grafana-embed');
+const themeParam = params.get('theme') || '';
+const iframe = document.getElementById('grafana-embed') as HTMLIFrameElement | null;
 
-let detachEscHandlers = [];
-let detachItemLinkHandlers = [];
+let detachEscHandlers: Array<() => void> = [];
+let detachItemLinkHandlers: Array<() => void> = [];
 
 /**
  * Renders a blank themed document inside the inner iframe so the browser does not
  * flash the default white `about:blank` page before Grafana is loaded.
  *
- * @param {'dark' | 'light'} theme
  */
-const applyPlaceholder = (theme) => {
+const applyPlaceholder = (theme: 'dark' | 'light') => {
+    if (!iframe) {
+        return;
+    }
     const background = getComputedStyle(document.documentElement)
         .getPropertyValue('--frame-background')
         .trim();
     const colorScheme = theme === 'dark' ? 'dark' : 'light';
-    iframe.srcdoc = `<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;width:100%;height:100%;background:${background};color-scheme:${colorScheme};overflow:hidden;}</style></head><body></body></html>`;
+    iframe.srcdoc = `<!doctype html><html lang="en"><head><meta charset="utf-8"><style>html,body{margin:0;width:100%;height:100%;background:${background};color-scheme:${colorScheme};overflow:hidden;}</style></head><body></body></html>`;
 };
 
 /**
  * Prevents Escape key handling inside Grafana and nested same-origin frames
  * so parent UI dialogs/search state are not unintentionally affected.
  *
- * @param {GrafanaInnerWindow | null | undefined} targetWindow
  */
-const bindEscGuard = (targetWindow) => {
+const bindEscGuard = (targetWindow: GrafanaInnerWindow | null | undefined) => {
     detachEscHandlers.forEach((detach) => {
         try {
             detach();
@@ -55,14 +58,14 @@ const bindEscGuard = (targetWindow) => {
         return;
     }
 
-    const boundWindows = new WeakSet();
-    const trackedFrames = new WeakSet();
+    const boundWindows = new WeakSet<GrafanaInnerWindow>();
+    const trackedFrames = new WeakSet<HTMLIFrameElement>();
 
     /**
      * Captures Escape to prevent Grafana shortcuts/dialogs from leaking outside the wrapper.
      */
-    const stopEsc = (event) => {
-        if (event.key === 'Escape' || event.keyCode === 27) {
+    const stopEsc = (event: KeyboardEvent) => {
+        if (event.key === 'Escape') {
             event.preventDefault();
             event.stopPropagation();
             if (typeof event.stopImmediatePropagation === 'function') {
@@ -74,9 +77,8 @@ const bindEscGuard = (targetWindow) => {
     /**
      * Recursively binds Escape interception to a same-origin window and nested iframes.
      *
-     * @param {GrafanaInnerWindow | null | undefined} windowRef
      */
-    const bindWindow = (windowRef) => {
+    const bindWindow = (windowRef: GrafanaInnerWindow | null | undefined) => {
         if (!windowRef?.addEventListener || boundWindows.has(windowRef)) {
             return;
         }
@@ -95,7 +97,8 @@ const bindEscGuard = (targetWindow) => {
                 return;
             }
             const attachNestedFrames = () => {
-                doc.querySelectorAll('iframe').forEach((childFrame) => {
+                doc.querySelectorAll('iframe').forEach((childFrameEl) => {
+                    const childFrame = childFrameEl as HTMLIFrameElement;
                     if (trackedFrames.has(childFrame)) {
                         return;
                     }
@@ -115,7 +118,7 @@ const bindEscGuard = (targetWindow) => {
                 });
             };
             attachNestedFrames();
-            const MutationObserverCtor = windowRef['MutationObserver'];
+            const MutationObserverCtor = windowRef.MutationObserver;
             if (typeof MutationObserverCtor === 'function' && doc.documentElement) {
                 const observer = new MutationObserverCtor(attachNestedFrames);
                 observer.observe(doc.documentElement, {childList: true, subtree: true});
@@ -132,9 +135,8 @@ const bindEscGuard = (targetWindow) => {
 /**
  * Intercepts item links rendered inside Grafana and forwards them to the parent app.
  *
- * @param {GrafanaInnerWindow | null | undefined} targetWindow
  */
-const bindItemLinkInterceptor = (targetWindow) => {
+const bindItemLinkInterceptor = (targetWindow: GrafanaInnerWindow | null | undefined) => {
     detachItemLinkHandlers.forEach((detach) => {
         try {
             detach();
@@ -147,17 +149,17 @@ const bindItemLinkInterceptor = (targetWindow) => {
         return;
     }
 
-    const boundWindows = new WeakSet();
-    const trackedFrames = new WeakSet();
+    const boundWindows = new WeakSet<GrafanaInnerWindow>();
+    const trackedFrames = new WeakSet<HTMLIFrameElement>();
 
     /**
      * Emits a normalized item-link click event to the parent aggregator application.
      */
-    const emitItemLinkClick = (href) => {
-        if (typeof href !== 'string' || href.trim() === '') {
+    const emitItemLinkClick = (href: string) => {
+        if (href.trim() === '') {
             return;
         }
-        let parsed;
+        let parsed: URL;
         try {
             parsed = new URL(href, window.location.href);
         } catch (error) {
@@ -181,9 +183,8 @@ const bindItemLinkInterceptor = (targetWindow) => {
     /**
      * Recursively binds click interception to a same-origin window and nested iframes.
      *
-     * @param {GrafanaInnerWindow | null | undefined} windowRef
      */
-    const bindWindow = (windowRef) => {
+    const bindWindow = (windowRef: GrafanaInnerWindow | null | undefined) => {
         if (!windowRef?.addEventListener || boundWindows.has(windowRef)) {
             return;
         }
@@ -192,20 +193,20 @@ const bindItemLinkInterceptor = (targetWindow) => {
         /**
          * Captures anchor clicks to rewrite Grafana item links into parent app navigation.
          */
-        const onClickCapture = (event) => {
-            const target = event.target;
+        const onClickCapture = (event: MouseEvent) => {
+            const target = event.target as Element | null;
             if (!target?.closest) {
                 return;
             }
-            const anchor = target.closest('a[href]');
+            const anchor = target.closest('a[href]') as HTMLAnchorElement | null;
             if (!anchor) {
                 return;
             }
             const href = anchor.getAttribute('href') || anchor.href;
-            if (typeof href !== 'string' || href.trim() === '') {
+            if (href.trim() === '') {
                 return;
             }
-            let parsed;
+            let parsed: URL;
             try {
                 parsed = new URL(href, windowRef.location.href);
             } catch (error) {
@@ -233,7 +234,8 @@ const bindItemLinkInterceptor = (targetWindow) => {
                 return;
             }
             const attachNestedFrames = () => {
-                doc.querySelectorAll('iframe').forEach((childFrame) => {
+                doc.querySelectorAll('iframe').forEach((childFrameEl) => {
+                    const childFrame = childFrameEl as HTMLIFrameElement;
                     if (trackedFrames.has(childFrame)) {
                         return;
                     }
@@ -253,7 +255,7 @@ const bindItemLinkInterceptor = (targetWindow) => {
                 });
             };
             attachNestedFrames();
-            const MutationObserverCtor = windowRef['MutationObserver'];
+            const MutationObserverCtor = windowRef.MutationObserver;
             if (typeof MutationObserverCtor === 'function' && doc.documentElement) {
                 const observer = new MutationObserverCtor(attachNestedFrames);
                 observer.observe(doc.documentElement, {childList: true, subtree: true});
@@ -270,7 +272,7 @@ const bindItemLinkInterceptor = (targetWindow) => {
 /**
  * Applies wrapper background theme so Grafana transitions look consistent.
  */
-const applyTheme = (value) => {
+const applyTheme = (value: string) => {
     const nextTheme = value === 'dark' ? 'dark' : 'light';
     document.documentElement.dataset.theme = nextTheme;
     document.body.dataset.theme = nextTheme;
@@ -280,7 +282,10 @@ const applyTheme = (value) => {
 /**
  * Navigates the inner iframe to a Grafana URL while preserving wrapper lifecycle.
  */
-const applyTarget = (target) => {
+const applyTarget = (target: string) => {
+    if (!iframe) {
+        return;
+    }
     if (!target) {
         return;
     }
@@ -298,16 +303,17 @@ const applyTarget = (target) => {
 /**
  * Initializes history/keyboard patches each time the inner Grafana iframe navigates.
  */
-iframe.addEventListener('load', () => {
-    try {
-        /** @type {GrafanaInnerWindow | null} */
-        const innerWindow = iframe.contentWindow;
+if (iframe) {
+    iframe.addEventListener('load', () => {
+        try {
+
+        const innerWindow = iframe.contentWindow as GrafanaInnerWindow | null;
         if (!innerWindow?.history) {
             return;
         }
         bindEscGuard(innerWindow);
         bindItemLinkInterceptor(innerWindow);
-        const history = innerWindow.history;
+        const history = innerWindow.history as PatchedHistory;
         if (history.__disableHistory) {
             return;
         }
@@ -319,7 +325,7 @@ iframe.addEventListener('load', () => {
             history.pushState = originalPushState;
             history.replaceState = originalReplaceState;
         };
-        const mousetrap = innerWindow['Mousetrap'];
+        const mousetrap = innerWindow.Mousetrap;
         if (mousetrap) {
             if (typeof mousetrap.unbindGlobal === 'function') {
                 mousetrap.unbindGlobal('esc');
@@ -328,10 +334,11 @@ iframe.addEventListener('load', () => {
                 mousetrap.unbind('esc');
             }
         }
-    } catch (error) {
-        // Ignore cross-origin errors if Grafana is hosted elsewhere.
-    }
-});
+        } catch (error) {
+            // Ignore cross-origin errors if Grafana is hosted elsewhere.
+        }
+    });
+}
 
 applyTheme(themeParam);
 if (initialTarget) {
@@ -341,7 +348,7 @@ if (initialTarget) {
 /**
  * Receives commands from the parent app to update theme or target Grafana URL.
  */
-window.addEventListener('message', (event) => {
+window.addEventListener('message', (event: MessageEvent) => {
     if (!event.data) {
         return;
     }
