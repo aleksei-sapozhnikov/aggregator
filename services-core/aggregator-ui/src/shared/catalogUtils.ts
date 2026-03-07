@@ -2,41 +2,27 @@
  * @file Catalog/tree/search/routing helpers used by App and SidebarPanel.
  * These functions are intentionally pure (or close to pure) and UI-agnostic.
  */
-/** @typedef {import('./types').CatalogItem} CatalogItem */
-/** @typedef {import('./types').CatalogDependency} CatalogDependency */
-/** @typedef {import('./types').CatalogTreeNode} CatalogTreeNode */
-/** @typedef {import('./types').SearchResult} SearchResult */
-/** @typedef {import('./types').SearchAutocompleteOption} SearchAutocompleteOption */
-/** @typedef {import('./types').SearchAutocompleteIndex} SearchAutocompleteIndex */
-/**
- * Returns items sorted by display name falling back to id.
- *
- * @param {CatalogItem[]} items
- * @returns {CatalogItem[]}
- */
-const sortItemsByName = (items) =>
+
+import type {
+    CatalogDependency,
+    CatalogItem,
+    CatalogTreeNode,
+    SearchAutocompleteIndex,
+    SearchAutocompleteOption,
+    SearchResult,
+} from './types';
+
+const sortItemsByName = (items: CatalogItem[]): CatalogItem[] =>
     [...items].sort((a, b) => (a.name || a.id).localeCompare(b.name || b.id));
 
-/**
- * Returns tree nodes sorted by display name falling back to id.
- *
- * @param {CatalogTreeNode[]} nodes
- * @returns {CatalogTreeNode[]}
- */
-const sortNodesByName = (nodes) =>
+const sortNodesByName = (nodes: CatalogTreeNode[]): CatalogTreeNode[] =>
     [...nodes].sort((a, b) =>
         (a.item.name || a.item.id).localeCompare(b.item.name || b.item.id),
     );
 
-/**
- * Collects item ids from all nodes in traversal order.
- *
- * @param {CatalogTreeNode[]} nodes
- * @returns {string[]}
- */
-export const collectNodeIds = (nodes) => {
-    const ids = [];
-    const visit = (node) => {
+export const collectNodeIds = (nodes: CatalogTreeNode[]): string[] => {
+    const ids: string[] = [];
+    const visit = (node: CatalogTreeNode) => {
         ids.push(node.item.id);
         node.children.forEach(visit);
     };
@@ -44,15 +30,9 @@ export const collectNodeIds = (nodes) => {
     return ids;
 };
 
-/**
- * Collects ids of all descendants for a single node.
- *
- * @param {CatalogTreeNode} node
- * @returns {string[]}
- */
-export const collectDescendantIds = (node) => {
-    const descendants = [];
-    const visit = (children) => {
+export const collectDescendantIds = (node: CatalogTreeNode): string[] => {
+    const descendants: string[] = [];
+    const visit = (children: CatalogTreeNode[]) => {
         children.forEach((child) => {
             descendants.push(child.item.id);
             visit(child.children);
@@ -62,29 +42,16 @@ export const collectDescendantIds = (node) => {
     return descendants;
 };
 
-/**
- * Returns unique ids for all nodes that can participate in expand/collapse actions.
- *
- * @param {CatalogTreeNode[]} nodes
- * @returns {string[]}
- */
-export const collectExpandableIds = (nodes) =>
+export const collectExpandableIds = (nodes: CatalogTreeNode[]): string[] =>
     collectNodeIds(nodes).filter((id, index, arr) => arr.indexOf(id) === index);
 
-/**
- * Builds a dependency tree from flat catalog items + dependency edges.
- * Each node includes:
- * - `uid`: stable UI key/path for scrolling
- * - `path`: logical item path for URL sync
- *
- * @param {CatalogItem[]} items
- * @param {CatalogDependency[]} dependencies
- * @returns {CatalogTreeNode[]}
- */
-export const buildCatalogTree = (items, dependencies) => {
-    const itemMap = new Map(items.map((item) => [item.id, item]));
-    const childrenMap = new Map();
-    const childIds = new Set();
+export const buildCatalogTree = (
+    items: CatalogItem[],
+    dependencies: CatalogDependency[],
+): CatalogTreeNode[] => {
+    const itemMap = new Map<string, CatalogItem>(items.map((item) => [item.id, item]));
+    const childrenMap = new Map<string, string[]>();
+    const childIds = new Set<string>();
 
     dependencies.forEach((dep) => {
         if (!itemMap.has(dep.sourceId) || !itemMap.has(dep.targetId)) {
@@ -98,7 +65,12 @@ export const buildCatalogTree = (items, dependencies) => {
 
     const rootItems = sortItemsByName(items.filter((item) => !childIds.has(item.id)));
 
-    const toNode = (itemId, visited = new Set(), pathSegments = [], pathIds = []) => {
+    const toNode = (
+        itemId: string,
+        visited: Set<string> = new Set<string>(),
+        pathSegments: string[] = [],
+        pathIds: string[] = [],
+    ): CatalogTreeNode | null => {
         if (visited.has(itemId)) {
             return null;
         }
@@ -114,31 +86,25 @@ export const buildCatalogTree = (items, dependencies) => {
                 .map((childId, index) =>
                     toNode(
                         childId,
-                        new Set(visited),
+                        new Set<string>(visited),
                         [...pathSegments, `${index}:${childId}`],
                         path,
                     ),
                 )
-                .filter(Boolean),
+                .filter((node): node is CatalogTreeNode => Boolean(node)),
         );
         return {item, children, uid, path};
     };
 
     return rootItems
-        .map((item, index) => toNode(item.id, new Set(), [`${index}:${item.id}`], []))
-        .filter(Boolean);
+        .map((item, index) => toNode(item.id, new Set<string>(), [`${index}:${item.id}`], []))
+        .filter((node): node is CatalogTreeNode => Boolean(node));
 };
 
-/**
- * Normalizes text for case-insensitive token-based search.
- */
-export const normalizeSearchText = (value) =>
+export const normalizeSearchText = (value: string): string =>
     value.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 
-/**
- * Checks whether an item matches all normalized search tokens.
- */
-const matchSearch = (item, queryTokens) => {
+const matchSearch = (item: CatalogItem, queryTokens: string[]): boolean => {
     if (!queryTokens.length) {
         return true;
     }
@@ -146,35 +112,28 @@ const matchSearch = (item, queryTokens) => {
     return queryTokens.every((token) => name.includes(token));
 };
 
-/**
- * Filters the tree while preserving ancestors of matching descendants.
- *
- * @param {CatalogTreeNode[]} nodes
- * @param {string[]} queryTokens
- * @returns {CatalogTreeNode[]}
- */
-export const filterCatalogTree = (nodes, queryTokens) => {
+export const filterCatalogTree = (
+    nodes: CatalogTreeNode[],
+    queryTokens: string[],
+): CatalogTreeNode[] => {
     if (!queryTokens.length) {
         return nodes;
     }
-    const visit = (node) => {
-        const filteredChildren = node.children.map(visit).filter(Boolean);
+    const visit = (node: CatalogTreeNode): CatalogTreeNode | null => {
+        const filteredChildren = node.children
+            .map(visit)
+            .filter((child): child is CatalogTreeNode => Boolean(child));
         if (matchSearch(node.item, queryTokens) || filteredChildren.length > 0) {
             return {...node, children: filteredChildren};
         }
         return null;
     };
-    return nodes.map(visit).filter(Boolean);
+    return nodes
+        .map(visit)
+        .filter((node): node is CatalogTreeNode => Boolean(node));
 };
 
-/**
- * Finds a tree path (item id chain) to the target item.
- *
- * @param {CatalogTreeNode[]} nodes
- * @param {string} targetId
- * @returns {string[] | null}
- */
-export const findNodePath = (nodes, targetId) => {
+export const findNodePath = (nodes: CatalogTreeNode[], targetId: string): string[] | null => {
     for (const node of nodes) {
         if (node.item.id === targetId) {
             return [node.item.id];
@@ -189,14 +148,10 @@ export const findNodePath = (nodes, targetId) => {
     return null;
 };
 
-/**
- * Finds the first node with the given item id.
- *
- * @param {CatalogTreeNode[]} nodes
- * @param {string} targetId
- * @returns {CatalogTreeNode | null}
- */
-export const findNodeById = (nodes, targetId) => {
+export const findNodeById = (
+    nodes: CatalogTreeNode[],
+    targetId: string,
+): CatalogTreeNode | null => {
     for (const node of nodes) {
         if (node.item.id === targetId) {
             return node;
@@ -211,14 +166,10 @@ export const findNodeById = (nodes, targetId) => {
     return null;
 };
 
-/**
- * Resolves a node by exact path of item ids.
- *
- * @param {CatalogTreeNode[]} nodes
- * @param {string[]} pathIds
- * @returns {CatalogTreeNode | null}
- */
-export const findNodeByPath = (nodes, pathIds) => {
+export const findNodeByPath = (
+    nodes: CatalogTreeNode[],
+    pathIds: string[],
+): CatalogTreeNode | null => {
     if (!Array.isArray(pathIds) || pathIds.length === 0) {
         return null;
     }
@@ -238,14 +189,10 @@ export const findNodeByPath = (nodes, pathIds) => {
     return null;
 };
 
-/**
- * Returns UI uid for the first node matching the item id.
- *
- * @param {CatalogTreeNode[]} nodes
- * @param {string} targetId
- * @returns {string | null}
- */
-export const findNodeUidById = (nodes, targetId) => {
+export const findNodeUidById = (
+    nodes: CatalogTreeNode[],
+    targetId: string,
+): string | null => {
     for (const node of nodes) {
         if (node.item.id === targetId) {
             return node.uid;
@@ -260,18 +207,14 @@ export const findNodeUidById = (nodes, targetId) => {
     return null;
 };
 
-/**
- * Ranks flat search results by title match quality.
- *
- * @param {CatalogItem[]} items
- * @param {string[]} queryTokens
- * @returns {SearchResult[]}
- */
-export const rankSearchResults = (items, queryTokens) => {
+export const rankSearchResults = (
+    items: CatalogItem[],
+    queryTokens: string[],
+): SearchResult[] => {
     if (!queryTokens.length) {
         return [];
     }
-    const results = [];
+    const results: SearchResult[] = [];
     items.forEach((item) => {
         const name = normalizeSearchText(item.name || '');
         if (!queryTokens.every((token) => name.includes(token))) {
@@ -292,18 +235,11 @@ export const rankSearchResults = (items, queryTokens) => {
     );
 };
 
-/**
- * Builds an autocomplete index from item titles.
- *
- * `tokenToItemIds` maps a token to numeric item indexes containing it.
- * `itemIdToTokens` stores unique normalized title tokens for each item index.
- *
- * @param {CatalogItem[]} items
- * @returns {SearchAutocompleteIndex}
- */
-export const buildSearchAutocompleteIndex = (items) => {
-    const tokenToItemIds = new Map();
-    const itemIdToTokens = [];
+export const buildSearchAutocompleteIndex = (
+    items: CatalogItem[],
+): SearchAutocompleteIndex => {
+    const tokenToItemIds = new Map<string, Set<number>>();
+    const itemIdToTokens: string[][] = [];
 
     items.forEach((item, index) => {
         const tokens = [...new Set(normalizeSearchText(item.name || '').split(' ').filter(Boolean))];
@@ -321,10 +257,9 @@ export const buildSearchAutocompleteIndex = (items) => {
     return {tokenToItemIds, itemIdToTokens};
 };
 
-/**
- * Splits a free-form query into completed tokens and current partial token.
- */
-const parseSearchAutocompleteQuery = (query) => {
+const parseSearchAutocompleteQuery = (
+    query: string,
+): {baseTokens: string[]; currentToken: string} => {
     const rawQuery = query || '';
     const endsWithSpace = /\s$/.test(rawQuery);
     const normalizedQuery = normalizeSearchText(rawQuery);
@@ -334,44 +269,45 @@ const parseSearchAutocompleteQuery = (query) => {
     return {baseTokens, currentToken};
 };
 
-/**
- * Builds autocomplete suggestions for the current partial search token.
- *
- * @param {string} query
- * @param {SearchAutocompleteIndex | null} searchIndex
- * @param {number} [limit=12]
- * @returns {SearchAutocompleteOption[]}
- */
-export const buildSearchAutocompleteOptions = (query, searchIndex, limit = 12) => {
+export const buildSearchAutocompleteOptions = (
+    query: string,
+    searchIndex: SearchAutocompleteIndex | null,
+    limit = 12,
+): SearchAutocompleteOption[] => {
     const {baseTokens, currentToken} = parseSearchAutocompleteQuery(query);
     if (!currentToken || !searchIndex) {
         return [];
     }
 
-    const baseTokenSet = new Set(baseTokens);
+    const baseTokenSet = new Set<string>(baseTokens);
     const uniqueBaseTokens = [...baseTokenSet];
-    const candidateWords = new Set();
+    const candidateWords = new Set<string>();
     const baseItemSets = uniqueBaseTokens.map((token) => searchIndex.tokenToItemIds.get(token));
 
     if (baseItemSets.some((itemSet) => !itemSet)) {
         return [];
     }
 
-    const matchingItemIds = [];
+    const matchingItemIds: number[] = [];
     if (!baseItemSets.length) {
         for (let index = 0; index < searchIndex.itemIdToTokens.length; index += 1) {
             matchingItemIds.push(index);
         }
     } else {
-        const [smallestSet, ...otherSets] = [...baseItemSets].sort((a, b) => a.size - b.size);
+        const sortedSets = [...baseItemSets].sort((a, b) => (a?.size || 0) - (b?.size || 0));
+        const smallestSet = sortedSets[0];
+        const otherSets = sortedSets.slice(1);
+        if (!smallestSet) {
+            return [];
+        }
         for (const itemId of smallestSet) {
-            if (otherSets.every((itemSet) => itemSet.has(itemId))) {
+            if (otherSets.every((itemSet) => itemSet?.has(itemId))) {
                 matchingItemIds.push(itemId);
             }
         }
     }
 
-    const options = [];
+    const options: SearchAutocompleteOption[] = [];
     for (const itemId of matchingItemIds) {
         const titleTokens = searchIndex.itemIdToTokens[itemId] || [];
         for (const word of titleTokens) {
@@ -394,10 +330,7 @@ export const buildSearchAutocompleteOptions = (query, searchIndex, limit = 12) =
     return options.sort((a, b) => a.word.localeCompare(b.word));
 };
 
-/**
- * Removes app base path prefix from a browser pathname.
- */
-const stripBasePath = (pathname, basePath) => {
+const stripBasePath = (pathname: string, basePath: string): string => {
     if (!basePath || basePath === '/') {
         return pathname.replace(/^\/+/, '');
     }
@@ -411,10 +344,7 @@ const stripBasePath = (pathname, basePath) => {
     return pathname.replace(/^\/+/, '');
 };
 
-/**
- * Parses encoded `path` query parameter into item id segments.
- */
-export const parseServicePath = (value) => {
+export const parseServicePath = (value: string | null | undefined): string[] => {
     if (!value) {
         return [];
     }
@@ -424,25 +354,20 @@ export const parseServicePath = (value) => {
         .filter(Boolean);
 };
 
-/**
- * Encodes a path of item ids for use in the `path` query parameter.
- */
-export const buildServicePath = (pathIds) =>
+export const buildServicePath = (pathIds: string[]): string =>
     pathIds.map((segment) => encodeURIComponent(segment)).join('/');
 
-/**
- * Builds `/item/:id` pathname under the configured app base path.
- */
-export const buildItemPathname = (basePath, itemId) => {
+export const buildItemPathname = (basePath: string, itemId: string): string => {
     const normalizedBase = basePath.endsWith('/') ? basePath.slice(0, -1) : basePath;
     const prefix = normalizedBase === '' ? '' : normalizedBase;
     return `${prefix}/item/${encodeURIComponent(itemId)}`;
 };
 
-/**
- * Builds a clickable item URL including optional resolved tree path.
- */
-export const buildItemRouteHref = (basePath, itemId, pathIds = []) => {
+export const buildItemRouteHref = (
+    basePath: string,
+    itemId: string,
+    pathIds: string[] = [],
+): string => {
     const pathname = buildItemPathname(basePath, itemId);
     if (!Array.isArray(pathIds) || pathIds.length === 0) {
         return pathname;
@@ -452,10 +377,16 @@ export const buildItemRouteHref = (basePath, itemId, pathIds = []) => {
     return `${pathname}?${params.toString()}`;
 };
 
-/**
- * Returns true only for unmodified primary-button clicks.
- */
-export const isPlainLeftClick = (event) =>
+type PlainLeftClickEvent = {
+    button: number;
+    defaultPrevented: boolean;
+    metaKey: boolean;
+    ctrlKey: boolean;
+    shiftKey: boolean;
+    altKey: boolean;
+};
+
+export const isPlainLeftClick = (event: PlainLeftClickEvent): boolean =>
     event.button === 0 &&
     !event.defaultPrevented &&
     !event.metaKey &&
@@ -463,15 +394,10 @@ export const isPlainLeftClick = (event) =>
     !event.shiftKey &&
     !event.altKey;
 
-/**
- * Resolves selected tree node from current browser location.
- * Supports both `/item/:id` and `?path=` route context.
- *
- * @param {CatalogTreeNode[]} nodes
- * @param {string} basePath
- * @returns {{node: CatalogTreeNode} | null}
- */
-export const resolveNodeFromLocation = (nodes, basePath) => {
+export const resolveNodeFromLocation = (
+    nodes: CatalogTreeNode[],
+    basePath: string,
+): {node: CatalogTreeNode} | null => {
     if (!nodes.length) {
         return null;
     }
@@ -512,11 +438,9 @@ export const resolveNodeFromLocation = (nodes, basePath) => {
     return null;
 };
 
-/**
- * Reads route context from browser location without requiring tree resolution.
- * Used by App for route normalization / popstate synchronization.
- */
-export const readLocationRouteContext = (basePath) => {
+export const readLocationRouteContext = (
+    basePath: string,
+): {routeId: string; pathIds: string[]; hasRouteId: boolean; hasPathParam: boolean} => {
     const params = new URLSearchParams(window.location.search);
     const pathParamRaw = params.get('path') || '';
     const pathIds = parseServicePath(pathParamRaw);
