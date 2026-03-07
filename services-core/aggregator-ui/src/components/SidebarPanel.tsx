@@ -4,77 +4,76 @@
 
 import {buildItemRouteHref, isPlainLeftClick} from '../shared/catalogUtils';
 import {buildStatusText} from '../shared/statusText';
-/** @typedef {import('../shared/types').CatalogItem} CatalogItem */
-/** @typedef {import('../shared/types').CatalogTreeNode} CatalogTreeNode */
-/** @typedef {import('../shared/types').HealthStatus} HealthStatus */
-/** @typedef {import('../shared/types').SearchAutocompleteOption} SearchAutocompleteOption */
-/** @typedef {import('../shared/types').SearchResult} SearchResult */
+import type {
+    CatalogTreeNode,
+    HealthStatus,
+    SearchAutocompleteOption,
+    SearchResult,
+} from '../shared/types';
+import type {MutableRefObject} from 'react';
 
-/**
- * @typedef {Object} CatalogNodeProps
- * @property {CatalogTreeNode} node
- * @property {string} selectedNodeUid
- * @property {(node: CatalogTreeNode) => void} onSelect
- * @property {string} basePath
- * @property {Set<string>} expandedIds
- * @property {(node: CatalogTreeNode) => void} onToggleNode
- * @property {HealthStatus} status
- * @property {Record<string, HealthStatus>} statuses
- * @property {string} lastUpdated
- */
+type CatalogNodeProps = {
+    node: CatalogTreeNode;
+    selectedNodeUid: string;
+    onSelect: (node: CatalogTreeNode) => void;
+    basePath: string;
+    expandedIds: Set<string>;
+    onToggleNode: (node: CatalogTreeNode) => void;
+    status: HealthStatus;
+    statuses: Record<string, HealthStatus>;
+    lastUpdated: string;
+};
 
-/**
- * @typedef {Object} SidebarPanelProps
- * @property {boolean} isSidebarOpen
- * @property {string} homeHref
- * @property {string} homeIconSrc
- * @property {string} iconSpriteHref
- * @property {() => void} onToggleSidebar
- * @property {string} sidebarTitle
- * @property {string} error
- * @property {CatalogTreeNode[]} tree
- * @property {string} searchQuery
- * @property {string} searchSuggestionsListId
- * @property {boolean} isSearchAutocompleteReady
- * @property {SearchAutocompleteOption[]} searchAutocompleteOptions
- * @property {(value: string) => void} setSearchQuery
- * @property {boolean} isSearchActive
- * @property {(value: boolean) => void} setIsSearchActive
- * @property {() => void} onClearSearch
- * @property {() => void} onCollapseAll
- * @property {() => void} onExpandAll
- * @property {SearchResult[]} searchResults
- * @property {string} selectedId
- * @property {string} selectedNodeUid
- * @property {string} basePath
- * @property {(itemId: string) => void} onSelectItemById
- * @property {(itemId: string) => void} onExpandPathToItem
- * @property {Record<string, HealthStatus>} itemStatuses
- * @property {string} lastUpdated
- * @property {{current: HTMLDivElement | null}} catalogTreeRef
- * @property {CatalogTreeNode[]} filteredTree
- * @property {Set<string>} expandedIds
- * @property {(node: CatalogTreeNode) => void} onToggleNode
- * @property {(node: CatalogTreeNode) => void} onSelectNode
- */
+type SidebarPanelProps = {
+    isSidebarOpen: boolean;
+    homeHref: string;
+    homeIconSrc: string;
+    iconSpriteHref: string;
+    onToggleSidebar: () => void;
+    sidebarTitle: string;
+    error: string;
+    tree: CatalogTreeNode[];
+    searchQuery: string;
+    searchSuggestionsListId: string;
+    isSearchAutocompleteReady: boolean;
+    searchAutocompleteOptions: SearchAutocompleteOption[];
+    setSearchQuery: (value: string) => void;
+    isSearchActive: boolean;
+    setIsSearchActive: (value: boolean) => void;
+    onClearSearch: () => void;
+    onCollapseAll: () => void;
+    onExpandAll: () => void;
+    searchResults: SearchResult[];
+    selectedId: string;
+    selectedNodeUid: string;
+    basePath: string;
+    onSelectItemById: (itemId: string) => void;
+    onExpandPathToItem: (itemId: string) => void;
+    itemStatuses: Record<string, HealthStatus>;
+    lastUpdated: string;
+    catalogTreeRef: MutableRefObject<HTMLDivElement | null>;
+    filteredTree: CatalogTreeNode[];
+    expandedIds: Set<string>;
+    onToggleNode: (node: CatalogTreeNode) => void;
+    onSelectNode: (node: CatalogTreeNode) => void;
+};
 
 /**
  * Recursive tree node renderer used only by SidebarPanel.
  * Kept local to preserve the coarse-grained component split.
  *
- * @param {CatalogNodeProps} props
  */
 const CatalogNode = ({
-                         node,
-                         selectedNodeUid,
-                         onSelect,
-                         basePath,
-                         expandedIds,
-                         onToggleNode,
-                         status,
-                         statuses,
-                         lastUpdated,
-                     }) => {
+    node,
+    selectedNodeUid,
+    onSelect,
+    basePath,
+    expandedIds,
+    onToggleNode,
+    status,
+    statuses,
+    lastUpdated,
+}: CatalogNodeProps) => {
     const hasChildren = node.children.length > 0;
     const isExpanded = expandedIds.has(node.item.id);
     const statusLabel = buildStatusText(status, {lastUpdated});
@@ -169,41 +168,40 @@ const CatalogNode = ({
  *
  * App owns orchestration state and passes callbacks / derived data.
  *
- * @param {SidebarPanelProps} props
  */
 export default function SidebarPanel({
-                                         isSidebarOpen,
-                                         homeHref,
-                                         homeIconSrc,
-                                         iconSpriteHref,
-                                         onToggleSidebar,
-                                         sidebarTitle,
-                                         error,
-                                         tree,
-                                         searchQuery,
-                                         searchSuggestionsListId,
-                                         isSearchAutocompleteReady,
-                                         searchAutocompleteOptions,
-                                         setSearchQuery,
-                                         isSearchActive,
-                                         setIsSearchActive,
-                                         onClearSearch,
-                                         onCollapseAll,
-                                         onExpandAll,
-                                         searchResults,
-                                         selectedId,
-                                         selectedNodeUid,
-                                         basePath,
-                                         onSelectItemById,
-                                         onExpandPathToItem,
-                                         itemStatuses,
-                                         lastUpdated,
-                                         catalogTreeRef,
-                                         filteredTree,
-                                         expandedIds,
-                                         onToggleNode,
-                                         onSelectNode,
-                                     }) {
+    isSidebarOpen,
+    homeHref,
+    homeIconSrc,
+    iconSpriteHref,
+    onToggleSidebar,
+    sidebarTitle,
+    error,
+    tree,
+    searchQuery,
+    searchSuggestionsListId,
+    isSearchAutocompleteReady,
+    searchAutocompleteOptions,
+    setSearchQuery,
+    isSearchActive,
+    setIsSearchActive,
+    onClearSearch,
+    onCollapseAll,
+    onExpandAll,
+    searchResults,
+    selectedId,
+    selectedNodeUid,
+    basePath,
+    onSelectItemById,
+    onExpandPathToItem,
+    itemStatuses,
+    lastUpdated,
+    catalogTreeRef,
+    filteredTree,
+    expandedIds,
+    onToggleNode,
+    onSelectNode,
+}: SidebarPanelProps) {
     return (
         <aside className="sidebar">
             {isSidebarOpen && (
