@@ -2,31 +2,29 @@
  * @file Feedback modal with draft text editing and explicit send action.
  */
 
-/**
- * @typedef {Object} FeedbackModalProps
- * @property {boolean} isOpen
- * @property {string} value
- * @property {boolean} isSending
- * @property {string} error
- * @property {() => void} onClose
- * @property {(value: string) => void} onChange
- * @property {() => void} onSend
- */
+type FeedbackModalProps = {
+    isOpen: boolean;
+    value: string;
+    isSending: boolean;
+    error: string;
+    onClose: () => void;
+    onChange: (value: string) => void;
+    onSend: () => void;
+};
 
 /**
  * Renders feedback dialog body and controls.
  *
- * @param {FeedbackModalProps} props
  */
 export default function FeedbackModal({
-                                          isOpen,
-                                          value,
-                                          isSending,
-                                          error,
-                                          onClose,
-                                          onChange,
-                                          onSend,
-                                      }) {
+    isOpen,
+    value,
+    isSending,
+    error,
+    onClose,
+    onChange,
+    onSend,
+}: FeedbackModalProps) {
     if (!isOpen) {
         return null;
     }

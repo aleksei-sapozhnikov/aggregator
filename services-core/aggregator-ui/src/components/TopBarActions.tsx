@@ -2,25 +2,23 @@
  * @file Header action buttons shared by the details panel top bar.
  */
 
-/**
- * @typedef {Object} TopBarActionsProps
- * @property {'dark' | 'light'} theme
- * @property {() => void} onToggleTheme
- * @property {() => void} onOpenFeedback
- * @property {() => void} onOpenAbout
- */
+type TopBarActionsProps = {
+    theme: 'dark' | 'light';
+    onToggleTheme: () => void;
+    onOpenFeedback: () => void;
+    onOpenAbout: () => void;
+};
 
 /**
  * Renders top-bar actions for theme switching and opening the About dialog.
  *
- * @param {TopBarActionsProps} props
  */
 export default function TopBarActions({
     theme,
     onToggleTheme,
-                                          onOpenFeedback,
+    onOpenFeedback,
     onOpenAbout,
-}) {
+}: TopBarActionsProps) {
     return (
         <>
             <button
