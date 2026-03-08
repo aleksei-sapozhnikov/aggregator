@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 import type {AggregatorUiRuntimeConfig} from './shared/types';
 
 /**
