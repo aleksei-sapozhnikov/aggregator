@@ -4,18 +4,16 @@
 
 import AboutContent from '../AboutContent';
 
-/**
- * @typedef {Object} AboutModalProps
- * @property {boolean} isOpen
- * @property {() => void} onClose
- */
+type AboutModalProps = {
+    isOpen: boolean;
+    onClose: () => void;
+};
 
 /**
  * Renders the About modal and delegates body content to `AboutContent`.
  *
- * @param {AboutModalProps} props
  */
-export default function AboutModal({isOpen, onClose}) {
+export default function AboutModal({isOpen, onClose}: AboutModalProps) {
     if (!isOpen) {
         return null;
     }

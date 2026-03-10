@@ -3,6 +3,7 @@
  */
 
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {TouchEvent} from 'react';
 import SidebarPanel from './components/SidebarPanel';
 import DetailsPanel from './components/DetailsPanel';
 import AboutModal from './components/AboutModal';
@@ -41,10 +42,15 @@ import {
     resolveSidebarTitle,
     submitFeedback,
 } from './services/aggregatorApi';
-/** @typedef {import('./shared/types').CatalogDependency} CatalogDependency */
-/** @typedef {import('./shared/types').CatalogItem} CatalogItem */
-/** @typedef {import('./shared/types').HealthStatus} HealthStatus */
-/** @typedef {import('./shared/types').ItemSignal} ItemSignal */
+import type {
+    CatalogDependency,
+    CatalogItem,
+    CatalogTreeNode,
+    FailingDependencyEntry,
+    HealthStatus,
+    ItemSignal,
+    SearchAutocompleteIndex,
+} from './shared/types';
 
 const MOBILE_BREAKPOINT = 1100;
 const TREE_SCROLL_LONG_DISTANCE_PX = 600;
@@ -53,8 +59,13 @@ const MOBILE_SWIPE_OPEN_DISTANCE_PX = 96;
 const MOBILE_SWIPE_CLOSE_DISTANCE_PX = 96;
 const MOBILE_SWIPE_MAX_VERTICAL_DRIFT_PX = 48;
 const FEEDBACK_DRAFT_STORAGE_KEY = 'aggregator-ui-feedback-draft';
-/** @type {{items: CatalogItem[], dependencies: CatalogDependency[]}} */
-const EMPTY_CATALOG = {items: [], dependencies: []};
+type RouteUpdateOptions = {replace?: boolean};
+type LocationSelectionOptions = {normalize?: boolean; preserveExpansion?: boolean};
+
+const EMPTY_CATALOG: {items: CatalogItem[]; dependencies: CatalogDependency[]} = {
+    items: [],
+    dependencies: [],
+};
 
 /**
  * Application orchestrator.
@@ -65,16 +76,15 @@ export default function App() {
     const sidebarTitle = resolveSidebarTitle();
     const [catalog, setCatalog] = useState(EMPTY_CATALOG);
     const [selectedId, setSelectedId] = useState('');
-    const [selectedPath, setSelectedPath] = useState([]);
+    const [selectedPath, setSelectedPath] = useState<string[]>([]);
     const [error, setError] = useState('');
     const [theme, setTheme] = useState(getInitialTheme);
     const initialFrameThemeRef = useRef(theme);
-    const [expandedIds, setExpandedIds] = useState(() => new Set());
+    const [expandedIds, setExpandedIds] = useState<Set<string>>(() => new Set<string>());
     const expandedIdsRef = useRef(expandedIds);
-    /** @type {[Record<string, HealthStatus>, import('react').Dispatch<import('react').SetStateAction<Record<string, HealthStatus>>>]} */
-    const [itemStatuses, setItemStatuses] = useState({});
-    /** @type {[Record<string, ItemSignal[]>, import('react').Dispatch<import('react').SetStateAction<Record<string, ItemSignal[]>>>]} */
-    const [itemSignals, setItemSignals] = useState({});
+
+    const [itemStatuses, setItemStatuses] = useState<Record<string, HealthStatus>>({});
+    const [itemSignals, setItemSignals] = useState<Record<string, ItemSignal[]>>({});
     const [lastUpdated, setLastUpdated] = useState('');
     const [isMobileLayout, setIsMobileLayout] = useState(
         () => window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT}px)`).matches,
@@ -83,7 +93,7 @@ export default function App() {
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
     const [isSearchActive, setIsSearchActive] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
-    const [searchAutocompleteIndex, setSearchAutocompleteIndex] = useState(null);
+    const [searchAutocompleteIndex, setSearchAutocompleteIndex] = useState<SearchAutocompleteIndex | null>(null);
     const [isSearchAutocompleteReady, setIsSearchAutocompleteReady] = useState(false);
     const [pendingScrollId, setPendingScrollId] = useState('');
     const [isFailingSignalsOpen, setIsFailingSignalsOpen] = useState(false);
@@ -96,7 +106,11 @@ export default function App() {
     );
     const [feedbackError, setFeedbackError] = useState('');
     const [isFeedbackSending, setIsFeedbackSending] = useState(false);
-    const [notification, setNotification] = useState({
+    const [notification, setNotification] = useState<{
+        id: number;
+        message: string;
+        phase: 'hidden' | 'visible' | 'exiting';
+    }>({
         id: 0,
         message: '',
         phase: 'hidden',
@@ -106,14 +120,14 @@ export default function App() {
     const [grafanaHeight, setGrafanaHeight] = useState(0);
     const prevSearchTokensRef = useRef(0);
     const clearSearchRequestedRef = useRef(false);
-    const catalogTreeRef = useRef(null);
-    const grafanaIframeRef = useRef(null);
-    const contentRef = useRef(null);
-    const headerRef = useRef(null);
-    const headerActionsRef = useRef(null);
-    const contentTitlePrimaryRef = useRef(null);
-    const sidebarSwipeStartXRef = useRef(null);
-    const sidebarSwipeStartYRef = useRef(null);
+    const catalogTreeRef = useRef<HTMLDivElement | null>(null);
+    const grafanaIframeRef = useRef<HTMLIFrameElement | null>(null);
+    const contentRef = useRef<HTMLElement | null>(null);
+    const headerRef = useRef<HTMLElement | null>(null);
+    const headerActionsRef = useRef<HTMLDivElement | null>(null);
+    const contentTitlePrimaryRef = useRef<HTMLElement | null>(null);
+    const sidebarSwipeStartXRef = useRef<number | null>(null);
+    const sidebarSwipeStartYRef = useRef<number | null>(null);
     const lastHistoryUrlRef = useRef(window.location.href);
     const lastHistoryKeyRef = useRef('');
     const pendingGrafanaSrcRef = useRef('');
@@ -127,7 +141,11 @@ export default function App() {
     /**
      * Pushes/replaces browser history for an item route while deduplicating no-op updates.
      */
-    const updateHistoryForRoute = useCallback((itemId, pathIds, {replace} = {}) => {
+    const updateHistoryForRoute = useCallback((
+        itemId: string,
+        pathIds: string[],
+        {replace}: RouteUpdateOptions = {},
+    ) => {
         if (!itemId) {
             return;
         }
@@ -169,14 +187,14 @@ export default function App() {
     /**
      * Updates route for an item id without preserving an explicit tree path.
      */
-    const updateUrlForItemId = useCallback((itemId, {replace} = {}) => {
+    const updateUrlForItemId = useCallback((itemId: string, {replace}: RouteUpdateOptions = {}) => {
         updateHistoryForRoute(itemId, [], {replace});
     }, [updateHistoryForRoute]);
 
     /**
      * Updates route using the selected tree node and its resolved path.
      */
-    const updateUrlForNode = useCallback((node, {replace} = {}) => {
+    const updateUrlForNode = useCallback((node: CatalogTreeNode | null, {replace}: RouteUpdateOptions = {}) => {
         if (!node) {
             return;
         }
@@ -186,7 +204,7 @@ export default function App() {
     /**
      * Normalizes route state after parsing browser location (same semantics, normalized path).
      */
-    const normalizeUrlForRoute = useCallback((itemId, pathIds, {replace} = {}) => {
+    const normalizeUrlForRoute = useCallback((itemId: string, pathIds: string[], {replace}: RouteUpdateOptions = {}) => {
         updateHistoryForRoute(itemId, pathIds, {replace});
     }, [updateHistoryForRoute]);
 
@@ -278,7 +296,7 @@ export default function App() {
 
         updateHeight();
         window.addEventListener('resize', updateHeight);
-        let headerObserver;
+        let headerObserver: ResizeObserver | undefined;
         if (window.ResizeObserver && headerRef.current) {
             headerObserver = new ResizeObserver(updateHeight);
             headerObserver.observe(headerRef.current);
@@ -293,7 +311,7 @@ export default function App() {
 
     useEffect(() => {
         const mediaQuery = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT}px)`);
-        const updateLayout = (event) => {
+        const updateLayout = (event: MediaQueryListEvent) => {
             setIsMobileLayout(event.matches);
         };
 
@@ -321,8 +339,8 @@ export default function App() {
                 const {items, dependencies} = await loadCatalog();
                 setCatalog({items, dependencies});
                 setSelectedId((prev) => prev || items[0]?.id || '');
-            } catch (err) {
-                setError(err.message);
+            } catch (err: unknown) {
+                setError(err instanceof Error ? err.message : 'Failed to load catalog');
             }
         };
 
@@ -426,7 +444,7 @@ export default function App() {
         [searchQuery, searchAutocompleteIndex],
     );
 
-    const handleToggleNode = useCallback((node) => {
+    const handleToggleNode = useCallback((node: CatalogTreeNode) => {
         setExpandedIds((prev) => {
             const next = new Set(prev);
             const descendants = collectDescendantIds(node);
@@ -445,7 +463,7 @@ export default function App() {
     /**
      * Expands ancestors for the selected item so it is visible in the tree.
      */
-    const expandPathToItem = useCallback((itemId, {path} = {}) => {
+    const expandPathToItem = useCallback((itemId: string, {path}: {path?: string[]} = {}) => {
         const resolvedPath = path && path.length ? path : findNodePath(tree, itemId);
         const ancestors = resolvedPath ? resolvedPath.slice(0, -1) : [];
         setExpandedIds(new Set(ancestors));
@@ -454,7 +472,7 @@ export default function App() {
     /**
      * Ensures ancestors in a known path are expanded without resetting other expanded branches.
      */
-    const ensurePathExpanded = useCallback((pathIds) => {
+    const ensurePathExpanded = useCallback((pathIds: string[]) => {
         if (!Array.isArray(pathIds) || pathIds.length === 0) {
             return;
         }
@@ -519,8 +537,8 @@ export default function App() {
     const selectedTitleRest = selectedTitleMatch?.[2] || '';
 
     useEffect(() => {
-        const measurePrimaryWidth = (element) => {
-            const clone = element.cloneNode(true);
+        const measurePrimaryWidth = (element: HTMLElement): number => {
+            const clone = element.cloneNode(true) as HTMLElement;
             clone.style.position = 'fixed';
             clone.style.left = '-99999px';
             clone.style.top = '-99999px';
@@ -573,12 +591,13 @@ export default function App() {
         updateTitlePrimaryPlacement();
 
         window.addEventListener('resize', updateTitlePrimaryPlacement);
-        let observer;
+        let observer: ResizeObserver | undefined;
         if (window.ResizeObserver) {
-            observer = new ResizeObserver(updateTitlePrimaryPlacement);
+            const nextObserver = new ResizeObserver(updateTitlePrimaryPlacement);
             [headerRef.current, headerActionsRef.current, contentTitlePrimaryRef.current]
-                .filter(Boolean)
-                .forEach((element) => observer.observe(element));
+                .filter((element): element is HTMLElement => Boolean(element))
+                .forEach((element) => nextObserver.observe(element));
+            observer = nextObserver;
         }
 
         return () => {
@@ -621,8 +640,8 @@ export default function App() {
         if (!selectedNode) {
             return [];
         }
-        const result = [];
-        const visit = (children) => {
+        const result: CatalogTreeNode[] = [];
+        const visit = (children: CatalogTreeNode[]) => {
             children.forEach((child) => {
                 result.push(child);
                 visit(child.children);
@@ -634,7 +653,7 @@ export default function App() {
     const failingDependencies = useMemo(() => {
         const dependencySources = new Set(catalog.dependencies.map((dep) => dep.sourceId));
         const seen = new Set();
-        const result = [];
+        const result: FailingDependencyEntry[] = [];
         failingDependencyNodes.forEach((dependencyNode) => {
             const dependencyId = dependencyNode.item.id;
             if (seen.has(dependencyId)) {
@@ -697,7 +716,7 @@ export default function App() {
     /**
      * Tracks swipe state for mobile sidebar gestures.
      */
-    const handleMobileSidebarSwipeStart = useCallback((event) => {
+    const handleMobileSidebarSwipeStart = useCallback((event: TouchEvent) => {
         if (!isMobileLayout) {
             sidebarSwipeStartXRef.current = null;
             sidebarSwipeStartYRef.current = null;
@@ -716,7 +735,7 @@ export default function App() {
     /**
      * Opens or closes the mobile sidebar when a horizontal swipe is detected.
      */
-    const handleMobileSidebarSwipeMove = useCallback((event) => {
+    const handleMobileSidebarSwipeMove = useCallback((event: TouchEvent) => {
         const startX = sidebarSwipeStartXRef.current;
         const startY = sidebarSwipeStartYRef.current;
         if (startX === null || startY === null || !isMobileLayout) {
@@ -757,7 +776,7 @@ export default function App() {
     /**
      * Selects a node from the tree and updates route with resolved path information.
      */
-    const handleSelectItem = useCallback((node) => {
+    const handleSelectItem = useCallback((node: CatalogTreeNode) => {
         setSelectedId(node.item.id);
         setSelectedPath(node.path || [node.item.id]);
         setPendingScrollId(node.uid);
@@ -768,7 +787,7 @@ export default function App() {
     /**
      * Selects an item by id, using a resolved node path when available.
      */
-    const handleSelectItemById = useCallback((itemId) => {
+    const handleSelectItemById = useCallback((itemId: string) => {
         setSelectedId(itemId);
         const selectedNode = findNodeById(tree, itemId);
         if (selectedNode) {
@@ -787,7 +806,7 @@ export default function App() {
     /**
      * Selects an item by id and writes a pathless route (used by dependent item links).
      */
-    const handleSelectItemByIdNoPath = useCallback((itemId) => {
+    const handleSelectItemByIdNoPath = useCallback((itemId: string) => {
         const resolvedPath = findNodePath(tree, itemId) || [];
         setSelectedId(itemId);
         setSelectedPath(resolvedPath);
@@ -801,7 +820,7 @@ export default function App() {
     /**
      * Selects an item by an exact tree path to preserve duplicate-id branch context.
      */
-    const handleSelectItemByPath = useCallback((pathIds) => {
+    const handleSelectItemByPath = useCallback((pathIds: string[]) => {
         const normalizedPath = Array.isArray(pathIds) ? pathIds : [];
         const itemId = normalizedPath[normalizedPath.length - 1] || '';
         if (!itemId) {
@@ -827,7 +846,7 @@ export default function App() {
     /**
      * Builds an item link under the current base path.
      */
-    const buildItemLink = useCallback((itemId, pathIds = []) => {
+    const buildItemLink = useCallback((itemId: string, pathIds: string[] = []) => {
         return buildItemRouteHref(basePath, itemId, pathIds);
     }, [basePath]);
 
@@ -846,7 +865,7 @@ export default function App() {
     }, []);
 
     useEffect(() => {
-        const handleGrafanaItemLinkClick = (event) => {
+        const handleGrafanaItemLinkClick = (event: MessageEvent) => {
             if (event.origin !== window.location.origin) {
                 return;
             }
@@ -881,7 +900,7 @@ export default function App() {
         if (!tree.length) {
             return undefined;
         }
-        const applySelectionFromLocation = (options = {}) => {
+        const applySelectionFromLocation = (options: LocationSelectionOptions = {}) => {
             const {
                 normalize = true,
                 preserveExpansion = false,
@@ -989,8 +1008,8 @@ export default function App() {
         if (!isSearchActive) {
             return undefined;
         }
-        const handleKeyDown = (event) => {
-            if (event.key === 'Escape' || event.keyCode === 27) {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
                 event.preventDefault();
                 handleClearSearch();
             }
@@ -1005,8 +1024,8 @@ export default function App() {
         if (!isAboutOpen) {
             return undefined;
         }
-        const handleKeyDown = (event) => {
-            if (event.key === 'Escape' || event.keyCode === 27) {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
                 event.preventDefault();
                 setIsAboutOpen(false);
             }
@@ -1021,8 +1040,8 @@ export default function App() {
         if (!isFeedbackOpen) {
             return undefined;
         }
-        const handleKeyDown = (event) => {
-            if (event.key === 'Escape' || event.keyCode === 27) {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
                 event.preventDefault();
                 setIsFeedbackOpen(false);
             }
@@ -1036,12 +1055,12 @@ export default function App() {
     /**
      * Scrolls the tree container to a node once it is rendered and measurable.
      */
-    const scrollToNodeId = useCallback((targetId, behavior) => {
+    const scrollToNodeId = useCallback((targetId: string, behavior: ScrollBehavior) => {
         const container = catalogTreeRef.current;
         if (!container) {
             return;
         }
-        const animateScrollTo = (nextTop) => {
+        const animateScrollTo = (nextTop: number) => {
             const startTop = container.scrollTop;
             const targetTop = Math.max(0, nextTop);
             const distance = Math.abs(targetTop - startTop);
@@ -1069,7 +1088,7 @@ export default function App() {
         };
         const startedAt = performance.now();
         const tryScroll = () => {
-            const node = container.querySelector(`[data-node-id="${targetId}"]`);
+            const node = container.querySelector<HTMLElement>(`[data-node-id="${targetId}"]`);
             if (node) {
                 if (!node.offsetParent) {
                     window.requestAnimationFrame(tryScroll);
@@ -1081,10 +1100,11 @@ export default function App() {
                     return;
                 }
                 let offset = 0;
-                let current = node;
+                let current: HTMLElement | null = node;
                 while (current && current !== container) {
                     offset += current.offsetTop;
-                    current = current.offsetParent;
+                    const nextParent: Element | null = current.offsetParent;
+                    current = nextParent instanceof HTMLElement ? nextParent : null;
                 }
                 const targetViewportOffset = container.clientHeight / 3;
                 let nextTop;

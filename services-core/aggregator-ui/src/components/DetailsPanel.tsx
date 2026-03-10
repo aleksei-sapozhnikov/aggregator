@@ -5,51 +5,48 @@
 import TopBarActions from './TopBarActions';
 import {isPlainLeftClick} from '../shared/catalogUtils';
 import {buildStatusText} from '../shared/statusText';
-/** @typedef {import('../shared/types').CatalogItem} CatalogItem */
-/** @typedef {import('../shared/types').FailingDependencyEntry} FailingDependencyEntry */
-/** @typedef {import('../shared/types').HealthStatus} HealthStatus */
-/** @typedef {import('../shared/types').ItemSignal} ItemSignal */
+import type {CatalogItem, FailingDependencyEntry, HealthStatus, ItemSignal} from '../shared/types';
+import type {MutableRefObject} from 'react';
 
-/**
- * @typedef {Object} DetailsPanelProps
- * @property {{current: HTMLElement | null}} contentRef
- * @property {boolean} isSidebarOpen
- * @property {string} iconSpriteHref
- * @property {() => void} onToggleSidebar
- * @property {boolean} shouldOffsetContentHeader
- * @property {boolean} isTitlePrimaryBelowControls
- * @property {{current: HTMLElement | null}} headerRef
- * @property {{current: HTMLElement | null}} headerActionsRef
- * @property {'dark' | 'light'} theme
- * @property {() => void} onToggleTheme
- * @property {() => void} onOpenFeedback
- * @property {() => void} onOpenAbout
- * @property {CatalogItem | undefined} selectedItem
- * @property {HealthStatus} selectedStatus
- * @property {string} lastUpdated
- * @property {string} selectedTitleFirstWord
- * @property {string} selectedTitleRest
- * @property {{current: HTMLElement | null}} contentTitlePrimaryRef
- * @property {number} failingSignalsCount
- * @property {ItemSignal[]} selectedFailingSignals
- * @property {FailingDependencyEntry[]} failingDependencies
- * @property {boolean} hasFailingSignals
- * @property {boolean} isFailingSignalsOpen
- * @property {() => void} onToggleFailingSignals
- * @property {(itemId: string, pathIds?: string[]) => string} buildItemLink
- * @property {(pathIds: string[]) => void} onSelectItemByPath
- * @property {number} passingSignalsCount
- * @property {ItemSignal[]} selectedPassingSignals
- * @property {boolean} hasOwnHealthSignals
- * @property {boolean} isPassingSignalsOpen
- * @property {() => void} onTogglePassingSignals
- * @property {boolean} isGrafanaOpen
- * @property {() => void} onToggleGrafana
- * @property {number} grafanaHeight
- * @property {{current: HTMLIFrameElement | null}} grafanaIframeRef
- * @property {() => void} onGrafanaLoad
- * @property {string} grafanaFrameUrl
- */
+type DetailsPanelProps = {
+    contentRef: MutableRefObject<HTMLElement | null>;
+    isSidebarOpen: boolean;
+    iconSpriteHref: string;
+    onToggleSidebar: () => void;
+    shouldOffsetContentHeader: boolean;
+    isTitlePrimaryBelowControls: boolean;
+    headerRef: MutableRefObject<HTMLElement | null>;
+    headerActionsRef: MutableRefObject<HTMLDivElement | null>;
+    theme: 'dark' | 'light';
+    onToggleTheme: () => void;
+    onOpenFeedback: () => void;
+    onOpenAbout: () => void;
+    selectedItem: CatalogItem | undefined;
+    selectedStatus: HealthStatus;
+    lastUpdated: string;
+    selectedTitleFirstWord: string;
+    selectedTitleRest: string;
+    contentTitlePrimaryRef: MutableRefObject<HTMLElement | null>;
+    failingSignalsCount: number;
+    selectedFailingSignals: ItemSignal[];
+    failingDependencies: FailingDependencyEntry[];
+    hasFailingSignals: boolean;
+    isFailingSignalsOpen: boolean;
+    onToggleFailingSignals: () => void;
+    buildItemLink: (itemId: string, pathIds?: string[]) => string;
+    onSelectItemByPath: (pathIds: string[]) => void;
+    passingSignalsCount: number;
+    selectedPassingSignals: ItemSignal[];
+    hasOwnHealthSignals: boolean;
+    isPassingSignalsOpen: boolean;
+    onTogglePassingSignals: () => void;
+    isGrafanaOpen: boolean;
+    onToggleGrafana: () => void;
+    grafanaHeight: number;
+    grafanaIframeRef: MutableRefObject<HTMLIFrameElement | null>;
+    onGrafanaLoad: () => void;
+    grafanaFrameUrl: string;
+};
 
 /**
  * Renders the right-side content area:
@@ -59,7 +56,6 @@ import {buildStatusText} from '../shared/statusText';
  *
  * Layout and adaptive header behavior are controlled by props from App.
  *
- * @param {DetailsPanelProps} props
  */
 export default function DetailsPanel({
     contentRef,
@@ -72,7 +68,7 @@ export default function DetailsPanel({
     headerActionsRef,
     theme,
     onToggleTheme,
-                                         onOpenFeedback,
+    onOpenFeedback,
     onOpenAbout,
     selectedItem,
     selectedStatus,
@@ -99,7 +95,7 @@ export default function DetailsPanel({
     grafanaIframeRef,
     onGrafanaLoad,
     grafanaFrameUrl,
-}) {
+}: DetailsPanelProps) {
     const selectedStatusText = buildStatusText(selectedStatus, {lastUpdated});
 
     return (
