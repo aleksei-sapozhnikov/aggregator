@@ -33,8 +33,13 @@ public class HttpPollingSignalDefinitionLoader {
       throw new IllegalStateException(
           "HTTP polling signal file not found at " + properties.getDefinitionPath());
     }
+    Resource schemaResource = resourceLoader.getResource(properties.getSchemaPath());
+    if (!schemaResource.exists()) {
+      throw new IllegalStateException(
+          "HTTP polling signal schema file not found at " + properties.getSchemaPath());
+    }
     HttpPollingSignalDefinition definition =
-        definitionLoader.loadDefinition(resource, HttpPollingSignalDefinition.class);
+        definitionLoader.loadDefinition(resource, schemaResource, HttpPollingSignalDefinition.class);
     List<HttpPollingSignalConfiguration> signals = definition.signals();
     if (signals == null) {
       throw new IllegalStateException("HTTP polling signal definition must include signals");
