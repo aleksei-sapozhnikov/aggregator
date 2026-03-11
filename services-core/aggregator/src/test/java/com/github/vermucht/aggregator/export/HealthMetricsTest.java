@@ -3,6 +3,7 @@ package com.github.vermucht.aggregator.export;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.github.vermucht.aggregator.aggregation.CatalogHealthAggregator;
+import com.github.vermucht.aggregator.catalog.configuration.CatalogRegistry;
 import com.github.vermucht.aggregator.catalog.model.Catalog;
 import com.github.vermucht.aggregator.catalog.model.Dependency;
 import com.github.vermucht.aggregator.catalog.model.Item;
@@ -12,6 +13,7 @@ import com.github.vermucht.aggregator.signal.model.HealthStatus;
 import com.github.vermucht.aggregator.signal.state.HealthSignalStateStore;
 import com.github.vermucht.aggregator.signal.state.ItemHealthStateStore;
 import com.github.vermucht.aggregator.signalsource.polling.PollingSignalSource;
+import com.github.vermucht.aggregator.signalsource.polling.PollingSignalSourceRegistry;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.Duration;
@@ -31,13 +33,13 @@ class HealthMetricsTest {
 
   private static Catalog testCatalog() {
     // Create 4 items to match the expected gauge count.
-    Item gateway = Item.of(ItemId.of("api-gateway"), "API Gateway", "service");
-    Item paymentsApi = Item.of(ItemId.of("payments-api"), "Payments API", "service");
-    Item paymentsDb = Item.of(ItemId.of("payments-db"), "Payments DB", "service");
-    Item suite = Item.of(ItemId.of("payments-suite"), "Payments Suite", "product");
+    Item gateway = Item.of(ItemId.of("api-gateway"), "API Gateway");
+    Item paymentsApi = Item.of(ItemId.of("payments-api"), "Payments API");
+    Item paymentsDb = Item.of(ItemId.of("payments-db"), "Payments DB");
+    Item suite = Item.of(ItemId.of("payments-suite"), "Payments Suite");
 
     // Suite depends on gateway (enough to make product go DOWN when gateway goes DOWN).
-    Dependency suiteDependsOnGateway = Dependency.of(suite.getId(), gateway.getId(), "depends_on");
+    Dependency suiteDependsOnGateway = Dependency.of(suite.getId(), gateway.getId());
 
     return new Catalog(
         Map.of(
@@ -53,23 +55,27 @@ class HealthMetricsTest {
     meterRegistry = new SimpleMeterRegistry();
 
     Catalog catalog = testCatalog();
+    CatalogRegistry catalogRegistry = new CatalogRegistry(catalog);
     CatalogHealthAggregator aggregator = new CatalogHealthAggregator();
-    healthStateStore = new ItemHealthStateStore(catalog, aggregator);
+    healthStateStore = new ItemHealthStateStore(catalogRegistry, aggregator);
     signalStateStore = new HealthSignalStateStore();
-
-    // Registers gauges in constructor.
-    HealthMetrics metrics =
-        new HealthMetrics(
-            meterRegistry,
-            catalog,
-            healthStateStore,
-            signalStateStore,
+    PollingSignalSourceRegistry signalSourceRegistry =
+        new PollingSignalSourceRegistry(
             List.of(
                 new StubSignalSource(
                     ItemId.of("api-gateway"),
                     "gateway-health",
                     "Gateway readiness",
                     "http")));
+
+    // Registers gauges in constructor.
+    HealthMetrics metrics =
+        new HealthMetrics(
+            meterRegistry,
+            catalogRegistry,
+            healthStateStore,
+            signalStateStore,
+            signalSourceRegistry);
     metrics.registerMetrics();
   }
 
@@ -83,7 +89,6 @@ class HealthMetricsTest {
         gauge -> {
           assertThat(gauge.getId().getTag(HealthMetrics.LABEL_ITEM_ID)).isNotBlank();
           assertThat(gauge.getId().getTag(HealthMetrics.LABEL_ITEM_NAME)).isNotBlank();
-          assertThat(gauge.getId().getTag(HealthMetrics.LABEL_ITEM_TYPE)).isNotBlank();
         });
   }
 
@@ -94,8 +99,7 @@ class HealthMetricsTest {
             .find(HealthMetrics.ITEM_METRIC_NAME)
             .tags(
                 HealthMetrics.LABEL_ITEM_ID, "api-gateway",
-                HealthMetrics.LABEL_ITEM_NAME, "API Gateway",
-                HealthMetrics.LABEL_ITEM_TYPE, "service")
+                HealthMetrics.LABEL_ITEM_NAME, "API Gateway")
             .gauge();
 
     Gauge suiteGauge =
@@ -103,8 +107,7 @@ class HealthMetricsTest {
             .find(HealthMetrics.ITEM_METRIC_NAME)
             .tags(
                 HealthMetrics.LABEL_ITEM_ID, "payments-suite",
-                HealthMetrics.LABEL_ITEM_NAME, "Payments Suite",
-                HealthMetrics.LABEL_ITEM_TYPE, "product")
+                HealthMetrics.LABEL_ITEM_NAME, "Payments Suite")
             .gauge();
 
     assertThat(gatewayGauge).isNotNull();
@@ -126,8 +129,7 @@ class HealthMetricsTest {
             .find(HealthMetrics.ITEM_OWN_METRIC_NAME)
             .tags(
                 HealthMetrics.LABEL_ITEM_ID, "api-gateway",
-                HealthMetrics.LABEL_ITEM_NAME, "API Gateway",
-                HealthMetrics.LABEL_ITEM_TYPE, "service")
+                HealthMetrics.LABEL_ITEM_NAME, "API Gateway")
             .gauge();
 
     Gauge suiteOwnGauge =
@@ -135,8 +137,7 @@ class HealthMetricsTest {
             .find(HealthMetrics.ITEM_OWN_METRIC_NAME)
             .tags(
                 HealthMetrics.LABEL_ITEM_ID, "payments-suite",
-                HealthMetrics.LABEL_ITEM_NAME, "Payments Suite",
-                HealthMetrics.LABEL_ITEM_TYPE, "product")
+                HealthMetrics.LABEL_ITEM_NAME, "Payments Suite")
             .gauge();
 
     assertThat(gatewayOwnGauge).isNotNull();
@@ -155,7 +156,6 @@ class HealthMetricsTest {
             .tags(
                 HealthMetrics.LABEL_ITEM_ID, "api-gateway",
                 HealthMetrics.LABEL_ITEM_NAME, "API Gateway",
-                HealthMetrics.LABEL_ITEM_TYPE, "service",
                 HealthMetrics.LABEL_SIGNAL_ID, "gateway-health",
                 HealthMetrics.LABEL_SIGNAL_NAME, "Gateway readiness",
                 HealthMetrics.LABEL_SIGNAL_SOURCE, "http")
@@ -177,13 +177,19 @@ class HealthMetricsTest {
     assertThat(signalGauge.value()).isEqualTo(HealthStatusMetrics.DOWN_VALUE);
   }
 
-  private record StubSignalSource(ItemId itemId, String signalId, String name, String source)
+  private record StubSignalSource(ItemId itemId, String id, String title, String source)
       implements PollingSignalSource {
 
     @NonNull
     @Override
-    public ItemId getCatalogItemId() {
+    public ItemId itemId() {
       return itemId;
+    }
+
+    @NonNull
+    @Override
+    public String id() {
+      return id;
     }
 
     @NonNull
@@ -196,7 +202,7 @@ class HealthMetricsTest {
     @Override
     public HealthSignal poll() {
       return new HealthSignal(
-          itemId, signalId, HealthStatus.UP, Instant.now(), source, null, Map.of());
+          itemId, id, HealthStatus.UP, Instant.now(), source, null, Map.of());
     }
   }
 }
