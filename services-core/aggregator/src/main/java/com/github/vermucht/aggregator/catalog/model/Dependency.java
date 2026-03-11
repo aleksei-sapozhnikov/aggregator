@@ -7,15 +7,10 @@ import java.util.Objects;
 public final class Dependency {
   @Nonnull private final ItemId sourceId;
   @Nonnull private final ItemId targetId;
-  @Nonnull private final String type;
 
-  private Dependency(@Nonnull ItemId sourceId, @Nonnull ItemId targetId, @Nonnull String type) {
+  private Dependency(@Nonnull ItemId sourceId, @Nonnull ItemId targetId) {
     this.sourceId = Objects.requireNonNull(sourceId, "sourceId");
     this.targetId = Objects.requireNonNull(targetId, "targetId");
-    this.type = Objects.requireNonNull(type, "type");
-    if (type.isBlank()) {
-      throw new IllegalArgumentException("type must not be blank");
-    }
   }
 
   /**
@@ -23,13 +18,11 @@ public final class Dependency {
    *
    * @param sourceId source item identifier
    * @param targetId target item identifier
-   * @param type dependency classification
    * @return dependency instance
    */
   @Nonnull
-  public static Dependency of(
-      @Nonnull ItemId sourceId, @Nonnull ItemId targetId, @Nonnull String type) {
-    return new Dependency(sourceId, targetId, type);
+  public static Dependency of(@Nonnull ItemId sourceId, @Nonnull ItemId targetId) {
+    return new Dependency(sourceId, targetId);
   }
 
   /**
@@ -50,15 +43,5 @@ public final class Dependency {
   @Nonnull
   public ItemId getTargetId() {
     return targetId;
-  }
-
-  /**
-   * Returns the dependency type.
-   *
-   * @return dependency type
-   */
-  @Nonnull
-  public String getType() {
-    return type;
   }
 }

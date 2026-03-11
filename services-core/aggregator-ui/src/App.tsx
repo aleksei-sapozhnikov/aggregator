@@ -531,7 +531,7 @@ export default function App() {
     }, [selectedId, selectedPath, tree]);
     const selectedItem = selectedNode?.item || itemMap.get(selectedId);
     const selectedStatus = selectedItem ? itemStatuses[selectedItem.id] || 'unknown' : 'unknown';
-    const selectedTitleText = selectedItem ? selectedItem.name || selectedItem.id : 'Select an item';
+    const selectedTitleText = selectedItem ? selectedItem.title || selectedItem.id : 'Select an item';
     const selectedTitleMatch = selectedTitleText.match(/^(\S+)([\s\S]*)$/);
     const selectedTitleFirstWord = selectedTitleMatch?.[1] || selectedTitleText;
     const selectedTitleRest = selectedTitleMatch?.[2] || '';
@@ -623,7 +623,7 @@ export default function App() {
             if (statusCompare !== 0) {
                 return statusCompare;
             }
-            return (a.name || a.id).localeCompare(b.name || b.id) || a.id.localeCompare(b.id);
+            return (a.title || a.id).localeCompare(b.title || b.id) || a.id.localeCompare(b.id);
         });
     }, [itemSignals, selectedItem]);
 
@@ -669,7 +669,7 @@ export default function App() {
                     if (statusCompare !== 0) {
                         return statusCompare;
                     }
-                    return (a.name || a.id).localeCompare(b.name || b.id) || a.id.localeCompare(b.id);
+                    return (a.title || a.id).localeCompare(b.title || b.id) || a.id.localeCompare(b.id);
                 });
             const shouldIncludeLeafNonUp = !hasOwnDependencies && dependencyStatus !== 'up';
             if (failingSignals.length === 0 && !shouldIncludeLeafNonUp) {
@@ -678,7 +678,7 @@ export default function App() {
             const item = itemMap.get(dependencyId);
             result.push({
                 id: dependencyId,
-                name: item?.name || dependencyId,
+                    name: item?.title || dependencyId,
                 path: dependencyNode.path || [dependencyId],
                 status: dependencyStatus,
                 failingSignals,

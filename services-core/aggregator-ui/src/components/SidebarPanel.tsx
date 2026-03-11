@@ -124,7 +124,7 @@ const CatalogNode = ({
                                 aria-label={statusLabel}
                                 title={statusLabel}
                             />
-                            {node.item.name && <span className="node-name">{node.item.name}</span>}
+                            {node.item.title && <span className="node-name">{node.item.title}</span>}
                         </span>
                     </div>
                 </div>
@@ -319,7 +319,7 @@ export default function SidebarPanel({
                 </div>
             )}
             {!error && tree.length === 0 && (
-                <div className="empty">Catalog is empty. Add items to catalog-definition.yaml.</div>
+                            <div className="empty">Catalog is empty. Add items to catalog-items.yaml.</div>
             )}
             {isSearchActive ? (
                 <div className="search-results">
@@ -363,8 +363,8 @@ export default function SidebarPanel({
                                                                 aria-label={searchItemStatusText}
                                                                 title={searchItemStatusText}
                                                             />
-                                                            {item.name &&
-                                                                <span className="node-name">{item.name}</span>}
+                                                {item.title &&
+                                                    <span className="node-name">{item.title}</span>}
                                                         </span>
                                                     </div>
                                                 </div>

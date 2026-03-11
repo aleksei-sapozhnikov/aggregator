@@ -6,8 +6,7 @@ export type HealthStatus = 'up' | 'down' | 'unknown';
 
 export interface CatalogItem {
   id: string;
-  name?: string;
-  type?: string;
+  title?: string;
 }
 
 export interface CatalogDependency {

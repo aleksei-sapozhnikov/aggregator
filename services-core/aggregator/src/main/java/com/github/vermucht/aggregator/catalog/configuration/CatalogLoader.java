@@ -21,13 +21,28 @@ public class CatalogLoader {
   }
 
   /**
-   * Loads and parses the catalog definition from the given resource.
+   * Loads and merges item and dependency definitions from separate resources.
    *
-   * @param resource catalog definition resource
-   * @return parsed catalog definition
+   * @param itemsResource catalog items definition resource
+   * @param dependenciesResource catalog dependencies definition resource
+   * @param itemsSchemaResource catalog items schema resource
+   * @param dependenciesSchemaResource catalog dependencies schema resource
+   * @return merged catalog definition
    */
   @Nonnull
-  public CatalogDefinition loadDefinition(@Nonnull Resource resource) {
-    return definitionLoader.loadDefinition(resource, CatalogDefinition.class);
+  public CatalogDefinition loadDefinition(
+      @Nonnull Resource itemsResource,
+      @Nonnull Resource dependenciesResource,
+      @Nonnull Resource itemsSchemaResource,
+      @Nonnull Resource dependenciesSchemaResource) {
+    CatalogDefinition.CatalogItemsDefinition itemsDefinition =
+        definitionLoader.loadDefinition(
+            itemsResource, itemsSchemaResource, CatalogDefinition.CatalogItemsDefinition.class);
+    CatalogDefinition.CatalogDependenciesDefinition dependenciesDefinition =
+        definitionLoader.loadDefinition(
+            dependenciesResource,
+            dependenciesSchemaResource,
+            CatalogDefinition.CatalogDependenciesDefinition.class);
+    return new CatalogDefinition(itemsDefinition.items(), dependenciesDefinition.dependencies());
   }
 }
