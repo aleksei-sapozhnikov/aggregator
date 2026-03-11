@@ -7,8 +7,12 @@ services:
     build:
       args:
         CONTAINER_ROOT: services-core/aggregator
-        CATALOG_DEFINITION_FILE: config/demo/catalog-definition.yaml
-        HTTP_POLL_SIGNALS_FILE: config/demo/http-poll-signals.yaml
+        CATALOG_ITEMS_FILE: config/demo/catalog-items.yaml
+        CATALOG_DEPENDENCIES_FILE: config/demo/catalog-dependencies.yaml
+        SIGNALS_HTTP_POLL_FILE: config/demo/signals-http-poll.yaml
+        CATALOG_ITEMS_SCHEMA_FILE: config/schemas/catalog-items.schema.yaml
+        CATALOG_DEPENDENCIES_SCHEMA_FILE: config/schemas/catalog-dependencies.schema.yaml
+        SIGNALS_HTTP_POLL_SCHEMA_FILE: config/schemas/signals-http-poll.schema.yaml
     volumes:
       - ./config/demo:/app/config/demo:ro
 
@@ -18,7 +22,8 @@ services:
       dockerfile: services-core/aggregator-ui/Dockerfile
       args:
         CONTAINER_ROOT: services-core/aggregator-ui
-        CATALOG_DEFINITION_FILE: config/demo/catalog-definition.yaml
+        CATALOG_ITEMS_FILE: config/demo/catalog-items.yaml
+        CATALOG_DEPENDENCIES_FILE: config/demo/catalog-dependencies.yaml
         VITE_APP_TITLE: "Health Aggregator DEMO"
 
   chaos-maker:
@@ -27,7 +32,7 @@ services:
       dockerfile: services-demo/chaos-maker/Dockerfile
       args:
         CONTAINER_ROOT: services-demo/chaos-maker
-        HTTP_POLL_SIGNALS_FILE: config/demo/http-poll-signals.yaml
+        SIGNALS_HTTP_POLL_FILE: config/demo/signals-http-poll.yaml
     environment:
       CHAOS_ENABLED: "true"
       CHAOS_ALWAYS_BROKEN: "true"

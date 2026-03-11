@@ -1,0 +1,1028 @@
+# yaml-language-server: $schema=../schemas/signals-http-poll.schema.yaml
+# HTTP polling signals for demo services and product SLIs
+signals:
+  - id: order-capture-availability-check
+    title: Availability heartbeat responds
+    itemId: order-capture-svc
+    url: http://dummy-java:8080/health/order-capture-availability-check
+  - id: order-capture-latency-check
+    title: Request latency is within SLO
+    itemId: order-capture-svc
+    url: http://dummy-python:8080/health/order-capture-latency-check
+  - id: order-capture-error-rate-check
+    title: Error rate is below threshold
+    itemId: order-capture-svc
+    url: http://dummy-javascript:8080/health/order-capture-error-rate-check
+  - id: order-capture-backlog-check
+    title: Work backlog is within limits
+    itemId: order-capture-svc
+    url: http://dummy-java:8080/health/order-capture-backlog-check
+  - id: order-validation-availability-check
+    title: Availability heartbeat responds
+    itemId: order-validation-svc
+    url: http://dummy-python:8080/health/order-validation-availability-check
+  - id: order-validation-latency-check
+    title: Request latency is within SLO
+    itemId: order-validation-svc
+    url: http://dummy-javascript:8080/health/order-validation-latency-check
+  - id: order-validation-error-rate-check
+    title: Error rate is below threshold
+    itemId: order-validation-svc
+    url: http://dummy-java:8080/health/order-validation-error-rate-check
+  - id: order-validation-backlog-check
+    title: Work backlog is within limits
+    itemId: order-validation-svc
+    url: http://dummy-python:8080/health/order-validation-backlog-check
+  - id: order-validation-policy-turnaround-check
+    title: Validation decisions complete within the policy window
+    itemId: order-validation-svc
+    url: http://dummy-javascript:8080/health/order-validation-policy-turnaround-check
+  - id: order-billing-availability-check
+    title: Availability heartbeat responds
+    itemId: order-billing-svc
+    url: http://dummy-java:8080/health/order-billing-availability-check
+  - id: order-billing-latency-check
+    title: Request latency is within SLO
+    itemId: order-billing-svc
+    url: http://dummy-python:8080/health/order-billing-latency-check
+  - id: order-billing-error-rate-check
+    title: Error rate is below threshold
+    itemId: order-billing-svc
+    url: http://dummy-javascript:8080/health/order-billing-error-rate-check
+  - id: order-billing-backlog-check
+    title: Work backlog is within limits
+    itemId: order-billing-svc
+    url: http://dummy-java:8080/health/order-billing-backlog-check
+  - id: order-billing-invoice-balance-check
+    title: Billing totals remain internally balanced before issue
+    itemId: order-billing-svc
+    url: http://dummy-python:8080/health/order-billing-invoice-balance-check
+  - id: order-dispatch-availability-check
+    title: Availability heartbeat responds
+    itemId: order-dispatch-svc
+    url: http://dummy-javascript:8080/health/order-dispatch-availability-check
+  - id: routing-engine-availability-check
+    title: Availability heartbeat responds
+    itemId: routing-engine-svc
+    url: http://dummy-java:8080/health/routing-engine-availability-check
+  - id: routing-engine-latency-check
+    title: Request latency is within SLO
+    itemId: routing-engine-svc
+    url: http://dummy-python:8080/health/routing-engine-latency-check
+  - id: routing-engine-error-rate-check
+    title: Error rate is below threshold
+    itemId: routing-engine-svc
+    url: http://dummy-javascript:8080/health/routing-engine-error-rate-check
+  - id: routing-engine-backlog-check
+    title: Work backlog is within limits
+    itemId: routing-engine-svc
+    url: http://dummy-java:8080/health/routing-engine-backlog-check
+  - id: inventory-sync-availability-check
+    title: Availability heartbeat responds
+    itemId: inventory-sync-svc
+    url: http://dummy-python:8080/health/inventory-sync-availability-check
+  - id: inventory-sync-latency-check
+    title: Request latency is within SLO
+    itemId: inventory-sync-svc
+    url: http://dummy-javascript:8080/health/inventory-sync-latency-check
+  - id: inventory-sync-error-rate-check
+    title: Error rate is below threshold
+    itemId: inventory-sync-svc
+    url: http://dummy-java:8080/health/inventory-sync-error-rate-check
+  - id: inventory-sync-backlog-check
+    title: Work backlog is within limits
+    itemId: inventory-sync-svc
+    url: http://dummy-python:8080/health/inventory-sync-backlog-check
+  - id: lastmile-dispatch-availability-check
+    title: Availability heartbeat responds
+    itemId: lastmile-dispatch-svc
+    url: http://dummy-javascript:8080/health/lastmile-dispatch-availability-check
+  - id: lastmile-dispatch-latency-check
+    title: Request latency is within SLO
+    itemId: lastmile-dispatch-svc
+    url: http://dummy-java:8080/health/lastmile-dispatch-latency-check
+  - id: lastmile-dispatch-error-rate-check
+    title: Error rate is below threshold
+    itemId: lastmile-dispatch-svc
+    url: http://dummy-python:8080/health/lastmile-dispatch-error-rate-check
+  - id: lastmile-dispatch-backlog-check
+    title: Work backlog is within limits
+    itemId: lastmile-dispatch-svc
+    url: http://dummy-javascript:8080/health/lastmile-dispatch-backlog-check
+  - id: lastmile-dispatch-route-commit-check
+    title: Route commitments are produced within the dispatch window
+    itemId: lastmile-dispatch-svc
+    url: http://dummy-java:8080/health/lastmile-dispatch-route-commit-check
+  - id: returns-processing-availability-check
+    title: Availability heartbeat responds
+    itemId: returns-processing-svc
+    url: http://dummy-python:8080/health/returns-processing-availability-check
+  - id: returns-processing-latency-check
+    title: Request latency is within SLO
+    itemId: returns-processing-svc
+    url: http://dummy-javascript:8080/health/returns-processing-latency-check
+  - id: returns-processing-error-rate-check
+    title: Error rate is below threshold
+    itemId: returns-processing-svc
+    url: http://dummy-java:8080/health/returns-processing-error-rate-check
+  - id: returns-processing-backlog-check
+    title: Work backlog is within limits
+    itemId: returns-processing-svc
+    url: http://dummy-python:8080/health/returns-processing-backlog-check
+  - id: returns-processing-case-closure-check
+    title: Return cases close within the expected handling window
+    itemId: returns-processing-svc
+    url: http://dummy-javascript:8080/health/returns-processing-case-closure-check
+  - id: engagement-orchestrator-availability-check
+    title: Availability heartbeat responds
+    itemId: engagement-orchestrator-svc
+    url: http://dummy-java:8080/health/engagement-orchestrator-availability-check
+  - id: profile-store-availability-check
+    title: Availability heartbeat responds
+    itemId: profile-store-svc
+    url: http://dummy-python:8080/health/profile-store-availability-check
+  - id: profile-store-latency-check
+    title: Request latency is within SLO
+    itemId: profile-store-svc
+    url: http://dummy-javascript:8080/health/profile-store-latency-check
+  - id: profile-store-error-rate-check
+    title: Error rate is below threshold
+    itemId: profile-store-svc
+    url: http://dummy-java:8080/health/profile-store-error-rate-check
+  - id: messaging-hub-availability-check
+    title: Availability heartbeat responds
+    itemId: messaging-hub-svc
+    url: http://dummy-python:8080/health/messaging-hub-availability-check
+  - id: messaging-hub-latency-check
+    title: Request latency is within SLO
+    itemId: messaging-hub-svc
+    url: http://dummy-javascript:8080/health/messaging-hub-latency-check
+  - id: messaging-hub-error-rate-check
+    title: Error rate is below threshold
+    itemId: messaging-hub-svc
+    url: http://dummy-java:8080/health/messaging-hub-error-rate-check
+  - id: messaging-hub-backlog-check
+    title: Work backlog is within limits
+    itemId: messaging-hub-svc
+    url: http://dummy-python:8080/health/messaging-hub-backlog-check
+  - id: messaging-hub-delivery-window-check
+    title: Message batches enter delivery within the target window
+    itemId: messaging-hub-svc
+    url: http://dummy-javascript:8080/health/messaging-hub-delivery-window-check
+  - id: campaign-execution-availability-check
+    title: Availability heartbeat responds
+    itemId: campaign-execution-svc
+    url: http://dummy-java:8080/health/campaign-execution-availability-check
+  - id: campaign-execution-latency-check
+    title: Request latency is within SLO
+    itemId: campaign-execution-svc
+    url: http://dummy-python:8080/health/campaign-execution-latency-check
+  - id: campaign-execution-error-rate-check
+    title: Error rate is below threshold
+    itemId: campaign-execution-svc
+    url: http://dummy-javascript:8080/health/campaign-execution-error-rate-check
+  - id: campaign-execution-backlog-check
+    title: Work backlog is within limits
+    itemId: campaign-execution-svc
+    url: http://dummy-java:8080/health/campaign-execution-backlog-check
+  - id: campaign-execution-launch-window-check
+    title: Campaign launches start within the scheduled execution window
+    itemId: campaign-execution-svc
+    url: http://dummy-python:8080/health/campaign-execution-launch-window-check
+  - id: commerce-core-pricing-sync-availability-check
+    title: Availability heartbeat responds
+    itemId: commerce-core-pricing-sync-svc
+    url: http://dummy-javascript:8080/health/commerce-core-pricing-sync-availability-check
+  - id: commerce-core-pricing-sync-latency-check
+    title: Request latency is within SLO
+    itemId: commerce-core-pricing-sync-svc
+    url: http://dummy-java:8080/health/commerce-core-pricing-sync-latency-check
+  - id: commerce-core-pricing-sync-error-rate-check
+    title: Error rate is below threshold
+    itemId: commerce-core-pricing-sync-svc
+    url: http://dummy-python:8080/health/commerce-core-pricing-sync-error-rate-check
+  - id: commerce-core-pricing-sync-backlog-check
+    title: Work backlog is within limits
+    itemId: commerce-core-pricing-sync-svc
+    url: http://dummy-javascript:8080/health/commerce-core-pricing-sync-backlog-check
+  - id: order-domain-events-availability-check
+    title: Availability heartbeat responds
+    itemId: order-domain-events-svc
+    url: http://dummy-java:8080/health/order-domain-events-availability-check
+  - id: order-intake-api-availability-check
+    title: Availability heartbeat responds
+    itemId: order-intake-api-svc
+    url: http://dummy-python:8080/health/order-intake-api-availability-check
+  - id: order-intake-api-latency-check
+    title: Request latency is within SLO
+    itemId: order-intake-api-svc
+    url: http://dummy-javascript:8080/health/order-intake-api-latency-check
+  - id: order-intake-api-error-rate-check
+    title: Error rate is below threshold
+    itemId: order-intake-api-svc
+    url: http://dummy-java:8080/health/order-intake-api-error-rate-check
+  - id: order-intake-buffer-availability-check
+    title: Availability heartbeat responds
+    itemId: order-intake-buffer-svc
+    url: http://dummy-python:8080/health/order-intake-buffer-availability-check
+  - id: order-intake-buffer-latency-check
+    title: Request latency is within SLO
+    itemId: order-intake-buffer-svc
+    url: http://dummy-javascript:8080/health/order-intake-buffer-latency-check
+  - id: order-intake-buffer-error-rate-check
+    title: Error rate is below threshold
+    itemId: order-intake-buffer-svc
+    url: http://dummy-java:8080/health/order-intake-buffer-error-rate-check
+  - id: fraud-screening-availability-check
+    title: Availability heartbeat responds
+    itemId: fraud-screening-svc
+    url: http://dummy-python:8080/health/fraud-screening-availability-check
+  - id: policy-evaluator-availability-check
+    title: Availability heartbeat responds
+    itemId: policy-evaluator-svc
+    url: http://dummy-javascript:8080/health/policy-evaluator-availability-check
+  - id: policy-evaluator-latency-check
+    title: Request latency is within SLO
+    itemId: policy-evaluator-svc
+    url: http://dummy-java:8080/health/policy-evaluator-latency-check
+  - id: policy-evaluator-error-rate-check
+    title: Error rate is below threshold
+    itemId: policy-evaluator-svc
+    url: http://dummy-python:8080/health/policy-evaluator-error-rate-check
+  - id: invoice-orchestrator-availability-check
+    title: Availability heartbeat responds
+    itemId: invoice-orchestrator-svc
+    url: http://dummy-javascript:8080/health/invoice-orchestrator-availability-check
+  - id: invoice-orchestrator-latency-check
+    title: Request latency is within SLO
+    itemId: invoice-orchestrator-svc
+    url: http://dummy-java:8080/health/invoice-orchestrator-latency-check
+  - id: invoice-orchestrator-error-rate-check
+    title: Error rate is below threshold
+    itemId: invoice-orchestrator-svc
+    url: http://dummy-python:8080/health/invoice-orchestrator-error-rate-check
+  - id: invoice-orchestrator-backlog-check
+    title: Work backlog is within limits
+    itemId: invoice-orchestrator-svc
+    url: http://dummy-javascript:8080/health/invoice-orchestrator-backlog-check
+  - id: payment-auth-adapter-availability-check
+    title: Availability heartbeat responds
+    itemId: payment-auth-adapter-svc
+    url: http://dummy-java:8080/health/payment-auth-adapter-availability-check
+  - id: payment-auth-adapter-latency-check
+    title: Request latency is within SLO
+    itemId: payment-auth-adapter-svc
+    url: http://dummy-python:8080/health/payment-auth-adapter-latency-check
+  - id: payment-auth-adapter-error-rate-check
+    title: Error rate is below threshold
+    itemId: payment-auth-adapter-svc
+    url: http://dummy-javascript:8080/health/payment-auth-adapter-error-rate-check
+  - id: payment-auth-adapter-backlog-check
+    title: Work backlog is within limits
+    itemId: payment-auth-adapter-svc
+    url: http://dummy-java:8080/health/payment-auth-adapter-backlog-check
+  - id: payment-auth-adapter-decision-window-check
+    title: Authorization decisions return within the allowed window
+    itemId: payment-auth-adapter-svc
+    url: http://dummy-python:8080/health/payment-auth-adapter-decision-window-check
+  - id: order-state-projection-availability-check
+    title: Availability heartbeat responds
+    itemId: order-state-projection-svc
+    url: http://dummy-javascript:8080/health/order-state-projection-availability-check
+  - id: order-state-projection-latency-check
+    title: Request latency is within SLO
+    itemId: order-state-projection-svc
+    url: http://dummy-java:8080/health/order-state-projection-latency-check
+  - id: order-state-projection-error-rate-check
+    title: Error rate is below threshold
+    itemId: order-state-projection-svc
+    url: http://dummy-python:8080/health/order-state-projection-error-rate-check
+  - id: order-sla-tracker-availability-check
+    title: Availability heartbeat responds
+    itemId: order-sla-tracker-svc
+    url: http://dummy-javascript:8080/health/order-sla-tracker-availability-check
+  - id: fulfillment-control-plane-availability-check
+    title: Availability heartbeat responds
+    itemId: fulfillment-control-plane-svc
+    url: http://dummy-java:8080/health/fulfillment-control-plane-availability-check
+  - id: logistics-event-router-availability-check
+    title: Availability heartbeat responds
+    itemId: logistics-event-router-svc
+    url: http://dummy-python:8080/health/logistics-event-router-availability-check
+  - id: logistics-event-router-latency-check
+    title: Request latency is within SLO
+    itemId: logistics-event-router-svc
+    url: http://dummy-javascript:8080/health/logistics-event-router-latency-check
+  - id: logistics-event-router-error-rate-check
+    title: Error rate is below threshold
+    itemId: logistics-event-router-svc
+    url: http://dummy-java:8080/health/logistics-event-router-error-rate-check
+  - id: logistics-event-router-backlog-check
+    title: Work backlog is within limits
+    itemId: logistics-event-router-svc
+    url: http://dummy-python:8080/health/logistics-event-router-backlog-check
+  - id: route-cache-writer-availability-check
+    title: Availability heartbeat responds
+    itemId: route-cache-writer-svc
+    url: http://dummy-javascript:8080/health/route-cache-writer-availability-check
+  - id: route-cost-model-availability-check
+    title: Availability heartbeat responds
+    itemId: route-cost-model-svc
+    url: http://dummy-java:8080/health/route-cost-model-availability-check
+  - id: route-cost-model-latency-check
+    title: Request latency is within SLO
+    itemId: route-cost-model-svc
+    url: http://dummy-python:8080/health/route-cost-model-latency-check
+  - id: inventory-reconciler-availability-check
+    title: Availability heartbeat responds
+    itemId: inventory-reconciler-svc
+    url: http://dummy-javascript:8080/health/inventory-reconciler-availability-check
+  - id: stock-reservation-availability-check
+    title: Availability heartbeat responds
+    itemId: stock-reservation-svc
+    url: http://dummy-java:8080/health/stock-reservation-availability-check
+  - id: stock-reservation-latency-check
+    title: Request latency is within SLO
+    itemId: stock-reservation-svc
+    url: http://dummy-python:8080/health/stock-reservation-latency-check
+  - id: stock-reservation-error-rate-check
+    title: Error rate is below threshold
+    itemId: stock-reservation-svc
+    url: http://dummy-javascript:8080/health/stock-reservation-error-rate-check
+  - id: depot-slotting-availability-check
+    title: Availability heartbeat responds
+    itemId: depot-slotting-svc
+    url: http://dummy-java:8080/health/depot-slotting-availability-check
+  - id: depot-slotting-latency-check
+    title: Request latency is within SLO
+    itemId: depot-slotting-svc
+    url: http://dummy-python:8080/health/depot-slotting-latency-check
+  - id: carrier-capacity-broker-availability-check
+    title: Availability heartbeat responds
+    itemId: carrier-capacity-broker-svc
+    url: http://dummy-javascript:8080/health/carrier-capacity-broker-availability-check
+  - id: carrier-capacity-broker-latency-check
+    title: Request latency is within SLO
+    itemId: carrier-capacity-broker-svc
+    url: http://dummy-java:8080/health/carrier-capacity-broker-latency-check
+  - id: carrier-capacity-broker-error-rate-check
+    title: Error rate is below threshold
+    itemId: carrier-capacity-broker-svc
+    url: http://dummy-python:8080/health/carrier-capacity-broker-error-rate-check
+  - id: dispatch-simulation-availability-check
+    title: Availability heartbeat responds
+    itemId: dispatch-simulation-svc
+    url: http://dummy-javascript:8080/health/dispatch-simulation-availability-check
+  - id: dispatch-simulation-latency-check
+    title: Request latency is within SLO
+    itemId: dispatch-simulation-svc
+    url: http://dummy-java:8080/health/dispatch-simulation-latency-check
+  - id: dispatch-simulation-error-rate-check
+    title: Error rate is below threshold
+    itemId: dispatch-simulation-svc
+    url: http://dummy-python:8080/health/dispatch-simulation-error-rate-check
+  - id: dispatch-simulation-backlog-check
+    title: Work backlog is within limits
+    itemId: dispatch-simulation-svc
+    url: http://dummy-javascript:8080/health/dispatch-simulation-backlog-check
+  - id: customer-consent-ledger-availability-check
+    title: Availability heartbeat responds
+    itemId: customer-consent-ledger-svc
+    url: http://dummy-java:8080/health/customer-consent-ledger-availability-check
+  - id: customer-consent-ledger-latency-check
+    title: Request latency is within SLO
+    itemId: customer-consent-ledger-svc
+    url: http://dummy-python:8080/health/customer-consent-ledger-latency-check
+  - id: customer-consent-ledger-error-rate-check
+    title: Error rate is below threshold
+    itemId: customer-consent-ledger-svc
+    url: http://dummy-javascript:8080/health/customer-consent-ledger-error-rate-check
+  - id: customer-consent-ledger-backlog-check
+    title: Work backlog is within limits
+    itemId: customer-consent-ledger-svc
+    url: http://dummy-java:8080/health/customer-consent-ledger-backlog-check
+  - id: audience-intent-processor-availability-check
+    title: Availability heartbeat responds
+    itemId: audience-intent-processor-svc
+    url: http://dummy-python:8080/health/audience-intent-processor-availability-check
+  - id: audience-intent-processor-latency-check
+    title: Request latency is within SLO
+    itemId: audience-intent-processor-svc
+    url: http://dummy-javascript:8080/health/audience-intent-processor-latency-check
+  - id: audience-intent-processor-error-rate-check
+    title: Error rate is below threshold
+    itemId: audience-intent-processor-svc
+    url: http://dummy-java:8080/health/audience-intent-processor-error-rate-check
+  - id: journey-rules-engine-availability-check
+    title: Availability heartbeat responds
+    itemId: journey-rules-engine-svc
+    url: http://dummy-python:8080/health/journey-rules-engine-availability-check
+  - id: journey-rules-engine-latency-check
+    title: Request latency is within SLO
+    itemId: journey-rules-engine-svc
+    url: http://dummy-javascript:8080/health/journey-rules-engine-latency-check
+  - id: journey-rules-engine-error-rate-check
+    title: Error rate is below threshold
+    itemId: journey-rules-engine-svc
+    url: http://dummy-java:8080/health/journey-rules-engine-error-rate-check
+  - id: journey-experimentation-availability-check
+    title: Availability heartbeat responds
+    itemId: journey-experimentation-svc
+    url: http://dummy-python:8080/health/journey-experimentation-availability-check
+  - id: touchpoint-session-state-availability-check
+    title: Availability heartbeat responds
+    itemId: touchpoint-session-state-svc
+    url: http://dummy-javascript:8080/health/touchpoint-session-state-availability-check
+  - id: profile-merge-orchestrator-availability-check
+    title: Availability heartbeat responds
+    itemId: profile-merge-orchestrator-svc
+    url: http://dummy-java:8080/health/profile-merge-orchestrator-availability-check
+  - id: template-renderer-availability-check
+    title: Availability heartbeat responds
+    itemId: template-renderer-svc
+    url: http://dummy-python:8080/health/template-renderer-availability-check
+  - id: template-renderer-latency-check
+    title: Request latency is within SLO
+    itemId: template-renderer-svc
+    url: http://dummy-javascript:8080/health/template-renderer-latency-check
+  - id: template-renderer-error-rate-check
+    title: Error rate is below threshold
+    itemId: template-renderer-svc
+    url: http://dummy-java:8080/health/template-renderer-error-rate-check
+  - id: channel-delivery-router-availability-check
+    title: Availability heartbeat responds
+    itemId: channel-delivery-router-svc
+    url: http://dummy-python:8080/health/channel-delivery-router-availability-check
+  - id: channel-delivery-router-latency-check
+    title: Request latency is within SLO
+    itemId: channel-delivery-router-svc
+    url: http://dummy-javascript:8080/health/channel-delivery-router-latency-check
+  - id: channel-delivery-router-error-rate-check
+    title: Error rate is below threshold
+    itemId: channel-delivery-router-svc
+    url: http://dummy-java:8080/health/channel-delivery-router-error-rate-check
+  - id: campaign-segmentation-availability-check
+    title: Availability heartbeat responds
+    itemId: campaign-segmentation-svc
+    url: http://dummy-python:8080/health/campaign-segmentation-availability-check
+  - id: campaign-segmentation-latency-check
+    title: Request latency is within SLO
+    itemId: campaign-segmentation-svc
+    url: http://dummy-javascript:8080/health/campaign-segmentation-latency-check
+  - id: campaign-segmentation-error-rate-check
+    title: Error rate is below threshold
+    itemId: campaign-segmentation-svc
+    url: http://dummy-java:8080/health/campaign-segmentation-error-rate-check
+  - id: campaign-segmentation-backlog-check
+    title: Work backlog is within limits
+    itemId: campaign-segmentation-svc
+    url: http://dummy-python:8080/health/campaign-segmentation-backlog-check
+  - id: campaign-budget-guard-availability-check
+    title: Availability heartbeat responds
+    itemId: campaign-budget-guard-svc
+    url: http://dummy-javascript:8080/health/campaign-budget-guard-availability-check
+  - id: sli-commerce-line-core-customer-availability-check
+    title: 'SLI: Customer-visible availability'
+    itemId: commerce-line-core
+    url: http://dummy-java:8080/health/sli-commerce-line-core-customer-availability-check
+  - id: sli-commerce-line-core-journey-latency-check
+    title: 'SLI: Customer journey latency'
+    itemId: commerce-line-core
+    url: http://dummy-python:8080/health/sli-commerce-line-core-journey-latency-check
+  - id: sli-commerce-extensions-customer-availability-check
+    title: 'SLI: Customer-visible availability'
+    itemId: commerce-extensions
+    url: http://dummy-javascript:8080/health/sli-commerce-extensions-customer-availability-check
+  - id: sli-commerce-core-customer-availability-check
+    title: 'SLI: Customer-visible availability'
+    itemId: commerce-core
+    url: http://dummy-java:8080/health/sli-commerce-core-customer-availability-check
+  - id: sli-order-domain-customer-availability-check
+    title: 'SLI: Customer-visible availability'
+    itemId: order-domain
+    url: http://dummy-python:8080/health/sli-order-domain-customer-availability-check
+  - id: sli-order-intake-hub-customer-availability-check
+    title: 'SLI: Customer-visible availability'
+    itemId: order-intake-hub
+    url: http://dummy-javascript:8080/health/sli-order-intake-hub-customer-availability-check
+  - id: sli-order-intake-hub-journey-latency-check
+    title: 'SLI: Customer journey latency'
+    itemId: order-intake-hub
+    url: http://dummy-java:8080/health/sli-order-intake-hub-journey-latency-check
+  - id: sli-order-guard-hub-customer-availability-check
+    title: 'SLI: Customer-visible availability'
+    itemId: order-guard-hub
+    url: http://dummy-python:8080/health/sli-order-guard-hub-customer-availability-check
+  - id: sli-order-finance-hub-customer-availability-check
+    title: 'SLI: Customer-visible availability'
+    itemId: order-finance-hub
+    url: http://dummy-javascript:8080/health/sli-order-finance-hub-customer-availability-check
+  - id: sli-order-workflow-customer-availability-check
+    title: 'SLI: Customer-visible availability'
+    itemId: order-workflow
+    url: http://dummy-java:8080/health/sli-order-workflow-customer-availability-check
+  - id: sli-operations-line-customer-availability-check
+    title: 'SLI: Customer-visible availability'
+    itemId: operations-line
+    url: http://dummy-python:8080/health/sli-operations-line-customer-availability-check
+  - id: sli-operations-line-journey-latency-check
+    title: 'SLI: Customer journey latency'
+    itemId: operations-line
+    url: http://dummy-javascript:8080/health/sli-operations-line-journey-latency-check
+  - id: sli-ops-accelerators-customer-availability-check
+    title: 'SLI: Customer-visible availability'
+    itemId: ops-accelerators
+    url: http://dummy-java:8080/health/sli-ops-accelerators-customer-availability-check
+  - id: sli-fulfillment-hub-customer-availability-check
+    title: 'SLI: Customer-visible availability'
+    itemId: fulfillment-hub
+    url: http://dummy-python:8080/health/sli-fulfillment-hub-customer-availability-check
+  - id: sli-logistics-domain-customer-availability-check
+    title: 'SLI: Customer-visible availability'
+    itemId: logistics-domain
+    url: http://dummy-javascript:8080/health/sli-logistics-domain-customer-availability-check
+  - id: sli-logistics-routing-cell-customer-availability-check
+    title: 'SLI: Customer-visible availability'
+    itemId: logistics-routing-cell
+    url: http://dummy-java:8080/health/sli-logistics-routing-cell-customer-availability-check
+  - id: sli-logistics-routing-cell-journey-latency-check
+    title: 'SLI: Customer journey latency'
+    itemId: logistics-routing-cell
+    url: http://dummy-python:8080/health/sli-logistics-routing-cell-journey-latency-check
+  - id: sli-logistics-inventory-cell-customer-availability-check
+    title: 'SLI: Customer-visible availability'
+    itemId: logistics-inventory-cell
+    url: http://dummy-javascript:8080/health/sli-logistics-inventory-cell-customer-availability-check
+  - id: sli-distribution-core-customer-availability-check
+    title: 'SLI: Customer-visible availability'
+    itemId: distribution-core
+    url: http://dummy-java:8080/health/sli-distribution-core-customer-availability-check
+  - id: sli-experience-line-customer-availability-check
+    title: 'SLI: Customer-visible availability'
+    itemId: experience-line
+    url: http://dummy-python:8080/health/sli-experience-line-customer-availability-check
+  - id: sli-experience-foundation-customer-availability-check
+    title: 'SLI: Customer-visible availability'
+    itemId: experience-foundation
+    url: http://dummy-javascript:8080/health/sli-experience-foundation-customer-availability-check
+  - id: sli-experience-foundation-journey-latency-check
+    title: 'SLI: Customer journey latency'
+    itemId: experience-foundation
+    url: http://dummy-java:8080/health/sli-experience-foundation-journey-latency-check
+  - id: sli-engagement-suite-customer-availability-check
+    title: 'SLI: Customer-visible availability'
+    itemId: engagement-suite
+    url: http://dummy-python:8080/health/sli-engagement-suite-customer-availability-check
+  - id: sli-journey-domain-customer-availability-check
+    title: 'SLI: Customer-visible availability'
+    itemId: journey-domain
+    url: http://dummy-javascript:8080/health/sli-journey-domain-customer-availability-check
+  - id: sli-touchpoint-core-customer-availability-check
+    title: 'SLI: Customer-visible availability'
+    itemId: touchpoint-core
+    url: http://dummy-java:8080/health/sli-touchpoint-core-customer-availability-check
+  - id: sli-touchpoint-profile-pillar-customer-availability-check
+    title: 'SLI: Customer-visible availability'
+    itemId: touchpoint-profile-pillar
+    url: http://dummy-python:8080/health/sli-touchpoint-profile-pillar-customer-availability-check
+  - id: sli-touchpoint-profile-pillar-journey-latency-check
+    title: 'SLI: Customer journey latency'
+    itemId: touchpoint-profile-pillar
+    url: http://dummy-javascript:8080/health/sli-touchpoint-profile-pillar-journey-latency-check
+  - id: sli-touchpoint-messaging-pillar-customer-availability-check
+    title: 'SLI: Customer-visible availability'
+    itemId: touchpoint-messaging-pillar
+    url: http://dummy-java:8080/health/sli-touchpoint-messaging-pillar-customer-availability-check
+  - id: sli-touchpoint-campaign-pillar-customer-availability-check
+    title: 'SLI: Customer-visible availability'
+    itemId: touchpoint-campaign-pillar
+    url: http://dummy-python:8080/health/sli-touchpoint-campaign-pillar-customer-availability-check
+  - id: sli-profile-core-nodes-customer-availability-check
+    title: 'SLI: Customer-visible availability'
+    itemId: profile-core-nodes
+    url: http://dummy-javascript:8080/health/sli-profile-core-nodes-customer-availability-check
+  - id: sli-profile-identity-nodes-customer-availability-check
+    title: 'SLI: Customer-visible availability'
+    itemId: profile-identity-nodes
+    url: http://dummy-java:8080/health/sli-profile-identity-nodes-customer-availability-check
+  - id: sli-profile-identity-nodes-journey-latency-check
+    title: 'SLI: Customer journey latency'
+    itemId: profile-identity-nodes
+    url: http://dummy-python:8080/health/sli-profile-identity-nodes-journey-latency-check
+  - id: sli-messaging-router-nodes-customer-availability-check
+    title: 'SLI: Customer-visible availability'
+    itemId: messaging-router-nodes
+    url: http://dummy-javascript:8080/health/sli-messaging-router-nodes-customer-availability-check
+  - id: sli-messaging-template-nodes-customer-availability-check
+    title: 'SLI: Customer-visible availability'
+    itemId: messaging-template-nodes
+    url: http://dummy-java:8080/health/sli-messaging-template-nodes-customer-availability-check
+  - id: sli-campaign-planner-nodes-customer-availability-check
+    title: 'SLI: Customer-visible availability'
+    itemId: campaign-planner-nodes
+    url: http://dummy-python:8080/health/sli-campaign-planner-nodes-customer-availability-check
+  - id: sli-campaign-optimizer-nodes-customer-availability-check
+    title: 'SLI: Customer-visible availability'
+    itemId: campaign-optimizer-nodes
+    url: http://dummy-javascript:8080/health/sli-campaign-optimizer-nodes-customer-availability-check
+  - id: sli-campaign-optimizer-nodes-journey-latency-check
+    title: 'SLI: Customer journey latency'
+    itemId: campaign-optimizer-nodes
+    url: http://dummy-java:8080/health/sli-campaign-optimizer-nodes-journey-latency-check
+  - id: sli-commerce-platform-customer-availability-check
+    title: 'SLI: Commerce entrypoints stay available for buyers'
+    itemId: commerce-platform
+    url: http://dummy-java:8080/health/sli-commerce-platform-customer-availability-check
+  - id: sli-commerce-platform-journey-latency-check
+    title: 'SLI: Checkout journey latency stays within budget'
+    itemId: commerce-platform
+    url: http://dummy-java:8080/health/sli-commerce-platform-journey-latency-check
+  - id: commerce-platform-order-throughput-check
+    title: Order handling throughput sustains peak demand
+    itemId: commerce-platform
+    url: http://dummy-java:8080/health/commerce-platform-order-throughput-check
+  - id: sli-customer-experience-customer-availability-check
+    title: 'SLI: Customer touchpoints stay reachable end to end'
+    itemId: customer-experience
+    url: http://dummy-java:8080/health/sli-customer-experience-customer-availability-check
+  - id: sli-customer-experience-journey-latency-check
+    title: 'SLI: Engagement journey latency stays within target'
+    itemId: customer-experience
+    url: http://dummy-java:8080/health/sli-customer-experience-journey-latency-check
+  - id: customer-experience-channel-readiness-check
+    title: Customer-facing channels remain ready for traffic shifts
+    itemId: customer-experience
+    url: http://dummy-java:8080/health/customer-experience-channel-readiness-check
+  - id: sli-operations-suite-customer-availability-check
+    title: 'SLI: Operations workflows remain available to operators'
+    itemId: operations-suite
+    url: http://dummy-java:8080/health/sli-operations-suite-customer-availability-check
+  - id: sli-operations-suite-journey-latency-check
+    title: 'SLI: Operator flow latency stays within control limits'
+    itemId: operations-suite
+    url: http://dummy-java:8080/health/sli-operations-suite-journey-latency-check
+  - id: operations-suite-fulfillment-cycle-check
+    title: Operational cycle time stays within the expected envelope
+    itemId: operations-suite
+    url: http://dummy-java:8080/health/operations-suite-fulfillment-cycle-check
+  - id: sli-campaign-planner-nodes-journey-latency-check
+    title: 'SLI: Customer journey latency'
+    itemId: campaign-planner-nodes
+    url: http://dummy-java:8080/health/sli-campaign-planner-nodes-journey-latency-check
+  - id: campaign-planner-nodes-output-quality-check
+    title: Produced output passes self-validation before publication
+    itemId: campaign-planner-nodes
+    url: http://dummy-java:8080/health/campaign-planner-nodes-output-quality-check
+  - id: sli-commerce-core-journey-latency-check
+    title: 'SLI: Customer journey latency'
+    itemId: commerce-core
+    url: http://dummy-java:8080/health/sli-commerce-core-journey-latency-check
+  - id: commerce-core-self-validation-check
+    title: Own generated results pass internal self-validation
+    itemId: commerce-core
+    url: http://dummy-java:8080/health/commerce-core-self-validation-check
+  - id: sli-commerce-extensions-journey-latency-check
+    title: 'SLI: Customer journey latency'
+    itemId: commerce-extensions
+    url: http://dummy-java:8080/health/sli-commerce-extensions-journey-latency-check
+  - id: commerce-extensions-release-readiness-check
+    title: Extension release path stays ready for controlled rollouts
+    itemId: commerce-extensions
+    url: http://dummy-java:8080/health/commerce-extensions-release-readiness-check
+  - id: sli-distribution-core-journey-latency-check
+    title: 'SLI: Customer journey latency'
+    itemId: distribution-core
+    url: http://dummy-java:8080/health/sli-distribution-core-journey-latency-check
+  - id: distribution-core-state-consistency-check
+    title: Internal state transitions remain self-consistent
+    itemId: distribution-core
+    url: http://dummy-java:8080/health/distribution-core-state-consistency-check
+  - id: sli-engagement-suite-journey-latency-check
+    title: 'SLI: Customer journey latency'
+    itemId: engagement-suite
+    url: http://dummy-java:8080/health/sli-engagement-suite-journey-latency-check
+  - id: engagement-suite-journey-completion-check
+    title: Critical engagement flows finish without internal stalls
+    itemId: engagement-suite
+    url: http://dummy-java:8080/health/engagement-suite-journey-completion-check
+  - id: sli-experience-line-journey-latency-check
+    title: 'SLI: Customer journey latency'
+    itemId: experience-line
+    url: http://dummy-java:8080/health/sli-experience-line-journey-latency-check
+  - id: experience-line-personalization-freshness-check
+    title: Personalization signals stay within the freshness window
+    itemId: experience-line
+    url: http://dummy-java:8080/health/experience-line-personalization-freshness-check
+  - id: sli-fulfillment-hub-journey-latency-check
+    title: 'SLI: Customer journey latency'
+    itemId: fulfillment-hub
+    url: http://dummy-java:8080/health/sli-fulfillment-hub-journey-latency-check
+  - id: fulfillment-hub-queue-turnover-check
+    title: Own task queue turns over before local saturation
+    itemId: fulfillment-hub
+    url: http://dummy-java:8080/health/fulfillment-hub-queue-turnover-check
+  - id: sli-journey-domain-journey-latency-check
+    title: 'SLI: Customer journey latency'
+    itemId: journey-domain
+    url: http://dummy-java:8080/health/sli-journey-domain-journey-latency-check
+  - id: journey-domain-rule-application-check
+    title: Journey rules are applied within the local decision budget
+    itemId: journey-domain
+    url: http://dummy-java:8080/health/journey-domain-rule-application-check
+  - id: sli-logistics-domain-journey-latency-check
+    title: 'SLI: Customer journey latency'
+    itemId: logistics-domain
+    url: http://dummy-java:8080/health/sli-logistics-domain-journey-latency-check
+  - id: logistics-domain-schedule-adherence-check
+    title: Planning cycles complete within the dispatch schedule window
+    itemId: logistics-domain
+    url: http://dummy-java:8080/health/logistics-domain-schedule-adherence-check
+  - id: sli-logistics-inventory-cell-journey-latency-check
+    title: 'SLI: Customer journey latency'
+    itemId: logistics-inventory-cell
+    url: http://dummy-java:8080/health/sli-logistics-inventory-cell-journey-latency-check
+  - id: logistics-inventory-cell-count-drift-check
+    title: Local inventory state stays within acceptable drift
+    itemId: logistics-inventory-cell
+    url: http://dummy-java:8080/health/logistics-inventory-cell-count-drift-check
+  - id: sli-messaging-router-nodes-journey-latency-check
+    title: 'SLI: Customer journey latency'
+    itemId: messaging-router-nodes
+    url: http://dummy-java:8080/health/sli-messaging-router-nodes-journey-latency-check
+  - id: messaging-router-nodes-route-accuracy-check
+    title: Route selection stays accurate under current load
+    itemId: messaging-router-nodes
+    url: http://dummy-java:8080/health/messaging-router-nodes-route-accuracy-check
+  - id: sli-messaging-template-nodes-journey-latency-check
+    title: 'SLI: Customer journey latency'
+    itemId: messaging-template-nodes
+    url: http://dummy-java:8080/health/sli-messaging-template-nodes-journey-latency-check
+  - id: messaging-template-nodes-render-quality-check
+    title: Template payloads pass internal render validation
+    itemId: messaging-template-nodes
+    url: http://dummy-java:8080/health/messaging-template-nodes-render-quality-check
+  - id: sli-ops-accelerators-journey-latency-check
+    title: 'SLI: Customer journey latency'
+    itemId: ops-accelerators
+    url: http://dummy-java:8080/health/sli-ops-accelerators-journey-latency-check
+  - id: ops-accelerators-simulation-readiness-check
+    title: Acceleration routines stay ready for burst simulations
+    itemId: ops-accelerators
+    url: http://dummy-java:8080/health/ops-accelerators-simulation-readiness-check
+  - id: sli-order-domain-journey-latency-check
+    title: 'SLI: Customer journey latency'
+    itemId: order-domain
+    url: http://dummy-java:8080/health/sli-order-domain-journey-latency-check
+  - id: order-domain-state-consistency-check
+    title: Order state transitions remain internally consistent
+    itemId: order-domain
+    url: http://dummy-java:8080/health/order-domain-state-consistency-check
+  - id: sli-order-finance-hub-journey-latency-check
+    title: 'SLI: Customer journey latency'
+    itemId: order-finance-hub
+    url: http://dummy-java:8080/health/sli-order-finance-hub-journey-latency-check
+  - id: order-finance-hub-ledger-balance-check
+    title: Finance ledger updates stay internally balanced
+    itemId: order-finance-hub
+    url: http://dummy-java:8080/health/order-finance-hub-ledger-balance-check
+  - id: sli-order-guard-hub-journey-latency-check
+    title: 'SLI: Customer journey latency'
+    itemId: order-guard-hub
+    url: http://dummy-java:8080/health/sli-order-guard-hub-journey-latency-check
+  - id: order-guard-hub-policy-coverage-check
+    title: Guard policies cover the current intake mix
+    itemId: order-guard-hub
+    url: http://dummy-java:8080/health/order-guard-hub-policy-coverage-check
+  - id: sli-order-workflow-journey-latency-check
+    title: 'SLI: Customer journey latency'
+    itemId: order-workflow
+    url: http://dummy-java:8080/health/sli-order-workflow-journey-latency-check
+  - id: order-workflow-stage-progress-check
+    title: Workflow stages advance without local stalls
+    itemId: order-workflow
+    url: http://dummy-java:8080/health/order-workflow-stage-progress-check
+  - id: sli-profile-core-nodes-journey-latency-check
+    title: 'SLI: Customer journey latency'
+    itemId: profile-core-nodes
+    url: http://dummy-java:8080/health/sli-profile-core-nodes-journey-latency-check
+  - id: profile-core-nodes-merge-quality-check
+    title: Core profile merges pass internal validation
+    itemId: profile-core-nodes
+    url: http://dummy-java:8080/health/profile-core-nodes-merge-quality-check
+  - id: sli-touchpoint-campaign-pillar-journey-latency-check
+    title: 'SLI: Customer journey latency'
+    itemId: touchpoint-campaign-pillar
+    url: http://dummy-java:8080/health/sli-touchpoint-campaign-pillar-journey-latency-check
+  - id: touchpoint-campaign-pillar-budget-timeliness-check
+    title: Campaign budget calculations stay current
+    itemId: touchpoint-campaign-pillar
+    url: http://dummy-java:8080/health/touchpoint-campaign-pillar-budget-timeliness-check
+  - id: sli-touchpoint-core-journey-latency-check
+    title: 'SLI: Customer journey latency'
+    itemId: touchpoint-core
+    url: http://dummy-java:8080/health/sli-touchpoint-core-journey-latency-check
+  - id: touchpoint-core-session-timeliness-check
+    title: Session updates land before the expiry budget
+    itemId: touchpoint-core
+    url: http://dummy-java:8080/health/touchpoint-core-session-timeliness-check
+  - id: sli-touchpoint-messaging-pillar-journey-latency-check
+    title: 'SLI: Customer journey latency'
+    itemId: touchpoint-messaging-pillar
+    url: http://dummy-java:8080/health/sli-touchpoint-messaging-pillar-journey-latency-check
+  - id: touchpoint-messaging-pillar-channel-readiness-check
+    title: Messaging channels stay ready for delivery bursts
+    itemId: touchpoint-messaging-pillar
+    url: http://dummy-java:8080/health/touchpoint-messaging-pillar-channel-readiness-check
+  - id: campaign-optimizer-nodes-optimization-quality-check
+    title: Optimization output passes internal quality gates
+    itemId: campaign-optimizer-nodes
+    url: http://dummy-java:8080/health/campaign-optimizer-nodes-optimization-quality-check
+  - id: commerce-line-core-order-freshness-check
+    title: Commerce line data stays fresh through the order window
+    itemId: commerce-line-core
+    url: http://dummy-java:8080/health/commerce-line-core-order-freshness-check
+  - id: experience-foundation-profile-freshness-check
+    title: Experience foundation state stays within freshness targets
+    itemId: experience-foundation
+    url: http://dummy-java:8080/health/experience-foundation-profile-freshness-check
+  - id: logistics-routing-cell-plan-stability-check
+    title: Routing plans stay stable during recalculation bursts
+    itemId: logistics-routing-cell
+    url: http://dummy-java:8080/health/logistics-routing-cell-plan-stability-check
+  - id: operations-line-workload-balance-check
+    title: Operational workload stays balanced across local cycles
+    itemId: operations-line
+    url: http://dummy-java:8080/health/operations-line-workload-balance-check
+  - id: order-intake-hub-intake-drain-check
+    title: Intake backlog drains before local buffer pressure rises
+    itemId: order-intake-hub
+    url: http://dummy-java:8080/health/order-intake-hub-intake-drain-check
+  - id: profile-identity-nodes-match-quality-check
+    title: Identity matching stays within the accepted confidence band
+    itemId: profile-identity-nodes
+    url: http://dummy-java:8080/health/profile-identity-nodes-match-quality-check
+  - id: touchpoint-profile-pillar-profile-latency-check
+    title: Profile enrichment finishes within the interaction budget
+    itemId: touchpoint-profile-pillar
+    url: http://dummy-java:8080/health/touchpoint-profile-pillar-profile-latency-check
+  - id: sli-campaign-budget-guard-customer-latency-check
+    title: 'SLI: Client request latency is within SLO'
+    itemId: campaign-budget-guard-svc
+    url: http://dummy-java:8080/health/sli-campaign-budget-guard-customer-latency-check
+  - id: campaign-budget-guard-budget-freshness-check
+    title: Budget guardrail snapshots stay within the freshness window
+    itemId: campaign-budget-guard-svc
+    url: http://dummy-java:8080/health/campaign-budget-guard-budget-freshness-check
+  - id: sli-engagement-orchestrator-customer-latency-check
+    title: 'SLI: Client request latency is within SLO'
+    itemId: engagement-orchestrator-svc
+    url: http://dummy-java:8080/health/sli-engagement-orchestrator-customer-latency-check
+  - id: engagement-orchestrator-state-consistency-check
+    title: Orchestration state remains internally consistent
+    itemId: engagement-orchestrator-svc
+    url: http://dummy-java:8080/health/engagement-orchestrator-state-consistency-check
+  - id: sli-fraud-screening-customer-latency-check
+    title: 'SLI: Client request latency is within SLO'
+    itemId: fraud-screening-svc
+    url: http://dummy-java:8080/health/sli-fraud-screening-customer-latency-check
+  - id: fraud-screening-score-quality-check
+    title: Fraud scoring output passes internal quality thresholds
+    itemId: fraud-screening-svc
+    url: http://dummy-java:8080/health/fraud-screening-score-quality-check
+  - id: sli-fulfillment-control-plane-customer-latency-check
+    title: 'SLI: Client request latency is within SLO'
+    itemId: fulfillment-control-plane-svc
+    url: http://dummy-java:8080/health/sli-fulfillment-control-plane-customer-latency-check
+  - id: fulfillment-control-plane-cycle-timeliness-check
+    title: Control-plane cycles finish within the operating window
+    itemId: fulfillment-control-plane-svc
+    url: http://dummy-java:8080/health/fulfillment-control-plane-cycle-timeliness-check
+  - id: sli-inventory-reconciler-customer-latency-check
+    title: 'SLI: Client request latency is within SLO'
+    itemId: inventory-reconciler-svc
+    url: http://dummy-java:8080/health/sli-inventory-reconciler-customer-latency-check
+  - id: inventory-reconciler-drift-check
+    title: Reconciliation drift stays within the accepted band
+    itemId: inventory-reconciler-svc
+    url: http://dummy-java:8080/health/inventory-reconciler-drift-check
+  - id: sli-journey-experimentation-customer-latency-check
+    title: 'SLI: Client request latency is within SLO'
+    itemId: journey-experimentation-svc
+    url: http://dummy-java:8080/health/sli-journey-experimentation-customer-latency-check
+  - id: journey-experimentation-evaluation-window-check
+    title: Experiment evaluation closes within the expected window
+    itemId: journey-experimentation-svc
+    url: http://dummy-java:8080/health/journey-experimentation-evaluation-window-check
+  - id: sli-order-dispatch-customer-latency-check
+    title: 'SLI: Client request latency is within SLO'
+    itemId: order-dispatch-svc
+    url: http://dummy-java:8080/health/sli-order-dispatch-customer-latency-check
+  - id: order-dispatch-queue-health-check
+    title: Dispatch work queue drains before local saturation
+    itemId: order-dispatch-svc
+    url: http://dummy-java:8080/health/order-dispatch-queue-health-check
+  - id: sli-order-domain-events-customer-latency-check
+    title: 'SLI: Client request latency is within SLO'
+    itemId: order-domain-events-svc
+    url: http://dummy-java:8080/health/sli-order-domain-events-customer-latency-check
+  - id: order-domain-events-publication-freshness-check
+    title: Domain event publication stays within freshness bounds
+    itemId: order-domain-events-svc
+    url: http://dummy-java:8080/health/order-domain-events-publication-freshness-check
+  - id: sli-order-sla-tracker-customer-latency-check
+    title: 'SLI: Client request latency is within SLO'
+    itemId: order-sla-tracker-svc
+    url: http://dummy-java:8080/health/sli-order-sla-tracker-customer-latency-check
+  - id: order-sla-tracker-deadline-accuracy-check
+    title: Deadline calculations stay within the tolerance band
+    itemId: order-sla-tracker-svc
+    url: http://dummy-java:8080/health/order-sla-tracker-deadline-accuracy-check
+  - id: sli-profile-merge-orchestrator-customer-latency-check
+    title: 'SLI: Client request latency is within SLO'
+    itemId: profile-merge-orchestrator-svc
+    url: http://dummy-java:8080/health/sli-profile-merge-orchestrator-customer-latency-check
+  - id: profile-merge-orchestrator-merge-consistency-check
+    title: Merge orchestration stays internally consistent
+    itemId: profile-merge-orchestrator-svc
+    url: http://dummy-java:8080/health/profile-merge-orchestrator-merge-consistency-check
+  - id: sli-route-cache-writer-customer-latency-check
+    title: 'SLI: Client request latency is within SLO'
+    itemId: route-cache-writer-svc
+    url: http://dummy-java:8080/health/sli-route-cache-writer-customer-latency-check
+  - id: route-cache-writer-write-freshness-check
+    title: Cache writes complete before the freshness budget expires
+    itemId: route-cache-writer-svc
+    url: http://dummy-java:8080/health/route-cache-writer-write-freshness-check
+  - id: sli-touchpoint-session-state-customer-latency-check
+    title: 'SLI: Client request latency is within SLO'
+    itemId: touchpoint-session-state-svc
+    url: http://dummy-java:8080/health/sli-touchpoint-session-state-customer-latency-check
+  - id: touchpoint-session-state-expiry-window-check
+    title: Session state refresh lands before the expiry window
+    itemId: touchpoint-session-state-svc
+    url: http://dummy-java:8080/health/touchpoint-session-state-expiry-window-check
+  - id: sli-depot-slotting-customer-availability-check
+    title: 'SLI: Client-visible availability'
+    itemId: depot-slotting-svc
+    url: http://dummy-java:8080/health/sli-depot-slotting-customer-availability-check
+  - id: sli-route-cost-model-customer-availability-check
+    title: 'SLI: Client-visible availability'
+    itemId: route-cost-model-svc
+    url: http://dummy-java:8080/health/sli-route-cost-model-customer-availability-check
+  - id: commerce-platform-checkout-capacity-check
+    title: Checkout capacity holds during promotional spikes
+    itemId: commerce-platform
+    url: http://dummy-python:8080/health/commerce-platform-checkout-capacity-check
+  - id: sli-customer-experience-engagement-latency-check
+    title: 'SLI: Engagement response stays within journey budget'
+    itemId: customer-experience
+    url: http://dummy-javascript:8080/health/sli-customer-experience-engagement-latency-check
+  - id: customer-experience-personalization-freshness-check
+    title: Personalization decisions stay within the freshness window
+    itemId: customer-experience
+    url: http://dummy-java:8080/health/customer-experience-personalization-freshness-check
+  - id: campaign-planner-nodes-plan-freshness-check
+    title: Campaign plans stay current through the execution window
+    itemId: campaign-planner-nodes
+    url: http://dummy-python:8080/health/campaign-planner-nodes-plan-freshness-check
+  - id: distribution-core-slotting-timeliness-check
+    title: Slot allocation completes within the dispatch window
+    itemId: distribution-core
+    url: http://dummy-javascript:8080/health/distribution-core-slotting-timeliness-check
+  - id: sli-fulfillment-hub-flow-availability-check
+    title: 'SLI: Fulfillment flow availability stays above target'
+    itemId: fulfillment-hub
+    url: http://dummy-java:8080/health/sli-fulfillment-hub-flow-availability-check
+  - id: fulfillment-hub-allocation-accuracy-check
+    title: Allocation outcomes stay within the accepted variance
+    itemId: fulfillment-hub
+    url: http://dummy-python:8080/health/fulfillment-hub-allocation-accuracy-check
+  - id: sli-operations-line-workload-latency-check
+    title: 'SLI: Operational response stays within cycle budget'
+    itemId: operations-line
+    url: http://dummy-javascript:8080/health/sli-operations-line-workload-latency-check
+  - id: engagement-orchestrator-decision-freshness-check
+    title: Decision payloads stay fresh through the send window
+    itemId: engagement-orchestrator-svc
+    url: http://dummy-java:8080/health/engagement-orchestrator-decision-freshness-check
+  - id: sli-inventory-reconciler-reconcile-availability-check
+    title: 'SLI: Reconciliation path availability stays above target'
+    itemId: inventory-reconciler-svc
+    url: http://dummy-python:8080/health/sli-inventory-reconciler-reconcile-availability-check
+  - id: inventory-reconciler-batch-timeliness-check
+    title: Reconciliation batches complete within the close window
+    itemId: inventory-reconciler-svc
+    url: http://dummy-javascript:8080/health/inventory-reconciler-batch-timeliness-check
+  - id: order-dispatch-routing-accuracy-check
+    title: Dispatch routing stays within the accepted variance
+    itemId: order-dispatch-svc
+    url: http://dummy-java:8080/health/order-dispatch-routing-accuracy-check
+  - id: sli-route-cache-writer-write-latency-check
+    title: 'SLI: Cache write latency stays within budget'
+    itemId: route-cache-writer-svc
+    url: http://dummy-python:8080/health/sli-route-cache-writer-write-latency-check
+  - id: route-cache-writer-batch-stability-check
+    title: Cache write batches stay stable during burst updates
+    itemId: route-cache-writer-svc
+    url: http://dummy-javascript:8080/health/route-cache-writer-batch-stability-check
+
