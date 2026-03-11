@@ -13,15 +13,15 @@ public interface PollingSignalSource {
    * @return signal identifier
    */
   @Nonnull
-  String signalId();
+  String id();
 
   /**
-   * Returns the human-readable signal name.
+   * Returns the human-readable signal title.
    *
-   * @return signal name
+   * @return signal title
    */
   @Nonnull
-  String name();
+  String title();
 
   /**
    * Returns the catalog item targeted by this signal source.
@@ -29,7 +29,7 @@ public interface PollingSignalSource {
    * @return catalog item identifier
    */
   @Nonnull
-  ItemId getCatalogItemId();
+  ItemId itemId();
 
   /**
    * Returns how often the check should be executed.

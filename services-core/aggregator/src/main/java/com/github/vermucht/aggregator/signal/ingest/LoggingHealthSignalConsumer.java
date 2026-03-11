@@ -19,9 +19,9 @@ public class LoggingHealthSignalConsumer implements HealthSignalConsumer {
   @Override
   public void ingest(@Nonnull HealthSignal signal) {
     LOGGER.info(
-        "Ingested health signal: itemId={} signalId={} status={} source={} observedAt={} message={}",
-        signal.catalogItemId(),
-        signal.signalId(),
+        "Ingested health signal: itemId={} id={} status={} source={} observedAt={} message={}",
+        signal.itemId(),
+        signal.id(),
         signal.status(),
         signal.source(),
         signal.observedAt(),

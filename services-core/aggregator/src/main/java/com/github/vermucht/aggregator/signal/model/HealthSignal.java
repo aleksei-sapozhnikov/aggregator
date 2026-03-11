@@ -10,8 +10,8 @@ import java.util.Objects;
 /**
  * Represents an observed health signal for a catalog item.
  *
- * @param catalogItemId catalog item associated with the signal
- * @param signalId identifier of the signal stream that produced the observation
+ * @param itemId catalog item associated with the signal
+ * @param id identifier of the signal stream that produced the observation
  * @param status health status outcome
  * @param observedAt time the signal was observed
  * @param source signal source identifier
@@ -19,18 +19,18 @@ import java.util.Objects;
  * @param details additional signal details as key-value pairs
  */
 public record HealthSignal(
-    @Nonnull ItemId catalogItemId,
-    @Nonnull String signalId,
+    @Nonnull ItemId itemId,
+    @Nonnull String id,
     @Nonnull HealthStatus status,
     @Nonnull Instant observedAt,
     @Nonnull String source,
     @Nullable String message,
     @Nonnull Map<String, String> details) {
   public HealthSignal {
-    Objects.requireNonNull(catalogItemId, "catalogItemId");
-    Objects.requireNonNull(signalId, "signalId");
-    if (signalId.isBlank()) {
-      throw new IllegalArgumentException("signalId must not be blank");
+    Objects.requireNonNull(itemId, "itemId");
+    Objects.requireNonNull(id, "id");
+    if (id.isBlank()) {
+      throw new IllegalArgumentException("id must not be blank");
     }
     Objects.requireNonNull(status, "status");
     Objects.requireNonNull(observedAt, "observedAt");

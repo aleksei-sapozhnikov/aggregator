@@ -24,9 +24,9 @@ public final class HttpPollingSignalSource implements PollingSignalSource {
 
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-  private final ItemId catalogItemId;
-  private final String signalId;
-  private final String name;
+  private final ItemId itemId;
+  private final String id;
+  private final String title;
   private final URI uri;
   private final HttpMethod method;
   private final Duration interval;
@@ -35,30 +35,30 @@ public final class HttpPollingSignalSource implements PollingSignalSource {
   /**
    * Creates an HTTP-based polling signal source.
    *
-   * @param catalogItemId catalog item associated with this signal source
-   * @param signalId identifier for the signal stream
-   * @param name human-readable signal name
+   * @param itemId catalog item associated with this signal source
+   * @param id identifier for the signal stream
+   * @param title human-readable signal title
    * @param uri target URI to call
    * @param method HTTP method to use
    * @param interval polling interval for the source
    * @param restTemplate HTTP client to execute the request
    */
   public HttpPollingSignalSource(
-      @Nonnull ItemId catalogItemId,
-      @Nonnull String signalId,
-      @Nonnull String name,
+      @Nonnull ItemId itemId,
+      @Nonnull String id,
+      @Nonnull String title,
       @Nonnull URI uri,
       @Nonnull HttpMethod method,
       @Nonnull Duration interval,
       @Nonnull RestTemplate restTemplate) {
-    this.catalogItemId = Objects.requireNonNull(catalogItemId, "catalogItemId");
-    this.signalId = Objects.requireNonNull(signalId, "signalId");
-    if (signalId.isBlank()) {
-      throw new IllegalArgumentException("signalId must not be blank");
+    this.itemId = Objects.requireNonNull(itemId, "itemId");
+    this.id = Objects.requireNonNull(id, "id");
+    if (id.isBlank()) {
+      throw new IllegalArgumentException("id must not be blank");
     }
-    this.name = Objects.requireNonNull(name, "name");
-    if (name.isBlank()) {
-      throw new IllegalArgumentException("name must not be blank");
+    this.title = Objects.requireNonNull(title, "title");
+    if (title.isBlank()) {
+      throw new IllegalArgumentException("title must not be blank");
     }
     this.uri = Objects.requireNonNull(uri, "uri");
     this.method = Objects.requireNonNull(method, "method");
@@ -68,20 +68,20 @@ public final class HttpPollingSignalSource implements PollingSignalSource {
 
   @Nonnull
   @Override
-  public String signalId() {
-    return signalId;
+  public String id() {
+    return id;
   }
 
   @Nonnull
   @Override
-  public String name() {
-    return name;
+  public String title() {
+    return title;
   }
 
   @Nonnull
   @Override
-  public ItemId getCatalogItemId() {
-    return catalogItemId;
+  public ItemId itemId() {
+    return itemId;
   }
 
   @Nonnull
@@ -108,8 +108,8 @@ public final class HttpPollingSignalSource implements PollingSignalSource {
       if (body == null || body.isBlank()) {
         String message = "Empty response body";
         return new HealthSignal(
-            catalogItemId,
-            signalId,
+            itemId,
+            id,
             HealthStatus.DOWN,
             observedAt,
             SOURCE,
@@ -125,8 +125,8 @@ public final class HttpPollingSignalSource implements PollingSignalSource {
       } catch (JsonProcessingException ex) {
         String message = "Invalid JSON response";
         return new HealthSignal(
-            catalogItemId,
-            signalId,
+            itemId,
+            id,
             HealthStatus.DOWN,
             observedAt,
             SOURCE,
@@ -137,8 +137,8 @@ public final class HttpPollingSignalSource implements PollingSignalSource {
       if (parsedStatus == null || parsedStatus.isBlank()) {
         String message = "Missing 'status' field in response";
         return new HealthSignal(
-            catalogItemId,
-            signalId,
+            itemId,
+            id,
             HealthStatus.DOWN,
             observedAt,
             SOURCE,
@@ -149,8 +149,8 @@ public final class HttpPollingSignalSource implements PollingSignalSource {
       String normalized = parsedStatus.trim().toUpperCase();
       if ("UP".equals(normalized)) {
         return new HealthSignal(
-            catalogItemId,
-            signalId,
+            itemId,
+            id,
             HealthStatus.UP,
             observedAt,
             SOURCE,
@@ -163,8 +163,8 @@ public final class HttpPollingSignalSource implements PollingSignalSource {
 
       if ("DOWN".equals(normalized)) {
         return new HealthSignal(
-            catalogItemId,
-            signalId,
+            itemId,
+            id,
             HealthStatus.DOWN,
             observedAt,
             SOURCE,
@@ -177,8 +177,8 @@ public final class HttpPollingSignalSource implements PollingSignalSource {
 
       String message = "Unexpected status value: " + parsedStatus;
       return new HealthSignal(
-          catalogItemId,
-          signalId,
+          itemId,
+          id,
           HealthStatus.DOWN,
           observedAt,
           SOURCE,
@@ -190,8 +190,8 @@ public final class HttpPollingSignalSource implements PollingSignalSource {
     } catch (RestClientException ex) {
       String message = ex.getMessage() == null ? "HTTP signal polling failed" : ex.getMessage();
       return new HealthSignal(
-          catalogItemId,
-          signalId,
+          itemId,
+          id,
           HealthStatus.DOWN,
           observedAt,
           SOURCE,
