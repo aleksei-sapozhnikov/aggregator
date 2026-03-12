@@ -9,11 +9,15 @@ management:
           - prometheus
 
 catalog:
-  path: file:./catalog-definition.yaml
+  items-path: file:./catalog-items.yaml
+  dependencies-path: file:./catalog-dependencies.yaml
+  items-schema-path: file:./schemas/catalog-items.schema.yaml
+  dependencies-schema-path: file:./schemas/catalog-dependencies.schema.yaml
 
 health:
   http-poll:
-    definition-path: file:./http-poll-signals.yaml
+    definition-path: file:./signals-http-poll.yaml
+    schema-path: file:./schemas/signals-http-poll.schema.yaml
 
 feedback:
   admin:

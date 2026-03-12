@@ -14,14 +14,22 @@ RUN mvn -B package -DskipTests
 # -------- Runtime stage --------
 FROM eclipse-temurin:25-jre-jammy
 
-ARG CATALOG_DEFINITION_FILE
-ARG HTTP_POLL_SIGNALS_FILE
+ARG CATALOG_ITEMS_FILE
+ARG CATALOG_DEPENDENCIES_FILE
+ARG SIGNALS_HTTP_POLL_FILE
+ARG CATALOG_ITEMS_SCHEMA_FILE
+ARG CATALOG_DEPENDENCIES_SCHEMA_FILE
+ARG SIGNALS_HTTP_POLL_SCHEMA_FILE
 
 WORKDIR /app
 
 COPY --from=build /app/target/*.jar ./app.jar
-COPY ${CATALOG_DEFINITION_FILE} ./catalog-definition.yaml
-COPY ${HTTP_POLL_SIGNALS_FILE} ./http-poll-signals.yaml
+COPY ${CATALOG_ITEMS_FILE} ./catalog-items.yaml
+COPY ${CATALOG_DEPENDENCIES_FILE} ./catalog-dependencies.yaml
+COPY ${SIGNALS_HTTP_POLL_FILE} ./signals-http-poll.yaml
+COPY ${CATALOG_ITEMS_SCHEMA_FILE} ./schemas/catalog-items.schema.yaml
+COPY ${CATALOG_DEPENDENCIES_SCHEMA_FILE} ./schemas/catalog-dependencies.schema.yaml
+COPY ${SIGNALS_HTTP_POLL_SCHEMA_FILE} ./schemas/signals-http-poll.schema.yaml
 
 RUN useradd --system --uid 1001 --create-home appuser \
   && mkdir -p /home/appuser/feedback \

@@ -58,9 +58,8 @@ public class CatalogValidator {
       if (items.containsKey(itemId)) {
         throw new IllegalStateException("Duplicate catalog item id: " + id);
       }
-      String name = requireText(definition.name(), "name", "item " + id);
-      String type = requireText(definition.type(), "type", "item " + id);
-      Item item = Item.of(itemId, name, type);
+      String title = requireText(definition.title(), "title", "item " + id);
+      Item item = Item.of(itemId, title);
       items.put(itemId, item);
     }
     return items;
@@ -82,8 +81,6 @@ public class CatalogValidator {
           requireText(definition.sourceId(), "sourceId", "dependency at index " + index);
       String targetValue =
           requireText(definition.targetId(), "targetId", "dependency at index " + index);
-      String type =
-          requireText(definition.type(), "type", "dependency " + sourceValue + "->" + targetValue);
       ItemId sourceId = ItemId.of(sourceValue);
       ItemId targetId = ItemId.of(targetValue);
       if (!knownItemIds.contains(sourceId)) {
@@ -94,11 +91,11 @@ public class CatalogValidator {
         throw new IllegalStateException(
             "Dependency targetId not found in catalog items: " + targetId);
       }
-      String edgeKey = sourceId + "->" + targetId + ":" + type;
+      String edgeKey = sourceId + "->" + targetId;
       if (!uniqueEdges.add(edgeKey)) {
         throw new IllegalStateException("Duplicate dependency detected: " + edgeKey);
       }
-      dependencies.add(Dependency.of(sourceId, targetId, type));
+      dependencies.add(Dependency.of(sourceId, targetId));
     }
     return dependencies;
   }

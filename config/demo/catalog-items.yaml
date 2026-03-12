@@ -1,0 +1,149 @@
+# yaml-language-server: $schema=../schemas/catalog-items.schema.yaml
+# Demo catalog with expanded service topology
+items:
+  - id: commerce-platform
+    title: Commerce Platform
+  - id: operations-suite
+    title: Operations Suite
+  - id: customer-experience
+    title: Customer Experience
+  - id: commerce-line-core
+    title: Commerce Line Core
+  - id: commerce-extensions
+    title: Commerce Extensions
+  - id: commerce-core
+    title: Commerce Core
+  - id: order-domain
+    title: Order Domain
+  - id: order-intake-hub
+    title: Order Intake Hub
+  - id: order-guard-hub
+    title: Order Guard Hub
+  - id: order-finance-hub
+    title: Order Finance Hub
+  - id: order-workflow
+    title: Order Workflow
+  - id: operations-line
+    title: Operations Line
+  - id: ops-accelerators
+    title: Operations Accelerators
+  - id: fulfillment-hub
+    title: Fulfillment Hub
+  - id: logistics-domain
+    title: Logistics Domain
+  - id: logistics-routing-cell
+    title: Logistics Routing Cell
+  - id: logistics-inventory-cell
+    title: Logistics Inventory Cell
+  - id: distribution-core
+    title: Distribution Core
+  - id: experience-line
+    title: Experience Line
+  - id: experience-foundation
+    title: Experience Foundation
+  - id: engagement-suite
+    title: Engagement Suite
+  - id: journey-domain
+    title: Journey Domain
+  - id: touchpoint-core
+    title: Touchpoint Core
+  - id: touchpoint-profile-pillar
+    title: Touchpoint Profile Pillar
+  - id: touchpoint-messaging-pillar
+    title: Touchpoint Messaging Pillar
+  - id: touchpoint-campaign-pillar
+    title: Touchpoint Campaign Pillar
+  - id: profile-core-nodes
+    title: Profile Core Nodes
+  - id: profile-identity-nodes
+    title: Profile Identity Nodes
+  - id: messaging-router-nodes
+    title: Messaging Router Nodes
+  - id: messaging-template-nodes
+    title: Messaging Template Nodes
+  - id: campaign-planner-nodes
+    title: Campaign Planner Nodes
+  - id: campaign-optimizer-nodes
+    title: Campaign Optimizer Nodes
+  - id: order-capture-svc
+    title: Order Capture Service
+  - id: order-validation-svc
+    title: Order Validation Service
+  - id: order-billing-svc
+    title: Order Billing Service
+  - id: order-dispatch-svc
+    title: Order Dispatch Service
+  - id: routing-engine-svc
+    title: Routing Engine Service
+  - id: inventory-sync-svc
+    title: Inventory Sync Service
+  - id: lastmile-dispatch-svc
+    title: Last-Mile Dispatch Service
+  - id: returns-processing-svc
+    title: Returns Processing Service
+  - id: engagement-orchestrator-svc
+    title: Engagement Orchestrator Service
+  - id: profile-store-svc
+    title: Profile Store Service
+  - id: messaging-hub-svc
+    title: Messaging Hub Service
+  - id: campaign-execution-svc
+    title: Campaign Execution Service
+  - id: commerce-core-pricing-sync-svc
+    title: Commerce Core Pricing Sync Service
+  - id: order-domain-events-svc
+    title: Order Domain Events Service
+  - id: order-intake-api-svc
+    title: Order Intake API Service
+  - id: order-intake-buffer-svc
+    title: Order Intake Buffer Service
+  - id: fraud-screening-svc
+    title: Fraud Screening Service
+  - id: policy-evaluator-svc
+    title: Policy Evaluator Service
+  - id: invoice-orchestrator-svc
+    title: Invoice Orchestrator Service
+  - id: payment-auth-adapter-svc
+    title: Payment Authorization Adapter Service
+  - id: order-state-projection-svc
+    title: Order State Projection Service
+  - id: order-sla-tracker-svc
+    title: Order SLA Tracker Service
+  - id: fulfillment-control-plane-svc
+    title: Fulfillment Control Plane Service
+  - id: logistics-event-router-svc
+    title: Logistics Event Router Service
+  - id: route-cache-writer-svc
+    title: Route Cache Writer Service
+  - id: route-cost-model-svc
+    title: Route Cost Model Service
+  - id: inventory-reconciler-svc
+    title: Inventory Reconciler Service
+  - id: stock-reservation-svc
+    title: Stock Reservation Service
+  - id: depot-slotting-svc
+    title: Depot Slotting Service
+  - id: carrier-capacity-broker-svc
+    title: Carrier Capacity Broker Service
+  - id: dispatch-simulation-svc
+    title: Dispatch Simulation Service
+  - id: customer-consent-ledger-svc
+    title: Customer Consent Ledger Service
+  - id: audience-intent-processor-svc
+    title: Audience Intent Processor Service
+  - id: journey-rules-engine-svc
+    title: Journey Rules Engine Service
+  - id: journey-experimentation-svc
+    title: Journey Experimentation Service
+  - id: touchpoint-session-state-svc
+    title: Touchpoint Session State Service
+  - id: profile-merge-orchestrator-svc
+    title: Profile Merge Orchestrator Service
+  - id: template-renderer-svc
+    title: Template Renderer Service
+  - id: channel-delivery-router-svc
+    title: Channel Delivery Router Service
+  - id: campaign-segmentation-svc
+    title: Campaign Segmentation Service
+  - id: campaign-budget-guard-svc
+    title: Campaign Budget Guard Service

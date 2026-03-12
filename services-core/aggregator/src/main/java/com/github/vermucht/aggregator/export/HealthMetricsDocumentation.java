@@ -16,14 +16,12 @@ package com.github.vermucht.aggregator.export;
  *
  * <ul>
  *   <li>{@code item_id} - catalog item identifier
- *   <li>{@code item_name} - display name of the item
- *   <li>{@code item_type} - catalog item type
+ *   <li>{@code item_name} - display title of the item
  *   <li>{@code signal_id} - health signal identifier
- *   <li>{@code signal_name} - human-readable health signal name
+ *   <li>{@code signal_name} - human-readable health signal title
  *   <li>{@code signal_source} - health signal source identifier
  *   <li>{@code source_id} - source catalog item identifier
  *   <li>{@code target_id} - target catalog item identifier
- *   <li>{@code dep_type} - dependency classification
  *   <li>{@code dep_depth} - dependency depth (1: direct, 2+: transitive)
  * </ul>
  *

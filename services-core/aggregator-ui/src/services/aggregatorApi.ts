@@ -169,18 +169,53 @@ export const loadCatalog = async (): Promise<{
     items: CatalogItem[];
     dependencies: CatalogDependency[];
 }> => {
-    const response = await fetch(new URL('catalog-definition.yaml', resolveBaseUrl()));
-    if (!response.ok) {
-        throw new Error(`Failed to load catalog: ${response.status}`);
-    }
-    const text = await response.text();
-    const data = (yaml.load(text, {}) || {}) as {
-        items?: CatalogItem[];
-        dependencies?: CatalogDependency[];
+    const normalizeItems = (rawItems: unknown): CatalogItem[] => {
+        if (!Array.isArray(rawItems)) {
+            return [];
+        }
+        return rawItems
+            .filter((entry): entry is {id?: string; title?: string} => Boolean(entry))
+            .map((item) => ({
+                id: String(item.id || '').trim(),
+                title: String(item.title || item.id || '').trim(),
+            }))
+            .filter((item) => Boolean(item.id));
     };
+
+    const normalizeDependencies = (rawDependencies: unknown): CatalogDependency[] => {
+        if (!Array.isArray(rawDependencies)) {
+            return [];
+        }
+        return rawDependencies
+            .filter((entry): entry is {sourceId?: string; targetId?: string} => Boolean(entry))
+            .map((dependency) => ({
+                sourceId: String(dependency.sourceId || '').trim(),
+                targetId: String(dependency.targetId || '').trim(),
+            }))
+            .filter((dependency) => Boolean(dependency.sourceId) && Boolean(dependency.targetId));
+    };
+
+    const [itemsResponse, dependenciesResponse] = await Promise.all([
+        fetch(new URL('catalog-items.yaml', resolveBaseUrl())),
+        fetch(new URL('catalog-dependencies.yaml', resolveBaseUrl())),
+    ]);
+
+    if (!itemsResponse.ok) {
+        throw new Error(`Failed to load catalog items: ${itemsResponse.status}`);
+    }
+    if (!dependenciesResponse.ok) {
+        throw new Error(`Failed to load catalog dependencies: ${dependenciesResponse.status}`);
+    }
+
+    const [itemsText, dependenciesText] = await Promise.all([
+        itemsResponse.text(),
+        dependenciesResponse.text(),
+    ]);
+    const itemsData = (yaml.load(itemsText, {}) || {}) as {items?: unknown};
+    const dependenciesData = (yaml.load(dependenciesText, {}) || {}) as {dependencies?: unknown};
     return {
-        items: Array.isArray(data.items) ? data.items : [],
-        dependencies: Array.isArray(data.dependencies) ? data.dependencies : [],
+        items: normalizeItems(itemsData.items),
+        dependencies: normalizeDependencies(dependenciesData.dependencies),
     };
 };
 

@@ -5,8 +5,12 @@ services:
       dockerfile: services-core/aggregator/Dockerfile
       args:
         CONTAINER_ROOT: services-core/aggregator
-        CATALOG_DEFINITION_FILE: config/empty/catalog-definition.yaml
-        HTTP_POLL_SIGNALS_FILE: config/empty/http-poll-signals.yaml
+        CATALOG_ITEMS_FILE: config/empty/catalog-items.yaml
+        CATALOG_DEPENDENCIES_FILE: config/empty/catalog-dependencies.yaml
+        SIGNALS_HTTP_POLL_FILE: config/empty/signals-http-poll.yaml
+        CATALOG_ITEMS_SCHEMA_FILE: config/schemas/catalog-items.schema.yaml
+        CATALOG_DEPENDENCIES_SCHEMA_FILE: config/schemas/catalog-dependencies.schema.yaml
+        SIGNALS_HTTP_POLL_SCHEMA_FILE: config/schemas/signals-http-poll.schema.yaml
 
   aggregator-ui:
     build:
@@ -14,7 +18,8 @@ services:
       dockerfile: services-core/aggregator-ui/Dockerfile
       args:
         CONTAINER_ROOT: services-core/aggregator-ui
-        CATALOG_DEFINITION_FILE: config/empty/catalog-definition.yaml
+        CATALOG_ITEMS_FILE: config/empty/catalog-items.yaml
+        CATALOG_DEPENDENCIES_FILE: config/empty/catalog-dependencies.yaml
         VITE_APP_TITLE: ""
 
   prometheus:

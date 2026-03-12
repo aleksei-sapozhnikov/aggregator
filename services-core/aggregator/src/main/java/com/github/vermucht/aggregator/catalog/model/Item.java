@@ -6,18 +6,13 @@ import java.util.Objects;
 /** Catalog item definition used for modeling products and services. */
 public final class Item {
   @Nonnull private final ItemId id;
-  @Nonnull private final String name;
-  @Nonnull private final String type;
+  @Nonnull private final String title;
 
-  private Item(@Nonnull ItemId id, @Nonnull String name, @Nonnull String type) {
+  private Item(@Nonnull ItemId id, @Nonnull String title) {
     this.id = Objects.requireNonNull(id, "id");
-    this.name = Objects.requireNonNull(name, "name");
-    if (name.isBlank()) {
-      throw new IllegalArgumentException("name must not be blank");
-    }
-    this.type = Objects.requireNonNull(type, "type");
-    if (type.isBlank()) {
-      throw new IllegalArgumentException("type must not be blank");
+    this.title = Objects.requireNonNull(title, "title");
+    if (title.isBlank()) {
+      throw new IllegalArgumentException("title must not be blank");
     }
   }
 
@@ -25,13 +20,12 @@ public final class Item {
    * Creates a catalog item instance.
    *
    * @param id item identifier
-   * @param name item display name
-   * @param type item classification
+   * @param title item display title
    * @return catalog item
    */
   @Nonnull
-  public static Item of(@Nonnull ItemId id, @Nonnull String name, @Nonnull String type) {
-    return new Item(id, name, type);
+  public static Item of(@Nonnull ItemId id, @Nonnull String title) {
+    return new Item(id, title);
   }
 
   /**
@@ -45,22 +39,12 @@ public final class Item {
   }
 
   /**
-   * Returns the display name of the item.
+   * Returns the display title of the item.
    *
-   * @return item name
+   * @return item title
    */
   @Nonnull
-  public String getName() {
-    return name;
-  }
-
-  /**
-   * Returns the classification of the item.
-   *
-   * @return item type
-   */
-  @Nonnull
-  public String getType() {
-    return type;
+  public String getTitle() {
+    return title;
   }
 }

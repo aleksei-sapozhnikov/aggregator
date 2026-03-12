@@ -13,11 +13,11 @@ import type {
 } from './types';
 
 const sortItemsByName = (items: CatalogItem[]): CatalogItem[] =>
-    [...items].sort((a, b) => (a.name || a.id).localeCompare(b.name || b.id));
+    [...items].sort((a, b) => (a.title || a.id).localeCompare(b.title || b.id));
 
 const sortNodesByName = (nodes: CatalogTreeNode[]): CatalogTreeNode[] =>
     [...nodes].sort((a, b) =>
-        (a.item.name || a.item.id).localeCompare(b.item.name || b.item.id),
+        (a.item.title || a.item.id).localeCompare(b.item.title || b.item.id),
     );
 
 export const collectNodeIds = (nodes: CatalogTreeNode[]): string[] => {
@@ -108,7 +108,7 @@ const matchSearch = (item: CatalogItem, queryTokens: string[]): boolean => {
     if (!queryTokens.length) {
         return true;
     }
-    const name = normalizeSearchText(item.name || '');
+    const name = normalizeSearchText(item.title || '');
     return queryTokens.every((token) => name.includes(token));
 };
 
@@ -216,7 +216,7 @@ export const rankSearchResults = (
     }
     const results: SearchResult[] = [];
     items.forEach((item) => {
-        const name = normalizeSearchText(item.name || '');
+        const name = normalizeSearchText(item.title || '');
         if (!queryTokens.every((token) => name.includes(token))) {
             return;
         }
@@ -231,7 +231,7 @@ export const rankSearchResults = (
     return results.sort(
         (a, b) =>
             b.score - a.score ||
-            (a.item.name || a.item.id).localeCompare(b.item.name || b.item.id),
+            (a.item.title || a.item.id).localeCompare(b.item.title || b.item.id),
     );
 };
 
@@ -242,7 +242,7 @@ export const buildSearchAutocompleteIndex = (
     const itemIdToTokens: string[][] = [];
 
     items.forEach((item, index) => {
-        const tokens = [...new Set(normalizeSearchText(item.name || '').split(' ').filter(Boolean))];
+        const tokens = [...new Set(normalizeSearchText(item.title || '').split(' ').filter(Boolean))];
         itemIdToTokens[index] = tokens;
         tokens.forEach((token) => {
             const itemIds = tokenToItemIds.get(token);

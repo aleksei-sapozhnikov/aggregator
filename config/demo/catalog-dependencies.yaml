@@ -1,0 +1,160 @@
+# yaml-language-server: $schema=../schemas/catalog-dependencies.schema.yaml
+dependencies:
+  - sourceId: commerce-platform
+    targetId: commerce-line-core
+  - sourceId: commerce-platform
+    targetId: commerce-extensions
+  - sourceId: commerce-line-core
+    targetId: commerce-core
+  - sourceId: commerce-extensions
+    targetId: order-domain
+  - sourceId: commerce-core
+    targetId: order-domain
+  - sourceId: order-domain
+    targetId: order-intake-hub
+  - sourceId: order-domain
+    targetId: order-guard-hub
+  - sourceId: order-domain
+    targetId: order-finance-hub
+  - sourceId: order-intake-hub
+    targetId: order-capture-svc
+  - sourceId: order-guard-hub
+    targetId: order-validation-svc
+  - sourceId: order-finance-hub
+    targetId: order-billing-svc
+  - sourceId: order-capture-svc
+    targetId: order-workflow
+  - sourceId: order-validation-svc
+    targetId: order-workflow
+  - sourceId: order-billing-svc
+    targetId: order-workflow
+  - sourceId: order-workflow
+    targetId: order-dispatch-svc
+  - sourceId: operations-suite
+    targetId: operations-line
+  - sourceId: operations-suite
+    targetId: ops-accelerators
+  - sourceId: operations-line
+    targetId: fulfillment-hub
+  - sourceId: fulfillment-hub
+    targetId: logistics-domain
+  - sourceId: logistics-domain
+    targetId: logistics-routing-cell
+  - sourceId: logistics-domain
+    targetId: logistics-inventory-cell
+  - sourceId: logistics-routing-cell
+    targetId: routing-engine-svc
+  - sourceId: logistics-inventory-cell
+    targetId: inventory-sync-svc
+  - sourceId: routing-engine-svc
+    targetId: distribution-core
+  - sourceId: inventory-sync-svc
+    targetId: distribution-core
+  - sourceId: distribution-core
+    targetId: lastmile-dispatch-svc
+  - sourceId: distribution-core
+    targetId: returns-processing-svc
+  - sourceId: ops-accelerators
+    targetId: routing-engine-svc
+  - sourceId: customer-experience
+    targetId: experience-line
+  - sourceId: customer-experience
+    targetId: experience-foundation
+  - sourceId: experience-line
+    targetId: engagement-suite
+  - sourceId: experience-foundation
+    targetId: engagement-suite
+  - sourceId: engagement-suite
+    targetId: journey-domain
+  - sourceId: journey-domain
+    targetId: engagement-orchestrator-svc
+  - sourceId: engagement-orchestrator-svc
+    targetId: touchpoint-core
+  - sourceId: touchpoint-core
+    targetId: touchpoint-profile-pillar
+  - sourceId: touchpoint-core
+    targetId: touchpoint-messaging-pillar
+  - sourceId: touchpoint-core
+    targetId: touchpoint-campaign-pillar
+  - sourceId: touchpoint-profile-pillar
+    targetId: profile-core-nodes
+  - sourceId: touchpoint-profile-pillar
+    targetId: profile-identity-nodes
+  - sourceId: profile-core-nodes
+    targetId: profile-store-svc
+  - sourceId: profile-identity-nodes
+    targetId: profile-store-svc
+  - sourceId: touchpoint-messaging-pillar
+    targetId: messaging-router-nodes
+  - sourceId: touchpoint-messaging-pillar
+    targetId: messaging-template-nodes
+  - sourceId: messaging-router-nodes
+    targetId: messaging-hub-svc
+  - sourceId: messaging-template-nodes
+    targetId: messaging-hub-svc
+  - sourceId: touchpoint-campaign-pillar
+    targetId: campaign-planner-nodes
+  - sourceId: touchpoint-campaign-pillar
+    targetId: campaign-optimizer-nodes
+  - sourceId: campaign-planner-nodes
+    targetId: campaign-execution-svc
+  - sourceId: campaign-optimizer-nodes
+    targetId: campaign-execution-svc
+  - sourceId: commerce-core
+    targetId: commerce-core-pricing-sync-svc
+  - sourceId: order-domain
+    targetId: order-domain-events-svc
+  - sourceId: order-intake-hub
+    targetId: order-intake-api-svc
+  - sourceId: order-intake-hub
+    targetId: order-intake-buffer-svc
+  - sourceId: order-guard-hub
+    targetId: fraud-screening-svc
+  - sourceId: order-guard-hub
+    targetId: policy-evaluator-svc
+  - sourceId: order-finance-hub
+    targetId: invoice-orchestrator-svc
+  - sourceId: order-finance-hub
+    targetId: payment-auth-adapter-svc
+  - sourceId: order-workflow
+    targetId: order-state-projection-svc
+  - sourceId: order-workflow
+    targetId: order-sla-tracker-svc
+  - sourceId: fulfillment-hub
+    targetId: fulfillment-control-plane-svc
+  - sourceId: logistics-domain
+    targetId: logistics-event-router-svc
+  - sourceId: logistics-routing-cell
+    targetId: route-cache-writer-svc
+  - sourceId: logistics-routing-cell
+    targetId: route-cost-model-svc
+  - sourceId: logistics-inventory-cell
+    targetId: inventory-reconciler-svc
+  - sourceId: logistics-inventory-cell
+    targetId: stock-reservation-svc
+  - sourceId: distribution-core
+    targetId: depot-slotting-svc
+  - sourceId: distribution-core
+    targetId: carrier-capacity-broker-svc
+  - sourceId: ops-accelerators
+    targetId: dispatch-simulation-svc
+  - sourceId: experience-foundation
+    targetId: customer-consent-ledger-svc
+  - sourceId: engagement-suite
+    targetId: audience-intent-processor-svc
+  - sourceId: journey-domain
+    targetId: journey-rules-engine-svc
+  - sourceId: journey-domain
+    targetId: journey-experimentation-svc
+  - sourceId: touchpoint-core
+    targetId: touchpoint-session-state-svc
+  - sourceId: touchpoint-profile-pillar
+    targetId: profile-merge-orchestrator-svc
+  - sourceId: touchpoint-messaging-pillar
+    targetId: template-renderer-svc
+  - sourceId: touchpoint-messaging-pillar
+    targetId: channel-delivery-router-svc
+  - sourceId: touchpoint-campaign-pillar
+    targetId: campaign-segmentation-svc
+  - sourceId: touchpoint-campaign-pillar
+    targetId: campaign-budget-guard-svc

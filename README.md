@@ -58,8 +58,17 @@ extension can add ingestion, where services push updates into the aggregator dir
 
 Catalog items and health signal sources are configured in YAML files. Demo example:
 
-- [demo/catalog-definition.yaml](config/demo/catalog-definition.yaml)
-- [demo/http-poll-signals.yaml](config/demo/http-poll-signals.yaml)
+- [demo/catalog-items.yaml](config/demo/catalog-items.yaml)
+- [demo/catalog-dependencies.yaml](config/demo/catalog-dependencies.yaml)
+- [demo/signals-http-poll.yaml](config/demo/signals-http-poll.yaml)
+- [schemas/catalog-items.schema.yaml](config/schemas/catalog-items.schema.yaml)
+- [schemas/catalog-dependencies.schema.yaml](config/schemas/catalog-dependencies.schema.yaml)
+- [schemas/signals-http-poll.schema.yaml](config/schemas/signals-http-poll.schema.yaml)
+
+Catalog format notes:
+- `catalog-items.yaml`: each item has `id` and human-readable `title`.
+- `catalog-dependencies.yaml`: each relation has `sourceId` and `targetId`.
+- Item/dependency `type` fields were removed from the catalog definition.
 
 ### Core Services (`services-core`)
 

@@ -19,18 +19,16 @@ public class HealthSignalStateStore {
   public void updateSignal(@Nonnull HealthSignal signal) {
     Objects.requireNonNull(signal, "signal");
     signalStatuses
-        .computeIfAbsent(signal.catalogItemId(), key -> new ConcurrentHashMap<>())
-        .put(signal.signalId(), signal.status());
+        .computeIfAbsent(signal.itemId(), key -> new ConcurrentHashMap<>())
+        .put(signal.id(), signal.status());
   }
 
   /** Returns the last known health status for a specific signal. */
   @Nonnull
-  public HealthStatus getStatus(@Nonnull ItemId itemId, @Nonnull String signalId) {
+  public HealthStatus getStatus(@Nonnull ItemId itemId, @Nonnull String id) {
     Objects.requireNonNull(itemId, "itemId");
-    Objects.requireNonNull(signalId, "signalId");
-    return signalStatuses
-        .getOrDefault(itemId, Map.of())
-        .getOrDefault(signalId, HealthStatus.UNKNOWN);
+    Objects.requireNonNull(id, "id");
+    return signalStatuses.getOrDefault(itemId, Map.of()).getOrDefault(id, HealthStatus.UNKNOWN);
   }
 
   /** Aggregates the current item status from the latest statuses of its known signals. */

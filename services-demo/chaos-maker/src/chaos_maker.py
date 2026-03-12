@@ -89,7 +89,7 @@ def load_config() -> ChaosConfig:
         min_duration=parse_duration(os.getenv("CHAOS_MIN_DURATION", "20s")),
         max_duration=parse_duration(os.getenv("CHAOS_MAX_DURATION", "45s")),
         max_concurrent=int(os.getenv("CHAOS_MAX_CONCURRENT", "2")),
-        signals_path=str(script_dir / "http-poll-signals.yaml"),
+        signals_path=str(script_dir / "signals-http-poll.yaml"),
         always_broken=os.getenv("CHAOS_ALWAYS_BROKEN", "false").strip().lower() == "true",
     )
 
