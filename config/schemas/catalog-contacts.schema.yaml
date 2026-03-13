@@ -1,0 +1,41 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://aggregator.local/schemas/catalog-contacts.schema.yaml
+title: Catalog Contacts
+type: object
+required:
+  - contacts
+additionalProperties: false
+properties:
+  contacts:
+    type: array
+    items:
+      type: object
+      required:
+        - id
+        - title
+        - type
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          minLength: 1
+        title:
+          type: string
+          minLength: 1
+        type:
+          type: string
+          enum:
+            - email
+            - phone
+            - sms
+            - slack
+            - teams
+            - telegram
+            - discord
+            - mattermost
+            - pagerduty
+            - opsgenie
+            - other
+        href:
+          type: string
+          minLength: 0
