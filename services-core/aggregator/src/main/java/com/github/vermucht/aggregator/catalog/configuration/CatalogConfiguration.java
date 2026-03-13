@@ -2,7 +2,7 @@ package com.github.vermucht.aggregator.catalog.configuration;
 
 import com.github.vermucht.aggregator.catalog.model.Catalog;
 import jakarta.annotation.Nonnull;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
@@ -10,14 +10,15 @@ import org.springframework.core.io.ResourceLoader;
 
 /** Wires the catalog into the application context at startup. */
 @Configuration
+@EnableConfigurationProperties(CatalogProperties.class)
 public class CatalogConfiguration {
   /**
-   * Creates the catalog bean from the configured catalog definition resource.
+   * Creates the catalog bean from split catalog resources.
    *
    * @param resourceLoader loader for catalog resources
    * @param catalogLoader loader for the raw catalog definition
    * @param catalogValidator validator that builds the runtime catalog
-   * @param catalogPath resource path to the catalog definition
+   * @param properties catalog paths configuration
    * @return validated, immutable catalog
    */
   @Bean
@@ -26,11 +27,30 @@ public class CatalogConfiguration {
       @Nonnull ResourceLoader resourceLoader,
       @Nonnull CatalogLoader catalogLoader,
       @Nonnull CatalogValidator catalogValidator,
-      @Nonnull @Value("${catalog.path}") String catalogPath) {
-    Resource resource = resourceLoader.getResource(catalogPath);
-    if (!resource.exists()) {
-      throw new IllegalStateException("Catalog file not found at " + catalogPath);
+      @Nonnull CatalogProperties properties) {
+    String itemsPath = properties.getItemsPath();
+    Resource itemsResource = resourceLoader.getResource(itemsPath);
+    if (!itemsResource.exists()) {
+      throw new IllegalStateException("Catalog items file not found at " + itemsPath);
     }
-    return catalogValidator.validate(catalogLoader.loadDefinition(resource));
+    String dependenciesPath = properties.getDependenciesPath();
+    Resource dependenciesResource = resourceLoader.getResource(dependenciesPath);
+    if (!dependenciesResource.exists()) {
+      throw new IllegalStateException("Catalog dependencies file not found at " + dependenciesPath);
+    }
+    String itemsSchemaPath = properties.getItemsSchemaPath();
+    Resource itemsSchemaResource = resourceLoader.getResource(itemsSchemaPath);
+    if (!itemsSchemaResource.exists()) {
+      throw new IllegalStateException("Catalog items schema file not found at " + itemsSchemaPath);
+    }
+    String dependenciesSchemaPath = properties.getDependenciesSchemaPath();
+    Resource dependenciesSchemaResource = resourceLoader.getResource(dependenciesSchemaPath);
+    if (!dependenciesSchemaResource.exists()) {
+      throw new IllegalStateException(
+          "Catalog dependencies schema file not found at " + dependenciesSchemaPath);
+    }
+    return catalogValidator.validate(
+        catalogLoader.loadDefinition(
+            itemsResource, dependenciesResource, itemsSchemaResource, dependenciesSchemaResource));
   }
 }

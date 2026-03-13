@@ -14,6 +14,21 @@
       "name": "feedback.admin.password",
       "type": "java.lang.String",
       "description": "Admin password for feedback admin endpoint HTTP Basic authentication."
+    },
+    {
+      "name": "catalog.items-schema-path",
+      "type": "java.lang.String",
+      "description": "Resource path to the catalog items JSON schema used to materialize defaults."
+    },
+    {
+      "name": "catalog.dependencies-schema-path",
+      "type": "java.lang.String",
+      "description": "Resource path to the catalog dependencies JSON schema used to materialize defaults."
+    },
+    {
+      "name": "health.http-poll.schema-path",
+      "type": "java.lang.String",
+      "description": "Resource path to the HTTP polling signals JSON schema used to materialize defaults."
     }
   ]
 }
