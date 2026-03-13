@@ -841,6 +841,10 @@ body {
     background: color-mix(in srgb, var(--outer-background) 92%, var(--status-up));
 }
 
+.details-panel-contacts .details-panel-toggle {
+    background: color-mix(in srgb, var(--outer-background) 94%, var(--border));
+}
+
 .details-panel-grafana .details-panel-toggle {
     background: var(--timeline-panel-accent);
 }
@@ -952,6 +956,198 @@ body {
     outline: 2px solid var(--link);
     outline-offset: 2px;
     border-radius: 6px;
+}
+
+.contact-chip {
+    width: 100%;
+    min-width: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 8px;
+    border-radius: 10px;
+    background: #f2f4f7;
+    border: 1px solid #e1e5ea;
+    color: var(--text);
+    text-decoration: none;
+}
+
+.contact-chip-button {
+    border: 1px solid #d5d9df;
+    text-align: left;
+    cursor: pointer;
+}
+
+.contact-chip:hover {
+    background: #eceff3;
+}
+
+.contact-chip:focus-visible {
+    outline: 2px solid var(--link);
+    outline-offset: 2px;
+}
+
+.contact-chip-text {
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.2;
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.contact-type-icon-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 0;
+}
+
+.contact-type-icon {
+    width: 19px;
+    height: 19px;
+    flex: 0 0 19px;
+    color: var(--contact-icon-color, var(--muted));
+}
+
+.contact-type-email {
+    --contact-icon-color: #2563eb;
+}
+
+.contact-type-phone {
+    --contact-icon-color: #16a34a;
+}
+
+.contact-type-sms {
+    --contact-icon-color: #22c55e;
+}
+
+.contact-type-slack {
+    --contact-icon-color: #4a154b;
+}
+
+.contact-type-teams {
+    --contact-icon-color: #6264a7;
+}
+
+.contact-type-telegram {
+    --contact-icon-color: #24a1de;
+}
+
+.contact-type-discord {
+    --contact-icon-color: #5865f2;
+}
+
+.contact-type-mattermost {
+    --contact-icon-color: #0058cc;
+}
+
+.contact-type-pagerduty {
+    --contact-icon-color: #06ac38;
+}
+
+.contact-type-opsgenie {
+    --contact-icon-color: #2684ff;
+}
+
+.contact-type-other {
+    --contact-icon-color: var(--muted);
+}
+
+body[data-theme='dark'] .contact-type-email {
+    --contact-icon-color: #60a5fa;
+}
+
+body[data-theme='dark'] .contact-type-phone {
+    --contact-icon-color: #4ade80;
+}
+
+body[data-theme='dark'] .contact-type-sms {
+    --contact-icon-color: #86efac;
+}
+
+body[data-theme='dark'] .contact-type-slack {
+    --contact-icon-color: #8a4b8d;
+}
+
+body[data-theme='dark'] .contact-type-teams {
+    --contact-icon-color: #8b8cc7;
+}
+
+body[data-theme='dark'] .contact-type-telegram {
+    --contact-icon-color: #60c7f2;
+}
+
+body[data-theme='dark'] .contact-type-discord {
+    --contact-icon-color: #818cf8;
+}
+
+body[data-theme='dark'] .contact-type-mattermost {
+    --contact-icon-color: #60a5fa;
+}
+
+body[data-theme='dark'] .contact-type-pagerduty {
+    --contact-icon-color: #4ade80;
+}
+
+body[data-theme='dark'] .contact-type-opsgenie {
+    --contact-icon-color: #60a5fa;
+}
+
+body[data-theme='dark'] .contact-type-other {
+    --contact-icon-color: #cbd5e1;
+}
+
+body[data-theme='dark'] .contact-chip {
+    background: #2a2f37;
+    border-color: #3a414d;
+}
+
+body[data-theme='dark'] .contact-chip:hover {
+    background: #303641;
+}
+
+.contact-modal {
+    width: min(620px, 100%);
+}
+
+.contact-modal-header {
+    margin: 0 44px 14px 0;
+}
+
+.contact-modal-header h2 {
+    margin: 0 0 8px;
+    font-size: 22px;
+}
+
+.contact-modal-header p {
+    margin: 0;
+    color: var(--muted);
+}
+
+.contact-modal-body dl {
+    margin: 0 0 14px;
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 8px 12px;
+}
+
+.contact-modal-body dt {
+    color: var(--muted);
+}
+
+.contact-modal-body dd {
+    margin: 0;
+}
+
+.contact-modal-link {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.contact-modal-body p {
+    margin: 0;
 }
 
 .dependency-group-title {

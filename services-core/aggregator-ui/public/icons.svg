@@ -41,4 +41,62 @@
         <circle cx="10" cy="10" r="1.2" fill="currentColor"/>
         <circle cx="14" cy="10" r="1.2" fill="currentColor"/>
     </symbol>
+    <symbol id="icon-contact-email" viewBox="0 0 24 24">
+        <rect x="1.8" y="4.8" width="20.4" height="14.4" rx="2.3" fill="#FFFAF0" stroke="#1F2328" stroke-width="1.9"/>
+        <path d="M3.2 6.4 12 12.8l8.8-6.4" fill="none" stroke="#1F2328" stroke-width="1.9" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="icon-contact-phone" viewBox="0 0 24 24">
+        <path d="M6.2 2.2h11.6a2.4 2.4 0 0 1 2.4 2.4v14.8a2.4 2.4 0 0 1-2.4 2.4H6.2a2.4 2.4 0 0 1-2.4-2.4V4.6a2.4 2.4 0 0 1 2.4-2.4Z"
+              fill="none" stroke="currentColor" stroke-width="2"/>
+        <circle cx="12" cy="18.2" r="1.2" fill="currentColor"/>
+    </symbol>
+    <symbol id="icon-contact-sms" viewBox="0 0 24 24">
+        <path d="M2.6 4.8h18.8v12H8.6l-6 4.4V4.8Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+        <line x1="7.2" y1="10.2" x2="16.8" y2="10.2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="icon-contact-slack" viewBox="0 0 24 24">
+        <rect x="3.8" y="9.6" width="6.4" height="4.8" rx="2.4" fill="#36C5F0"/>
+        <rect x="8.8" y="3.8" width="4.8" height="6.4" rx="2.4" fill="#2EB67D"/>
+        <rect x="13.8" y="9.6" width="6.4" height="4.8" rx="2.4" fill="#E01E5A"/>
+        <rect x="10.4" y="13.8" width="4.8" height="6.4" rx="2.4" fill="#ECB22E"/>
+    </symbol>
+    <symbol id="icon-contact-teams" viewBox="0 0 24 24">
+        <rect x="1.5" y="1.5" width="21" height="21" rx="5.2" fill="#6264A7"/>
+        <rect x="11.5" y="5" width="7.5" height="7.2" rx="2.4" fill="#8B8CC7"/>
+        <circle cx="18.4" cy="8.6" r="3.1" fill="#A6A7DC"/>
+        <rect x="4.6" y="5.2" width="11.2" height="13.6" rx="2.3" fill="#4F52B2"/>
+        <path d="M6.4 8.1h7.7v2.4h-2.6v6.1H8.9v-6.1H6.4z" fill="#FFFFFF"/>
+    </symbol>
+    <symbol id="icon-contact-telegram" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10.6" fill="#24A1DE"/>
+        <path d="M4.9 11.5 18.3 6.5c.7-.3 1.3.4 1 .9L14.2 19c-.2.5-.9.6-1.2.1l-2.4-3-2.8-1.3c-.6-.2-.6-1 0-1.3Z"
+              fill="#FFFFFF"/>
+        <path d="m8.9 14.4 6.2-5.1" fill="none" stroke="#24A1DE" stroke-width="1.5" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="icon-contact-discord" viewBox="0 0 24 24">
+        <rect x="2" y="3.1" width="20" height="17.8" rx="6.5" fill="#5865F2"/>
+        <path d="M6.7 8.8c2.7-1.5 7.9-1.5 10.6 0l1.2 5.3c-2 1.8-4.2 2.6-6.5 2.6-2.3 0-4.5-.8-6.5-2.6l1.2-5.3Z"
+              fill="#FFFFFF"/>
+        <circle cx="10" cy="12.2" r="1.1" fill="#5865F2"/>
+        <circle cx="14" cy="12.2" r="1.1" fill="#5865F2"/>
+    </symbol>
+    <symbol id="icon-contact-mattermost" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10.6" fill="#0058CC"/>
+        <path d="M6.6 14.8 16.4 8.8" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round"/>
+        <circle cx="12" cy="12" r="1.5" fill="#FFFFFF"/>
+    </symbol>
+    <symbol id="icon-contact-pagerduty" viewBox="0 0 24 24">
+        <circle cx="12" cy="7.3" r="4.4" fill="#06AC38"/>
+        <rect x="7.8" y="11.8" width="8.4" height="9.2" rx="2.1" fill="#06AC38"/>
+    </symbol>
+    <symbol id="icon-contact-opsgenie" viewBox="0 0 24 24">
+        <path d="M12 3.2 4.7 7.1v9.8L12 20.8l7.3-3.9V7.1L12 3.2Z" fill="#2684FF"/>
+        <path d="m8.8 12.4 2.1 2.1 4.3-4.3" fill="none" stroke="#FFFFFF" stroke-width="2.1" stroke-linecap="round"
+              stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="icon-contact-other" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="9.6" fill="none" stroke="currentColor" stroke-width="2"/>
+        <line x1="12" y1="8.2" x2="12" y2="13.8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="12" cy="17.3" r="1.2" fill="currentColor"/>
+    </symbol>
 </svg>
