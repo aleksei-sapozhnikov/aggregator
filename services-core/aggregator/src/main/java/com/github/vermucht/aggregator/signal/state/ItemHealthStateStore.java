@@ -1,7 +1,7 @@
 package com.github.vermucht.aggregator.signal.state;
 
 import com.github.vermucht.aggregator.aggregation.CatalogHealthAggregator;
-import com.github.vermucht.aggregator.catalog.model.Catalog;
+import com.github.vermucht.aggregator.catalog.configuration.CatalogRegistry;
 import com.github.vermucht.aggregator.catalog.model.ItemId;
 import com.github.vermucht.aggregator.signal.model.HealthStatus;
 import jakarta.annotation.Nonnull;
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ItemHealthStateStore {
 
-  private final Catalog catalog;
+  private final CatalogRegistry catalogRegistry;
   private final CatalogHealthAggregator catalogHealthAggregator;
 
   /**
@@ -23,8 +23,9 @@ public class ItemHealthStateStore {
   private final Map<ItemId, HealthStatus> rawStatuses;
 
   public ItemHealthStateStore(
-      @Nonnull Catalog catalog, @Nonnull CatalogHealthAggregator catalogHealthAggregator) {
-    this.catalog = Objects.requireNonNull(catalog, "catalog");
+      @Nonnull CatalogRegistry catalogRegistry,
+      @Nonnull CatalogHealthAggregator catalogHealthAggregator) {
+    this.catalogRegistry = Objects.requireNonNull(catalogRegistry, "catalogRegistry");
     this.catalogHealthAggregator =
         Objects.requireNonNull(catalogHealthAggregator, "catalogHealthAggregator");
     this.rawStatuses = new ConcurrentHashMap<>();
@@ -49,11 +50,12 @@ public class ItemHealthStateStore {
   @Nonnull
   public HealthStatus getAggregatedStatus(@Nonnull ItemId itemId) {
     Objects.requireNonNull(itemId, "itemId");
-    return catalogHealthAggregator.getState(itemId, catalog, rawStatuses);
+    initializeDefaults();
+    return catalogHealthAggregator.getState(itemId, catalogRegistry.getCatalog(), rawStatuses);
   }
 
   private void initializeDefaults() {
-    for (ItemId itemId : catalog.items().keySet()) {
+    for (ItemId itemId : catalogRegistry.getCatalog().items().keySet()) {
       rawStatuses.putIfAbsent(itemId, HealthStatus.UNKNOWN);
     }
   }

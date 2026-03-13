@@ -8,6 +8,7 @@ import jakarta.annotation.Nonnull;
 import jakarta.annotation.PostConstruct;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ScheduledFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -19,11 +20,13 @@ import org.springframework.stereotype.Component;
 public class PollingSignalSourceScheduler {
   private static final Logger LOGGER = LoggerFactory.getLogger(PollingSignalSourceScheduler.class);
 
-  private final List<PollingSignalSource> signalSources;
+  private final PollingSignalSourceRegistry signalSourceRegistry;
   private final List<HealthSignalConsumer> consumers;
   private final TaskScheduler scheduler;
   private final ItemHealthStateStore stateStore;
   private final HealthSignalStateStore signalStateStore;
+  private final Object schedulingLock = new Object();
+  private final List<ScheduledFuture<?>> scheduledTasks = new java.util.ArrayList<>();
 
   /**
    * Creates a scheduler for the configured polling signal sources.
@@ -35,12 +38,12 @@ public class PollingSignalSourceScheduler {
    * @param signalStateStore store for per-signal health status
    */
   public PollingSignalSourceScheduler(
-      @Nonnull List<PollingSignalSource> signalSources,
+      @Nonnull PollingSignalSourceRegistry signalSourceRegistry,
       @Nonnull List<HealthSignalConsumer> consumers,
       @Nonnull @Qualifier("healthSignalTaskScheduler") TaskScheduler scheduler,
       @Nonnull ItemHealthStateStore stateStore,
       @Nonnull HealthSignalStateStore signalStateStore) {
-    this.signalSources = List.copyOf(Objects.requireNonNull(signalSources, "signalSources"));
+    this.signalSourceRegistry = Objects.requireNonNull(signalSourceRegistry, "signalSourceRegistry");
     this.consumers = List.copyOf(Objects.requireNonNull(consumers, "consumers"));
     this.scheduler = Objects.requireNonNull(scheduler, "scheduler");
     this.stateStore = Objects.requireNonNull(stateStore, "stateStore");
@@ -50,9 +53,24 @@ public class PollingSignalSourceScheduler {
   /** Starts scheduling the configured polling signal sources after initialization. */
   @PostConstruct
   public void scheduleSignalSources() {
-    for (PollingSignalSource signalSource : signalSources) {
-      scheduler.scheduleWithFixedDelay(
-          () -> runSignalSource(signalSource), signalSource.getInterval());
+    rescheduleSignalSources();
+  }
+
+  /** Rebuilds polling schedules from the current signal source snapshot. */
+  public void rescheduleSignalSources() {
+    synchronized (schedulingLock) {
+      for (ScheduledFuture<?> task : scheduledTasks) {
+        task.cancel(false);
+      }
+      scheduledTasks.clear();
+      for (PollingSignalSource signalSource : signalSourceRegistry.getSignalSources()) {
+        ScheduledFuture<?> task =
+            scheduler.scheduleWithFixedDelay(
+                () -> runSignalSource(signalSource), signalSource.getInterval());
+        if (task != null) {
+          scheduledTasks.add(task);
+        }
+      }
     }
   }
 
@@ -63,10 +81,10 @@ public class PollingSignalSourceScheduler {
         consumer.ingest(signal);
       }
       stateStore.updateStatus(
-          signal.catalogItemId(),
-          signalStateStore.getAggregatedItemStatus(signal.catalogItemId()));
+          signal.itemId(),
+          signalStateStore.getAggregatedItemStatus(signal.itemId()));
     } catch (RuntimeException ex) {
-      LOGGER.warn("Health signal source {} failed unexpectedly", signalSource.signalId(), ex);
+      LOGGER.warn("Health signal source {} failed unexpectedly", signalSource.id(), ex);
     }
   }
 }

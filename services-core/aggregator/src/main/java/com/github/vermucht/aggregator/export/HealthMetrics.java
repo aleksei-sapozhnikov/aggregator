@@ -1,5 +1,6 @@
 package com.github.vermucht.aggregator.export;
 
+import com.github.vermucht.aggregator.catalog.configuration.CatalogRegistry;
 import com.github.vermucht.aggregator.catalog.model.Catalog;
 import com.github.vermucht.aggregator.catalog.model.Dependency;
 import com.github.vermucht.aggregator.catalog.model.Item;
@@ -7,7 +8,7 @@ import com.github.vermucht.aggregator.catalog.model.ItemId;
 import com.github.vermucht.aggregator.signal.state.HealthSignalStateStore;
 import com.github.vermucht.aggregator.signal.state.ItemHealthStateStore;
 import com.github.vermucht.aggregator.signalsource.polling.PollingSignalSource;
-import io.micrometer.core.instrument.Gauge;
+import com.github.vermucht.aggregator.signalsource.polling.PollingSignalSourceRegistry;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.MultiGauge;
 import io.micrometer.core.instrument.Tags;
@@ -31,38 +32,35 @@ public class HealthMetrics {
   public static final String DEPENDENCY_METRIC_NAME = "catalog_dependency";
   public static final String LABEL_ITEM_ID = "item_id";
   public static final String LABEL_ITEM_NAME = "item_name";
-  public static final String LABEL_ITEM_TYPE = "item_type";
   public static final String LABEL_SIGNAL_ID = "signal_id";
   public static final String LABEL_SIGNAL_NAME = "signal_name";
   public static final String LABEL_SIGNAL_SOURCE = "signal_source";
   public static final String LABEL_SOURCE_ID = "source_id";
   public static final String LABEL_TARGET_ID = "target_id";
-  public static final String LABEL_DEP_TYPE = "dep_type";
   public static final String LABEL_DEP_DEPTH = "dep_depth";
-  private static final String TRANSITIVE_DEP_TYPE = "transitive";
 
-  private final MeterRegistry registry;
-  private final Catalog catalog;
+  private final CatalogRegistry catalogRegistry;
   private final ItemHealthStateStore healthStateStore;
   private final HealthSignalStateStore signalStateStore;
-  private final List<PollingSignalSource> signalSources;
+  private final PollingSignalSourceRegistry signalSourceRegistry;
   private final MultiGauge itemStateGauge;
   private final MultiGauge itemOwnStateGauge;
   private final MultiGauge itemSignalStateGauge;
-  private boolean dependencyMetricsRegistered;
+  private final MultiGauge dependencyGauge;
 
   /** Creates and registers item-level health gauges based on the catalog and health state store. */
   public HealthMetrics(
       @Nonnull MeterRegistry registry,
-      @Nonnull Catalog catalog,
+      @Nonnull CatalogRegistry catalogRegistry,
       @Nonnull ItemHealthStateStore healthStateStore,
       @Nonnull HealthSignalStateStore signalStateStore,
-      @Nonnull List<PollingSignalSource> signalSources) {
-    this.registry = Objects.requireNonNull(registry, "registry");
-    this.catalog = Objects.requireNonNull(catalog, "catalog");
+      @Nonnull PollingSignalSourceRegistry signalSourceRegistry) {
+    Objects.requireNonNull(registry, "registry");
+    this.catalogRegistry = Objects.requireNonNull(catalogRegistry, "catalogRegistry");
     this.healthStateStore = Objects.requireNonNull(healthStateStore, "healthStateStore");
     this.signalStateStore = Objects.requireNonNull(signalStateStore, "signalStateStore");
-    this.signalSources = List.copyOf(Objects.requireNonNull(signalSources, "signalSources"));
+    this.signalSourceRegistry =
+        Objects.requireNonNull(signalSourceRegistry, "signalSourceRegistry");
     this.itemStateGauge =
         MultiGauge.builder(ITEM_METRIC_NAME)
             .description("Current health of a catalog item (1=UP, 0.5=UNKNOWN, 0=DOWN)")
@@ -75,6 +73,10 @@ public class HealthMetrics {
         MultiGauge.builder(ITEM_SIGNAL_METRIC_NAME)
             .description("Health status for a specific signal (1=UP, 0.5=UNKNOWN, 0=DOWN)")
             .register(registry);
+    this.dependencyGauge =
+        MultiGauge.builder(DEPENDENCY_METRIC_NAME)
+            .description("Catalog dependency edge (1=present)")
+            .register(registry);
   }
 
   /** Initializes metric registration after Spring context construction. */
@@ -86,14 +88,12 @@ public class HealthMetrics {
   /** Registers all item and dependency metrics in the meter registry. */
   void registerMetrics() {
     refreshDynamicMetrics();
-    if (!dependencyMetricsRegistered) {
-      registerDependencyMetrics();
-      dependencyMetricsRegistered = true;
-    }
   }
 
   /** Refreshes dynamic item/signal gauges using the current catalog and signal source snapshot. */
   void refreshDynamicMetrics() {
+    Catalog catalog = catalogRegistry.getCatalog();
+    List<PollingSignalSource> signalSources = signalSourceRegistry.getSignalSources();
     List<MultiGauge.Row<?>> itemRows =
         catalog.items().values().stream()
             .<MultiGauge.Row<?>>map(
@@ -103,9 +103,7 @@ public class HealthMetrics {
                             LABEL_ITEM_ID,
                             item.getId().getValue(),
                             LABEL_ITEM_NAME,
-                            item.getName(),
-                            LABEL_ITEM_TYPE,
-                            item.getType()),
+                            item.getTitle()),
                         healthStateStore,
                         store ->
                             HealthStatusMetrics.toGaugeValue(
@@ -115,7 +113,7 @@ public class HealthMetrics {
 
     Map<ItemId, Boolean> itemsWithSignals = new HashMap<>();
     for (PollingSignalSource signalSource : signalSources) {
-      itemsWithSignals.put(signalSource.getCatalogItemId(), Boolean.TRUE);
+      itemsWithSignals.put(signalSource.itemId(), Boolean.TRUE);
     }
     List<MultiGauge.Row<?>> ownRows =
         catalog.items().values().stream()
@@ -127,9 +125,7 @@ public class HealthMetrics {
                             LABEL_ITEM_ID,
                             item.getId().getValue(),
                             LABEL_ITEM_NAME,
-                            item.getName(),
-                            LABEL_ITEM_TYPE,
-                            item.getType()),
+                            item.getTitle()),
                         healthStateStore,
                         store ->
                             HealthStatusMetrics.toGaugeValue(store.getRawStatus(item.getId()))))
@@ -138,10 +134,9 @@ public class HealthMetrics {
 
     List<MultiGauge.Row<?>> signalRows = new ArrayList<>(signalSources.size());
     for (PollingSignalSource signalSource : signalSources) {
-      ItemId itemId = signalSource.getCatalogItemId();
+      ItemId itemId = signalSource.itemId();
       Item item = catalog.items().get(itemId);
-      String itemName = item != null ? item.getName() : itemId.getValue();
-      String itemType = item != null ? item.getType() : "unknown";
+      String itemName = item != null ? item.getTitle() : itemId.getValue();
       signalRows.add(
           MultiGauge.Row.of(
               Tags.of(
@@ -149,51 +144,47 @@ public class HealthMetrics {
                   itemId.getValue(),
                   LABEL_ITEM_NAME,
                   itemName,
-                  LABEL_ITEM_TYPE,
-                  itemType,
                   LABEL_SIGNAL_ID,
-                  signalSource.signalId(),
+                  signalSource.id(),
                   LABEL_SIGNAL_NAME,
-                  signalSource.name(),
+                  signalSource.title(),
                   LABEL_SIGNAL_SOURCE,
                   signalSource.source()),
               signalStateStore,
               store ->
                   HealthStatusMetrics.toGaugeValue(
-                      store.getStatus(itemId, signalSource.signalId()))));
+                      store.getStatus(itemId, signalSource.id()))));
     }
     itemSignalStateGauge.register(signalRows, true);
+    registerDependencyMetrics(catalog);
   }
 
   /** Registers dependency edge metrics. */
-  private void registerDependencyMetrics() {
-    Map<ItemId, Map<ItemId, String>> directTypes = new HashMap<>();
-    for (Dependency dependency : catalog.dependencies()) {
-      directTypes
-          .computeIfAbsent(dependency.getSourceId(), _ -> new HashMap<>())
-          .put(dependency.getTargetId(), dependency.getType());
-    }
-
-    Map<ItemId, Map<ItemId, Integer>> dependencyDepths = computeDependencyDepths();
+  private void registerDependencyMetrics(@Nonnull Catalog catalog) {
+    Map<ItemId, Map<ItemId, Integer>> dependencyDepths = computeDependencyDepths(catalog);
+    List<MultiGauge.Row<?>> dependencyRows = new ArrayList<>();
     for (Map.Entry<ItemId, Map<ItemId, Integer>> sourceEntry : dependencyDepths.entrySet()) {
       ItemId sourceId = sourceEntry.getKey();
-      Map<ItemId, String> sourceTypes = directTypes.getOrDefault(sourceId, Map.of());
       for (Map.Entry<ItemId, Integer> targetEntry : sourceEntry.getValue().entrySet()) {
         ItemId targetId = targetEntry.getKey();
-        String depType = sourceTypes.getOrDefault(targetId, TRANSITIVE_DEP_TYPE);
-        Gauge.builder(DEPENDENCY_METRIC_NAME, () -> 1.0)
-            .description("Catalog dependency edge (1=present)")
-            .tag(LABEL_SOURCE_ID, sourceId.getValue())
-            .tag(LABEL_TARGET_ID, targetId.getValue())
-            .tag(LABEL_DEP_TYPE, depType)
-            .tag(LABEL_DEP_DEPTH, Integer.toString(targetEntry.getValue()))
-            .register(registry);
+        dependencyRows.add(
+            MultiGauge.Row.of(
+                Tags.of(
+                    LABEL_SOURCE_ID,
+                    sourceId.getValue(),
+                    LABEL_TARGET_ID,
+                    targetId.getValue(),
+                    LABEL_DEP_DEPTH,
+                    Integer.toString(targetEntry.getValue())),
+                this,
+                ignored -> 1.0));
       }
     }
+    dependencyGauge.register(dependencyRows, true);
   }
 
   /** Computes the minimal traversal depth between catalog items for all transitive dependencies. */
-  private Map<ItemId, Map<ItemId, Integer>> computeDependencyDepths() {
+  private Map<ItemId, Map<ItemId, Integer>> computeDependencyDepths(@Nonnull Catalog catalog) {
     Map<ItemId, List<ItemId>> adjacency = new HashMap<>();
     for (Dependency dependency : catalog.dependencies()) {
       adjacency
