@@ -8,6 +8,7 @@ import SidebarPanel from './components/SidebarPanel';
 import DetailsPanel from './components/DetailsPanel';
 import AboutModal from './components/AboutModal';
 import FeedbackModal from './components/FeedbackModal';
+import ContactModal from './components/ContactModal';
 import {
     buildCatalogTree,
     buildItemPathname,
@@ -43,8 +44,10 @@ import {
     submitFeedback,
 } from './services/aggregatorApi';
 import type {
+    CatalogContact,
     CatalogDependency,
     CatalogItem,
+    CatalogItemContact,
     CatalogTreeNode,
     FailingDependencyEntry,
     HealthStatus,
@@ -62,9 +65,16 @@ const FEEDBACK_DRAFT_STORAGE_KEY = 'aggregator-ui-feedback-draft';
 type RouteUpdateOptions = {replace?: boolean};
 type LocationSelectionOptions = {normalize?: boolean; preserveExpansion?: boolean};
 
-const EMPTY_CATALOG: {items: CatalogItem[]; dependencies: CatalogDependency[]} = {
+const EMPTY_CATALOG: {
+    items: CatalogItem[];
+    dependencies: CatalogDependency[];
+    contacts: CatalogContact[];
+    itemContacts: CatalogItemContact[];
+} = {
     items: [],
     dependencies: [],
+    contacts: [],
+    itemContacts: [],
 };
 
 /**
@@ -98,9 +108,11 @@ export default function App() {
     const [pendingScrollId, setPendingScrollId] = useState('');
     const [isFailingSignalsOpen, setIsFailingSignalsOpen] = useState(false);
     const [isPassingSignalsOpen, setIsPassingSignalsOpen] = useState(true);
+    const [isContactsOpen, setIsContactsOpen] = useState(true);
     const [isGrafanaOpen, setIsGrafanaOpen] = useState(true);
     const [isAboutOpen, setIsAboutOpen] = useState(false);
     const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+    const [openedContact, setOpenedContact] = useState<CatalogContact | null>(null);
     const [feedbackDraft, setFeedbackDraft] = useState(
         () => localStorage.getItem(FEEDBACK_DRAFT_STORAGE_KEY) || '',
     );
@@ -336,8 +348,8 @@ export default function App() {
     useEffect(() => {
         const loadInitialCatalog = async () => {
             try {
-                const {items, dependencies} = await loadCatalog();
-                setCatalog({items, dependencies});
+                const {items, dependencies, contacts, itemContacts} = await loadCatalog();
+                setCatalog({items, dependencies, contacts, itemContacts});
                 setSelectedId((prev) => prev || items[0]?.id || '');
             } catch (err: unknown) {
                 setError(err instanceof Error ? err.message : 'Failed to load catalog');
@@ -636,6 +648,29 @@ export default function App() {
         [selectedSignals],
     );
     const hasOwnHealthSignals = selectedSignals.length > 0;
+    const selectedContacts = useMemo(() => {
+        if (!selectedItem) {
+            return [];
+        }
+        const contactsById = new Map(catalog.contacts.map((contact) => [contact.id, contact]));
+        const selectedItemContactIds = catalog.itemContacts
+            .filter((entry) => entry.itemId === selectedItem.id)
+            .map((entry) => entry.contactId);
+
+        const uniqueContacts = new Map<string, CatalogContact>();
+        selectedItemContactIds.forEach((contactId) => {
+            const contact = contactsById.get(contactId);
+            if (contact) {
+                uniqueContacts.set(contact.id, contact);
+            }
+        });
+
+        return [...uniqueContacts.values()].sort((a, b) => {
+            const left = a.title || a.id;
+            const right = b.title || b.id;
+            return left.localeCompare(right) || a.id.localeCompare(b.id);
+        });
+    }, [catalog.contacts, catalog.itemContacts, selectedItem]);
     const failingDependencyNodes = useMemo(() => {
         if (!selectedNode) {
             return [];
@@ -1052,6 +1087,22 @@ export default function App() {
         };
     }, [isFeedbackOpen]);
 
+    useEffect(() => {
+        if (!openedContact) {
+            return undefined;
+        }
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                setOpenedContact(null);
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [openedContact]);
+
     /**
      * Scrolls the tree container to a node once it is rendered and measurable.
      */
@@ -1311,6 +1362,11 @@ export default function App() {
                 hasOwnHealthSignals={hasOwnHealthSignals}
                 isPassingSignalsOpen={isPassingSignalsOpen}
                 onTogglePassingSignals={() => setIsPassingSignalsOpen((prev) => !prev)}
+                selectedContacts={selectedContacts}
+                contactsCount={selectedContacts.length}
+                isContactsOpen={isContactsOpen}
+                onToggleContacts={() => setIsContactsOpen((prev) => !prev)}
+                onOpenContact={(contact) => setOpenedContact(contact)}
                 isGrafanaOpen={isGrafanaOpen}
                 onToggleGrafana={() => setIsGrafanaOpen((prev) => !prev)}
                 grafanaHeight={grafanaHeight}
@@ -1333,6 +1389,11 @@ export default function App() {
                     setFeedbackDraft(nextValue);
                 }}
                 onSend={handleSendFeedback}
+            />
+            <ContactModal
+                isOpen={Boolean(openedContact)}
+                contact={openedContact}
+                onClose={() => setOpenedContact(null)}
             />
             {notification.message && (
                 <div

@@ -5,8 +5,74 @@
 import TopBarActions from './TopBarActions';
 import {isPlainLeftClick} from '../shared/catalogUtils';
 import {buildStatusText} from '../shared/statusText';
-import type {CatalogItem, FailingDependencyEntry, HealthStatus, ItemSignal} from '../shared/types';
+import type {
+    CatalogContact,
+    CatalogItem,
+    FailingDependencyEntry,
+    HealthStatus,
+    ItemSignal,
+} from '../shared/types';
 import type {MutableRefObject} from 'react';
+
+const contactTypeIconById: Record<string, string> = {
+    email: 'icon-contact-email',
+    phone: 'icon-contact-phone',
+    sms: 'icon-contact-sms',
+    slack: 'icon-contact-slack',
+    teams: 'icon-contact-teams',
+    telegram: 'icon-contact-telegram',
+    discord: 'icon-contact-discord',
+    mattermost: 'icon-contact-mattermost',
+    pagerduty: 'icon-contact-pagerduty',
+    opsgenie: 'icon-contact-opsgenie',
+    other: 'icon-contact-other',
+};
+
+const contactTypeDisplayNameById: Record<string, string> = {
+    email: 'Email',
+    phone: 'Phone',
+    sms: 'SMS',
+    slack: 'Slack',
+    teams: 'MS Teams',
+    telegram: 'Telegram',
+    discord: 'Discord',
+    mattermost: 'Mattermost',
+    pagerduty: 'PagerDuty',
+    opsgenie: 'Opsgenie',
+    other: 'Other',
+};
+
+const resolveContactIconId = (contactType?: string): string => {
+    if (!contactType) {
+        return contactTypeIconById.other;
+    }
+    return contactTypeIconById[contactType] || contactTypeIconById.other;
+};
+
+const resolveContactTypeDisplayName = (contactType?: string): string => {
+    if (!contactType) {
+        return contactTypeDisplayNameById.other;
+    }
+    return contactTypeDisplayNameById[contactType] || contactTypeDisplayNameById.other;
+};
+
+const resolveContactTypeClass = (contactType?: string): string => {
+    if (!contactType || !(contactType in contactTypeIconById)) {
+        return 'contact-type-other';
+    }
+    return `contact-type-${contactType}`;
+};
+
+const resolveContactLabel = (contact?: CatalogContact): string => {
+    if (!contact) {
+        return 'Unknown contact';
+    }
+    const title = String(contact.title || '').trim();
+    if (title) {
+        return title;
+    }
+    return 'Unnamed contact';
+};
 
 type DetailsPanelProps = {
     contentRef: MutableRefObject<HTMLElement | null>;
@@ -40,6 +106,11 @@ type DetailsPanelProps = {
     hasOwnHealthSignals: boolean;
     isPassingSignalsOpen: boolean;
     onTogglePassingSignals: () => void;
+    selectedContacts: CatalogContact[];
+    contactsCount: number;
+    isContactsOpen: boolean;
+    onToggleContacts: () => void;
+    onOpenContact: (contact: CatalogContact) => void;
     isGrafanaOpen: boolean;
     onToggleGrafana: () => void;
     grafanaHeight: number;
@@ -89,6 +160,11 @@ export default function DetailsPanel({
     hasOwnHealthSignals,
     isPassingSignalsOpen,
     onTogglePassingSignals,
+    selectedContacts,
+    contactsCount,
+    isContactsOpen,
+    onToggleContacts,
+    onOpenContact,
     isGrafanaOpen,
     onToggleGrafana,
     grafanaHeight,
@@ -298,6 +374,95 @@ export default function DetailsPanel({
                                                 {hasOwnHealthSignals
                                                     ? 'No passing health signals right now.'
                                                     : 'This item does not have own health signals.'}
+                                            </span>
+                                        </div>
+                                    </li>
+                                )}
+                            </ul>
+                        )}
+                    </section>
+                    <section
+                        className={`details-panel details-panel-contacts ${isContactsOpen ? 'is-open' : ''}`}
+                    >
+                        <button
+                            type="button"
+                            className={`details-panel-toggle ${isContactsOpen ? 'is-open' : ''}`}
+                            onClick={onToggleContacts}
+                            aria-expanded={isContactsOpen}
+                        >
+                            <span
+                                className={`details-panel-chevron ${isContactsOpen ? 'is-open' : ''}`}
+                                aria-hidden="true"
+                            >
+                                ›
+                            </span>
+                            <span className={`details-panel-title ${isContactsOpen ? 'is-open' : ''}`}>
+                                Contacts
+                                {' '}
+                                <span className="details-panel-count">({contactsCount})</span>
+                            </span>
+                        </button>
+                        {isContactsOpen && (
+                            <ul className="signals-list">
+                                {selectedContacts.length > 0 ? (
+                                    selectedContacts.map((contact) => (
+                                        <li key={contact.id} className="signal">
+                                            {contact.href ? (
+                                                <a
+                                                    className="contact-chip"
+                                                    href={contact.href}
+                                                    title={resolveContactLabel(contact)}
+                                                    onClick={(event) => {
+                                                        event.preventDefault();
+                                                        onOpenContact(contact);
+                                                    }}
+                                                >
+                                                    <span
+                                                        className="contact-type-icon-wrap"
+                                                        title={resolveContactTypeDisplayName(contact.type)}
+                                                        aria-label={resolveContactTypeDisplayName(contact.type)}
+                                                    >
+                                                        <svg
+                                                            className={`contact-type-icon ${resolveContactTypeClass(contact.type)}`}
+                                                            viewBox="0 0 24 24"
+                                                            focusable="false"
+                                                            aria-hidden="true"
+                                                        >
+                                                            <use href={`${iconSpriteHref}#${resolveContactIconId(contact.type)}`}/>
+                                                        </svg>
+                                                    </span>
+                                                    <span className="contact-chip-text">{resolveContactLabel(contact)}</span>
+                                                </a>
+                                            ) : (
+                                                <button
+                                                    type="button"
+                                                    className="contact-chip contact-chip-button"
+                                                    onClick={() => onOpenContact(contact)}
+                                                >
+                                                    <span
+                                                        className="contact-type-icon-wrap"
+                                                        title={resolveContactTypeDisplayName(contact.type)}
+                                                        aria-label={resolveContactTypeDisplayName(contact.type)}
+                                                    >
+                                                        <svg
+                                                            className={`contact-type-icon ${resolveContactTypeClass(contact.type)}`}
+                                                            viewBox="0 0 24 24"
+                                                            focusable="false"
+                                                            aria-hidden="true"
+                                                        >
+                                                            <use href={`${iconSpriteHref}#${resolveContactIconId(contact.type)}`}/>
+                                                        </svg>
+                                                    </span>
+                                                    <span className="contact-chip-text">{resolveContactLabel(contact)}</span>
+                                                </button>
+                                            )}
+                                        </li>
+                                    ))
+                                ) : (
+                                    <li className="signal">
+                                        <div className="signal-row">
+                                            <span className="signal-name">
+                                                No contacts configured for this item.
                                             </span>
                                         </div>
                                     </li>
