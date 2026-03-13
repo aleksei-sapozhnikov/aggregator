@@ -1,7 +1,9 @@
 import yaml from 'js-yaml';
 import type {
     AggregatorUiRuntimeConfig,
+    CatalogContact,
     CatalogDependency,
+    CatalogItemContact,
     CatalogItem,
     HealthStatus,
     ItemSignal,
@@ -168,36 +170,14 @@ export const buildGrafanaFrameUrl = (
 export const loadCatalog = async (): Promise<{
     items: CatalogItem[];
     dependencies: CatalogDependency[];
+    contacts: CatalogContact[];
+    itemContacts: CatalogItemContact[];
 }> => {
-    const normalizeItems = (rawItems: unknown): CatalogItem[] => {
-        if (!Array.isArray(rawItems)) {
-            return [];
-        }
-        return rawItems
-            .filter((entry): entry is {id?: string; title?: string} => Boolean(entry))
-            .map((item) => ({
-                id: String(item.id || '').trim(),
-                title: String(item.title || item.id || '').trim(),
-            }))
-            .filter((item) => Boolean(item.id));
-    };
-
-    const normalizeDependencies = (rawDependencies: unknown): CatalogDependency[] => {
-        if (!Array.isArray(rawDependencies)) {
-            return [];
-        }
-        return rawDependencies
-            .filter((entry): entry is {sourceId?: string; targetId?: string} => Boolean(entry))
-            .map((dependency) => ({
-                sourceId: String(dependency.sourceId || '').trim(),
-                targetId: String(dependency.targetId || '').trim(),
-            }))
-            .filter((dependency) => Boolean(dependency.sourceId) && Boolean(dependency.targetId));
-    };
-
-    const [itemsResponse, dependenciesResponse] = await Promise.all([
+    const [itemsResponse, dependenciesResponse, contactsData, itemContactsData] = await Promise.all([
         fetch(new URL('catalog-items.yaml', resolveBaseUrl())),
         fetch(new URL('catalog-dependencies.yaml', resolveBaseUrl())),
+        loadOptionalYaml('catalog-contacts.yaml'),
+        loadOptionalYaml('catalog-item-contacts.yaml'),
     ]);
 
     if (!itemsResponse.ok) {
@@ -213,10 +193,77 @@ export const loadCatalog = async (): Promise<{
     ]);
     const itemsData = (yaml.load(itemsText, {}) || {}) as {items?: unknown};
     const dependenciesData = (yaml.load(dependenciesText, {}) || {}) as {dependencies?: unknown};
+    const contactsPayload = contactsData as {contacts?: unknown};
+    const itemContactsPayload = itemContactsData as {itemContacts?: unknown};
     return {
         items: normalizeItems(itemsData.items),
         dependencies: normalizeDependencies(dependenciesData.dependencies),
+        contacts: normalizeContacts(contactsPayload.contacts),
+        itemContacts: normalizeItemContacts(itemContactsPayload.itemContacts),
     };
+};
+
+const normalizeItems = (rawItems: unknown): CatalogItem[] => {
+    if (!Array.isArray(rawItems)) {
+        return [];
+    }
+    return rawItems
+        .filter((entry): entry is {id?: string; title?: string} => Boolean(entry))
+        .map((item) => ({
+            id: String(item.id || '').trim(),
+            title: String(item.title || item.id || '').trim(),
+        }))
+        .filter((item) => Boolean(item.id));
+};
+
+const normalizeDependencies = (rawDependencies: unknown): CatalogDependency[] => {
+    if (!Array.isArray(rawDependencies)) {
+        return [];
+    }
+    return rawDependencies
+        .filter((entry): entry is {sourceId?: string; targetId?: string} => Boolean(entry))
+        .map((dependency) => ({
+            sourceId: String(dependency.sourceId || '').trim(),
+            targetId: String(dependency.targetId || '').trim(),
+        }))
+        .filter((dependency) => Boolean(dependency.sourceId) && Boolean(dependency.targetId));
+};
+
+const normalizeContacts = (rawContacts: unknown): CatalogContact[] => {
+    if (!Array.isArray(rawContacts)) {
+        return [];
+    }
+    return rawContacts
+        .filter((entry): entry is {id?: string; title?: string; type?: string; href?: string} => Boolean(entry))
+        .map((contact) => ({
+            id: String(contact.id || '').trim(),
+            title: String(contact.title || contact.id || '').trim(),
+            type: String(contact.type || '').trim(),
+            href: String(contact.href || '').trim(),
+        }))
+        .filter((contact) => Boolean(contact.id) && Boolean(contact.type));
+};
+
+const normalizeItemContacts = (rawItemContacts: unknown): CatalogItemContact[] => {
+    if (!Array.isArray(rawItemContacts)) {
+        return [];
+    }
+    return rawItemContacts
+        .filter((entry): entry is {itemId?: string; contactId?: string} => Boolean(entry))
+        .map((itemContact) => ({
+            itemId: String(itemContact.itemId || '').trim(),
+            contactId: String(itemContact.contactId || '').trim(),
+        }))
+        .filter((itemContact) => Boolean(itemContact.itemId) && Boolean(itemContact.contactId));
+};
+
+const loadOptionalYaml = async (path: string): Promise<unknown> => {
+    const response = await fetch(new URL(path, resolveBaseUrl()));
+    if (!response.ok) {
+        return {};
+    }
+    const text = await response.text();
+    return (yaml.load(text, {}) || {}) as unknown;
 };
 
 export const fetchPrometheusStatuses = async (
