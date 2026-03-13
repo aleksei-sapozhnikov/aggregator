@@ -1,0 +1,83 @@
+﻿# yaml-language-server: $schema=../schemas/catalog-contacts.schema.yaml
+contacts:
+  - id: ct_7n4k2p9a
+    title: customer-department@demo.email
+    type: email
+    href: /contacts/ct_7n4k2p9a
+  - id: ct_h3m8q1tz
+    title: "#commerce-support"
+    type: slack
+    href: /contacts/ct_h3m8q1tz
+  - id: ct_p2v6d4rw
+    title: Commerce Primary On-Call
+    type: pagerduty
+    href: /contacts/ct_p2v6d4rw
+  - id: ct_b9x5k3jd
+    title: sre-ops@demo.email
+    type: email
+    href: /contacts/ct_b9x5k3jd
+  - id: ct_m4c7n2yf
+    title: Operations Command Center
+    type: teams
+    href: /contacts/ct_m4c7n2yf
+  - id: ct_t8r1w6qp
+    title: Platform Operations On-Call
+    type: opsgenie
+    href: /contacts/ct_t8r1w6qp
+  - id: ct_d5f2h9km
+    title: john.doe@demo.email
+    type: email
+    href: /contacts/ct_d5f2h9km
+  - id: ct_q7l3v8nx
+    title: "@customer_success_demo"
+    type: telegram
+    href: /contacts/ct_q7l3v8nx
+  - id: ct_k2p9m4sb
+    title: Customer Hub
+    type: discord
+    href: /contacts/ct_k2p9m4sb
+  - id: ct_v6j1t7rc
+    title: "#order-fulfillment"
+    type: slack
+    href: /contacts/ct_v6j1t7rc
+  - id: ct_n8w3d5zg
+    title: +1 202-555-0147
+    type: phone
+    href: /contacts/ct_n8w3d5zg
+  - id: ct_r4y2k7lh
+    title: +1 202-555-0191
+    type: sms
+    href: /contacts/ct_r4y2k7lh
+  - id: ct_f9q6m1xp
+    title: Logistics Control Room
+    type: teams
+    href: /contacts/ct_f9q6m1xp
+  - id: ct_w3c8t2bn
+    title: logistics-war-room
+    type: mattermost
+    href: /contacts/ct_w3c8t2bn
+  - id: ct_z1h7p5kd
+    title: Logistics Escalation
+    type: pagerduty
+    href: /contacts/ct_z1h7p5kd
+  - id: ct_l6s4v9jr
+    title: profile-team@demo.email
+    type: email
+    href: /contacts/ct_l6s4v9jr
+  - id: ct_g2n8x3mf
+    title: "#messaging-alerts"
+    type: slack
+    href: /contacts/ct_g2n8x3mf
+  - id: ct_y5b1q7tc
+    title: Campaign Operations
+    type: teams
+    href: /contacts/ct_y5b1q7tc
+  - id: ct_c4r9k2vw
+    title: +1 202-555-0112
+    type: phone
+    href: /contacts/ct_c4r9k2vw
+  - id: ct_j7d3m8pn
+    title: platform-oncall@demo.email
+    type: email
+    href: /contacts/ct_j7d3m8pn
+
