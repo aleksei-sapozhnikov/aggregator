@@ -20,6 +20,8 @@ services:
         CONTAINER_ROOT: services-core/aggregator-ui
         CATALOG_ITEMS_FILE: config/empty/catalog-items.yaml
         CATALOG_DEPENDENCIES_FILE: config/empty/catalog-dependencies.yaml
+        CATALOG_CONTACTS_FILE: config/empty/catalog-contacts.yaml
+        CATALOG_ITEM_CONTACTS_FILE: config/empty/catalog-item-contacts.yaml
         VITE_APP_TITLE: ""
 
   prometheus:
