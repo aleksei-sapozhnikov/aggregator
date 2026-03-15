@@ -14,6 +14,18 @@ export interface CatalogDependency {
   targetId: string;
 }
 
+export interface CatalogContact {
+  id: string;
+  title?: string;
+  type: string;
+  href?: string;
+}
+
+export interface CatalogItemContact {
+  itemId: string;
+  contactId: string;
+}
+
 export interface CatalogTreeNode {
   item: CatalogItem;
   children: CatalogTreeNode[];
