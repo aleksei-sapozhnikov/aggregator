@@ -2,13 +2,14 @@
  * @file Main React application orchestrator for aggregator-ui.
  */
 
-import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {TouchEvent} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import SidebarPanel from './components/SidebarPanel';
 import DetailsPanel from './components/DetailsPanel';
 import AboutModal from './components/AboutModal';
 import FeedbackModal from './components/FeedbackModal';
 import ContactModal from './components/ContactModal';
+import ActorModal from './components/ActorModal';
 import {
     buildCatalogTree,
     buildItemPathname,
@@ -43,10 +44,14 @@ import {
     resolveSidebarTitle,
     submitFeedback,
 } from './services/aggregatorApi';
+import {sortContactsWithPrimaryFirst} from './shared/contactUtils';
 import type {
+    CatalogActor,
+    CatalogActorContact,
     CatalogContact,
     CatalogDependency,
     CatalogItem,
+    CatalogItemActor,
     CatalogItemContact,
     CatalogTreeNode,
     FailingDependencyEntry,
@@ -64,17 +69,35 @@ const MOBILE_SWIPE_MAX_VERTICAL_DRIFT_PX = 48;
 const FEEDBACK_DRAFT_STORAGE_KEY = 'aggregator-ui-feedback-draft';
 type RouteUpdateOptions = {replace?: boolean};
 type LocationSelectionOptions = {normalize?: boolean; preserveExpansion?: boolean};
+type ItemActorsEntry = {
+    owner: CatalogActor | null;
+    otherActors: CatalogActor[];
+};
+
+const compareSignalsByStatusAndTitle = (left: ItemSignal, right: ItemSignal): number => {
+    const statusCompare = compareHealthStatus(left.status, right.status);
+    if (statusCompare !== 0) {
+        return statusCompare;
+    }
+    return (left.title || left.id).localeCompare(right.title || right.id) || left.id.localeCompare(right.id);
+};
 
 const EMPTY_CATALOG: {
     items: CatalogItem[];
     dependencies: CatalogDependency[];
     contacts: CatalogContact[];
     itemContacts: CatalogItemContact[];
+    actors: CatalogActor[];
+    itemActors: CatalogItemActor[];
+    actorContacts: CatalogActorContact[];
 } = {
     items: [],
     dependencies: [],
     contacts: [],
     itemContacts: [],
+    actors: [],
+    itemActors: [],
+    actorContacts: [],
 };
 
 /**
@@ -106,13 +129,16 @@ export default function App() {
     const [searchAutocompleteIndex, setSearchAutocompleteIndex] = useState<SearchAutocompleteIndex | null>(null);
     const [isSearchAutocompleteReady, setIsSearchAutocompleteReady] = useState(false);
     const [pendingScrollId, setPendingScrollId] = useState('');
+    const [isSignalsOpen, setIsSignalsOpen] = useState(true);
     const [isFailingSignalsOpen, setIsFailingSignalsOpen] = useState(false);
-    const [isPassingSignalsOpen, setIsPassingSignalsOpen] = useState(true);
+    const [isAffectedBySignalsOpen, setIsAffectedBySignalsOpen] = useState(false);
+    const [isPassingSignalsOpen, setIsPassingSignalsOpen] = useState(false);
     const [isContactsOpen, setIsContactsOpen] = useState(true);
     const [isGrafanaOpen, setIsGrafanaOpen] = useState(true);
     const [isAboutOpen, setIsAboutOpen] = useState(false);
     const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
     const [openedContact, setOpenedContact] = useState<CatalogContact | null>(null);
+    const [openedActorId, setOpenedActorId] = useState('');
     const [feedbackDraft, setFeedbackDraft] = useState(
         () => localStorage.getItem(FEEDBACK_DRAFT_STORAGE_KEY) || '',
     );
@@ -128,7 +154,6 @@ export default function App() {
         phase: 'hidden',
     });
     const [isTitlePrimaryBelowControls, setIsTitlePrimaryBelowControls] = useState(false);
-    const failingSignalsAutoOpenRef = useRef(true);
     const [grafanaHeight, setGrafanaHeight] = useState(0);
     const prevSearchTokensRef = useRef(0);
     const clearSearchRequestedRef = useRef(false);
@@ -348,8 +373,16 @@ export default function App() {
     useEffect(() => {
         const loadInitialCatalog = async () => {
             try {
-                const {items, dependencies, contacts, itemContacts} = await loadCatalog();
-                setCatalog({items, dependencies, contacts, itemContacts});
+                const {
+                    items,
+                    dependencies,
+                    contacts,
+                    itemContacts,
+                    actors,
+                    itemActors,
+                    actorContacts,
+                } = await loadCatalog();
+                setCatalog({items, dependencies, contacts, itemContacts, actors, itemActors, actorContacts});
                 setSelectedId((prev) => prev || items[0]?.id || '');
             } catch (err: unknown) {
                 setError(err instanceof Error ? err.message : 'Failed to load catalog');
@@ -630,13 +663,7 @@ export default function App() {
             return [];
         }
         const signals = itemSignals[selectedItem.id] || [];
-        return [...signals].sort((a, b) => {
-            const statusCompare = compareHealthStatus(a.status, b.status);
-            if (statusCompare !== 0) {
-                return statusCompare;
-            }
-            return (a.title || a.id).localeCompare(b.title || b.id) || a.id.localeCompare(b.id);
-        });
+        return [...signals].sort(compareSignalsByStatusAndTitle);
     }, [itemSignals, selectedItem]);
 
     const selectedFailingSignals = useMemo(
@@ -648,29 +675,82 @@ export default function App() {
         [selectedSignals],
     );
     const hasOwnHealthSignals = selectedSignals.length > 0;
-    const selectedContacts = useMemo(() => {
-        if (!selectedItem) {
-            return [];
-        }
-        const contactsById = new Map(catalog.contacts.map((contact) => [contact.id, contact]));
-        const selectedItemContactIds = catalog.itemContacts
-            .filter((entry) => entry.itemId === selectedItem.id)
-            .map((entry) => entry.contactId);
-
-        const uniqueContacts = new Map<string, CatalogContact>();
-        selectedItemContactIds.forEach((contactId) => {
-            const contact = contactsById.get(contactId);
-            if (contact) {
-                uniqueContacts.set(contact.id, contact);
+    const contactsById = useMemo(
+        () => new Map(catalog.contacts.map((contact) => [contact.id, contact])),
+        [catalog.contacts],
+    );
+    const actorsById = useMemo(
+        () => new Map(catalog.actors.map((actor) => [actor.id, actor])),
+        [catalog.actors],
+    );
+    const actorContactsByActorId = useMemo(() => {
+        const grouped = new Map<string, { contacts: Map<string, CatalogContact>; primaryContactId: string }>();
+        catalog.actorContacts.forEach((entry) => {
+            const contact = contactsById.get(entry.contactId);
+            if (!contact) {
+                return;
+            }
+            if (!grouped.has(entry.actorId)) {
+                grouped.set(entry.actorId, {contacts: new Map<string, CatalogContact>(), primaryContactId: ''});
+            }
+            const actorContacts = grouped.get(entry.actorId);
+            if (!actorContacts) {
+                return;
+            }
+            actorContacts.contacts.set(contact.id, contact);
+            if (entry.isPrimary && !actorContacts.primaryContactId) {
+                actorContacts.primaryContactId = contact.id;
             }
         });
-
-        return [...uniqueContacts.values()].sort((a, b) => {
-            const left = a.title || a.id;
-            const right = b.title || b.id;
-            return left.localeCompare(right) || a.id.localeCompare(b.id);
+        const result = new Map<string, { contacts: CatalogContact[]; primaryContact: CatalogContact | null }>();
+        grouped.forEach((value, actorId) => {
+            const sortedContacts = sortContactsWithPrimaryFirst(
+                [...value.contacts.values()],
+                value.primaryContactId,
+            );
+            const primaryContact = value.primaryContactId
+                ? sortedContacts.find((contact) => contact.id === value.primaryContactId) || sortedContacts[0] || null
+                : sortedContacts[0] || null;
+            result.set(actorId, {contacts: sortedContacts, primaryContact});
         });
-    }, [catalog.contacts, catalog.itemContacts, selectedItem]);
+        return result;
+    }, [catalog.actorContacts, contactsById]);
+    const actorsByItemId = useMemo(() => {
+        const grouped = new Map<string, CatalogItemActor[]>();
+        catalog.itemActors.forEach((entry) => {
+            if (!grouped.has(entry.itemId)) {
+                grouped.set(entry.itemId, []);
+            }
+            grouped.get(entry.itemId)?.push(entry);
+        });
+        const result = new Map<string, ItemActorsEntry>();
+        grouped.forEach((relations, itemId) => {
+            const actorMap = new Map<string, CatalogActor>();
+            relations.forEach((relation) => {
+                const actor = actorsById.get(relation.actorId);
+                if (actor) {
+                    actorMap.set(actor.id, actor);
+                }
+            });
+            const resolvedActors = [...actorMap.values()];
+            if (resolvedActors.length === 0) {
+                return;
+            }
+            const typedOwner = resolvedActors.find((actor) => actor.type === 'owner') || null;
+            const primaryRelation = relations.find((relation) => relation.isPrimary);
+            const relationPrimary = primaryRelation ? actorsById.get(primaryRelation.actorId) || null : null;
+            const owner = typedOwner || relationPrimary || null;
+            result.set(itemId, {
+                owner,
+                otherActors: resolvedActors.filter((actor) => actor.id !== owner?.id),
+            });
+        });
+        return result;
+    }, [actorsById, catalog.itemActors]);
+    const selectedItemActors = useMemo(
+        () => (selectedItem ? actorsByItemId.get(selectedItem.id) || null : null),
+        [actorsByItemId, selectedItem],
+    );
     const failingDependencyNodes = useMemo(() => {
         if (!selectedNode) {
             return [];
@@ -699,13 +779,7 @@ export default function App() {
             const hasOwnDependencies = dependencySources.has(dependencyId);
             const failingSignals = (itemSignals[dependencyId] || [])
                 .filter((signal) => signal.status === 'down')
-                .sort((a, b) => {
-                    const statusCompare = compareHealthStatus(a.status, b.status);
-                    if (statusCompare !== 0) {
-                        return statusCompare;
-                    }
-                    return (a.title || a.id).localeCompare(b.title || b.id) || a.id.localeCompare(b.id);
-                });
+                .sort(compareSignalsByStatusAndTitle);
             const shouldIncludeLeafNonUp = !hasOwnDependencies && dependencyStatus !== 'up';
             if (failingSignals.length === 0 && !shouldIncludeLeafNonUp) {
                 return;
@@ -713,7 +787,7 @@ export default function App() {
             const item = itemMap.get(dependencyId);
             result.push({
                 id: dependencyId,
-                    name: item?.title || dependencyId,
+                name: item?.title || dependencyId,
                 path: dependencyNode.path || [dependencyId],
                 status: dependencyStatus,
                 failingSignals,
@@ -722,14 +796,28 @@ export default function App() {
         });
         return result.sort((a, b) => a.name.localeCompare(b.name));
     }, [catalog.dependencies, failingDependencyNodes, itemMap, itemSignals, itemStatuses]);
-    const failingSignalsCount = useMemo(
-        () =>
-            selectedFailingSignals.length +
-            failingDependencies.reduce((sum, entry) => sum + entry.failingCountContribution, 0),
-        [failingDependencies, selectedFailingSignals.length],
+    const dependencyActorsByItemId = useMemo(() => {
+        const map: Record<string, ItemActorsEntry | null> = {};
+        failingDependencies.forEach((entry) => {
+            map[entry.id] = actorsByItemId.get(entry.id) || null;
+        });
+        return map;
+    }, [actorsByItemId, failingDependencies]);
+    const openedActor = useMemo(
+        () => (openedActorId ? actorsById.get(openedActorId) || null : null),
+        [actorsById, openedActorId],
+    );
+    const openedActorContacts = useMemo(
+        () => (openedActor ? actorContactsByActorId.get(openedActor.id)?.contacts || [] : []),
+        [actorContactsByActorId, openedActor],
+    );
+    const openedActorPrimaryContact = useMemo(
+        () => (openedActor ? actorContactsByActorId.get(openedActor.id)?.primaryContact || null : null),
+        [actorContactsByActorId, openedActor],
     );
     const passingSignalsCount = selectedPassingSignals.length;
-    const hasFailingSignals = failingSignalsCount > 0;
+    const hasOwnFailingSignals = selectedFailingSignals.length > 0;
+    const hasAffectedBySignals = failingDependencies.length > 0;
     const isSidebarOpen = isMobileLayout ? isMobileSidebarOpen : isDesktopSidebarOpen;
     const shouldOffsetContentHeader = isMobileLayout || !isSidebarOpen;
     const homeHref = basePath || '/';
@@ -1009,8 +1097,9 @@ export default function App() {
     ]);
 
     useEffect(() => {
-        setIsFailingSignalsOpen(false);
-        failingSignalsAutoOpenRef.current = true;
+        setIsFailingSignalsOpen(true);
+        setIsAffectedBySignalsOpen(true);
+        setIsPassingSignalsOpen(false);
     }, [selectedId]);
 
     useEffect(() => {
@@ -1028,16 +1117,6 @@ export default function App() {
             grafanaFrameReadyRef.current = false;
         }
     }, [isGrafanaOpen]);
-
-    useEffect(() => {
-        if (!failingSignalsAutoOpenRef.current) {
-            return;
-        }
-        if (hasFailingSignals) {
-            setIsFailingSignalsOpen(true);
-            failingSignalsAutoOpenRef.current = false;
-        }
-    }, [hasFailingSignals, selectedId]);
 
     useEffect(() => {
         if (!isSearchActive) {
@@ -1102,6 +1181,22 @@ export default function App() {
             window.removeEventListener('keydown', handleKeyDown);
         };
     }, [openedContact]);
+
+    useEffect(() => {
+        if (!openedActorId) {
+            return undefined;
+        }
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                setOpenedActorId('');
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [openedActorId]);
 
     /**
      * Scrolls the tree container to a node once it is rendered and measurable.
@@ -1349,21 +1444,27 @@ export default function App() {
                 selectedTitleFirstWord={selectedTitleFirstWord}
                 selectedTitleRest={selectedTitleRest}
                 contentTitlePrimaryRef={contentTitlePrimaryRef}
-                failingSignalsCount={failingSignalsCount}
                 selectedFailingSignals={selectedFailingSignals}
                 failingDependencies={failingDependencies}
-                hasFailingSignals={hasFailingSignals}
+                dependencyActorsByItemId={dependencyActorsByItemId}
+                selectedItemActors={selectedItemActors}
+                actorContactsByActorId={actorContactsByActorId}
+                hasOwnFailingSignals={hasOwnFailingSignals}
                 isFailingSignalsOpen={isFailingSignalsOpen}
                 onToggleFailingSignals={() => setIsFailingSignalsOpen((prev) => !prev)}
+                hasAffectedBySignals={hasAffectedBySignals}
+                isAffectedBySignalsOpen={isAffectedBySignalsOpen}
+                onToggleAffectedBySignals={() => setIsAffectedBySignalsOpen((prev) => !prev)}
                 buildItemLink={buildItemLink}
                 onSelectItemByPath={handleSelectItemByPath}
+                onOpenActor={(actor) => setOpenedActorId(actor.id)}
+                isSignalsOpen={isSignalsOpen}
+                onToggleSignals={() => setIsSignalsOpen((prev) => !prev)}
                 passingSignalsCount={passingSignalsCount}
                 selectedPassingSignals={selectedPassingSignals}
                 hasOwnHealthSignals={hasOwnHealthSignals}
                 isPassingSignalsOpen={isPassingSignalsOpen}
                 onTogglePassingSignals={() => setIsPassingSignalsOpen((prev) => !prev)}
-                selectedContacts={selectedContacts}
-                contactsCount={selectedContacts.length}
                 isContactsOpen={isContactsOpen}
                 onToggleContacts={() => setIsContactsOpen((prev) => !prev)}
                 onOpenContact={(contact) => setOpenedContact(contact)}
@@ -1394,6 +1495,15 @@ export default function App() {
                 isOpen={Boolean(openedContact)}
                 contact={openedContact}
                 onClose={() => setOpenedContact(null)}
+            />
+            <ActorModal
+                isOpen={Boolean(openedActor)}
+                actor={openedActor}
+                contacts={openedActorContacts}
+                primaryContact={openedActorPrimaryContact}
+                iconSpriteHref={iconSpriteHref}
+                onClose={() => setOpenedActorId('')}
+                onOpenContact={(contact) => setOpenedContact(contact)}
             />
             {notification.message && (
                 <div
