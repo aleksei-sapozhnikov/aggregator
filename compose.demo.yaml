@@ -26,6 +26,9 @@ services:
         CATALOG_DEPENDENCIES_FILE: config/demo/catalog-dependencies.yaml
         CATALOG_CONTACTS_FILE: config/demo/catalog-contacts.yaml
         CATALOG_ITEM_CONTACTS_FILE: config/demo/catalog-item-contacts.yaml
+        CATALOG_ACTORS_FILE: config/demo/catalog-actors.yaml
+        CATALOG_ITEM_ACTORS_FILE: config/demo/catalog-item-actors.yaml
+        CATALOG_ACTORS_CONTACTS_FILE: config/demo/catalog-actors-contacts.yaml
         VITE_APP_TITLE: "Health Aggregator DEMO"
 
   chaos-maker:
