@@ -397,7 +397,7 @@ export default function DetailsPanel({
                             >
                                 ›
                             </span>
-                            <span className={`details-panel-title ${isContactsOpen ? 'is-open' : ''}`}>
+                            <span className="details-panel-title">
                                 Contacts
                                 {' '}
                                 <span className="details-panel-count">({contactsActorsCount})</span>
@@ -461,7 +461,7 @@ export default function DetailsPanel({
                             >
                                 ›
                             </span>
-                            <span className={`details-panel-title ${isSignalsOpen ? 'is-open' : ''}`}>
+                            <span className="details-panel-title">
                                 Signals
                             </span>
                         </button>
@@ -661,7 +661,7 @@ export default function DetailsPanel({
                             >
                                 ›
                             </span>
-                            <span className={`details-panel-title ${isGrafanaOpen ? 'is-open' : ''}`}>
+                            <span className="details-panel-title">
                                 Timeline
                             </span>
                         </button>
