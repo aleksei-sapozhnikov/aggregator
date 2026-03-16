@@ -24,6 +24,9 @@ ARG CATALOG_ITEMS_FILE
 ARG CATALOG_DEPENDENCIES_FILE
 ARG CATALOG_CONTACTS_FILE
 ARG CATALOG_ITEM_CONTACTS_FILE
+ARG CATALOG_ACTORS_FILE
+ARG CATALOG_ITEM_ACTORS_FILE
+ARG CATALOG_ACTORS_CONTACTS_FILE
 
 COPY --from=build /app/dist /usr/share/caddy
 COPY --from=build /app/Caddyfile /etc/caddy/Caddyfile
@@ -31,6 +34,9 @@ COPY ${CATALOG_ITEMS_FILE} /usr/share/caddy/catalog-items.yaml
 COPY ${CATALOG_DEPENDENCIES_FILE} /usr/share/caddy/catalog-dependencies.yaml
 COPY ${CATALOG_CONTACTS_FILE} /usr/share/caddy/catalog-contacts.yaml
 COPY ${CATALOG_ITEM_CONTACTS_FILE} /usr/share/caddy/catalog-item-contacts.yaml
+COPY ${CATALOG_ACTORS_FILE} /usr/share/caddy/catalog-actors.yaml
+COPY ${CATALOG_ITEM_ACTORS_FILE} /usr/share/caddy/catalog-item-actors.yaml
+COPY ${CATALOG_ACTORS_CONTACTS_FILE} /usr/share/caddy/catalog-actors-contacts.yaml
 
 EXPOSE 3000
 ENTRYPOINT ["caddy", "run", "--config", "/etc/caddy/Caddyfile"]
