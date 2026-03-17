@@ -26,6 +26,27 @@ export interface CatalogItemContact {
   contactId: string;
 }
 
+export type CatalogActorType = 'owner' | 'user' | 'other';
+
+export interface CatalogActor {
+    id: string;
+    title: string;
+    type: CatalogActorType;
+    description?: string;
+}
+
+export interface CatalogItemActor {
+    itemId: string;
+    actorId: string;
+    isPrimary?: boolean;
+}
+
+export interface CatalogActorContact {
+    actorId: string;
+    contactId: string;
+    isPrimary?: boolean;
+}
+
 export interface CatalogTreeNode {
   item: CatalogItem;
   children: CatalogTreeNode[];
@@ -35,7 +56,7 @@ export interface CatalogTreeNode {
 
 export interface ItemSignal {
   id: string;
-  name?: string;
+    title?: string;
   status: HealthStatus;
 }
 

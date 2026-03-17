@@ -1,10 +1,13 @@
 import yaml from 'js-yaml';
 import type {
     AggregatorUiRuntimeConfig,
+    CatalogActor,
+    CatalogActorContact,
     CatalogContact,
     CatalogDependency,
-    CatalogItemContact,
     CatalogItem,
+    CatalogItemActor,
+    CatalogItemContact,
     HealthStatus,
     ItemSignal,
 } from '../shared/types';
@@ -172,12 +175,18 @@ export const loadCatalog = async (): Promise<{
     dependencies: CatalogDependency[];
     contacts: CatalogContact[];
     itemContacts: CatalogItemContact[];
+    actors: CatalogActor[];
+    itemActors: CatalogItemActor[];
+    actorContacts: CatalogActorContact[];
 }> => {
-    const [itemsResponse, dependenciesResponse, contactsData, itemContactsData] = await Promise.all([
+    const [itemsResponse, dependenciesResponse, contactsData, itemContactsData, actorsData, itemActorsData, actorContactsData] = await Promise.all([
         fetch(new URL('catalog-items.yaml', resolveBaseUrl())),
         fetch(new URL('catalog-dependencies.yaml', resolveBaseUrl())),
         loadOptionalYaml('catalog-contacts.yaml'),
         loadOptionalYaml('catalog-item-contacts.yaml'),
+        loadOptionalYaml('catalog-actors.yaml'),
+        loadOptionalYaml('catalog-item-actors.yaml'),
+        loadOptionalYaml('catalog-actors-contacts.yaml'),
     ]);
 
     if (!itemsResponse.ok) {
@@ -195,11 +204,17 @@ export const loadCatalog = async (): Promise<{
     const dependenciesData = (yaml.load(dependenciesText, {}) || {}) as {dependencies?: unknown};
     const contactsPayload = contactsData as {contacts?: unknown};
     const itemContactsPayload = itemContactsData as {itemContacts?: unknown};
+    const actorsPayload = actorsData as { actors?: unknown };
+    const itemActorsPayload = itemActorsData as { itemActors?: unknown };
+    const actorContactsPayload = actorContactsData as { actorContacts?: unknown; actorsContacts?: unknown };
     return {
         items: normalizeItems(itemsData.items),
         dependencies: normalizeDependencies(dependenciesData.dependencies),
         contacts: normalizeContacts(contactsPayload.contacts),
         itemContacts: normalizeItemContacts(itemContactsPayload.itemContacts),
+        actors: normalizeActors(actorsPayload.actors),
+        itemActors: normalizeItemActors(itemActorsPayload.itemActors),
+        actorContacts: normalizeActorContacts(actorContactsPayload.actorContacts || actorContactsPayload.actorsContacts),
     };
 };
 
@@ -257,6 +272,92 @@ const normalizeItemContacts = (rawItemContacts: unknown): CatalogItemContact[] =
         .filter((itemContact) => Boolean(itemContact.itemId) && Boolean(itemContact.contactId));
 };
 
+const normalizeActors = (rawActors: unknown): CatalogActor[] => {
+    if (!Array.isArray(rawActors)) {
+        return [];
+    }
+    return rawActors
+        .filter((entry): entry is {
+            id?: string;
+            title?: string;
+            type?: string;
+            description?: string
+        } => Boolean(entry))
+        .map((actor) => ({
+            id: String(actor.id || '').trim(),
+            title: String(actor.title || '').trim(),
+            type: String(actor.type || '').trim(),
+            description: String(actor.description || '').trim(),
+        }))
+        .filter((actor) => Boolean(actor.id) && Boolean(actor.title) && isSupportedActorType(actor.type))
+        .map((actor) => ({
+            ...actor,
+            type: actor.type as CatalogActor['type'],
+        }));
+};
+
+const normalizeItemActors = (rawItemActors: unknown): CatalogItemActor[] => {
+    if (!Array.isArray(rawItemActors)) {
+        return [];
+    }
+    return rawItemActors
+        .filter((entry): entry is {
+            itemId?: string;
+            actorId?: string;
+            isPrimary?: boolean | string | number;
+            primary?: boolean | string | number;
+            isOwner?: boolean | string | number;
+        } => Boolean(entry))
+        .map((itemActor) => {
+            const isPrimary = toBoolean(itemActor.isPrimary)
+                || toBoolean(itemActor.primary)
+                || toBoolean(itemActor.isOwner)
+                || false;
+            return {
+                itemId: String(itemActor.itemId || '').trim(),
+                actorId: String(itemActor.actorId || '').trim(),
+                isPrimary,
+            };
+        })
+        .filter((itemActor) => Boolean(itemActor.itemId) && Boolean(itemActor.actorId));
+};
+
+const normalizeActorContacts = (rawActorContacts: unknown): CatalogActorContact[] => {
+    if (!Array.isArray(rawActorContacts)) {
+        return [];
+    }
+    return rawActorContacts
+        .filter((entry): entry is {
+            actorId?: string;
+            contactId?: string;
+            isPrimary?: boolean | string | number;
+            primary?: boolean | string | number;
+        } => Boolean(entry))
+        .map((actorContact) => ({
+            actorId: String(actorContact.actorId || '').trim(),
+            contactId: String(actorContact.contactId || '').trim(),
+            isPrimary: toBoolean(actorContact.isPrimary) || toBoolean(actorContact.primary),
+        }))
+        .filter((actorContact) => Boolean(actorContact.actorId) && Boolean(actorContact.contactId));
+};
+
+const toBoolean = (value: unknown): boolean => {
+    if (typeof value === 'boolean') {
+        return value;
+    }
+    if (typeof value === 'number') {
+        return value !== 0;
+    }
+    if (typeof value === 'string') {
+        const normalized = value.trim().toLowerCase();
+        return normalized === 'true' || normalized === '1' || normalized === 'yes' || normalized === 'y';
+    }
+    return false;
+};
+
+const isSupportedActorType = (value: string): value is CatalogActor['type'] =>
+    value === 'owner' || value === 'user' || value === 'other';
+
 const loadOptionalYaml = async (path: string): Promise<unknown> => {
     const response = await fetch(new URL(path, resolveBaseUrl()));
     if (!response.ok) {
@@ -301,15 +402,15 @@ export const fetchPrometheusStatuses = async (
             results.forEach((entry) => {
                 const itemId = entry.metric?.item_id;
                 const signalId = entry.metric?.signal_id;
-                const signalName = entry.metric?.signal_name || signalId;
+                const signalTitle = entry.metric?.signal_name || signalId;
                 if (!itemId) {
                     return;
                 }
                 const value = Number.parseFloat(String(entry.value?.[1] ?? 'NaN'));
                 const status = parsePrometheusHealthStatus(value);
-                if (signalId && signalName) {
+                if (signalId && signalTitle) {
                     const list = nextItemSignals[itemId] || [];
-                    list.push({id: signalId, name: signalName, status});
+                    list.push({id: signalId, title: signalTitle, status});
                     nextItemSignals[itemId] = list;
                 }
             });

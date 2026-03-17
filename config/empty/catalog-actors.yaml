@@ -1,0 +1,2 @@
+# yaml-language-server: $schema=../schemas/catalog-actors.schema.yaml
+actors: [ ]

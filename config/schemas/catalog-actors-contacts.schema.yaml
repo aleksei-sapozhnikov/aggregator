@@ -1,0 +1,25 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://aggregator.local/schemas/catalog-actors-contacts.schema.yaml
+title: Catalog Actors Contacts
+type: object
+required:
+  - actorContacts
+additionalProperties: false
+properties:
+  actorContacts:
+    type: array
+    items:
+      type: object
+      required:
+        - actorId
+        - contactId
+      additionalProperties: false
+      properties:
+        actorId:
+          type: string
+          minLength: 1
+        contactId:
+          type: string
+          minLength: 1
+        isPrimary:
+          type: boolean
