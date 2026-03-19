@@ -1,0 +1,321 @@
+# yaml-language-server: $schema=../schemas/catalog-item-actors.schema.yaml
+itemActors:
+  - itemId: commerce-platform
+    actorId: ac_g6k1t9rv
+  - itemId: commerce-platform
+    actorId: ac_j5d2m8pf
+  - itemId: commerce-platform
+    actorId: ac_h2c9r6vy
+
+  - itemId: operations-suite
+    actorId: ac_n5b3q8lz
+  - itemId: operations-suite
+    actorId: ac_b9x4k7rc
+  - itemId: operations-suite
+    actorId: ac_f8m2c7tr
+
+  - itemId: customer-experience
+    actorId: ac_l6v3s9jb
+  - itemId: customer-experience
+    actorId: ac_q7n3v8mt
+  - itemId: customer-experience
+    actorId: ac_h2c9r6vy
+
+  - itemId: commerce-line-core
+    actorId: ac_g6k1t9rv
+  - itemId: commerce-line-core
+    actorId: ac_j5d2m8pf
+  - itemId: commerce-extensions
+    actorId: ac_g6k1t9rv
+  - itemId: commerce-extensions
+    actorId: ac_j5d2m8pf
+  - itemId: commerce-core
+    actorId: ac_g6k1t9rv
+  - itemId: commerce-core
+    actorId: ac_j5d2m8pf
+  - itemId: order-domain
+    actorId: ac_w2h7m4pd
+  - itemId: order-domain
+    actorId: ac_j5d2m8pf
+  - itemId: order-intake-hub
+    actorId: ac_w2h7m4pd
+  - itemId: order-intake-hub
+    actorId: ac_j5d2m8pf
+  - itemId: order-guard-hub
+    actorId: ac_n3q8w6zd
+  - itemId: order-guard-hub
+    actorId: ac_c7v1b4nk
+  - itemId: order-guard-hub
+    actorId: ac_t4p6h1ks
+  - itemId: order-finance-hub
+    actorId: ac_u7m1k5vr
+  - itemId: order-finance-hub
+    actorId: ac_j5d2m8pf
+  - itemId: order-workflow
+    actorId: ac_w2h7m4pd
+  - itemId: order-workflow
+    actorId: ac_j5d2m8pf
+
+  - itemId: operations-line
+    actorId: ac_n5b3q8lz
+  - itemId: operations-line
+    actorId: ac_b9x4k7rc
+  - itemId: ops-accelerators
+    actorId: ac_n5b3q8lz
+  - itemId: ops-accelerators
+    actorId: ac_b9x4k7rc
+  - itemId: fulfillment-hub
+    actorId: ac_n5b3q8lz
+  - itemId: fulfillment-hub
+    actorId: ac_b9x4k7rc
+  - itemId: logistics-domain
+    actorId: ac_n5b3q8lz
+  - itemId: logistics-domain
+    actorId: ac_b9x4k7rc
+  - itemId: logistics-routing-cell
+    actorId: ac_p4t9x2cb
+  - itemId: logistics-routing-cell
+    actorId: ac_h9p3m6tx
+  - itemId: logistics-inventory-cell
+    actorId: ac_d8f3v7hl
+  - itemId: logistics-inventory-cell
+    actorId: ac_b9x4k7rc
+  - itemId: distribution-core
+    actorId: ac_d8f3v7hl
+  - itemId: distribution-core
+    actorId: ac_b9x4k7rc
+
+  - itemId: experience-line
+    actorId: ac_r1m8c6px
+  - itemId: experience-line
+    actorId: ac_q7n3v8mt
+  - itemId: experience-foundation
+    actorId: ac_r1m8c6px
+  - itemId: experience-foundation
+    actorId: ac_q7n3v8mt
+  - itemId: engagement-suite
+    actorId: ac_y5r4c8mt
+  - itemId: engagement-suite
+    actorId: ac_q7n3v8mt
+  - itemId: journey-domain
+    actorId: ac_f3p7d1qw
+  - itemId: journey-domain
+    actorId: ac_q7n3v8mt
+  - itemId: touchpoint-core
+    actorId: ac_r1m8c6px
+  - itemId: touchpoint-core
+    actorId: ac_q7n3v8mt
+  - itemId: touchpoint-profile-pillar
+    actorId: ac_t9v2k4hs
+  - itemId: touchpoint-profile-pillar
+    actorId: ac_q7n3v8mt
+  - itemId: touchpoint-messaging-pillar
+    actorId: ac_s6j2n9qw
+  - itemId: touchpoint-messaging-pillar
+    actorId: ac_l2d8q5rf
+  - itemId: touchpoint-campaign-pillar
+    actorId: ac_y5r4c8mt
+  - itemId: touchpoint-campaign-pillar
+    actorId: ac_q7n3v8mt
+  - itemId: profile-core-nodes
+    actorId: ac_t9v2k4hs
+  - itemId: profile-core-nodes
+    actorId: ac_q7n3v8mt
+  - itemId: profile-identity-nodes
+    actorId: ac_t9v2k4hs
+  - itemId: profile-identity-nodes
+    actorId: ac_q7n3v8mt
+  - itemId: messaging-router-nodes
+    actorId: ac_s6j2n9qw
+  - itemId: messaging-router-nodes
+    actorId: ac_q7n3v8mt
+  - itemId: messaging-template-nodes
+    actorId: ac_s6j2n9qw
+  - itemId: messaging-template-nodes
+    actorId: ac_q7n3v8mt
+  - itemId: campaign-planner-nodes
+    actorId: ac_y5r4c8mt
+  - itemId: campaign-planner-nodes
+    actorId: ac_q7n3v8mt
+  - itemId: campaign-optimizer-nodes
+    actorId: ac_y5r4c8mt
+  - itemId: campaign-optimizer-nodes
+    actorId: ac_q7n3v8mt
+
+  - itemId: order-capture-svc
+    actorId: ac_w2h7m4pd
+  - itemId: order-capture-svc
+    actorId: ac_j5d2m8pf
+  - itemId: order-validation-svc
+    actorId: ac_n3q8w6zd
+  - itemId: order-validation-svc
+    actorId: ac_c7v1b4nk
+  - itemId: order-validation-svc
+    actorId: ac_t4p6h1ks
+  - itemId: order-billing-svc
+    actorId: ac_u7m1k5vr
+  - itemId: order-billing-svc
+    actorId: ac_j5d2m8pf
+  - itemId: order-dispatch-svc
+    actorId: ac_n5b3q8lz
+  - itemId: order-dispatch-svc
+    actorId: ac_j5d2m8pf
+
+  - itemId: routing-engine-svc
+    actorId: ac_p4t9x2cb
+  - itemId: routing-engine-svc
+    actorId: ac_h9p3m6tx
+  - itemId: inventory-sync-svc
+    actorId: ac_d8f3v7hl
+  - itemId: inventory-sync-svc
+    actorId: ac_b9x4k7rc
+  - itemId: lastmile-dispatch-svc
+    actorId: ac_n5b3q8lz
+  - itemId: lastmile-dispatch-svc
+    actorId: ac_b9x4k7rc
+  - itemId: returns-processing-svc
+    actorId: ac_n5b3q8lz
+  - itemId: returns-processing-svc
+    actorId: ac_b9x4k7rc
+
+  - itemId: engagement-orchestrator-svc
+    actorId: ac_y5r4c8mt
+  - itemId: engagement-orchestrator-svc
+    actorId: ac_q7n3v8mt
+  - itemId: profile-store-svc
+    actorId: ac_t9v2k4hs
+  - itemId: profile-store-svc
+    actorId: ac_q7n3v8mt
+  - itemId: messaging-hub-svc
+    actorId: ac_s6j2n9qw
+  - itemId: messaging-hub-svc
+    actorId: ac_l2d8q5rf
+  - itemId: campaign-execution-svc
+    actorId: ac_y5r4c8mt
+  - itemId: campaign-execution-svc
+    actorId: ac_q7n3v8mt
+
+  - itemId: commerce-core-pricing-sync-svc
+    actorId: ac_g6k1t9rv
+  - itemId: commerce-core-pricing-sync-svc
+    actorId: ac_j5d2m8pf
+  - itemId: order-domain-events-svc
+    actorId: ac_w2h7m4pd
+  - itemId: order-domain-events-svc
+    actorId: ac_j5d2m8pf
+  - itemId: order-intake-api-svc
+    actorId: ac_w2h7m4pd
+  - itemId: order-intake-api-svc
+    actorId: ac_j5d2m8pf
+  - itemId: order-intake-buffer-svc
+    actorId: ac_w2h7m4pd
+  - itemId: order-intake-buffer-svc
+    actorId: ac_j5d2m8pf
+  - itemId: fraud-screening-svc
+    actorId: ac_n3q8w6zd
+  - itemId: fraud-screening-svc
+    actorId: ac_c7v1b4nk
+  - itemId: fraud-screening-svc
+    actorId: ac_t4p6h1ks
+  - itemId: policy-evaluator-svc
+    actorId: ac_n3q8w6zd
+  - itemId: policy-evaluator-svc
+    actorId: ac_c7v1b4nk
+  - itemId: invoice-orchestrator-svc
+    actorId: ac_u7m1k5vr
+  - itemId: invoice-orchestrator-svc
+    actorId: ac_j5d2m8pf
+  - itemId: payment-auth-adapter-svc
+    actorId: ac_u7m1k5vr
+  - itemId: payment-auth-adapter-svc
+    actorId: ac_j5d2m8pf
+  - itemId: order-state-projection-svc
+    actorId: ac_w2h7m4pd
+  - itemId: order-state-projection-svc
+    actorId: ac_j5d2m8pf
+  - itemId: order-sla-tracker-svc
+    actorId: ac_w2h7m4pd
+  - itemId: order-sla-tracker-svc
+    actorId: ac_j5d2m8pf
+
+  - itemId: fulfillment-control-plane-svc
+    actorId: ac_n5b3q8lz
+  - itemId: fulfillment-control-plane-svc
+    actorId: ac_b9x4k7rc
+  - itemId: logistics-event-router-svc
+    actorId: ac_n5b3q8lz
+  - itemId: logistics-event-router-svc
+    actorId: ac_b9x4k7rc
+  - itemId: route-cache-writer-svc
+    actorId: ac_p4t9x2cb
+  - itemId: route-cache-writer-svc
+    actorId: ac_h9p3m6tx
+  - itemId: route-cost-model-svc
+    actorId: ac_p4t9x2cb
+  - itemId: route-cost-model-svc
+    actorId: ac_h9p3m6tx
+  - itemId: inventory-reconciler-svc
+    actorId: ac_d8f3v7hl
+  - itemId: inventory-reconciler-svc
+    actorId: ac_b9x4k7rc
+  - itemId: stock-reservation-svc
+    actorId: ac_d8f3v7hl
+  - itemId: stock-reservation-svc
+    actorId: ac_b9x4k7rc
+  - itemId: depot-slotting-svc
+    actorId: ac_d8f3v7hl
+  - itemId: depot-slotting-svc
+    actorId: ac_b9x4k7rc
+  - itemId: carrier-capacity-broker-svc
+    actorId: ac_n5b3q8lz
+  - itemId: carrier-capacity-broker-svc
+    actorId: ac_b9x4k7rc
+  - itemId: dispatch-simulation-svc
+    actorId: ac_n5b3q8lz
+  - itemId: dispatch-simulation-svc
+    actorId: ac_b9x4k7rc
+  - itemId: dispatch-simulation-svc
+    actorId: ac_f8m2c7tr
+
+  - itemId: customer-consent-ledger-svc
+    actorId: ac_f3p7d1qw
+  - itemId: customer-consent-ledger-svc
+    actorId: ac_q7n3v8mt
+  - itemId: customer-consent-ledger-svc
+    actorId: ac_h2c9r6vy
+  - itemId: audience-intent-processor-svc
+    actorId: ac_f3p7d1qw
+  - itemId: audience-intent-processor-svc
+    actorId: ac_q7n3v8mt
+  - itemId: journey-rules-engine-svc
+    actorId: ac_f3p7d1qw
+  - itemId: journey-rules-engine-svc
+    actorId: ac_q7n3v8mt
+  - itemId: journey-experimentation-svc
+    actorId: ac_y5r4c8mt
+  - itemId: journey-experimentation-svc
+    actorId: ac_q7n3v8mt
+  - itemId: touchpoint-session-state-svc
+    actorId: ac_f3p7d1qw
+  - itemId: touchpoint-session-state-svc
+    actorId: ac_q7n3v8mt
+  - itemId: profile-merge-orchestrator-svc
+    actorId: ac_t9v2k4hs
+  - itemId: profile-merge-orchestrator-svc
+    actorId: ac_q7n3v8mt
+  - itemId: template-renderer-svc
+    actorId: ac_s6j2n9qw
+  - itemId: template-renderer-svc
+    actorId: ac_l2d8q5rf
+  - itemId: channel-delivery-router-svc
+    actorId: ac_s6j2n9qw
+  - itemId: channel-delivery-router-svc
+    actorId: ac_l2d8q5rf
+  - itemId: campaign-segmentation-svc
+    actorId: ac_y5r4c8mt
+  - itemId: campaign-segmentation-svc
+    actorId: ac_q7n3v8mt
+  - itemId: campaign-budget-guard-svc
+    actorId: ac_y5r4c8mt
+  - itemId: campaign-budget-guard-svc
+    actorId: ac_q7n3v8mt
