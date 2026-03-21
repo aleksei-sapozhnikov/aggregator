@@ -73,7 +73,6 @@ hooks = [
   {
   id = "prettier",
   name = "prettier",
-  args = ["--check"],
   files = '\.(?:[cm]?[jt]sx?|json|ya?ml|md|css|html)$',
   additional_dependencies = ["prettier@3.6.2"]
   },
