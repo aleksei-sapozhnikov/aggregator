@@ -45,7 +45,4 @@ jobs:
       - name: Run code quality checks
         run: |
           set -eux
-          python tools/check_code.py all \
-            --scan-root . \
-            --output-file .temp/trufflehog-scan-result.json \
-            --gitignored-output-file .temp/trufflehog-scan-gitignored.json
+          python tools/code_qa.py check-all
