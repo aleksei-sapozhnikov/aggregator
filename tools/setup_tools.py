@@ -32,7 +32,7 @@ def install_hooks() -> int:
     return run(
         [
             sys.executable,
-            "tools/check_code.py",
+            "tools/code_qa.py",
             "install-hooks",
         ]
     )

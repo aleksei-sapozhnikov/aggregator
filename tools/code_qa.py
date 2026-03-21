@@ -130,8 +130,8 @@ def run_check_command(
         close()
 
 
-def cmd_check(args: argparse.Namespace) -> int:
-    """CLI wrapper for check command."""
+def cmd_check_code(args: argparse.Namespace) -> int:
+    """CLI wrapper for check-code command."""
     return run_check_command(out_file=args.out_file)
 
 
@@ -310,7 +310,7 @@ def manual_hooks_for_failed_precommit(
     return to_run, format_names
 
 
-def cmd_format(args: argparse.Namespace) -> int:
+def cmd_format_code(args: argparse.Namespace) -> int:
     """Run check, format failed areas, then re-run full check."""
     prek = resolve_prek()
     emit, emit_file_only, close = build_emitter(args.out_file)
@@ -358,8 +358,8 @@ def cmd_format(args: argparse.Namespace) -> int:
 def run_secrets_command(
     *,
     scan_root: str,
-    output_file: str,
-    gitignored_output_file: str,
+    output_file: str | None,
+    gitignored_output_file: str | None,
     binary: str | None,
     raw: bool,
     out_file: str = "",
@@ -373,11 +373,11 @@ def run_secrets_command(
         str(script),
         "--scan-root",
         scan_root,
-        "--output-file",
-        output_file,
-        "--gitignored-output-file",
-        gitignored_output_file,
     ]
+    if output_file:
+        cmd.extend(["--output-file", output_file])
+    if gitignored_output_file:
+        cmd.extend(["--gitignored-output-file", gitignored_output_file])
     if binary:
         cmd.extend(["--binary", binary])
     if raw:
@@ -434,8 +434,8 @@ def run_secrets_command(
     return result.returncode
 
 
-def cmd_secrets(args: argparse.Namespace) -> int:
-    """CLI wrapper for secrets command."""
+def cmd_check_secrets(args: argparse.Namespace) -> int:
+    """CLI wrapper for check-secrets command."""
     return run_secrets_command(
         scan_root=args.scan_root,
         output_file=args.output_file,
@@ -446,7 +446,7 @@ def cmd_secrets(args: argparse.Namespace) -> int:
     )
 
 
-def cmd_all(args: argparse.Namespace) -> int:
+def cmd_check_all(args: argparse.Namespace) -> int:
     """Run full QA pipeline: checks plus secrets scan."""
     check_rc = run_check_command(
         out_file=args.out_file,
@@ -562,15 +562,15 @@ def build_parser() -> argparse.ArgumentParser:
     p_install = sub.add_parser("install-hooks", help="Install git hooks via prek.")
     p_install.set_defaults(func=cmd_install_hooks)
 
-    p_check = sub.add_parser("check", help="Run check-only hooks.")
+    p_check = sub.add_parser("check-code", help="Run check-only code hooks.")
     p_check.add_argument(
         "--out-file",
         default="",
         help="Write command output to this file.",
     )
-    p_check.set_defaults(func=cmd_check)
+    p_check.set_defaults(func=cmd_check_code)
 
-    p_format = sub.add_parser("format", help="Run formatting hooks (manual stage).")
+    p_format = sub.add_parser("format-code", help="Run code formatting hooks.")
     p_format.add_argument(
         "--raw",
         action="store_true",
@@ -581,13 +581,13 @@ def build_parser() -> argparse.ArgumentParser:
         default="",
         help="Write command output to this file.",
     )
-    p_format.set_defaults(func=cmd_format)
+    p_format.set_defaults(func=cmd_format_code)
 
-    p_sec = sub.add_parser("secrets", help="Run trufflehog scan.")
-    p_sec.add_argument("--scan-root", required=True)
-    p_sec.add_argument("--output-file", required=True)
+    p_sec = sub.add_parser("check-secrets", help="Run trufflehog scan.")
+    p_sec.add_argument("--scan-root", default=".")
+    p_sec.add_argument("--output-file", default="")
     p_sec.add_argument(
-        "--gitignored-output-file", required=True
+        "--gitignored-output-file", default=""
     )
     p_sec.add_argument("--binary")
     p_sec.add_argument(
@@ -600,13 +600,13 @@ def build_parser() -> argparse.ArgumentParser:
         default="",
         help="Write command output to this file.",
     )
-    p_sec.set_defaults(func=cmd_secrets)
+    p_sec.set_defaults(func=cmd_check_secrets)
 
-    p_ci = sub.add_parser("all", help="Run check + secrets scan.")
-    p_ci.add_argument("--scan-root", required=True)
-    p_ci.add_argument("--output-file", required=True)
+    p_ci = sub.add_parser("check-all", help="Run check + secrets scan.")
+    p_ci.add_argument("--scan-root", default=".")
+    p_ci.add_argument("--output-file", default="")
     p_ci.add_argument(
-        "--gitignored-output-file", required=True
+        "--gitignored-output-file", default=""
     )
     p_ci.add_argument("--binary")
     p_ci.add_argument(
@@ -619,7 +619,7 @@ def build_parser() -> argparse.ArgumentParser:
         default="",
         help="Write command output to this file.",
     )
-    p_ci.set_defaults(func=cmd_all)
+    p_ci.set_defaults(func=cmd_check_all)
 
     p_doc = sub.add_parser("doctor", help="Show toolchain health and compatibility.")
     p_doc.set_defaults(func=cmd_doctor)
