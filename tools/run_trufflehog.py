@@ -1,0 +1,248 @@
+#!/usr/bin/env python3
+"""Run trufflehog filesystem scan with explicit paths and concise summary support."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+
+def parse_args() -> argparse.Namespace:
+    """Parse explicit scan paths and output settings for trufflehog run."""
+    parser = argparse.ArgumentParser(
+        description="Run trufflehog filesystem scan with gitignored exclusions."
+    )
+    parser.add_argument("--scan-root", required=True, help="Root folder to scan.")
+    parser.add_argument(
+        "--output-file",
+        required=True,
+        help="Where to save scanner JSON output.",
+    )
+    parser.add_argument(
+        "--gitignored-output-file",
+        required=True,
+        help="Where to save collected gitignored items.",
+    )
+    parser.add_argument("--binary", help="Explicit path to trufflehog binary.")
+    parser.add_argument(
+        "--summary",
+        action="store_true",
+        help="Print concise human-readable scan summary.",
+    )
+    parser.add_argument(
+        "--quiet",
+        action="store_true",
+        help="Suppress raw trufflehog stdout/stderr output.",
+    )
+    return parser.parse_args()
+
+
+def run_command(
+    args: list[str], cwd: Path | None = None
+) -> subprocess.CompletedProcess[str]:
+    """Run command and return captured text output."""
+    return subprocess.run(args, cwd=cwd, text=True, capture_output=True, check=False)
+
+
+def find_repo_root(scan_root: Path) -> Path:
+    """Resolve git repository root for the scan target."""
+    result = run_command(["git", "-C", str(scan_root), "rev-parse", "--show-toplevel"])
+    if result.returncode == 0:
+        return Path(result.stdout.strip()).resolve()
+    return scan_root.resolve()
+
+
+def collect_gitignored(repo_root: Path) -> tuple[list[dict[str, str]], list[str]]:
+    """Collect gitignored paths and convert them into exclude regex patterns."""
+    ignored: list[dict[str, str]] = []
+    patterns: list[str] = [r"([\\/]|^)\.git([\\/]|$)"]
+
+    result = run_command(
+        [
+            "git",
+            "-C",
+            str(repo_root),
+            "ls-files",
+            "-o",
+            "-i",
+            "--exclude-standard",
+            "--directory",
+            "--no-empty-directory",
+            "-z",
+        ]
+    )
+    if result.returncode != 0:
+        return ignored, patterns
+
+    raw = result.stdout.split("\x00")
+    seen_patterns: set[str] = set(patterns)
+    for rel_path in raw:
+        if not rel_path:
+            continue
+        is_directory = rel_path.endswith("/") or rel_path.endswith("\\")
+        normalized = rel_path.rstrip("/\\")
+        if not normalized:
+            continue
+
+        full_path = (repo_root / normalized).resolve()
+        escaped = re.escape(str(full_path))
+        pattern = f"^{escaped}([\\\\/].*)?$" if is_directory else f"^{escaped}$"
+        if pattern not in seen_patterns:
+            patterns.append(pattern)
+            seen_patterns.add(pattern)
+
+        ignored.append(
+            {
+                "kind": "directory" if is_directory else "file",
+                "relativePath": f"{normalized}/" if is_directory else normalized,
+            }
+        )
+
+    return ignored, patterns
+
+
+def resolve_trufflehog_binary(repo_root: Path, explicit_binary: str) -> str:
+    """Resolve trufflehog binary path from explicit arg, .temp, or PATH."""
+    if explicit_binary:
+        return explicit_binary
+
+    candidates: list[Path] = []
+    if os.name == "nt":
+        candidates.append((repo_root / ".temp" / "trufflehog.exe").resolve())
+    else:
+        candidates.append((repo_root / ".temp" / "trufflehog").resolve())
+
+    for candidate in candidates:
+        if candidate.exists():
+            return str(candidate)
+
+    for name in ("trufflehog", "trufflehog.exe"):
+        found = shutil.which(name)
+        if found:
+            return found
+
+    print(
+        "error: trufflehog binary not found. Place it in .temp/ or install it into PATH.",
+        file=sys.stderr,
+    )
+    sys.exit(1)
+
+
+def deep_get(data: dict, path: list[str]) -> object | None:
+    """Safely read nested dict path and return None when missing."""
+    current: object = data
+    for key in path:
+        if not isinstance(current, dict):
+            return None
+        current = current.get(key)
+    return current
+
+
+def parse_trufflehog_findings(raw_output: str, repo_root: Path) -> list[dict[str, str]]:
+    """Parse JSONL findings into compact path + issue records."""
+    findings: list[dict[str, str]] = []
+    for line in raw_output.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            item = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if not isinstance(item, dict):
+            continue
+
+        detector = item.get("DetectorName") or item.get("DetectorType")
+        if not detector:
+            # Progress/info line, not a finding.
+            continue
+
+        file_path = (
+            deep_get(item, ["SourceMetadata", "Data", "Filesystem", "file"])
+            or deep_get(item, ["SourceMetadata", "Data", "Filesystem", "path"])
+            or deep_get(item, ["SourceMetadata", "Data", "Git", "file"])
+            or ""
+        )
+        file_str = str(file_path) if file_path else "(unknown file)"
+        try:
+            rel_path = str(Path(file_str).resolve().relative_to(repo_root))
+        except Exception:
+            rel_path = file_str
+
+        verified = item.get("Verified")
+        verification = "verified" if verified is True else "unverified"
+        findings.append(
+            {
+                "path": rel_path,
+                "issue": f"{detector} ({verification})",
+            }
+        )
+    return findings
+
+
+def main() -> int:
+    """Run scan, write outputs, and optionally print concise summary."""
+    args = parse_args()
+    scan_root = Path(args.scan_root).resolve()
+    repo_root = find_repo_root(scan_root)
+    output_file = (repo_root / args.output_file).resolve()
+    gitignored_output_file = (repo_root / args.gitignored_output_file).resolve()
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+    gitignored_output_file.parent.mkdir(parents=True, exist_ok=True)
+
+    gitignored_items, exclude_patterns = collect_gitignored(repo_root)
+    gitignored_output_file.write_text(
+        json.dumps(gitignored_items, indent=2), encoding="utf-8"
+    )
+    trufflehog_binary = resolve_trufflehog_binary(repo_root, args.binary)
+
+    with tempfile.NamedTemporaryFile(
+        mode="w", delete=False, encoding="utf-8", suffix=".txt"
+    ) as tmp:
+        exclude_file = Path(tmp.name)
+        for pattern in exclude_patterns:
+            tmp.write(pattern)
+            tmp.write("\n")
+
+    cmd = [
+        trufflehog_binary,
+        "filesystem",
+        "--json",
+        "--exclude-paths",
+        str(exclude_file),
+        str(scan_root),
+    ]
+
+    try:
+        result = run_command(cmd)
+        output_file.write_text(result.stdout, encoding="utf-8")
+        if result.stdout and not args.quiet:
+            sys.stdout.write(result.stdout)
+        if result.stderr and not args.quiet:
+            sys.stderr.write(result.stderr)
+
+        if args.summary:
+            findings = parse_trufflehog_findings(result.stdout, repo_root)
+            if not findings:
+                print("OK: 0 secrets found")
+            else:
+                print(f"FAILED: {len(findings)} potential secret(s) found")
+                for finding in findings:
+                    print(f"- {finding['path']}: {finding['issue']}")
+                if result.returncode == 0:
+                    return 1
+        return result.returncode
+    finally:
+        if exclude_file.exists():
+            exclude_file.unlink()
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

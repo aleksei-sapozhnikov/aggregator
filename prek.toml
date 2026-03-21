@@ -1,0 +1,130 @@
+# Configuration file for `prek`, a git hook framework written in Rust.
+# See https://prek.j178.dev for more information.
+#:schema https://www.schemastore.org/prek.json
+
+minimum_pre_commit_version = "3.7.0"
+default_stages = ["pre-commit"]
+default_install_hook_types = [
+  "pre-commit",
+  "pre-push"
+]
+exclude = '^(\.git/|\.idea/|\.venv/|\.temp/|node_modules/)'
+
+[[repos]]
+repo = "https://github.com/pre-commit/pre-commit-hooks"
+rev = "v6.0.0"
+hooks = [
+  { id = "check-merge-conflict", name = "merge conflicts" },
+  { id = "check-added-large-files", name = "added large files" },
+  { id = "check-json", name = "json" },
+  { id = "check-yaml", name = "yaml" },
+  {
+  id = "mixed-line-ending",
+  name = "line endings",
+  args = ["--fix=no"]
+  },
+  {
+  id = "trailing-whitespace",
+  name = "trailing whitespace",
+  stages = ["manual"]
+  },
+  {
+  id = "end-of-file-fixer",
+  name = "final newline",
+  stages = ["manual"]
+  },
+  {
+  id = "mixed-line-ending",
+  name = "line endings",
+  args = ["--fix=lf"],
+  stages = ["manual"]
+  }
+]
+
+[[repos]]
+repo = "https://github.com/astral-sh/ruff-pre-commit"
+rev = "v0.15.7"
+hooks = [
+  {
+  id = "ruff-check",
+  name = "ruff",
+  args = ["--no-fix"]
+  },
+  {
+  id = "ruff-check",
+  name = "ruff",
+  args = [
+    "--fix",
+    "--exit-non-zero-on-fix"
+  ],
+  stages = ["manual"]
+  },
+  {
+  id = "ruff-format",
+  name = "ruff format",
+  stages = ["manual"]
+  }
+]
+
+[[repos]]
+repo = "https://github.com/pre-commit/mirrors-prettier"
+rev = "v3.1.0"
+hooks = [
+  {
+  id = "prettier",
+  name = "prettier",
+  args = ["--check"],
+  files = '\.(?:[cm]?[jt]sx?|json|ya?ml|md|css|html)$',
+  additional_dependencies = ["prettier@3.6.2"]
+  },
+  {
+  id = "prettier",
+  name = "prettier",
+  args = ["--write"],
+  files = '\.(?:[cm]?[jt]sx?|json|ya?ml|md|css|html)$',
+  additional_dependencies = ["prettier@3.6.2"],
+  stages = ["manual"]
+  }
+]
+
+[[repos]]
+repo = "local"
+hooks = [
+  {
+  id = "check-trailing-whitespace",
+  name = "trailing whitespace",
+  entry = "python tools/run_trailing_whitespace_check.py",
+  language = "python",
+  types = ["text"]
+  },
+  {
+  id = "check-final-newline",
+  name = "final newline",
+  entry = "python tools/run_final_newline_check.py",
+  language = "python",
+  types = ["text"]
+  },
+  {
+  id = "google-java-format",
+  name = "java format",
+  entry = "python tools/run_google_java_format.py --mode=check",
+  language = "python",
+  files = '\.java$'
+  },
+  {
+  id = "google-java-format",
+  name = "java format",
+  entry = "python tools/run_google_java_format.py --mode=format",
+  language = "python",
+  files = '\.java$',
+  stages = ["manual"]
+  },
+  {
+  id = "trufflehog-filesystem",
+  name = "trufflehog filesystem scan",
+  entry = "python tools/run_trufflehog.py --scan-root=. --output-file=.temp/trufflehog-scan-result.json --gitignored-output-file=.temp/trufflehog-scan-gitignored.json",
+  language = "python",
+  pass_filenames = false,
+  stages = ["pre-push"]
+  }
+]
