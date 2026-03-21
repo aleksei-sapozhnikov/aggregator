@@ -22,12 +22,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--scan-root", required=True, help="Root folder to scan.")
     parser.add_argument(
         "--output-file",
-        required=True,
+        default="",
         help="Where to save scanner JSON output.",
     )
     parser.add_argument(
         "--gitignored-output-file",
-        required=True,
+        default="",
         help="Where to save collected gitignored items.",
     )
     parser.add_argument("--binary", help="Explicit path to trufflehog binary.")
@@ -192,15 +192,22 @@ def main() -> int:
     args = parse_args()
     scan_root = Path(args.scan_root).resolve()
     repo_root = find_repo_root(scan_root)
-    output_file = (repo_root / args.output_file).resolve()
-    gitignored_output_file = (repo_root / args.gitignored_output_file).resolve()
-    output_file.parent.mkdir(parents=True, exist_ok=True)
-    gitignored_output_file.parent.mkdir(parents=True, exist_ok=True)
+    output_file = (repo_root / args.output_file).resolve() if args.output_file else None
+    gitignored_output_file = (
+        (repo_root / args.gitignored_output_file).resolve()
+        if args.gitignored_output_file
+        else None
+    )
+    if output_file is not None:
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+    if gitignored_output_file is not None:
+        gitignored_output_file.parent.mkdir(parents=True, exist_ok=True)
 
     gitignored_items, exclude_patterns = collect_gitignored(repo_root)
-    gitignored_output_file.write_text(
-        json.dumps(gitignored_items, indent=2), encoding="utf-8"
-    )
+    if gitignored_output_file is not None:
+        gitignored_output_file.write_text(
+            json.dumps(gitignored_items, indent=2), encoding="utf-8"
+        )
     trufflehog_binary = resolve_trufflehog_binary(repo_root, args.binary)
 
     with tempfile.NamedTemporaryFile(
@@ -222,7 +229,8 @@ def main() -> int:
 
     try:
         result = run_command(cmd)
-        output_file.write_text(result.stdout, encoding="utf-8")
+        if output_file is not None:
+            output_file.write_text(result.stdout, encoding="utf-8")
         if result.stdout and not args.quiet:
             sys.stdout.write(result.stdout)
         if result.stderr and not args.quiet:
