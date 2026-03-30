@@ -21,6 +21,11 @@ GOOGLE_JAVA_FORMAT_URL = (
 MIN_SUPPORTED_JAVA_MAJOR = 21
 
 
+def min_java_requirement_label() -> str:
+    """Return human-readable Java requirement label."""
+    return f"{MIN_SUPPORTED_JAVA_MAJOR}+"
+
+
 def parse_args() -> argparse.Namespace:
     """Parse formatter mode and optional doctor command."""
     parser = argparse.ArgumentParser(
@@ -37,16 +42,6 @@ def parse_args() -> argparse.Namespace:
     if not args.doctor_json and (args.mode is None or not args.files):
         parser.error("--mode and at least one Java file are required")
     return args
-
-
-def ensure_java_installed() -> None:
-    """Exit with readable error when Java is missing from PATH."""
-    if shutil.which("java") is None:
-        print(
-            "error: Java runtime not found in PATH. Install JDK/JRE and retry.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
 
 
 def get_java_major_version() -> int | None:
@@ -93,10 +88,10 @@ def ensure_java_compatible() -> int:
     if major < MIN_SUPPORTED_JAVA_MAJOR:
         print(
             (
-                "error: google-java-format requires JDK 21+ in this setup "
+                f"error: google-java-format requires JDK {min_java_requirement_label()} in this setup "
                 f"(detected Java {major}). "
-                "Use JDK 21 or newer (for example 21 or 25). "
-                "If you must stay on JDK 17, pin an older google-java-format version."
+                f"Use JDK {min_java_requirement_label()} or newer. "
+                "If you must stay on an older JDK, pin a compatible google-java-format version."
             ),
             file=sys.stderr,
         )
@@ -166,7 +161,8 @@ def run_formatter(jar_path: Path, mode: str, files: list[Path], java_major: int)
                         (
                             "error: Java/google-java-format compatibility issue detected. "
                             f"Current Java major: {java_major}. "
-                            "Use JDK 21 or newer with google-java-format 1.34.1."
+                            f"Use JDK {min_java_requirement_label()} or newer with "
+                            f"google-java-format {GOOGLE_JAVA_FORMAT_VERSION}."
                         ),
                         file=sys.stderr,
                     )
