@@ -1,7 +1,13 @@
 name: Code quality
 
 on:
+  workflow_dispatch:
   pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
   push:
     branches:
       - main
@@ -12,8 +18,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      PREK_VERSION: "0.3.6"
-      TRUFFLEHOG_VERSION: "3.94.0"
+      PYTHON_VERSION: "3.12"
+      JAVA_VERSION: "25"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -21,24 +27,31 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "25"
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Cache QA dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            .temp/trufflehog
+            .temp/google-java-format
+          key: ${{ runner.os }}-qa-cache-py${{ env.PYTHON_VERSION }}-tools-${{ hashFiles('tools/setup_prek.py', 'tools/run_trufflehog.py', 'tools/run_google_java_format.py') }}
+          restore-keys: |
+            ${{ runner.os }}-qa-cache-py${{ env.PYTHON_VERSION }}-
+            ${{ runner.os }}-qa-cache-
 
       - name: Install CI tools
         run: |
           set -eux
-          python -m pip install --upgrade "prek==${PREK_VERSION}"
-          curl -fsSL -o /tmp/trufflehog.tar.gz \
-            "https://github.com/trufflesecurity/trufflehog/releases/download/v${TRUFFLEHOG_VERSION}/trufflehog_${TRUFFLEHOG_VERSION}_linux_amd64.tar.gz"
-          tar -xzf /tmp/trufflehog.tar.gz -C /tmp
-          sudo install -m 0755 /tmp/trufflehog /usr/local/bin/trufflehog
+          python tools/setup_prek.py
           prek --version
-          trufflehog --version
           java -version
           python --version
 
