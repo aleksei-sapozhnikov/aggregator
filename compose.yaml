@@ -1,5 +1,10 @@
 services:
   aggregator:
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
     build:
       context: .
       dockerfile: services-core/aggregator/Dockerfile
@@ -13,6 +18,11 @@ services:
         SIGNALS_HTTP_POLL_SCHEMA_FILE: config/schemas/signals-http-poll.schema.yaml
 
   aggregator-ui:
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
     build:
       context: .
       dockerfile: services-core/aggregator-ui/Dockerfile
@@ -28,6 +38,11 @@ services:
         VITE_APP_TITLE: ""
 
   prometheus:
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
     image: prom/prometheus:v2.54.1
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
@@ -39,6 +54,11 @@ services:
       - prometheus-data:/prometheus
 
   grafana:
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
     image: grafana/grafana:12.3.1
     environment:
       GF_PLUGINS_PREINSTALL_DISABLED: "true"
