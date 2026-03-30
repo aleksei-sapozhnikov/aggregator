@@ -6,12 +6,20 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import platform
 import re
 import shutil
 import subprocess
 import sys
+import tarfile
 import tempfile
+import urllib.request
 from pathlib import Path
+
+TRUFFLEHOG_VERSION = "3.94.0"
+TRUFFLEHOG_RELEASE_BASE_URL = (
+    f"https://github.com/trufflesecurity/trufflehog/releases/download/v{TRUFFLEHOG_VERSION}"
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -19,7 +27,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Run trufflehog filesystem scan with gitignored exclusions."
     )
-    parser.add_argument("--scan-root", required=True, help="Root folder to scan.")
+    parser.add_argument("--scan-root", default=".", help="Root folder to scan.")
     parser.add_argument(
         "--output-file",
         default="",
@@ -31,6 +39,11 @@ def parse_args() -> argparse.Namespace:
         help="Where to save collected gitignored items.",
     )
     parser.add_argument("--binary", help="Explicit path to trufflehog binary.")
+    parser.add_argument(
+        "--doctor-json",
+        action="store_true",
+        help="Print binary/version status as JSON and exit.",
+    )
     parser.add_argument(
         "--summary",
         action="store_true",
@@ -48,7 +61,19 @@ def run_command(
     args: list[str], cwd: Path | None = None
 ) -> subprocess.CompletedProcess[str]:
     """Run command and return captured text output."""
-    return subprocess.run(args, cwd=cwd, text=True, capture_output=True, check=False)
+    try:
+        return subprocess.run(
+            args, cwd=cwd, text=True, capture_output=True, check=False
+        )
+    except OSError as exc:
+        return subprocess.CompletedProcess(
+            args=args, returncode=1, stdout="", stderr=str(exc)
+        )
+
+
+def can_run_trufflehog(binary: str) -> bool:
+    """Check whether binary is runnable and responds to --version."""
+    return run_command([binary, "--version"]).returncode == 0
 
 
 def find_repo_root(scan_root: Path) -> Path:
@@ -109,30 +134,123 @@ def collect_gitignored(repo_root: Path) -> tuple[list[dict[str, str]], list[str]
 
 
 def resolve_trufflehog_binary(repo_root: Path, explicit_binary: str) -> str:
-    """Resolve trufflehog binary path from explicit arg, .temp, or PATH."""
+    """Resolve trufflehog binary path from explicit arg, .temp, PATH, or download."""
     if explicit_binary:
         return explicit_binary
 
-    candidates: list[Path] = []
-    if os.name == "nt":
-        candidates.append((repo_root / ".temp" / "trufflehog.exe").resolve())
-    else:
-        candidates.append((repo_root / ".temp" / "trufflehog").resolve())
+    candidates = local_binary_candidates(repo_root)
 
     for candidate in candidates:
-        if candidate.exists():
+        if candidate.exists() and can_run_trufflehog(str(candidate)):
             return str(candidate)
 
     for name in ("trufflehog", "trufflehog.exe"):
         found = shutil.which(name)
-        if found:
+        if found and can_run_trufflehog(found):
             return found
 
-    print(
-        "error: trufflehog binary not found. Place it in .temp/ or install it into PATH.",
-        file=sys.stderr,
-    )
+    downloaded = download_trufflehog_binary(repo_root)
+    if downloaded is not None:
+        return downloaded
+
+    print("error: trufflehog binary not found and auto-download failed.", file=sys.stderr)
     sys.exit(1)
+
+
+def local_binary_candidates(repo_root: Path) -> list[Path]:
+    """Return local .temp candidate paths for trufflehog binary."""
+    if os.name == "nt":
+        return [
+            (repo_root / ".temp" / "trufflehog" / "trufflehog.exe").resolve(),
+            (repo_root / ".temp" / "trufflehog.exe").resolve(),
+        ]
+    return [
+        (repo_root / ".temp" / "trufflehog" / "trufflehog").resolve(),
+        (repo_root / ".temp" / "trufflehog").resolve(),
+    ]
+
+
+def trufflehog_release_asset() -> str | None:
+    """Build trufflehog release asset name for current OS/arch."""
+    system = platform.system().lower()
+    machine = platform.machine().lower()
+
+    if system == "windows":
+        os_part = "windows"
+        ext = "tar.gz"
+    elif system == "linux":
+        os_part = "linux"
+        ext = "tar.gz"
+    elif system == "darwin":
+        os_part = "darwin"
+        ext = "tar.gz"
+    else:
+        return None
+
+    arch_map = {
+        "x86_64": "amd64",
+        "amd64": "amd64",
+        "aarch64": "arm64",
+        "arm64": "arm64",
+    }
+    arch_part = arch_map.get(machine)
+    if arch_part is None:
+        return None
+
+    return f"trufflehog_{TRUFFLEHOG_VERSION}_{os_part}_{arch_part}.{ext}"
+
+
+def download_trufflehog_binary(repo_root: Path) -> str | None:
+    """Download and extract trufflehog binary into repo .temp directory."""
+    asset = trufflehog_release_asset()
+    if asset is None:
+        print(
+            (
+                "error: unsupported platform for trufflehog auto-download "
+                f"({platform.system()} {platform.machine()})."
+            ),
+            file=sys.stderr,
+        )
+        return None
+
+    cache_dir = (repo_root / ".temp" / "trufflehog").resolve()
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    archive_path = cache_dir / asset
+    url = f"{TRUFFLEHOG_RELEASE_BASE_URL}/{asset}"
+
+    try:
+        print(f"Downloading {url} -> {archive_path}", file=sys.stderr)
+        urllib.request.urlretrieve(url, archive_path)  # noqa: S310
+    except Exception as exc:
+        print(f"error: failed to download trufflehog: {exc}", file=sys.stderr)
+        return None
+
+    try:
+        with tarfile.open(archive_path, "r:gz") as tf:
+            tf.extractall(cache_dir)
+    except Exception as exc:
+        print(f"error: failed to extract trufflehog archive: {exc}", file=sys.stderr)
+        return None
+
+    extracted_name = "trufflehog.exe" if os.name == "nt" else "trufflehog"
+    extracted_path = cache_dir / extracted_name
+    if not extracted_path.exists():
+        print("error: extracted trufflehog binary not found.", file=sys.stderr)
+        return None
+
+    target_path = local_binary_candidates(repo_root)[0]
+    target_path.parent.mkdir(parents=True, exist_ok=True)
+    if extracted_path.resolve() != target_path.resolve():
+        try:
+            shutil.copy2(extracted_path, target_path)
+        except Exception as exc:
+            print(f"error: failed to copy trufflehog binary: {exc}", file=sys.stderr)
+            return None
+    else:
+        target_path = extracted_path
+    if os.name != "nt":
+        target_path.chmod(0o755)
+    return str(target_path)
 
 
 def deep_get(data: dict, path: list[str]) -> object | None:
@@ -203,12 +321,26 @@ def main() -> int:
     if gitignored_output_file is not None:
         gitignored_output_file.parent.mkdir(parents=True, exist_ok=True)
 
+    trufflehog_binary = resolve_trufflehog_binary(repo_root, args.binary)
+    if args.doctor_json:
+        version_result = run_command([trufflehog_binary, "--version"])
+        version_text = (version_result.stdout or version_result.stderr).strip()
+        print(
+            json.dumps(
+                {
+                    "ok": version_result.returncode == 0,
+                    "binary": trufflehog_binary,
+                    "version": version_text,
+                }
+            )
+        )
+        return 0 if version_result.returncode == 0 else 1
+
     gitignored_items, exclude_patterns = collect_gitignored(repo_root)
     if gitignored_output_file is not None:
         gitignored_output_file.write_text(
             json.dumps(gitignored_items, indent=2), encoding="utf-8"
         )
-    trufflehog_binary = resolve_trufflehog_binary(repo_root, args.binary)
 
     with tempfile.NamedTemporaryFile(
         mode="w", delete=False, encoding="utf-8", suffix=".txt"
