@@ -99,11 +99,8 @@ def build_emitter(
 
 
 def cmd_install_hooks(_: argparse.Namespace) -> int:
-    """Install pre-commit and pre-push hooks via prek."""
-    prek = resolve_prek()
-    return run(
-        [prek, "install", "-f", "--hook-type", "pre-commit", "--hook-type", "pre-push"]
-    )
+    """Install git hooks by delegating to tools/setup_git_hooks.py."""
+    return run([sys.executable, "tools/setup_git_hooks.py"])
 
 
 def run_check_command(

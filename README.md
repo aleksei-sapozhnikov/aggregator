@@ -166,21 +166,22 @@ CI executes `python tools/code_qa.py check-all`.
 Any OS:
 
 ```bash
-python tools/setup_tools.py --prek-version 0.3.6 --install-hooks
+python tools/setup_prek.py
+python tools/setup_git_hooks.py
 ```
 
-`python tools/setup_tools.py` installs pinned QA tools (`prek`).
-If you also want to install hooks in the same command, add `--install-hooks`.
-If you only want tool installation, use:
+`python tools/setup_prek.py` installs pinned `prek`.
+`python tools/setup_git_hooks.py` installs git hooks.
+If you only want tool installation with custom version, use:
 
 ```bash
-python tools/setup_tools.py --prek-version 0.3.6
+python tools/setup_prek.py --prek-version 0.3.6
 ```
 
 If tools are already installed, you can run only:
 
 ```bash
-python tools/code_qa.py install-hooks
+python tools/setup_git_hooks.py
 ```
 
 On Windows, if `python` is unavailable in PATH, use `py -3` instead.
