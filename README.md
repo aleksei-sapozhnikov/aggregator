@@ -66,6 +66,7 @@ Catalog items and health signal sources are configured in YAML files. Demo examp
 - [schemas/signals-http-poll.schema.yaml](config/schemas/signals-http-poll.schema.yaml)
 
 Catalog format notes:
+
 - `catalog-items.yaml`: each item has `id` and human-readable `title`.
 - `catalog-dependencies.yaml`: each relation has `sourceId` and `targetId`.
 - Item/dependency `type` fields were removed from the catalog definition.
@@ -144,3 +145,59 @@ docker compose --project-name aggregator-local-demo -f compose.yaml -f compose.l
 ```
 
 For additional options see [Makefile](./Makefile)
+
+## Code Formatting And Checks
+
+The repository uses a single `prek` pipeline configured in `prek.toml` for formatting and checks across languages:
+
+- Java: `google-java-format`
+- Python: `ruff-check` + `ruff-format`
+- TypeScript / JavaScript / JSON / YAML / Markdown / CSS / HTML: `prettier`
+- Generic text hygiene: trailing whitespace, merge markers, JSON/YAML validity, single final newline
+- Secrets: `trufflehog` (pre-push + CI)
+
+Pre-commit runs in **check-only** mode (no auto-format edits).
+Manual formatting is executed explicitly by running the formatter script.
+In GitHub Actions checks run on `ubuntu-latest` runner with pinned CI tool versions.
+CI executes `python tools/code_qa.py check-all`.
+
+### Install local hooks
+
+Any OS:
+
+```bash
+python tools/setup_tools.py --prek-version 0.3.6 --install-hooks
+```
+
+`python tools/setup_tools.py` installs pinned QA tools (`prek`).
+If you also want to install hooks in the same command, add `--install-hooks`.
+If you only want tool installation, use:
+
+```bash
+python tools/setup_tools.py --prek-version 0.3.6
+```
+
+If tools are already installed, you can run only:
+
+```bash
+python tools/code_qa.py install-hooks
+```
+
+On Windows, if `python` is unavailable in PATH, use `py -3` instead.
+After installation, commits from command line and IntelliJ IDEA Git UI will run git hooks via `prek` automatically.
+
+### Run formatting/checks manually
+
+```bash
+python tools/code_qa.py check-code
+python tools/code_qa.py format-code
+python tools/code_qa.py check-secrets
+python tools/code_qa.py check-all
+```
+
+`python tools/code_qa.py check-code` runs validation only and never auto-formats files.
+`python tools/code_qa.py format-code` formats only failed checks, then runs full check again.
+`python tools/code_qa.py check-secrets` prints compact output (`Checking secrets.. OK/FAILED` + `N secrets found`).
+`python tools/code_qa.py check-all` runs check + secrets and always prints final status line.
+Each command finishes with `=== QA: PASSED ===` or `=== QA: FAILED ===`.
+Use `python tools/code_qa.py check-secrets --raw` for full trufflehog JSON output.

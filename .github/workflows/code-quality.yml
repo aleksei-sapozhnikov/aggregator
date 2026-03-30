@@ -1,0 +1,48 @@
+name: Code quality
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  quality:
+    name: Checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PREK_VERSION: "0.3.6"
+      TRUFFLEHOG_VERSION: "3.94.0"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      - name: Install CI tools
+        run: |
+          set -eux
+          python -m pip install --upgrade "prek==${PREK_VERSION}"
+          curl -fsSL -o /tmp/trufflehog.tar.gz \
+            "https://github.com/trufflesecurity/trufflehog/releases/download/v${TRUFFLEHOG_VERSION}/trufflehog_${TRUFFLEHOG_VERSION}_linux_amd64.tar.gz"
+          tar -xzf /tmp/trufflehog.tar.gz -C /tmp
+          sudo install -m 0755 /tmp/trufflehog /usr/local/bin/trufflehog
+          prek --version
+          trufflehog --version
+          java -version
+          python --version
+
+      - name: Run code quality checks
+        run: |
+          set -eux
+          python tools/code_qa.py check-all
