@@ -34,6 +34,11 @@ services:
         VITE_TIMELINE_DEFAULT_RANGE: "15m"
 
   chaos-maker:
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
     build:
       context: .
       dockerfile: services-demo/chaos-maker/Dockerfile

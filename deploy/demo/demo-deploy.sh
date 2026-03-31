@@ -117,5 +117,5 @@ ssh -i ~/.ssh/demo_key \
    ADMIN_USERNAME=${ADMIN_USERNAME_ESCAPED} \
    ADMIN_PASSWORD=${ADMIN_PASSWORD_ESCAPED} \
    FEEDBACK_STORAGE_CONFIG=${FEEDBACK_STORAGE_CONFIG_ESCAPED} \
-   make rebuild-recreate ENV=demo \
+   make rebuild-recreate ENV=demo; \
    docker image prune -f || true;"

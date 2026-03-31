@@ -32,6 +32,11 @@ services:
         VITE_APP_TITLE: "Health Aggregator DEMO"
 
   chaos-maker:
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
     build:
       context: .
       dockerfile: services-demo/chaos-maker/Dockerfile
@@ -77,6 +82,11 @@ services:
       - grafana-data:/var/lib/grafana
 
   caddy:
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
     image: caddy:2
     restart: unless-stopped
     ports:
