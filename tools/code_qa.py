@@ -14,8 +14,6 @@ from pathlib import Path
 from typing import Callable
 
 PREK_CONFIG = "prek.toml"
-GOOGLE_JAVA_FORMAT_VERSION = "1.34.1"
-MIN_JAVA_MAJOR_FOR_FORMATTER = 21
 
 
 def repo_root() -> Path:
@@ -101,11 +99,8 @@ def build_emitter(
 
 
 def cmd_install_hooks(_: argparse.Namespace) -> int:
-    """Install pre-commit and pre-push hooks via prek."""
-    prek = resolve_prek()
-    return run(
-        [prek, "install", "-f", "--hook-type", "pre-commit", "--hook-type", "pre-push"]
-    )
+    """Install git hooks by delegating to tools/setup_git_hooks.py."""
+    return run([sys.executable, "tools/setup_git_hooks.py"])
 
 
 def run_check_command(
@@ -472,19 +467,6 @@ def cmd_check_all(args: argparse.Namespace) -> int:
     return 0 if check_rc == 0 and secrets_rc == 0 else 1
 
 
-def parse_java_major(version_output: str) -> int | None:
-    """Extract Java major version from version string output."""
-    match = re.search(r'version "([^"]+)"', version_output)
-    if not match:
-        return None
-    version = match.group(1)
-    if version.startswith("1."):
-        parts = version.split(".")
-        return int(parts[1]) if len(parts) > 1 and parts[1].isdigit() else None
-    major_match = re.match(r"(\d+)", version)
-    return int(major_match.group(1)) if major_match else None
-
-
 def cmd_doctor(_: argparse.Namespace) -> int:
     """Validate local toolchain health for QA commands."""
     failed = False
@@ -509,45 +491,51 @@ def cmd_doctor(_: argparse.Namespace) -> int:
         print(f"[ERR] prek: {exc}")
         failed = True
 
-    java_path = shutil.which("java")
-    if java_path is None:
-        print("[ERR] java: not found in PATH")
-        failed = True
+    java_doctor = capture(
+        [sys.executable, str(repo_root() / "tools" / "run_google_java_format.py"), "--doctor-json"]
+    )
+    try:
+        java_payload = json.loads(java_doctor.stdout.strip() or "{}")
+    except json.JSONDecodeError:
+        java_payload = {}
+    if java_doctor.returncode == 0 and java_payload.get("ok") is True:
+        major = java_payload.get("java_major")
+        formatter_version = java_payload.get("formatter_version")
+        required = java_payload.get("requires_java_major")
+        jar_cached = java_payload.get("jar_cached")
+        print(
+            f"[OK] java: major {major} (compatible with google-java-format {formatter_version}, requires {required}+, jar cached={jar_cached})"
+        )
     else:
-        java_ver = capture(["java", "-version"])
-        out = (java_ver.stderr or java_ver.stdout).strip()
-        major = parse_java_major(out)
-        if java_ver.returncode != 0 or major is None:
-            print("[ERR] java: found but version is not readable")
-            failed = True
-        else:
-            compat = (
-                "compatible"
-                if major >= MIN_JAVA_MAJOR_FOR_FORMATTER
-                else "incompatible"
-            )
-            print(
-                f"[OK] java: major {major} ({compat} with google-java-format {GOOGLE_JAVA_FORMAT_VERSION}, requires {MIN_JAVA_MAJOR_FOR_FORMATTER}+)"
-            )
-            if major < MIN_JAVA_MAJOR_FOR_FORMATTER:
-                failed = True
-
-    trufflehog = shutil.which("trufflehog") or shutil.which("trufflehog.exe")
-    if trufflehog is None:
-        temp_th = repo_root() / ".temp" / "trufflehog.exe"
-        if temp_th.exists():
-            trufflehog = str(temp_th)
-
-    if trufflehog is None:
-        print("[ERR] trufflehog: not found in PATH and .temp/trufflehog.exe missing")
+        reason = (
+            str(java_payload.get("error") or "").strip()
+            or java_doctor.stderr.strip()
+            or java_doctor.stdout.strip()
+            or "unable to resolve Java/google-java-format via tools/run_google_java_format.py"
+        )
+        print(f"[ERR] java: {reason}")
         failed = True
+
+    trufflehog_doctor = capture(
+        [sys.executable, str(repo_root() / "tools" / "run_trufflehog.py"), "--doctor-json"]
+    )
+    try:
+        payload = json.loads(trufflehog_doctor.stdout.strip() or "{}")
+    except json.JSONDecodeError:
+        payload = {}
+    if trufflehog_doctor.returncode == 0 and payload.get("ok") is True:
+        version = str(payload.get("version") or "").strip()
+        binary = str(payload.get("binary") or "").strip()
+        details = f"{version} ({binary})" if version and binary else version or binary
+        print(f"[OK] trufflehog: {details}")
     else:
-        th_ver = capture([trufflehog, "--version"])
-        if th_ver.returncode == 0:
-            print(f"[OK] trufflehog: {th_ver.stdout.strip() or th_ver.stderr.strip()}")
-        else:
-            print(f"[ERR] trufflehog: found at {trufflehog}, but cannot run --version")
-            failed = True
+        reason = (
+            trufflehog_doctor.stderr.strip()
+            or trufflehog_doctor.stdout.strip()
+            or "unable to resolve trufflehog via tools/run_trufflehog.py"
+        )
+        print(f"[ERR] trufflehog: {reason}")
+        failed = True
 
     return 1 if failed else 0
 

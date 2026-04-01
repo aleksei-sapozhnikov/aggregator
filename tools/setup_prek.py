@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
-"""Install pinned QA tooling and optionally install local git hooks."""
+"""Install pinned prek tooling."""
 
 from __future__ import annotations
 
 import argparse
+import os
 import subprocess
 import sys
 from pathlib import Path
+
+DEFAULT_PREK_VERSION = "0.3.6"
 
 
 def repo_root() -> Path:
@@ -27,48 +30,27 @@ def install_prek(version: str) -> int:
     )
 
 
-def install_hooks() -> int:
-    """Install git hooks by delegating to the QA entrypoint."""
-    return run(
-        [
-            sys.executable,
-            "tools/code_qa.py",
-            "install-hooks",
-        ]
-    )
-
-
 def build_parser() -> argparse.ArgumentParser:
-    """Build CLI parser for tool setup options."""
-    parser = argparse.ArgumentParser(description="Install local QA tooling.")
+    """Build CLI parser for prek setup options."""
+    parser = argparse.ArgumentParser(description="Install local prek tooling.")
     parser.add_argument(
         "--prek-version",
-        required=True,
-        help="Pinned prek version to install.",
-    )
-    parser.add_argument(
-        "--install-hooks",
-        action="store_true",
-        help="Install git hooks after tool installation.",
+        default=os.environ.get("PREK_VERSION", DEFAULT_PREK_VERSION),
+        help=(
+            "Pinned prek version to install "
+            f"(default: {DEFAULT_PREK_VERSION}, can be overridden by PREK_VERSION env)."
+        ),
     )
     return parser
 
 
 def main() -> int:
-    """Run tool setup workflow from CLI arguments."""
+    """Run prek setup workflow from CLI arguments."""
     args = build_parser().parse_args()
-
     print(f"Installing prek=={args.prek_version}...")
     rc = install_prek(args.prek_version)
     if rc != 0:
         return rc
-
-    if args.install_hooks:
-        print("Installing git hooks...")
-        rc = install_hooks()
-        if rc != 0:
-            return rc
-
     print("Done")
     return 0
 
