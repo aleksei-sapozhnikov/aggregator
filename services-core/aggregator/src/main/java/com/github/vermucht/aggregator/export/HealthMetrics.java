@@ -152,8 +152,7 @@ public class HealthMetrics {
                   signalSource.source()),
               signalStateStore,
               store ->
-                  HealthStatusMetrics.toGaugeValue(
-                      store.getStatus(itemId, signalSource.id()))));
+                  HealthStatusMetrics.toGaugeValue(store.getStatus(itemId, signalSource.id()))));
     }
     itemSignalStateGauge.register(signalRows, true);
     registerDependencyMetrics(catalog);

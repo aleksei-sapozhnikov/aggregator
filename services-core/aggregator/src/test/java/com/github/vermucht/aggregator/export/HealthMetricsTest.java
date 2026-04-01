@@ -63,10 +63,7 @@ class HealthMetricsTest {
         new PollingSignalSourceRegistry(
             List.of(
                 new StubSignalSource(
-                    ItemId.of("api-gateway"),
-                    "gateway-health",
-                    "Gateway readiness",
-                    "http")));
+                    ItemId.of("api-gateway"), "gateway-health", "Gateway readiness", "http")));
 
     // Registers gauges in constructor.
     HealthMetrics metrics =
@@ -201,8 +198,7 @@ class HealthMetricsTest {
     @NonNull
     @Override
     public HealthSignal poll() {
-      return new HealthSignal(
-          itemId, id, HealthStatus.UP, Instant.now(), source, null, Map.of());
+      return new HealthSignal(itemId, id, HealthStatus.UP, Instant.now(), source, null, Map.of());
     }
   }
 }

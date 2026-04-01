@@ -46,7 +46,8 @@ public class RuntimeConfigurationReloader {
     this.signalDefinitionLoader =
         Objects.requireNonNull(signalDefinitionLoader, "signalDefinitionLoader");
     this.signalSourceFactory = Objects.requireNonNull(signalSourceFactory, "signalSourceFactory");
-    this.signalSourceRegistry = Objects.requireNonNull(signalSourceRegistry, "signalSourceRegistry");
+    this.signalSourceRegistry =
+        Objects.requireNonNull(signalSourceRegistry, "signalSourceRegistry");
     this.signalSourceScheduler =
         Objects.requireNonNull(signalSourceScheduler, "signalSourceScheduler");
   }
@@ -59,7 +60,8 @@ public class RuntimeConfigurationReloader {
 
   /** Reloads catalog snapshot from configured item/dependency resources. */
   public void reloadCatalog() {
-    Resource itemsResource = requireResource(catalogProperties.getItemsPath(), "Catalog items file");
+    Resource itemsResource =
+        requireResource(catalogProperties.getItemsPath(), "Catalog items file");
     Resource dependenciesResource =
         requireResource(catalogProperties.getDependenciesPath(), "Catalog dependencies file");
     Resource itemsSchemaResource =
@@ -82,7 +84,8 @@ public class RuntimeConfigurationReloader {
   public void reloadSignals() {
     Catalog currentCatalog = catalogRegistry.getCatalog();
     signalSourceRegistry.replaceSignalSources(
-        signalSourceFactory.buildSources(signalDefinitionLoader.loadConfigurations(), currentCatalog));
+        signalSourceFactory.buildSources(
+            signalDefinitionLoader.loadConfigurations(), currentCatalog));
     signalSourceScheduler.rescheduleSignalSources();
   }
 

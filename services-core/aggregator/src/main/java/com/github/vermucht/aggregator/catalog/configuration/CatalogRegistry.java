@@ -12,7 +12,8 @@ public class CatalogRegistry {
   private final AtomicReference<Catalog> currentCatalog;
 
   public CatalogRegistry(@Nonnull Catalog initialCatalog) {
-    this.currentCatalog = new AtomicReference<>(Objects.requireNonNull(initialCatalog, "initialCatalog"));
+    this.currentCatalog =
+        new AtomicReference<>(Objects.requireNonNull(initialCatalog, "initialCatalog"));
   }
 
   @Nonnull

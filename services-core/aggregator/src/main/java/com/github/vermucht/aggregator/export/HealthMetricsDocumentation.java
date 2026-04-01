@@ -7,7 +7,8 @@ package com.github.vermucht.aggregator.export;
  *
  * <ul>
  *   <li>{@code catalog_item_state} (gauge)
- *   <li>{@code catalog_item_own_state} (gauge, emitted only for items with configured signal sources)
+ *   <li>{@code catalog_item_own_state} (gauge, emitted only for items with configured signal
+ *       sources)
  *   <li>{@code catalog_item_signal_state} (gauge)
  *   <li>{@code catalog_dependency} (gauge)
  * </ul>
@@ -32,7 +33,6 @@ package com.github.vermucht.aggregator.export;
  *   <li>{@code 0.5} - {@code UNKNOWN}
  *   <li>{@code 0.0} - {@code DOWN}
  * </ul>
- *
  *
  * <p>Dependency gauge values:
  *

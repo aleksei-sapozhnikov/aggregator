@@ -43,7 +43,8 @@ public class PollingSignalSourceScheduler {
       @Nonnull @Qualifier("healthSignalTaskScheduler") TaskScheduler scheduler,
       @Nonnull ItemHealthStateStore stateStore,
       @Nonnull HealthSignalStateStore signalStateStore) {
-    this.signalSourceRegistry = Objects.requireNonNull(signalSourceRegistry, "signalSourceRegistry");
+    this.signalSourceRegistry =
+        Objects.requireNonNull(signalSourceRegistry, "signalSourceRegistry");
     this.consumers = List.copyOf(Objects.requireNonNull(consumers, "consumers"));
     this.scheduler = Objects.requireNonNull(scheduler, "scheduler");
     this.stateStore = Objects.requireNonNull(stateStore, "stateStore");
@@ -81,8 +82,7 @@ public class PollingSignalSourceScheduler {
         consumer.ingest(signal);
       }
       stateStore.updateStatus(
-          signal.itemId(),
-          signalStateStore.getAggregatedItemStatus(signal.itemId()));
+          signal.itemId(), signalStateStore.getAggregatedItemStatus(signal.itemId()));
     } catch (RuntimeException ex) {
       LOGGER.warn("Health signal source {} failed unexpectedly", signalSource.id(), ex);
     }

@@ -2,7 +2,7 @@
  * @file Shared TypeScript type definitions for aggregator-ui.
  */
 
-export type HealthStatus = 'up' | 'down' | 'unknown';
+export type HealthStatus = "up" | "down" | "unknown";
 
 export interface CatalogItem {
   id: string;
@@ -26,25 +26,25 @@ export interface CatalogItemContact {
   contactId: string;
 }
 
-export type CatalogActorType = 'owner' | 'user' | 'other';
+export type CatalogActorType = "owner" | "user" | "other";
 
 export interface CatalogActor {
-    id: string;
-    title: string;
-    type: CatalogActorType;
-    description?: string;
+  id: string;
+  title: string;
+  type: CatalogActorType;
+  description?: string;
 }
 
 export interface CatalogItemActor {
-    itemId: string;
-    actorId: string;
-    isPrimary?: boolean;
+  itemId: string;
+  actorId: string;
+  isPrimary?: boolean;
 }
 
 export interface CatalogActorContact {
-    actorId: string;
-    contactId: string;
-    isPrimary?: boolean;
+  actorId: string;
+  contactId: string;
+  isPrimary?: boolean;
 }
 
 export interface CatalogTreeNode {
@@ -56,7 +56,7 @@ export interface CatalogTreeNode {
 
 export interface ItemSignal {
   id: string;
-    title?: string;
+  title?: string;
   status: HealthStatus;
 }
 

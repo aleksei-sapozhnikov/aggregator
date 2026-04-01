@@ -195,11 +195,7 @@
   "preload": false,
   "refresh": "10s",
   "schemaVersion": 42,
-  "tags": [
-    "catalog",
-    "state",
-    "timeline"
-  ],
+  "tags": ["catalog", "state", "timeline"],
   "templating": {
     "list": [
       {

@@ -16,13 +16,21 @@ const { URL } = require("url");
 
 const LOG_LEVEL = (process.env.LOG_LEVEL || "info").toLowerCase();
 const LEVELS = { error: 0, warn: 1, info: 2, debug: 3 };
-const shouldLog = (level) => LEVELS[level] <= (LEVELS[LOG_LEVEL] ?? LEVELS.info);
+const shouldLog = (level) =>
+  LEVELS[level] <= (LEVELS[LOG_LEVEL] ?? LEVELS.info);
 
 const log = {
-  error: (...args) => shouldLog("error") && console.error(new Date().toISOString(), "ERROR", ...args),
-  warn: (...args) => shouldLog("warn") && console.warn(new Date().toISOString(), "WARN", ...args),
-  info: (...args) => shouldLog("info") && console.log(new Date().toISOString(), "INFO", ...args),
-  debug: (...args) => shouldLog("debug") && console.log(new Date().toISOString(), "DEBUG", ...args),
+  error: (...args) =>
+    shouldLog("error") &&
+    console.error(new Date().toISOString(), "ERROR", ...args),
+  warn: (...args) =>
+    shouldLog("warn") &&
+    console.warn(new Date().toISOString(), "WARN", ...args),
+  info: (...args) =>
+    shouldLog("info") && console.log(new Date().toISOString(), "INFO", ...args),
+  debug: (...args) =>
+    shouldLog("debug") &&
+    console.log(new Date().toISOString(), "DEBUG", ...args),
 };
 
 const statuses = new Map();
@@ -46,12 +54,12 @@ const sendText = (res, code, message) => {
 const parseHealthPointId = (path) => {
   const parts = path.split("/").filter(Boolean);
   if (parts[0] !== "health") {
-    return {matched: false};
+    return { matched: false };
   }
   if (parts.length === 2) {
-    return {matched: true, pointId: parts[1]};
+    return { matched: true, pointId: parts[1] };
   }
-  return {matched: true, invalid: true};
+  return { matched: true, invalid: true };
 };
 
 const server = http.createServer((req, res) => {
@@ -89,11 +97,7 @@ const server = http.createServer((req, res) => {
       pointId = parts[1];
       stateValue = parts[2];
     } else {
-      sendText(
-          res,
-          400,
-          "Expected /set-health/{pointId}/{up|down}",
-      );
+      sendText(res, 400, "Expected /set-health/{pointId}/{up|down}");
       log.warn(`GET ${path} -> 400 (bad path)`);
       return;
     }
