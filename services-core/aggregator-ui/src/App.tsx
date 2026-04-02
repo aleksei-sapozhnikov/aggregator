@@ -887,7 +887,12 @@ export default function App() {
       });
     });
     return result.sort((a, b) => a.name.localeCompare(b.name));
-  }, [failingDependencyNodes, itemMap, itemSignals, itemStatuses]);
+  }, [
+    failingDependencyNodes,
+    itemMap,
+    itemSignals,
+    itemStatuses,
+  ]);
   const openedActor = useMemo(
     () => (openedActorId ? actorsById.get(openedActorId) || null : null),
     [actorsById, openedActorId],

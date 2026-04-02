@@ -196,9 +196,7 @@ export default function DetailsPanel({
     ? actorContactsByActorId.get(ownerActorForContacts.id) || null
     : null;
   const primaryContact =
-    ownerContactsEntry?.primaryContact ||
-    ownerContactsEntry?.contacts[0] ||
-    null;
+    ownerContactsEntry?.primaryContact || ownerContactsEntry?.contacts[0] || null;
   const otherActorsForContacts = selectedItemActors
     ? selectedItemActors.owner
       ? selectedItemActors.otherActors
@@ -217,39 +215,32 @@ export default function DetailsPanel({
               id: "own:signals",
               typeLabel: "Own",
               title: "",
-              signals: selectedFailingSignals.map(
-                (signal) => signal.title || signal.id,
-              ),
+              signals: selectedFailingSignals.map((signal) => signal.title || signal.id),
               status: selectedFailingSignals[0]?.status || "down",
             },
           ]
         : [];
 
-    const dependencyRows: AffectingSignalRow[] = failingDependencies.map(
-      (entry) => {
-        return {
-          id: `dep:${entry.id}`,
-          typeLabel: "Dependency",
-          title: entry.name,
-          signals: entry.failingSignals.map(
-            (signal) => signal.title || signal.id,
-          ),
-          status: entry.status,
-          href: buildItemLink(entry.id, entry.path),
-          onClick: (event) => {
-            if (!isPlainLeftClick(event)) {
-              return;
-            }
-            event.preventDefault();
-            onSelectItemByPath(entry.path);
-          },
-        };
-      },
-    );
+    const dependencyRows: AffectingSignalRow[] = failingDependencies.map((entry) => {
+      return {
+        id: `dep:${entry.id}`,
+        typeLabel: "Dependency",
+        title: entry.name,
+        signals: entry.failingSignals.map((signal) => signal.title || signal.id),
+        status: entry.status,
+        href: buildItemLink(entry.id, entry.path),
+        onClick: (event) => {
+          if (!isPlainLeftClick(event)) {
+            return;
+          }
+          event.preventDefault();
+          onSelectItemByPath(entry.path);
+        },
+      };
+    });
 
     return [...ownRows, ...dependencyRows].sort((left, right) => {
-      const rank = (row: AffectingSignalRow) =>
-        row.typeLabel === "Own" ? 0 : 1;
+      const rank = (row: AffectingSignalRow) => (row.typeLabel === "Own" ? 0 : 1);
       const typeCompare = rank(left) - rank(right);
       if (typeCompare !== 0) {
         return typeCompare;
@@ -308,8 +299,7 @@ export default function DetailsPanel({
 
   const isAffectingOpen = itemDisclosureState.isAffectingOpen;
   const visibleAffectingRows =
-    itemDisclosureState.showAllAffecting ||
-    affectingRows.length <= AFFECTING_PREVIEW_LIMIT
+    itemDisclosureState.showAllAffecting || affectingRows.length <= AFFECTING_PREVIEW_LIMIT
       ? affectingRows
       : affectingRows.slice(0, AFFECTING_PREVIEW_LIMIT);
 
@@ -343,10 +333,7 @@ export default function DetailsPanel({
         </div>
         <div className="content-header-main">
           <div className="content-title">
-            <span
-              className="content-title-primary"
-              ref={contentTitlePrimaryRef}
-            >
+            <span className="content-title-primary" ref={contentTitlePrimaryRef}>
               {selectedItem && (
                 <span
                   className={`status-indicator status-${selectedStatus}`}
@@ -388,24 +375,18 @@ export default function DetailsPanel({
                     event.preventDefault();
                     onOpenActor(ownerActorForContacts);
                   }}
-                  title={
-                    ownerActorForContacts.title || ownerActorForContacts.id
-                  }
+                  title={ownerActorForContacts.title || ownerActorForContacts.id}
                 >
                   <span className="contact-summary-prefix">Owner</span>
                   <span
                     className="contact-summary-main"
-                    title={
-                      ownerActorForContacts.title || ownerActorForContacts.id
-                    }
+                    title={ownerActorForContacts.title || ownerActorForContacts.id}
                   >
                     {ownerActorForContacts.title || ownerActorForContacts.id}
                   </span>
                 </a>
               ) : (
-                <div className="contact-summary-empty">
-                  No owner linked to this item
-                </div>
+                <div className="contact-summary-empty">No owner linked to this item</div>
               )}
 
               {primaryContact && (
@@ -439,8 +420,7 @@ export default function DetailsPanel({
                   className={`contacts-expand-button ${itemDisclosureState.isContactsExtraOpen ? "is-open" : ""}`}
                   onClick={() =>
                     updateDisclosureState({
-                      isContactsExtraOpen:
-                        !itemDisclosureState.isContactsExtraOpen,
+                      isContactsExtraOpen: !itemDisclosureState.isContactsExtraOpen,
                     })
                   }
                   aria-expanded={itemDisclosureState.isContactsExtraOpen}
@@ -473,9 +453,7 @@ export default function DetailsPanel({
                           }}
                           title={entry.actor.title || entry.actor.id}
                         >
-                          <span className="contact-summary-prefix">
-                            {entry.typeLabel}
-                          </span>
+                          <span className="contact-summary-prefix">{entry.typeLabel}</span>
                           <span className="contact-summary-main">
                             <span className="contact-summary-main-label">
                               {entry.actor.title || entry.actor.id}
@@ -508,17 +486,13 @@ export default function DetailsPanel({
                 </span>
                 <span className="signals-subtitle">
                   Affecting now{" "}
-                  <span className="details-panel-count">
-                    ({affectingRows.length})
-                  </span>
+                  <span className="details-panel-count">({affectingRows.length})</span>
                 </span>
               </button>
             </div>
 
             {!hasAffectingSignals && (
-              <p className="signals-healthy-summary">
-                No active impacting signals
-              </p>
+              <p className="signals-healthy-summary">No active impacting signals</p>
             )}
             {hasAffectingSignals && isAffectingOpen && (
               <ul className="signals-incident-list">
@@ -534,13 +508,8 @@ export default function DetailsPanel({
                                 aria-label={buildStatusText(entry.status)}
                                 title={buildStatusText(entry.status)}
                               />
-                              <span className="signals-incident-signal-prefix">
-                                Own
-                              </span>
-                              <span
-                                className="signal-name"
-                                title={entry.title || entry.id}
-                              >
+                              <span className="signals-incident-signal-prefix">Own</span>
+                              <span className="signal-name" title={entry.title || entry.id}>
                                 {entry.title || entry.id}
                               </span>
                             </div>
@@ -554,9 +523,7 @@ export default function DetailsPanel({
                           aria-label={buildStatusText(row.status)}
                           title={buildStatusText(row.status)}
                         />
-                        <span className="signals-incident-kind">
-                          {row.typeLabel}
-                        </span>
+                        <span className="signals-incident-kind">{row.typeLabel}</span>
                         {row.href ? (
                           <a
                             className="signal-link"
@@ -573,41 +540,38 @@ export default function DetailsPanel({
                         )}
                       </div>
                     )}
-                    {row.typeLabel !== "Own" &&
-                      row.signals &&
-                      row.signals.length > 0 && (
-                        <ul className="signals-incident-signal-list">
-                          {row.signals.map((signalLabel, signalIndex) => (
-                            <li
-                              key={`${row.id}:${signalIndex}`}
-                              className="signals-incident-signal"
-                              title={signalLabel}
-                            >
-                              <span>{signalLabel}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
+                    {row.typeLabel !== "Own" && row.signals && row.signals.length > 0 && (
+                      <ul className="signals-incident-signal-list">
+                        {row.signals.map((signalLabel, signalIndex) => (
+                          <li
+                            key={`${row.id}:${signalIndex}`}
+                            className="signals-incident-signal"
+                            title={signalLabel}
+                          >
+                            <span>{signalLabel}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </li>
                 ))}
               </ul>
             )}
-            {hasAffectingSignals &&
-              affectingRows.length > AFFECTING_PREVIEW_LIMIT && (
-                <button
-                  type="button"
-                  className="signals-expand-button"
-                  onClick={() =>
-                    updateDisclosureState({
-                      showAllAffecting: !itemDisclosureState.showAllAffecting,
-                    })
-                  }
-                >
-                  {itemDisclosureState.showAllAffecting
-                    ? `Show ${AFFECTING_PREVIEW_LIMIT} affecting signals`
-                    : `Show all ${affectingRows.length} affecting signals`}
-                </button>
-              )}
+            {hasAffectingSignals && affectingRows.length > AFFECTING_PREVIEW_LIMIT && (
+              <button
+                type="button"
+                className="signals-expand-button"
+                onClick={() =>
+                  updateDisclosureState({
+                    showAllAffecting: !itemDisclosureState.showAllAffecting,
+                  })
+                }
+              >
+                {itemDisclosureState.showAllAffecting
+                  ? `Show ${AFFECTING_PREVIEW_LIMIT} affecting signals`
+                  : `Show all ${affectingRows.length} affecting signals`}
+              </button>
+            )}
 
             <button
               type="button"
@@ -643,10 +607,7 @@ export default function DetailsPanel({
                             aria-label={buildStatusText(entry.status)}
                             title={buildStatusText(entry.status)}
                           />
-                          <span
-                            className="signal-name"
-                            title={entry.title || entry.id}
-                          >
+                          <span className="signal-name" title={entry.title || entry.id}>
                             {entry.title || entry.id}
                           </span>
                         </div>
@@ -689,11 +650,7 @@ export default function DetailsPanel({
                 <div className="grafana-grid">
                   <section
                     className="grafana-panel"
-                    style={
-                      grafanaHeight
-                        ? { height: `${grafanaHeight}px` }
-                        : undefined
-                    }
+                    style={grafanaHeight ? { height: `${grafanaHeight}px` } : undefined}
                   >
                     <iframe
                       title="State Timeline"
