@@ -482,159 +482,159 @@ signals:
     itemId: campaign-budget-guard-svc
     url: http://dummy-javascript:8080/health/campaign-budget-guard-availability-check
   - id: sli-commerce-line-core-customer-availability-check
-    title: 'SLI: Customer-visible availability'
+    title: "SLI: Customer-visible availability"
     itemId: commerce-line-core
     url: http://dummy-java:8080/health/sli-commerce-line-core-customer-availability-check
   - id: sli-commerce-line-core-journey-latency-check
-    title: 'SLI: Customer journey latency'
+    title: "SLI: Customer journey latency"
     itemId: commerce-line-core
     url: http://dummy-python:8080/health/sli-commerce-line-core-journey-latency-check
   - id: sli-commerce-extensions-customer-availability-check
-    title: 'SLI: Customer-visible availability'
+    title: "SLI: Customer-visible availability"
     itemId: commerce-extensions
     url: http://dummy-javascript:8080/health/sli-commerce-extensions-customer-availability-check
   - id: sli-commerce-core-customer-availability-check
-    title: 'SLI: Customer-visible availability'
+    title: "SLI: Customer-visible availability"
     itemId: commerce-core
     url: http://dummy-java:8080/health/sli-commerce-core-customer-availability-check
   - id: sli-order-domain-customer-availability-check
-    title: 'SLI: Customer-visible availability'
+    title: "SLI: Customer-visible availability"
     itemId: order-domain
     url: http://dummy-python:8080/health/sli-order-domain-customer-availability-check
   - id: sli-order-intake-hub-customer-availability-check
-    title: 'SLI: Customer-visible availability'
+    title: "SLI: Customer-visible availability"
     itemId: order-intake-hub
     url: http://dummy-javascript:8080/health/sli-order-intake-hub-customer-availability-check
   - id: sli-order-intake-hub-journey-latency-check
-    title: 'SLI: Customer journey latency'
+    title: "SLI: Customer journey latency"
     itemId: order-intake-hub
     url: http://dummy-java:8080/health/sli-order-intake-hub-journey-latency-check
   - id: sli-order-guard-hub-customer-availability-check
-    title: 'SLI: Customer-visible availability'
+    title: "SLI: Customer-visible availability"
     itemId: order-guard-hub
     url: http://dummy-python:8080/health/sli-order-guard-hub-customer-availability-check
   - id: sli-order-finance-hub-customer-availability-check
-    title: 'SLI: Customer-visible availability'
+    title: "SLI: Customer-visible availability"
     itemId: order-finance-hub
     url: http://dummy-javascript:8080/health/sli-order-finance-hub-customer-availability-check
   - id: sli-order-workflow-customer-availability-check
-    title: 'SLI: Customer-visible availability'
+    title: "SLI: Customer-visible availability"
     itemId: order-workflow
     url: http://dummy-java:8080/health/sli-order-workflow-customer-availability-check
   - id: sli-operations-line-customer-availability-check
-    title: 'SLI: Customer-visible availability'
+    title: "SLI: Customer-visible availability"
     itemId: operations-line
     url: http://dummy-python:8080/health/sli-operations-line-customer-availability-check
   - id: sli-operations-line-journey-latency-check
-    title: 'SLI: Customer journey latency'
+    title: "SLI: Customer journey latency"
     itemId: operations-line
     url: http://dummy-javascript:8080/health/sli-operations-line-journey-latency-check
   - id: sli-ops-accelerators-customer-availability-check
-    title: 'SLI: Customer-visible availability'
+    title: "SLI: Customer-visible availability"
     itemId: ops-accelerators
     url: http://dummy-java:8080/health/sli-ops-accelerators-customer-availability-check
   - id: sli-fulfillment-hub-customer-availability-check
-    title: 'SLI: Customer-visible availability'
+    title: "SLI: Customer-visible availability"
     itemId: fulfillment-hub
     url: http://dummy-python:8080/health/sli-fulfillment-hub-customer-availability-check
   - id: sli-logistics-domain-customer-availability-check
-    title: 'SLI: Customer-visible availability'
+    title: "SLI: Customer-visible availability"
     itemId: logistics-domain
     url: http://dummy-javascript:8080/health/sli-logistics-domain-customer-availability-check
   - id: sli-logistics-routing-cell-customer-availability-check
-    title: 'SLI: Customer-visible availability'
+    title: "SLI: Customer-visible availability"
     itemId: logistics-routing-cell
     url: http://dummy-java:8080/health/sli-logistics-routing-cell-customer-availability-check
   - id: sli-logistics-routing-cell-journey-latency-check
-    title: 'SLI: Customer journey latency'
+    title: "SLI: Customer journey latency"
     itemId: logistics-routing-cell
     url: http://dummy-python:8080/health/sli-logistics-routing-cell-journey-latency-check
   - id: sli-logistics-inventory-cell-customer-availability-check
-    title: 'SLI: Customer-visible availability'
+    title: "SLI: Customer-visible availability"
     itemId: logistics-inventory-cell
     url: http://dummy-javascript:8080/health/sli-logistics-inventory-cell-customer-availability-check
   - id: sli-distribution-core-customer-availability-check
-    title: 'SLI: Customer-visible availability'
+    title: "SLI: Customer-visible availability"
     itemId: distribution-core
     url: http://dummy-java:8080/health/sli-distribution-core-customer-availability-check
   - id: sli-experience-line-customer-availability-check
-    title: 'SLI: Customer-visible availability'
+    title: "SLI: Customer-visible availability"
     itemId: experience-line
     url: http://dummy-python:8080/health/sli-experience-line-customer-availability-check
   - id: sli-experience-foundation-customer-availability-check
-    title: 'SLI: Customer-visible availability'
+    title: "SLI: Customer-visible availability"
     itemId: experience-foundation
     url: http://dummy-javascript:8080/health/sli-experience-foundation-customer-availability-check
   - id: sli-experience-foundation-journey-latency-check
-    title: 'SLI: Customer journey latency'
+    title: "SLI: Customer journey latency"
     itemId: experience-foundation
     url: http://dummy-java:8080/health/sli-experience-foundation-journey-latency-check
   - id: sli-engagement-suite-customer-availability-check
-    title: 'SLI: Customer-visible availability'
+    title: "SLI: Customer-visible availability"
     itemId: engagement-suite
     url: http://dummy-python:8080/health/sli-engagement-suite-customer-availability-check
   - id: sli-journey-domain-customer-availability-check
-    title: 'SLI: Customer-visible availability'
+    title: "SLI: Customer-visible availability"
     itemId: journey-domain
     url: http://dummy-javascript:8080/health/sli-journey-domain-customer-availability-check
   - id: sli-touchpoint-core-customer-availability-check
-    title: 'SLI: Customer-visible availability'
+    title: "SLI: Customer-visible availability"
     itemId: touchpoint-core
     url: http://dummy-java:8080/health/sli-touchpoint-core-customer-availability-check
   - id: sli-touchpoint-profile-pillar-customer-availability-check
-    title: 'SLI: Customer-visible availability'
+    title: "SLI: Customer-visible availability"
     itemId: touchpoint-profile-pillar
     url: http://dummy-python:8080/health/sli-touchpoint-profile-pillar-customer-availability-check
   - id: sli-touchpoint-profile-pillar-journey-latency-check
-    title: 'SLI: Customer journey latency'
+    title: "SLI: Customer journey latency"
     itemId: touchpoint-profile-pillar
     url: http://dummy-javascript:8080/health/sli-touchpoint-profile-pillar-journey-latency-check
   - id: sli-touchpoint-messaging-pillar-customer-availability-check
-    title: 'SLI: Customer-visible availability'
+    title: "SLI: Customer-visible availability"
     itemId: touchpoint-messaging-pillar
     url: http://dummy-java:8080/health/sli-touchpoint-messaging-pillar-customer-availability-check
   - id: sli-touchpoint-campaign-pillar-customer-availability-check
-    title: 'SLI: Customer-visible availability'
+    title: "SLI: Customer-visible availability"
     itemId: touchpoint-campaign-pillar
     url: http://dummy-python:8080/health/sli-touchpoint-campaign-pillar-customer-availability-check
   - id: sli-profile-core-nodes-customer-availability-check
-    title: 'SLI: Customer-visible availability'
+    title: "SLI: Customer-visible availability"
     itemId: profile-core-nodes
     url: http://dummy-javascript:8080/health/sli-profile-core-nodes-customer-availability-check
   - id: sli-profile-identity-nodes-customer-availability-check
-    title: 'SLI: Customer-visible availability'
+    title: "SLI: Customer-visible availability"
     itemId: profile-identity-nodes
     url: http://dummy-java:8080/health/sli-profile-identity-nodes-customer-availability-check
   - id: sli-profile-identity-nodes-journey-latency-check
-    title: 'SLI: Customer journey latency'
+    title: "SLI: Customer journey latency"
     itemId: profile-identity-nodes
     url: http://dummy-python:8080/health/sli-profile-identity-nodes-journey-latency-check
   - id: sli-messaging-router-nodes-customer-availability-check
-    title: 'SLI: Customer-visible availability'
+    title: "SLI: Customer-visible availability"
     itemId: messaging-router-nodes
     url: http://dummy-javascript:8080/health/sli-messaging-router-nodes-customer-availability-check
   - id: sli-messaging-template-nodes-customer-availability-check
-    title: 'SLI: Customer-visible availability'
+    title: "SLI: Customer-visible availability"
     itemId: messaging-template-nodes
     url: http://dummy-java:8080/health/sli-messaging-template-nodes-customer-availability-check
   - id: sli-campaign-planner-nodes-customer-availability-check
-    title: 'SLI: Customer-visible availability'
+    title: "SLI: Customer-visible availability"
     itemId: campaign-planner-nodes
     url: http://dummy-python:8080/health/sli-campaign-planner-nodes-customer-availability-check
   - id: sli-campaign-optimizer-nodes-customer-availability-check
-    title: 'SLI: Customer-visible availability'
+    title: "SLI: Customer-visible availability"
     itemId: campaign-optimizer-nodes
     url: http://dummy-javascript:8080/health/sli-campaign-optimizer-nodes-customer-availability-check
   - id: sli-campaign-optimizer-nodes-journey-latency-check
-    title: 'SLI: Customer journey latency'
+    title: "SLI: Customer journey latency"
     itemId: campaign-optimizer-nodes
     url: http://dummy-java:8080/health/sli-campaign-optimizer-nodes-journey-latency-check
   - id: sli-commerce-platform-customer-availability-check
-    title: 'SLI: Commerce entrypoints stay available for buyers'
+    title: "SLI: Commerce entrypoints stay available for buyers"
     itemId: commerce-platform
     url: http://dummy-java:8080/health/sli-commerce-platform-customer-availability-check
   - id: sli-commerce-platform-journey-latency-check
-    title: 'SLI: Checkout journey latency stays within budget'
+    title: "SLI: Checkout journey latency stays within budget"
     itemId: commerce-platform
     url: http://dummy-java:8080/health/sli-commerce-platform-journey-latency-check
   - id: commerce-platform-order-throughput-check
@@ -642,11 +642,11 @@ signals:
     itemId: commerce-platform
     url: http://dummy-java:8080/health/commerce-platform-order-throughput-check
   - id: sli-customer-experience-customer-availability-check
-    title: 'SLI: Customer touchpoints stay reachable end to end'
+    title: "SLI: Customer touchpoints stay reachable end to end"
     itemId: customer-experience
     url: http://dummy-java:8080/health/sli-customer-experience-customer-availability-check
   - id: sli-customer-experience-journey-latency-check
-    title: 'SLI: Engagement journey latency stays within target'
+    title: "SLI: Engagement journey latency stays within target"
     itemId: customer-experience
     url: http://dummy-java:8080/health/sli-customer-experience-journey-latency-check
   - id: customer-experience-channel-readiness-check
@@ -654,11 +654,11 @@ signals:
     itemId: customer-experience
     url: http://dummy-java:8080/health/customer-experience-channel-readiness-check
   - id: sli-operations-suite-customer-availability-check
-    title: 'SLI: Operations workflows remain available to operators'
+    title: "SLI: Operations workflows remain available to operators"
     itemId: operations-suite
     url: http://dummy-java:8080/health/sli-operations-suite-customer-availability-check
   - id: sli-operations-suite-journey-latency-check
-    title: 'SLI: Operator flow latency stays within control limits'
+    title: "SLI: Operator flow latency stays within control limits"
     itemId: operations-suite
     url: http://dummy-java:8080/health/sli-operations-suite-journey-latency-check
   - id: operations-suite-fulfillment-cycle-check
@@ -666,7 +666,7 @@ signals:
     itemId: operations-suite
     url: http://dummy-java:8080/health/operations-suite-fulfillment-cycle-check
   - id: sli-campaign-planner-nodes-journey-latency-check
-    title: 'SLI: Customer journey latency'
+    title: "SLI: Customer journey latency"
     itemId: campaign-planner-nodes
     url: http://dummy-java:8080/health/sli-campaign-planner-nodes-journey-latency-check
   - id: campaign-planner-nodes-output-quality-check
@@ -674,7 +674,7 @@ signals:
     itemId: campaign-planner-nodes
     url: http://dummy-java:8080/health/campaign-planner-nodes-output-quality-check
   - id: sli-commerce-core-journey-latency-check
-    title: 'SLI: Customer journey latency'
+    title: "SLI: Customer journey latency"
     itemId: commerce-core
     url: http://dummy-java:8080/health/sli-commerce-core-journey-latency-check
   - id: commerce-core-self-validation-check
@@ -682,7 +682,7 @@ signals:
     itemId: commerce-core
     url: http://dummy-java:8080/health/commerce-core-self-validation-check
   - id: sli-commerce-extensions-journey-latency-check
-    title: 'SLI: Customer journey latency'
+    title: "SLI: Customer journey latency"
     itemId: commerce-extensions
     url: http://dummy-java:8080/health/sli-commerce-extensions-journey-latency-check
   - id: commerce-extensions-release-readiness-check
@@ -690,7 +690,7 @@ signals:
     itemId: commerce-extensions
     url: http://dummy-java:8080/health/commerce-extensions-release-readiness-check
   - id: sli-distribution-core-journey-latency-check
-    title: 'SLI: Customer journey latency'
+    title: "SLI: Customer journey latency"
     itemId: distribution-core
     url: http://dummy-java:8080/health/sli-distribution-core-journey-latency-check
   - id: distribution-core-state-consistency-check
@@ -698,7 +698,7 @@ signals:
     itemId: distribution-core
     url: http://dummy-java:8080/health/distribution-core-state-consistency-check
   - id: sli-engagement-suite-journey-latency-check
-    title: 'SLI: Customer journey latency'
+    title: "SLI: Customer journey latency"
     itemId: engagement-suite
     url: http://dummy-java:8080/health/sli-engagement-suite-journey-latency-check
   - id: engagement-suite-journey-completion-check
@@ -706,7 +706,7 @@ signals:
     itemId: engagement-suite
     url: http://dummy-java:8080/health/engagement-suite-journey-completion-check
   - id: sli-experience-line-journey-latency-check
-    title: 'SLI: Customer journey latency'
+    title: "SLI: Customer journey latency"
     itemId: experience-line
     url: http://dummy-java:8080/health/sli-experience-line-journey-latency-check
   - id: experience-line-personalization-freshness-check
@@ -714,7 +714,7 @@ signals:
     itemId: experience-line
     url: http://dummy-java:8080/health/experience-line-personalization-freshness-check
   - id: sli-fulfillment-hub-journey-latency-check
-    title: 'SLI: Customer journey latency'
+    title: "SLI: Customer journey latency"
     itemId: fulfillment-hub
     url: http://dummy-java:8080/health/sli-fulfillment-hub-journey-latency-check
   - id: fulfillment-hub-queue-turnover-check
@@ -722,7 +722,7 @@ signals:
     itemId: fulfillment-hub
     url: http://dummy-java:8080/health/fulfillment-hub-queue-turnover-check
   - id: sli-journey-domain-journey-latency-check
-    title: 'SLI: Customer journey latency'
+    title: "SLI: Customer journey latency"
     itemId: journey-domain
     url: http://dummy-java:8080/health/sli-journey-domain-journey-latency-check
   - id: journey-domain-rule-application-check
@@ -730,7 +730,7 @@ signals:
     itemId: journey-domain
     url: http://dummy-java:8080/health/journey-domain-rule-application-check
   - id: sli-logistics-domain-journey-latency-check
-    title: 'SLI: Customer journey latency'
+    title: "SLI: Customer journey latency"
     itemId: logistics-domain
     url: http://dummy-java:8080/health/sli-logistics-domain-journey-latency-check
   - id: logistics-domain-schedule-adherence-check
@@ -738,7 +738,7 @@ signals:
     itemId: logistics-domain
     url: http://dummy-java:8080/health/logistics-domain-schedule-adherence-check
   - id: sli-logistics-inventory-cell-journey-latency-check
-    title: 'SLI: Customer journey latency'
+    title: "SLI: Customer journey latency"
     itemId: logistics-inventory-cell
     url: http://dummy-java:8080/health/sli-logistics-inventory-cell-journey-latency-check
   - id: logistics-inventory-cell-count-drift-check
@@ -746,7 +746,7 @@ signals:
     itemId: logistics-inventory-cell
     url: http://dummy-java:8080/health/logistics-inventory-cell-count-drift-check
   - id: sli-messaging-router-nodes-journey-latency-check
-    title: 'SLI: Customer journey latency'
+    title: "SLI: Customer journey latency"
     itemId: messaging-router-nodes
     url: http://dummy-java:8080/health/sli-messaging-router-nodes-journey-latency-check
   - id: messaging-router-nodes-route-accuracy-check
@@ -754,7 +754,7 @@ signals:
     itemId: messaging-router-nodes
     url: http://dummy-java:8080/health/messaging-router-nodes-route-accuracy-check
   - id: sli-messaging-template-nodes-journey-latency-check
-    title: 'SLI: Customer journey latency'
+    title: "SLI: Customer journey latency"
     itemId: messaging-template-nodes
     url: http://dummy-java:8080/health/sli-messaging-template-nodes-journey-latency-check
   - id: messaging-template-nodes-render-quality-check
@@ -762,7 +762,7 @@ signals:
     itemId: messaging-template-nodes
     url: http://dummy-java:8080/health/messaging-template-nodes-render-quality-check
   - id: sli-ops-accelerators-journey-latency-check
-    title: 'SLI: Customer journey latency'
+    title: "SLI: Customer journey latency"
     itemId: ops-accelerators
     url: http://dummy-java:8080/health/sli-ops-accelerators-journey-latency-check
   - id: ops-accelerators-simulation-readiness-check
@@ -770,7 +770,7 @@ signals:
     itemId: ops-accelerators
     url: http://dummy-java:8080/health/ops-accelerators-simulation-readiness-check
   - id: sli-order-domain-journey-latency-check
-    title: 'SLI: Customer journey latency'
+    title: "SLI: Customer journey latency"
     itemId: order-domain
     url: http://dummy-java:8080/health/sli-order-domain-journey-latency-check
   - id: order-domain-state-consistency-check
@@ -778,7 +778,7 @@ signals:
     itemId: order-domain
     url: http://dummy-java:8080/health/order-domain-state-consistency-check
   - id: sli-order-finance-hub-journey-latency-check
-    title: 'SLI: Customer journey latency'
+    title: "SLI: Customer journey latency"
     itemId: order-finance-hub
     url: http://dummy-java:8080/health/sli-order-finance-hub-journey-latency-check
   - id: order-finance-hub-ledger-balance-check
@@ -786,7 +786,7 @@ signals:
     itemId: order-finance-hub
     url: http://dummy-java:8080/health/order-finance-hub-ledger-balance-check
   - id: sli-order-guard-hub-journey-latency-check
-    title: 'SLI: Customer journey latency'
+    title: "SLI: Customer journey latency"
     itemId: order-guard-hub
     url: http://dummy-java:8080/health/sli-order-guard-hub-journey-latency-check
   - id: order-guard-hub-policy-coverage-check
@@ -794,7 +794,7 @@ signals:
     itemId: order-guard-hub
     url: http://dummy-java:8080/health/order-guard-hub-policy-coverage-check
   - id: sli-order-workflow-journey-latency-check
-    title: 'SLI: Customer journey latency'
+    title: "SLI: Customer journey latency"
     itemId: order-workflow
     url: http://dummy-java:8080/health/sli-order-workflow-journey-latency-check
   - id: order-workflow-stage-progress-check
@@ -802,7 +802,7 @@ signals:
     itemId: order-workflow
     url: http://dummy-java:8080/health/order-workflow-stage-progress-check
   - id: sli-profile-core-nodes-journey-latency-check
-    title: 'SLI: Customer journey latency'
+    title: "SLI: Customer journey latency"
     itemId: profile-core-nodes
     url: http://dummy-java:8080/health/sli-profile-core-nodes-journey-latency-check
   - id: profile-core-nodes-merge-quality-check
@@ -810,7 +810,7 @@ signals:
     itemId: profile-core-nodes
     url: http://dummy-java:8080/health/profile-core-nodes-merge-quality-check
   - id: sli-touchpoint-campaign-pillar-journey-latency-check
-    title: 'SLI: Customer journey latency'
+    title: "SLI: Customer journey latency"
     itemId: touchpoint-campaign-pillar
     url: http://dummy-java:8080/health/sli-touchpoint-campaign-pillar-journey-latency-check
   - id: touchpoint-campaign-pillar-budget-timeliness-check
@@ -818,7 +818,7 @@ signals:
     itemId: touchpoint-campaign-pillar
     url: http://dummy-java:8080/health/touchpoint-campaign-pillar-budget-timeliness-check
   - id: sli-touchpoint-core-journey-latency-check
-    title: 'SLI: Customer journey latency'
+    title: "SLI: Customer journey latency"
     itemId: touchpoint-core
     url: http://dummy-java:8080/health/sli-touchpoint-core-journey-latency-check
   - id: touchpoint-core-session-timeliness-check
@@ -826,7 +826,7 @@ signals:
     itemId: touchpoint-core
     url: http://dummy-java:8080/health/touchpoint-core-session-timeliness-check
   - id: sli-touchpoint-messaging-pillar-journey-latency-check
-    title: 'SLI: Customer journey latency'
+    title: "SLI: Customer journey latency"
     itemId: touchpoint-messaging-pillar
     url: http://dummy-java:8080/health/sli-touchpoint-messaging-pillar-journey-latency-check
   - id: touchpoint-messaging-pillar-channel-readiness-check
@@ -866,7 +866,7 @@ signals:
     itemId: touchpoint-profile-pillar
     url: http://dummy-java:8080/health/touchpoint-profile-pillar-profile-latency-check
   - id: sli-campaign-budget-guard-customer-latency-check
-    title: 'SLI: Client request latency is within SLO'
+    title: "SLI: Client request latency is within SLO"
     itemId: campaign-budget-guard-svc
     url: http://dummy-java:8080/health/sli-campaign-budget-guard-customer-latency-check
   - id: campaign-budget-guard-budget-freshness-check
@@ -874,7 +874,7 @@ signals:
     itemId: campaign-budget-guard-svc
     url: http://dummy-java:8080/health/campaign-budget-guard-budget-freshness-check
   - id: sli-engagement-orchestrator-customer-latency-check
-    title: 'SLI: Client request latency is within SLO'
+    title: "SLI: Client request latency is within SLO"
     itemId: engagement-orchestrator-svc
     url: http://dummy-java:8080/health/sli-engagement-orchestrator-customer-latency-check
   - id: engagement-orchestrator-state-consistency-check
@@ -882,7 +882,7 @@ signals:
     itemId: engagement-orchestrator-svc
     url: http://dummy-java:8080/health/engagement-orchestrator-state-consistency-check
   - id: sli-fraud-screening-customer-latency-check
-    title: 'SLI: Client request latency is within SLO'
+    title: "SLI: Client request latency is within SLO"
     itemId: fraud-screening-svc
     url: http://dummy-java:8080/health/sli-fraud-screening-customer-latency-check
   - id: fraud-screening-score-quality-check
@@ -890,7 +890,7 @@ signals:
     itemId: fraud-screening-svc
     url: http://dummy-java:8080/health/fraud-screening-score-quality-check
   - id: sli-fulfillment-control-plane-customer-latency-check
-    title: 'SLI: Client request latency is within SLO'
+    title: "SLI: Client request latency is within SLO"
     itemId: fulfillment-control-plane-svc
     url: http://dummy-java:8080/health/sli-fulfillment-control-plane-customer-latency-check
   - id: fulfillment-control-plane-cycle-timeliness-check
@@ -898,7 +898,7 @@ signals:
     itemId: fulfillment-control-plane-svc
     url: http://dummy-java:8080/health/fulfillment-control-plane-cycle-timeliness-check
   - id: sli-inventory-reconciler-customer-latency-check
-    title: 'SLI: Client request latency is within SLO'
+    title: "SLI: Client request latency is within SLO"
     itemId: inventory-reconciler-svc
     url: http://dummy-java:8080/health/sli-inventory-reconciler-customer-latency-check
   - id: inventory-reconciler-drift-check
@@ -906,7 +906,7 @@ signals:
     itemId: inventory-reconciler-svc
     url: http://dummy-java:8080/health/inventory-reconciler-drift-check
   - id: sli-journey-experimentation-customer-latency-check
-    title: 'SLI: Client request latency is within SLO'
+    title: "SLI: Client request latency is within SLO"
     itemId: journey-experimentation-svc
     url: http://dummy-java:8080/health/sli-journey-experimentation-customer-latency-check
   - id: journey-experimentation-evaluation-window-check
@@ -914,7 +914,7 @@ signals:
     itemId: journey-experimentation-svc
     url: http://dummy-java:8080/health/journey-experimentation-evaluation-window-check
   - id: sli-order-dispatch-customer-latency-check
-    title: 'SLI: Client request latency is within SLO'
+    title: "SLI: Client request latency is within SLO"
     itemId: order-dispatch-svc
     url: http://dummy-java:8080/health/sli-order-dispatch-customer-latency-check
   - id: order-dispatch-queue-health-check
@@ -922,7 +922,7 @@ signals:
     itemId: order-dispatch-svc
     url: http://dummy-java:8080/health/order-dispatch-queue-health-check
   - id: sli-order-domain-events-customer-latency-check
-    title: 'SLI: Client request latency is within SLO'
+    title: "SLI: Client request latency is within SLO"
     itemId: order-domain-events-svc
     url: http://dummy-java:8080/health/sli-order-domain-events-customer-latency-check
   - id: order-domain-events-publication-freshness-check
@@ -930,7 +930,7 @@ signals:
     itemId: order-domain-events-svc
     url: http://dummy-java:8080/health/order-domain-events-publication-freshness-check
   - id: sli-order-sla-tracker-customer-latency-check
-    title: 'SLI: Client request latency is within SLO'
+    title: "SLI: Client request latency is within SLO"
     itemId: order-sla-tracker-svc
     url: http://dummy-java:8080/health/sli-order-sla-tracker-customer-latency-check
   - id: order-sla-tracker-deadline-accuracy-check
@@ -938,7 +938,7 @@ signals:
     itemId: order-sla-tracker-svc
     url: http://dummy-java:8080/health/order-sla-tracker-deadline-accuracy-check
   - id: sli-profile-merge-orchestrator-customer-latency-check
-    title: 'SLI: Client request latency is within SLO'
+    title: "SLI: Client request latency is within SLO"
     itemId: profile-merge-orchestrator-svc
     url: http://dummy-java:8080/health/sli-profile-merge-orchestrator-customer-latency-check
   - id: profile-merge-orchestrator-merge-consistency-check
@@ -946,7 +946,7 @@ signals:
     itemId: profile-merge-orchestrator-svc
     url: http://dummy-java:8080/health/profile-merge-orchestrator-merge-consistency-check
   - id: sli-route-cache-writer-customer-latency-check
-    title: 'SLI: Client request latency is within SLO'
+    title: "SLI: Client request latency is within SLO"
     itemId: route-cache-writer-svc
     url: http://dummy-java:8080/health/sli-route-cache-writer-customer-latency-check
   - id: route-cache-writer-write-freshness-check
@@ -954,7 +954,7 @@ signals:
     itemId: route-cache-writer-svc
     url: http://dummy-java:8080/health/route-cache-writer-write-freshness-check
   - id: sli-touchpoint-session-state-customer-latency-check
-    title: 'SLI: Client request latency is within SLO'
+    title: "SLI: Client request latency is within SLO"
     itemId: touchpoint-session-state-svc
     url: http://dummy-java:8080/health/sli-touchpoint-session-state-customer-latency-check
   - id: touchpoint-session-state-expiry-window-check
@@ -962,11 +962,11 @@ signals:
     itemId: touchpoint-session-state-svc
     url: http://dummy-java:8080/health/touchpoint-session-state-expiry-window-check
   - id: sli-depot-slotting-customer-availability-check
-    title: 'SLI: Client-visible availability'
+    title: "SLI: Client-visible availability"
     itemId: depot-slotting-svc
     url: http://dummy-java:8080/health/sli-depot-slotting-customer-availability-check
   - id: sli-route-cost-model-customer-availability-check
-    title: 'SLI: Client-visible availability'
+    title: "SLI: Client-visible availability"
     itemId: route-cost-model-svc
     url: http://dummy-java:8080/health/sli-route-cost-model-customer-availability-check
   - id: commerce-platform-checkout-capacity-check
@@ -974,7 +974,7 @@ signals:
     itemId: commerce-platform
     url: http://dummy-python:8080/health/commerce-platform-checkout-capacity-check
   - id: sli-customer-experience-engagement-latency-check
-    title: 'SLI: Engagement response stays within journey budget'
+    title: "SLI: Engagement response stays within journey budget"
     itemId: customer-experience
     url: http://dummy-javascript:8080/health/sli-customer-experience-engagement-latency-check
   - id: customer-experience-personalization-freshness-check
@@ -990,7 +990,7 @@ signals:
     itemId: distribution-core
     url: http://dummy-javascript:8080/health/distribution-core-slotting-timeliness-check
   - id: sli-fulfillment-hub-flow-availability-check
-    title: 'SLI: Fulfillment flow availability stays above target'
+    title: "SLI: Fulfillment flow availability stays above target"
     itemId: fulfillment-hub
     url: http://dummy-java:8080/health/sli-fulfillment-hub-flow-availability-check
   - id: fulfillment-hub-allocation-accuracy-check
@@ -998,7 +998,7 @@ signals:
     itemId: fulfillment-hub
     url: http://dummy-python:8080/health/fulfillment-hub-allocation-accuracy-check
   - id: sli-operations-line-workload-latency-check
-    title: 'SLI: Operational response stays within cycle budget'
+    title: "SLI: Operational response stays within cycle budget"
     itemId: operations-line
     url: http://dummy-javascript:8080/health/sli-operations-line-workload-latency-check
   - id: engagement-orchestrator-decision-freshness-check
@@ -1006,7 +1006,7 @@ signals:
     itemId: engagement-orchestrator-svc
     url: http://dummy-java:8080/health/engagement-orchestrator-decision-freshness-check
   - id: sli-inventory-reconciler-reconcile-availability-check
-    title: 'SLI: Reconciliation path availability stays above target'
+    title: "SLI: Reconciliation path availability stays above target"
     itemId: inventory-reconciler-svc
     url: http://dummy-python:8080/health/sli-inventory-reconciler-reconcile-availability-check
   - id: inventory-reconciler-batch-timeliness-check
@@ -1018,11 +1018,10 @@ signals:
     itemId: order-dispatch-svc
     url: http://dummy-java:8080/health/order-dispatch-routing-accuracy-check
   - id: sli-route-cache-writer-write-latency-check
-    title: 'SLI: Cache write latency stays within budget'
+    title: "SLI: Cache write latency stays within budget"
     itemId: route-cache-writer-svc
     url: http://dummy-python:8080/health/sli-route-cache-writer-write-latency-check
   - id: route-cache-writer-batch-stability-check
     title: Cache write batches stay stable during burst updates
     itemId: route-cache-writer-svc
     url: http://dummy-javascript:8080/health/route-cache-writer-batch-stability-check
-

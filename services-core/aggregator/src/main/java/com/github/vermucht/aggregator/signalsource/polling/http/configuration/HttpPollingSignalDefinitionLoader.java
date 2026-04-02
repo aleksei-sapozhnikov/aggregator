@@ -39,7 +39,8 @@ public class HttpPollingSignalDefinitionLoader {
           "HTTP polling signal schema file not found at " + properties.getSchemaPath());
     }
     HttpPollingSignalDefinition definition =
-        definitionLoader.loadDefinition(resource, schemaResource, HttpPollingSignalDefinition.class);
+        definitionLoader.loadDefinition(
+            resource, schemaResource, HttpPollingSignalDefinition.class);
     List<HttpPollingSignalConfiguration> signals = definition.signals();
     if (signals == null) {
       throw new IllegalStateException("HTTP polling signal definition must include signals");

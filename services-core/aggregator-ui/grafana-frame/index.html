@@ -1,48 +1,50 @@
 <!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <head>
+    <meta charset="UTF-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>Grafana Frame</title>
     <script>
-        const theme = new URLSearchParams(window.location.search).get('theme') === 'dark'
-            ? 'dark'
-            : 'light';
-        document.documentElement.dataset.theme = theme;
+      const theme =
+        new URLSearchParams(window.location.search).get("theme") === "dark"
+          ? "dark"
+          : "light";
+      document.documentElement.dataset.theme = theme;
     </script>
     <style>
-        :root {
-            color-scheme: light;
-            --frame-background-light: #ffffff;
-            --frame-background-dark: #181b1f;
-            --frame-background: var(--frame-background-light);
-        }
+      :root {
+        color-scheme: light;
+        --frame-background-light: #ffffff;
+        --frame-background-dark: #181b1f;
+        --frame-background: var(--frame-background-light);
+      }
 
-        html[data-theme='dark'] {
-            color-scheme: dark;
-            --frame-background: var(--frame-background-dark);
-        }
+      html[data-theme="dark"] {
+        color-scheme: dark;
+        --frame-background: var(--frame-background-dark);
+      }
 
-        html, body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background: var(--frame-background);
-        }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: var(--frame-background);
+      }
 
-        #grafana-embed {
-            width: 100%;
-            height: 100%;
-            border: 0;
-            display: block;
-            background: transparent;
-        }
+      #grafana-embed {
+        width: 100%;
+        height: 100%;
+        border: 0;
+        display: block;
+        background: transparent;
+      }
     </style>
-</head>
-<body>
-<iframe id="grafana-embed" title="Grafana"></iframe>
-<script src="./index.ts" type="module"></script>
-</body>
+  </head>
+  <body>
+    <iframe id="grafana-embed" title="Grafana"></iframe>
+    <script src="./index.ts" type="module"></script>
+  </body>
 </html>

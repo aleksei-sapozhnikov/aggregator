@@ -1,2 +1,2 @@
 # yaml-language-server: $schema=../schemas/catalog-items.schema.yaml
-items: [ ]
+items: []

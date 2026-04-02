@@ -2,63 +2,63 @@
  * @file Main React application orchestrator for aggregator-ui.
  */
 
-import type {TouchEvent} from 'react';
-import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import SidebarPanel from './components/SidebarPanel';
-import DetailsPanel from './components/DetailsPanel';
-import AboutModal from './components/AboutModal';
-import FeedbackModal from './components/FeedbackModal';
-import ContactModal from './components/ContactModal';
-import ActorModal from './components/ActorModal';
+import type { TouchEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import SidebarPanel from "./components/SidebarPanel";
+import DetailsPanel from "./components/DetailsPanel";
+import AboutModal from "./components/AboutModal";
+import FeedbackModal from "./components/FeedbackModal";
+import ContactModal from "./components/ContactModal";
+import ActorModal from "./components/ActorModal";
 import {
-    buildCatalogTree,
-    buildItemPathname,
-    buildItemRouteHref,
-    buildSearchAutocompleteIndex,
-    buildSearchAutocompleteOptions,
-    buildServicePath,
-    collectDescendantIds,
-    collectExpandableIds,
-    filterCatalogTree,
-    findNodeById,
-    findNodeByPath,
-    findNodePath,
-    findNodeUidById,
-    normalizeSearchText,
-    rankSearchResults,
-    readLocationRouteContext,
-    resolveNodeFromLocation,
-} from './shared/catalogUtils';
+  buildCatalogTree,
+  buildItemPathname,
+  buildItemRouteHref,
+  buildSearchAutocompleteIndex,
+  buildSearchAutocompleteOptions,
+  buildServicePath,
+  collectDescendantIds,
+  collectExpandableIds,
+  filterCatalogTree,
+  findNodeById,
+  findNodeByPath,
+  findNodePath,
+  findNodeUidById,
+  normalizeSearchText,
+  rankSearchResults,
+  readLocationRouteContext,
+  resolveNodeFromLocation,
+} from "./shared/catalogUtils";
 import {
-    buildDashboardUrl,
-    buildGrafanaFrameUrl,
-    compareHealthStatus,
-    DASHBOARDS,
-    fetchPrometheusStatuses,
-    getInitialTheme,
-    loadCatalog,
-    resolveBasePath,
-    resolveBaseUrl,
-    resolveGrafanaBaseUrl,
-    resolvePrometheusBaseUrl,
-    resolveSidebarTitle,
-    submitFeedback,
-} from './services/aggregatorApi';
-import {sortContactsWithPrimaryFirst} from './shared/contactUtils';
+  buildDashboardUrl,
+  buildGrafanaFrameUrl,
+  compareHealthStatus,
+  DASHBOARDS,
+  fetchPrometheusStatuses,
+  getInitialTheme,
+  loadCatalog,
+  resolveBasePath,
+  resolveBaseUrl,
+  resolveGrafanaBaseUrl,
+  resolvePrometheusBaseUrl,
+  resolveSidebarTitle,
+  submitFeedback,
+} from "./services/aggregatorApi";
+import { sortContactsWithPrimaryFirst } from "./shared/contactUtils";
 import type {
-    CatalogActor,
-    CatalogActorContact,
-    CatalogContact,
-    CatalogDependency,
-    CatalogItem,
-    CatalogItemActor,
-    CatalogItemContact,
-    CatalogTreeNode,
-    FailingDependencyEntry,
-    HealthStatus,
-    ItemSignal,
-    SearchAutocompleteIndex,
-} from './shared/types';
+  CatalogActor,
+  CatalogActorContact,
+  CatalogContact,
+  CatalogDependency,
+  CatalogItem,
+  CatalogItemActor,
+  CatalogItemContact,
+  CatalogTreeNode,
+  FailingDependencyEntry,
+  HealthStatus,
+  ItemSignal,
+  SearchAutocompleteIndex,
+} from "./shared/types";
 
 const MOBILE_BREAKPOINT = 1100;
 const TREE_SCROLL_LONG_DISTANCE_PX = 600;
@@ -66,38 +66,47 @@ const TREE_SCROLL_SMOOTH_SEGMENT_PX = 360;
 const MOBILE_SWIPE_OPEN_DISTANCE_PX = 96;
 const MOBILE_SWIPE_CLOSE_DISTANCE_PX = 96;
 const MOBILE_SWIPE_MAX_VERTICAL_DRIFT_PX = 48;
-const FEEDBACK_DRAFT_STORAGE_KEY = 'aggregator-ui-feedback-draft';
-type RouteUpdateOptions = {replace?: boolean};
-type LocationSelectionOptions = {normalize?: boolean; preserveExpansion?: boolean};
+const FEEDBACK_DRAFT_STORAGE_KEY = "aggregator-ui-feedback-draft";
+type RouteUpdateOptions = { replace?: boolean };
+type LocationSelectionOptions = {
+  normalize?: boolean;
+  preserveExpansion?: boolean;
+};
 type ItemActorsEntry = {
-    owner: CatalogActor | null;
-    otherActors: CatalogActor[];
+  owner: CatalogActor | null;
+  otherActors: CatalogActor[];
 };
 
-const compareSignalsByStatusAndTitle = (left: ItemSignal, right: ItemSignal): number => {
-    const statusCompare = compareHealthStatus(left.status, right.status);
-    if (statusCompare !== 0) {
-        return statusCompare;
-    }
-    return (left.title || left.id).localeCompare(right.title || right.id) || left.id.localeCompare(right.id);
+const compareSignalsByStatusAndTitle = (
+  left: ItemSignal,
+  right: ItemSignal,
+): number => {
+  const statusCompare = compareHealthStatus(left.status, right.status);
+  if (statusCompare !== 0) {
+    return statusCompare;
+  }
+  return (
+    (left.title || left.id).localeCompare(right.title || right.id) ||
+    left.id.localeCompare(right.id)
+  );
 };
 
 const EMPTY_CATALOG: {
-    items: CatalogItem[];
-    dependencies: CatalogDependency[];
-    contacts: CatalogContact[];
-    itemContacts: CatalogItemContact[];
-    actors: CatalogActor[];
-    itemActors: CatalogItemActor[];
-    actorContacts: CatalogActorContact[];
+  items: CatalogItem[];
+  dependencies: CatalogDependency[];
+  contacts: CatalogContact[];
+  itemContacts: CatalogItemContact[];
+  actors: CatalogActor[];
+  itemActors: CatalogItemActor[];
+  actorContacts: CatalogActorContact[];
 } = {
-    items: [],
-    dependencies: [],
-    contacts: [],
-    itemContacts: [],
-    actors: [],
-    itemActors: [],
-    actorContacts: [],
+  items: [],
+  dependencies: [],
+  contacts: [],
+  itemContacts: [],
+  actors: [],
+  itemActors: [],
+  actorContacts: [],
 };
 
 /**
@@ -106,1416 +115,1584 @@ const EMPTY_CATALOG: {
  * and wires large UI blocks (SidebarPanel, DetailsPanel, AboutModal).
  */
 export default function App() {
-    const sidebarTitle = resolveSidebarTitle();
-    const [catalog, setCatalog] = useState(EMPTY_CATALOG);
-    const [selectedId, setSelectedId] = useState('');
-    const [selectedPath, setSelectedPath] = useState<string[]>([]);
-    const [error, setError] = useState('');
-    const [theme, setTheme] = useState(getInitialTheme);
-    const initialFrameThemeRef = useRef(theme);
-    const [expandedIds, setExpandedIds] = useState<Set<string>>(() => new Set<string>());
-    const expandedIdsRef = useRef(expandedIds);
+  const sidebarTitle = resolveSidebarTitle();
+  const [catalog, setCatalog] = useState(EMPTY_CATALOG);
+  const [selectedId, setSelectedId] = useState("");
+  const [selectedPath, setSelectedPath] = useState<string[]>([]);
+  const [error, setError] = useState("");
+  const [theme, setTheme] = useState(getInitialTheme);
+  const initialFrameThemeRef = useRef(theme);
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(
+    () => new Set<string>(),
+  );
+  const expandedIdsRef = useRef(expandedIds);
 
-    const [itemStatuses, setItemStatuses] = useState<Record<string, HealthStatus>>({});
-    const [itemSignals, setItemSignals] = useState<Record<string, ItemSignal[]>>({});
-    const [lastUpdated, setLastUpdated] = useState('');
-    const [isMobileLayout, setIsMobileLayout] = useState(
-        () => window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT}px)`).matches,
-    );
-    const [isDesktopSidebarOpen, setIsDesktopSidebarOpen] = useState(true);
-    const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-    const [isSearchActive, setIsSearchActive] = useState(false);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [searchAutocompleteIndex, setSearchAutocompleteIndex] = useState<SearchAutocompleteIndex | null>(null);
-    const [isSearchAutocompleteReady, setIsSearchAutocompleteReady] = useState(false);
-    const [pendingScrollId, setPendingScrollId] = useState('');
-    const [isSignalsOpen, setIsSignalsOpen] = useState(true);
-    const [isFailingSignalsOpen, setIsFailingSignalsOpen] = useState(false);
-    const [isAffectedBySignalsOpen, setIsAffectedBySignalsOpen] = useState(false);
-    const [isPassingSignalsOpen, setIsPassingSignalsOpen] = useState(false);
-    const [isContactsOpen, setIsContactsOpen] = useState(true);
-    const [isGrafanaOpen, setIsGrafanaOpen] = useState(true);
-    const [isAboutOpen, setIsAboutOpen] = useState(false);
-    const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
-    const [openedContact, setOpenedContact] = useState<CatalogContact | null>(null);
-    const [openedActorId, setOpenedActorId] = useState('');
-    const [feedbackDraft, setFeedbackDraft] = useState(
-        () => localStorage.getItem(FEEDBACK_DRAFT_STORAGE_KEY) || '',
-    );
-    const [feedbackError, setFeedbackError] = useState('');
-    const [isFeedbackSending, setIsFeedbackSending] = useState(false);
-    const [notification, setNotification] = useState<{
-        id: number;
-        message: string;
-        phase: 'hidden' | 'visible' | 'exiting';
-    }>({
-        id: 0,
-        message: '',
-        phase: 'hidden',
-    });
-    const [isTitlePrimaryBelowControls, setIsTitlePrimaryBelowControls] = useState(false);
-    const [grafanaHeight, setGrafanaHeight] = useState(0);
-    const prevSearchTokensRef = useRef(0);
-    const clearSearchRequestedRef = useRef(false);
-    const catalogTreeRef = useRef<HTMLDivElement | null>(null);
-    const grafanaIframeRef = useRef<HTMLIFrameElement | null>(null);
-    const contentRef = useRef<HTMLElement | null>(null);
-    const headerRef = useRef<HTMLElement | null>(null);
-    const headerActionsRef = useRef<HTMLDivElement | null>(null);
-    const contentTitlePrimaryRef = useRef<HTMLElement | null>(null);
-    const sidebarSwipeStartXRef = useRef<number | null>(null);
-    const sidebarSwipeStartYRef = useRef<number | null>(null);
-    const lastHistoryUrlRef = useRef(window.location.href);
-    const lastHistoryKeyRef = useRef('');
-    const pendingGrafanaSrcRef = useRef('');
-    const grafanaFrameReadyRef = useRef(false);
+  const [itemStatuses, setItemStatuses] = useState<
+    Record<string, HealthStatus>
+  >({});
+  const [itemSignals, setItemSignals] = useState<Record<string, ItemSignal[]>>(
+    {},
+  );
+  const [lastUpdated, setLastUpdated] = useState("");
+  const [isMobileLayout, setIsMobileLayout] = useState(
+    () => window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT}px)`).matches,
+  );
+  const [isDesktopSidebarOpen, setIsDesktopSidebarOpen] = useState(true);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isSearchActive, setIsSearchActive] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchAutocompleteIndex, setSearchAutocompleteIndex] =
+    useState<SearchAutocompleteIndex | null>(null);
+  const [isSearchAutocompleteReady, setIsSearchAutocompleteReady] =
+    useState(false);
+  const [pendingScrollId, setPendingScrollId] = useState("");
+  const [isSignalsOpen, setIsSignalsOpen] = useState(true);
+  const [isFailingSignalsOpen, setIsFailingSignalsOpen] = useState(false);
+  const [isAffectedBySignalsOpen, setIsAffectedBySignalsOpen] = useState(false);
+  const [isPassingSignalsOpen, setIsPassingSignalsOpen] = useState(false);
+  const [isContactsOpen, setIsContactsOpen] = useState(true);
+  const [isGrafanaOpen, setIsGrafanaOpen] = useState(true);
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const [openedContact, setOpenedContact] = useState<CatalogContact | null>(
+    null,
+  );
+  const [openedActorId, setOpenedActorId] = useState("");
+  const [feedbackDraft, setFeedbackDraft] = useState(
+    () => localStorage.getItem(FEEDBACK_DRAFT_STORAGE_KEY) || "",
+  );
+  const [feedbackError, setFeedbackError] = useState("");
+  const [isFeedbackSending, setIsFeedbackSending] = useState(false);
+  const [notification, setNotification] = useState<{
+    id: number;
+    message: string;
+    phase: "hidden" | "visible" | "exiting";
+  }>({
+    id: 0,
+    message: "",
+    phase: "hidden",
+  });
+  const [isTitlePrimaryBelowControls, setIsTitlePrimaryBelowControls] =
+    useState(false);
+  const [grafanaHeight, setGrafanaHeight] = useState(0);
+  const prevSearchTokensRef = useRef(0);
+  const clearSearchRequestedRef = useRef(false);
+  const catalogTreeRef = useRef<HTMLDivElement | null>(null);
+  const grafanaIframeRef = useRef<HTMLIFrameElement | null>(null);
+  const contentRef = useRef<HTMLElement | null>(null);
+  const headerRef = useRef<HTMLElement | null>(null);
+  const headerActionsRef = useRef<HTMLDivElement | null>(null);
+  const contentTitlePrimaryRef = useRef<HTMLElement | null>(null);
+  const sidebarSwipeStartXRef = useRef<number | null>(null);
+  const sidebarSwipeStartYRef = useRef<number | null>(null);
+  const lastHistoryUrlRef = useRef(window.location.href);
+  const lastHistoryKeyRef = useRef("");
+  const pendingGrafanaSrcRef = useRef("");
+  const grafanaFrameReadyRef = useRef(false);
 
-    const grafanaBaseUrl = useMemo(resolveGrafanaBaseUrl, []);
-    const prometheusBaseUrl = useMemo(resolvePrometheusBaseUrl, []);
-    const basePath = useMemo(resolveBasePath, []);
-    const appBaseUrl = useMemo(() => resolveBaseUrl().replace(/\/$/, ''), []);
+  const grafanaBaseUrl = useMemo(resolveGrafanaBaseUrl, []);
+  const prometheusBaseUrl = useMemo(resolvePrometheusBaseUrl, []);
+  const basePath = useMemo(resolveBasePath, []);
+  const appBaseUrl = useMemo(() => resolveBaseUrl().replace(/\/$/, ""), []);
 
-    /**
-     * Pushes/replaces browser history for an item route while deduplicating no-op updates.
-     */
-    const updateHistoryForRoute = useCallback((
-        itemId: string,
-        pathIds: string[],
-        {replace}: RouteUpdateOptions = {},
+  /**
+   * Pushes/replaces browser history for an item route while deduplicating no-op updates.
+   */
+  const updateHistoryForRoute = useCallback(
+    (
+      itemId: string,
+      pathIds: string[],
+      { replace }: RouteUpdateOptions = {},
     ) => {
-        if (!itemId) {
-            return;
-        }
-        const normalizedPath = Array.isArray(pathIds) ? pathIds : [];
-        const url = new URL(window.location.href);
-        url.pathname = buildItemPathname(basePath, itemId);
-        url.search = '';
-        if (normalizedPath.length > 0) {
-            url.searchParams.set('path', buildServicePath(normalizedPath));
-        }
-        const currentPathKey = Array.isArray(window.history.state?.path)
-            ? window.history.state.path.join('/')
-            : '';
-        const targetPathKey = normalizedPath.join('/');
-        const historyKey = `${itemId}::${targetPathKey}`;
-        const nextUrl = url.toString();
+      if (!itemId) {
+        return;
+      }
+      const normalizedPath = Array.isArray(pathIds) ? pathIds : [];
+      const url = new URL(window.location.href);
+      url.pathname = buildItemPathname(basePath, itemId);
+      url.search = "";
+      if (normalizedPath.length > 0) {
+        url.searchParams.set("path", buildServicePath(normalizedPath));
+      }
+      const currentPathKey = Array.isArray(window.history.state?.path)
+        ? window.history.state.path.join("/")
+        : "";
+      const targetPathKey = normalizedPath.join("/");
+      const historyKey = `${itemId}::${targetPathKey}`;
+      const nextUrl = url.toString();
 
-        if (window.history.state?.itemId === itemId && currentPathKey === targetPathKey) {
-            return;
-        }
-        if (
-            nextUrl === window.location.href ||
-            nextUrl === lastHistoryUrlRef.current ||
-            historyKey === lastHistoryKeyRef.current
-        ) {
-            return;
-        }
+      if (
+        window.history.state?.itemId === itemId &&
+        currentPathKey === targetPathKey
+      ) {
+        return;
+      }
+      if (
+        nextUrl === window.location.href ||
+        nextUrl === lastHistoryUrlRef.current ||
+        historyKey === lastHistoryKeyRef.current
+      ) {
+        return;
+      }
 
-        const nextState = {itemId, path: normalizedPath};
-        if (replace) {
-            window.history.replaceState(nextState, '', url);
-        } else {
-            window.history.pushState(nextState, '', url);
-        }
-        lastHistoryUrlRef.current = nextUrl;
-        lastHistoryKeyRef.current = historyKey;
-    }, [basePath]);
+      const nextState = { itemId, path: normalizedPath };
+      if (replace) {
+        window.history.replaceState(nextState, "", url);
+      } else {
+        window.history.pushState(nextState, "", url);
+      }
+      lastHistoryUrlRef.current = nextUrl;
+      lastHistoryKeyRef.current = historyKey;
+    },
+    [basePath],
+  );
 
-    /**
-     * Updates route for an item id without preserving an explicit tree path.
-     */
-    const updateUrlForItemId = useCallback((itemId: string, {replace}: RouteUpdateOptions = {}) => {
-        updateHistoryForRoute(itemId, [], {replace});
-    }, [updateHistoryForRoute]);
+  /**
+   * Updates route for an item id without preserving an explicit tree path.
+   */
+  const updateUrlForItemId = useCallback(
+    (itemId: string, { replace }: RouteUpdateOptions = {}) => {
+      updateHistoryForRoute(itemId, [], { replace });
+    },
+    [updateHistoryForRoute],
+  );
 
-    /**
-     * Updates route using the selected tree node and its resolved path.
-     */
-    const updateUrlForNode = useCallback((node: CatalogTreeNode | null, {replace}: RouteUpdateOptions = {}) => {
-        if (!node) {
-            return;
-        }
-        updateHistoryForRoute(node.item.id, node.path || [], {replace});
-    }, [updateHistoryForRoute]);
+  /**
+   * Updates route using the selected tree node and its resolved path.
+   */
+  const updateUrlForNode = useCallback(
+    (node: CatalogTreeNode | null, { replace }: RouteUpdateOptions = {}) => {
+      if (!node) {
+        return;
+      }
+      updateHistoryForRoute(node.item.id, node.path || [], { replace });
+    },
+    [updateHistoryForRoute],
+  );
 
-    /**
-     * Normalizes route state after parsing browser location (same semantics, normalized path).
-     */
-    const normalizeUrlForRoute = useCallback((itemId: string, pathIds: string[], {replace}: RouteUpdateOptions = {}) => {
-        updateHistoryForRoute(itemId, pathIds, {replace});
-    }, [updateHistoryForRoute]);
+  /**
+   * Normalizes route state after parsing browser location (same semantics, normalized path).
+   */
+  const normalizeUrlForRoute = useCallback(
+    (
+      itemId: string,
+      pathIds: string[],
+      { replace }: RouteUpdateOptions = {},
+    ) => {
+      updateHistoryForRoute(itemId, pathIds, { replace });
+    },
+    [updateHistoryForRoute],
+  );
 
-    /**
-     * Marks the Grafana wrapper iframe as ready and flushes pending theme/src messages.
-     */
-    const handleGrafanaLoad = useCallback(() => {
-        const iframe = grafanaIframeRef.current;
-        if (!iframe?.contentWindow) {
-            return;
-        }
-        try {
-            grafanaFrameReadyRef.current = true;
-            iframe.contentWindow.postMessage(
-                {type: 'set-frame-theme', theme},
-                window.location.origin,
-            );
-            if (pendingGrafanaSrcRef.current) {
-                iframe.contentWindow.postMessage(
-                    {type: 'set-grafana-src', src: pendingGrafanaSrcRef.current},
-                    window.location.origin,
-                );
-            }
-        } catch (error) {
-            // Ignore cross-origin access issues when Grafana is hosted elsewhere.
-        }
-    }, [theme]);
-
-    useEffect(() => {
-        document.body.dataset.theme = theme;
-        localStorage.setItem('aggregator-ui-theme', theme);
-    }, [theme]);
-
-    useEffect(() => {
-        localStorage.setItem(FEEDBACK_DRAFT_STORAGE_KEY, feedbackDraft);
-    }, [feedbackDraft]);
-
-    useEffect(() => {
-        if (!notification.message || !notification.id) {
-            return undefined;
-        }
-        const startExitTimeoutId = window.setTimeout(() => {
-            setNotification((prev) => (
-                prev.id === notification.id ? {...prev, phase: 'exiting'} : prev
-            ));
-        }, 3000);
-        const clearTimeoutId = window.setTimeout(() => {
-            setNotification((prev) => (
-                prev.id === notification.id ? {id: 0, message: '', phase: 'hidden'} : prev
-            ));
-        }, 3200);
-        return () => {
-            window.clearTimeout(startExitTimeoutId);
-            window.clearTimeout(clearTimeoutId);
-        };
-    }, [notification.id, notification.message]);
-
-    /**
-     * Keep the Grafana wrapper iframe in sync with the current app theme
-     * after the wrapper page reports it is ready.
-     */
-    useEffect(() => {
-        const iframe = grafanaIframeRef.current;
-        if (!iframe?.contentWindow || !grafanaFrameReadyRef.current) {
-            return;
-        }
+  /**
+   * Marks the Grafana wrapper iframe as ready and flushes pending theme/src messages.
+   */
+  const handleGrafanaLoad = useCallback(() => {
+    const iframe = grafanaIframeRef.current;
+    if (!iframe?.contentWindow) {
+      return;
+    }
+    try {
+      grafanaFrameReadyRef.current = true;
+      iframe.contentWindow.postMessage(
+        { type: "set-frame-theme", theme },
+        window.location.origin,
+      );
+      if (pendingGrafanaSrcRef.current) {
         iframe.contentWindow.postMessage(
-            {type: 'set-frame-theme', theme},
-            window.location.origin,
+          { type: "set-grafana-src", src: pendingGrafanaSrcRef.current },
+          window.location.origin,
         );
-    }, [theme]);
+      }
+    } catch (error) {
+      // Ignore cross-origin access issues when Grafana is hosted elsewhere.
+    }
+  }, [theme]);
 
-    useEffect(() => {
-        const updateHeight = () => {
-            if (!contentRef.current || !headerRef.current) {
-                return;
-            }
-            const styles = window.getComputedStyle(contentRef.current);
-            const paddingTop = Number.parseFloat(styles.paddingTop) || 0;
-            const paddingBottom = Number.parseFloat(styles.paddingBottom) || 0;
-            const gap = Number.parseFloat(styles.rowGap || styles.gap) || 0;
-            const headerHeight = headerRef.current.getBoundingClientRect().height;
-            const nextHeight = Math.max(
-                320,
-                Math.floor(window.innerHeight - paddingTop - paddingBottom - headerHeight - gap),
-            );
-            setGrafanaHeight(nextHeight);
-        };
+  useEffect(() => {
+    document.body.dataset.theme = theme;
+    localStorage.setItem("aggregator-ui-theme", theme);
+  }, [theme]);
 
-        updateHeight();
-        window.addEventListener('resize', updateHeight);
-        let headerObserver: ResizeObserver | undefined;
-        if (window.ResizeObserver && headerRef.current) {
-            headerObserver = new ResizeObserver(updateHeight);
-            headerObserver.observe(headerRef.current);
-        }
-        return () => {
-            window.removeEventListener('resize', updateHeight);
-            if (headerObserver) {
-                headerObserver.disconnect();
-            }
-        };
-    }, []);
+  useEffect(() => {
+    localStorage.setItem(FEEDBACK_DRAFT_STORAGE_KEY, feedbackDraft);
+  }, [feedbackDraft]);
 
-    useEffect(() => {
-        const mediaQuery = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT}px)`);
-        const updateLayout = (event: MediaQueryListEvent) => {
-            setIsMobileLayout(event.matches);
-        };
+  useEffect(() => {
+    if (!notification.message || !notification.id) {
+      return undefined;
+    }
+    const startExitTimeoutId = window.setTimeout(() => {
+      setNotification((prev) =>
+        prev.id === notification.id ? { ...prev, phase: "exiting" } : prev,
+      );
+    }, 3000);
+    const clearTimeoutId = window.setTimeout(() => {
+      setNotification((prev) =>
+        prev.id === notification.id
+          ? { id: 0, message: "", phase: "hidden" }
+          : prev,
+      );
+    }, 3200);
+    return () => {
+      window.clearTimeout(startExitTimeoutId);
+      window.clearTimeout(clearTimeoutId);
+    };
+  }, [notification.id, notification.message]);
 
-        setIsMobileLayout(mediaQuery.matches);
-        mediaQuery.addEventListener('change', updateLayout);
-
-        return () => {
-            mediaQuery.removeEventListener('change', updateLayout);
-        };
-    }, []);
-
-    useEffect(() => {
-        expandedIdsRef.current = expandedIds;
-    }, [expandedIds]);
-
-    useEffect(() => {
-        if (isMobileLayout) {
-            setIsMobileSidebarOpen(false);
-        }
-    }, [isMobileLayout]);
-
-    useEffect(() => {
-        const loadInitialCatalog = async () => {
-            try {
-                const {
-                    items,
-                    dependencies,
-                    contacts,
-                    itemContacts,
-                    actors,
-                    itemActors,
-                    actorContacts,
-                } = await loadCatalog();
-                setCatalog({items, dependencies, contacts, itemContacts, actors, itemActors, actorContacts});
-                setSelectedId((prev) => prev || items[0]?.id || '');
-            } catch (err: unknown) {
-                setError(err instanceof Error ? err.message : 'Failed to load catalog');
-            }
-        };
-
-        void loadInitialCatalog();
-    }, []);
-
-    useEffect(() => {
-        if (!catalog.items.length) {
-            setSearchAutocompleteIndex(null);
-            setIsSearchAutocompleteReady(false);
-            return undefined;
-        }
-
-        let cancelled = false;
-        setSearchAutocompleteIndex(null);
-        setIsSearchAutocompleteReady(false);
-
-        const buildIndex = () => {
-            const nextIndex = buildSearchAutocompleteIndex(catalog.items);
-            if (cancelled) {
-                return;
-            }
-            setSearchAutocompleteIndex(nextIndex);
-            setIsSearchAutocompleteReady(true);
-        };
-
-        let timeoutId = 0;
-        let idleId = 0;
-
-        if (typeof window.requestIdleCallback === 'function') {
-            idleId = window.requestIdleCallback(buildIndex);
-        } else {
-            timeoutId = window.setTimeout(buildIndex, 0);
-        }
-
-        return () => {
-            cancelled = true;
-            if (idleId && typeof window.cancelIdleCallback === 'function') {
-                window.cancelIdleCallback(idleId);
-            }
-            if (timeoutId) {
-                window.clearTimeout(timeoutId);
-            }
-        };
-    }, [catalog.items]);
-
-    useEffect(() => {
-        if (!catalog.items.length) {
-            return undefined;
-        }
-
-        let cancelled = false;
-
-        const fetchStatuses = async () => {
-            try {
-                const next = await fetchPrometheusStatuses(prometheusBaseUrl);
-                if (!cancelled) {
-                    setItemStatuses(next.itemStatuses);
-                    setItemSignals(next.itemSignals);
-                    setLastUpdated(new Date().toLocaleTimeString());
-                }
-            } catch (err) {
-                if (!cancelled) {
-                    console.error(err);
-                }
-            }
-        };
-
-        void fetchStatuses();
-        const interval = window.setInterval(() => {
-            void fetchStatuses();
-        }, 10000);
-        return () => {
-            cancelled = true;
-            window.clearInterval(interval);
-        };
-    }, [catalog.items, prometheusBaseUrl]);
-
-    const tree = useMemo(
-        () => buildCatalogTree(catalog.items, catalog.dependencies),
-        [catalog.items, catalog.dependencies],
+  /**
+   * Keep the Grafana wrapper iframe in sync with the current app theme
+   * after the wrapper page reports it is ready.
+   */
+  useEffect(() => {
+    const iframe = grafanaIframeRef.current;
+    if (!iframe?.contentWindow || !grafanaFrameReadyRef.current) {
+      return;
+    }
+    iframe.contentWindow.postMessage(
+      { type: "set-frame-theme", theme },
+      window.location.origin,
     );
-    const itemMap = useMemo(
-        () => new Map(catalog.items.map((item) => [item.id, item])),
-        [catalog.items],
-    );
-    const searchTokens = useMemo(
-        () => normalizeSearchText(searchQuery).split(' ').filter(Boolean),
-        [searchQuery],
-    );
-    const filteredTree = useMemo(
-        () => filterCatalogTree(tree, searchTokens),
-        [tree, searchTokens],
-    );
-    const searchResults = useMemo(
-        () => rankSearchResults(catalog.items, searchTokens),
-        [catalog.items, searchTokens],
-    );
-    const searchAutocompleteOptions = useMemo(
-        () => buildSearchAutocompleteOptions(searchQuery, searchAutocompleteIndex),
-        [searchQuery, searchAutocompleteIndex],
-    );
+  }, [theme]);
 
-    const handleToggleNode = useCallback((node: CatalogTreeNode) => {
-        setExpandedIds((prev) => {
-            const next = new Set(prev);
-            const descendants = collectDescendantIds(node);
+  useEffect(() => {
+    const updateHeight = () => {
+      if (!contentRef.current || !headerRef.current) {
+        return;
+      }
+      const styles = window.getComputedStyle(contentRef.current);
+      const paddingTop = Number.parseFloat(styles.paddingTop) || 0;
+      const paddingBottom = Number.parseFloat(styles.paddingBottom) || 0;
+      const gap = Number.parseFloat(styles.rowGap || styles.gap) || 0;
+      const headerHeight = headerRef.current.getBoundingClientRect().height;
+      const nextHeight = Math.max(
+        320,
+        Math.floor(
+          window.innerHeight - paddingTop - paddingBottom - headerHeight - gap,
+        ),
+      );
+      setGrafanaHeight(nextHeight);
+    };
 
-            if (!next.has(node.item.id)) {
-                next.add(node.item.id);
-                return next;
-            }
+    updateHeight();
+    window.addEventListener("resize", updateHeight);
+    let headerObserver: ResizeObserver | undefined;
+    if (window.ResizeObserver && headerRef.current) {
+      headerObserver = new ResizeObserver(updateHeight);
+      headerObserver.observe(headerRef.current);
+    }
+    return () => {
+      window.removeEventListener("resize", updateHeight);
+      if (headerObserver) {
+        headerObserver.disconnect();
+      }
+    };
+  }, []);
 
-            next.delete(node.item.id);
-            descendants.forEach((id) => next.delete(id));
-            return next;
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT}px)`);
+    const updateLayout = (event: MediaQueryListEvent) => {
+      setIsMobileLayout(event.matches);
+    };
+
+    setIsMobileLayout(mediaQuery.matches);
+    mediaQuery.addEventListener("change", updateLayout);
+
+    return () => {
+      mediaQuery.removeEventListener("change", updateLayout);
+    };
+  }, []);
+
+  useEffect(() => {
+    expandedIdsRef.current = expandedIds;
+  }, [expandedIds]);
+
+  useEffect(() => {
+    if (isMobileLayout) {
+      setIsMobileSidebarOpen(false);
+    }
+  }, [isMobileLayout]);
+
+  useEffect(() => {
+    const loadInitialCatalog = async () => {
+      try {
+        const {
+          items,
+          dependencies,
+          contacts,
+          itemContacts,
+          actors,
+          itemActors,
+          actorContacts,
+        } = await loadCatalog();
+        setCatalog({
+          items,
+          dependencies,
+          contacts,
+          itemContacts,
+          actors,
+          itemActors,
+          actorContacts,
         });
-    }, []);
+        setSelectedId((prev) => prev || items[0]?.id || "");
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Failed to load catalog");
+      }
+    };
 
-    /**
-     * Expands ancestors for the selected item so it is visible in the tree.
-     */
-    const expandPathToItem = useCallback((itemId: string, {path}: {path?: string[]} = {}) => {
-        const resolvedPath = path && path.length ? path : findNodePath(tree, itemId);
-        const ancestors = resolvedPath ? resolvedPath.slice(0, -1) : [];
-        setExpandedIds(new Set(ancestors));
-    }, [tree]);
+    void loadInitialCatalog();
+  }, []);
 
-    /**
-     * Ensures ancestors in a known path are expanded without resetting other expanded branches.
-     */
-    const ensurePathExpanded = useCallback((pathIds: string[]) => {
-        if (!Array.isArray(pathIds) || pathIds.length === 0) {
-            return;
+  useEffect(() => {
+    if (!catalog.items.length) {
+      setSearchAutocompleteIndex(null);
+      setIsSearchAutocompleteReady(false);
+      return undefined;
+    }
+
+    let cancelled = false;
+    setSearchAutocompleteIndex(null);
+    setIsSearchAutocompleteReady(false);
+
+    const buildIndex = () => {
+      const nextIndex = buildSearchAutocompleteIndex(catalog.items);
+      if (cancelled) {
+        return;
+      }
+      setSearchAutocompleteIndex(nextIndex);
+      setIsSearchAutocompleteReady(true);
+    };
+
+    let timeoutId = 0;
+    let idleId = 0;
+
+    if (typeof window.requestIdleCallback === "function") {
+      idleId = window.requestIdleCallback(buildIndex);
+    } else {
+      timeoutId = window.setTimeout(buildIndex, 0);
+    }
+
+    return () => {
+      cancelled = true;
+      if (idleId && typeof window.cancelIdleCallback === "function") {
+        window.cancelIdleCallback(idleId);
+      }
+      if (timeoutId) {
+        window.clearTimeout(timeoutId);
+      }
+    };
+  }, [catalog.items]);
+
+  useEffect(() => {
+    if (!catalog.items.length) {
+      return undefined;
+    }
+
+    let cancelled = false;
+
+    const fetchStatuses = async () => {
+      try {
+        const next = await fetchPrometheusStatuses(prometheusBaseUrl);
+        if (!cancelled) {
+          setItemStatuses(next.itemStatuses);
+          setItemSignals(next.itemSignals);
+          setLastUpdated(new Date().toLocaleTimeString());
         }
-        const ancestors = pathIds.slice(0, -1);
-        if (ancestors.length === 0) {
-            return;
+      } catch (err) {
+        if (!cancelled) {
+          console.error(err);
         }
-        setExpandedIds((prev) => {
-            const next = new Set(prev);
-            ancestors.forEach((id) => next.add(id));
-            return next;
+      }
+    };
+
+    void fetchStatuses();
+    const interval = window.setInterval(() => {
+      void fetchStatuses();
+    }, 10000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
+  }, [catalog.items, prometheusBaseUrl]);
+
+  const tree = useMemo(
+    () => buildCatalogTree(catalog.items, catalog.dependencies),
+    [catalog.items, catalog.dependencies],
+  );
+  const itemMap = useMemo(
+    () => new Map(catalog.items.map((item) => [item.id, item])),
+    [catalog.items],
+  );
+  const searchTokens = useMemo(
+    () => normalizeSearchText(searchQuery).split(" ").filter(Boolean),
+    [searchQuery],
+  );
+  const filteredTree = useMemo(
+    () => filterCatalogTree(tree, searchTokens),
+    [tree, searchTokens],
+  );
+  const searchResults = useMemo(
+    () => rankSearchResults(catalog.items, searchTokens),
+    [catalog.items, searchTokens],
+  );
+  const searchAutocompleteOptions = useMemo(
+    () => buildSearchAutocompleteOptions(searchQuery, searchAutocompleteIndex),
+    [searchQuery, searchAutocompleteIndex],
+  );
+
+  const handleToggleNode = useCallback((node: CatalogTreeNode) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      const descendants = collectDescendantIds(node);
+
+      if (!next.has(node.item.id)) {
+        next.add(node.item.id);
+        return next;
+      }
+
+      next.delete(node.item.id);
+      descendants.forEach((id) => next.delete(id));
+      return next;
+    });
+  }, []);
+
+  /**
+   * Expands ancestors for the selected item so it is visible in the tree.
+   */
+  const expandPathToItem = useCallback(
+    (itemId: string, { path }: { path?: string[] } = {}) => {
+      const resolvedPath =
+        path && path.length ? path : findNodePath(tree, itemId);
+      const ancestors = resolvedPath ? resolvedPath.slice(0, -1) : [];
+      setExpandedIds(new Set(ancestors));
+    },
+    [tree],
+  );
+
+  /**
+   * Ensures ancestors in a known path are expanded without resetting other expanded branches.
+   */
+  const ensurePathExpanded = useCallback((pathIds: string[]) => {
+    if (!Array.isArray(pathIds) || pathIds.length === 0) {
+      return;
+    }
+    const ancestors = pathIds.slice(0, -1);
+    if (ancestors.length === 0) {
+      return;
+    }
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      ancestors.forEach((id) => next.add(id));
+      return next;
+    });
+  }, []);
+
+  /**
+   * Expands all nodes currently present in the tree.
+   */
+  const handleExpandAll = useCallback(() => {
+    setExpandedIds(new Set(collectExpandableIds(tree)));
+    if (!selectedId) {
+      return;
+    }
+    const selectedUid =
+      selectedPath.length > 0
+        ? findNodeByPath(tree, selectedPath)?.uid || ""
+        : findNodeUidById(tree, selectedId) || "";
+    if (selectedUid) {
+      setPendingScrollId(selectedUid);
+    }
+  }, [selectedId, selectedPath, tree]);
+
+  /**
+   * Collapses the full tree and resets the catalog scroll position to the top.
+   */
+  const handleCollapseAll = useCallback(() => {
+    setExpandedIds(new Set());
+    setPendingScrollId("");
+    window.requestAnimationFrame(() => {
+      catalogTreeRef.current?.scrollTo({
+        top: 0,
+        behavior: "auto",
+      });
+    });
+  }, []);
+
+  const selectedNode = useMemo(() => {
+    if (!selectedId) {
+      return null;
+    }
+    if (selectedPath.length > 0) {
+      const byPath = findNodeByPath(tree, selectedPath);
+      if (byPath?.item?.id === selectedId) {
+        return byPath;
+      }
+    }
+    return findNodeById(tree, selectedId);
+  }, [selectedId, selectedPath, tree]);
+  const selectedItem = selectedNode?.item || itemMap.get(selectedId);
+  const selectedStatus = selectedItem
+    ? itemStatuses[selectedItem.id] || "unknown"
+    : "unknown";
+  const selectedTitleText = selectedItem
+    ? selectedItem.title || selectedItem.id
+    : "Select an item";
+  const selectedTitleMatch = selectedTitleText.match(/^(\S+)([\s\S]*)$/);
+  const selectedTitleFirstWord = selectedTitleMatch?.[1] || selectedTitleText;
+  const selectedTitleRest = selectedTitleMatch?.[2] || "";
+
+  useEffect(() => {
+    const measurePrimaryWidth = (element: HTMLElement): number => {
+      const clone = element.cloneNode(true) as HTMLElement;
+      clone.style.position = "fixed";
+      clone.style.left = "-99999px";
+      clone.style.top = "-99999px";
+      clone.style.visibility = "hidden";
+      clone.style.pointerEvents = "none";
+      clone.style.width = "max-content";
+      clone.style.maxWidth = "none";
+      clone.style.whiteSpace = "nowrap";
+      document.body.appendChild(clone);
+      const width = clone.getBoundingClientRect().width;
+      clone.remove();
+      return width;
+    };
+
+    const updateTitlePrimaryPlacement = () => {
+      if (
+        !headerRef.current ||
+        !headerActionsRef.current ||
+        !contentTitlePrimaryRef.current
+      ) {
+        setIsTitlePrimaryBelowControls(false);
+        return;
+      }
+
+      const sidebarOpen = isMobileLayout
+        ? isMobileSidebarOpen
+        : isDesktopSidebarOpen;
+      const shouldOffsetHeaderInline = isMobileLayout || !sidebarOpen;
+      const inlineLeftOffset = shouldOffsetHeaderInline
+        ? isMobileLayout
+          ? 52
+          : 56
+        : 0;
+      const headerStyles = window.getComputedStyle(headerRef.current);
+      const gap =
+        Number.parseFloat(headerStyles.columnGap || headerStyles.gap) || 12;
+      const actionsRectWidth =
+        headerActionsRef.current.getBoundingClientRect().width;
+      const actionsStyles = window.getComputedStyle(headerActionsRef.current);
+      const actionsMarginLeft =
+        Number.parseFloat(actionsStyles.marginLeft) || 0;
+      const actionsMarginRight =
+        Number.parseFloat(actionsStyles.marginRight) || 0;
+      const actionsWidth = Math.ceil(
+        actionsRectWidth + actionsMarginLeft + actionsMarginRight,
+      );
+      const primaryWidth = Math.ceil(
+        measurePrimaryWidth(contentTitlePrimaryRef.current),
+      );
+      const availableInlineWidth = Math.max(
+        0,
+        headerRef.current.clientWidth - actionsWidth - gap - inlineLeftOffset,
+      );
+      const actionsRect = headerActionsRef.current.getBoundingClientRect();
+      const primaryRect =
+        contentTitlePrimaryRef.current.getBoundingClientRect();
+      const primaryAlreadyBelowControls =
+        primaryRect.top >= actionsRect.bottom - 2;
+      const shouldForceBelowByWidth = primaryWidth > availableInlineWidth + 6;
+      const canReturnInlineByWidth = primaryWidth <= availableInlineWidth - 16;
+
+      setIsTitlePrimaryBelowControls((prev) => {
+        if (prev) {
+          return !canReturnInlineByWidth;
+        }
+        return shouldForceBelowByWidth || primaryAlreadyBelowControls;
+      });
+    };
+
+    updateTitlePrimaryPlacement();
+
+    window.addEventListener("resize", updateTitlePrimaryPlacement);
+    let observer: ResizeObserver | undefined;
+    if (window.ResizeObserver) {
+      const nextObserver = new ResizeObserver(updateTitlePrimaryPlacement);
+      [
+        headerRef.current,
+        headerActionsRef.current,
+        contentTitlePrimaryRef.current,
+      ]
+        .filter((element): element is HTMLElement => Boolean(element))
+        .forEach((element) => nextObserver.observe(element));
+      observer = nextObserver;
+    }
+
+    return () => {
+      window.removeEventListener("resize", updateTitlePrimaryPlacement);
+      if (observer) {
+        observer.disconnect();
+      }
+    };
+  }, [
+    isMobileLayout,
+    isMobileSidebarOpen,
+    isDesktopSidebarOpen,
+    selectedId,
+    selectedTitleFirstWord,
+  ]);
+  const selectedSignals = useMemo(() => {
+    if (!selectedItem) {
+      return [];
+    }
+    const signals = itemSignals[selectedItem.id] || [];
+    return [...signals].sort(compareSignalsByStatusAndTitle);
+  }, [itemSignals, selectedItem]);
+
+  const selectedFailingSignals = useMemo(
+    () => selectedSignals.filter((signal) => signal.status === "down"),
+    [selectedSignals],
+  );
+  const selectedPassingSignals = useMemo(
+    () => selectedSignals.filter((signal) => signal.status === "up"),
+    [selectedSignals],
+  );
+  const hasOwnHealthSignals = selectedSignals.length > 0;
+  const contactsById = useMemo(
+    () => new Map(catalog.contacts.map((contact) => [contact.id, contact])),
+    [catalog.contacts],
+  );
+  const actorsById = useMemo(
+    () => new Map(catalog.actors.map((actor) => [actor.id, actor])),
+    [catalog.actors],
+  );
+  const actorContactsByActorId = useMemo(() => {
+    const grouped = new Map<
+      string,
+      { contacts: Map<string, CatalogContact>; primaryContactId: string }
+    >();
+    catalog.actorContacts.forEach((entry) => {
+      const contact = contactsById.get(entry.contactId);
+      if (!contact) {
+        return;
+      }
+      if (!grouped.has(entry.actorId)) {
+        grouped.set(entry.actorId, {
+          contacts: new Map<string, CatalogContact>(),
+          primaryContactId: "",
         });
-    }, []);
-
-    /**
-     * Expands all nodes currently present in the tree.
-     */
-    const handleExpandAll = useCallback(() => {
-        setExpandedIds(new Set(collectExpandableIds(tree)));
-        if (!selectedId) {
-            return;
+      }
+      const actorContacts = grouped.get(entry.actorId);
+      if (!actorContacts) {
+        return;
+      }
+      actorContacts.contacts.set(contact.id, contact);
+      if (entry.isPrimary && !actorContacts.primaryContactId) {
+        actorContacts.primaryContactId = contact.id;
+      }
+    });
+    const result = new Map<
+      string,
+      { contacts: CatalogContact[]; primaryContact: CatalogContact | null }
+    >();
+    grouped.forEach((value, actorId) => {
+      const sortedContacts = sortContactsWithPrimaryFirst(
+        [...value.contacts.values()],
+        value.primaryContactId,
+      );
+      const primaryContact = value.primaryContactId
+        ? sortedContacts.find(
+            (contact) => contact.id === value.primaryContactId,
+          ) ||
+          sortedContacts[0] ||
+          null
+        : sortedContacts[0] || null;
+      result.set(actorId, { contacts: sortedContacts, primaryContact });
+    });
+    return result;
+  }, [catalog.actorContacts, contactsById]);
+  const actorsByItemId = useMemo(() => {
+    const grouped = new Map<string, CatalogItemActor[]>();
+    catalog.itemActors.forEach((entry) => {
+      if (!grouped.has(entry.itemId)) {
+        grouped.set(entry.itemId, []);
+      }
+      grouped.get(entry.itemId)?.push(entry);
+    });
+    const result = new Map<string, ItemActorsEntry>();
+    grouped.forEach((relations, itemId) => {
+      const actorMap = new Map<string, CatalogActor>();
+      relations.forEach((relation) => {
+        const actor = actorsById.get(relation.actorId);
+        if (actor) {
+          actorMap.set(actor.id, actor);
         }
-        const selectedUid = selectedPath.length > 0
-            ? findNodeByPath(tree, selectedPath)?.uid || ''
-            : findNodeUidById(tree, selectedId) || '';
-        if (selectedUid) {
-            setPendingScrollId(selectedUid);
-        }
-    }, [selectedId, selectedPath, tree]);
-
-    /**
-     * Collapses the full tree and resets the catalog scroll position to the top.
-     */
-    const handleCollapseAll = useCallback(() => {
-        setExpandedIds(new Set());
-        setPendingScrollId('');
-        window.requestAnimationFrame(() => {
-            catalogTreeRef.current?.scrollTo({
-                top: 0,
-                behavior: 'auto',
-            });
-        });
-    }, []);
-
-    const selectedNode = useMemo(() => {
-        if (!selectedId) {
-            return null;
-        }
-        if (selectedPath.length > 0) {
-            const byPath = findNodeByPath(tree, selectedPath);
-            if (byPath?.item?.id === selectedId) {
-                return byPath;
-            }
-        }
-        return findNodeById(tree, selectedId);
-    }, [selectedId, selectedPath, tree]);
-    const selectedItem = selectedNode?.item || itemMap.get(selectedId);
-    const selectedStatus = selectedItem ? itemStatuses[selectedItem.id] || 'unknown' : 'unknown';
-    const selectedTitleText = selectedItem ? selectedItem.title || selectedItem.id : 'Select an item';
-    const selectedTitleMatch = selectedTitleText.match(/^(\S+)([\s\S]*)$/);
-    const selectedTitleFirstWord = selectedTitleMatch?.[1] || selectedTitleText;
-    const selectedTitleRest = selectedTitleMatch?.[2] || '';
-
-    useEffect(() => {
-        const measurePrimaryWidth = (element: HTMLElement): number => {
-            const clone = element.cloneNode(true) as HTMLElement;
-            clone.style.position = 'fixed';
-            clone.style.left = '-99999px';
-            clone.style.top = '-99999px';
-            clone.style.visibility = 'hidden';
-            clone.style.pointerEvents = 'none';
-            clone.style.width = 'max-content';
-            clone.style.maxWidth = 'none';
-            clone.style.whiteSpace = 'nowrap';
-            document.body.appendChild(clone);
-            const width = clone.getBoundingClientRect().width;
-            clone.remove();
-            return width;
-        };
-
-        const updateTitlePrimaryPlacement = () => {
-            if (!headerRef.current || !headerActionsRef.current || !contentTitlePrimaryRef.current) {
-                setIsTitlePrimaryBelowControls(false);
-                return;
-            }
-
-            const sidebarOpen = isMobileLayout ? isMobileSidebarOpen : isDesktopSidebarOpen;
-            const shouldOffsetHeaderInline = isMobileLayout || !sidebarOpen;
-            const inlineLeftOffset = shouldOffsetHeaderInline ? (isMobileLayout ? 52 : 56) : 0;
-            const headerStyles = window.getComputedStyle(headerRef.current);
-            const gap = Number.parseFloat(headerStyles.columnGap || headerStyles.gap) || 12;
-            const actionsRectWidth = headerActionsRef.current.getBoundingClientRect().width;
-            const actionsStyles = window.getComputedStyle(headerActionsRef.current);
-            const actionsMarginLeft = Number.parseFloat(actionsStyles.marginLeft) || 0;
-            const actionsMarginRight = Number.parseFloat(actionsStyles.marginRight) || 0;
-            const actionsWidth = Math.ceil(actionsRectWidth + actionsMarginLeft + actionsMarginRight);
-            const primaryWidth = Math.ceil(measurePrimaryWidth(contentTitlePrimaryRef.current));
-            const availableInlineWidth = Math.max(
-                0,
-                headerRef.current.clientWidth - actionsWidth - gap - inlineLeftOffset,
-            );
-            const actionsRect = headerActionsRef.current.getBoundingClientRect();
-            const primaryRect = contentTitlePrimaryRef.current.getBoundingClientRect();
-            const primaryAlreadyBelowControls = primaryRect.top >= (actionsRect.bottom - 2);
-            const shouldForceBelowByWidth = primaryWidth > availableInlineWidth + 6;
-            const canReturnInlineByWidth = primaryWidth <= availableInlineWidth - 16;
-
-            setIsTitlePrimaryBelowControls((prev) => {
-                if (prev) {
-                    return !canReturnInlineByWidth;
-                }
-                return shouldForceBelowByWidth || primaryAlreadyBelowControls;
-            });
-        };
-
-        updateTitlePrimaryPlacement();
-
-        window.addEventListener('resize', updateTitlePrimaryPlacement);
-        let observer: ResizeObserver | undefined;
-        if (window.ResizeObserver) {
-            const nextObserver = new ResizeObserver(updateTitlePrimaryPlacement);
-            [headerRef.current, headerActionsRef.current, contentTitlePrimaryRef.current]
-                .filter((element): element is HTMLElement => Boolean(element))
-                .forEach((element) => nextObserver.observe(element));
-            observer = nextObserver;
-        }
-
-        return () => {
-            window.removeEventListener('resize', updateTitlePrimaryPlacement);
-            if (observer) {
-                observer.disconnect();
-            }
-        };
-    }, [
-        isMobileLayout,
-        isMobileSidebarOpen,
-        isDesktopSidebarOpen,
-        selectedId,
-        selectedTitleFirstWord,
-    ]);
-    const selectedSignals = useMemo(() => {
-        if (!selectedItem) {
-            return [];
-        }
-        const signals = itemSignals[selectedItem.id] || [];
-        return [...signals].sort(compareSignalsByStatusAndTitle);
-    }, [itemSignals, selectedItem]);
-
-    const selectedFailingSignals = useMemo(
-        () => selectedSignals.filter((signal) => signal.status === 'down'),
-        [selectedSignals],
+      });
+      const resolvedActors = [...actorMap.values()];
+      if (resolvedActors.length === 0) {
+        return;
+      }
+      const typedOwner =
+        resolvedActors.find((actor) => actor.type === "owner") || null;
+      const primaryRelation = relations.find((relation) => relation.isPrimary);
+      const relationPrimary = primaryRelation
+        ? actorsById.get(primaryRelation.actorId) || null
+        : null;
+      const owner = typedOwner || relationPrimary || null;
+      result.set(itemId, {
+        owner,
+        otherActors: resolvedActors.filter((actor) => actor.id !== owner?.id),
+      });
+    });
+    return result;
+  }, [actorsById, catalog.itemActors]);
+  const selectedItemActors = useMemo(
+    () => (selectedItem ? actorsByItemId.get(selectedItem.id) || null : null),
+    [actorsByItemId, selectedItem],
+  );
+  const failingDependencyNodes = useMemo(() => {
+    if (!selectedNode) {
+      return [];
+    }
+    const result: CatalogTreeNode[] = [];
+    const visit = (children: CatalogTreeNode[]) => {
+      children.forEach((child) => {
+        result.push(child);
+        visit(child.children);
+      });
+    };
+    visit(selectedNode.children);
+    return result;
+  }, [selectedNode]);
+  const failingDependencies = useMemo(() => {
+    const dependencySources = new Set(
+      catalog.dependencies.map((dep) => dep.sourceId),
     );
-    const selectedPassingSignals = useMemo(
-        () => selectedSignals.filter((signal) => signal.status === 'up'),
-        [selectedSignals],
-    );
-    const hasOwnHealthSignals = selectedSignals.length > 0;
-    const contactsById = useMemo(
-        () => new Map(catalog.contacts.map((contact) => [contact.id, contact])),
-        [catalog.contacts],
-    );
-    const actorsById = useMemo(
-        () => new Map(catalog.actors.map((actor) => [actor.id, actor])),
-        [catalog.actors],
-    );
-    const actorContactsByActorId = useMemo(() => {
-        const grouped = new Map<string, { contacts: Map<string, CatalogContact>; primaryContactId: string }>();
-        catalog.actorContacts.forEach((entry) => {
-            const contact = contactsById.get(entry.contactId);
-            if (!contact) {
-                return;
-            }
-            if (!grouped.has(entry.actorId)) {
-                grouped.set(entry.actorId, {contacts: new Map<string, CatalogContact>(), primaryContactId: ''});
-            }
-            const actorContacts = grouped.get(entry.actorId);
-            if (!actorContacts) {
-                return;
-            }
-            actorContacts.contacts.set(contact.id, contact);
-            if (entry.isPrimary && !actorContacts.primaryContactId) {
-                actorContacts.primaryContactId = contact.id;
-            }
-        });
-        const result = new Map<string, { contacts: CatalogContact[]; primaryContact: CatalogContact | null }>();
-        grouped.forEach((value, actorId) => {
-            const sortedContacts = sortContactsWithPrimaryFirst(
-                [...value.contacts.values()],
-                value.primaryContactId,
-            );
-            const primaryContact = value.primaryContactId
-                ? sortedContacts.find((contact) => contact.id === value.primaryContactId) || sortedContacts[0] || null
-                : sortedContacts[0] || null;
-            result.set(actorId, {contacts: sortedContacts, primaryContact});
-        });
-        return result;
-    }, [catalog.actorContacts, contactsById]);
-    const actorsByItemId = useMemo(() => {
-        const grouped = new Map<string, CatalogItemActor[]>();
-        catalog.itemActors.forEach((entry) => {
-            if (!grouped.has(entry.itemId)) {
-                grouped.set(entry.itemId, []);
-            }
-            grouped.get(entry.itemId)?.push(entry);
-        });
-        const result = new Map<string, ItemActorsEntry>();
-        grouped.forEach((relations, itemId) => {
-            const actorMap = new Map<string, CatalogActor>();
-            relations.forEach((relation) => {
-                const actor = actorsById.get(relation.actorId);
-                if (actor) {
-                    actorMap.set(actor.id, actor);
-                }
-            });
-            const resolvedActors = [...actorMap.values()];
-            if (resolvedActors.length === 0) {
-                return;
-            }
-            const typedOwner = resolvedActors.find((actor) => actor.type === 'owner') || null;
-            const primaryRelation = relations.find((relation) => relation.isPrimary);
-            const relationPrimary = primaryRelation ? actorsById.get(primaryRelation.actorId) || null : null;
-            const owner = typedOwner || relationPrimary || null;
-            result.set(itemId, {
-                owner,
-                otherActors: resolvedActors.filter((actor) => actor.id !== owner?.id),
-            });
-        });
-        return result;
-    }, [actorsById, catalog.itemActors]);
-    const selectedItemActors = useMemo(
-        () => (selectedItem ? actorsByItemId.get(selectedItem.id) || null : null),
-        [actorsByItemId, selectedItem],
-    );
-    const failingDependencyNodes = useMemo(() => {
-        if (!selectedNode) {
-            return [];
-        }
-        const result: CatalogTreeNode[] = [];
-        const visit = (children: CatalogTreeNode[]) => {
-            children.forEach((child) => {
-                result.push(child);
-                visit(child.children);
-            });
-        };
-        visit(selectedNode.children);
-        return result;
-    }, [selectedNode]);
-    const failingDependencies = useMemo(() => {
-        const dependencySources = new Set(catalog.dependencies.map((dep) => dep.sourceId));
-        const seen = new Set();
-        const result: FailingDependencyEntry[] = [];
-        failingDependencyNodes.forEach((dependencyNode) => {
-            const dependencyId = dependencyNode.item.id;
-            if (seen.has(dependencyId)) {
-                return;
-            }
-            seen.add(dependencyId);
-            const dependencyStatus = itemStatuses[dependencyId] || 'unknown';
-            const hasOwnDependencies = dependencySources.has(dependencyId);
-            const failingSignals = (itemSignals[dependencyId] || [])
-                .filter((signal) => signal.status === 'down')
-                .sort(compareSignalsByStatusAndTitle);
-            const shouldIncludeLeafNonUp = !hasOwnDependencies && dependencyStatus !== 'up';
-            if (failingSignals.length === 0 && !shouldIncludeLeafNonUp) {
-                return;
-            }
-            const item = itemMap.get(dependencyId);
-            result.push({
-                id: dependencyId,
-                name: item?.title || dependencyId,
-                path: dependencyNode.path || [dependencyId],
-                status: dependencyStatus,
-                failingSignals,
-                failingCountContribution: 1,
-            });
-        });
-        return result.sort((a, b) => a.name.localeCompare(b.name));
-    }, [catalog.dependencies, failingDependencyNodes, itemMap, itemSignals, itemStatuses]);
-    const dependencyActorsByItemId = useMemo(() => {
-        const map: Record<string, ItemActorsEntry | null> = {};
-        failingDependencies.forEach((entry) => {
-            map[entry.id] = actorsByItemId.get(entry.id) || null;
-        });
-        return map;
-    }, [actorsByItemId, failingDependencies]);
-    const openedActor = useMemo(
-        () => (openedActorId ? actorsById.get(openedActorId) || null : null),
-        [actorsById, openedActorId],
-    );
-    const openedActorContacts = useMemo(
-        () => (openedActor ? actorContactsByActorId.get(openedActor.id)?.contacts || [] : []),
-        [actorContactsByActorId, openedActor],
-    );
-    const openedActorPrimaryContact = useMemo(
-        () => (openedActor ? actorContactsByActorId.get(openedActor.id)?.primaryContact || null : null),
-        [actorContactsByActorId, openedActor],
-    );
-    const passingSignalsCount = selectedPassingSignals.length;
-    const hasOwnFailingSignals = selectedFailingSignals.length > 0;
-    const hasAffectedBySignals = failingDependencies.length > 0;
-    const isSidebarOpen = isMobileLayout ? isMobileSidebarOpen : isDesktopSidebarOpen;
-    const shouldOffsetContentHeader = isMobileLayout || !isSidebarOpen;
-    const homeHref = basePath || '/';
-    const homeIconSrc = `${basePath || '/'}logo.svg`;
-    const iconSpriteHref = `${basePath || '/'}icons.svg`;
-    const searchSuggestionsListId = 'item-search-suggestions';
+    const seen = new Set();
+    const result: FailingDependencyEntry[] = [];
+    failingDependencyNodes.forEach((dependencyNode) => {
+      const dependencyId = dependencyNode.item.id;
+      if (seen.has(dependencyId)) {
+        return;
+      }
+      seen.add(dependencyId);
+      const dependencyStatus = itemStatuses[dependencyId] || "unknown";
+      const hasOwnDependencies = dependencySources.has(dependencyId);
+      const failingSignals = (itemSignals[dependencyId] || [])
+        .filter((signal) => signal.status === "down")
+        .sort(compareSignalsByStatusAndTitle);
+      const shouldIncludeLeafNonUp =
+        !hasOwnDependencies && dependencyStatus !== "up";
+      if (failingSignals.length === 0 && !shouldIncludeLeafNonUp) {
+        return;
+      }
+      const item = itemMap.get(dependencyId);
+      result.push({
+        id: dependencyId,
+        name: item?.title || dependencyId,
+        path: dependencyNode.path || [dependencyId],
+        status: dependencyStatus,
+        failingSignals,
+        failingCountContribution: 1,
+      });
+    });
+    return result.sort((a, b) => a.name.localeCompare(b.name));
+  }, [
+    catalog.dependencies,
+    failingDependencyNodes,
+    itemMap,
+    itemSignals,
+    itemStatuses,
+  ]);
+  const dependencyActorsByItemId = useMemo(() => {
+    const map: Record<string, ItemActorsEntry | null> = {};
+    failingDependencies.forEach((entry) => {
+      map[entry.id] = actorsByItemId.get(entry.id) || null;
+    });
+    return map;
+  }, [actorsByItemId, failingDependencies]);
+  const openedActor = useMemo(
+    () => (openedActorId ? actorsById.get(openedActorId) || null : null),
+    [actorsById, openedActorId],
+  );
+  const openedActorContacts = useMemo(
+    () =>
+      openedActor
+        ? actorContactsByActorId.get(openedActor.id)?.contacts || []
+        : [],
+    [actorContactsByActorId, openedActor],
+  );
+  const openedActorPrimaryContact = useMemo(
+    () =>
+      openedActor
+        ? actorContactsByActorId.get(openedActor.id)?.primaryContact || null
+        : null,
+    [actorContactsByActorId, openedActor],
+  );
+  const passingSignalsCount = selectedPassingSignals.length;
+  const hasOwnFailingSignals = selectedFailingSignals.length > 0;
+  const hasAffectedBySignals = failingDependencies.length > 0;
+  const isSidebarOpen = isMobileLayout
+    ? isMobileSidebarOpen
+    : isDesktopSidebarOpen;
+  const shouldOffsetContentHeader = isMobileLayout || !isSidebarOpen;
+  const homeHref = basePath || "/";
+  const homeIconSrc = `${basePath || "/"}logo.svg`;
+  const iconSpriteHref = `${basePath || "/"}icons.svg`;
+  const searchSuggestionsListId = "item-search-suggestions";
 
-    /**
-     * Toggles sidebar visibility for desktop and mobile layouts.
-     */
-    const handleToggleSidebar = useCallback(() => {
-        if (isMobileLayout) {
-            setIsMobileSidebarOpen((prev) => !prev);
-            return;
-        }
-        setIsDesktopSidebarOpen((prev) => !prev);
-    }, [isMobileLayout]);
+  /**
+   * Toggles sidebar visibility for desktop and mobile layouts.
+   */
+  const handleToggleSidebar = useCallback(() => {
+    if (isMobileLayout) {
+      setIsMobileSidebarOpen((prev) => !prev);
+      return;
+    }
+    setIsDesktopSidebarOpen((prev) => !prev);
+  }, [isMobileLayout]);
 
-    /**
-     * Tracks swipe state for mobile sidebar gestures.
-     */
-    const handleMobileSidebarSwipeStart = useCallback((event: TouchEvent) => {
-        if (!isMobileLayout) {
-            sidebarSwipeStartXRef.current = null;
-            sidebarSwipeStartYRef.current = null;
-            return;
-        }
-        const touch = event.touches?.[0];
-        if (!touch) {
-            sidebarSwipeStartXRef.current = null;
-            sidebarSwipeStartYRef.current = null;
-            return;
-        }
-        sidebarSwipeStartXRef.current = touch.clientX;
-        sidebarSwipeStartYRef.current = touch.clientY;
-    }, [isMobileLayout]);
-
-    /**
-     * Opens or closes the mobile sidebar when a horizontal swipe is detected.
-     */
-    const handleMobileSidebarSwipeMove = useCallback((event: TouchEvent) => {
-        const startX = sidebarSwipeStartXRef.current;
-        const startY = sidebarSwipeStartYRef.current;
-        if (startX === null || startY === null || !isMobileLayout) {
-            return;
-        }
-        const touch = event.touches?.[0];
-        if (!touch) {
-            return;
-        }
-        const deltaX = touch.clientX - startX;
-        const deltaY = Math.abs(touch.clientY - startY);
-        if (deltaY > MOBILE_SWIPE_MAX_VERTICAL_DRIFT_PX) {
-            sidebarSwipeStartXRef.current = null;
-            sidebarSwipeStartYRef.current = null;
-            return;
-        }
-        if (!isMobileSidebarOpen && deltaX >= MOBILE_SWIPE_OPEN_DISTANCE_PX) {
-            setIsMobileSidebarOpen(true);
-            sidebarSwipeStartXRef.current = null;
-            sidebarSwipeStartYRef.current = null;
-            return;
-        }
-        if (isMobileSidebarOpen && deltaX <= -MOBILE_SWIPE_CLOSE_DISTANCE_PX) {
-            setIsMobileSidebarOpen(false);
-            sidebarSwipeStartXRef.current = null;
-            sidebarSwipeStartYRef.current = null;
-        }
-    }, [isMobileLayout, isMobileSidebarOpen]);
-
-    /**
-     * Resets swipe tracking after touch end/cancel.
-     */
-    const handleMobileSidebarSwipeEnd = useCallback(() => {
+  /**
+   * Tracks swipe state for mobile sidebar gestures.
+   */
+  const handleMobileSidebarSwipeStart = useCallback(
+    (event: TouchEvent) => {
+      if (!isMobileLayout) {
         sidebarSwipeStartXRef.current = null;
         sidebarSwipeStartYRef.current = null;
-    }, []);
+        return;
+      }
+      const touch = event.touches?.[0];
+      if (!touch) {
+        sidebarSwipeStartXRef.current = null;
+        sidebarSwipeStartYRef.current = null;
+        return;
+      }
+      sidebarSwipeStartXRef.current = touch.clientX;
+      sidebarSwipeStartYRef.current = touch.clientY;
+    },
+    [isMobileLayout],
+  );
 
-    /**
-     * Selects a node from the tree and updates route with resolved path information.
-     */
-    const handleSelectItem = useCallback((node: CatalogTreeNode) => {
-        setSelectedId(node.item.id);
-        setSelectedPath(node.path || [node.item.id]);
-        setPendingScrollId(node.uid);
+  /**
+   * Opens or closes the mobile sidebar when a horizontal swipe is detected.
+   */
+  const handleMobileSidebarSwipeMove = useCallback(
+    (event: TouchEvent) => {
+      const startX = sidebarSwipeStartXRef.current;
+      const startY = sidebarSwipeStartYRef.current;
+      if (startX === null || startY === null || !isMobileLayout) {
+        return;
+      }
+      const touch = event.touches?.[0];
+      if (!touch) {
+        return;
+      }
+      const deltaX = touch.clientX - startX;
+      const deltaY = Math.abs(touch.clientY - startY);
+      if (deltaY > MOBILE_SWIPE_MAX_VERTICAL_DRIFT_PX) {
+        sidebarSwipeStartXRef.current = null;
+        sidebarSwipeStartYRef.current = null;
+        return;
+      }
+      if (!isMobileSidebarOpen && deltaX >= MOBILE_SWIPE_OPEN_DISTANCE_PX) {
+        setIsMobileSidebarOpen(true);
+        sidebarSwipeStartXRef.current = null;
+        sidebarSwipeStartYRef.current = null;
+        return;
+      }
+      if (isMobileSidebarOpen && deltaX <= -MOBILE_SWIPE_CLOSE_DISTANCE_PX) {
         setIsMobileSidebarOpen(false);
-        updateUrlForNode(node);
-    }, [updateUrlForNode]);
+        sidebarSwipeStartXRef.current = null;
+        sidebarSwipeStartYRef.current = null;
+      }
+    },
+    [isMobileLayout, isMobileSidebarOpen],
+  );
 
-    /**
-     * Selects an item by id, using a resolved node path when available.
-     */
-    const handleSelectItemById = useCallback((itemId: string) => {
-        setSelectedId(itemId);
-        const selectedNode = findNodeById(tree, itemId);
-        if (selectedNode) {
-            setSelectedPath(selectedNode.path || [itemId]);
-            setPendingScrollId(selectedNode.uid);
-            updateUrlForNode(selectedNode);
-        } else {
-            setSelectedPath([]);
-            const selectedUid = findNodeUidById(tree, itemId);
-            setPendingScrollId(selectedUid || '');
-            updateUrlForItemId(itemId);
-        }
-        setIsMobileSidebarOpen(false);
-    }, [tree, updateUrlForItemId, updateUrlForNode]);
+  /**
+   * Resets swipe tracking after touch end/cancel.
+   */
+  const handleMobileSidebarSwipeEnd = useCallback(() => {
+    sidebarSwipeStartXRef.current = null;
+    sidebarSwipeStartYRef.current = null;
+  }, []);
 
-    /**
-     * Selects an item by id and writes a pathless route (used by dependent item links).
-     */
-    const handleSelectItemByIdNoPath = useCallback((itemId: string) => {
-        const resolvedPath = findNodePath(tree, itemId) || [];
-        setSelectedId(itemId);
-        setSelectedPath(resolvedPath);
+  /**
+   * Selects a node from the tree and updates route with resolved path information.
+   */
+  const handleSelectItem = useCallback(
+    (node: CatalogTreeNode) => {
+      setSelectedId(node.item.id);
+      setSelectedPath(node.path || [node.item.id]);
+      setPendingScrollId(node.uid);
+      setIsMobileSidebarOpen(false);
+      updateUrlForNode(node);
+    },
+    [updateUrlForNode],
+  );
+
+  /**
+   * Selects an item by id, using a resolved node path when available.
+   */
+  const handleSelectItemById = useCallback(
+    (itemId: string) => {
+      setSelectedId(itemId);
+      const selectedNode = findNodeById(tree, itemId);
+      if (selectedNode) {
+        setSelectedPath(selectedNode.path || [itemId]);
+        setPendingScrollId(selectedNode.uid);
+        updateUrlForNode(selectedNode);
+      } else {
+        setSelectedPath([]);
         const selectedUid = findNodeUidById(tree, itemId);
-        setPendingScrollId(selectedUid || '');
-        setIsMobileSidebarOpen(false);
-        expandPathToItem(itemId, {path: resolvedPath});
+        setPendingScrollId(selectedUid || "");
         updateUrlForItemId(itemId);
-    }, [expandPathToItem, tree, updateUrlForItemId]);
+      }
+      setIsMobileSidebarOpen(false);
+    },
+    [tree, updateUrlForItemId, updateUrlForNode],
+  );
 
-    /**
-     * Selects an item by an exact tree path to preserve duplicate-id branch context.
-     */
-    const handleSelectItemByPath = useCallback((pathIds: string[]) => {
-        const normalizedPath = Array.isArray(pathIds) ? pathIds : [];
-        const itemId = normalizedPath[normalizedPath.length - 1] || '';
-        if (!itemId) {
-            return;
-        }
-        setSelectedId(itemId);
-        setSelectedPath(normalizedPath);
-        const selectedNode = findNodeByPath(tree, normalizedPath);
-        if (selectedNode) {
-            setPendingScrollId(selectedNode.uid);
-            setIsMobileSidebarOpen(false);
-            ensurePathExpanded(selectedNode.path);
-            updateUrlForNode(selectedNode);
-            return;
-        }
-        const selectedUid = findNodeUidById(tree, itemId);
-        setPendingScrollId(selectedUid || '');
+  /**
+   * Selects an item by id and writes a pathless route (used by dependent item links).
+   */
+  const handleSelectItemByIdNoPath = useCallback(
+    (itemId: string) => {
+      const resolvedPath = findNodePath(tree, itemId) || [];
+      setSelectedId(itemId);
+      setSelectedPath(resolvedPath);
+      const selectedUid = findNodeUidById(tree, itemId);
+      setPendingScrollId(selectedUid || "");
+      setIsMobileSidebarOpen(false);
+      expandPathToItem(itemId, { path: resolvedPath });
+      updateUrlForItemId(itemId);
+    },
+    [expandPathToItem, tree, updateUrlForItemId],
+  );
+
+  /**
+   * Selects an item by an exact tree path to preserve duplicate-id branch context.
+   */
+  const handleSelectItemByPath = useCallback(
+    (pathIds: string[]) => {
+      const normalizedPath = Array.isArray(pathIds) ? pathIds : [];
+      const itemId = normalizedPath[normalizedPath.length - 1] || "";
+      if (!itemId) {
+        return;
+      }
+      setSelectedId(itemId);
+      setSelectedPath(normalizedPath);
+      const selectedNode = findNodeByPath(tree, normalizedPath);
+      if (selectedNode) {
+        setPendingScrollId(selectedNode.uid);
         setIsMobileSidebarOpen(false);
-        ensurePathExpanded(normalizedPath);
-        normalizeUrlForRoute(itemId, normalizedPath);
-    }, [ensurePathExpanded, normalizeUrlForRoute, tree, updateUrlForNode]);
+        ensurePathExpanded(selectedNode.path);
+        updateUrlForNode(selectedNode);
+        return;
+      }
+      const selectedUid = findNodeUidById(tree, itemId);
+      setPendingScrollId(selectedUid || "");
+      setIsMobileSidebarOpen(false);
+      ensurePathExpanded(normalizedPath);
+      normalizeUrlForRoute(itemId, normalizedPath);
+    },
+    [ensurePathExpanded, normalizeUrlForRoute, tree, updateUrlForNode],
+  );
 
-    /**
-     * Builds an item link under the current base path.
-     */
-    const buildItemLink = useCallback((itemId: string, pathIds: string[] = []) => {
-        return buildItemRouteHref(basePath, itemId, pathIds);
-    }, [basePath]);
+  /**
+   * Builds an item link under the current base path.
+   */
+  const buildItemLink = useCallback(
+    (itemId: string, pathIds: string[] = []) => {
+      return buildItemRouteHref(basePath, itemId, pathIds);
+    },
+    [basePath],
+  );
 
-    const grafanaFrameUrl = useMemo(
-        () => buildGrafanaFrameUrl({initialTheme: initialFrameThemeRef.current}),
-        [],
-    );
+  const grafanaFrameUrl = useMemo(
+    () => buildGrafanaFrameUrl({ initialTheme: initialFrameThemeRef.current }),
+    [],
+  );
 
-    /**
-     * Clears search text and exits search-results mode.
-     */
-    const handleClearSearch = useCallback(() => {
-        clearSearchRequestedRef.current = true;
-        setSearchQuery('');
-        setIsSearchActive(false);
-    }, []);
+  /**
+   * Clears search text and exits search-results mode.
+   */
+  const handleClearSearch = useCallback(() => {
+    clearSearchRequestedRef.current = true;
+    setSearchQuery("");
+    setIsSearchActive(false);
+  }, []);
 
-    useEffect(() => {
-        const handleGrafanaItemLinkClick = (event: MessageEvent) => {
-            if (event.origin !== window.location.origin) {
-                return;
-            }
-            if (event.data?.type !== 'grafana-item-link-click') {
-                return;
-            }
-            const itemId = typeof event.data.itemId === 'string' ? event.data.itemId : '';
-            if (!itemId) {
-                return;
-            }
-            if (itemMap.has(itemId)) {
-                handleSelectItemByIdNoPath(itemId);
-                return;
-            }
-            const href = typeof event.data.href === 'string' ? event.data.href : '';
-            if (href) {
-                window.location.assign(href);
-            }
-        };
+  useEffect(() => {
+    const handleGrafanaItemLinkClick = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin) {
+        return;
+      }
+      if (event.data?.type !== "grafana-item-link-click") {
+        return;
+      }
+      const itemId =
+        typeof event.data.itemId === "string" ? event.data.itemId : "";
+      if (!itemId) {
+        return;
+      }
+      if (itemMap.has(itemId)) {
+        handleSelectItemByIdNoPath(itemId);
+        return;
+      }
+      const href = typeof event.data.href === "string" ? event.data.href : "";
+      if (href) {
+        window.location.assign(href);
+      }
+    };
 
-        window.addEventListener('message', handleGrafanaItemLinkClick);
-        return () => {
-            window.removeEventListener('message', handleGrafanaItemLinkClick);
-        };
-    }, [handleSelectItemByIdNoPath, itemMap]);
+    window.addEventListener("message", handleGrafanaItemLinkClick);
+    return () => {
+      window.removeEventListener("message", handleGrafanaItemLinkClick);
+    };
+  }, [handleSelectItemByIdNoPath, itemMap]);
 
-    /**
-     * Sync selected item with browser URL and handle browser back/forward navigation.
-     * Also normalizes invalid/missing route states to the closest resolvable node.
-     */
-    useEffect(() => {
-        if (!tree.length) {
-            return undefined;
+  /**
+   * Sync selected item with browser URL and handle browser back/forward navigation.
+   * Also normalizes invalid/missing route states to the closest resolvable node.
+   */
+  useEffect(() => {
+    if (!tree.length) {
+      return undefined;
+    }
+    const applySelectionFromLocation = (
+      options: LocationSelectionOptions = {},
+    ) => {
+      const { normalize = true, preserveExpansion = false } = options;
+      const routeContext = readLocationRouteContext(basePath);
+      const resolved = resolveNodeFromLocation(tree, basePath);
+      if (!resolved) {
+        if (normalize && routeContext.hasRouteId) {
+          normalizeUrlForRoute(routeContext.routeId, routeContext.pathIds, {
+            replace: true,
+          });
+          return;
         }
-        const applySelectionFromLocation = (options: LocationSelectionOptions = {}) => {
-            const {
-                normalize = true,
-                preserveExpansion = false,
-            } = options;
-            const routeContext = readLocationRouteContext(basePath);
-            const resolved = resolveNodeFromLocation(tree, basePath);
-            if (!resolved) {
-                if (normalize && routeContext.hasRouteId) {
-                    normalizeUrlForRoute(routeContext.routeId, routeContext.pathIds, {replace: true});
-                    return;
-                }
-                if (!routeContext.hasPathParam) {
-                    const fallbackNode = tree[0] || null;
-                    const fallbackId = fallbackNode?.item?.id || '';
-                    setSelectedId(fallbackId);
-                    setSelectedPath(fallbackNode?.path || (fallbackId ? [fallbackId] : []));
-                    setPendingScrollId(fallbackNode?.uid || '');
-                    setIsMobileSidebarOpen(false);
-                    if (normalize && fallbackId) {
-                        updateUrlForNode(fallbackNode, {replace: true});
-                    }
-                }
-                return;
-            }
-            const {node} = resolved;
-            setSelectedId(node.item.id);
-            setSelectedPath(node.path || [node.item.id]);
-            setPendingScrollId(node.uid);
-            if (!preserveExpansion) {
-                setIsMobileSidebarOpen(false);
-                expandPathToItem(node.item.id, {path: node.path});
-            } else {
-                const ancestorIds = node.path?.slice(0, -1) || [];
-                const needsExpand = ancestorIds.some((id) => !expandedIdsRef.current.has(id));
-                if (needsExpand) {
-                    ensurePathExpanded(node.path);
-                }
-            }
-            if (normalize && (routeContext.hasRouteId || routeContext.hasPathParam)) {
-                updateUrlForNode(node, {replace: true});
-            }
-        };
-
-        applySelectionFromLocation({normalize: true});
-
-        const handlePopState = () => {
-            lastHistoryUrlRef.current = window.location.href;
-            if (window.history.state?.itemId) {
-                const stateItemId = window.history.state.itemId;
-                const statePath = Array.isArray(window.history.state.path)
-                    ? window.history.state.path
-                    : [];
-                lastHistoryKeyRef.current = `${stateItemId}::${statePath.join('/')}`;
-            } else {
-                lastHistoryKeyRef.current = '';
-            }
-            applySelectionFromLocation({normalize: false, preserveExpansion: true});
-        };
-        window.addEventListener('popstate', handlePopState);
-        return () => {
-            window.removeEventListener('popstate', handlePopState);
-        };
-    }, [
-        basePath,
-        ensurePathExpanded,
-        expandPathToItem,
-        normalizeUrlForRoute,
-        tree,
-        updateUrlForItemId,
-        updateUrlForNode,
-    ]);
-
-    useEffect(() => {
-        setIsFailingSignalsOpen(true);
-        setIsAffectedBySignalsOpen(true);
-        setIsPassingSignalsOpen(false);
-    }, [selectedId]);
-
-    useEffect(() => {
-        if (!selectedId) {
-            return;
+        if (!routeContext.hasPathParam) {
+          const fallbackNode = tree[0] || null;
+          const fallbackId = fallbackNode?.item?.id || "";
+          setSelectedId(fallbackId);
+          setSelectedPath(
+            fallbackNode?.path || (fallbackId ? [fallbackId] : []),
+          );
+          setPendingScrollId(fallbackNode?.uid || "");
+          setIsMobileSidebarOpen(false);
+          if (normalize && fallbackId) {
+            updateUrlForNode(fallbackNode, { replace: true });
+          }
         }
-        contentRef.current?.scrollTo({
-            top: 0,
-            behavior: 'auto',
-        });
-    }, [selectedId]);
-
-    useEffect(() => {
-        if (!isGrafanaOpen) {
-            grafanaFrameReadyRef.current = false;
-        }
-    }, [isGrafanaOpen]);
-
-    useEffect(() => {
-        if (!isSearchActive) {
-            return undefined;
-        }
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === 'Escape') {
-                event.preventDefault();
-                handleClearSearch();
-            }
-        };
-        window.addEventListener('keydown', handleKeyDown);
-        return () => {
-            window.removeEventListener('keydown', handleKeyDown);
-        };
-    }, [handleClearSearch, isSearchActive]);
-
-    useEffect(() => {
-        if (!isAboutOpen) {
-            return undefined;
-        }
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === 'Escape') {
-                event.preventDefault();
-                setIsAboutOpen(false);
-            }
-        };
-        window.addEventListener('keydown', handleKeyDown);
-        return () => {
-            window.removeEventListener('keydown', handleKeyDown);
-        };
-    }, [isAboutOpen]);
-
-    useEffect(() => {
-        if (!isFeedbackOpen) {
-            return undefined;
-        }
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === 'Escape') {
-                event.preventDefault();
-                setIsFeedbackOpen(false);
-            }
-        };
-        window.addEventListener('keydown', handleKeyDown);
-        return () => {
-            window.removeEventListener('keydown', handleKeyDown);
-        };
-    }, [isFeedbackOpen]);
-
-    useEffect(() => {
-        if (!openedContact) {
-            return undefined;
-        }
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === 'Escape') {
-                event.preventDefault();
-                setOpenedContact(null);
-            }
-        };
-        window.addEventListener('keydown', handleKeyDown);
-        return () => {
-            window.removeEventListener('keydown', handleKeyDown);
-        };
-    }, [openedContact]);
-
-    useEffect(() => {
-        if (!openedActorId) {
-            return undefined;
-        }
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === 'Escape') {
-                event.preventDefault();
-                setOpenedActorId('');
-            }
-        };
-        window.addEventListener('keydown', handleKeyDown);
-        return () => {
-            window.removeEventListener('keydown', handleKeyDown);
-        };
-    }, [openedActorId]);
-
-    /**
-     * Scrolls the tree container to a node once it is rendered and measurable.
-     */
-    const scrollToNodeId = useCallback((targetId: string, behavior: ScrollBehavior) => {
-        const container = catalogTreeRef.current;
-        if (!container) {
-            return;
-        }
-        const animateScrollTo = (nextTop: number) => {
-            const startTop = container.scrollTop;
-            const targetTop = Math.max(0, nextTop);
-            const distance = Math.abs(targetTop - startTop);
-            if (distance < 1) {
-                container.scrollTop = targetTop;
-                return;
-            }
-            if (behavior !== 'smooth') {
-                container.scrollTop = targetTop;
-                return;
-            }
-            if (distance > TREE_SCROLL_LONG_DISTANCE_PX) {
-                const direction = targetTop > startTop ? 1 : -1;
-                const prejumpTop = direction > 0
-                    ? Math.max(startTop, targetTop - TREE_SCROLL_SMOOTH_SEGMENT_PX)
-                    : Math.min(startTop, targetTop + TREE_SCROLL_SMOOTH_SEGMENT_PX);
-                if (Math.abs(prejumpTop - startTop) >= 1) {
-                    container.scrollTop = prejumpTop;
-                }
-            }
-            container.scrollTo({
-                top: targetTop,
-                behavior: 'smooth',
-            });
-        };
-        const startedAt = performance.now();
-        const tryScroll = () => {
-            const node = container.querySelector<HTMLElement>(`[data-node-id="${targetId}"]`);
-            if (node) {
-                if (!node.offsetParent) {
-                    window.requestAnimationFrame(tryScroll);
-                    return;
-                }
-                const nodeRect = node.getBoundingClientRect();
-                if (nodeRect.height === 0 || nodeRect.width === 0) {
-                    window.requestAnimationFrame(tryScroll);
-                    return;
-                }
-                let offset = 0;
-                let current: HTMLElement | null = node;
-                while (current && current !== container) {
-                    offset += current.offsetTop;
-                    const nextParent: Element | null = current.offsetParent;
-                    current = nextParent instanceof HTMLElement ? nextParent : null;
-                }
-                const targetViewportOffset = container.clientHeight / 3;
-                let nextTop;
-                if (current === container) {
-                    const maxScrollTop = Math.max(0, container.scrollHeight - container.clientHeight);
-                    nextTop = Math.min(
-                        Math.max(0, offset - targetViewportOffset),
-                        maxScrollTop,
-                    );
-                } else {
-                    const containerRect = container.getBoundingClientRect();
-                    const fallbackOffset = nodeRect.top - containerRect.top;
-                    const maxScrollTop = Math.max(0, container.scrollHeight - container.clientHeight);
-                    nextTop = Math.min(
-                        Math.max(0, container.scrollTop + fallbackOffset - targetViewportOffset),
-                        maxScrollTop,
-                    );
-                }
-                animateScrollTo(nextTop);
-                setPendingScrollId('');
-                return;
-            }
-            if (performance.now() - startedAt < 2000) {
-                window.requestAnimationFrame(tryScroll);
-                return;
-            }
-            setPendingScrollId('');
-        };
-        window.requestAnimationFrame(tryScroll);
-    }, []);
-
-    useEffect(() => {
-        const prevTokens = prevSearchTokensRef.current;
-        prevSearchTokensRef.current = searchTokens.length;
-        if (searchTokens.length > 0) {
-            clearSearchRequestedRef.current = false;
-            return;
-        }
-        if (isSearchActive) {
-            return;
-        }
-        if (prevTokens > 0 && selectedId && clearSearchRequestedRef.current) {
-            clearSearchRequestedRef.current = false;
-            if (selectedNode?.path?.length) {
-                ensurePathExpanded(selectedNode.path);
-                setPendingScrollId(selectedNode.uid || '');
-            } else {
-                expandPathToItem(selectedId);
-                const selectedUid = findNodeUidById(tree, selectedId);
-                setPendingScrollId(selectedUid || '');
-            }
-            return;
-        }
-        if (clearSearchRequestedRef.current) {
-            clearSearchRequestedRef.current = false;
-        }
-    }, [ensurePathExpanded, expandPathToItem, isSearchActive, searchTokens.length, selectedId, selectedNode, tree]);
-
-    useEffect(() => {
-        if (!pendingScrollId || searchTokens.length > 0) {
-            return;
-        }
-        const shouldAnimateScroll = !isMobileLayout && isSidebarOpen;
-        scrollToNodeId(pendingScrollId, shouldAnimateScroll ? 'smooth' : 'auto');
-    }, [isMobileLayout, isSidebarOpen, pendingScrollId, scrollToNodeId, searchTokens.length]);
-
-    useEffect(() => {
-        if (!selectedItem) {
-            return;
-        }
-        const dashboardUrl = buildDashboardUrl(
-            grafanaBaseUrl,
-            DASHBOARDS.timeline.uid,
-            DASHBOARDS.timeline.slug,
-            selectedItem.id,
-            theme,
-            DASHBOARDS.timeline.panelId,
-            appBaseUrl,
+        return;
+      }
+      const { node } = resolved;
+      setSelectedId(node.item.id);
+      setSelectedPath(node.path || [node.item.id]);
+      setPendingScrollId(node.uid);
+      if (!preserveExpansion) {
+        setIsMobileSidebarOpen(false);
+        expandPathToItem(node.item.id, { path: node.path });
+      } else {
+        const ancestorIds = node.path?.slice(0, -1) || [];
+        const needsExpand = ancestorIds.some(
+          (id) => !expandedIdsRef.current.has(id),
         );
-        pendingGrafanaSrcRef.current = dashboardUrl;
-        const iframe = grafanaIframeRef.current;
-        if (iframe?.contentWindow && grafanaFrameReadyRef.current) {
-            iframe.contentWindow.postMessage(
-                {type: 'set-grafana-src', src: dashboardUrl},
-                window.location.origin,
-            );
+        if (needsExpand) {
+          ensurePathExpanded(node.path);
         }
-    }, [appBaseUrl, grafanaBaseUrl, selectedItem, theme]);
+      }
+      if (normalize && (routeContext.hasRouteId || routeContext.hasPathParam)) {
+        updateUrlForNode(node, { replace: true });
+      }
+    };
 
-    const handleSendFeedback = useCallback(async () => {
-        if (!feedbackDraft.trim()) {
-            setFeedbackError('Please enter feedback text before sending.');
+    applySelectionFromLocation({ normalize: true });
+
+    const handlePopState = () => {
+      lastHistoryUrlRef.current = window.location.href;
+      if (window.history.state?.itemId) {
+        const stateItemId = window.history.state.itemId;
+        const statePath = Array.isArray(window.history.state.path)
+          ? window.history.state.path
+          : [];
+        lastHistoryKeyRef.current = `${stateItemId}::${statePath.join("/")}`;
+      } else {
+        lastHistoryKeyRef.current = "";
+      }
+      applySelectionFromLocation({ normalize: false, preserveExpansion: true });
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [
+    basePath,
+    ensurePathExpanded,
+    expandPathToItem,
+    normalizeUrlForRoute,
+    tree,
+    updateUrlForItemId,
+    updateUrlForNode,
+  ]);
+
+  useEffect(() => {
+    setIsFailingSignalsOpen(true);
+    setIsAffectedBySignalsOpen(true);
+    setIsPassingSignalsOpen(false);
+  }, [selectedId]);
+
+  useEffect(() => {
+    if (!selectedId) {
+      return;
+    }
+    contentRef.current?.scrollTo({
+      top: 0,
+      behavior: "auto",
+    });
+  }, [selectedId]);
+
+  useEffect(() => {
+    if (!isGrafanaOpen) {
+      grafanaFrameReadyRef.current = false;
+    }
+  }, [isGrafanaOpen]);
+
+  useEffect(() => {
+    if (!isSearchActive) {
+      return undefined;
+    }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        handleClearSearch();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [handleClearSearch, isSearchActive]);
+
+  useEffect(() => {
+    if (!isAboutOpen) {
+      return undefined;
+    }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setIsAboutOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isAboutOpen]);
+
+  useEffect(() => {
+    if (!isFeedbackOpen) {
+      return undefined;
+    }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setIsFeedbackOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isFeedbackOpen]);
+
+  useEffect(() => {
+    if (!openedContact) {
+      return undefined;
+    }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setOpenedContact(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [openedContact]);
+
+  useEffect(() => {
+    if (!openedActorId) {
+      return undefined;
+    }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setOpenedActorId("");
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [openedActorId]);
+
+  /**
+   * Scrolls the tree container to a node once it is rendered and measurable.
+   */
+  const scrollToNodeId = useCallback(
+    (targetId: string, behavior: ScrollBehavior) => {
+      const container = catalogTreeRef.current;
+      if (!container) {
+        return;
+      }
+      const animateScrollTo = (nextTop: number) => {
+        const startTop = container.scrollTop;
+        const targetTop = Math.max(0, nextTop);
+        const distance = Math.abs(targetTop - startTop);
+        if (distance < 1) {
+          container.scrollTop = targetTop;
+          return;
+        }
+        if (behavior !== "smooth") {
+          container.scrollTop = targetTop;
+          return;
+        }
+        if (distance > TREE_SCROLL_LONG_DISTANCE_PX) {
+          const direction = targetTop > startTop ? 1 : -1;
+          const prejumpTop =
+            direction > 0
+              ? Math.max(startTop, targetTop - TREE_SCROLL_SMOOTH_SEGMENT_PX)
+              : Math.min(startTop, targetTop + TREE_SCROLL_SMOOTH_SEGMENT_PX);
+          if (Math.abs(prejumpTop - startTop) >= 1) {
+            container.scrollTop = prejumpTop;
+          }
+        }
+        container.scrollTo({
+          top: targetTop,
+          behavior: "smooth",
+        });
+      };
+      const startedAt = performance.now();
+      const tryScroll = () => {
+        const node = container.querySelector<HTMLElement>(
+          `[data-node-id="${targetId}"]`,
+        );
+        if (node) {
+          if (!node.offsetParent) {
+            window.requestAnimationFrame(tryScroll);
             return;
+          }
+          const nodeRect = node.getBoundingClientRect();
+          if (nodeRect.height === 0 || nodeRect.width === 0) {
+            window.requestAnimationFrame(tryScroll);
+            return;
+          }
+          let offset = 0;
+          let current: HTMLElement | null = node;
+          while (current && current !== container) {
+            offset += current.offsetTop;
+            const nextParent: Element | null = current.offsetParent;
+            current = nextParent instanceof HTMLElement ? nextParent : null;
+          }
+          const targetViewportOffset = container.clientHeight / 3;
+          let nextTop;
+          if (current === container) {
+            const maxScrollTop = Math.max(
+              0,
+              container.scrollHeight - container.clientHeight,
+            );
+            nextTop = Math.min(
+              Math.max(0, offset - targetViewportOffset),
+              maxScrollTop,
+            );
+          } else {
+            const containerRect = container.getBoundingClientRect();
+            const fallbackOffset = nodeRect.top - containerRect.top;
+            const maxScrollTop = Math.max(
+              0,
+              container.scrollHeight - container.clientHeight,
+            );
+            nextTop = Math.min(
+              Math.max(
+                0,
+                container.scrollTop + fallbackOffset - targetViewportOffset,
+              ),
+              maxScrollTop,
+            );
+          }
+          animateScrollTo(nextTop);
+          setPendingScrollId("");
+          return;
         }
-        setFeedbackError('');
-        setIsFeedbackSending(true);
-        try {
-            await submitFeedback(feedbackDraft);
-            setFeedbackDraft('');
-            setIsFeedbackOpen(false);
-            setNotification({
-                id: Date.now(),
-                message: 'Feedback received.\nThank you for your time!',
-                phase: 'visible',
-            });
-        } catch (submitError) {
-            const nextError = submitError instanceof Error
-                ? submitError.message
-                : 'Failed to send feedback';
-            setFeedbackError(nextError);
-        } finally {
-            setIsFeedbackSending(false);
+        if (performance.now() - startedAt < 2000) {
+          window.requestAnimationFrame(tryScroll);
+          return;
         }
-    }, [feedbackDraft]);
+        setPendingScrollId("");
+      };
+      window.requestAnimationFrame(tryScroll);
+    },
+    [],
+  );
 
-    return (
-        <div
-            className={`app ${isMobileLayout ? 'is-mobile' : 'is-desktop'} ${
-                isSidebarOpen ? 'sidebar-open' : 'sidebar-collapsed'
-            }`}
-            onTouchStart={handleMobileSidebarSwipeStart}
-            onTouchMove={handleMobileSidebarSwipeMove}
-            onTouchEnd={handleMobileSidebarSwipeEnd}
-            onTouchCancel={handleMobileSidebarSwipeEnd}
-        >
-            <SidebarPanel
-                isSidebarOpen={isSidebarOpen}
-                homeHref={homeHref}
-                homeIconSrc={homeIconSrc}
-                iconSpriteHref={iconSpriteHref}
-                onToggleSidebar={handleToggleSidebar}
-                sidebarTitle={sidebarTitle}
-                error={error}
-                tree={tree}
-                searchQuery={searchQuery}
-                searchSuggestionsListId={searchSuggestionsListId}
-                isSearchAutocompleteReady={isSearchAutocompleteReady}
-                searchAutocompleteOptions={searchAutocompleteOptions}
-                setSearchQuery={setSearchQuery}
-                isSearchActive={isSearchActive}
-                setIsSearchActive={setIsSearchActive}
-                onClearSearch={handleClearSearch}
-                onCollapseAll={handleCollapseAll}
-                onExpandAll={handleExpandAll}
-                searchResults={searchResults}
-                selectedId={selectedId}
-                selectedNodeUid={selectedNode?.uid || ''}
-                basePath={basePath}
-                onSelectItemById={handleSelectItemById}
-                onExpandPathToItem={expandPathToItem}
-                itemStatuses={itemStatuses}
-                lastUpdated={lastUpdated}
-                catalogTreeRef={catalogTreeRef}
-                filteredTree={filteredTree}
-                expandedIds={expandedIds}
-                onToggleNode={handleToggleNode}
-                onSelectNode={handleSelectItem}
-            />
-            {isMobileLayout && isSidebarOpen && (
-                <button
-                    type="button"
-                    className="sidebar-backdrop"
-                    onClick={() => setIsMobileSidebarOpen(false)}
-                    aria-label="Close catalog panel"
-                />
-            )}
-            {isMobileLayout && !isSidebarOpen && (
-                <div className="sidebar-swipe-hint" aria-hidden="true">
-                    <span className="sidebar-swipe-hint-edge"/>
-                </div>
-            )}
-            <DetailsPanel
-                contentRef={contentRef}
-                isSidebarOpen={isSidebarOpen}
-                iconSpriteHref={iconSpriteHref}
-                onToggleSidebar={handleToggleSidebar}
-                shouldOffsetContentHeader={shouldOffsetContentHeader}
-                isTitlePrimaryBelowControls={isTitlePrimaryBelowControls}
-                headerRef={headerRef}
-                headerActionsRef={headerActionsRef}
-                theme={theme}
-                onToggleTheme={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))}
-                onOpenFeedback={() => {
-                    setFeedbackError('');
-                    setIsFeedbackOpen(true);
-                }}
-                onOpenAbout={() => setIsAboutOpen(true)}
-                selectedItem={selectedItem}
-                selectedStatus={selectedStatus}
-                lastUpdated={lastUpdated}
-                selectedTitleFirstWord={selectedTitleFirstWord}
-                selectedTitleRest={selectedTitleRest}
-                contentTitlePrimaryRef={contentTitlePrimaryRef}
-                selectedFailingSignals={selectedFailingSignals}
-                failingDependencies={failingDependencies}
-                dependencyActorsByItemId={dependencyActorsByItemId}
-                selectedItemActors={selectedItemActors}
-                actorContactsByActorId={actorContactsByActorId}
-                hasOwnFailingSignals={hasOwnFailingSignals}
-                isFailingSignalsOpen={isFailingSignalsOpen}
-                onToggleFailingSignals={() => setIsFailingSignalsOpen((prev) => !prev)}
-                hasAffectedBySignals={hasAffectedBySignals}
-                isAffectedBySignalsOpen={isAffectedBySignalsOpen}
-                onToggleAffectedBySignals={() => setIsAffectedBySignalsOpen((prev) => !prev)}
-                buildItemLink={buildItemLink}
-                onSelectItemByPath={handleSelectItemByPath}
-                onOpenActor={(actor) => setOpenedActorId(actor.id)}
-                isSignalsOpen={isSignalsOpen}
-                onToggleSignals={() => setIsSignalsOpen((prev) => !prev)}
-                passingSignalsCount={passingSignalsCount}
-                selectedPassingSignals={selectedPassingSignals}
-                hasOwnHealthSignals={hasOwnHealthSignals}
-                isPassingSignalsOpen={isPassingSignalsOpen}
-                onTogglePassingSignals={() => setIsPassingSignalsOpen((prev) => !prev)}
-                isContactsOpen={isContactsOpen}
-                onToggleContacts={() => setIsContactsOpen((prev) => !prev)}
-                onOpenContact={(contact) => setOpenedContact(contact)}
-                isGrafanaOpen={isGrafanaOpen}
-                onToggleGrafana={() => setIsGrafanaOpen((prev) => !prev)}
-                grafanaHeight={grafanaHeight}
-                grafanaIframeRef={grafanaIframeRef}
-                onGrafanaLoad={handleGrafanaLoad}
-                grafanaFrameUrl={grafanaFrameUrl}
-            />
-            <AboutModal
-                isOpen={isAboutOpen}
-                onClose={() => setIsAboutOpen(false)}
-            />
-            <FeedbackModal
-                isOpen={isFeedbackOpen}
-                value={feedbackDraft}
-                isSending={isFeedbackSending}
-                error={feedbackError}
-                onClose={() => setIsFeedbackOpen(false)}
-                onChange={(nextValue) => {
-                    setFeedbackError('');
-                    setFeedbackDraft(nextValue);
-                }}
-                onSend={handleSendFeedback}
-            />
-            <ContactModal
-                isOpen={Boolean(openedContact)}
-                contact={openedContact}
-                onClose={() => setOpenedContact(null)}
-            />
-            <ActorModal
-                isOpen={Boolean(openedActor)}
-                actor={openedActor}
-                contacts={openedActorContacts}
-                primaryContact={openedActorPrimaryContact}
-                iconSpriteHref={iconSpriteHref}
-                onClose={() => setOpenedActorId('')}
-                onOpenContact={(contact) => setOpenedContact(contact)}
-            />
-            {notification.message && (
-                <div
-                    className={`app-notification ${notification.phase === 'exiting' ? 'is-exiting' : ''}`}
-                    role="status"
-                    aria-live="polite"
-                >
-                    <span className="app-notification-icon" aria-hidden="true">✔</span>
-                    <span className="app-notification-text">{notification.message}</span>
-                    <span className="app-notification-progress" aria-hidden="true"/>
-                </div>
-            )}
-        </div>
+  useEffect(() => {
+    const prevTokens = prevSearchTokensRef.current;
+    prevSearchTokensRef.current = searchTokens.length;
+    if (searchTokens.length > 0) {
+      clearSearchRequestedRef.current = false;
+      return;
+    }
+    if (isSearchActive) {
+      return;
+    }
+    if (prevTokens > 0 && selectedId && clearSearchRequestedRef.current) {
+      clearSearchRequestedRef.current = false;
+      if (selectedNode?.path?.length) {
+        ensurePathExpanded(selectedNode.path);
+        setPendingScrollId(selectedNode.uid || "");
+      } else {
+        expandPathToItem(selectedId);
+        const selectedUid = findNodeUidById(tree, selectedId);
+        setPendingScrollId(selectedUid || "");
+      }
+      return;
+    }
+    if (clearSearchRequestedRef.current) {
+      clearSearchRequestedRef.current = false;
+    }
+  }, [
+    ensurePathExpanded,
+    expandPathToItem,
+    isSearchActive,
+    searchTokens.length,
+    selectedId,
+    selectedNode,
+    tree,
+  ]);
+
+  useEffect(() => {
+    if (!pendingScrollId || searchTokens.length > 0) {
+      return;
+    }
+    const shouldAnimateScroll = !isMobileLayout && isSidebarOpen;
+    scrollToNodeId(pendingScrollId, shouldAnimateScroll ? "smooth" : "auto");
+  }, [
+    isMobileLayout,
+    isSidebarOpen,
+    pendingScrollId,
+    scrollToNodeId,
+    searchTokens.length,
+  ]);
+
+  useEffect(() => {
+    if (!selectedItem) {
+      return;
+    }
+    const dashboardUrl = buildDashboardUrl(
+      grafanaBaseUrl,
+      DASHBOARDS.timeline.uid,
+      DASHBOARDS.timeline.slug,
+      selectedItem.id,
+      theme,
+      DASHBOARDS.timeline.panelId,
+      appBaseUrl,
     );
+    pendingGrafanaSrcRef.current = dashboardUrl;
+    const iframe = grafanaIframeRef.current;
+    if (iframe?.contentWindow && grafanaFrameReadyRef.current) {
+      iframe.contentWindow.postMessage(
+        { type: "set-grafana-src", src: dashboardUrl },
+        window.location.origin,
+      );
+    }
+  }, [appBaseUrl, grafanaBaseUrl, selectedItem, theme]);
+
+  const handleSendFeedback = useCallback(async () => {
+    if (!feedbackDraft.trim()) {
+      setFeedbackError("Please enter feedback text before sending.");
+      return;
+    }
+    setFeedbackError("");
+    setIsFeedbackSending(true);
+    try {
+      await submitFeedback(feedbackDraft);
+      setFeedbackDraft("");
+      setIsFeedbackOpen(false);
+      setNotification({
+        id: Date.now(),
+        message: "Feedback received.\nThank you for your time!",
+        phase: "visible",
+      });
+    } catch (submitError) {
+      const nextError =
+        submitError instanceof Error
+          ? submitError.message
+          : "Failed to send feedback";
+      setFeedbackError(nextError);
+    } finally {
+      setIsFeedbackSending(false);
+    }
+  }, [feedbackDraft]);
+
+  return (
+    <div
+      className={`app ${isMobileLayout ? "is-mobile" : "is-desktop"} ${
+        isSidebarOpen ? "sidebar-open" : "sidebar-collapsed"
+      }`}
+      onTouchStart={handleMobileSidebarSwipeStart}
+      onTouchMove={handleMobileSidebarSwipeMove}
+      onTouchEnd={handleMobileSidebarSwipeEnd}
+      onTouchCancel={handleMobileSidebarSwipeEnd}
+    >
+      <SidebarPanel
+        isSidebarOpen={isSidebarOpen}
+        homeHref={homeHref}
+        homeIconSrc={homeIconSrc}
+        iconSpriteHref={iconSpriteHref}
+        onToggleSidebar={handleToggleSidebar}
+        sidebarTitle={sidebarTitle}
+        error={error}
+        tree={tree}
+        searchQuery={searchQuery}
+        searchSuggestionsListId={searchSuggestionsListId}
+        isSearchAutocompleteReady={isSearchAutocompleteReady}
+        searchAutocompleteOptions={searchAutocompleteOptions}
+        setSearchQuery={setSearchQuery}
+        isSearchActive={isSearchActive}
+        setIsSearchActive={setIsSearchActive}
+        onClearSearch={handleClearSearch}
+        onCollapseAll={handleCollapseAll}
+        onExpandAll={handleExpandAll}
+        searchResults={searchResults}
+        selectedId={selectedId}
+        selectedNodeUid={selectedNode?.uid || ""}
+        basePath={basePath}
+        onSelectItemById={handleSelectItemById}
+        onExpandPathToItem={expandPathToItem}
+        itemStatuses={itemStatuses}
+        lastUpdated={lastUpdated}
+        catalogTreeRef={catalogTreeRef}
+        filteredTree={filteredTree}
+        expandedIds={expandedIds}
+        onToggleNode={handleToggleNode}
+        onSelectNode={handleSelectItem}
+      />
+      {isMobileLayout && isSidebarOpen && (
+        <button
+          type="button"
+          className="sidebar-backdrop"
+          onClick={() => setIsMobileSidebarOpen(false)}
+          aria-label="Close catalog panel"
+        />
+      )}
+      {isMobileLayout && !isSidebarOpen && (
+        <div className="sidebar-swipe-hint" aria-hidden="true">
+          <span className="sidebar-swipe-hint-edge" />
+        </div>
+      )}
+      <DetailsPanel
+        contentRef={contentRef}
+        isSidebarOpen={isSidebarOpen}
+        iconSpriteHref={iconSpriteHref}
+        onToggleSidebar={handleToggleSidebar}
+        shouldOffsetContentHeader={shouldOffsetContentHeader}
+        isTitlePrimaryBelowControls={isTitlePrimaryBelowControls}
+        headerRef={headerRef}
+        headerActionsRef={headerActionsRef}
+        theme={theme}
+        onToggleTheme={() =>
+          setTheme((prev) => (prev === "dark" ? "light" : "dark"))
+        }
+        onOpenFeedback={() => {
+          setFeedbackError("");
+          setIsFeedbackOpen(true);
+        }}
+        onOpenAbout={() => setIsAboutOpen(true)}
+        selectedItem={selectedItem}
+        selectedStatus={selectedStatus}
+        lastUpdated={lastUpdated}
+        selectedTitleFirstWord={selectedTitleFirstWord}
+        selectedTitleRest={selectedTitleRest}
+        contentTitlePrimaryRef={contentTitlePrimaryRef}
+        selectedFailingSignals={selectedFailingSignals}
+        failingDependencies={failingDependencies}
+        dependencyActorsByItemId={dependencyActorsByItemId}
+        selectedItemActors={selectedItemActors}
+        actorContactsByActorId={actorContactsByActorId}
+        hasOwnFailingSignals={hasOwnFailingSignals}
+        isFailingSignalsOpen={isFailingSignalsOpen}
+        onToggleFailingSignals={() => setIsFailingSignalsOpen((prev) => !prev)}
+        hasAffectedBySignals={hasAffectedBySignals}
+        isAffectedBySignalsOpen={isAffectedBySignalsOpen}
+        onToggleAffectedBySignals={() =>
+          setIsAffectedBySignalsOpen((prev) => !prev)
+        }
+        buildItemLink={buildItemLink}
+        onSelectItemByPath={handleSelectItemByPath}
+        onOpenActor={(actor) => setOpenedActorId(actor.id)}
+        isSignalsOpen={isSignalsOpen}
+        onToggleSignals={() => setIsSignalsOpen((prev) => !prev)}
+        passingSignalsCount={passingSignalsCount}
+        selectedPassingSignals={selectedPassingSignals}
+        hasOwnHealthSignals={hasOwnHealthSignals}
+        isPassingSignalsOpen={isPassingSignalsOpen}
+        onTogglePassingSignals={() => setIsPassingSignalsOpen((prev) => !prev)}
+        isContactsOpen={isContactsOpen}
+        onToggleContacts={() => setIsContactsOpen((prev) => !prev)}
+        onOpenContact={(contact) => setOpenedContact(contact)}
+        isGrafanaOpen={isGrafanaOpen}
+        onToggleGrafana={() => setIsGrafanaOpen((prev) => !prev)}
+        grafanaHeight={grafanaHeight}
+        grafanaIframeRef={grafanaIframeRef}
+        onGrafanaLoad={handleGrafanaLoad}
+        grafanaFrameUrl={grafanaFrameUrl}
+      />
+      <AboutModal isOpen={isAboutOpen} onClose={() => setIsAboutOpen(false)} />
+      <FeedbackModal
+        isOpen={isFeedbackOpen}
+        value={feedbackDraft}
+        isSending={isFeedbackSending}
+        error={feedbackError}
+        onClose={() => setIsFeedbackOpen(false)}
+        onChange={(nextValue) => {
+          setFeedbackError("");
+          setFeedbackDraft(nextValue);
+        }}
+        onSend={handleSendFeedback}
+      />
+      <ContactModal
+        isOpen={Boolean(openedContact)}
+        contact={openedContact}
+        onClose={() => setOpenedContact(null)}
+      />
+      <ActorModal
+        isOpen={Boolean(openedActor)}
+        actor={openedActor}
+        contacts={openedActorContacts}
+        primaryContact={openedActorPrimaryContact}
+        iconSpriteHref={iconSpriteHref}
+        onClose={() => setOpenedActorId("")}
+        onOpenContact={(contact) => setOpenedContact(contact)}
+      />
+      {notification.message && (
+        <div
+          className={`app-notification ${notification.phase === "exiting" ? "is-exiting" : ""}`}
+          role="status"
+          aria-live="polite"
+        >
+          <span className="app-notification-icon" aria-hidden="true">
+            ✔
+          </span>
+          <span className="app-notification-text">{notification.message}</span>
+          <span className="app-notification-progress" aria-hidden="true" />
+        </div>
+      )}
+    </div>
+  );
 }
