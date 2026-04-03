@@ -73,7 +73,7 @@ export default function AboutContent() {
           signal is available for that item.
         </li>
         <li>
-          Select any item to see its health signals, such as health checks,
+          Select any item to see its health signals, such as latency, error,
           customer-facing status indicators, and other signal types.
         </li>
         <li>

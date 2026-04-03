@@ -94,28 +94,32 @@ export default function ActorModal({
                       onOpenContact(contact);
                     }}
                   >
-                    <span
-                      className="contact-type-icon-wrap"
-                      title={resolveContactTypeDisplayName(contact.type)}
-                      aria-label={resolveContactTypeDisplayName(contact.type)}
-                    >
-                      <svg
-                        className={`contact-type-icon ${resolveContactTypeClass(contact.type)}`}
-                        viewBox="0 0 24 24"
-                        focusable="false"
-                        aria-hidden="true"
-                      >
-                        <use
-                          href={`${iconSpriteHref}#${resolveContactIconId(contact.type)}`}
-                        />
-                      </svg>
-                    </span>
-                    <span className="contact-chip-text">
-                      {resolveContactLabel(contact)}
-                    </span>
                     {primaryContact?.id === contact.id && (
-                      <span className="contact-primary-mark">primary</span>
+                      <span className="actor-modal-contact-prefix">
+                        Primary
+                      </span>
                     )}
+                    <span className="contact-icon-label">
+                      <span
+                        className="contact-type-icon-wrap"
+                        title={resolveContactTypeDisplayName(contact.type)}
+                        aria-label={resolveContactTypeDisplayName(contact.type)}
+                      >
+                        <svg
+                          className={`contact-type-icon ${resolveContactTypeClass(contact.type)}`}
+                          viewBox="0 0 24 24"
+                          focusable="false"
+                          aria-hidden="true"
+                        >
+                          <use
+                            href={`${iconSpriteHref}#${resolveContactIconId(contact.type)}`}
+                          />
+                        </svg>
+                      </span>
+                      <span className="contact-chip-text">
+                        {resolveContactLabel(contact)}
+                      </span>
+                    </span>
                   </a>
                 </li>
               ))}
