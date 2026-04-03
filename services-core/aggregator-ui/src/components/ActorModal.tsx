@@ -95,7 +95,9 @@ export default function ActorModal({
                     }}
                   >
                     {primaryContact?.id === contact.id && (
-                      <span className="actor-modal-contact-prefix">Primary</span>
+                      <span className="actor-modal-contact-prefix">
+                        Primary
+                      </span>
                     )}
                     <span className="contact-icon-label">
                       <span
