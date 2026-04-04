@@ -1,160 +1,160 @@
 # yaml-language-server: $schema=../schemas/catalog-dependencies.schema.yaml
 dependencies:
-  - sourceId: commerce-platform
-    targetId: commerce-line-core
-  - sourceId: commerce-platform
-    targetId: commerce-extensions
-  - sourceId: commerce-line-core
-    targetId: commerce-core
-  - sourceId: commerce-extensions
-    targetId: order-domain
-  - sourceId: commerce-core
-    targetId: order-domain
-  - sourceId: order-domain
-    targetId: order-intake-hub
-  - sourceId: order-domain
-    targetId: order-guard-hub
-  - sourceId: order-domain
-    targetId: order-finance-hub
-  - sourceId: order-intake-hub
-    targetId: order-capture-svc
-  - sourceId: order-guard-hub
-    targetId: order-validation-svc
-  - sourceId: order-finance-hub
-    targetId: order-billing-svc
-  - sourceId: order-capture-svc
-    targetId: order-workflow
-  - sourceId: order-validation-svc
-    targetId: order-workflow
-  - sourceId: order-billing-svc
-    targetId: order-workflow
-  - sourceId: order-workflow
-    targetId: order-dispatch-svc
-  - sourceId: operations-suite
-    targetId: operations-line
-  - sourceId: operations-suite
-    targetId: ops-accelerators
-  - sourceId: operations-line
-    targetId: fulfillment-hub
-  - sourceId: fulfillment-hub
-    targetId: logistics-domain
-  - sourceId: logistics-domain
-    targetId: logistics-routing-cell
-  - sourceId: logistics-domain
-    targetId: logistics-inventory-cell
-  - sourceId: logistics-routing-cell
-    targetId: routing-engine-svc
-  - sourceId: logistics-inventory-cell
-    targetId: inventory-sync-svc
-  - sourceId: routing-engine-svc
-    targetId: distribution-core
-  - sourceId: inventory-sync-svc
-    targetId: distribution-core
-  - sourceId: distribution-core
-    targetId: lastmile-dispatch-svc
-  - sourceId: distribution-core
-    targetId: returns-processing-svc
-  - sourceId: ops-accelerators
-    targetId: routing-engine-svc
-  - sourceId: customer-experience
-    targetId: experience-line
-  - sourceId: customer-experience
-    targetId: experience-foundation
-  - sourceId: experience-line
-    targetId: engagement-suite
-  - sourceId: experience-foundation
-    targetId: engagement-suite
-  - sourceId: engagement-suite
-    targetId: journey-domain
-  - sourceId: journey-domain
-    targetId: engagement-orchestrator-svc
-  - sourceId: engagement-orchestrator-svc
-    targetId: touchpoint-core
-  - sourceId: touchpoint-core
-    targetId: touchpoint-profile-pillar
-  - sourceId: touchpoint-core
-    targetId: touchpoint-messaging-pillar
-  - sourceId: touchpoint-core
-    targetId: touchpoint-campaign-pillar
-  - sourceId: touchpoint-profile-pillar
-    targetId: profile-core-nodes
-  - sourceId: touchpoint-profile-pillar
-    targetId: profile-identity-nodes
-  - sourceId: profile-core-nodes
-    targetId: profile-store-svc
-  - sourceId: profile-identity-nodes
-    targetId: profile-store-svc
-  - sourceId: touchpoint-messaging-pillar
-    targetId: messaging-router-nodes
-  - sourceId: touchpoint-messaging-pillar
-    targetId: messaging-template-nodes
-  - sourceId: messaging-router-nodes
-    targetId: messaging-hub-svc
-  - sourceId: messaging-template-nodes
-    targetId: messaging-hub-svc
-  - sourceId: touchpoint-campaign-pillar
-    targetId: campaign-planner-nodes
-  - sourceId: touchpoint-campaign-pillar
-    targetId: campaign-optimizer-nodes
-  - sourceId: campaign-planner-nodes
-    targetId: campaign-execution-svc
-  - sourceId: campaign-optimizer-nodes
-    targetId: campaign-execution-svc
-  - sourceId: commerce-core
-    targetId: commerce-core-pricing-sync-svc
-  - sourceId: order-domain
-    targetId: order-domain-events-svc
-  - sourceId: order-intake-hub
-    targetId: order-intake-api-svc
-  - sourceId: order-intake-hub
-    targetId: order-intake-buffer-svc
-  - sourceId: order-guard-hub
-    targetId: fraud-screening-svc
-  - sourceId: order-guard-hub
-    targetId: policy-evaluator-svc
-  - sourceId: order-finance-hub
-    targetId: invoice-orchestrator-svc
-  - sourceId: order-finance-hub
-    targetId: payment-auth-adapter-svc
-  - sourceId: order-workflow
-    targetId: order-state-projection-svc
-  - sourceId: order-workflow
-    targetId: order-sla-tracker-svc
-  - sourceId: fulfillment-hub
-    targetId: fulfillment-control-plane-svc
-  - sourceId: logistics-domain
-    targetId: logistics-event-router-svc
-  - sourceId: logistics-routing-cell
-    targetId: route-cache-writer-svc
-  - sourceId: logistics-routing-cell
-    targetId: route-cost-model-svc
-  - sourceId: logistics-inventory-cell
-    targetId: inventory-reconciler-svc
-  - sourceId: logistics-inventory-cell
-    targetId: stock-reservation-svc
-  - sourceId: distribution-core
-    targetId: depot-slotting-svc
-  - sourceId: distribution-core
-    targetId: carrier-capacity-broker-svc
-  - sourceId: ops-accelerators
-    targetId: dispatch-simulation-svc
-  - sourceId: experience-foundation
-    targetId: customer-consent-ledger-svc
-  - sourceId: engagement-suite
-    targetId: audience-intent-processor-svc
-  - sourceId: journey-domain
-    targetId: journey-rules-engine-svc
-  - sourceId: journey-domain
-    targetId: journey-experimentation-svc
-  - sourceId: touchpoint-core
-    targetId: touchpoint-session-state-svc
-  - sourceId: touchpoint-profile-pillar
-    targetId: profile-merge-orchestrator-svc
-  - sourceId: touchpoint-messaging-pillar
-    targetId: template-renderer-svc
-  - sourceId: touchpoint-messaging-pillar
-    targetId: channel-delivery-router-svc
-  - sourceId: touchpoint-campaign-pillar
-    targetId: campaign-segmentation-svc
-  - sourceId: touchpoint-campaign-pillar
-    targetId: campaign-budget-guard-svc
+  - sourceId: it_e7f7ec2d
+    targetId: it_6307a2a8
+  - sourceId: it_e7f7ec2d
+    targetId: it_5b917d99
+  - sourceId: it_6307a2a8
+    targetId: it_8be9ba4f
+  - sourceId: it_5b917d99
+    targetId: it_144bbdb0
+  - sourceId: it_8be9ba4f
+    targetId: it_144bbdb0
+  - sourceId: it_144bbdb0
+    targetId: it_008a7af7
+  - sourceId: it_144bbdb0
+    targetId: it_1668c093
+  - sourceId: it_144bbdb0
+    targetId: it_6c7923ab
+  - sourceId: it_008a7af7
+    targetId: it_5a9ca947
+  - sourceId: it_1668c093
+    targetId: it_31cdf080
+  - sourceId: it_6c7923ab
+    targetId: it_b0833df4
+  - sourceId: it_5a9ca947
+    targetId: it_43ab1049
+  - sourceId: it_31cdf080
+    targetId: it_43ab1049
+  - sourceId: it_b0833df4
+    targetId: it_43ab1049
+  - sourceId: it_43ab1049
+    targetId: it_ca854f7f
+  - sourceId: it_51dae4dd
+    targetId: it_571c410e
+  - sourceId: it_51dae4dd
+    targetId: it_c51a1ccc
+  - sourceId: it_571c410e
+    targetId: it_0387f962
+  - sourceId: it_0387f962
+    targetId: it_978f32ea
+  - sourceId: it_978f32ea
+    targetId: it_ef57ee00
+  - sourceId: it_978f32ea
+    targetId: it_906f7e0d
+  - sourceId: it_ef57ee00
+    targetId: it_48bb5977
+  - sourceId: it_906f7e0d
+    targetId: it_34b1b4e7
+  - sourceId: it_48bb5977
+    targetId: it_05c82f52
+  - sourceId: it_34b1b4e7
+    targetId: it_05c82f52
+  - sourceId: it_05c82f52
+    targetId: it_0d5a82d5
+  - sourceId: it_05c82f52
+    targetId: it_4395c1de
+  - sourceId: it_c51a1ccc
+    targetId: it_48bb5977
+  - sourceId: it_9d9e5627
+    targetId: it_5c743f44
+  - sourceId: it_9d9e5627
+    targetId: it_741e7f6b
+  - sourceId: it_5c743f44
+    targetId: it_6e67d308
+  - sourceId: it_741e7f6b
+    targetId: it_6e67d308
+  - sourceId: it_6e67d308
+    targetId: it_d01a646d
+  - sourceId: it_d01a646d
+    targetId: it_71574a7b
+  - sourceId: it_71574a7b
+    targetId: it_bee18e53
+  - sourceId: it_bee18e53
+    targetId: it_a0a28b85
+  - sourceId: it_bee18e53
+    targetId: it_4869434a
+  - sourceId: it_bee18e53
+    targetId: it_e8e0d47a
+  - sourceId: it_a0a28b85
+    targetId: it_5622ffff
+  - sourceId: it_a0a28b85
+    targetId: it_5d0def3d
+  - sourceId: it_5622ffff
+    targetId: it_92628e0a
+  - sourceId: it_5d0def3d
+    targetId: it_92628e0a
+  - sourceId: it_4869434a
+    targetId: it_ccf17b90
+  - sourceId: it_4869434a
+    targetId: it_e6af80a7
+  - sourceId: it_ccf17b90
+    targetId: it_51735b03
+  - sourceId: it_e6af80a7
+    targetId: it_51735b03
+  - sourceId: it_e8e0d47a
+    targetId: it_352b4411
+  - sourceId: it_e8e0d47a
+    targetId: it_ae13d093
+  - sourceId: it_352b4411
+    targetId: it_8f468246
+  - sourceId: it_ae13d093
+    targetId: it_8f468246
+  - sourceId: it_8be9ba4f
+    targetId: it_b61910c1
+  - sourceId: it_144bbdb0
+    targetId: it_1151701c
+  - sourceId: it_008a7af7
+    targetId: it_2484e0db
+  - sourceId: it_008a7af7
+    targetId: it_fbb05062
+  - sourceId: it_1668c093
+    targetId: it_96952012
+  - sourceId: it_1668c093
+    targetId: it_65839693
+  - sourceId: it_6c7923ab
+    targetId: it_3ca8ec85
+  - sourceId: it_6c7923ab
+    targetId: it_4c046b1d
+  - sourceId: it_43ab1049
+    targetId: it_9e60bdd7
+  - sourceId: it_43ab1049
+    targetId: it_3160377e
+  - sourceId: it_0387f962
+    targetId: it_bd3e8b82
+  - sourceId: it_978f32ea
+    targetId: it_9ead5a94
+  - sourceId: it_ef57ee00
+    targetId: it_9de17f36
+  - sourceId: it_ef57ee00
+    targetId: it_ed0d04bb
+  - sourceId: it_906f7e0d
+    targetId: it_20cb3376
+  - sourceId: it_906f7e0d
+    targetId: it_7199280d
+  - sourceId: it_05c82f52
+    targetId: it_2df0c55c
+  - sourceId: it_05c82f52
+    targetId: it_116e2e82
+  - sourceId: it_c51a1ccc
+    targetId: it_a6854c60
+  - sourceId: it_741e7f6b
+    targetId: it_9c69814b
+  - sourceId: it_6e67d308
+    targetId: it_0c7f7cbf
+  - sourceId: it_d01a646d
+    targetId: it_40d8cd7c
+  - sourceId: it_d01a646d
+    targetId: it_12a5d380
+  - sourceId: it_bee18e53
+    targetId: it_5e0132b8
+  - sourceId: it_a0a28b85
+    targetId: it_7e7405d3
+  - sourceId: it_4869434a
+    targetId: it_6cab1e6f
+  - sourceId: it_4869434a
+    targetId: it_984c1c25
+  - sourceId: it_e8e0d47a
+    targetId: it_86ccee33
+  - sourceId: it_e8e0d47a
+    targetId: it_29082314

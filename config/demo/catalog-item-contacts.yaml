@@ -1,414 +1,414 @@
-﻿# yaml-language-server: $schema=../schemas/catalog-item-contacts.schema.yaml
+# yaml-language-server: $schema=../schemas/catalog-item-contacts.schema.yaml
 itemContacts:
-  - itemId: commerce-platform
+  - itemId: it_e7f7ec2d
     contactId: ct_q7l3v8nx
-  - itemId: operations-suite
+  - itemId: it_51dae4dd
     contactId: ct_y5b1q7tc
-  - itemId: customer-experience
+  - itemId: it_9d9e5627
     contactId: ct_l6s4v9jr
-  - itemId: customer-experience
+  - itemId: it_9d9e5627
     contactId: ct_d5f2h9km
-  - itemId: commerce-line-core
+  - itemId: it_6307a2a8
     contactId: ct_w3c8t2bn
-  - itemId: commerce-line-core
+  - itemId: it_6307a2a8
     contactId: ct_z1h7p5kd
-  - itemId: commerce-line-core
+  - itemId: it_6307a2a8
     contactId: ct_v6j1t7rc
-  - itemId: commerce-extensions
+  - itemId: it_5b917d99
     contactId: ct_t8r1w6qp
-  - itemId: commerce-extensions
+  - itemId: it_5b917d99
     contactId: ct_y5b1q7tc
-  - itemId: commerce-extensions
+  - itemId: it_5b917d99
     contactId: ct_w3c8t2bn
-  - itemId: commerce-extensions
+  - itemId: it_5b917d99
     contactId: ct_p2v6d4rw
-  - itemId: commerce-core
+  - itemId: it_8be9ba4f
     contactId: ct_m4c7n2yf
-  - itemId: commerce-core
+  - itemId: it_8be9ba4f
     contactId: ct_7n4k2p9a
-  - itemId: order-domain
+  - itemId: it_144bbdb0
     contactId: ct_p2v6d4rw
-  - itemId: order-domain
+  - itemId: it_144bbdb0
     contactId: ct_m4c7n2yf
-  - itemId: order-domain
+  - itemId: it_144bbdb0
     contactId: ct_k2p9m4sb
-  - itemId: order-domain
+  - itemId: it_144bbdb0
     contactId: ct_7n4k2p9a
-  - itemId: order-intake-hub
+  - itemId: it_008a7af7
     contactId: ct_w3c8t2bn
-  - itemId: order-intake-hub
+  - itemId: it_008a7af7
     contactId: ct_y5b1q7tc
-  - itemId: order-guard-hub
+  - itemId: it_1668c093
     contactId: ct_q7l3v8nx
-  - itemId: order-guard-hub
+  - itemId: it_1668c093
     contactId: ct_b9x5k3jd
-  - itemId: order-guard-hub
+  - itemId: it_1668c093
     contactId: ct_r4y2k7lh
-  - itemId: order-guard-hub
+  - itemId: it_1668c093
     contactId: ct_y5b1q7tc
-  - itemId: order-finance-hub
+  - itemId: it_6c7923ab
     contactId: ct_j7d3m8pn
-  - itemId: order-finance-hub
+  - itemId: it_6c7923ab
     contactId: ct_d5f2h9km
-  - itemId: order-finance-hub
+  - itemId: it_6c7923ab
     contactId: ct_b9x5k3jd
-  - itemId: order-workflow
+  - itemId: it_43ab1049
     contactId: ct_f9q6m1xp
-  - itemId: order-workflow
+  - itemId: it_43ab1049
     contactId: ct_r4y2k7lh
-  - itemId: operations-line
+  - itemId: it_571c410e
     contactId: ct_h3m8q1tz
-  - itemId: ops-accelerators
+  - itemId: it_c51a1ccc
     contactId: ct_t8r1w6qp
-  - itemId: ops-accelerators
+  - itemId: it_c51a1ccc
     contactId: ct_f9q6m1xp
-  - itemId: ops-accelerators
+  - itemId: it_c51a1ccc
     contactId: ct_c4r9k2vw
-  - itemId: ops-accelerators
+  - itemId: it_c51a1ccc
     contactId: ct_z1h7p5kd
-  - itemId: ops-accelerators
+  - itemId: it_c51a1ccc
     contactId: ct_r4y2k7lh
-  - itemId: fulfillment-hub
+  - itemId: it_0387f962
     contactId: ct_y5b1q7tc
-  - itemId: logistics-domain
+  - itemId: it_978f32ea
     contactId: ct_k2p9m4sb
-  - itemId: logistics-domain
+  - itemId: it_978f32ea
     contactId: ct_v6j1t7rc
-  - itemId: logistics-domain
+  - itemId: it_978f32ea
     contactId: ct_j7d3m8pn
-  - itemId: logistics-domain
+  - itemId: it_978f32ea
     contactId: ct_g2n8x3mf
-  - itemId: logistics-domain
+  - itemId: it_978f32ea
     contactId: ct_t8r1w6qp
-  - itemId: logistics-routing-cell
+  - itemId: it_ef57ee00
     contactId: ct_b9x5k3jd
-  - itemId: logistics-inventory-cell
+  - itemId: it_906f7e0d
     contactId: ct_w3c8t2bn
-  - itemId: logistics-inventory-cell
+  - itemId: it_906f7e0d
     contactId: ct_v6j1t7rc
-  - itemId: logistics-inventory-cell
+  - itemId: it_906f7e0d
     contactId: ct_q7l3v8nx
-  - itemId: logistics-inventory-cell
+  - itemId: it_906f7e0d
     contactId: ct_n8w3d5zg
-  - itemId: logistics-inventory-cell
+  - itemId: it_906f7e0d
     contactId: ct_t8r1w6qp
-  - itemId: distribution-core
+  - itemId: it_05c82f52
     contactId: ct_p2v6d4rw
-  - itemId: distribution-core
+  - itemId: it_05c82f52
     contactId: ct_f9q6m1xp
-  - itemId: distribution-core
+  - itemId: it_05c82f52
     contactId: ct_r4y2k7lh
-  - itemId: distribution-core
+  - itemId: it_05c82f52
     contactId: ct_c4r9k2vw
-  - itemId: distribution-core
+  - itemId: it_05c82f52
     contactId: ct_q7l3v8nx
-  - itemId: experience-line
+  - itemId: it_5c743f44
     contactId: ct_q7l3v8nx
-  - itemId: experience-line
+  - itemId: it_5c743f44
     contactId: ct_j7d3m8pn
-  - itemId: experience-line
+  - itemId: it_5c743f44
     contactId: ct_t8r1w6qp
-  - itemId: experience-line
+  - itemId: it_5c743f44
     contactId: ct_n8w3d5zg
-  - itemId: experience-line
+  - itemId: it_5c743f44
     contactId: ct_d5f2h9km
-  - itemId: experience-foundation
+  - itemId: it_741e7f6b
     contactId: ct_7n4k2p9a
-  - itemId: experience-foundation
+  - itemId: it_741e7f6b
     contactId: ct_f9q6m1xp
-  - itemId: experience-foundation
+  - itemId: it_741e7f6b
     contactId: ct_l6s4v9jr
-  - itemId: experience-foundation
+  - itemId: it_741e7f6b
     contactId: ct_w3c8t2bn
-  - itemId: experience-foundation
+  - itemId: it_741e7f6b
     contactId: ct_j7d3m8pn
-  - itemId: engagement-suite
+  - itemId: it_6e67d308
     contactId: ct_f9q6m1xp
-  - itemId: journey-domain
+  - itemId: it_d01a646d
     contactId: ct_r4y2k7lh
-  - itemId: touchpoint-core
+  - itemId: it_bee18e53
     contactId: ct_f9q6m1xp
-  - itemId: touchpoint-core
+  - itemId: it_bee18e53
     contactId: ct_h3m8q1tz
-  - itemId: touchpoint-core
+  - itemId: it_bee18e53
     contactId: ct_w3c8t2bn
-  - itemId: touchpoint-profile-pillar
+  - itemId: it_a0a28b85
     contactId: ct_t8r1w6qp
-  - itemId: touchpoint-messaging-pillar
+  - itemId: it_4869434a
     contactId: ct_h3m8q1tz
-  - itemId: touchpoint-messaging-pillar
+  - itemId: it_4869434a
     contactId: ct_t8r1w6qp
-  - itemId: touchpoint-messaging-pillar
+  - itemId: it_4869434a
     contactId: ct_d5f2h9km
-  - itemId: touchpoint-messaging-pillar
+  - itemId: it_4869434a
     contactId: ct_r4y2k7lh
-  - itemId: touchpoint-campaign-pillar
+  - itemId: it_e8e0d47a
     contactId: ct_z1h7p5kd
-  - itemId: touchpoint-campaign-pillar
+  - itemId: it_e8e0d47a
     contactId: ct_n8w3d5zg
-  - itemId: touchpoint-campaign-pillar
+  - itemId: it_e8e0d47a
     contactId: ct_p2v6d4rw
-  - itemId: profile-core-nodes
+  - itemId: it_5622ffff
     contactId: ct_b9x5k3jd
-  - itemId: profile-core-nodes
+  - itemId: it_5622ffff
     contactId: ct_w3c8t2bn
-  - itemId: profile-core-nodes
+  - itemId: it_5622ffff
     contactId: ct_l6s4v9jr
-  - itemId: profile-core-nodes
+  - itemId: it_5622ffff
     contactId: ct_d5f2h9km
-  - itemId: profile-identity-nodes
+  - itemId: it_5d0def3d
     contactId: ct_y5b1q7tc
-  - itemId: profile-identity-nodes
+  - itemId: it_5d0def3d
     contactId: ct_p2v6d4rw
-  - itemId: profile-identity-nodes
+  - itemId: it_5d0def3d
     contactId: ct_t8r1w6qp
-  - itemId: profile-identity-nodes
+  - itemId: it_5d0def3d
     contactId: ct_w3c8t2bn
-  - itemId: profile-identity-nodes
+  - itemId: it_5d0def3d
     contactId: ct_k2p9m4sb
-  - itemId: messaging-router-nodes
+  - itemId: it_ccf17b90
     contactId: ct_h3m8q1tz
-  - itemId: messaging-template-nodes
+  - itemId: it_e6af80a7
     contactId: ct_k2p9m4sb
-  - itemId: messaging-template-nodes
+  - itemId: it_e6af80a7
     contactId: ct_w3c8t2bn
-  - itemId: messaging-template-nodes
+  - itemId: it_e6af80a7
     contactId: ct_7n4k2p9a
-  - itemId: messaging-template-nodes
+  - itemId: it_e6af80a7
     contactId: ct_m4c7n2yf
-  - itemId: messaging-template-nodes
+  - itemId: it_e6af80a7
     contactId: ct_d5f2h9km
-  - itemId: campaign-planner-nodes
+  - itemId: it_352b4411
     contactId: ct_m4c7n2yf
-  - itemId: campaign-planner-nodes
+  - itemId: it_352b4411
     contactId: ct_w3c8t2bn
-  - itemId: campaign-optimizer-nodes
+  - itemId: it_ae13d093
     contactId: ct_m4c7n2yf
-  - itemId: campaign-optimizer-nodes
+  - itemId: it_ae13d093
     contactId: ct_q7l3v8nx
-  - itemId: campaign-optimizer-nodes
+  - itemId: it_ae13d093
     contactId: ct_c4r9k2vw
-  - itemId: campaign-optimizer-nodes
+  - itemId: it_ae13d093
     contactId: ct_y5b1q7tc
-  - itemId: order-capture-svc
+  - itemId: it_5a9ca947
     contactId: ct_y5b1q7tc
-  - itemId: order-capture-svc
+  - itemId: it_5a9ca947
     contactId: ct_t8r1w6qp
-  - itemId: order-capture-svc
+  - itemId: it_5a9ca947
     contactId: ct_p2v6d4rw
-  - itemId: order-capture-svc
+  - itemId: it_5a9ca947
     contactId: ct_z1h7p5kd
-  - itemId: order-validation-svc
+  - itemId: it_31cdf080
     contactId: ct_z1h7p5kd
-  - itemId: order-validation-svc
+  - itemId: it_31cdf080
     contactId: ct_g2n8x3mf
-  - itemId: order-validation-svc
+  - itemId: it_31cdf080
     contactId: ct_r4y2k7lh
-  - itemId: order-validation-svc
+  - itemId: it_31cdf080
     contactId: ct_p2v6d4rw
-  - itemId: order-validation-svc
+  - itemId: it_31cdf080
     contactId: ct_d5f2h9km
-  - itemId: order-billing-svc
+  - itemId: it_b0833df4
     contactId: ct_y5b1q7tc
-  - itemId: order-billing-svc
+  - itemId: it_b0833df4
     contactId: ct_m4c7n2yf
-  - itemId: order-billing-svc
+  - itemId: it_b0833df4
     contactId: ct_w3c8t2bn
-  - itemId: order-billing-svc
+  - itemId: it_b0833df4
     contactId: ct_b9x5k3jd
-  - itemId: order-dispatch-svc
+  - itemId: it_ca854f7f
     contactId: ct_r4y2k7lh
-  - itemId: order-dispatch-svc
+  - itemId: it_ca854f7f
     contactId: ct_c4r9k2vw
-  - itemId: order-dispatch-svc
+  - itemId: it_ca854f7f
     contactId: ct_f9q6m1xp
-  - itemId: routing-engine-svc
+  - itemId: it_48bb5977
     contactId: ct_k2p9m4sb
-  - itemId: routing-engine-svc
+  - itemId: it_48bb5977
     contactId: ct_d5f2h9km
-  - itemId: routing-engine-svc
+  - itemId: it_48bb5977
     contactId: ct_7n4k2p9a
-  - itemId: inventory-sync-svc
+  - itemId: it_34b1b4e7
     contactId: ct_f9q6m1xp
-  - itemId: inventory-sync-svc
+  - itemId: it_34b1b4e7
     contactId: ct_j7d3m8pn
-  - itemId: inventory-sync-svc
+  - itemId: it_34b1b4e7
     contactId: ct_b9x5k3jd
-  - itemId: lastmile-dispatch-svc
+  - itemId: it_0d5a82d5
     contactId: ct_w3c8t2bn
-  - itemId: returns-processing-svc
+  - itemId: it_4395c1de
     contactId: ct_y5b1q7tc
-  - itemId: returns-processing-svc
+  - itemId: it_4395c1de
     contactId: ct_c4r9k2vw
-  - itemId: returns-processing-svc
+  - itemId: it_4395c1de
     contactId: ct_m4c7n2yf
-  - itemId: engagement-orchestrator-svc
+  - itemId: it_71574a7b
     contactId: ct_j7d3m8pn
-  - itemId: profile-store-svc
+  - itemId: it_92628e0a
     contactId: ct_k2p9m4sb
-  - itemId: messaging-hub-svc
+  - itemId: it_51735b03
     contactId: ct_7n4k2p9a
-  - itemId: messaging-hub-svc
+  - itemId: it_51735b03
     contactId: ct_t8r1w6qp
-  - itemId: messaging-hub-svc
+  - itemId: it_51735b03
     contactId: ct_d5f2h9km
-  - itemId: messaging-hub-svc
+  - itemId: it_51735b03
     contactId: ct_b9x5k3jd
-  - itemId: campaign-execution-svc
+  - itemId: it_8f468246
     contactId: ct_w3c8t2bn
-  - itemId: campaign-execution-svc
+  - itemId: it_8f468246
     contactId: ct_l6s4v9jr
-  - itemId: commerce-core-pricing-sync-svc
+  - itemId: it_b61910c1
     contactId: ct_r4y2k7lh
-  - itemId: order-domain-events-svc
+  - itemId: it_1151701c
     contactId: ct_q7l3v8nx
-  - itemId: order-domain-events-svc
+  - itemId: it_1151701c
     contactId: ct_l6s4v9jr
-  - itemId: order-intake-api-svc
+  - itemId: it_2484e0db
     contactId: ct_w3c8t2bn
-  - itemId: order-intake-api-svc
+  - itemId: it_2484e0db
     contactId: ct_r4y2k7lh
-  - itemId: order-intake-buffer-svc
+  - itemId: it_fbb05062
     contactId: ct_c4r9k2vw
-  - itemId: fraud-screening-svc
+  - itemId: it_96952012
     contactId: ct_z1h7p5kd
-  - itemId: fraud-screening-svc
+  - itemId: it_96952012
     contactId: ct_t8r1w6qp
-  - itemId: fraud-screening-svc
+  - itemId: it_96952012
     contactId: ct_m4c7n2yf
-  - itemId: fraud-screening-svc
+  - itemId: it_96952012
     contactId: ct_r4y2k7lh
-  - itemId: policy-evaluator-svc
+  - itemId: it_65839693
     contactId: ct_7n4k2p9a
-  - itemId: policy-evaluator-svc
+  - itemId: it_65839693
     contactId: ct_c4r9k2vw
-  - itemId: policy-evaluator-svc
+  - itemId: it_65839693
     contactId: ct_k2p9m4sb
-  - itemId: invoice-orchestrator-svc
+  - itemId: it_3ca8ec85
     contactId: ct_h3m8q1tz
-  - itemId: invoice-orchestrator-svc
+  - itemId: it_3ca8ec85
     contactId: ct_j7d3m8pn
-  - itemId: invoice-orchestrator-svc
+  - itemId: it_3ca8ec85
     contactId: ct_f9q6m1xp
-  - itemId: payment-auth-adapter-svc
+  - itemId: it_4c046b1d
     contactId: ct_f9q6m1xp
-  - itemId: payment-auth-adapter-svc
+  - itemId: it_4c046b1d
     contactId: ct_t8r1w6qp
-  - itemId: payment-auth-adapter-svc
+  - itemId: it_4c046b1d
     contactId: ct_v6j1t7rc
-  - itemId: payment-auth-adapter-svc
+  - itemId: it_4c046b1d
     contactId: ct_j7d3m8pn
-  - itemId: order-state-projection-svc
+  - itemId: it_9e60bdd7
     contactId: ct_l6s4v9jr
-  - itemId: order-state-projection-svc
+  - itemId: it_9e60bdd7
     contactId: ct_h3m8q1tz
-  - itemId: order-state-projection-svc
+  - itemId: it_9e60bdd7
     contactId: ct_m4c7n2yf
-  - itemId: order-state-projection-svc
+  - itemId: it_9e60bdd7
     contactId: ct_g2n8x3mf
-  - itemId: order-sla-tracker-svc
+  - itemId: it_3160377e
     contactId: ct_r4y2k7lh
-  - itemId: order-sla-tracker-svc
+  - itemId: it_3160377e
     contactId: ct_h3m8q1tz
-  - itemId: fulfillment-control-plane-svc
+  - itemId: it_bd3e8b82
     contactId: ct_y5b1q7tc
-  - itemId: fulfillment-control-plane-svc
+  - itemId: it_bd3e8b82
     contactId: ct_p2v6d4rw
-  - itemId: fulfillment-control-plane-svc
+  - itemId: it_bd3e8b82
     contactId: ct_w3c8t2bn
-  - itemId: fulfillment-control-plane-svc
+  - itemId: it_bd3e8b82
     contactId: ct_m4c7n2yf
-  - itemId: fulfillment-control-plane-svc
+  - itemId: it_bd3e8b82
     contactId: ct_g2n8x3mf
-  - itemId: logistics-event-router-svc
+  - itemId: it_9ead5a94
     contactId: ct_h3m8q1tz
-  - itemId: route-cache-writer-svc
+  - itemId: it_9de17f36
     contactId: ct_w3c8t2bn
-  - itemId: route-cache-writer-svc
+  - itemId: it_9de17f36
     contactId: ct_j7d3m8pn
-  - itemId: route-cache-writer-svc
+  - itemId: it_9de17f36
     contactId: ct_k2p9m4sb
-  - itemId: route-cache-writer-svc
+  - itemId: it_9de17f36
     contactId: ct_v6j1t7rc
-  - itemId: route-cache-writer-svc
+  - itemId: it_9de17f36
     contactId: ct_d5f2h9km
-  - itemId: route-cost-model-svc
+  - itemId: it_ed0d04bb
     contactId: ct_l6s4v9jr
-  - itemId: route-cost-model-svc
+  - itemId: it_ed0d04bb
     contactId: ct_b9x5k3jd
-  - itemId: route-cost-model-svc
+  - itemId: it_ed0d04bb
     contactId: ct_q7l3v8nx
-  - itemId: route-cost-model-svc
+  - itemId: it_ed0d04bb
     contactId: ct_f9q6m1xp
-  - itemId: inventory-reconciler-svc
+  - itemId: it_20cb3376
     contactId: ct_w3c8t2bn
-  - itemId: stock-reservation-svc
+  - itemId: it_7199280d
     contactId: ct_t8r1w6qp
-  - itemId: stock-reservation-svc
+  - itemId: it_7199280d
     contactId: ct_d5f2h9km
-  - itemId: stock-reservation-svc
+  - itemId: it_7199280d
     contactId: ct_p2v6d4rw
-  - itemId: stock-reservation-svc
+  - itemId: it_7199280d
     contactId: ct_h3m8q1tz
-  - itemId: stock-reservation-svc
+  - itemId: it_7199280d
     contactId: ct_g2n8x3mf
-  - itemId: depot-slotting-svc
+  - itemId: it_2df0c55c
     contactId: ct_n8w3d5zg
-  - itemId: depot-slotting-svc
+  - itemId: it_2df0c55c
     contactId: ct_t8r1w6qp
-  - itemId: carrier-capacity-broker-svc
+  - itemId: it_116e2e82
     contactId: ct_h3m8q1tz
-  - itemId: dispatch-simulation-svc
+  - itemId: it_a6854c60
     contactId: ct_y5b1q7tc
-  - itemId: dispatch-simulation-svc
+  - itemId: it_a6854c60
     contactId: ct_h3m8q1tz
-  - itemId: customer-consent-ledger-svc
+  - itemId: it_9c69814b
     contactId: ct_w3c8t2bn
-  - itemId: customer-consent-ledger-svc
+  - itemId: it_9c69814b
     contactId: ct_k2p9m4sb
-  - itemId: customer-consent-ledger-svc
+  - itemId: it_9c69814b
     contactId: ct_z1h7p5kd
-  - itemId: customer-consent-ledger-svc
+  - itemId: it_9c69814b
     contactId: ct_b9x5k3jd
-  - itemId: audience-intent-processor-svc
+  - itemId: it_0c7f7cbf
     contactId: ct_l6s4v9jr
-  - itemId: audience-intent-processor-svc
+  - itemId: it_0c7f7cbf
     contactId: ct_k2p9m4sb
-  - itemId: journey-rules-engine-svc
+  - itemId: it_40d8cd7c
     contactId: ct_z1h7p5kd
-  - itemId: journey-rules-engine-svc
+  - itemId: it_40d8cd7c
     contactId: ct_c4r9k2vw
-  - itemId: journey-experimentation-svc
+  - itemId: it_12a5d380
     contactId: ct_y5b1q7tc
-  - itemId: touchpoint-session-state-svc
+  - itemId: it_5e0132b8
     contactId: ct_v6j1t7rc
-  - itemId: touchpoint-session-state-svc
+  - itemId: it_5e0132b8
     contactId: ct_7n4k2p9a
-  - itemId: profile-merge-orchestrator-svc
+  - itemId: it_7e7405d3
     contactId: ct_7n4k2p9a
-  - itemId: profile-merge-orchestrator-svc
+  - itemId: it_7e7405d3
     contactId: ct_k2p9m4sb
-  - itemId: template-renderer-svc
+  - itemId: it_6cab1e6f
     contactId: ct_k2p9m4sb
-  - itemId: template-renderer-svc
+  - itemId: it_6cab1e6f
     contactId: ct_p2v6d4rw
-  - itemId: template-renderer-svc
+  - itemId: it_6cab1e6f
     contactId: ct_z1h7p5kd
-  - itemId: template-renderer-svc
+  - itemId: it_6cab1e6f
     contactId: ct_h3m8q1tz
-  - itemId: template-renderer-svc
+  - itemId: it_6cab1e6f
     contactId: ct_v6j1t7rc
-  - itemId: channel-delivery-router-svc
+  - itemId: it_984c1c25
     contactId: ct_z1h7p5kd
-  - itemId: channel-delivery-router-svc
+  - itemId: it_984c1c25
     contactId: ct_q7l3v8nx
-  - itemId: channel-delivery-router-svc
+  - itemId: it_984c1c25
     contactId: ct_n8w3d5zg
-  - itemId: channel-delivery-router-svc
+  - itemId: it_984c1c25
     contactId: ct_j7d3m8pn
-  - itemId: channel-delivery-router-svc
+  - itemId: it_984c1c25
     contactId: ct_m4c7n2yf
-  - itemId: campaign-segmentation-svc
+  - itemId: it_86ccee33
     contactId: ct_q7l3v8nx
-  - itemId: campaign-budget-guard-svc
+  - itemId: it_29082314
     contactId: ct_c4r9k2vw

@@ -1,149 +1,149 @@
 # yaml-language-server: $schema=../schemas/catalog-items.schema.yaml
 # Demo catalog with expanded service topology
 items:
-  - id: commerce-platform
+  - id: it_e7f7ec2d
     title: Commerce Platform
-  - id: operations-suite
+  - id: it_51dae4dd
     title: Operations Suite
-  - id: customer-experience
+  - id: it_9d9e5627
     title: Customer Experience
-  - id: commerce-line-core
+  - id: it_6307a2a8
     title: Commerce Line Core
-  - id: commerce-extensions
+  - id: it_5b917d99
     title: Commerce Extensions
-  - id: commerce-core
+  - id: it_8be9ba4f
     title: Commerce Core
-  - id: order-domain
+  - id: it_144bbdb0
     title: Order Domain
-  - id: order-intake-hub
+  - id: it_008a7af7
     title: Order Intake Hub
-  - id: order-guard-hub
+  - id: it_1668c093
     title: Order Guard Hub
-  - id: order-finance-hub
+  - id: it_6c7923ab
     title: Order Finance Hub
-  - id: order-workflow
+  - id: it_43ab1049
     title: Order Workflow
-  - id: operations-line
+  - id: it_571c410e
     title: Operations Line
-  - id: ops-accelerators
+  - id: it_c51a1ccc
     title: Operations Accelerators
-  - id: fulfillment-hub
+  - id: it_0387f962
     title: Fulfillment Hub
-  - id: logistics-domain
+  - id: it_978f32ea
     title: Logistics Domain
-  - id: logistics-routing-cell
+  - id: it_ef57ee00
     title: Logistics Routing Cell
-  - id: logistics-inventory-cell
+  - id: it_906f7e0d
     title: Logistics Inventory Cell
-  - id: distribution-core
+  - id: it_05c82f52
     title: Distribution Core
-  - id: experience-line
+  - id: it_5c743f44
     title: Experience Line
-  - id: experience-foundation
+  - id: it_741e7f6b
     title: Experience Foundation
-  - id: engagement-suite
+  - id: it_6e67d308
     title: Engagement Suite
-  - id: journey-domain
+  - id: it_d01a646d
     title: Journey Domain
-  - id: touchpoint-core
+  - id: it_bee18e53
     title: Touchpoint Core
-  - id: touchpoint-profile-pillar
+  - id: it_a0a28b85
     title: Touchpoint Profile Pillar
-  - id: touchpoint-messaging-pillar
+  - id: it_4869434a
     title: Touchpoint Messaging Pillar
-  - id: touchpoint-campaign-pillar
+  - id: it_e8e0d47a
     title: Touchpoint Campaign Pillar
-  - id: profile-core-nodes
+  - id: it_5622ffff
     title: Profile Core Nodes
-  - id: profile-identity-nodes
+  - id: it_5d0def3d
     title: Profile Identity Nodes
-  - id: messaging-router-nodes
+  - id: it_ccf17b90
     title: Messaging Router Nodes
-  - id: messaging-template-nodes
+  - id: it_e6af80a7
     title: Messaging Template Nodes
-  - id: campaign-planner-nodes
+  - id: it_352b4411
     title: Campaign Planner Nodes
-  - id: campaign-optimizer-nodes
+  - id: it_ae13d093
     title: Campaign Optimizer Nodes
-  - id: order-capture-svc
+  - id: it_5a9ca947
     title: Order Capture Service
-  - id: order-validation-svc
+  - id: it_31cdf080
     title: Order Validation Service
-  - id: order-billing-svc
+  - id: it_b0833df4
     title: Order Billing Service
-  - id: order-dispatch-svc
+  - id: it_ca854f7f
     title: Order Dispatch Service
-  - id: routing-engine-svc
+  - id: it_48bb5977
     title: Routing Engine Service
-  - id: inventory-sync-svc
+  - id: it_34b1b4e7
     title: Inventory Sync Service
-  - id: lastmile-dispatch-svc
+  - id: it_0d5a82d5
     title: Last-Mile Dispatch Service
-  - id: returns-processing-svc
+  - id: it_4395c1de
     title: Returns Processing Service
-  - id: engagement-orchestrator-svc
+  - id: it_71574a7b
     title: Engagement Orchestrator Service
-  - id: profile-store-svc
+  - id: it_92628e0a
     title: Profile Store Service
-  - id: messaging-hub-svc
+  - id: it_51735b03
     title: Messaging Hub Service
-  - id: campaign-execution-svc
+  - id: it_8f468246
     title: Campaign Execution Service
-  - id: commerce-core-pricing-sync-svc
+  - id: it_b61910c1
     title: Commerce Core Pricing Sync Service
-  - id: order-domain-events-svc
+  - id: it_1151701c
     title: Order Domain Events Service
-  - id: order-intake-api-svc
+  - id: it_2484e0db
     title: Order Intake API Service
-  - id: order-intake-buffer-svc
+  - id: it_fbb05062
     title: Order Intake Buffer Service
-  - id: fraud-screening-svc
+  - id: it_96952012
     title: Fraud Screening Service
-  - id: policy-evaluator-svc
+  - id: it_65839693
     title: Policy Evaluator Service
-  - id: invoice-orchestrator-svc
+  - id: it_3ca8ec85
     title: Invoice Orchestrator Service
-  - id: payment-auth-adapter-svc
+  - id: it_4c046b1d
     title: Payment Authorization Adapter Service
-  - id: order-state-projection-svc
+  - id: it_9e60bdd7
     title: Order State Projection Service
-  - id: order-sla-tracker-svc
+  - id: it_3160377e
     title: Order SLA Tracker Service
-  - id: fulfillment-control-plane-svc
+  - id: it_bd3e8b82
     title: Fulfillment Control Plane Service
-  - id: logistics-event-router-svc
+  - id: it_9ead5a94
     title: Logistics Event Router Service
-  - id: route-cache-writer-svc
+  - id: it_9de17f36
     title: Route Cache Writer Service
-  - id: route-cost-model-svc
+  - id: it_ed0d04bb
     title: Route Cost Model Service
-  - id: inventory-reconciler-svc
+  - id: it_20cb3376
     title: Inventory Reconciler Service
-  - id: stock-reservation-svc
+  - id: it_7199280d
     title: Stock Reservation Service
-  - id: depot-slotting-svc
+  - id: it_2df0c55c
     title: Depot Slotting Service
-  - id: carrier-capacity-broker-svc
+  - id: it_116e2e82
     title: Carrier Capacity Broker Service
-  - id: dispatch-simulation-svc
+  - id: it_a6854c60
     title: Dispatch Simulation Service
-  - id: customer-consent-ledger-svc
+  - id: it_9c69814b
     title: Customer Consent Ledger Service
-  - id: audience-intent-processor-svc
+  - id: it_0c7f7cbf
     title: Audience Intent Processor Service
-  - id: journey-rules-engine-svc
+  - id: it_40d8cd7c
     title: Journey Rules Engine Service
-  - id: journey-experimentation-svc
+  - id: it_12a5d380
     title: Journey Experimentation Service
-  - id: touchpoint-session-state-svc
+  - id: it_5e0132b8
     title: Touchpoint Session State Service
-  - id: profile-merge-orchestrator-svc
+  - id: it_7e7405d3
     title: Profile Merge Orchestrator Service
-  - id: template-renderer-svc
+  - id: it_6cab1e6f
     title: Template Renderer Service
-  - id: channel-delivery-router-svc
+  - id: it_984c1c25
     title: Channel Delivery Router Service
-  - id: campaign-segmentation-svc
+  - id: it_86ccee33
     title: Campaign Segmentation Service
-  - id: campaign-budget-guard-svc
+  - id: it_29082314
     title: Campaign Budget Guard Service
