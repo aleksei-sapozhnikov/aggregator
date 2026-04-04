@@ -68,7 +68,18 @@ export default function ActorModal({
           ×
         </button>
         <header className="actor-modal-header">
-          <h2>{resolveActorLabel(actor)}</h2>
+          <h2 className="actor-modal-title">
+            <span className="actor-team-icon-wrap" aria-hidden="true">
+              <svg
+                className="actor-team-icon"
+                viewBox="0 0 24 24"
+                focusable="false"
+              >
+                <use href={`${iconSpriteHref}#icon-actor`} />
+              </svg>
+            </span>
+            <span>{resolveActorLabel(actor)}</span>
+          </h2>
         </header>
         <div className="actor-modal-body">
           {descriptionParagraphs.length > 0 && (
@@ -94,28 +105,28 @@ export default function ActorModal({
                       onOpenContact(contact);
                     }}
                   >
-                    {primaryContact?.id === contact.id && (
-                      <span className="actor-modal-contact-prefix">
-                        Primary
-                      </span>
-                    )}
-                    <span className="contact-icon-label">
-                      <span
-                        className="contact-type-icon-wrap"
-                        title={resolveContactTypeDisplayName(contact.type)}
-                        aria-label={resolveContactTypeDisplayName(contact.type)}
+                    <span
+                      className="contact-type-icon-wrap"
+                      title={resolveContactTypeDisplayName(contact.type)}
+                      aria-label={resolveContactTypeDisplayName(contact.type)}
+                    >
+                      <svg
+                        className={`contact-type-icon ${resolveContactTypeClass(contact.type)}`}
+                        viewBox="0 0 24 24"
+                        focusable="false"
+                        aria-hidden="true"
                       >
-                        <svg
-                          className={`contact-type-icon ${resolveContactTypeClass(contact.type)}`}
-                          viewBox="0 0 24 24"
-                          focusable="false"
-                          aria-hidden="true"
-                        >
-                          <use
-                            href={`${iconSpriteHref}#${resolveContactIconId(contact.type)}`}
-                          />
-                        </svg>
-                      </span>
+                        <use
+                          href={`${iconSpriteHref}#${resolveContactIconId(contact.type)}`}
+                        />
+                      </svg>
+                    </span>
+                    <span className="actor-modal-contact-main">
+                      {primaryContact?.id === contact.id && (
+                        <span className="actor-modal-contact-prefix">
+                          Primary
+                        </span>
+                      )}
                       <span className="contact-chip-text">
                         {resolveContactLabel(contact)}
                       </span>
