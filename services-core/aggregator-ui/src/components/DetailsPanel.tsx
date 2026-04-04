@@ -69,7 +69,6 @@ type DetailsPanelProps = {
 };
 
 type DetailsDisclosureState = {
-  isAffectingOpen: boolean;
   isHealthyOpen: boolean;
   isContactsExtraOpen: boolean;
   showAllAffecting: boolean;
@@ -92,7 +91,6 @@ type ExtraActorRow = {
 };
 
 const emptyDisclosureState: DetailsDisclosureState = {
-  isAffectingOpen: true,
   isHealthyOpen: false,
   isContactsExtraOpen: false,
   showAllAffecting: false,
@@ -136,6 +134,14 @@ const renderContactTypeIcon = (
       aria-hidden="true"
     >
       <use href={`${iconSpriteHref}#${resolveContactIconId(contactType)}`} />
+    </svg>
+  </span>
+);
+
+const renderActorTeamIcon = (iconSpriteHref: string): JSX.Element => (
+  <span className="actor-team-icon-wrap" aria-hidden="true">
+    <svg className="actor-team-icon" viewBox="0 0 24 24" focusable="false">
+      <use href={`${iconSpriteHref}#icon-actor`} />
     </svg>
   </span>
 );
@@ -306,7 +312,6 @@ export default function DetailsPanel({
     });
   };
 
-  const isAffectingOpen = itemDisclosureState.isAffectingOpen;
   const visibleAffectingRows =
     itemDisclosureState.showAllAffecting ||
     affectingRows.length <= AFFECTING_PREVIEW_LIMIT
@@ -319,7 +324,14 @@ export default function DetailsPanel({
         <button
           type="button"
           aria-label="Open catalog panel"
-          className="hamburger-toggle sidebar-toggle top-control top-control-button top-control-icon top-control-surface"
+          className={[
+            "hamburger-toggle",
+            "sidebar-toggle",
+            "top-control",
+            "top-control-button",
+            "top-control-icon",
+            "top-control-surface",
+          ].join(" ")}
           onClick={onToggleSidebar}
         >
           <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
@@ -376,10 +388,15 @@ export default function DetailsPanel({
       ) : (
         <>
           <section className="details-inline-block">
-            <div className="contact-summary-list">
+            <div
+              className="ownership-summary"
+              role="group"
+              aria-label="Ownership"
+            >
+              <p className="ownership-label">Owner</p>
               {ownerActorForContacts ? (
                 <a
-                  className="contact-summary-row contact-summary-row-owner"
+                  className="ownership-owner-value"
                   href={`/actors/${ownerActorForContacts.id}`}
                   onClick={(event) => {
                     if (!isPlainLeftClick(event)) {
@@ -392,138 +409,132 @@ export default function DetailsPanel({
                     ownerActorForContacts.title || ownerActorForContacts.id
                   }
                 >
-                  <span className="contact-summary-prefix">Owner</span>
-                  <span
-                    className="contact-summary-main"
-                    title={
-                      ownerActorForContacts.title || ownerActorForContacts.id
-                    }
-                  >
-                    {ownerActorForContacts.title || ownerActorForContacts.id}
-                  </span>
+                  {renderActorTeamIcon(iconSpriteHref)}
+                  {ownerActorForContacts.title || ownerActorForContacts.id}
                 </a>
               ) : (
-                <div className="contact-summary-empty">
-                  No owner linked to this item
-                </div>
+                <p className="ownership-empty">No owner linked to this item</p>
               )}
 
               {primaryContact && (
-                <a
-                  className="contact-summary-row"
-                  href={primaryContact.href || `/contacts/${primaryContact.id}`}
-                  onClick={(event) => {
-                    if (!isPlainLeftClick(event)) {
-                      return;
+                <div className="ownership-contact-section">
+                  <p className="ownership-label">Primary contact</p>
+                  <a
+                    className="ownership-contact-row"
+                    href={
+                      primaryContact.href || `/contacts/${primaryContact.id}`
                     }
-                    event.preventDefault();
-                    onOpenContact(primaryContact);
-                  }}
-                  title={resolveContactLabel(primaryContact)}
-                >
-                  <span className="contact-summary-prefix">Owner contact</span>
-                  <span className="contact-summary-main">
+                    onClick={(event) => {
+                      if (!isPlainLeftClick(event)) {
+                        return;
+                      }
+                      event.preventDefault();
+                      onOpenContact(primaryContact);
+                    }}
+                    title={resolveContactLabel(primaryContact)}
+                  >
                     {renderContactTypeIcon(iconSpriteHref, primaryContact.type)}
-                    <span className="contact-summary-main-label">
+                    <span className="ownership-contact-value">
                       {resolveContactLabel(primaryContact)}
                     </span>
-                  </span>
-                </a>
+                  </a>
+                </div>
+              )}
+
+              {extraActorRows.length > 0 && (
+                <>
+                  <button
+                    type="button"
+                    className="ownership-expand-button"
+                    onClick={() =>
+                      updateDisclosureState({
+                        isContactsExtraOpen:
+                          !itemDisclosureState.isContactsExtraOpen,
+                      })
+                    }
+                    aria-expanded={itemDisclosureState.isContactsExtraOpen}
+                  >
+                    <span
+                      className={`details-panel-chevron ${
+                        itemDisclosureState.isContactsExtraOpen ? "is-open" : ""
+                      }`}
+                      aria-hidden="true"
+                    >
+                      ›
+                    </span>
+                    {itemDisclosureState.isContactsExtraOpen
+                      ? "Hide more actors"
+                      : `Show ${extraActorRows.length} more actors`}
+                  </button>
+                  <div
+                    className={`disclosure-panel ownership-extra-contacts ${
+                      itemDisclosureState.isContactsExtraOpen ? "is-open" : ""
+                    }`}
+                  >
+                    <ul className="ownership-extra-list">
+                      {extraActorRows.map((entry) => (
+                        <li key={entry.key}>
+                          <a
+                            className="ownership-contact-row"
+                            href={`/actors/${entry.actor.id}`}
+                            onClick={(event) => {
+                              if (!isPlainLeftClick(event)) {
+                                return;
+                              }
+                              event.preventDefault();
+                              onOpenActor(entry.actor);
+                            }}
+                            title={entry.actor.title || entry.actor.id}
+                          >
+                            {renderActorTeamIcon(iconSpriteHref)}
+                            <span className="ownership-actor-main">
+                              <span className="ownership-actor-type-label">
+                                {entry.typeLabel}
+                              </span>
+                              <span className="ownership-contact-value">
+                                {entry.actor.title || entry.actor.id}
+                              </span>
+                            </span>
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </>
               )}
             </div>
-
-            {extraActorRows.length > 0 && (
-              <>
-                <button
-                  type="button"
-                  className={`contacts-expand-button ${itemDisclosureState.isContactsExtraOpen ? "is-open" : ""}`}
-                  onClick={() =>
-                    updateDisclosureState({
-                      isContactsExtraOpen:
-                        !itemDisclosureState.isContactsExtraOpen,
-                    })
-                  }
-                  aria-expanded={itemDisclosureState.isContactsExtraOpen}
-                >
-                  <span
-                    className={`details-panel-chevron ${itemDisclosureState.isContactsExtraOpen ? "is-open" : ""}`}
-                    aria-hidden="true"
-                  >
-                    ›
-                  </span>
-                  {itemDisclosureState.isContactsExtraOpen
-                    ? "Hide extra contacts"
-                    : `Show ${extraActorRows.length} more contacts`}
-                </button>
-                <div
-                  className={`disclosure-panel ${itemDisclosureState.isContactsExtraOpen ? "is-open" : ""}`}
-                >
-                  <ul className="contact-extra-list">
-                    {extraActorRows.map((entry) => (
-                      <li key={entry.key}>
-                        <a
-                          className="contact-summary-row contact-summary-row-extra"
-                          href={`/actors/${entry.actor.id}`}
-                          onClick={(event) => {
-                            if (!isPlainLeftClick(event)) {
-                              return;
-                            }
-                            event.preventDefault();
-                            onOpenActor(entry.actor);
-                          }}
-                          title={entry.actor.title || entry.actor.id}
-                        >
-                          <span className="contact-summary-prefix">
-                            {entry.typeLabel}
-                          </span>
-                          <span className="contact-summary-main">
-                            <span className="contact-summary-main-label">
-                              {entry.actor.title || entry.actor.id}
-                            </span>
-                          </span>
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </>
-            )}
           </section>
 
-          <section className="details-inline-block">
-            <div className="details-inline-head">
-              <button
-                type="button"
-                className={`signals-subtoggle signals-inline-toggle ${isAffectingOpen ? "is-open" : ""}`}
-                onClick={() =>
-                  updateDisclosureState({ isAffectingOpen: !isAffectingOpen })
-                }
-                aria-expanded={isAffectingOpen}
-              >
-                <span
-                  className={`details-panel-chevron ${isAffectingOpen ? "is-open" : ""}`}
-                  aria-hidden="true"
-                >
-                  ›
-                </span>
-                <span className="signals-subtitle">
+          <section
+            className={`details-inline-block details-inline-block-signals ${
+              selectedStatus !== "up" ? "is-degraded" : ""
+            }`}
+          >
+            {hasAffectingSignals && (
+              <div className="details-inline-head">
+                <p className="ownership-label signals-section-label">
                   Affecting now{" "}
                   <span className="details-panel-count">
                     ({affectingRows.length})
                   </span>
-                </span>
-              </button>
-            </div>
+                </p>
+              </div>
+            )}
 
             {!hasAffectingSignals && (
-              <p className="signals-healthy-summary">
-                No active impacting signals
+              <p className="ownership-label signals-section-label">
+                All signals are healthy
               </p>
             )}
-            {hasAffectingSignals && isAffectingOpen && (
+            {hasAffectingSignals && (
               <ul className="signals-incident-list">
                 {visibleAffectingRows.map((row) => (
-                  <li key={row.id} className="signals-incident-row">
+                  <li
+                    key={row.id}
+                    className={`signals-incident-row ${
+                      row.typeLabel !== "Own" && row.href ? "is-nav-target" : ""
+                    }`}
+                  >
                     {row.typeLabel === "Own" ? (
                       <ul className="signals-list signals-sublist signals-group-list">
                         {selectedFailingSignals.map((entry) => (
@@ -547,47 +558,70 @@ export default function DetailsPanel({
                           </li>
                         ))}
                       </ul>
-                    ) : (
-                      <div className="signals-incident-title">
-                        <span
-                          className={`status-indicator status-${row.status}`}
-                          aria-label={buildStatusText(row.status)}
-                          title={buildStatusText(row.status)}
-                        />
-                        <span className="signals-incident-kind">
-                          {row.typeLabel}
-                        </span>
-                        {row.href ? (
-                          <a
-                            className="signal-link"
-                            title={row.title}
-                            href={row.href}
-                            onClick={row.onClick}
-                          >
-                            {row.title}
-                          </a>
-                        ) : (
+                    ) : row.href ? (
+                      <a
+                        className="signals-incident-card-link"
+                        title={row.title}
+                        href={row.href}
+                        onClick={row.onClick}
+                      >
+                        <div className="signals-incident-title">
+                          <span
+                            className={`status-indicator status-${row.status}`}
+                            aria-label={buildStatusText(row.status)}
+                            title={buildStatusText(row.status)}
+                          />
+                          <span className="signals-incident-kind">
+                            {row.typeLabel}
+                          </span>
                           <span className="signal-name" title={row.title}>
                             {row.title}
                           </span>
+                        </div>
+                        {row.signals && row.signals.length > 0 && (
+                          <ul className="signals-incident-signal-list">
+                            {row.signals.map((signalLabel, signalIndex) => (
+                              <li
+                                key={`${row.id}:${signalIndex}`}
+                                className="signals-incident-signal"
+                                title={signalLabel}
+                              >
+                                <span>{signalLabel}</span>
+                              </li>
+                            ))}
+                          </ul>
                         )}
-                      </div>
+                      </a>
+                    ) : (
+                      <>
+                        <div className="signals-incident-title">
+                          <span
+                            className={`status-indicator status-${row.status}`}
+                            aria-label={buildStatusText(row.status)}
+                            title={buildStatusText(row.status)}
+                          />
+                          <span className="signals-incident-kind">
+                            {row.typeLabel}
+                          </span>
+                          <span className="signal-name" title={row.title}>
+                            {row.title}
+                          </span>
+                        </div>
+                        {row.signals && row.signals.length > 0 && (
+                          <ul className="signals-incident-signal-list">
+                            {row.signals.map((signalLabel, signalIndex) => (
+                              <li
+                                key={`${row.id}:${signalIndex}`}
+                                className="signals-incident-signal"
+                                title={signalLabel}
+                              >
+                                <span>{signalLabel}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </>
                     )}
-                    {row.typeLabel !== "Own" &&
-                      row.signals &&
-                      row.signals.length > 0 && (
-                        <ul className="signals-incident-signal-list">
-                          {row.signals.map((signalLabel, signalIndex) => (
-                            <li
-                              key={`${row.id}:${signalIndex}`}
-                              className="signals-incident-signal"
-                              title={signalLabel}
-                            >
-                              <span>{signalLabel}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
                   </li>
                 ))}
               </ul>
@@ -611,7 +645,7 @@ export default function DetailsPanel({
 
             <button
               type="button"
-              className={`signals-expand-button ${itemDisclosureState.isHealthyOpen ? "is-open" : ""}`}
+              className="signals-expand-button"
               onClick={() =>
                 updateDisclosureState({
                   isHealthyOpen: !itemDisclosureState.isHealthyOpen,
@@ -620,7 +654,9 @@ export default function DetailsPanel({
               aria-expanded={itemDisclosureState.isHealthyOpen}
             >
               <span
-                className={`details-panel-chevron ${itemDisclosureState.isHealthyOpen ? "is-open" : ""}`}
+                className={`details-panel-chevron ${
+                  itemDisclosureState.isHealthyOpen ? "is-open" : ""
+                }`}
                 aria-hidden="true"
               >
                 ›
