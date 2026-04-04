@@ -19,8 +19,10 @@ import type {
   HealthStatus,
   ItemSignal,
 } from "../shared/types";
-import type { MutableRefObject } from "react";
-import { useEffect, useState } from "react";
+import type { MouseEvent, MutableRefObject } from "react";
+import { useEffect, useMemo, useState } from "react";
+
+const AFFECTING_PREVIEW_LIMIT = 3;
 
 type DetailsPanelProps = {
   contentRef: MutableRefObject<HTMLElement | null>;
@@ -43,10 +45,6 @@ type DetailsPanelProps = {
   contentTitlePrimaryRef: MutableRefObject<HTMLElement | null>;
   selectedFailingSignals: ItemSignal[];
   failingDependencies: FailingDependencyEntry[];
-  dependencyActorsByItemId: Record<
-    string,
-    { owner: CatalogActor | null; otherActors: CatalogActor[] } | null
-  >;
   selectedItemActors: {
     owner: CatalogActor | null;
     otherActors: CatalogActor[];
@@ -55,24 +53,12 @@ type DetailsPanelProps = {
     string,
     { contacts: CatalogContact[]; primaryContact: CatalogContact | null }
   >;
-  hasOwnFailingSignals: boolean;
-  isFailingSignalsOpen: boolean;
-  onToggleFailingSignals: () => void;
-  hasAffectedBySignals: boolean;
-  isAffectedBySignalsOpen: boolean;
-  onToggleAffectedBySignals: () => void;
   buildItemLink: (itemId: string, pathIds?: string[]) => string;
   onSelectItemByPath: (pathIds: string[]) => void;
   onOpenActor: (actor: CatalogActor) => void;
-  isSignalsOpen: boolean;
-  onToggleSignals: () => void;
   passingSignalsCount: number;
   selectedPassingSignals: ItemSignal[];
   hasOwnHealthSignals: boolean;
-  isPassingSignalsOpen: boolean;
-  onTogglePassingSignals: () => void;
-  isContactsOpen: boolean;
-  onToggleContacts: () => void;
   onOpenContact: (contact: CatalogContact) => void;
   isGrafanaOpen: boolean;
   onToggleGrafana: () => void;
@@ -82,14 +68,84 @@ type DetailsPanelProps = {
   grafanaFrameUrl: string;
 };
 
+type DetailsDisclosureState = {
+  isAffectingOpen: boolean;
+  isHealthyOpen: boolean;
+  isContactsExtraOpen: boolean;
+  showAllAffecting: boolean;
+};
+
+type AffectingSignalRow = {
+  id: string;
+  typeLabel: "Own" | "Dependency";
+  title: string;
+  signals?: string[];
+  status: HealthStatus;
+  href?: string;
+  onClick?: (event: MouseEvent<HTMLAnchorElement>) => void;
+};
+
+type ExtraActorRow = {
+  key: string;
+  actor: CatalogActor;
+  typeLabel: string;
+};
+
+const emptyDisclosureState: DetailsDisclosureState = {
+  isAffectingOpen: true,
+  isHealthyOpen: false,
+  isContactsExtraOpen: false,
+  showAllAffecting: false,
+};
+
+const buildExtraActorRows = (actors: CatalogActor[]): ExtraActorRow[] =>
+  [...actors]
+    .sort((left, right) => {
+      const rankByType: Record<string, number> = {
+        owner: 0,
+        user: 1,
+        other: 2,
+      };
+      const leftRank = rankByType[String(left.type || "other")] ?? 99;
+      const rightRank = rankByType[String(right.type || "other")] ?? 99;
+      const typeCompare = leftRank - rightRank;
+      if (typeCompare !== 0) {
+        return typeCompare;
+      }
+      return (left.title || left.id).localeCompare(right.title || right.id);
+    })
+    .map((actor) => ({
+      key: actor.id,
+      actor,
+      typeLabel: String(actor.type || "other").toLowerCase(),
+    }));
+
+const renderContactTypeIcon = (
+  iconSpriteHref: string,
+  contactType: string,
+): JSX.Element => (
+  <span
+    className="contact-type-icon-wrap"
+    title={resolveContactTypeDisplayName(contactType)}
+    aria-label={resolveContactTypeDisplayName(contactType)}
+  >
+    <svg
+      className={`contact-type-icon ${resolveContactTypeClass(contactType)}`}
+      viewBox="0 0 24 24"
+      focusable="false"
+      aria-hidden="true"
+    >
+      <use href={`${iconSpriteHref}#${resolveContactIconId(contactType)}`} />
+    </svg>
+  </span>
+);
+
 /**
  * Renders the right-side content area:
  * - selected item title/status
- * - signals panel with failing/passing subsections
+ * - contacts summary
+ * - incident-first signals
  * - Grafana iframe container
- *
- * Layout and adaptive header behavior are controlled by props from App.
- *
  */
 export default function DetailsPanel({
   contentRef,
@@ -112,27 +168,14 @@ export default function DetailsPanel({
   contentTitlePrimaryRef,
   selectedFailingSignals,
   failingDependencies,
-  dependencyActorsByItemId,
   selectedItemActors,
   actorContactsByActorId,
-  hasOwnFailingSignals,
-  isFailingSignalsOpen,
-  onToggleFailingSignals,
-  hasAffectedBySignals,
-  isAffectedBySignalsOpen,
-  onToggleAffectedBySignals,
   buildItemLink,
   onSelectItemByPath,
   onOpenActor,
-  isSignalsOpen,
-  onToggleSignals,
   passingSignalsCount,
   selectedPassingSignals,
   hasOwnHealthSignals,
-  isPassingSignalsOpen,
-  onTogglePassingSignals,
-  isContactsOpen,
-  onToggleContacts,
   onOpenContact,
   isGrafanaOpen,
   onToggleGrafana,
@@ -142,215 +185,133 @@ export default function DetailsPanel({
   grafanaFrameUrl,
 }: DetailsPanelProps) {
   const selectedStatusText = buildStatusText(selectedStatus, { lastUpdated });
+  const selectedItemId = selectedItem?.id || "";
+  const [disclosureByItemId, setDisclosureByItemId] = useState<
+    Record<string, DetailsDisclosureState>
+  >({});
+
   const ownerActorForContacts =
     selectedItemActors?.owner || selectedItemActors?.otherActors?.[0] || null;
+  const ownerContactsEntry = ownerActorForContacts
+    ? actorContactsByActorId.get(ownerActorForContacts.id) || null
+    : null;
+  const primaryContact =
+    ownerContactsEntry?.primaryContact ||
+    ownerContactsEntry?.contacts[0] ||
+    null;
   const otherActorsForContacts = selectedItemActors
     ? selectedItemActors.owner
       ? selectedItemActors.otherActors
       : selectedItemActors.otherActors.slice(1)
     : [];
-  const contactsActorsCount =
-    (ownerActorForContacts ? 1 : 0) + otherActorsForContacts.length;
-  const [isContactsOtherOpen, setIsContactsOtherOpen] = useState(false);
+  const extraActorRows = useMemo(
+    () => buildExtraActorRows(otherActorsForContacts),
+    [otherActorsForContacts],
+  );
 
-  useEffect(() => {
-    setIsContactsOtherOpen(false);
-  }, [selectedItem?.id]);
+  const affectingRows = useMemo<AffectingSignalRow[]>(() => {
+    const ownRows: AffectingSignalRow[] =
+      selectedFailingSignals.length > 0
+        ? [
+            {
+              id: "own:signals",
+              typeLabel: "Own",
+              title: "",
+              signals: selectedFailingSignals.map(
+                (signal) => signal.title || signal.id,
+              ),
+              status: selectedFailingSignals[0]?.status || "down",
+            },
+          ]
+        : [];
 
-  const renderContactChip = (
-    contact: CatalogContact,
-    { isPrimary = false }: { isPrimary?: boolean } = {},
-  ) => {
-    const label = resolveContactLabel(contact);
-    const icon = (
-      <span
-        className="contact-type-icon-wrap"
-        title={resolveContactTypeDisplayName(contact.type)}
-        aria-label={resolveContactTypeDisplayName(contact.type)}
-      >
-        <svg
-          className={`contact-type-icon ${resolveContactTypeClass(contact.type)}`}
-          viewBox="0 0 24 24"
-          focusable="false"
-          aria-hidden="true"
-        >
-          <use
-            href={`${iconSpriteHref}#${resolveContactIconId(contact.type)}`}
-          />
-        </svg>
-      </span>
-    );
-    const content = (
-      <>
-        {icon}
-        <span className="contact-chip-text">{label}</span>
-        {isPrimary && <span className="contact-primary-mark">primary</span>}
-      </>
-    );
-
-    if (contact.href) {
-      return (
-        <a
-          className="contact-chip actor-modal-contact-chip"
-          href={contact.href}
-          title={label}
-          onClick={(event) => {
+    const dependencyRows: AffectingSignalRow[] = failingDependencies.map(
+      (entry) => {
+        return {
+          id: `dep:${entry.id}`,
+          typeLabel: "Dependency",
+          title: entry.name,
+          signals: entry.failingSignals.map(
+            (signal) => signal.title || signal.id,
+          ),
+          status: entry.status,
+          href: buildItemLink(entry.id, entry.path),
+          onClick: (event) => {
             if (!isPlainLeftClick(event)) {
               return;
             }
             event.preventDefault();
-            onOpenContact(contact);
-          }}
-        >
-          {content}
-        </a>
-      );
+            onSelectItemByPath(entry.path);
+          },
+        };
+      },
+    );
+
+    return [...ownRows, ...dependencyRows].sort((left, right) => {
+      const rank = (row: AffectingSignalRow) =>
+        row.typeLabel === "Own" ? 0 : 1;
+      const typeCompare = rank(left) - rank(right);
+      if (typeCompare !== 0) {
+        return typeCompare;
+      }
+      return left.title.localeCompare(right.title);
+    });
+  }, [
+    buildItemLink,
+    failingDependencies,
+    onSelectItemByPath,
+    selectedFailingSignals,
+  ]);
+
+  const hasAffectingSignals = affectingRows.length > 0;
+
+  useEffect(() => {
+    if (!selectedItemId) {
+      return;
     }
+    setDisclosureByItemId((prev) => {
+      if (prev[selectedItemId]) {
+        return prev;
+      }
+      return {
+        ...prev,
+        [selectedItemId]: {
+          ...emptyDisclosureState,
+        },
+      };
+    });
+  }, [selectedItemId]);
 
-    return (
-      <button
-        type="button"
-        className="contact-chip actor-modal-contact-chip contact-chip-button"
-        onClick={() => onOpenContact(contact)}
-        title={label}
-      >
-        {content}
-      </button>
-    );
-  };
+  const itemDisclosureState = selectedItemId
+    ? disclosureByItemId[selectedItemId] || {
+        ...emptyDisclosureState,
+      }
+    : { ...emptyDisclosureState };
 
-  const renderActorContactsRow = (actor: CatalogActor, roleLabel?: string) => {
-    const actorContactsEntry = actorContactsByActorId.get(actor.id) || null;
-    const primaryContact = actorContactsEntry?.primaryContact || null;
-    const sortedContacts = actorContactsEntry?.contacts || [];
-
-    return (
-      <div className="contacts-actor-row" key={actor.id}>
-        <div className="contacts-actor-grid">
-          <div className="contacts-actor-cell">
-            <a
-              className="contact-chip contacts-actor-chip"
-              href={`/actors/${actor.id}`}
-              onClick={(event) => {
-                if (!isPlainLeftClick(event)) {
-                  return;
-                }
-                event.preventDefault();
-                onOpenActor(actor);
-              }}
-              title={actor.title || actor.id}
-            >
-              <span className="contact-chip-text">
-                {actor.title || actor.id}
-              </span>
-              <span className="contacts-actor-type-mark">
-                {String(roleLabel || actor.type || "other").toLowerCase()}
-              </span>
-            </a>
-          </div>
-          <div className="contacts-actor-contacts-cell">
-            {sortedContacts.length > 0 ? (
-              <>
-                <span className="contacts-actor-contacts-label">Contacts:</span>
-                <ul className="actor-modal-contacts contacts-actor-contacts-list">
-                  {sortedContacts.map((contact) => {
-                    const isPrimaryContact = primaryContact?.id === contact.id;
-                    return (
-                      <li key={contact.id}>
-                        {renderContactChip(contact, {
-                          isPrimary: isPrimaryContact,
-                        })}
-                      </li>
-                    );
-                  })}
-                </ul>
-              </>
-            ) : (
-              <span className="dependency-actor-empty">No contacts</span>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const renderActorAndContactCells = (ownerActor: CatalogActor | null) => {
-    if (!ownerActor) {
-      return (
-        <div className="dependency-party">
-          <span className="dependency-actor-empty">No primary actor</span>
-        </div>
-      );
+  const updateDisclosureState = (patch: Partial<DetailsDisclosureState>) => {
+    if (!selectedItemId) {
+      return;
     }
-    const primaryContact =
-      actorContactsByActorId.get(ownerActor.id)?.primaryContact || null;
-    const ownerLabel = ownerActor.title || ownerActor.id;
-    const primaryContactLabel = resolveContactLabel(primaryContact);
-    return (
-      <div className="dependency-party">
-        <div className="actor-inline-info">
-          <span className="actor-inline-pair">
-            <span className="actor-inline-label">Owner:</span>
-            <a
-              className="contact-chip actor-inline-chip"
-              href={`/actors/${ownerActor.id}`}
-              onClick={(event) => {
-                if (!isPlainLeftClick(event)) {
-                  return;
-                }
-                event.preventDefault();
-                onOpenActor(ownerActor);
-              }}
-              title={ownerLabel}
-            >
-              <span className="contact-chip-text inline-link-text">
-                {ownerLabel}
-              </span>
-            </a>
-          </span>
-          {primaryContact && (
-            <span className="actor-inline-pair">
-              <span className="actor-inline-label">Contact:</span>
-              <a
-                className="contact-chip actor-inline-chip"
-                href={primaryContact.href || `/contacts/${primaryContact.id}`}
-                title={primaryContactLabel}
-                onClick={(event) => {
-                  if (!isPlainLeftClick(event)) {
-                    return;
-                  }
-                  event.preventDefault();
-                  onOpenContact(primaryContact);
-                }}
-              >
-                <span
-                  className="contact-type-icon-wrap actor-inline-icon-wrap"
-                  title={resolveContactTypeDisplayName(primaryContact.type)}
-                  aria-label={resolveContactTypeDisplayName(
-                    primaryContact.type,
-                  )}
-                >
-                  <svg
-                    className={`contact-type-icon ${resolveContactTypeClass(primaryContact.type)}`}
-                    viewBox="0 0 24 24"
-                    focusable="false"
-                    aria-hidden="true"
-                  >
-                    <use
-                      href={`${iconSpriteHref}#${resolveContactIconId(primaryContact.type)}`}
-                    />
-                  </svg>
-                </span>
-                <span className="contact-chip-text inline-link-text">
-                  {primaryContactLabel}
-                </span>
-              </a>
-            </span>
-          )}
-        </div>
-      </div>
-    );
+    setDisclosureByItemId((prev) => {
+      const current = prev[selectedItemId] || {
+        ...emptyDisclosureState,
+      };
+      return {
+        ...prev,
+        [selectedItemId]: {
+          ...current,
+          ...patch,
+        },
+      };
+    });
   };
+
+  const isAffectingOpen = itemDisclosureState.isAffectingOpen;
+  const visibleAffectingRows =
+    itemDisclosureState.showAllAffecting ||
+    affectingRows.length <= AFFECTING_PREVIEW_LIMIT
+      ? affectingRows
+      : affectingRows.slice(0, AFFECTING_PREVIEW_LIMIT);
 
   return (
     <main className="content" ref={contentRef}>
@@ -414,266 +375,158 @@ export default function DetailsPanel({
         <div className="empty">Select a catalog item to view dashboards.</div>
       ) : (
         <>
-          <section
-            className={`details-panel details-panel-contacts ${isContactsOpen ? "is-open" : ""}`}
-          >
-            <button
-              type="button"
-              className={`details-panel-toggle ${isContactsOpen ? "is-open" : ""}`}
-              onClick={onToggleContacts}
-              aria-expanded={isContactsOpen}
-            >
-              <span
-                className={`details-panel-chevron ${isContactsOpen ? "is-open" : ""}`}
-                aria-hidden="true"
-              >
-                ›
-              </span>
-              <span className="details-panel-title">
-                Contacts{" "}
-                <span className="details-panel-count">
-                  ({contactsActorsCount})
-                </span>
-              </span>
-            </button>
-            {isContactsOpen && (
-              <div className="details-panel-body details-panel-body-signals">
-                <div className="contacts-actors-block">
-                  {ownerActorForContacts ? (
-                    renderActorContactsRow(
-                      ownerActorForContacts,
-                      selectedItemActors?.owner
-                        ? "owner"
-                        : ownerActorForContacts.type,
-                    )
-                  ) : (
-                    <div className="contacts-actor-row">
-                      <span className="dependency-actor-empty">
-                        No actors linked to this item
-                      </span>
-                    </div>
-                  )}
-                </div>
-                {otherActorsForContacts.length > 0 && (
-                  <section
-                    className={`signals-subsection ${isContactsOtherOpen ? "is-open" : ""}`}
+          <section className="details-inline-block">
+            <div className="contact-summary-list">
+              {ownerActorForContacts ? (
+                <a
+                  className="contact-summary-row contact-summary-row-owner"
+                  href={`/actors/${ownerActorForContacts.id}`}
+                  onClick={(event) => {
+                    if (!isPlainLeftClick(event)) {
+                      return;
+                    }
+                    event.preventDefault();
+                    onOpenActor(ownerActorForContacts);
+                  }}
+                  title={
+                    ownerActorForContacts.title || ownerActorForContacts.id
+                  }
+                >
+                  <span className="contact-summary-prefix">Owner</span>
+                  <span
+                    className="contact-summary-main"
+                    title={
+                      ownerActorForContacts.title || ownerActorForContacts.id
+                    }
                   >
-                    <button
-                      type="button"
-                      className={`signals-subtoggle ${isContactsOtherOpen ? "is-open" : ""}`}
-                      onClick={() => setIsContactsOtherOpen((prev) => !prev)}
-                      aria-expanded={isContactsOtherOpen}
-                    >
-                      <span
-                        className={`details-panel-chevron ${isContactsOtherOpen ? "is-open" : ""}`}
-                        aria-hidden="true"
-                      >
-                        ›
-                      </span>
-                      <span className="signals-subtitle">
-                        Other{" "}
-                        <span className="details-panel-count">
-                          ({otherActorsForContacts.length})
-                        </span>
-                      </span>
-                    </button>
-                    {isContactsOtherOpen && (
-                      <div className="contacts-actors-block">
-                        {otherActorsForContacts.map((actor) =>
-                          renderActorContactsRow(actor),
-                        )}
-                      </div>
-                    )}
-                  </section>
-                )}
-              </div>
+                    {ownerActorForContacts.title || ownerActorForContacts.id}
+                  </span>
+                </a>
+              ) : (
+                <div className="contact-summary-empty">
+                  No owner linked to this item
+                </div>
+              )}
+
+              {primaryContact && (
+                <a
+                  className="contact-summary-row"
+                  href={primaryContact.href || `/contacts/${primaryContact.id}`}
+                  onClick={(event) => {
+                    if (!isPlainLeftClick(event)) {
+                      return;
+                    }
+                    event.preventDefault();
+                    onOpenContact(primaryContact);
+                  }}
+                  title={resolveContactLabel(primaryContact)}
+                >
+                  <span className="contact-summary-prefix">Owner contact</span>
+                  <span className="contact-summary-main">
+                    {renderContactTypeIcon(iconSpriteHref, primaryContact.type)}
+                    <span className="contact-summary-main-label">
+                      {resolveContactLabel(primaryContact)}
+                    </span>
+                  </span>
+                </a>
+              )}
+            </div>
+
+            {extraActorRows.length > 0 && (
+              <>
+                <button
+                  type="button"
+                  className={`contacts-expand-button ${itemDisclosureState.isContactsExtraOpen ? "is-open" : ""}`}
+                  onClick={() =>
+                    updateDisclosureState({
+                      isContactsExtraOpen:
+                        !itemDisclosureState.isContactsExtraOpen,
+                    })
+                  }
+                  aria-expanded={itemDisclosureState.isContactsExtraOpen}
+                >
+                  <span
+                    className={`details-panel-chevron ${itemDisclosureState.isContactsExtraOpen ? "is-open" : ""}`}
+                    aria-hidden="true"
+                  >
+                    ›
+                  </span>
+                  {itemDisclosureState.isContactsExtraOpen
+                    ? "Hide extra contacts"
+                    : `Show ${extraActorRows.length} more contacts`}
+                </button>
+                <div
+                  className={`disclosure-panel ${itemDisclosureState.isContactsExtraOpen ? "is-open" : ""}`}
+                >
+                  <ul className="contact-extra-list">
+                    {extraActorRows.map((entry) => (
+                      <li key={entry.key}>
+                        <a
+                          className="contact-summary-row contact-summary-row-extra"
+                          href={`/actors/${entry.actor.id}`}
+                          onClick={(event) => {
+                            if (!isPlainLeftClick(event)) {
+                              return;
+                            }
+                            event.preventDefault();
+                            onOpenActor(entry.actor);
+                          }}
+                          title={entry.actor.title || entry.actor.id}
+                        >
+                          <span className="contact-summary-prefix">
+                            {entry.typeLabel}
+                          </span>
+                          <span className="contact-summary-main">
+                            <span className="contact-summary-main-label">
+                              {entry.actor.title || entry.actor.id}
+                            </span>
+                          </span>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </>
             )}
           </section>
-          <section
-            className={`details-panel details-panel-signals ${isSignalsOpen ? "is-open" : ""}`}
-          >
-            <button
-              type="button"
-              className={`details-panel-toggle ${isSignalsOpen ? "is-open" : ""}`}
-              onClick={onToggleSignals}
-              aria-expanded={isSignalsOpen}
-            >
-              <span
-                className={`details-panel-chevron ${isSignalsOpen ? "is-open" : ""}`}
-                aria-hidden="true"
+
+          <section className="details-inline-block">
+            <div className="details-inline-head">
+              <button
+                type="button"
+                className={`signals-subtoggle signals-inline-toggle ${isAffectingOpen ? "is-open" : ""}`}
+                onClick={() =>
+                  updateDisclosureState({ isAffectingOpen: !isAffectingOpen })
+                }
+                aria-expanded={isAffectingOpen}
               >
-                ›
-              </span>
-              <span className="details-panel-title">Signals</span>
-            </button>
-            {isSignalsOpen && (
-              <div className="details-panel-body details-panel-body-signals">
-                {hasOwnFailingSignals && (
-                  <section
-                    className={`signals-subsection ${isFailingSignalsOpen ? "is-open" : ""}`}
-                  >
-                    <button
-                      type="button"
-                      className={`signals-subtoggle ${isFailingSignalsOpen ? "is-open" : ""}`}
-                      onClick={onToggleFailingSignals}
-                      aria-expanded={isFailingSignalsOpen}
-                    >
-                      <span
-                        className={`details-panel-chevron ${isFailingSignalsOpen ? "is-open" : ""}`}
-                        aria-hidden="true"
-                      >
-                        ›
-                      </span>
-                      <span className="signals-subtitle">
-                        Failing{" "}
-                        <span className="details-panel-count">
-                          ({selectedFailingSignals.length})
-                        </span>
-                      </span>
-                    </button>
-                    {isFailingSignalsOpen && (
-                      <ul className="signals-list signals-sublist signals-sublist-affected-by">
-                        <li className="dependency own-signals-row">
-                          <div className="dependency-main">
-                            <ul className="own-failing-signals-list">
-                              {selectedFailingSignals.map((entry) => (
-                                <li
-                                  key={entry.id}
-                                  className="signal own-failing-signal"
-                                >
-                                  <div className="signal-row">
-                                    <span
-                                      className={`status-indicator status-${entry.status}`}
-                                      aria-label={buildStatusText(entry.status)}
-                                      title={buildStatusText(entry.status)}
-                                    />
-                                    <span
-                                      className="signal-name"
-                                      title={entry.title || entry.id}
-                                    >
-                                      {entry.title || entry.id}
-                                    </span>
-                                  </div>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        </li>
-                      </ul>
-                    )}
-                  </section>
-                )}
-                {hasAffectedBySignals && (
-                  <section
-                    className={`signals-subsection ${isAffectedBySignalsOpen ? "is-open" : ""}`}
-                  >
-                    <button
-                      type="button"
-                      className={`signals-subtoggle ${isAffectedBySignalsOpen ? "is-open" : ""}`}
-                      onClick={onToggleAffectedBySignals}
-                      aria-expanded={isAffectedBySignalsOpen}
-                    >
-                      <span
-                        className={`details-panel-chevron ${isAffectedBySignalsOpen ? "is-open" : ""}`}
-                        aria-hidden="true"
-                      >
-                        ›
-                      </span>
-                      <span className="signals-subtitle">
-                        Affected by{" "}
-                        <span className="details-panel-count">
-                          ({failingDependencies.length})
-                        </span>
-                      </span>
-                    </button>
-                    {isAffectedBySignalsOpen && (
-                      <ul className="signals-list signals-sublist">
-                        {failingDependencies.map((entry) => {
-                          const dependencyActors =
-                            dependencyActorsByItemId[entry.id];
-                          return (
-                            <li
-                              key={entry.id}
-                              className="dependency dependency-with-actor"
-                            >
-                              <div className="dependency-grid">
-                                <div className="dependency-main">
-                                  <div className="dependency-title">
-                                    <span
-                                      className={`status-indicator status-${entry.status}`}
-                                      aria-label={buildStatusText(entry.status)}
-                                      title={buildStatusText(entry.status)}
-                                    />
-                                    <a
-                                      className="signal-link"
-                                      title={entry.name}
-                                      href={buildItemLink(entry.id, entry.path)}
-                                      onClick={(event) => {
-                                        if (!isPlainLeftClick(event)) {
-                                          return;
-                                        }
-                                        event.preventDefault();
-                                        onSelectItemByPath(entry.path);
-                                      }}
-                                    >
-                                      {entry.name}
-                                    </a>
-                                  </div>
-                                  {entry.failingSignals.length > 0 && (
-                                    <ul className="dependency-signals">
-                                      {entry.failingSignals.map((signal) => (
-                                        <li
-                                          key={signal.id}
-                                          className="dependency-signal"
-                                        >
-                                          <span
-                                            className="signal-name"
-                                            title={signal.title || signal.id}
-                                          >
-                                            {signal.title || signal.id}
-                                          </span>
-                                        </li>
-                                      ))}
-                                    </ul>
-                                  )}
-                                </div>
-                                {renderActorAndContactCells(
-                                  dependencyActors?.owner || null,
-                                )}
-                              </div>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    )}
-                  </section>
-                )}
-                <section
-                  className={`signals-subsection ${isPassingSignalsOpen ? "is-open" : ""}`}
+                <span
+                  className={`details-panel-chevron ${isAffectingOpen ? "is-open" : ""}`}
+                  aria-hidden="true"
                 >
-                  <button
-                    type="button"
-                    className={`signals-subtoggle ${isPassingSignalsOpen ? "is-open" : ""}`}
-                    onClick={onTogglePassingSignals}
-                    aria-expanded={isPassingSignalsOpen}
-                  >
-                    <span
-                      className={`details-panel-chevron ${isPassingSignalsOpen ? "is-open" : ""}`}
-                      aria-hidden="true"
-                    >
-                      ›
-                    </span>
-                    <span className="signals-subtitle">
-                      Passing{" "}
-                      <span className="details-panel-count">
-                        ({passingSignalsCount})
-                      </span>
-                    </span>
-                  </button>
-                  {isPassingSignalsOpen && (
-                    <ul className="signals-list signals-sublist">
-                      {selectedPassingSignals.length > 0 ? (
-                        selectedPassingSignals.map((entry) => (
+                  ›
+                </span>
+                <span className="signals-subtitle">
+                  Affecting now{" "}
+                  <span className="details-panel-count">
+                    ({affectingRows.length})
+                  </span>
+                </span>
+              </button>
+            </div>
+
+            {!hasAffectingSignals && (
+              <p className="signals-healthy-summary">
+                No active impacting signals
+              </p>
+            )}
+            {hasAffectingSignals && isAffectingOpen && (
+              <ul className="signals-incident-list">
+                {visibleAffectingRows.map((row) => (
+                  <li key={row.id} className="signals-incident-row">
+                    {row.typeLabel === "Own" ? (
+                      <ul className="signals-list signals-sublist signals-group-list">
+                        {selectedFailingSignals.map((entry) => (
                           <li key={entry.id} className="signal">
                             <div className="signal-row">
                               <span
@@ -681,6 +534,9 @@ export default function DetailsPanel({
                                 aria-label={buildStatusText(entry.status)}
                                 title={buildStatusText(entry.status)}
                               />
+                              <span className="signals-incident-signal-prefix">
+                                Own
+                              </span>
                               <span
                                 className="signal-name"
                                 title={entry.title || entry.id}
@@ -689,23 +545,127 @@ export default function DetailsPanel({
                               </span>
                             </div>
                           </li>
-                        ))
-                      ) : (
-                        <li className="signal">
-                          <div className="signal-row">
-                            <span className="signal-name">
-                              {hasOwnHealthSignals
-                                ? "No passing health signals right now."
-                                : "This item does not have own health signals."}
-                            </span>
-                          </div>
-                        </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <div className="signals-incident-title">
+                        <span
+                          className={`status-indicator status-${row.status}`}
+                          aria-label={buildStatusText(row.status)}
+                          title={buildStatusText(row.status)}
+                        />
+                        <span className="signals-incident-kind">
+                          {row.typeLabel}
+                        </span>
+                        {row.href ? (
+                          <a
+                            className="signal-link"
+                            title={row.title}
+                            href={row.href}
+                            onClick={row.onClick}
+                          >
+                            {row.title}
+                          </a>
+                        ) : (
+                          <span className="signal-name" title={row.title}>
+                            {row.title}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    {row.typeLabel !== "Own" &&
+                      row.signals &&
+                      row.signals.length > 0 && (
+                        <ul className="signals-incident-signal-list">
+                          {row.signals.map((signalLabel, signalIndex) => (
+                            <li
+                              key={`${row.id}:${signalIndex}`}
+                              className="signals-incident-signal"
+                              title={signalLabel}
+                            >
+                              <span>{signalLabel}</span>
+                            </li>
+                          ))}
+                        </ul>
                       )}
-                    </ul>
-                  )}
-                </section>
-              </div>
+                  </li>
+                ))}
+              </ul>
             )}
+            {hasAffectingSignals &&
+              affectingRows.length > AFFECTING_PREVIEW_LIMIT && (
+                <button
+                  type="button"
+                  className="signals-expand-button"
+                  onClick={() =>
+                    updateDisclosureState({
+                      showAllAffecting: !itemDisclosureState.showAllAffecting,
+                    })
+                  }
+                >
+                  {itemDisclosureState.showAllAffecting
+                    ? `Show ${AFFECTING_PREVIEW_LIMIT} affecting signals`
+                    : `Show all ${affectingRows.length} affecting signals`}
+                </button>
+              )}
+
+            <button
+              type="button"
+              className={`signals-expand-button ${itemDisclosureState.isHealthyOpen ? "is-open" : ""}`}
+              onClick={() =>
+                updateDisclosureState({
+                  isHealthyOpen: !itemDisclosureState.isHealthyOpen,
+                })
+              }
+              aria-expanded={itemDisclosureState.isHealthyOpen}
+            >
+              <span
+                className={`details-panel-chevron ${itemDisclosureState.isHealthyOpen ? "is-open" : ""}`}
+                aria-hidden="true"
+              >
+                ›
+              </span>
+              {itemDisclosureState.isHealthyOpen
+                ? "Hide healthy signals"
+                : `Show ${passingSignalsCount} healthy signals`}
+            </button>
+            <div
+              className={`disclosure-panel ${itemDisclosureState.isHealthyOpen ? "is-open" : ""}`}
+            >
+              <div className="signals-incident-row">
+                <ul className="signals-list signals-sublist signals-group-list">
+                  {selectedPassingSignals.length > 0 ? (
+                    selectedPassingSignals.map((entry) => (
+                      <li key={entry.id} className="signal">
+                        <div className="signal-row">
+                          <span
+                            className={`status-indicator status-${entry.status}`}
+                            aria-label={buildStatusText(entry.status)}
+                            title={buildStatusText(entry.status)}
+                          />
+                          <span
+                            className="signal-name"
+                            title={entry.title || entry.id}
+                          >
+                            {entry.title || entry.id}
+                          </span>
+                        </div>
+                      </li>
+                    ))
+                  ) : (
+                    <li className="signal">
+                      <div className="signal-row">
+                        <span className="signal-name">
+                          {hasOwnHealthSignals
+                            ? "No passing health signals right now."
+                            : "This item does not have own health signals."}
+                        </span>
+                      </div>
+                    </li>
+                  )}
+                </ul>
+              </div>
+            </div>
           </section>
           <section
             className={`details-panel details-panel-grafana ${isGrafanaOpen ? "is-open" : ""}`}

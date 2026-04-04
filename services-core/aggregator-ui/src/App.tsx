@@ -146,11 +146,6 @@ export default function App() {
   const [isSearchAutocompleteReady, setIsSearchAutocompleteReady] =
     useState(false);
   const [pendingScrollId, setPendingScrollId] = useState("");
-  const [isSignalsOpen, setIsSignalsOpen] = useState(true);
-  const [isFailingSignalsOpen, setIsFailingSignalsOpen] = useState(false);
-  const [isAffectedBySignalsOpen, setIsAffectedBySignalsOpen] = useState(false);
-  const [isPassingSignalsOpen, setIsPassingSignalsOpen] = useState(false);
-  const [isContactsOpen, setIsContactsOpen] = useState(true);
   const [isGrafanaOpen, setIsGrafanaOpen] = useState(true);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
@@ -866,9 +861,6 @@ export default function App() {
     return result;
   }, [selectedNode]);
   const failingDependencies = useMemo(() => {
-    const dependencySources = new Set(
-      catalog.dependencies.map((dep) => dep.sourceId),
-    );
     const seen = new Set();
     const result: FailingDependencyEntry[] = [];
     failingDependencyNodes.forEach((dependencyNode) => {
@@ -878,13 +870,10 @@ export default function App() {
       }
       seen.add(dependencyId);
       const dependencyStatus = itemStatuses[dependencyId] || "unknown";
-      const hasOwnDependencies = dependencySources.has(dependencyId);
       const failingSignals = (itemSignals[dependencyId] || [])
         .filter((signal) => signal.status === "down")
         .sort(compareSignalsByStatusAndTitle);
-      const shouldIncludeLeafNonUp =
-        !hasOwnDependencies && dependencyStatus !== "up";
-      if (failingSignals.length === 0 && !shouldIncludeLeafNonUp) {
+      if (failingSignals.length === 0) {
         return;
       }
       const item = itemMap.get(dependencyId);
@@ -898,20 +887,7 @@ export default function App() {
       });
     });
     return result.sort((a, b) => a.name.localeCompare(b.name));
-  }, [
-    catalog.dependencies,
-    failingDependencyNodes,
-    itemMap,
-    itemSignals,
-    itemStatuses,
-  ]);
-  const dependencyActorsByItemId = useMemo(() => {
-    const map: Record<string, ItemActorsEntry | null> = {};
-    failingDependencies.forEach((entry) => {
-      map[entry.id] = actorsByItemId.get(entry.id) || null;
-    });
-    return map;
-  }, [actorsByItemId, failingDependencies]);
+  }, [failingDependencyNodes, itemMap, itemSignals, itemStatuses]);
   const openedActor = useMemo(
     () => (openedActorId ? actorsById.get(openedActorId) || null : null),
     [actorsById, openedActorId],
@@ -931,8 +907,6 @@ export default function App() {
     [actorContactsByActorId, openedActor],
   );
   const passingSignalsCount = selectedPassingSignals.length;
-  const hasOwnFailingSignals = selectedFailingSignals.length > 0;
-  const hasAffectedBySignals = failingDependencies.length > 0;
   const isSidebarOpen = isMobileLayout
     ? isMobileSidebarOpen
     : isDesktopSidebarOpen;
@@ -1239,12 +1213,6 @@ export default function App() {
     updateUrlForItemId,
     updateUrlForNode,
   ]);
-
-  useEffect(() => {
-    setIsFailingSignalsOpen(true);
-    setIsAffectedBySignalsOpen(true);
-    setIsPassingSignalsOpen(false);
-  }, [selectedId]);
 
   useEffect(() => {
     if (!selectedId) {
@@ -1622,29 +1590,14 @@ export default function App() {
         contentTitlePrimaryRef={contentTitlePrimaryRef}
         selectedFailingSignals={selectedFailingSignals}
         failingDependencies={failingDependencies}
-        dependencyActorsByItemId={dependencyActorsByItemId}
         selectedItemActors={selectedItemActors}
         actorContactsByActorId={actorContactsByActorId}
-        hasOwnFailingSignals={hasOwnFailingSignals}
-        isFailingSignalsOpen={isFailingSignalsOpen}
-        onToggleFailingSignals={() => setIsFailingSignalsOpen((prev) => !prev)}
-        hasAffectedBySignals={hasAffectedBySignals}
-        isAffectedBySignalsOpen={isAffectedBySignalsOpen}
-        onToggleAffectedBySignals={() =>
-          setIsAffectedBySignalsOpen((prev) => !prev)
-        }
         buildItemLink={buildItemLink}
         onSelectItemByPath={handleSelectItemByPath}
         onOpenActor={(actor) => setOpenedActorId(actor.id)}
-        isSignalsOpen={isSignalsOpen}
-        onToggleSignals={() => setIsSignalsOpen((prev) => !prev)}
         passingSignalsCount={passingSignalsCount}
         selectedPassingSignals={selectedPassingSignals}
         hasOwnHealthSignals={hasOwnHealthSignals}
-        isPassingSignalsOpen={isPassingSignalsOpen}
-        onTogglePassingSignals={() => setIsPassingSignalsOpen((prev) => !prev)}
-        isContactsOpen={isContactsOpen}
-        onToggleContacts={() => setIsContactsOpen((prev) => !prev)}
         onOpenContact={(contact) => setOpenedContact(contact)}
         isGrafanaOpen={isGrafanaOpen}
         onToggleGrafana={() => setIsGrafanaOpen((prev) => !prev)}
