@@ -1,15 +1,22 @@
 import type { CatalogContact } from "../shared/types";
-import { resolveContactLabel } from "../shared/contactUtils";
+import {
+  resolveContactIconId,
+  resolveContactLabel,
+  resolveContactTypeClass,
+  resolveContactTypeDisplayName,
+} from "../shared/contactUtils";
 
 type ContactModalProps = {
   isOpen: boolean;
   contact: CatalogContact | null;
+  iconSpriteHref: string;
   onClose: () => void;
 };
 
 export default function ContactModal({
   isOpen,
   contact,
+  iconSpriteHref,
   onClose,
 }: ContactModalProps) {
   if (!isOpen || !contact) {
@@ -39,7 +46,25 @@ export default function ContactModal({
           ×
         </button>
         <header className="contact-modal-header">
-          <h2>{resolveContactLabel(contact)}</h2>
+          <h2 className="contact-modal-title">
+            <span
+              className="contact-type-icon-wrap"
+              title={resolveContactTypeDisplayName(contact.type)}
+              aria-label={resolveContactTypeDisplayName(contact.type)}
+            >
+              <svg
+                className={`contact-type-icon ${resolveContactTypeClass(contact.type)}`}
+                viewBox="0 0 24 24"
+                focusable="false"
+                aria-hidden="true"
+              >
+                <use
+                  href={`${iconSpriteHref}#${resolveContactIconId(contact.type)}`}
+                />
+              </svg>
+            </span>
+            <span>{resolveContactLabel(contact)}</span>
+          </h2>
         </header>
         <div className="contact-modal-body">
           <p>

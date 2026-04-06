@@ -1622,6 +1622,7 @@ export default function App() {
       <ContactModal
         isOpen={Boolean(openedContact)}
         contact={openedContact}
+        iconSpriteHref={iconSpriteHref}
         onClose={() => setOpenedContact(null)}
       />
       <ActorModal
