@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check and apply Java source formatting via google-java-format."""
+"""Check or apply Java source formatting."""
 
 from __future__ import annotations
 
@@ -21,6 +21,7 @@ GOOGLE_JAVA_FORMAT_URL = (
     f"google-java-format-{GOOGLE_JAVA_FORMAT_VERSION}-all-deps.jar"
 )
 MIN_SUPPORTED_JAVA_MAJOR = 21
+QA_RUNTIME_DIR = "qa-runtime"
 
 
 def min_java_requirement_label() -> str:
@@ -131,7 +132,7 @@ def ensure_java_compatible() -> int:
 
 def ensure_formatter_jar(repo_root: Path) -> Path:
     """Return cached formatter JAR path, downloading it when missing."""
-    cache_dir = repo_root / ".temp" / "tools" / "google-java-format"
+    cache_dir = repo_root / ".temp" / QA_RUNTIME_DIR / "google-java-format"
     cache_dir.mkdir(parents=True, exist_ok=True)
     jar_path = (
         cache_dir / f"google-java-format-{GOOGLE_JAVA_FORMAT_VERSION}-all-deps.jar"
@@ -149,7 +150,7 @@ def formatter_jar_path(repo_root: Path) -> Path:
     return (
         repo_root
         / ".temp"
-        / "tools"
+        / QA_RUNTIME_DIR
         / "google-java-format"
         / f"google-java-format-{GOOGLE_JAVA_FORMAT_VERSION}-all-deps.jar"
     )
