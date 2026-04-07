@@ -12,6 +12,7 @@ from utils import ensure_python_with_module, iter_repo_files, repo_root
 
 
 def main() -> int:
+    """Validate syntax of repository YAML files."""
     try:
         import yaml  # type: ignore
     except Exception:
