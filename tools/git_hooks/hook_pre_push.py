@@ -15,12 +15,10 @@ EMPTY_TREE_SHA = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
 
 
 def repo_root() -> Path:
-    """Return repository root directory."""
     return Path(__file__).resolve().parent.parent.parent
 
 
 def pushed_files() -> list[str] | None:
-    """Collect changed files included in the current push update."""
     refs_input = sys.stdin.read()
     lines = [line.strip() for line in refs_input.splitlines() if line.strip()]
     if not lines:
@@ -51,7 +49,6 @@ def pushed_files() -> list[str] | None:
 
 
 def main() -> int:
-    """Run secrets scan for files included in push scope."""
     files = pushed_files()
     if files is None:
         print("error: failed to detect files being pushed.", file=sys.stderr)

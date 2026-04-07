@@ -9,7 +9,6 @@ LARGE_FILE_LIMIT_BYTES = 500 * 1024
 
 
 def main() -> int:
-    """Check tracked files against the configured size limit."""
     failed = False
     root = repo_root()
     for path in iter_repo_files():

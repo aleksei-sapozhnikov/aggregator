@@ -9,12 +9,10 @@ from pathlib import Path
 
 
 def repo_root() -> Path:
-    """Return repository root directory."""
     return Path(__file__).resolve().parent.parent.parent
 
 
 def read_hook_mode() -> str | None:
-    """Read configured QA mode for pre-commit hook."""
     result = subprocess.run(
         ["git", "config", "--local", "--get", "hooks.qaMode"],
         cwd=repo_root(),
@@ -29,7 +27,6 @@ def read_hook_mode() -> str | None:
 
 
 def main() -> int:
-    """Dispatch pre-commit hook flow based on configured mode."""
     mode = read_hook_mode()
     if mode is None:
         print(

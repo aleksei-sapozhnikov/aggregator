@@ -27,7 +27,6 @@ PRETTIER_SUFFIXES = {
 
 
 def build_parser() -> argparse.ArgumentParser:
-    """Create CLI parser for Prettier modes."""
     parser = argparse.ArgumentParser(description="Run prettier in check-only or format mode.")
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--check-only", action="store_true")
@@ -36,7 +35,6 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main() -> int:
-    """Run Prettier check or write mode for supported files."""
     args = build_parser().parse_args()
     prettier_cmd = ensure_prettier_cmd()
     if prettier_cmd is None:

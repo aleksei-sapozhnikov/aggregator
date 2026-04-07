@@ -23,23 +23,19 @@ EXCLUDED_DIRS = {
 }
 PRETTIER_VERSION = "3.6.2"
 SCOPED_FILES_ENV = "CODE_QA_FILE_LIST"
-QA_RUNTIME_DIR = "qa-runtime"
 
 
 def repo_root() -> Path:
-    """Return repository root directory for QA scripts."""
     return Path(__file__).resolve().parent.parent.parent
 
 
 def script_dir() -> Path:
-    """Return directory that contains code_qa scripts."""
     return Path(__file__).resolve().parent
 
 
 def build_emitter(
     out_file: str, append: bool = False
 ) -> tuple[Callable[[str], None], Callable[[str], None], Callable[[], None]]:
-    """Build console/file emitters with optional file output."""
     handle = None
     if out_file:
         out_path = Path(out_file).resolve()
@@ -64,12 +60,10 @@ def build_emitter(
 
 
 def emit_final_summary(emit: Callable[[str], None], ok: bool) -> None:
-    """Emit unified final QA status line."""
     emit(f"=== QA: {'PASSED' if ok else 'FAILED'} ===")
 
 
 def parse_secrets_summary(output: str) -> tuple[str, int] | None:
-    """Parse concise secrets summary from scanner output."""
     for line in output.splitlines():
         stripped = line.strip()
         if stripped.startswith("OK: ") and stripped.endswith(" secrets found"):
@@ -84,7 +78,6 @@ def parse_secrets_summary(output: str) -> tuple[str, int] | None:
 
 
 def run_script(script_name: str, script_args: list[str] | None = None) -> tuple[bool, list[str]]:
-    """Execute QA helper script and return status with short details."""
     script = script_dir() / script_name
     args = script_args or []
     result = subprocess.run(
@@ -103,12 +96,10 @@ def run_script(script_name: str, script_args: list[str] | None = None) -> tuple[
 
 
 def is_excluded(path: Path) -> bool:
-    """Check whether path belongs to excluded directories."""
     return any(part in EXCLUDED_DIRS for part in path.parts)
 
 
 def iter_repo_files() -> list[Path]:
-    """Return repository files, optionally constrained by scoped mode."""
     root = repo_root()
     git_files = list_git_files(root)
     files = git_files if git_files is not None else list_walk_files(root)
@@ -118,7 +109,6 @@ def iter_repo_files() -> list[Path]:
     return [path for path in files if path.resolve() in scoped]
 
 def list_walk_files(root: Path) -> list[Path]:
-    """Collect files by recursive walk while honoring exclusions."""
     files: list[Path] = []
     for path in root.rglob("*"):
         if not path.is_file():
@@ -131,7 +121,6 @@ def list_walk_files(root: Path) -> list[Path]:
 
 
 def scoped_files(root: Path) -> set[Path] | None:
-    """Read scoped file list from environment when provided."""
     raw = os.environ.get(SCOPED_FILES_ENV, "").strip()
     if not raw:
         return None
@@ -189,12 +178,10 @@ def list_git_files(root: Path) -> list[Path] | None:
 
 
 def is_binary(data: bytes) -> bool:
-    """Detect binary content from raw bytes."""
     return b"\x00" in data
 
 
 def read_text(path: Path) -> str | None:
-    """Read file as text when decodable and non-binary."""
     try:
         data = path.read_bytes()
     except OSError:
@@ -205,19 +192,16 @@ def read_text(path: Path) -> str | None:
 
 
 def venv_dir() -> Path:
-    """Return directory used for local Python runtime artifacts."""
-    return repo_root() / ".temp" / QA_RUNTIME_DIR / "venv"
+    return repo_root() / ".temp" / "tools" / "venv"
 
 
 def venv_python() -> Path:
-    """Return Python executable path inside local virtual environment."""
     if sys.platform == "win32":
         return venv_dir() / "Scripts" / "python.exe"
     return venv_dir() / "bin" / "python"
 
 
 def ensure_venv() -> Path | None:
-    """Ensure local virtual environment exists and return Python path."""
     py = venv_python()
     if py.exists():
         return py
@@ -235,7 +219,6 @@ def ensure_venv() -> Path | None:
 
 
 def python_has_module(python_exe: str | Path, module_name: str) -> bool:
-    """Check whether selected Python can import a module."""
     result = subprocess.run(
         [str(python_exe), "-c", f"import {module_name}"],
         cwd=repo_root(),
@@ -247,7 +230,6 @@ def python_has_module(python_exe: str | Path, module_name: str) -> bool:
 
 
 def ensure_python_with_module(module_name: str, package_name: str) -> str | None:
-    """Resolve Python interpreter that provides requested module."""
     if python_has_module(sys.executable, module_name):
         return sys.executable
 
@@ -270,15 +252,13 @@ def ensure_python_with_module(module_name: str, package_name: str) -> str | None
 
 
 def prettier_bin_path() -> Path:
-    """Return expected local Prettier executable path."""
-    bin_dir = repo_root() / ".temp" / QA_RUNTIME_DIR / "node_modules" / ".bin"
+    bin_dir = repo_root() / ".temp" / "tools" / "node_modules" / ".bin"
     if sys.platform == "win32":
         return bin_dir / "prettier.cmd"
     return bin_dir / "prettier"
 
 
 def can_run_command(cmd: list[str]) -> bool:
-    """Probe whether command is runnable via version check."""
     try:
         result = subprocess.run(
             [*cmd, "--version"],
@@ -293,7 +273,6 @@ def can_run_command(cmd: list[str]) -> bool:
 
 
 def ensure_prettier_cmd() -> list[str] | None:
-    """Resolve Prettier command from PATH or local runtime setup."""
     if can_run_command(["prettier"]):
         return ["prettier"]
 
@@ -323,7 +302,7 @@ def ensure_prettier_cmd() -> list[str] | None:
                 "--no-audit",
                 "--no-fund",
                 "--prefix",
-                str(repo_root() / ".temp" / QA_RUNTIME_DIR),
+                str(repo_root() / ".temp" / "tools"),
                 f"prettier@{PRETTIER_VERSION}",
             ],
             cwd=repo_root(),

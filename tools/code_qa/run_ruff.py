@@ -11,7 +11,6 @@ from utils import ensure_python_with_module, iter_repo_files, repo_root
 
 
 def resolve_ruff_cmd() -> list[str] | None:
-    """Resolve an executable command for Ruff."""
     if shutil.which("ruff"):
         return ["ruff"]
     python_with_ruff = ensure_python_with_module("ruff", "ruff")
@@ -21,7 +20,6 @@ def resolve_ruff_cmd() -> list[str] | None:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    """Create CLI parser for Ruff modes."""
     parser = argparse.ArgumentParser(description="Run ruff in check-only or format mode.")
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--check-only", action="store_true")
@@ -30,7 +28,6 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main() -> int:
-    """Run Ruff lint/format flow for Python files."""
     args = build_parser().parse_args()
     cmd = resolve_ruff_cmd()
     if cmd is None:

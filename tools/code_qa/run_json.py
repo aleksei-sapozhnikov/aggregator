@@ -9,7 +9,6 @@ from utils import iter_repo_files, repo_root
 
 
 def main() -> int:
-    """Validate syntax of repository JSON files."""
     failed = False
     root = repo_root()
     for path in iter_repo_files():

@@ -13,7 +13,6 @@ CONFLICT_MARKERS_RE = re.compile(
 
 
 def main() -> int:
-    """Detect unresolved merge markers in text files."""
     failed = False
     root = repo_root()
     for path in iter_repo_files():
