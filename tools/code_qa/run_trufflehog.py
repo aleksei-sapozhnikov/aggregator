@@ -21,6 +21,7 @@ TRUFFLEHOG_RELEASE_BASE_URL = (
     f"https://github.com/trufflesecurity/trufflehog/releases/download/v{TRUFFLEHOG_VERSION}"
 )
 SCOPED_FILES_ENV = "CODE_QA_FILE_LIST"
+QA_RUNTIME_DIR = "qa-runtime"
 
 
 def parse_args() -> argparse.Namespace:
@@ -162,12 +163,12 @@ def local_binary_candidates(repo_root: Path) -> list[Path]:
     """Return local cached candidate paths for trufflehog binary."""
     if os.name == "nt":
         return [
-            (repo_root / ".temp" / "tools" / "trufflehog" / "trufflehog.exe").resolve(),
-            (repo_root / ".temp" / "tools" / "trufflehog.exe").resolve(),
+            (repo_root / ".temp" / QA_RUNTIME_DIR / "trufflehog" / "trufflehog.exe").resolve(),
+            (repo_root / ".temp" / QA_RUNTIME_DIR / "trufflehog.exe").resolve(),
         ]
     return [
-        (repo_root / ".temp" / "tools" / "trufflehog" / "trufflehog").resolve(),
-        (repo_root / ".temp" / "tools" / "trufflehog").resolve(),
+        (repo_root / ".temp" / QA_RUNTIME_DIR / "trufflehog" / "trufflehog").resolve(),
+        (repo_root / ".temp" / QA_RUNTIME_DIR / "trufflehog").resolve(),
     ]
 
 
@@ -214,7 +215,7 @@ def download_trufflehog_binary(repo_root: Path) -> str | None:
         )
         return None
 
-    cache_dir = (repo_root / ".temp" / "tools" / "trufflehog").resolve()
+    cache_dir = (repo_root / ".temp" / QA_RUNTIME_DIR / "trufflehog").resolve()
     cache_dir.mkdir(parents=True, exist_ok=True)
     archive_path = cache_dir / asset
     url = f"{TRUFFLEHOG_RELEASE_BASE_URL}/{asset}"
@@ -307,6 +308,7 @@ def parse_trufflehog_findings(raw_output: str, repo_root: Path) -> list[dict[str
 
 
 def scoped_scan_targets(scan_root: Path, repo_root: Path) -> list[Path] | None:
+    """Resolve scoped scan targets when file scoping is enabled."""
     raw = os.environ.get(SCOPED_FILES_ENV, "").strip()
     if not raw:
         return None
