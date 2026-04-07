@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run google-java-format in explicit check/format mode for provided Java files."""
+"""Check and apply Java source formatting via google-java-format."""
 
 from __future__ import annotations
 
@@ -11,6 +11,8 @@ import subprocess
 import sys
 import urllib.request
 from pathlib import Path
+
+from utils import iter_repo_files
 
 GOOGLE_JAVA_FORMAT_VERSION = "1.34.1"
 GOOGLE_JAVA_FORMAT_URL = (
@@ -29,9 +31,24 @@ def min_java_requirement_label() -> str:
 def parse_args() -> argparse.Namespace:
     """Parse formatter mode and optional doctor command."""
     parser = argparse.ArgumentParser(
-        description="Run google-java-format in format or check mode."
+        description="Run java formatter in check-only or format mode."
     )
-    parser.add_argument("--mode", choices=("format", "check"))
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
+        "--check-only",
+        action="store_true",
+        help="Check formatting and fail when files need changes.",
+    )
+    group.add_argument(
+        "--format",
+        action="store_true",
+        help="Apply formatting changes in-place.",
+    )
+    parser.add_argument(
+        "--mode",
+        choices=("check", "format"),
+        help="Deprecated alias for mode selection.",
+    )
     parser.add_argument("files", nargs="*", help="Java files.")
     parser.add_argument(
         "--doctor-json",
@@ -39,8 +56,20 @@ def parse_args() -> argparse.Namespace:
         help="Print Java/formatter compatibility status as JSON and exit.",
     )
     args = parser.parse_args()
-    if not args.doctor_json and (args.mode is None or not args.files):
-        parser.error("--mode and at least one Java file are required")
+    if args.doctor_json:
+        return args
+
+    resolved_mode = None
+    if args.format:
+        resolved_mode = "format"
+    elif args.check_only:
+        resolved_mode = "check"
+    elif args.mode:
+        resolved_mode = args.mode
+
+    if resolved_mode is None:
+        parser.error("choose one mode (--check-only/--format)")
+    args.mode = resolved_mode
     return args
 
 
@@ -102,7 +131,7 @@ def ensure_java_compatible() -> int:
 
 def ensure_formatter_jar(repo_root: Path) -> Path:
     """Return cached formatter JAR path, downloading it when missing."""
-    cache_dir = repo_root / ".temp" / "google-java-format"
+    cache_dir = repo_root / ".temp" / "tools" / "google-java-format"
     cache_dir.mkdir(parents=True, exist_ok=True)
     jar_path = (
         cache_dir / f"google-java-format-{GOOGLE_JAVA_FORMAT_VERSION}-all-deps.jar"
@@ -120,6 +149,7 @@ def formatter_jar_path(repo_root: Path) -> Path:
     return (
         repo_root
         / ".temp"
+        / "tools"
         / "google-java-format"
         / f"google-java-format-{GOOGLE_JAVA_FORMAT_VERSION}-all-deps.jar"
     )
@@ -132,6 +162,11 @@ def normalize_files(repo_root: Path, paths: list[str]) -> list[Path]:
         for path in paths
         if path.endswith(".java")
     ]
+
+
+def discover_java_files() -> list[Path]:
+    """Collect Java files from repository scan when CLI did not provide explicit list."""
+    return [path.resolve() for path in iter_repo_files() if path.suffix.lower() == ".java"]
 
 
 def run_formatter(jar_path: Path, mode: str, files: list[Path], java_major: int) -> int:
@@ -215,7 +250,7 @@ def main() -> int:
     """Execute java format/check flow from parsed CLI arguments."""
     args = parse_args()
     script_path = Path(__file__).resolve()
-    repo_root = script_path.parent.parent
+    repo_root = script_path.parent.parent.parent
     os.chdir(repo_root)
 
     if args.doctor_json:
@@ -223,7 +258,7 @@ def main() -> int:
 
     java_major = ensure_java_compatible()
     jar_path = ensure_formatter_jar(repo_root)
-    files = normalize_files(repo_root, args.files)
+    files = normalize_files(repo_root, args.files) if args.files else discover_java_files()
     return run_formatter(jar_path, args.mode, files, java_major)
 
 

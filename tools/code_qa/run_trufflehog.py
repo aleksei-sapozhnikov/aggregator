@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run trufflehog filesystem scan with explicit paths and concise summary support."""
+"""Scan repository files for potential secrets using TruffleHog."""
 
 from __future__ import annotations
 
@@ -20,6 +20,7 @@ TRUFFLEHOG_VERSION = "3.94.0"
 TRUFFLEHOG_RELEASE_BASE_URL = (
     f"https://github.com/trufflesecurity/trufflehog/releases/download/v{TRUFFLEHOG_VERSION}"
 )
+SCOPED_FILES_ENV = "CODE_QA_FILE_LIST"
 
 
 def parse_args() -> argparse.Namespace:
@@ -134,7 +135,7 @@ def collect_gitignored(repo_root: Path) -> tuple[list[dict[str, str]], list[str]
 
 
 def resolve_trufflehog_binary(repo_root: Path, explicit_binary: str) -> str:
-    """Resolve trufflehog binary path from explicit arg, .temp, PATH, or download."""
+    """Resolve trufflehog binary path from explicit arg, local cache, PATH, or download."""
     if explicit_binary:
         return explicit_binary
 
@@ -158,15 +159,15 @@ def resolve_trufflehog_binary(repo_root: Path, explicit_binary: str) -> str:
 
 
 def local_binary_candidates(repo_root: Path) -> list[Path]:
-    """Return local .temp candidate paths for trufflehog binary."""
+    """Return local cached candidate paths for trufflehog binary."""
     if os.name == "nt":
         return [
-            (repo_root / ".temp" / "trufflehog" / "trufflehog.exe").resolve(),
-            (repo_root / ".temp" / "trufflehog.exe").resolve(),
+            (repo_root / ".temp" / "tools" / "trufflehog" / "trufflehog.exe").resolve(),
+            (repo_root / ".temp" / "tools" / "trufflehog.exe").resolve(),
         ]
     return [
-        (repo_root / ".temp" / "trufflehog" / "trufflehog").resolve(),
-        (repo_root / ".temp" / "trufflehog").resolve(),
+        (repo_root / ".temp" / "tools" / "trufflehog" / "trufflehog").resolve(),
+        (repo_root / ".temp" / "tools" / "trufflehog").resolve(),
     ]
 
 
@@ -201,7 +202,7 @@ def trufflehog_release_asset() -> str | None:
 
 
 def download_trufflehog_binary(repo_root: Path) -> str | None:
-    """Download and extract trufflehog binary into repo .temp directory."""
+    """Download and extract trufflehog binary into local cache directory."""
     asset = trufflehog_release_asset()
     if asset is None:
         print(
@@ -213,7 +214,7 @@ def download_trufflehog_binary(repo_root: Path) -> str | None:
         )
         return None
 
-    cache_dir = (repo_root / ".temp" / "trufflehog").resolve()
+    cache_dir = (repo_root / ".temp" / "tools" / "trufflehog").resolve()
     cache_dir.mkdir(parents=True, exist_ok=True)
     archive_path = cache_dir / asset
     url = f"{TRUFFLEHOG_RELEASE_BASE_URL}/{asset}"
@@ -305,6 +306,33 @@ def parse_trufflehog_findings(raw_output: str, repo_root: Path) -> list[dict[str
     return findings
 
 
+def scoped_scan_targets(scan_root: Path, repo_root: Path) -> list[Path] | None:
+    raw = os.environ.get(SCOPED_FILES_ENV, "").strip()
+    if not raw:
+        return None
+    try:
+        content = Path(raw).read_text(encoding="utf-8")
+    except OSError:
+        return []
+    targets: list[Path] = []
+    seen: set[Path] = set()
+    for line in content.splitlines():
+        rel = line.strip().replace("\\", "/")
+        if not rel:
+            continue
+        file_path = (repo_root / rel).resolve()
+        if not file_path.is_file():
+            continue
+        try:
+            file_path.relative_to(scan_root)
+        except ValueError:
+            continue
+        if file_path not in seen:
+            seen.add(file_path)
+            targets.append(file_path)
+    return targets
+
+
 def main() -> int:
     """Run scan, write outputs, and optionally print concise summary."""
     args = parse_args()
@@ -350,35 +378,55 @@ def main() -> int:
             tmp.write(pattern)
             tmp.write("\n")
 
-    cmd = [
-        trufflehog_binary,
-        "filesystem",
-        "--json",
-        "--exclude-paths",
-        str(exclude_file),
-        str(scan_root),
-    ]
+    targets = scoped_scan_targets(scan_root, repo_root)
+    if targets is None:
+        targets = [scan_root]
+    if not targets:
+        if args.summary:
+            print("OK: 0 secrets found")
+        return 0
 
     try:
-        result = run_command(cmd)
+        all_stdout: list[str] = []
+        all_stderr: list[str] = []
+        return_code = 0
+        for target in targets:
+            cmd = [
+                trufflehog_binary,
+                "filesystem",
+                "--json",
+                "--exclude-paths",
+                str(exclude_file),
+                str(target),
+            ]
+            result = run_command(cmd)
+            if result.returncode != 0:
+                return_code = result.returncode
+            if result.stdout:
+                all_stdout.append(result.stdout)
+            if result.stderr:
+                all_stderr.append(result.stderr)
+
+        merged_stdout = "".join(all_stdout)
+        merged_stderr = "".join(all_stderr)
         if output_file is not None:
-            output_file.write_text(result.stdout, encoding="utf-8")
-        if result.stdout and not args.quiet:
-            sys.stdout.write(result.stdout)
-        if result.stderr and not args.quiet:
-            sys.stderr.write(result.stderr)
+            output_file.write_text(merged_stdout, encoding="utf-8")
+        if merged_stdout and not args.quiet:
+            sys.stdout.write(merged_stdout)
+        if merged_stderr and not args.quiet:
+            sys.stderr.write(merged_stderr)
 
         if args.summary:
-            findings = parse_trufflehog_findings(result.stdout, repo_root)
+            findings = parse_trufflehog_findings(merged_stdout, repo_root)
             if not findings:
                 print("OK: 0 secrets found")
             else:
                 print(f"FAILED: {len(findings)} potential secret(s) found")
                 for finding in findings:
                     print(f"- {finding['path']}: {finding['issue']}")
-                if result.returncode == 0:
+                if return_code == 0:
                     return 1
-        return result.returncode
+        return return_code
     finally:
         if exclude_file.exists():
             exclude_file.unlink()
