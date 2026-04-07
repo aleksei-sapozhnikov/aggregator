@@ -9,6 +9,7 @@ from utils import iter_repo_files, read_text, repo_root
 
 
 def build_parser() -> argparse.ArgumentParser:
+    """Create CLI parser for line-ending modes."""
     parser = argparse.ArgumentParser(description="Check or normalize line endings.")
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--check-only", action="store_true")
@@ -17,6 +18,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main() -> int:
+    """Run line-ending check or normalization."""
     args = build_parser().parse_args()
     failed = False
     changed = 0

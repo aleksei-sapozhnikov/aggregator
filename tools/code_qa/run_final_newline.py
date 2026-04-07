@@ -9,6 +9,7 @@ from utils import iter_repo_files, read_text, repo_root
 
 
 def build_parser() -> argparse.ArgumentParser:
+    """Create CLI parser for final-newline modes."""
     parser = argparse.ArgumentParser(description="Check or normalize final newline.")
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--check-only", action="store_true")

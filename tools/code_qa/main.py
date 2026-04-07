@@ -20,6 +20,8 @@ from utils import (
 
 @dataclass(frozen=True)
 class CheckSpec:
+    """Describe one QA check and its optional format action."""
+
     check_id: str
     display_name: str
     script_name: str
@@ -102,6 +104,7 @@ CHECKS: list[CheckSpec] = [
 
 
 def _run_checks(emit: Callable[[str], None]) -> tuple[bool, list[str]]:
+    """Run all configured checks and emit details for failures."""
     failed: list[str] = []
     for check in CHECKS:
         print(f"Checking {check.display_name}.. ", end="", flush=True)
@@ -121,6 +124,7 @@ def run_check_command(
     append_out_file: bool = False,
     suppress_final_summary: bool = False,
 ) -> int:
+    """Execute check-only flow and return process exit code."""
     emit, _, close = build_emitter(out_file, append=append_out_file)
     try:
         ok, _ = _run_checks(emit)
@@ -138,6 +142,7 @@ def run_format_command(
     append_out_file: bool = False,
     suppress_final_summary: bool = False,
 ) -> int:
+    """Execute format flow and re-run checks to confirm final status."""
     _ = raw
     emit, _, close = build_emitter(out_file, append=append_out_file)
     try:
@@ -181,6 +186,7 @@ def run_secrets_command(
     append_out_file: bool = False,
     suppress_final_summary: bool = False,
 ) -> int:
+    """Execute secrets scan flow and report summarized status."""
     script = script_dir() / "run_trufflehog.py"
     cmd = [sys.executable, str(script), "--scan-root", scan_root]
     if output_file:
@@ -232,6 +238,7 @@ def run_check_all_command(
     raw: bool = False,
     out_file: str = "",
 ) -> int:
+    """Run lint checks plus secrets scan as one combined command."""
     check_rc = run_check_command(
         out_file=out_file,
         append_out_file=False,
@@ -264,6 +271,7 @@ def run_qa_command(
     raw: bool = False,
     out_file: str = "",
 ) -> int:
+    """Run format flow followed by secrets scan as one combined command."""
     format_rc = run_format_command(
         raw=raw,
         out_file=out_file,
@@ -297,6 +305,7 @@ def run_qa_command(
 
 
 def build_parser() -> argparse.ArgumentParser:
+    """Create CLI parser for QA subcommands."""
     parser = argparse.ArgumentParser(
         description="Run code QA flows (default: qa)."
     )
@@ -335,6 +344,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main() -> int:
+    """Dispatch CLI command to the matching QA workflow."""
     args = build_parser().parse_args()
 
     if args.command == "qa":

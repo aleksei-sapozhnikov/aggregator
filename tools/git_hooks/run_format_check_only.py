@@ -13,10 +13,12 @@ SCOPED_FILES_ENV = "CODE_QA_FILE_LIST"
 
 
 def repo_root() -> Path:
+    """Return repository root directory."""
     return Path(__file__).resolve().parent.parent.parent
 
 
 def staged_files() -> list[str] | None:
+    """Return staged file paths for the current commit."""
     result = subprocess.run(
         ["git", "diff", "--cached", "--name-only", "--diff-filter=ACMR", "-z"],
         cwd=repo_root(),
@@ -35,6 +37,7 @@ def staged_files() -> list[str] | None:
 
 
 def main() -> int:
+    """Run scoped check-only flow for staged files."""
     files = staged_files()
     if files is None:
         print("error: failed to read staged files.", file=sys.stderr)
