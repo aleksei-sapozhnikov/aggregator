@@ -5,11 +5,11 @@ from __future__ import annotations
 
 import os
 import subprocess
-import sys
-from importlib import import_module
 from pathlib import Path
 
 from utils import ensure_python_with_module, iter_repo_files, repo_root
+
+BOOTSTRAP_ENV = "CODE_QA_YAML_BOOTSTRAPPED"
 
 
 def main() -> int:
@@ -17,26 +17,21 @@ def main() -> int:
     try:
         import yaml  # type: ignore
     except Exception:
+        if os.environ.get(BOOTSTRAP_ENV) == "1":
+            print("PyYAML is not installed and import failed after bootstrap.")
+            return 1
         python_with_yaml = ensure_python_with_module("yaml", "pyyaml")
         if not python_with_yaml:
             print("PyYAML is not installed and local venv bootstrap failed.")
             return 1
-        current_python = str(Path(sys.executable).resolve())
-        if current_python == str(Path(python_with_yaml).resolve()):
-            try:
-                yaml = import_module("yaml")  # type: ignore
-            except Exception:
-                print("PyYAML is not installed and import failed after bootstrap.")
-                return 1
-        else:
-            env = os.environ.copy()
-            env["CODE_QA_YAML_BOOTSTRAPPED"] = "1"
-            return subprocess.run(
-                [python_with_yaml, str(Path(__file__).resolve())],
-                cwd=repo_root(),
-                env=env,
-                check=False,
-            ).returncode
+        env = os.environ.copy()
+        env[BOOTSTRAP_ENV] = "1"
+        return subprocess.run(
+            [python_with_yaml, str(Path(__file__).resolve())],
+            cwd=repo_root(),
+            env=env,
+            check=False,
+        ).returncode
 
     failed = False
     root = repo_root()
