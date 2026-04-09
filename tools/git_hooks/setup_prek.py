@@ -14,7 +14,7 @@ DEFAULT_PREK_VERSION = "0.3.6"
 
 def repo_root() -> Path:
     """Return repository root directory based on this script location."""
-    return Path(__file__).resolve().parent.parent
+    return Path(__file__).resolve().parent.parent.parent
 
 
 def run(cmd: list[str]) -> int:
