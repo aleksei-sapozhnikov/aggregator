@@ -148,40 +148,41 @@ For additional options see [Makefile](./Makefile)
 
 ## Code Formatting And Checks
 
-The repository uses a single `prek` pipeline configured in `prek.toml` for formatting and checks across languages:
+`code_qa` and git hooks are split:
 
-- Java: `google-java-format`
-- Python: `ruff-check` + `ruff-format`
-- TypeScript / JavaScript / JSON / YAML / Markdown / CSS / HTML: `prettier`
-- Generic text hygiene: trailing whitespace, merge markers, JSON/YAML validity, single final newline
-- Secrets: `trufflehog` (pre-push + CI)
+- `tools/code_qa/*` runs manual/CI code checks directly (no `prek` runtime dependency).
+- `tools/git_hooks/*` installs and configures git hooks via `prek`.
 
-Pre-commit runs in **check-only** mode (no auto-format edits).
-Manual formatting is executed explicitly by running the formatter script.
-In GitHub Actions checks run on `ubuntu-latest` runner with pinned CI tool versions.
-CI executes `python tools/code_qa.py check-all`.
+Pre-commit mode is selectable during hook installation:
+
+- `lint-only`: check-only, no file edits.
+- `format-and-lint`: format, then lint; commit fails if files were changed by hook.
+- In GitHub Actions checks run on `ubuntu-latest` runner with pinned CI tool versions.
+  CI executes `python tools/code_qa/main.py lint`.
 
 ### Install local hooks
 
 Any OS:
 
 ```bash
-python tools/setup_prek.py
-python tools/setup_git_hooks.py
+python tools/git_hooks/setup_prek.py
+python tools/git_hooks/setup_git_hooks.py --mode lint-only
 ```
 
-`python tools/setup_prek.py` installs pinned `prek`.
-`python tools/setup_git_hooks.py` installs git hooks.
+`python tools/git_hooks/setup_prek.py` installs pinned `prek`.
+`python tools/git_hooks/setup_git_hooks.py --mode ...` installs git hooks for the selected behavior.
+Both pre-commit and pre-push are installed from `prek.toml`.
+Selected pre-commit mode is stored in local git config key `hooks.qaMode`.
 If you only want tool installation with custom version, use:
 
 ```bash
-python tools/setup_prek.py --prek-version 0.3.6
+python tools/git_hooks/setup_prek.py --prek-version 0.3.6
 ```
 
 If tools are already installed, you can run only:
 
 ```bash
-python tools/setup_git_hooks.py
+python tools/git_hooks/setup_git_hooks.py --mode format-and-lint
 ```
 
 On Windows, if `python` is unavailable in PATH, use `py -3` instead.
@@ -189,16 +190,23 @@ After installation, commits from command line and IntelliJ IDEA Git UI will run 
 
 ### Run formatting/checks manually
 
+Manual `code_qa` requires local tools:
+
 ```bash
-python tools/code_qa.py check-code
-python tools/code_qa.py format-code
-python tools/code_qa.py check-secrets
-python tools/code_qa.py check-all
+python -m pip install --upgrade ruff pyyaml
+npm install --global prettier@3.6.2
 ```
 
-`python tools/code_qa.py check-code` runs validation only and never auto-formats files.
-`python tools/code_qa.py format-code` formats only failed checks, then runs full check again.
-`python tools/code_qa.py check-secrets` prints compact output (`Checking secrets.. OK/FAILED` + `N secrets found`).
-`python tools/code_qa.py check-all` runs check + secrets and always prints final status line.
+```bash
+make code-qa
+python tools/code_qa/main.py
+python tools/code_qa/main.py format
+python tools/code_qa/main.py format-check-only
+python tools/code_qa/main.py lint
+```
+
+`make code-qa` and `python tools/code_qa/main.py` run format-and-lint plus secrets scan.
+`format` runs checks, formats failed check groups (for example `prettier`, `final newline`, `java format`), then re-checks.
+`format-check-only` runs only code checks (no formatting, no secrets scan).
+`lint` runs check-only code validation plus secrets scan (CI mode).
 Each command finishes with `=== QA: PASSED ===` or `=== QA: FAILED ===`.
-Use `python tools/code_qa.py check-secrets --raw` for full trufflehog JSON output.

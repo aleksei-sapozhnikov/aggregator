@@ -88,7 +88,7 @@ export FEEDBACK_STORAGE_CONFIG
 .PHONY: help info env \
         up down restart recreate rebuild rebuild-recreate clean \
         up-svc down-svc restart-svc recreate-svc rebuild-svc rebuild-recreate-svc clean-svc \
-        code-format code-lint
+        code-qa code-format code-lint
 
 help:
 	@echo "Usage:"
@@ -105,8 +105,9 @@ help:
 	@echo "  rebuild          -> build images + start/update (keep volumes)"
 	@echo "  rebuild-recreate -> build images + force re-create containers (keep volumes)"
 	@echo "  clean            -> down + remove containers, network, and volumes (DATA LOSS)"
-	@echo "  code-format -> run full code formatting"
-	@echo "  code-lint        -> run lint/check hooks"
+	@echo "  code-qa          -> run format, then secrets scan"
+	@echo "  code-format      -> run format flow"
+	@echo "  code-lint        -> run lint flow"
 	@echo ""
 	@echo "Service-scoped (positional args):"
 	@echo "  make down-svc caddy grafana"
@@ -218,8 +219,11 @@ clean-svc: info
 	fi
 
 # ---- Code QA commands ----
+code-qa:
+	python tools/code_qa/main.py qa
+
 code-format:
-	python tools/code_qa.py format-code
+	python tools/code_qa/main.py format
 
 code-lint:
-	python tools/code_qa.py check-all
+	python tools/code_qa/main.py lint
