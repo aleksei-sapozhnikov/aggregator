@@ -1,12 +1,8 @@
 FROM python:3.11-slim
 
-ARG CONTAINER_ROOT=.
-ARG SIGNALS_HTTP_POLL_FILE
-
 WORKDIR /app
 
-COPY ${CONTAINER_ROOT}/src ./
-COPY ${SIGNALS_HTTP_POLL_FILE} ./signals-http-poll.yaml
+COPY src ./
 
 RUN python -m venv /opt/venv \
  && /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
