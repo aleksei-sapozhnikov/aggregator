@@ -1,0 +1,149 @@
+# yaml-language-server: $schema=../schemas/catalog-items.schema.yaml
+# Demo catalog with expanded service topology
+items:
+  - id: it_e7f7ec2d
+    title: Commerce Platform
+  - id: it_51dae4dd
+    title: Operations Suite
+  - id: it_9d9e5627
+    title: Customer Experience
+  - id: it_6307a2a8
+    title: Commerce Line Core
+  - id: it_5b917d99
+    title: Commerce Extensions
+  - id: it_8be9ba4f
+    title: Commerce Core
+  - id: it_144bbdb0
+    title: Order Domain
+  - id: it_008a7af7
+    title: Order Intake Hub
+  - id: it_1668c093
+    title: Order Guard Hub
+  - id: it_6c7923ab
+    title: Order Finance Hub
+  - id: it_43ab1049
+    title: Order Workflow
+  - id: it_571c410e
+    title: Operations Line
+  - id: it_c51a1ccc
+    title: Operations Accelerators
+  - id: it_0387f962
+    title: Fulfillment Hub
+  - id: it_978f32ea
+    title: Logistics Domain
+  - id: it_ef57ee00
+    title: Logistics Routing Cell
+  - id: it_906f7e0d
+    title: Logistics Inventory Cell
+  - id: it_05c82f52
+    title: Distribution Core
+  - id: it_5c743f44
+    title: Experience Line
+  - id: it_741e7f6b
+    title: Experience Foundation
+  - id: it_6e67d308
+    title: Engagement Suite
+  - id: it_d01a646d
+    title: Journey Domain
+  - id: it_bee18e53
+    title: Touchpoint Core
+  - id: it_a0a28b85
+    title: Touchpoint Profile Pillar
+  - id: it_4869434a
+    title: Touchpoint Messaging Pillar
+  - id: it_e8e0d47a
+    title: Touchpoint Campaign Pillar
+  - id: it_5622ffff
+    title: Profile Core Nodes
+  - id: it_5d0def3d
+    title: Profile Identity Nodes
+  - id: it_ccf17b90
+    title: Messaging Router Nodes
+  - id: it_e6af80a7
+    title: Messaging Template Nodes
+  - id: it_352b4411
+    title: Campaign Planner Nodes
+  - id: it_ae13d093
+    title: Campaign Optimizer Nodes
+  - id: it_5a9ca947
+    title: Order Capture Service
+  - id: it_31cdf080
+    title: Order Validation Service
+  - id: it_b0833df4
+    title: Order Billing Service
+  - id: it_ca854f7f
+    title: Order Dispatch Service
+  - id: it_48bb5977
+    title: Routing Engine Service
+  - id: it_34b1b4e7
+    title: Inventory Sync Service
+  - id: it_0d5a82d5
+    title: Last-Mile Dispatch Service
+  - id: it_4395c1de
+    title: Returns Processing Service
+  - id: it_71574a7b
+    title: Engagement Orchestrator Service
+  - id: it_92628e0a
+    title: Profile Store Service
+  - id: it_51735b03
+    title: Messaging Hub Service
+  - id: it_8f468246
+    title: Campaign Execution Service
+  - id: it_b61910c1
+    title: Commerce Core Pricing Sync Service
+  - id: it_1151701c
+    title: Order Domain Events Service
+  - id: it_2484e0db
+    title: Order Intake API Service
+  - id: it_fbb05062
+    title: Order Intake Buffer Service
+  - id: it_96952012
+    title: Fraud Screening Service
+  - id: it_65839693
+    title: Policy Evaluator Service
+  - id: it_3ca8ec85
+    title: Invoice Orchestrator Service
+  - id: it_4c046b1d
+    title: Payment Authorization Adapter Service
+  - id: it_9e60bdd7
+    title: Order State Projection Service
+  - id: it_3160377e
+    title: Order SLA Tracker Service
+  - id: it_bd3e8b82
+    title: Fulfillment Control Plane Service
+  - id: it_9ead5a94
+    title: Logistics Event Router Service
+  - id: it_9de17f36
+    title: Route Cache Writer Service
+  - id: it_ed0d04bb
+    title: Route Cost Model Service
+  - id: it_20cb3376
+    title: Inventory Reconciler Service
+  - id: it_7199280d
+    title: Stock Reservation Service
+  - id: it_2df0c55c
+    title: Depot Slotting Service
+  - id: it_116e2e82
+    title: Carrier Capacity Broker Service
+  - id: it_a6854c60
+    title: Dispatch Simulation Service
+  - id: it_9c69814b
+    title: Customer Consent Ledger Service
+  - id: it_0c7f7cbf
+    title: Audience Intent Processor Service
+  - id: it_40d8cd7c
+    title: Journey Rules Engine Service
+  - id: it_12a5d380
+    title: Journey Experimentation Service
+  - id: it_5e0132b8
+    title: Touchpoint Session State Service
+  - id: it_7e7405d3
+    title: Profile Merge Orchestrator Service
+  - id: it_6cab1e6f
+    title: Template Renderer Service
+  - id: it_984c1c25
+    title: Channel Delivery Router Service
+  - id: it_86ccee33
+    title: Campaign Segmentation Service
+  - id: it_29082314
+    title: Campaign Budget Guard Service
