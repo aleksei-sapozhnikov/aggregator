@@ -1,5 +1,6 @@
 package com.github.vermucht.aggregator.signalsource.polling.http.configuration;
 
+import com.github.vermucht.aggregator.catalog.configuration.CatalogProperties;
 import com.github.vermucht.aggregator.utils.DefinitionLoader;
 import jakarta.annotation.Nonnull;
 import java.util.List;
@@ -11,16 +12,16 @@ import org.springframework.stereotype.Component;
 /** Loads HTTP polling signal configurations from the configured definition resource. */
 @Component
 public class HttpPollingSignalDefinitionLoader {
-  @Nonnull private final HttpPollingSignalProperties properties;
+  @Nonnull private final CatalogProperties catalogProperties;
   @Nonnull private final DefinitionLoader definitionLoader;
   @Nonnull private final ResourceLoader resourceLoader;
 
   /** Creates a loader that reads the HTTP polling signal definition file. */
   public HttpPollingSignalDefinitionLoader(
-      @Nonnull HttpPollingSignalProperties properties,
+      @Nonnull CatalogProperties catalogProperties,
       @Nonnull DefinitionLoader definitionLoader,
       @Nonnull ResourceLoader resourceLoader) {
-    this.properties = Objects.requireNonNull(properties, "properties");
+    this.catalogProperties = Objects.requireNonNull(catalogProperties, "catalogProperties");
     this.definitionLoader = Objects.requireNonNull(definitionLoader, "definitionLoader");
     this.resourceLoader = Objects.requireNonNull(resourceLoader, "resourceLoader");
   }
@@ -28,19 +29,13 @@ public class HttpPollingSignalDefinitionLoader {
   /** Loads the HTTP polling signal configurations from the configured resource. */
   @Nonnull
   public List<HttpPollingSignalConfiguration> loadConfigurations() {
-    Resource resource = resourceLoader.getResource(properties.getDefinitionPath());
+    String definitionUrl = catalogProperties.getSignalsUrl();
+    Resource resource = resourceLoader.getResource(definitionUrl);
     if (!resource.exists()) {
-      throw new IllegalStateException(
-          "HTTP polling signal file not found at " + properties.getDefinitionPath());
-    }
-    Resource schemaResource = resourceLoader.getResource(properties.getSchemaPath());
-    if (!schemaResource.exists()) {
-      throw new IllegalStateException(
-          "HTTP polling signal schema file not found at " + properties.getSchemaPath());
+      throw new IllegalStateException("HTTP polling signal file not found at " + definitionUrl);
     }
     HttpPollingSignalDefinition definition =
-        definitionLoader.loadDefinition(
-            resource, schemaResource, HttpPollingSignalDefinition.class);
+        definitionLoader.loadDefinition(resource, HttpPollingSignalDefinition.class);
     List<HttpPollingSignalConfiguration> signals = definition.signals();
     if (signals == null) {
       throw new IllegalStateException("HTTP polling signal definition must include signals");
