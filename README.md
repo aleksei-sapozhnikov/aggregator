@@ -36,6 +36,8 @@ different kinds of checks, such as health checks, SLI-style indicators, and othe
 Services expose an endpoint, the aggregator polls it periodically, and converts the result into `UP`, `DOWN`, or
 `UNKNOWN`.
 `UNKNOWN` is used when no usable health signal is available, most often because a service does not provide one.
+Catalog definitions and signal definitions are served by a dedicated `catalog` service over HTTP API.
+Other services consume catalog data from that API at startup.
 
 Polling is used here because it is the simplest way to get a working signal path in the first version. A future
 extension can add ingestion, where services push updates into the aggregator directly.
@@ -56,14 +58,15 @@ extension can add ingestion, where services push updates into the aggregator dir
 
 ### Configuration
 
-Catalog items and health signal sources are configured in YAML files. Demo example:
+Catalog items and health signal sources are stored in the dedicated
+[catalog](services-core/catalog) service.
+The service keeps file-based variants and schemas:
 
-- [demo/catalog-items.yaml](config/demo/catalog-items.yaml)
-- [demo/catalog-dependencies.yaml](config/demo/catalog-dependencies.yaml)
-- [demo/signals-http-poll.yaml](config/demo/signals-http-poll.yaml)
-- [schemas/catalog-items.schema.yaml](config/schemas/catalog-items.schema.yaml)
-- [schemas/catalog-dependencies.schema.yaml](config/schemas/catalog-dependencies.schema.yaml)
-- [schemas/signals-http-poll.schema.yaml](config/schemas/signals-http-poll.schema.yaml)
+- [catalog/demo](services-core/catalog/catalog/demo)
+- [catalog/empty](services-core/catalog/catalog/empty)
+- [catalog/schemas](services-core/catalog/schemas)
+
+Compose selects the active variant through `CATALOG_DIR` (for example `./catalog/demo`).
 
 Catalog format notes:
 
@@ -73,11 +76,15 @@ Catalog format notes:
 
 ### Core Services (`services-core`)
 
-- [aggregator](services-core/aggregator): Java backend (Spring Boot). Collects signals from service health check
-  endpoints, aggregates service/product state through the dependency graph, and exposes Prometheus metrics at
+- [aggregator](services-core/aggregator): Java backend (Spring Boot). Loads catalog and signal-source definitions
+  from `catalog` API, polls service health check endpoints, aggregates service/product state through the dependency
+  graph, and exposes Prometheus metrics at
   `/actuator/prometheus`. Metric semantics:
   [HealthMetricsDocumentation.java](services-core/aggregator/src/main/java/com/github/vermucht/aggregator/export/HealthMetricsDocumentation.java).
-- [aggregator-ui](services-core/aggregator-ui): User web interface built with React.
+- [aggregator-ui](services-core/aggregator-ui): User web interface built with React. Reads catalog data from
+  `catalog` API (proxied via Caddy under `/catalog/*`).
+- [catalog](services-core/catalog): Go service that owns catalog data and schemas, validates loaded catalog files at
+  startup, and exposes catalog/signal definitions via HTTP API.
 
 ### Supporting Services (`services-extra`)
 
@@ -88,7 +95,7 @@ Catalog format notes:
 ### Demo Services (`services-demo`)
 
 - [chaos-maker](services-demo/chaos-maker): Python service that randomly breaks and restores services to keep the demo
-  realistic and dynamic.
+  realistic and dynamic. It gets signal targets from `catalog` API.
 - [dummy-java](services-demo/dummy-java), [dummy-python](services-demo/dummy-python),
   [dummy-javascript](services-demo/dummy-javascript): simulated product services (Java/Python/JavaScript) with health
   check endpoint for aggregator polling and a state-change endpoint (`UP`/`DOWN`) used
