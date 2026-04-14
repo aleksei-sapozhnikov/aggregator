@@ -335,7 +335,7 @@ export default function SidebarPanel({
       )}
       {!error && tree.length === 0 && (
         <div className="empty">
-          Catalog is empty. Add items to catalog-items.yaml.
+          Catalog is empty. Add items in catalog service configuration.
         </div>
       )}
       {isSearchActive ? (
