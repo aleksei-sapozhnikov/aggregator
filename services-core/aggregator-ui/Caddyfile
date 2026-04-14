@@ -1,4 +1,8 @@
 :3000 {
+    handle_path /catalog/* {
+        reverse_proxy catalog:8080
+    }
+
     handle /api/feedback {
         reverse_proxy aggregator:8080
     }
