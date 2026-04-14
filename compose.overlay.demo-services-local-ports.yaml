@@ -10,3 +10,7 @@ services:
   dummy-javascript:
     ports:
       - "8083:8080"
+
+  catalog:
+    ports:
+      - "8084:8080"
