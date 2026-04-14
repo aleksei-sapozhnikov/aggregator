@@ -1,44 +1,36 @@
 package com.github.vermucht.aggregator.catalog.configuration;
 
+import java.util.Objects;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-/** Configuration properties for catalog definition and schema resources. */
+/** Configuration properties for catalog service access. */
 @ConfigurationProperties("catalog")
 public class CatalogProperties {
-  private String itemsPath = "";
-  private String dependenciesPath = "";
-  private String itemsSchemaPath = "";
-  private String dependenciesSchemaPath = "";
+  private String baseUrl = "http://catalog:8080";
 
-  public String getItemsPath() {
-    return itemsPath;
+  public String getBaseUrl() {
+    return baseUrl;
   }
 
-  public void setItemsPath(String itemsPath) {
-    this.itemsPath = itemsPath;
+  public void setBaseUrl(String baseUrl) {
+    this.baseUrl = Objects.requireNonNullElse(baseUrl, "").trim();
   }
 
-  public String getDependenciesPath() {
-    return dependenciesPath;
+  public String getItemsUrl() {
+    return withPath("/api/catalog/items");
   }
 
-  public void setDependenciesPath(String dependenciesPath) {
-    this.dependenciesPath = dependenciesPath;
+  public String getDependenciesUrl() {
+    return withPath("/api/catalog/dependencies");
   }
 
-  public String getItemsSchemaPath() {
-    return itemsSchemaPath;
+  public String getSignalsUrl() {
+    return withPath("/api/signals/http-poll");
   }
 
-  public void setItemsSchemaPath(String itemsSchemaPath) {
-    this.itemsSchemaPath = itemsSchemaPath;
-  }
-
-  public String getDependenciesSchemaPath() {
-    return dependenciesSchemaPath;
-  }
-
-  public void setDependenciesSchemaPath(String dependenciesSchemaPath) {
-    this.dependenciesSchemaPath = dependenciesSchemaPath;
+  private String withPath(String path) {
+    String normalized =
+        baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
+    return normalized + path;
   }
 }
