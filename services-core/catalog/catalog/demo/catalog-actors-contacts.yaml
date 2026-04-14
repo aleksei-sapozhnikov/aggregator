@@ -1,0 +1,151 @@
+# yaml-language-server: $schema=../schemas/catalog-actors-contacts.schema.yaml
+actorContacts:
+  - actorId: ac_m7k2p9qd
+    contactId: ct_p2v6d4rw
+    isPrimary: true
+  - actorId: ac_m7k2p9qd
+    contactId: ct_h3m8q1tz
+  - actorId: ac_m7k2p9qd
+    contactId: ct_7n4k2p9a
+
+  - actorId: ac_r4t8w1nx
+    contactId: ct_t8r1w6qp
+    isPrimary: true
+  - actorId: ac_r4t8w1nx
+    contactId: ct_m4c7n2yf
+  - actorId: ac_r4t8w1nx
+    contactId: ct_f9q6m1xp
+
+  - actorId: ac_l6v3s9jb
+    contactId: ct_l6s4v9jr
+    isPrimary: true
+  - actorId: ac_l6v3s9jb
+    contactId: ct_k2p9m4sb
+  - actorId: ac_l6v3s9jb
+    contactId: ct_y5b1q7tc
+
+  - actorId: ac_j5d2m8pf
+    contactId: ct_j7d3m8pn
+    isPrimary: true
+  - actorId: ac_j5d2m8pf
+    contactId: ct_d5f2h9km
+
+  - actorId: ac_b9x4k7rc
+    contactId: ct_b9x5k3jd
+    isPrimary: true
+  - actorId: ac_b9x4k7rc
+    contactId: ct_v6j1t7rc
+
+  - actorId: ac_q7n3v8mt
+    contactId: ct_q7l3v8nx
+    isPrimary: true
+  - actorId: ac_q7n3v8mt
+    contactId: ct_g2n8x3mf
+
+  - actorId: ac_h2c9r6vy
+    contactId: ct_n8w3d5zg
+    isPrimary: true
+  - actorId: ac_h2c9r6vy
+    contactId: ct_c4r9k2vw
+
+  - actorId: ac_t4p6h1ks
+    contactId: ct_z1h7p5kd
+    isPrimary: true
+
+  - actorId: ac_f8m2c7tr
+    contactId: ct_w3c8t2bn
+    isPrimary: true
+  - actorId: ac_f8m2c7tr
+    contactId: ct_u2h9c5wf
+
+  - actorId: ac_n3q8w6zd
+    contactId: ct_x4d7p1ne
+    isPrimary: true
+  - actorId: ac_n3q8w6zd
+    contactId: ct_s9m2v4qa
+  - actorId: ac_n3q8w6zd
+    contactId: ct_v1f8d4hr
+
+  - actorId: ac_u7m1k5vr
+    contactId: ct_e8k3t6ru
+    isPrimary: true
+  - actorId: ac_u7m1k5vr
+    contactId: ct_u2h9c5wf
+
+  - actorId: ac_p4t9x2cb
+    contactId: ct_p6z1r3ty
+    isPrimary: true
+  - actorId: ac_p4t9x2cb
+    contactId: ct_a7q4n8lm
+
+  - actorId: ac_d8f3v7hl
+    contactId: ct_m9b5k2cv
+    isPrimary: true
+  - actorId: ac_d8f3v7hl
+    contactId: ct_v1f8d4hr
+
+  - actorId: ac_s6j2n9qw
+    contactId: ct_k4p9s7mg
+    isPrimary: true
+  - actorId: ac_s6j2n9qw
+    contactId: ct_b6h1x5qn
+
+  - actorId: ac_y5r4c8mt
+    contactId: ct_t3n7y6kp
+    isPrimary: true
+  - actorId: ac_y5r4c8mt
+    contactId: ct_r8w2c9jd
+
+  - actorId: ac_c7v1b4nk
+    contactId: ct_s9m2v4qa
+    isPrimary: true
+  - actorId: ac_c7v1b4nk
+    contactId: ct_d5f2h9km
+
+  - actorId: ac_h9p3m6tx
+    contactId: ct_a7q4n8lm
+    isPrimary: true
+  - actorId: ac_h9p3m6tx
+    contactId: ct_p6z1r3ty
+
+  - actorId: ac_l2d8q5rf
+    contactId: ct_k4p9s7mg
+    isPrimary: true
+  - actorId: ac_l2d8q5rf
+    contactId: ct_b6h1x5qn
+
+  - actorId: ac_w2h7m4pd
+    contactId: ct_n4t7c1km
+    isPrimary: true
+  - actorId: ac_w2h7m4pd
+    contactId: ct_h6p2r8vd
+
+  - actorId: ac_g6k1t9rv
+    contactId: ct_q3m6b9xr
+    isPrimary: true
+  - actorId: ac_g6k1t9rv
+    contactId: ct_h3m8q1tz
+
+  - actorId: ac_n5b3q8lz
+    contactId: ct_w8k5d2pf
+    isPrimary: true
+  - actorId: ac_n5b3q8lz
+    contactId: ct_f9q6m1xp
+
+  - actorId: ac_r1m8c6px
+    contactId: ct_d1r9v4zb
+    isPrimary: true
+  - actorId: ac_r1m8c6px
+    contactId: ct_y5b1q7tc
+
+  - actorId: ac_t9v2k4hs
+    contactId: ct_l3c7h2my
+    isPrimary: true
+  - actorId: ac_t9v2k4hs
+    contactId: ct_b6h1x5qn
+
+  - actorId: ac_f3p7d1qw
+    contactId: ct_s8q4n6tp
+    isPrimary: true
+  - actorId: ac_f3p7d1qw
+    contactId: ct_r8w2c9jd
