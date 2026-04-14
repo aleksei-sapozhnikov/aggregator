@@ -1,4 +1,21 @@
 services:
+  catalog:
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    build:
+      context: services-core/catalog
+    environment:
+      CATALOG_DIR: ./catalog/empty
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 3s
+
   aggregator:
     logging:
       driver: json-file
@@ -6,16 +23,10 @@ services:
         max-size: "10m"
         max-file: "5"
     build:
-      context: .
-      dockerfile: services-core/aggregator/Dockerfile
-      args:
-        CONTAINER_ROOT: services-core/aggregator
-        CATALOG_ITEMS_FILE: config/empty/catalog-items.yaml
-        CATALOG_DEPENDENCIES_FILE: config/empty/catalog-dependencies.yaml
-        SIGNALS_HTTP_POLL_FILE: config/empty/signals-http-poll.yaml
-        CATALOG_ITEMS_SCHEMA_FILE: config/schemas/catalog-items.schema.yaml
-        CATALOG_DEPENDENCIES_SCHEMA_FILE: config/schemas/catalog-dependencies.schema.yaml
-        SIGNALS_HTTP_POLL_SCHEMA_FILE: config/schemas/signals-http-poll.schema.yaml
+      context: services-core/aggregator
+    depends_on:
+      catalog:
+        condition: service_healthy
 
   aggregator-ui:
     logging:
@@ -24,18 +35,12 @@ services:
         max-size: "10m"
         max-file: "5"
     build:
-      context: .
-      dockerfile: services-core/aggregator-ui/Dockerfile
+      context: services-core/aggregator-ui
       args:
-        CONTAINER_ROOT: services-core/aggregator-ui
-        CATALOG_ITEMS_FILE: config/empty/catalog-items.yaml
-        CATALOG_DEPENDENCIES_FILE: config/empty/catalog-dependencies.yaml
-        CATALOG_CONTACTS_FILE: config/empty/catalog-contacts.yaml
-        CATALOG_ITEM_CONTACTS_FILE: config/empty/catalog-item-contacts.yaml
-        CATALOG_ACTORS_FILE: config/empty/catalog-actors.yaml
-        CATALOG_ITEM_ACTORS_FILE: config/empty/catalog-item-actors.yaml
-        CATALOG_ACTORS_CONTACTS_FILE: config/empty/catalog-actors-contacts.yaml
         VITE_APP_TITLE: ""
+    depends_on:
+      catalog:
+        condition: service_healthy
 
   prometheus:
     logging:
