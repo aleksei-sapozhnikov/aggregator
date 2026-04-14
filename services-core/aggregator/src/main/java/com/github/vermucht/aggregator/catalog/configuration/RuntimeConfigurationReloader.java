@@ -60,27 +60,17 @@ public class RuntimeConfigurationReloader {
 
   /** Reloads catalog snapshot from configured item/dependency resources. */
   public void reloadCatalog() {
-    Resource itemsResource =
-        requireResource(catalogProperties.getItemsPath(), "Catalog items file");
+    Resource itemsResource = requireResource(catalogProperties.getItemsUrl(), "Catalog items file");
     Resource dependenciesResource =
-        requireResource(catalogProperties.getDependenciesPath(), "Catalog dependencies file");
-    Resource itemsSchemaResource =
-        requireResource(catalogProperties.getItemsSchemaPath(), "Catalog items schema file");
-    Resource dependenciesSchemaResource =
-        requireResource(
-            catalogProperties.getDependenciesSchemaPath(), "Catalog dependencies schema file");
+        requireResource(catalogProperties.getDependenciesUrl(), "Catalog dependencies file");
 
     Catalog reloadedCatalog =
         catalogValidator.validate(
-            catalogLoader.loadDefinition(
-                itemsResource,
-                dependenciesResource,
-                itemsSchemaResource,
-                dependenciesSchemaResource));
+            catalogLoader.loadDefinition(itemsResource, dependenciesResource));
     catalogRegistry.replaceCatalog(reloadedCatalog);
   }
 
-  /** Reloads signal sources snapshot from configured signal definition and schema. */
+  /** Reloads signal sources snapshot from configured signal definition resource. */
   public void reloadSignals() {
     Catalog currentCatalog = catalogRegistry.getCatalog();
     signalSourceRegistry.replaceSignalSources(

@@ -25,24 +25,17 @@ public class CatalogLoader {
    *
    * @param itemsResource catalog items definition resource
    * @param dependenciesResource catalog dependencies definition resource
-   * @param itemsSchemaResource catalog items schema resource
-   * @param dependenciesSchemaResource catalog dependencies schema resource
    * @return merged catalog definition
    */
   @Nonnull
   public CatalogDefinition loadDefinition(
-      @Nonnull Resource itemsResource,
-      @Nonnull Resource dependenciesResource,
-      @Nonnull Resource itemsSchemaResource,
-      @Nonnull Resource dependenciesSchemaResource) {
+      @Nonnull Resource itemsResource, @Nonnull Resource dependenciesResource) {
     CatalogDefinition.CatalogItemsDefinition itemsDefinition =
         definitionLoader.loadDefinition(
-            itemsResource, itemsSchemaResource, CatalogDefinition.CatalogItemsDefinition.class);
+            itemsResource, CatalogDefinition.CatalogItemsDefinition.class);
     CatalogDefinition.CatalogDependenciesDefinition dependenciesDefinition =
         definitionLoader.loadDefinition(
-            dependenciesResource,
-            dependenciesSchemaResource,
-            CatalogDefinition.CatalogDependenciesDefinition.class);
+            dependenciesResource, CatalogDefinition.CatalogDependenciesDefinition.class);
     return new CatalogDefinition(itemsDefinition.items(), dependenciesDefinition.dependencies());
   }
 }
