@@ -1,0 +1,33 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://aggregator.local/schemas/catalog-actors.schema.yaml
+title: Catalog Actors
+type: object
+required:
+  - actors
+additionalProperties: false
+properties:
+  actors:
+    type: array
+    items:
+      type: object
+      required:
+        - id
+        - title
+        - type
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          minLength: 1
+        title:
+          type: string
+          minLength: 1
+        type:
+          type: string
+          enum:
+            - owner
+            - user
+            - other
+        description:
+          type: string
+          minLength: 0
