@@ -28,29 +28,17 @@ public class CatalogConfiguration {
       @Nonnull CatalogLoader catalogLoader,
       @Nonnull CatalogValidator catalogValidator,
       @Nonnull CatalogProperties properties) {
-    String itemsPath = properties.getItemsPath();
+    String itemsPath = properties.getItemsUrl();
     Resource itemsResource = resourceLoader.getResource(itemsPath);
     if (!itemsResource.exists()) {
       throw new IllegalStateException("Catalog items file not found at " + itemsPath);
     }
-    String dependenciesPath = properties.getDependenciesPath();
+    String dependenciesPath = properties.getDependenciesUrl();
     Resource dependenciesResource = resourceLoader.getResource(dependenciesPath);
     if (!dependenciesResource.exists()) {
       throw new IllegalStateException("Catalog dependencies file not found at " + dependenciesPath);
     }
-    String itemsSchemaPath = properties.getItemsSchemaPath();
-    Resource itemsSchemaResource = resourceLoader.getResource(itemsSchemaPath);
-    if (!itemsSchemaResource.exists()) {
-      throw new IllegalStateException("Catalog items schema file not found at " + itemsSchemaPath);
-    }
-    String dependenciesSchemaPath = properties.getDependenciesSchemaPath();
-    Resource dependenciesSchemaResource = resourceLoader.getResource(dependenciesSchemaPath);
-    if (!dependenciesSchemaResource.exists()) {
-      throw new IllegalStateException(
-          "Catalog dependencies schema file not found at " + dependenciesSchemaPath);
-    }
     return catalogValidator.validate(
-        catalogLoader.loadDefinition(
-            itemsResource, dependenciesResource, itemsSchemaResource, dependenciesSchemaResource));
+        catalogLoader.loadDefinition(itemsResource, dependenciesResource));
   }
 }
