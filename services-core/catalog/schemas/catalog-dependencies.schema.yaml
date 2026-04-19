@@ -1,0 +1,23 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://aggregator.local/schemas/catalog-dependencies.schema.yaml
+title: Catalog Dependencies
+type: object
+required:
+  - dependencies
+additionalProperties: false
+properties:
+  dependencies:
+    type: array
+    items:
+      type: object
+      required:
+        - sourceId
+        - targetId
+      additionalProperties: false
+      properties:
+        sourceId:
+          type: string
+          minLength: 1
+        targetId:
+          type: string
+          minLength: 1
