@@ -1,0 +1,1027 @@
+# yaml-language-server: $schema=../schemas/signals-http-poll.schema.yaml
+# HTTP polling signals for demo services and product SLIs
+signals:
+  - id: sg_dc0a314b
+    title: Availability heartbeat responds
+    itemId: it_5a9ca947
+    url: http://dummy-java:8080/health/sg_dc0a314b
+  - id: sg_14bba996
+    title: Request latency is within SLO
+    itemId: it_5a9ca947
+    url: http://dummy-python:8080/health/sg_14bba996
+  - id: sg_38b30cac
+    title: Error rate is below threshold
+    itemId: it_5a9ca947
+    url: http://dummy-javascript:8080/health/sg_38b30cac
+  - id: sg_0e62eadc
+    title: Work backlog is within limits
+    itemId: it_5a9ca947
+    url: http://dummy-java:8080/health/sg_0e62eadc
+  - id: sg_ec3e610d
+    title: Availability heartbeat responds
+    itemId: it_31cdf080
+    url: http://dummy-python:8080/health/sg_ec3e610d
+  - id: sg_bc07d265
+    title: Request latency is within SLO
+    itemId: it_31cdf080
+    url: http://dummy-javascript:8080/health/sg_bc07d265
+  - id: sg_c1dbe217
+    title: Error rate is below threshold
+    itemId: it_31cdf080
+    url: http://dummy-java:8080/health/sg_c1dbe217
+  - id: sg_b1124af6
+    title: Work backlog is within limits
+    itemId: it_31cdf080
+    url: http://dummy-python:8080/health/sg_b1124af6
+  - id: sg_7bb1a473
+    title: Validation decisions complete within the policy window
+    itemId: it_31cdf080
+    url: http://dummy-javascript:8080/health/sg_7bb1a473
+  - id: sg_913afadb
+    title: Availability heartbeat responds
+    itemId: it_b0833df4
+    url: http://dummy-java:8080/health/sg_913afadb
+  - id: sg_b9cdfcc0
+    title: Request latency is within SLO
+    itemId: it_b0833df4
+    url: http://dummy-python:8080/health/sg_b9cdfcc0
+  - id: sg_3d57f647
+    title: Error rate is below threshold
+    itemId: it_b0833df4
+    url: http://dummy-javascript:8080/health/sg_3d57f647
+  - id: sg_b9d82030
+    title: Work backlog is within limits
+    itemId: it_b0833df4
+    url: http://dummy-java:8080/health/sg_b9d82030
+  - id: sg_c1ed2120
+    title: Billing totals remain internally balanced before issue
+    itemId: it_b0833df4
+    url: http://dummy-python:8080/health/sg_c1ed2120
+  - id: sg_2c289dd6
+    title: Availability heartbeat responds
+    itemId: it_ca854f7f
+    url: http://dummy-javascript:8080/health/sg_2c289dd6
+  - id: sg_f7e46eac
+    title: Availability heartbeat responds
+    itemId: it_48bb5977
+    url: http://dummy-java:8080/health/sg_f7e46eac
+  - id: sg_c257a362
+    title: Request latency is within SLO
+    itemId: it_48bb5977
+    url: http://dummy-python:8080/health/sg_c257a362
+  - id: sg_3488bf53
+    title: Error rate is below threshold
+    itemId: it_48bb5977
+    url: http://dummy-javascript:8080/health/sg_3488bf53
+  - id: sg_a7dae968
+    title: Work backlog is within limits
+    itemId: it_48bb5977
+    url: http://dummy-java:8080/health/sg_a7dae968
+  - id: sg_f615fcab
+    title: Availability heartbeat responds
+    itemId: it_34b1b4e7
+    url: http://dummy-python:8080/health/sg_f615fcab
+  - id: sg_e288db6b
+    title: Request latency is within SLO
+    itemId: it_34b1b4e7
+    url: http://dummy-javascript:8080/health/sg_e288db6b
+  - id: sg_a4aece2f
+    title: Error rate is below threshold
+    itemId: it_34b1b4e7
+    url: http://dummy-java:8080/health/sg_a4aece2f
+  - id: sg_01265390
+    title: Work backlog is within limits
+    itemId: it_34b1b4e7
+    url: http://dummy-python:8080/health/sg_01265390
+  - id: sg_43a902fa
+    title: Availability heartbeat responds
+    itemId: it_0d5a82d5
+    url: http://dummy-javascript:8080/health/sg_43a902fa
+  - id: sg_6f0184fe
+    title: Request latency is within SLO
+    itemId: it_0d5a82d5
+    url: http://dummy-java:8080/health/sg_6f0184fe
+  - id: sg_e3827320
+    title: Error rate is below threshold
+    itemId: it_0d5a82d5
+    url: http://dummy-python:8080/health/sg_e3827320
+  - id: sg_25cbf93f
+    title: Work backlog is within limits
+    itemId: it_0d5a82d5
+    url: http://dummy-javascript:8080/health/sg_25cbf93f
+  - id: sg_cae31577
+    title: Route commitments are produced within the dispatch window
+    itemId: it_0d5a82d5
+    url: http://dummy-java:8080/health/sg_cae31577
+  - id: sg_56836fa6
+    title: Availability heartbeat responds
+    itemId: it_4395c1de
+    url: http://dummy-python:8080/health/sg_56836fa6
+  - id: sg_db3b4bb3
+    title: Request latency is within SLO
+    itemId: it_4395c1de
+    url: http://dummy-javascript:8080/health/sg_db3b4bb3
+  - id: sg_9dd0d20c
+    title: Error rate is below threshold
+    itemId: it_4395c1de
+    url: http://dummy-java:8080/health/sg_9dd0d20c
+  - id: sg_adbe0fc5
+    title: Work backlog is within limits
+    itemId: it_4395c1de
+    url: http://dummy-python:8080/health/sg_adbe0fc5
+  - id: sg_fc7493a1
+    title: Return cases close within the expected handling window
+    itemId: it_4395c1de
+    url: http://dummy-javascript:8080/health/sg_fc7493a1
+  - id: sg_a75049ef
+    title: Availability heartbeat responds
+    itemId: it_71574a7b
+    url: http://dummy-java:8080/health/sg_a75049ef
+  - id: sg_c453b2b6
+    title: Availability heartbeat responds
+    itemId: it_92628e0a
+    url: http://dummy-python:8080/health/sg_c453b2b6
+  - id: sg_d417a6c6
+    title: Request latency is within SLO
+    itemId: it_92628e0a
+    url: http://dummy-javascript:8080/health/sg_d417a6c6
+  - id: sg_87a26b11
+    title: Error rate is below threshold
+    itemId: it_92628e0a
+    url: http://dummy-java:8080/health/sg_87a26b11
+  - id: sg_472963e7
+    title: Availability heartbeat responds
+    itemId: it_51735b03
+    url: http://dummy-python:8080/health/sg_472963e7
+  - id: sg_04a60045
+    title: Request latency is within SLO
+    itemId: it_51735b03
+    url: http://dummy-javascript:8080/health/sg_04a60045
+  - id: sg_3a29075b
+    title: Error rate is below threshold
+    itemId: it_51735b03
+    url: http://dummy-java:8080/health/sg_3a29075b
+  - id: sg_fabe1793
+    title: Work backlog is within limits
+    itemId: it_51735b03
+    url: http://dummy-python:8080/health/sg_fabe1793
+  - id: sg_f0b3ed3c
+    title: Message batches enter delivery within the target window
+    itemId: it_51735b03
+    url: http://dummy-javascript:8080/health/sg_f0b3ed3c
+  - id: sg_40314ec6
+    title: Availability heartbeat responds
+    itemId: it_8f468246
+    url: http://dummy-java:8080/health/sg_40314ec6
+  - id: sg_e81b7405
+    title: Request latency is within SLO
+    itemId: it_8f468246
+    url: http://dummy-python:8080/health/sg_e81b7405
+  - id: sg_71a723e2
+    title: Error rate is below threshold
+    itemId: it_8f468246
+    url: http://dummy-javascript:8080/health/sg_71a723e2
+  - id: sg_a7a20ae0
+    title: Work backlog is within limits
+    itemId: it_8f468246
+    url: http://dummy-java:8080/health/sg_a7a20ae0
+  - id: sg_a8b629ef
+    title: Campaign launches start within the scheduled execution window
+    itemId: it_8f468246
+    url: http://dummy-python:8080/health/sg_a8b629ef
+  - id: sg_c4d54536
+    title: Availability heartbeat responds
+    itemId: it_b61910c1
+    url: http://dummy-javascript:8080/health/sg_c4d54536
+  - id: sg_ef4b1465
+    title: Request latency is within SLO
+    itemId: it_b61910c1
+    url: http://dummy-java:8080/health/sg_ef4b1465
+  - id: sg_f6d9f83f
+    title: Error rate is below threshold
+    itemId: it_b61910c1
+    url: http://dummy-python:8080/health/sg_f6d9f83f
+  - id: sg_165f3d24
+    title: Work backlog is within limits
+    itemId: it_b61910c1
+    url: http://dummy-javascript:8080/health/sg_165f3d24
+  - id: sg_817dadbc
+    title: Availability heartbeat responds
+    itemId: it_1151701c
+    url: http://dummy-java:8080/health/sg_817dadbc
+  - id: sg_8aef2e45
+    title: Availability heartbeat responds
+    itemId: it_2484e0db
+    url: http://dummy-python:8080/health/sg_8aef2e45
+  - id: sg_9e903159
+    title: Request latency is within SLO
+    itemId: it_2484e0db
+    url: http://dummy-javascript:8080/health/sg_9e903159
+  - id: sg_983d5874
+    title: Error rate is below threshold
+    itemId: it_2484e0db
+    url: http://dummy-java:8080/health/sg_983d5874
+  - id: sg_03c6a1d7
+    title: Availability heartbeat responds
+    itemId: it_fbb05062
+    url: http://dummy-python:8080/health/sg_03c6a1d7
+  - id: sg_982607cb
+    title: Request latency is within SLO
+    itemId: it_fbb05062
+    url: http://dummy-javascript:8080/health/sg_982607cb
+  - id: sg_207867b6
+    title: Error rate is below threshold
+    itemId: it_fbb05062
+    url: http://dummy-java:8080/health/sg_207867b6
+  - id: sg_d118f36e
+    title: Availability heartbeat responds
+    itemId: it_96952012
+    url: http://dummy-python:8080/health/sg_d118f36e
+  - id: sg_cb2a5e9e
+    title: Availability heartbeat responds
+    itemId: it_65839693
+    url: http://dummy-javascript:8080/health/sg_cb2a5e9e
+  - id: sg_3323b84d
+    title: Request latency is within SLO
+    itemId: it_65839693
+    url: http://dummy-java:8080/health/sg_3323b84d
+  - id: sg_905d300a
+    title: Error rate is below threshold
+    itemId: it_65839693
+    url: http://dummy-python:8080/health/sg_905d300a
+  - id: sg_435b9e95
+    title: Availability heartbeat responds
+    itemId: it_3ca8ec85
+    url: http://dummy-javascript:8080/health/sg_435b9e95
+  - id: sg_e7aed1f3
+    title: Request latency is within SLO
+    itemId: it_3ca8ec85
+    url: http://dummy-java:8080/health/sg_e7aed1f3
+  - id: sg_35012a6a
+    title: Error rate is below threshold
+    itemId: it_3ca8ec85
+    url: http://dummy-python:8080/health/sg_35012a6a
+  - id: sg_3833ef5f
+    title: Work backlog is within limits
+    itemId: it_3ca8ec85
+    url: http://dummy-javascript:8080/health/sg_3833ef5f
+  - id: sg_fe6e6f52
+    title: Availability heartbeat responds
+    itemId: it_4c046b1d
+    url: http://dummy-java:8080/health/sg_fe6e6f52
+  - id: sg_c598a588
+    title: Request latency is within SLO
+    itemId: it_4c046b1d
+    url: http://dummy-python:8080/health/sg_c598a588
+  - id: sg_3ec01427
+    title: Error rate is below threshold
+    itemId: it_4c046b1d
+    url: http://dummy-javascript:8080/health/sg_3ec01427
+  - id: sg_8a7bb91c
+    title: Work backlog is within limits
+    itemId: it_4c046b1d
+    url: http://dummy-java:8080/health/sg_8a7bb91c
+  - id: sg_78437c6e
+    title: Authorization decisions return within the allowed window
+    itemId: it_4c046b1d
+    url: http://dummy-python:8080/health/sg_78437c6e
+  - id: sg_2b0f9b2f
+    title: Availability heartbeat responds
+    itemId: it_9e60bdd7
+    url: http://dummy-javascript:8080/health/sg_2b0f9b2f
+  - id: sg_94a27eb5
+    title: Request latency is within SLO
+    itemId: it_9e60bdd7
+    url: http://dummy-java:8080/health/sg_94a27eb5
+  - id: sg_0777765c
+    title: Error rate is below threshold
+    itemId: it_9e60bdd7
+    url: http://dummy-python:8080/health/sg_0777765c
+  - id: sg_f8dc895c
+    title: Availability heartbeat responds
+    itemId: it_3160377e
+    url: http://dummy-javascript:8080/health/sg_f8dc895c
+  - id: sg_254d1967
+    title: Availability heartbeat responds
+    itemId: it_bd3e8b82
+    url: http://dummy-java:8080/health/sg_254d1967
+  - id: sg_14bfc6a9
+    title: Availability heartbeat responds
+    itemId: it_9ead5a94
+    url: http://dummy-python:8080/health/sg_14bfc6a9
+  - id: sg_4dd0ceab
+    title: Request latency is within SLO
+    itemId: it_9ead5a94
+    url: http://dummy-javascript:8080/health/sg_4dd0ceab
+  - id: sg_a103073b
+    title: Error rate is below threshold
+    itemId: it_9ead5a94
+    url: http://dummy-java:8080/health/sg_a103073b
+  - id: sg_4bfce491
+    title: Work backlog is within limits
+    itemId: it_9ead5a94
+    url: http://dummy-python:8080/health/sg_4bfce491
+  - id: sg_e481b86c
+    title: Availability heartbeat responds
+    itemId: it_9de17f36
+    url: http://dummy-javascript:8080/health/sg_e481b86c
+  - id: sg_7b55267d
+    title: Availability heartbeat responds
+    itemId: it_ed0d04bb
+    url: http://dummy-java:8080/health/sg_7b55267d
+  - id: sg_8dee7a3e
+    title: Request latency is within SLO
+    itemId: it_ed0d04bb
+    url: http://dummy-python:8080/health/sg_8dee7a3e
+  - id: sg_539fea23
+    title: Availability heartbeat responds
+    itemId: it_20cb3376
+    url: http://dummy-javascript:8080/health/sg_539fea23
+  - id: sg_0983f501
+    title: Availability heartbeat responds
+    itemId: it_7199280d
+    url: http://dummy-java:8080/health/sg_0983f501
+  - id: sg_cbd5e594
+    title: Request latency is within SLO
+    itemId: it_7199280d
+    url: http://dummy-python:8080/health/sg_cbd5e594
+  - id: sg_fe5cdfa1
+    title: Error rate is below threshold
+    itemId: it_7199280d
+    url: http://dummy-javascript:8080/health/sg_fe5cdfa1
+  - id: sg_bb7ca6be
+    title: Availability heartbeat responds
+    itemId: it_2df0c55c
+    url: http://dummy-java:8080/health/sg_bb7ca6be
+  - id: sg_02c9f5ab
+    title: Request latency is within SLO
+    itemId: it_2df0c55c
+    url: http://dummy-python:8080/health/sg_02c9f5ab
+  - id: sg_a903c47e
+    title: Availability heartbeat responds
+    itemId: it_116e2e82
+    url: http://dummy-javascript:8080/health/sg_a903c47e
+  - id: sg_ade3ed5b
+    title: Request latency is within SLO
+    itemId: it_116e2e82
+    url: http://dummy-java:8080/health/sg_ade3ed5b
+  - id: sg_4aff677c
+    title: Error rate is below threshold
+    itemId: it_116e2e82
+    url: http://dummy-python:8080/health/sg_4aff677c
+  - id: sg_d5788b91
+    title: Availability heartbeat responds
+    itemId: it_a6854c60
+    url: http://dummy-javascript:8080/health/sg_d5788b91
+  - id: sg_a9cd3eb7
+    title: Request latency is within SLO
+    itemId: it_a6854c60
+    url: http://dummy-java:8080/health/sg_a9cd3eb7
+  - id: sg_b3aea136
+    title: Error rate is below threshold
+    itemId: it_a6854c60
+    url: http://dummy-python:8080/health/sg_b3aea136
+  - id: sg_3254993b
+    title: Work backlog is within limits
+    itemId: it_a6854c60
+    url: http://dummy-javascript:8080/health/sg_3254993b
+  - id: sg_618ba555
+    title: Availability heartbeat responds
+    itemId: it_9c69814b
+    url: http://dummy-java:8080/health/sg_618ba555
+  - id: sg_654c5a8d
+    title: Request latency is within SLO
+    itemId: it_9c69814b
+    url: http://dummy-python:8080/health/sg_654c5a8d
+  - id: sg_9916732e
+    title: Error rate is below threshold
+    itemId: it_9c69814b
+    url: http://dummy-javascript:8080/health/sg_9916732e
+  - id: sg_987fe31d
+    title: Work backlog is within limits
+    itemId: it_9c69814b
+    url: http://dummy-java:8080/health/sg_987fe31d
+  - id: sg_f56a8ce5
+    title: Availability heartbeat responds
+    itemId: it_0c7f7cbf
+    url: http://dummy-python:8080/health/sg_f56a8ce5
+  - id: sg_3cfa0589
+    title: Request latency is within SLO
+    itemId: it_0c7f7cbf
+    url: http://dummy-javascript:8080/health/sg_3cfa0589
+  - id: sg_a0552469
+    title: Error rate is below threshold
+    itemId: it_0c7f7cbf
+    url: http://dummy-java:8080/health/sg_a0552469
+  - id: sg_8394e9c6
+    title: Availability heartbeat responds
+    itemId: it_40d8cd7c
+    url: http://dummy-python:8080/health/sg_8394e9c6
+  - id: sg_b6971819
+    title: Request latency is within SLO
+    itemId: it_40d8cd7c
+    url: http://dummy-javascript:8080/health/sg_b6971819
+  - id: sg_1890e867
+    title: Error rate is below threshold
+    itemId: it_40d8cd7c
+    url: http://dummy-java:8080/health/sg_1890e867
+  - id: sg_6be4a1ab
+    title: Availability heartbeat responds
+    itemId: it_12a5d380
+    url: http://dummy-python:8080/health/sg_6be4a1ab
+  - id: sg_63ff3568
+    title: Availability heartbeat responds
+    itemId: it_5e0132b8
+    url: http://dummy-javascript:8080/health/sg_63ff3568
+  - id: sg_efc3563f
+    title: Availability heartbeat responds
+    itemId: it_7e7405d3
+    url: http://dummy-java:8080/health/sg_efc3563f
+  - id: sg_c05a08f5
+    title: Availability heartbeat responds
+    itemId: it_6cab1e6f
+    url: http://dummy-python:8080/health/sg_c05a08f5
+  - id: sg_1e04a674
+    title: Request latency is within SLO
+    itemId: it_6cab1e6f
+    url: http://dummy-javascript:8080/health/sg_1e04a674
+  - id: sg_ade1ec4c
+    title: Error rate is below threshold
+    itemId: it_6cab1e6f
+    url: http://dummy-java:8080/health/sg_ade1ec4c
+  - id: sg_429bf17b
+    title: Availability heartbeat responds
+    itemId: it_984c1c25
+    url: http://dummy-python:8080/health/sg_429bf17b
+  - id: sg_4c0a51f4
+    title: Request latency is within SLO
+    itemId: it_984c1c25
+    url: http://dummy-javascript:8080/health/sg_4c0a51f4
+  - id: sg_f7f6edb5
+    title: Error rate is below threshold
+    itemId: it_984c1c25
+    url: http://dummy-java:8080/health/sg_f7f6edb5
+  - id: sg_5181baa7
+    title: Availability heartbeat responds
+    itemId: it_86ccee33
+    url: http://dummy-python:8080/health/sg_5181baa7
+  - id: sg_12d36cbd
+    title: Request latency is within SLO
+    itemId: it_86ccee33
+    url: http://dummy-javascript:8080/health/sg_12d36cbd
+  - id: sg_7f2737cb
+    title: Error rate is below threshold
+    itemId: it_86ccee33
+    url: http://dummy-java:8080/health/sg_7f2737cb
+  - id: sg_6ce78669
+    title: Work backlog is within limits
+    itemId: it_86ccee33
+    url: http://dummy-python:8080/health/sg_6ce78669
+  - id: sg_47eaac73
+    title: Availability heartbeat responds
+    itemId: it_29082314
+    url: http://dummy-javascript:8080/health/sg_47eaac73
+  - id: sg_a9db1e4e
+    title: "SLI: Customer-visible availability"
+    itemId: it_6307a2a8
+    url: http://dummy-java:8080/health/sg_a9db1e4e
+  - id: sg_b436fac9
+    title: "SLI: Customer journey latency"
+    itemId: it_6307a2a8
+    url: http://dummy-python:8080/health/sg_b436fac9
+  - id: sg_50e54bcf
+    title: "SLI: Customer-visible availability"
+    itemId: it_5b917d99
+    url: http://dummy-javascript:8080/health/sg_50e54bcf
+  - id: sg_42a2702e
+    title: "SLI: Customer-visible availability"
+    itemId: it_8be9ba4f
+    url: http://dummy-java:8080/health/sg_42a2702e
+  - id: sg_733d3676
+    title: "SLI: Customer-visible availability"
+    itemId: it_144bbdb0
+    url: http://dummy-python:8080/health/sg_733d3676
+  - id: sg_605ae23c
+    title: "SLI: Customer-visible availability"
+    itemId: it_008a7af7
+    url: http://dummy-javascript:8080/health/sg_605ae23c
+  - id: sg_244c2ec0
+    title: "SLI: Customer journey latency"
+    itemId: it_008a7af7
+    url: http://dummy-java:8080/health/sg_244c2ec0
+  - id: sg_b46914a3
+    title: "SLI: Customer-visible availability"
+    itemId: it_1668c093
+    url: http://dummy-python:8080/health/sg_b46914a3
+  - id: sg_772c3872
+    title: "SLI: Customer-visible availability"
+    itemId: it_6c7923ab
+    url: http://dummy-javascript:8080/health/sg_772c3872
+  - id: sg_cf952769
+    title: "SLI: Customer-visible availability"
+    itemId: it_43ab1049
+    url: http://dummy-java:8080/health/sg_cf952769
+  - id: sg_a72a7585
+    title: "SLI: Customer-visible availability"
+    itemId: it_571c410e
+    url: http://dummy-python:8080/health/sg_a72a7585
+  - id: sg_3c0e4f9f
+    title: "SLI: Customer journey latency"
+    itemId: it_571c410e
+    url: http://dummy-javascript:8080/health/sg_3c0e4f9f
+  - id: sg_93fcc5ab
+    title: "SLI: Customer-visible availability"
+    itemId: it_c51a1ccc
+    url: http://dummy-java:8080/health/sg_93fcc5ab
+  - id: sg_37f4f621
+    title: "SLI: Customer-visible availability"
+    itemId: it_0387f962
+    url: http://dummy-python:8080/health/sg_37f4f621
+  - id: sg_e8db7ae0
+    title: "SLI: Customer-visible availability"
+    itemId: it_978f32ea
+    url: http://dummy-javascript:8080/health/sg_e8db7ae0
+  - id: sg_a833ffd4
+    title: "SLI: Customer-visible availability"
+    itemId: it_ef57ee00
+    url: http://dummy-java:8080/health/sg_a833ffd4
+  - id: sg_8aac4012
+    title: "SLI: Customer journey latency"
+    itemId: it_ef57ee00
+    url: http://dummy-python:8080/health/sg_8aac4012
+  - id: sg_c6efd2ed
+    title: "SLI: Customer-visible availability"
+    itemId: it_906f7e0d
+    url: http://dummy-javascript:8080/health/sg_c6efd2ed
+  - id: sg_664f8659
+    title: "SLI: Customer-visible availability"
+    itemId: it_05c82f52
+    url: http://dummy-java:8080/health/sg_664f8659
+  - id: sg_edfba194
+    title: "SLI: Customer-visible availability"
+    itemId: it_5c743f44
+    url: http://dummy-python:8080/health/sg_edfba194
+  - id: sg_70e967e6
+    title: "SLI: Customer-visible availability"
+    itemId: it_741e7f6b
+    url: http://dummy-javascript:8080/health/sg_70e967e6
+  - id: sg_a405da69
+    title: "SLI: Customer journey latency"
+    itemId: it_741e7f6b
+    url: http://dummy-java:8080/health/sg_a405da69
+  - id: sg_5477a648
+    title: "SLI: Customer-visible availability"
+    itemId: it_6e67d308
+    url: http://dummy-python:8080/health/sg_5477a648
+  - id: sg_a5cad7ac
+    title: "SLI: Customer-visible availability"
+    itemId: it_d01a646d
+    url: http://dummy-javascript:8080/health/sg_a5cad7ac
+  - id: sg_cb610e2f
+    title: "SLI: Customer-visible availability"
+    itemId: it_bee18e53
+    url: http://dummy-java:8080/health/sg_cb610e2f
+  - id: sg_03092fad
+    title: "SLI: Customer-visible availability"
+    itemId: it_a0a28b85
+    url: http://dummy-python:8080/health/sg_03092fad
+  - id: sg_9575a8ad
+    title: "SLI: Customer journey latency"
+    itemId: it_a0a28b85
+    url: http://dummy-javascript:8080/health/sg_9575a8ad
+  - id: sg_6222e1a9
+    title: "SLI: Customer-visible availability"
+    itemId: it_4869434a
+    url: http://dummy-java:8080/health/sg_6222e1a9
+  - id: sg_63bde755
+    title: "SLI: Customer-visible availability"
+    itemId: it_e8e0d47a
+    url: http://dummy-python:8080/health/sg_63bde755
+  - id: sg_9a351852
+    title: "SLI: Customer-visible availability"
+    itemId: it_5622ffff
+    url: http://dummy-javascript:8080/health/sg_9a351852
+  - id: sg_042606b8
+    title: "SLI: Customer-visible availability"
+    itemId: it_5d0def3d
+    url: http://dummy-java:8080/health/sg_042606b8
+  - id: sg_026c2d21
+    title: "SLI: Customer journey latency"
+    itemId: it_5d0def3d
+    url: http://dummy-python:8080/health/sg_026c2d21
+  - id: sg_cb468f0c
+    title: "SLI: Customer-visible availability"
+    itemId: it_ccf17b90
+    url: http://dummy-javascript:8080/health/sg_cb468f0c
+  - id: sg_7b855c5b
+    title: "SLI: Customer-visible availability"
+    itemId: it_e6af80a7
+    url: http://dummy-java:8080/health/sg_7b855c5b
+  - id: sg_e7397b66
+    title: "SLI: Customer-visible availability"
+    itemId: it_352b4411
+    url: http://dummy-python:8080/health/sg_e7397b66
+  - id: sg_28a704c3
+    title: "SLI: Customer-visible availability"
+    itemId: it_ae13d093
+    url: http://dummy-javascript:8080/health/sg_28a704c3
+  - id: sg_ad3bf046
+    title: "SLI: Customer journey latency"
+    itemId: it_ae13d093
+    url: http://dummy-java:8080/health/sg_ad3bf046
+  - id: sg_0516885c
+    title: "SLI: Commerce entrypoints stay available for buyers"
+    itemId: it_e7f7ec2d
+    url: http://dummy-java:8080/health/sg_0516885c
+  - id: sg_9199929c
+    title: "SLI: Checkout journey latency stays within budget"
+    itemId: it_e7f7ec2d
+    url: http://dummy-java:8080/health/sg_9199929c
+  - id: sg_13d40a40
+    title: Order handling throughput sustains peak demand
+    itemId: it_e7f7ec2d
+    url: http://dummy-java:8080/health/sg_13d40a40
+  - id: sg_d289d808
+    title: "SLI: Customer touchpoints stay reachable end to end"
+    itemId: it_9d9e5627
+    url: http://dummy-java:8080/health/sg_d289d808
+  - id: sg_fc074e2b
+    title: "SLI: Engagement journey latency stays within target"
+    itemId: it_9d9e5627
+    url: http://dummy-java:8080/health/sg_fc074e2b
+  - id: sg_8e64cfe3
+    title: Customer-facing channels remain ready for traffic shifts
+    itemId: it_9d9e5627
+    url: http://dummy-java:8080/health/sg_8e64cfe3
+  - id: sg_2e0ea9da
+    title: "SLI: Operations workflows remain available to operators"
+    itemId: it_51dae4dd
+    url: http://dummy-java:8080/health/sg_2e0ea9da
+  - id: sg_bf331465
+    title: "SLI: Operator flow latency stays within control limits"
+    itemId: it_51dae4dd
+    url: http://dummy-java:8080/health/sg_bf331465
+  - id: sg_ccd3df0e
+    title: Operational cycle time stays within the expected envelope
+    itemId: it_51dae4dd
+    url: http://dummy-java:8080/health/sg_ccd3df0e
+  - id: sg_298b79ff
+    title: "SLI: Customer journey latency"
+    itemId: it_352b4411
+    url: http://dummy-java:8080/health/sg_298b79ff
+  - id: sg_1369d4b4
+    title: Produced output passes self-validation before publication
+    itemId: it_352b4411
+    url: http://dummy-java:8080/health/sg_1369d4b4
+  - id: sg_0e28ccaf
+    title: "SLI: Customer journey latency"
+    itemId: it_8be9ba4f
+    url: http://dummy-java:8080/health/sg_0e28ccaf
+  - id: sg_09223d5b
+    title: Own generated results pass internal self-validation
+    itemId: it_8be9ba4f
+    url: http://dummy-java:8080/health/sg_09223d5b
+  - id: sg_54850978
+    title: "SLI: Customer journey latency"
+    itemId: it_5b917d99
+    url: http://dummy-java:8080/health/sg_54850978
+  - id: sg_ace4d81c
+    title: Extension release path stays ready for controlled rollouts
+    itemId: it_5b917d99
+    url: http://dummy-java:8080/health/sg_ace4d81c
+  - id: sg_ff24943b
+    title: "SLI: Customer journey latency"
+    itemId: it_05c82f52
+    url: http://dummy-java:8080/health/sg_ff24943b
+  - id: sg_eafd7554
+    title: Internal state transitions remain self-consistent
+    itemId: it_05c82f52
+    url: http://dummy-java:8080/health/sg_eafd7554
+  - id: sg_0cf4fee8
+    title: "SLI: Customer journey latency"
+    itemId: it_6e67d308
+    url: http://dummy-java:8080/health/sg_0cf4fee8
+  - id: sg_05de9530
+    title: Critical engagement flows finish without internal stalls
+    itemId: it_6e67d308
+    url: http://dummy-java:8080/health/sg_05de9530
+  - id: sg_9546465d
+    title: "SLI: Customer journey latency"
+    itemId: it_5c743f44
+    url: http://dummy-java:8080/health/sg_9546465d
+  - id: sg_2af26ccb
+    title: Personalization signals stay within the freshness window
+    itemId: it_5c743f44
+    url: http://dummy-java:8080/health/sg_2af26ccb
+  - id: sg_2e8fdae0
+    title: "SLI: Customer journey latency"
+    itemId: it_0387f962
+    url: http://dummy-java:8080/health/sg_2e8fdae0
+  - id: sg_497d14ca
+    title: Own task queue turns over before local saturation
+    itemId: it_0387f962
+    url: http://dummy-java:8080/health/sg_497d14ca
+  - id: sg_909afa04
+    title: "SLI: Customer journey latency"
+    itemId: it_d01a646d
+    url: http://dummy-java:8080/health/sg_909afa04
+  - id: sg_0c5d6472
+    title: Journey rules are applied within the local decision budget
+    itemId: it_d01a646d
+    url: http://dummy-java:8080/health/sg_0c5d6472
+  - id: sg_c293d8ed
+    title: "SLI: Customer journey latency"
+    itemId: it_978f32ea
+    url: http://dummy-java:8080/health/sg_c293d8ed
+  - id: sg_ef3a7299
+    title: Planning cycles complete within the dispatch schedule window
+    itemId: it_978f32ea
+    url: http://dummy-java:8080/health/sg_ef3a7299
+  - id: sg_ad196f74
+    title: "SLI: Customer journey latency"
+    itemId: it_906f7e0d
+    url: http://dummy-java:8080/health/sg_ad196f74
+  - id: sg_7cfe0fc7
+    title: Local inventory state stays within acceptable drift
+    itemId: it_906f7e0d
+    url: http://dummy-java:8080/health/sg_7cfe0fc7
+  - id: sg_6ded6c51
+    title: "SLI: Customer journey latency"
+    itemId: it_ccf17b90
+    url: http://dummy-java:8080/health/sg_6ded6c51
+  - id: sg_aac88c37
+    title: Route selection stays accurate under current load
+    itemId: it_ccf17b90
+    url: http://dummy-java:8080/health/sg_aac88c37
+  - id: sg_04ff1182
+    title: "SLI: Customer journey latency"
+    itemId: it_e6af80a7
+    url: http://dummy-java:8080/health/sg_04ff1182
+  - id: sg_7b3278d2
+    title: Template payloads pass internal render validation
+    itemId: it_e6af80a7
+    url: http://dummy-java:8080/health/sg_7b3278d2
+  - id: sg_156cf522
+    title: "SLI: Customer journey latency"
+    itemId: it_c51a1ccc
+    url: http://dummy-java:8080/health/sg_156cf522
+  - id: sg_bb71dfe3
+    title: Acceleration routines stay ready for burst simulations
+    itemId: it_c51a1ccc
+    url: http://dummy-java:8080/health/sg_bb71dfe3
+  - id: sg_4a2a6350
+    title: "SLI: Customer journey latency"
+    itemId: it_144bbdb0
+    url: http://dummy-java:8080/health/sg_4a2a6350
+  - id: sg_73eb6069
+    title: Order state transitions remain internally consistent
+    itemId: it_144bbdb0
+    url: http://dummy-java:8080/health/sg_73eb6069
+  - id: sg_9cf1eb9e
+    title: "SLI: Customer journey latency"
+    itemId: it_6c7923ab
+    url: http://dummy-java:8080/health/sg_9cf1eb9e
+  - id: sg_2e65a0c3
+    title: Finance ledger updates stay internally balanced
+    itemId: it_6c7923ab
+    url: http://dummy-java:8080/health/sg_2e65a0c3
+  - id: sg_3a716594
+    title: "SLI: Customer journey latency"
+    itemId: it_1668c093
+    url: http://dummy-java:8080/health/sg_3a716594
+  - id: sg_837f4658
+    title: Guard policies cover the current intake mix
+    itemId: it_1668c093
+    url: http://dummy-java:8080/health/sg_837f4658
+  - id: sg_81544d92
+    title: "SLI: Customer journey latency"
+    itemId: it_43ab1049
+    url: http://dummy-java:8080/health/sg_81544d92
+  - id: sg_6bfa4484
+    title: Workflow stages advance without local stalls
+    itemId: it_43ab1049
+    url: http://dummy-java:8080/health/sg_6bfa4484
+  - id: sg_9b23436f
+    title: "SLI: Customer journey latency"
+    itemId: it_5622ffff
+    url: http://dummy-java:8080/health/sg_9b23436f
+  - id: sg_bcdd0ae2
+    title: Core profile merges pass internal validation
+    itemId: it_5622ffff
+    url: http://dummy-java:8080/health/sg_bcdd0ae2
+  - id: sg_b296a7d9
+    title: "SLI: Customer journey latency"
+    itemId: it_e8e0d47a
+    url: http://dummy-java:8080/health/sg_b296a7d9
+  - id: sg_f494da19
+    title: Campaign budget calculations stay current
+    itemId: it_e8e0d47a
+    url: http://dummy-java:8080/health/sg_f494da19
+  - id: sg_dda6b54a
+    title: "SLI: Customer journey latency"
+    itemId: it_bee18e53
+    url: http://dummy-java:8080/health/sg_dda6b54a
+  - id: sg_9f64018e
+    title: Session updates land before the expiry budget
+    itemId: it_bee18e53
+    url: http://dummy-java:8080/health/sg_9f64018e
+  - id: sg_f311c740
+    title: "SLI: Customer journey latency"
+    itemId: it_4869434a
+    url: http://dummy-java:8080/health/sg_f311c740
+  - id: sg_bb3b06cf
+    title: Messaging channels stay ready for delivery bursts
+    itemId: it_4869434a
+    url: http://dummy-java:8080/health/sg_bb3b06cf
+  - id: sg_6263669c
+    title: Optimization output passes internal quality gates
+    itemId: it_ae13d093
+    url: http://dummy-java:8080/health/sg_6263669c
+  - id: sg_1b8d1fee
+    title: Commerce line data stays fresh through the order window
+    itemId: it_6307a2a8
+    url: http://dummy-java:8080/health/sg_1b8d1fee
+  - id: sg_f7e64741
+    title: Experience foundation state stays within freshness targets
+    itemId: it_741e7f6b
+    url: http://dummy-java:8080/health/sg_f7e64741
+  - id: sg_ef68bf01
+    title: Routing plans stay stable during recalculation bursts
+    itemId: it_ef57ee00
+    url: http://dummy-java:8080/health/sg_ef68bf01
+  - id: sg_9fefa082
+    title: Operational workload stays balanced across local cycles
+    itemId: it_571c410e
+    url: http://dummy-java:8080/health/sg_9fefa082
+  - id: sg_7340b7fd
+    title: Intake backlog drains before local buffer pressure rises
+    itemId: it_008a7af7
+    url: http://dummy-java:8080/health/sg_7340b7fd
+  - id: sg_05f51923
+    title: Identity matching stays within the accepted confidence band
+    itemId: it_5d0def3d
+    url: http://dummy-java:8080/health/sg_05f51923
+  - id: sg_e18a5dcb
+    title: Profile enrichment finishes within the interaction budget
+    itemId: it_a0a28b85
+    url: http://dummy-java:8080/health/sg_e18a5dcb
+  - id: sg_30968032
+    title: "SLI: Client request latency is within SLO"
+    itemId: it_29082314
+    url: http://dummy-java:8080/health/sg_30968032
+  - id: sg_7de09a1a
+    title: Budget guardrail snapshots stay within the freshness window
+    itemId: it_29082314
+    url: http://dummy-java:8080/health/sg_7de09a1a
+  - id: sg_2ac441d9
+    title: "SLI: Client request latency is within SLO"
+    itemId: it_71574a7b
+    url: http://dummy-java:8080/health/sg_2ac441d9
+  - id: sg_6024a240
+    title: Orchestration state remains internally consistent
+    itemId: it_71574a7b
+    url: http://dummy-java:8080/health/sg_6024a240
+  - id: sg_a8a9d866
+    title: "SLI: Client request latency is within SLO"
+    itemId: it_96952012
+    url: http://dummy-java:8080/health/sg_a8a9d866
+  - id: sg_fe8157dc
+    title: Fraud scoring output passes internal quality thresholds
+    itemId: it_96952012
+    url: http://dummy-java:8080/health/sg_fe8157dc
+  - id: sg_9fff7e87
+    title: "SLI: Client request latency is within SLO"
+    itemId: it_bd3e8b82
+    url: http://dummy-java:8080/health/sg_9fff7e87
+  - id: sg_5f4f6229
+    title: Control-plane cycles finish within the operating window
+    itemId: it_bd3e8b82
+    url: http://dummy-java:8080/health/sg_5f4f6229
+  - id: sg_3dbdd5b5
+    title: "SLI: Client request latency is within SLO"
+    itemId: it_20cb3376
+    url: http://dummy-java:8080/health/sg_3dbdd5b5
+  - id: sg_8a3ff0b8
+    title: Reconciliation drift stays within the accepted band
+    itemId: it_20cb3376
+    url: http://dummy-java:8080/health/sg_8a3ff0b8
+  - id: sg_0585d690
+    title: "SLI: Client request latency is within SLO"
+    itemId: it_12a5d380
+    url: http://dummy-java:8080/health/sg_0585d690
+  - id: sg_bc964671
+    title: Experiment evaluation closes within the expected window
+    itemId: it_12a5d380
+    url: http://dummy-java:8080/health/sg_bc964671
+  - id: sg_35f08b65
+    title: "SLI: Client request latency is within SLO"
+    itemId: it_ca854f7f
+    url: http://dummy-java:8080/health/sg_35f08b65
+  - id: sg_3c45eaeb
+    title: Dispatch work queue drains before local saturation
+    itemId: it_ca854f7f
+    url: http://dummy-java:8080/health/sg_3c45eaeb
+  - id: sg_cddabb8d
+    title: "SLI: Client request latency is within SLO"
+    itemId: it_1151701c
+    url: http://dummy-java:8080/health/sg_cddabb8d
+  - id: sg_b5315e4f
+    title: Domain event publication stays within freshness bounds
+    itemId: it_1151701c
+    url: http://dummy-java:8080/health/sg_b5315e4f
+  - id: sg_a98a0672
+    title: "SLI: Client request latency is within SLO"
+    itemId: it_3160377e
+    url: http://dummy-java:8080/health/sg_a98a0672
+  - id: sg_14bc6791
+    title: Deadline calculations stay within the tolerance band
+    itemId: it_3160377e
+    url: http://dummy-java:8080/health/sg_14bc6791
+  - id: sg_3fc5bb5f
+    title: "SLI: Client request latency is within SLO"
+    itemId: it_7e7405d3
+    url: http://dummy-java:8080/health/sg_3fc5bb5f
+  - id: sg_643a2552
+    title: Merge orchestration stays internally consistent
+    itemId: it_7e7405d3
+    url: http://dummy-java:8080/health/sg_643a2552
+  - id: sg_efe40c26
+    title: "SLI: Client request latency is within SLO"
+    itemId: it_9de17f36
+    url: http://dummy-java:8080/health/sg_efe40c26
+  - id: sg_d96aaa6c
+    title: Cache writes complete before the freshness budget expires
+    itemId: it_9de17f36
+    url: http://dummy-java:8080/health/sg_d96aaa6c
+  - id: sg_eb9c5c56
+    title: "SLI: Client request latency is within SLO"
+    itemId: it_5e0132b8
+    url: http://dummy-java:8080/health/sg_eb9c5c56
+  - id: sg_ff4e3639
+    title: Session state refresh lands before the expiry window
+    itemId: it_5e0132b8
+    url: http://dummy-java:8080/health/sg_ff4e3639
+  - id: sg_6a13ea27
+    title: "SLI: Client-visible availability"
+    itemId: it_2df0c55c
+    url: http://dummy-java:8080/health/sg_6a13ea27
+  - id: sg_4e49b186
+    title: "SLI: Client-visible availability"
+    itemId: it_ed0d04bb
+    url: http://dummy-java:8080/health/sg_4e49b186
+  - id: sg_f7b653b0
+    title: Checkout capacity holds during promotional spikes
+    itemId: it_e7f7ec2d
+    url: http://dummy-python:8080/health/sg_f7b653b0
+  - id: sg_c015eea4
+    title: "SLI: Engagement response stays within journey budget"
+    itemId: it_9d9e5627
+    url: http://dummy-javascript:8080/health/sg_c015eea4
+  - id: sg_e379057a
+    title: Personalization decisions stay within the freshness window
+    itemId: it_9d9e5627
+    url: http://dummy-java:8080/health/sg_e379057a
+  - id: sg_333412bb
+    title: Campaign plans stay current through the execution window
+    itemId: it_352b4411
+    url: http://dummy-python:8080/health/sg_333412bb
+  - id: sg_16784f6b
+    title: Slot allocation completes within the dispatch window
+    itemId: it_05c82f52
+    url: http://dummy-javascript:8080/health/sg_16784f6b
+  - id: sg_3c9d0744
+    title: "SLI: Fulfillment flow availability stays above target"
+    itemId: it_0387f962
+    url: http://dummy-java:8080/health/sg_3c9d0744
+  - id: sg_c56dcd4a
+    title: Allocation outcomes stay within the accepted variance
+    itemId: it_0387f962
+    url: http://dummy-python:8080/health/sg_c56dcd4a
+  - id: sg_808e6b6b
+    title: "SLI: Operational response stays within cycle budget"
+    itemId: it_571c410e
+    url: http://dummy-javascript:8080/health/sg_808e6b6b
+  - id: sg_87f8f21b
+    title: Decision payloads stay fresh through the send window
+    itemId: it_71574a7b
+    url: http://dummy-java:8080/health/sg_87f8f21b
+  - id: sg_523afde7
+    title: "SLI: Reconciliation path availability stays above target"
+    itemId: it_20cb3376
+    url: http://dummy-python:8080/health/sg_523afde7
+  - id: sg_f95b81ed
+    title: Reconciliation batches complete within the close window
+    itemId: it_20cb3376
+    url: http://dummy-javascript:8080/health/sg_f95b81ed
+  - id: sg_0cf038cf
+    title: Dispatch routing stays within the accepted variance
+    itemId: it_ca854f7f
+    url: http://dummy-java:8080/health/sg_0cf038cf
+  - id: sg_bde2197e
+    title: "SLI: Cache write latency stays within budget"
+    itemId: it_9de17f36
+    url: http://dummy-python:8080/health/sg_bde2197e
+  - id: sg_090f6b9f
+    title: Cache write batches stay stable during burst updates
+    itemId: it_9de17f36
+    url: http://dummy-javascript:8080/health/sg_090f6b9f
