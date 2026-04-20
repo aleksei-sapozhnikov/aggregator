@@ -1,4 +1,13 @@
 services:
+  catalog:
+    environment:
+      CATALOG_DIR: ./catalog/demo
+
+  chaos-maker:
+    depends_on:
+      catalog:
+        condition: service_healthy
+
   dummy-java:
     logging:
       driver: json-file
