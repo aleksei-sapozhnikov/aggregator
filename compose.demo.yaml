@@ -4,31 +4,11 @@ services:
       FEEDBACK_STORAGE_CONFIG: ${FEEDBACK_STORAGE_CONFIG:?Missing FEEDBACK_STORAGE_CONFIG}
       ADMIN_USERNAME: ${ADMIN_USERNAME:?Missing ADMIN_USERNAME}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Missing ADMIN_PASSWORD}
-    build:
-      args:
-        CONTAINER_ROOT: services-core/aggregator
-        CATALOG_ITEMS_FILE: config/demo/catalog-items.yaml
-        CATALOG_DEPENDENCIES_FILE: config/demo/catalog-dependencies.yaml
-        SIGNALS_HTTP_POLL_FILE: config/demo/signals-http-poll.yaml
-        CATALOG_ITEMS_SCHEMA_FILE: config/schemas/catalog-items.schema.yaml
-        CATALOG_DEPENDENCIES_SCHEMA_FILE: config/schemas/catalog-dependencies.schema.yaml
-        SIGNALS_HTTP_POLL_SCHEMA_FILE: config/schemas/signals-http-poll.schema.yaml
-    volumes:
-      - ./config/demo:/app/config/demo:ro
-
+      CATALOG_BASE_URL: http://catalog:8080
   aggregator-ui:
     build:
-      context: .
-      dockerfile: services-core/aggregator-ui/Dockerfile
+      context: services-core/aggregator-ui
       args:
-        CONTAINER_ROOT: services-core/aggregator-ui
-        CATALOG_ITEMS_FILE: config/demo/catalog-items.yaml
-        CATALOG_DEPENDENCIES_FILE: config/demo/catalog-dependencies.yaml
-        CATALOG_CONTACTS_FILE: config/demo/catalog-contacts.yaml
-        CATALOG_ITEM_CONTACTS_FILE: config/demo/catalog-item-contacts.yaml
-        CATALOG_ACTORS_FILE: config/demo/catalog-actors.yaml
-        CATALOG_ITEM_ACTORS_FILE: config/demo/catalog-item-actors.yaml
-        CATALOG_ACTORS_CONTACTS_FILE: config/demo/catalog-actors-contacts.yaml
         VITE_APP_TITLE: "Health Aggregator DEMO"
 
   chaos-maker:
@@ -38,11 +18,7 @@ services:
         max-size: "10m"
         max-file: "5"
     build:
-      context: .
-      dockerfile: services-demo/chaos-maker/Dockerfile
-      args:
-        CONTAINER_ROOT: services-demo/chaos-maker
-        SIGNALS_HTTP_POLL_FILE: config/demo/signals-http-poll.yaml
+      context: services-demo/chaos-maker
     environment:
       CHAOS_ENABLED: "true"
       CHAOS_ALWAYS_BROKEN: "true"
@@ -51,8 +27,7 @@ services:
       CHAOS_MIN_DURATION: 5m
       CHAOS_MAX_DURATION: 60m
       CHAOS_MAX_CONCURRENT: "2"
-    volumes:
-      - ./config/demo:/config/demo:ro
+      CATALOG_SIGNALS_URL: http://catalog:8080/api/signals/http-poll
 
   prometheus:
     command:
