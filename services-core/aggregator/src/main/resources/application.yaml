@@ -9,15 +9,7 @@ management:
           - prometheus
 
 catalog:
-  items-path: file:./catalog-items.yaml
-  dependencies-path: file:./catalog-dependencies.yaml
-  items-schema-path: file:./schemas/catalog-items.schema.yaml
-  dependencies-schema-path: file:./schemas/catalog-dependencies.schema.yaml
-
-health:
-  http-poll:
-    definition-path: file:./signals-http-poll.yaml
-    schema-path: file:./schemas/signals-http-poll.schema.yaml
+  base-url: ${CATALOG_BASE_URL:http://catalog:8080}
 
 feedback:
   admin:
