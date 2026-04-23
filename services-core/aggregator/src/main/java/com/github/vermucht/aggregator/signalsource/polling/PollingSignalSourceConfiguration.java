@@ -2,11 +2,9 @@ package com.github.vermucht.aggregator.signalsource.polling;
 
 import com.github.vermucht.aggregator.catalog.model.Catalog;
 import com.github.vermucht.aggregator.signalsource.polling.http.configuration.HttpPollingSignalDefinitionLoader;
-import com.github.vermucht.aggregator.signalsource.polling.http.configuration.HttpPollingSignalProperties;
 import jakarta.annotation.Nonnull;
 import java.util.List;
 import java.util.Objects;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.TaskScheduler;
@@ -14,7 +12,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /** Spring configuration that wires polling signal sources from typed definitions. */
 @Configuration
-@EnableConfigurationProperties(HttpPollingSignalProperties.class)
 public class PollingSignalSourceConfiguration {
   /** Creates the task scheduler used for polling signal sources. */
   @Bean

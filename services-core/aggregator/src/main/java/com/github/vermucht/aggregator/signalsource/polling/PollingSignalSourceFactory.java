@@ -18,6 +18,9 @@ import org.springframework.web.client.RestTemplate;
 /** Builds polling signal source instances from typed HTTP polling signal definitions. */
 @Component
 public class PollingSignalSourceFactory {
+  private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(2);
+  private static final Duration DEFAULT_INTERVAL = Duration.ofSeconds(30);
+
   private final RestTemplateBuilder restTemplateBuilder;
 
   public PollingSignalSourceFactory(@Nonnull RestTemplateBuilder restTemplateBuilder) {
@@ -47,10 +50,10 @@ public class PollingSignalSourceFactory {
     }
     String url = requireText(definition.url(), "url");
     URI uri = URI.create(url);
-    String methodValue = requireText(definition.method(), "method");
+    String methodValue = optionalText(definition.method()).orElse("GET");
     HttpMethod method = HttpMethod.valueOf(methodValue.toUpperCase(Locale.ROOT));
-    Duration timeout = requireDuration(definition.timeout(), "timeout");
-    Duration interval = requireDuration(definition.interval(), "interval");
+    Duration timeout = optionalDuration(definition.timeout(), DEFAULT_TIMEOUT);
+    Duration interval = optionalDuration(definition.interval(), DEFAULT_INTERVAL);
     if (interval.isZero() || interval.isNegative()) {
       throw new IllegalStateException("Health signal interval must be positive for " + id);
     }
@@ -77,9 +80,9 @@ public class PollingSignalSourceFactory {
   }
 
   @Nonnull
-  private Duration requireDuration(Duration value, String field) {
+  private Duration optionalDuration(Duration value, Duration fallback) {
     if (value == null) {
-      throw new IllegalStateException("Health signal must define " + field);
+      return fallback;
     }
     return value;
   }
