@@ -4,8 +4,8 @@
 # Periodically forces random demo services into a DOWN state for a short window,
 # then restores them back to UP.
 #
-# Targets are discovered from an HTTP polling signals YAML file (same format as the
-# aggregator uses), by deriving control URLs from signal URLs.
+# Targets are discovered from catalog signals API payload, by deriving
+# control URLs from signal URLs.
 #
 # Configuration is controlled via environment variables:
 #   - CHAOS_ENABLED:           "true" / "false" (default: false)
@@ -15,6 +15,7 @@
 #   - CHAOS_MAX_DURATION:      e.g. 45s (default: 45s)
 #   - CHAOS_MAX_CONCURRENT:    integer (default: 2)
 #   - CHAOS_ALWAYS_BROKEN:     "true" / "false" (default: false)
+#   - CATALOG_SIGNALS_URL:     URL to catalog signals API
 #
 # Intended for demo and testing only.
 #
@@ -24,7 +25,6 @@ import os
 import random
 import time
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Dict, Iterable, List, Set
 from urllib.parse import urlsplit
 
@@ -46,7 +46,7 @@ class ChaosConfig:
     min_duration: float
     max_duration: float
     max_concurrent: int
-    signals_path: str
+    signals_source: str
     always_broken: bool
 
 
@@ -81,7 +81,6 @@ def parse_duration(value: str | None) -> float:
 
 
 def load_config() -> ChaosConfig:
-    script_dir = Path(__file__).resolve().parent
     return ChaosConfig(
         enabled=os.getenv("CHAOS_ENABLED", "false").strip().lower() == "true",
         min_interval=parse_duration(os.getenv("CHAOS_MIN_INTERVAL", "30s")),
@@ -89,7 +88,10 @@ def load_config() -> ChaosConfig:
         min_duration=parse_duration(os.getenv("CHAOS_MIN_DURATION", "20s")),
         max_duration=parse_duration(os.getenv("CHAOS_MAX_DURATION", "45s")),
         max_concurrent=int(os.getenv("CHAOS_MAX_CONCURRENT", "2")),
-        signals_path=str(script_dir / "signals-http-poll.yaml"),
+        signals_source=os.getenv(
+            "CATALOG_SIGNALS_URL",
+            "http://catalog:8080/api/signals/http-poll",
+        ),
         always_broken=os.getenv("CHAOS_ALWAYS_BROKEN", "false").strip().lower() == "true",
     )
 
@@ -125,9 +127,21 @@ def to_control_url(url: str) -> str:
     return f"{parsed.scheme}://{parsed.netloc}{path}/set-health"
 
 
-def extract_targets(signals_path: str) -> List[ChaosTarget]:
-    with open(signals_path, "r", encoding="utf-8") as handle:
-        payload = yaml.safe_load(handle) or {}
+def load_signals_payload(signals_source: str) -> dict:
+    if signals_source.startswith("http://") or signals_source.startswith("https://"):
+        response = requests.get(signals_source, timeout=10)
+        response.raise_for_status()
+        payload = yaml.safe_load(response.text) or {}
+    else:
+        with open(signals_source, "r", encoding="utf-8") as handle:
+            payload = yaml.safe_load(handle) or {}
+    if isinstance(payload, dict):
+        return payload
+    return {}
+
+
+def extract_targets(signals_source: str) -> List[ChaosTarget]:
+    payload = load_signals_payload(signals_source)
 
     signals = payload.get("signals", [])
     targets: Dict[str, ChaosTarget] = {}
@@ -270,16 +284,19 @@ def _try_inject_once(
     active: Dict[str, float],
 ) -> None:
     try:
-        targets = targets or extract_targets(config.signals_path)
+        targets = targets or extract_targets(config.signals_source)
     except FileNotFoundError:
-        logger.error("Signals file not found at %s", config.signals_path)
+        logger.error("Signals source not found at %s", config.signals_source)
+        return
+    except requests.RequestException as exc:
+        logger.error("Failed to fetch signals from %s: %s", config.signals_source, exc)
         return
     except yaml.YAMLError as exc:
-        logger.error("Failed to parse signals file at %s: %s", config.signals_path, exc)
+        logger.error("Failed to parse signals payload from %s: %s", config.signals_source, exc)
         return
 
     if not targets:
-        logger.warning("No chaos targets found in %s", config.signals_path)
+        logger.warning("No chaos targets found in %s", config.signals_source)
         return
 
     if len(active) >= config.max_concurrent:
@@ -306,18 +323,22 @@ def run() -> None:
             continue
 
         try:
-            targets = extract_targets(config.signals_path)
+            targets = extract_targets(config.signals_source)
         except FileNotFoundError:
-            logger.error("Signals file not found at %s", config.signals_path)
+            logger.error("Signals source not found at %s", config.signals_source)
+            time.sleep(5)
+            continue
+        except requests.RequestException as exc:
+            logger.error("Failed to fetch signals from %s: %s", config.signals_source, exc)
             time.sleep(5)
             continue
         except yaml.YAMLError as exc:
-            logger.error("Failed to parse signals file at %s: %s", config.signals_path, exc)
+            logger.error("Failed to parse signals payload from %s: %s", config.signals_source, exc)
             time.sleep(5)
             continue
 
         if not targets:
-            logger.warning("No chaos targets found in %s", config.signals_path)
+            logger.warning("No chaos targets found in %s", config.signals_source)
             time.sleep(5)
             continue
 
