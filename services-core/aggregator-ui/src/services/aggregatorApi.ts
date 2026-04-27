@@ -1,4 +1,3 @@
-import yaml from "js-yaml";
 import type {
   AggregatorUiRuntimeConfig,
   CatalogActor,
@@ -201,40 +200,23 @@ export const loadCatalog = async (): Promise<{
   actorContacts: CatalogActorContact[];
 }> => {
   const [
-    itemsResponse,
-    dependenciesResponse,
+    itemsData,
+    dependenciesData,
     contactsData,
     itemContactsData,
     actorsData,
     itemActorsData,
     actorContactsData,
   ] = await Promise.all([
-    fetch(new URL("catalog-items.yaml", resolveBaseUrl())),
-    fetch(new URL("catalog-dependencies.yaml", resolveBaseUrl())),
-    loadOptionalYaml("catalog-contacts.yaml"),
-    loadOptionalYaml("catalog-item-contacts.yaml"),
-    loadOptionalYaml("catalog-actors.yaml"),
-    loadOptionalYaml("catalog-item-actors.yaml"),
-    loadOptionalYaml("catalog-actors-contacts.yaml"),
+    loadRequiredJson("catalog/api/catalog/items"),
+    loadRequiredJson("catalog/api/catalog/dependencies"),
+    loadOptionalJson("catalog/api/catalog/contacts"),
+    loadOptionalJson("catalog/api/catalog/item-contacts"),
+    loadOptionalJson("catalog/api/catalog/actors"),
+    loadOptionalJson("catalog/api/catalog/item-actors"),
+    loadOptionalJson("catalog/api/catalog/actor-contacts"),
   ]);
 
-  if (!itemsResponse.ok) {
-    throw new Error(`Failed to load catalog items: ${itemsResponse.status}`);
-  }
-  if (!dependenciesResponse.ok) {
-    throw new Error(
-      `Failed to load catalog dependencies: ${dependenciesResponse.status}`,
-    );
-  }
-
-  const [itemsText, dependenciesText] = await Promise.all([
-    itemsResponse.text(),
-    dependenciesResponse.text(),
-  ]);
-  const itemsData = (yaml.load(itemsText, {}) || {}) as { items?: unknown };
-  const dependenciesData = (yaml.load(dependenciesText, {}) || {}) as {
-    dependencies?: unknown;
-  };
   const contactsPayload = contactsData as { contacts?: unknown };
   const itemContactsPayload = itemContactsData as { itemContacts?: unknown };
   const actorsPayload = actorsData as { actors?: unknown };
@@ -450,13 +432,20 @@ const toBoolean = (value: unknown): boolean => {
 const isSupportedActorType = (value: string): value is CatalogActor["type"] =>
   value === "owner" || value === "user" || value === "other";
 
-const loadOptionalYaml = async (path: string): Promise<unknown> => {
+const loadRequiredJson = async (path: string): Promise<unknown> => {
+  const response = await fetch(new URL(path, resolveBaseUrl()));
+  if (!response.ok) {
+    throw new Error(`Failed to load catalog data: ${response.status}`);
+  }
+  return (await response.json()) as unknown;
+};
+
+const loadOptionalJson = async (path: string): Promise<unknown> => {
   const response = await fetch(new URL(path, resolveBaseUrl()));
   if (!response.ok) {
     return {};
   }
-  const text = await response.text();
-  return (yaml.load(text, {}) || {}) as unknown;
+  return (await response.json()) as unknown;
 };
 
 export const fetchPrometheusStatuses = async (
