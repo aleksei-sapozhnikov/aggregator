@@ -393,7 +393,6 @@ export default function DetailsPanel({
               role="group"
               aria-label="Ownership"
             >
-              <p className="ownership-label">Owner</p>
               {ownerActorForContacts ? (
                 <a
                   className="ownership-owner-value"
@@ -409,8 +408,17 @@ export default function DetailsPanel({
                     ownerActorForContacts.title || ownerActorForContacts.id
                   }
                 >
-                  {renderActorTeamIcon(iconSpriteHref)}
-                  {ownerActorForContacts.title || ownerActorForContacts.id}
+                  <span className="chip-entry">
+                    <span className="chip-icon-block">
+                      {renderActorTeamIcon(iconSpriteHref)}
+                    </span>
+                    <span className="chip-text-block">
+                      <span className="chip-prefix">Owner</span>
+                      <span className="ownership-contact-value">
+                        {ownerActorForContacts.title || ownerActorForContacts.id}
+                      </span>
+                    </span>
+                  </span>
                 </a>
               ) : (
                 <p className="ownership-empty">No owner linked to this item</p>
@@ -418,7 +426,6 @@ export default function DetailsPanel({
 
               {primaryContact && (
                 <div className="ownership-contact-section">
-                  <p className="ownership-label">Primary contact</p>
                   <a
                     className="ownership-contact-row"
                     href={
@@ -433,9 +440,16 @@ export default function DetailsPanel({
                     }}
                     title={resolveContactLabel(primaryContact)}
                   >
-                    {renderContactTypeIcon(iconSpriteHref, primaryContact.type)}
-                    <span className="ownership-contact-value">
-                      {resolveContactLabel(primaryContact)}
+                    <span className="chip-entry">
+                      <span className="chip-icon-block">
+                        {renderContactTypeIcon(iconSpriteHref, primaryContact.type)}
+                      </span>
+                      <span className="chip-text-block">
+                        <span className="chip-prefix">Primary contact</span>
+                        <span className="ownership-contact-value">
+                          {resolveContactLabel(primaryContact)}
+                        </span>
+                      </span>
                     </span>
                   </a>
                 </div>
@@ -486,13 +500,17 @@ export default function DetailsPanel({
                             }}
                             title={entry.actor.title || entry.actor.id}
                           >
-                            {renderActorTeamIcon(iconSpriteHref)}
-                            <span className="ownership-actor-main">
-                              <span className="ownership-actor-type-label">
-                                {entry.typeLabel}
+                            <span className="chip-entry">
+                              <span className="chip-icon-block">
+                                {renderActorTeamIcon(iconSpriteHref)}
                               </span>
-                              <span className="ownership-contact-value">
-                                {entry.actor.title || entry.actor.id}
+                              <span className="chip-text-block">
+                                <span className="chip-prefix">
+                                {entry.typeLabel}
+                                </span>
+                                <span className="ownership-contact-value">
+                                  {entry.actor.title || entry.actor.id}
+                                </span>
                               </span>
                             </span>
                           </a>
@@ -539,20 +557,22 @@ export default function DetailsPanel({
                       <ul className="signals-list signals-sublist signals-group-list">
                         {selectedFailingSignals.map((entry) => (
                           <li key={entry.id} className="signal">
-                            <div className="signal-row">
-                              <span
-                                className={`status-indicator status-${entry.status}`}
-                                aria-label={buildStatusText(entry.status)}
-                                title={buildStatusText(entry.status)}
-                              />
-                              <span className="signals-incident-signal-prefix">
-                                Own
+                            <div className="signals-incident-title">
+                              <span className="signals-incident-indicator-wrap">
+                                <span
+                                  className={`status-indicator status-${entry.status}`}
+                                  aria-label={buildStatusText(entry.status)}
+                                  title={buildStatusText(entry.status)}
+                                />
                               </span>
-                              <span
-                                className="signal-name"
-                                title={entry.title || entry.id}
-                              >
-                                {entry.title || entry.id}
+                              <span className="signals-incident-text-stack">
+                                <span className="signals-incident-kind">Own</span>
+                                <span
+                                  className="signal-name"
+                                  title={entry.title || entry.id}
+                                >
+                                  {entry.title || entry.id}
+                                </span>
                               </span>
                             </div>
                           </li>
@@ -566,16 +586,20 @@ export default function DetailsPanel({
                         onClick={row.onClick}
                       >
                         <div className="signals-incident-title">
-                          <span
-                            className={`status-indicator status-${row.status}`}
-                            aria-label={buildStatusText(row.status)}
-                            title={buildStatusText(row.status)}
-                          />
-                          <span className="signals-incident-kind">
-                            {row.typeLabel}
+                          <span className="signals-incident-indicator-wrap">
+                            <span
+                              className={`status-indicator status-${row.status}`}
+                              aria-label={buildStatusText(row.status)}
+                              title={buildStatusText(row.status)}
+                            />
                           </span>
-                          <span className="signal-name" title={row.title}>
-                            {row.title}
+                          <span className="signals-incident-text-stack">
+                            <span className="signals-incident-kind">
+                              {row.typeLabel}
+                            </span>
+                            <span className="signal-name" title={row.title}>
+                              {row.title}
+                            </span>
                           </span>
                         </div>
                         {row.signals && row.signals.length > 0 && (
@@ -595,16 +619,20 @@ export default function DetailsPanel({
                     ) : (
                       <>
                         <div className="signals-incident-title">
-                          <span
-                            className={`status-indicator status-${row.status}`}
-                            aria-label={buildStatusText(row.status)}
-                            title={buildStatusText(row.status)}
-                          />
-                          <span className="signals-incident-kind">
-                            {row.typeLabel}
+                          <span className="signals-incident-indicator-wrap">
+                            <span
+                              className={`status-indicator status-${row.status}`}
+                              aria-label={buildStatusText(row.status)}
+                              title={buildStatusText(row.status)}
+                            />
                           </span>
-                          <span className="signal-name" title={row.title}>
-                            {row.title}
+                          <span className="signals-incident-text-stack">
+                            <span className="signals-incident-kind">
+                              {row.typeLabel}
+                            </span>
+                            <span className="signal-name" title={row.title}>
+                              {row.title}
+                            </span>
                           </span>
                         </div>
                         {row.signals && row.signals.length > 0 && (
