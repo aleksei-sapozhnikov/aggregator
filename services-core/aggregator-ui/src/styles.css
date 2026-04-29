@@ -958,13 +958,6 @@ body {
   gap: 6px;
 }
 
-.content > .details-inline-block + .details-inline-block,
-.content > .details-inline-block + .details-panel,
-.content > .details-panel + .details-inline-block,
-.content > .details-panel + .details-panel {
-  margin-top: 16px;
-}
-
 .details-inline-block-signals {
   position: relative;
   clip-path: inset(0 round 12px);
@@ -1173,6 +1166,39 @@ body {
   outline-offset: 2px;
 }
 
+.chip-entry {
+  min-width: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chip-icon-block {
+  flex: 0 0 19px;
+  width: 19px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+}
+
+.chip-text-block {
+  min-width: 0;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.chip-prefix {
+  color: var(--owner-panel-label);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.2;
+  text-transform: capitalize;
+}
+
 .ownership-contact-value {
   min-width: 0;
   font-size: 14px;
@@ -1180,21 +1206,6 @@ body {
   line-height: 1.35;
   overflow-wrap: anywhere;
   word-break: break-word;
-}
-
-.ownership-actor-main {
-  min-width: 0;
-  display: inline-flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.ownership-actor-type-label {
-  color: var(--owner-panel-label);
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 1.2;
-  text-transform: capitalize;
 }
 
 .ownership-expand-button,
@@ -1304,9 +1315,27 @@ body {
   min-width: 0;
 }
 
+.signals-incident-indicator-wrap {
+  width: 10px;
+  min-width: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+}
+
+.signals-incident-text-stack {
+  min-width: 0;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
 .signals-incident-kind {
   color: var(--muted);
   font-size: 12px;
+  line-height: 1.2;
   white-space: nowrap;
 }
 
@@ -1636,21 +1665,32 @@ body[data-theme="dark"] .contact-chip:hover {
   background: var(--panel-hover);
 }
 
-.actor-modal-contact-main {
+.actor-modal-contact-text-stack {
   min-width: 0;
   width: 100%;
   display: flex;
   flex-direction: column;
   gap: 2px;
-  overflow-wrap: anywhere;
-  word-break: break-word;
 }
 
-.actor-modal-contact-prefix {
-  color: var(--owner-panel-label);
-  font-size: 12px;
-  line-height: 1.2;
-  white-space: nowrap;
+.actor-modal-contact-prefix-line {
+  min-width: 0;
+  display: inline-flex;
+  align-items: baseline;
+}
+
+.actor-modal-contact-prefix-spacer {
+  width: 19px;
+  min-width: 19px;
+  margin-right: 8px;
+}
+
+.actor-modal-contact-value-line {
+  min-width: 0;
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .dependency-group-title {
