@@ -415,7 +415,8 @@ export default function DetailsPanel({
                     <span className="chip-text-block">
                       <span className="chip-prefix">Owner</span>
                       <span className="ownership-contact-value">
-                        {ownerActorForContacts.title || ownerActorForContacts.id}
+                        {ownerActorForContacts.title ||
+                          ownerActorForContacts.id}
                       </span>
                     </span>
                   </span>
@@ -442,7 +443,10 @@ export default function DetailsPanel({
                   >
                     <span className="chip-entry">
                       <span className="chip-icon-block">
-                        {renderContactTypeIcon(iconSpriteHref, primaryContact.type)}
+                        {renderContactTypeIcon(
+                          iconSpriteHref,
+                          primaryContact.type,
+                        )}
                       </span>
                       <span className="chip-text-block">
                         <span className="chip-prefix">Primary contact</span>
@@ -506,7 +510,7 @@ export default function DetailsPanel({
                               </span>
                               <span className="chip-text-block">
                                 <span className="chip-prefix">
-                                {entry.typeLabel}
+                                  {entry.typeLabel}
                                 </span>
                                 <span className="ownership-contact-value">
                                   {entry.actor.title || entry.actor.id}
@@ -566,7 +570,9 @@ export default function DetailsPanel({
                                 />
                               </span>
                               <span className="signals-incident-text-stack">
-                                <span className="signals-incident-kind">Own</span>
+                                <span className="signals-incident-kind">
+                                  Own
+                                </span>
                                 <span
                                   className="signal-name"
                                   title={entry.title || entry.id}
