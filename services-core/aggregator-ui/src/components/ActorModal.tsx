@@ -81,48 +81,79 @@ export default function ActorModal({
           <h3 className="actor-modal-subtitle">Contacts</h3>
           {orderedContacts.length > 0 ? (
             <ul className="actor-modal-contacts">
-              {orderedContacts.map((contact) => (
-                <li key={contact.id}>
-                  <a
-                    className="contact-chip actor-modal-contact-chip"
-                    href={`/contacts/${contact.id}`}
-                    onClick={(event) => {
-                      if (!isPlainLeftClick(event)) {
-                        return;
-                      }
-                      event.preventDefault();
-                      onOpenContact(contact);
-                    }}
-                  >
-                    {primaryContact?.id === contact.id && (
-                      <span className="actor-modal-contact-prefix">
-                        Primary
-                      </span>
-                    )}
-                    <span className="contact-icon-label">
-                      <span
-                        className="contact-type-icon-wrap"
-                        title={resolveContactTypeDisplayName(contact.type)}
-                        aria-label={resolveContactTypeDisplayName(contact.type)}
-                      >
-                        <svg
-                          className={`contact-type-icon ${resolveContactTypeClass(contact.type)}`}
-                          viewBox="0 0 24 24"
-                          focusable="false"
-                          aria-hidden="true"
-                        >
-                          <use
-                            href={`${iconSpriteHref}#${resolveContactIconId(contact.type)}`}
-                          />
-                        </svg>
-                      </span>
-                      <span className="contact-chip-text">
-                        {resolveContactLabel(contact)}
-                      </span>
-                    </span>
-                  </a>
-                </li>
-              ))}
+              {orderedContacts.map((contact) => {
+                const isPrimary = primaryContact?.id === contact.id;
+                return (
+                  <li key={contact.id}>
+                    <a
+                      className="contact-chip actor-modal-contact-chip"
+                      href={`/contacts/${contact.id}`}
+                      onClick={(event) => {
+                        if (!isPlainLeftClick(event)) {
+                          return;
+                        }
+                        event.preventDefault();
+                        onOpenContact(contact);
+                      }}
+                    >
+                      {isPrimary ? (
+                        <span className="actor-modal-contact-text-stack">
+                          <span className="actor-modal-contact-prefix-line">
+                            <span
+                              className="actor-modal-contact-prefix-spacer"
+                              aria-hidden="true"
+                            />
+                            <span className="chip-prefix">Primary contact</span>
+                          </span>
+                          <span className="actor-modal-contact-value-line">
+                            <span
+                              className="contact-type-icon-wrap"
+                              title={resolveContactTypeDisplayName(contact.type)}
+                              aria-label={resolveContactTypeDisplayName(contact.type)}
+                            >
+                              <svg
+                                className={`contact-type-icon ${resolveContactTypeClass(contact.type)}`}
+                                viewBox="0 0 24 24"
+                                focusable="false"
+                                aria-hidden="true"
+                              >
+                                <use
+                                  href={`${iconSpriteHref}#${resolveContactIconId(contact.type)}`}
+                                />
+                              </svg>
+                            </span>
+                            <span className="contact-chip-text">
+                              {resolveContactLabel(contact)}
+                            </span>
+                          </span>
+                        </span>
+                      ) : (
+                        <span className="actor-modal-contact-value-line">
+                          <span
+                            className="contact-type-icon-wrap"
+                            title={resolveContactTypeDisplayName(contact.type)}
+                            aria-label={resolveContactTypeDisplayName(contact.type)}
+                          >
+                            <svg
+                              className={`contact-type-icon ${resolveContactTypeClass(contact.type)}`}
+                              viewBox="0 0 24 24"
+                              focusable="false"
+                              aria-hidden="true"
+                            >
+                              <use
+                                href={`${iconSpriteHref}#${resolveContactIconId(contact.type)}`}
+                              />
+                            </svg>
+                          </span>
+                          <span className="contact-chip-text">
+                            {resolveContactLabel(contact)}
+                          </span>
+                        </span>
+                      )}
+                    </a>
+                  </li>
+                );
+              })}
             </ul>
           ) : (
             <p>No contacts linked to this actor.</p>
