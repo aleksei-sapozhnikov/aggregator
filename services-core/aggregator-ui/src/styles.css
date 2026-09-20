@@ -1137,7 +1137,8 @@ body {
   line-height: 1.35;
 }
 
-.ownership-contact-row {
+.contact-surface-chip,
+.contact-chip.contact-surface-chip {
   width: 100%;
   min-height: 40px;
   border: 1px solid var(--border);
@@ -1151,8 +1152,13 @@ body {
   padding: 8px 10px;
 }
 
-.ownership-contact-row:hover {
+.contact-surface-chip:hover,
+.contact-chip.contact-surface-chip:hover {
   background: var(--panel-hover);
+}
+
+.ownership-contact-row {
+  width: 100%;
 }
 
 .ownership-contact-row:active {
@@ -1650,47 +1656,6 @@ body[data-theme="dark"] .contact-chip:hover {
 
 .actor-modal-contact-chip {
   width: 100%;
-  min-height: 40px;
-  padding: 8px 10px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--panel);
-  color: var(--owner-panel-value);
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.actor-modal-contact-chip:hover {
-  background: var(--panel-hover);
-}
-
-.actor-modal-contact-text-stack {
-  min-width: 0;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.actor-modal-contact-prefix-line {
-  min-width: 0;
-  display: inline-flex;
-  align-items: baseline;
-}
-
-.actor-modal-contact-prefix-spacer {
-  width: 19px;
-  min-width: 19px;
-  margin-right: 8px;
-}
-
-.actor-modal-contact-value-line {
-  min-width: 0;
-  width: 100%;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
 }
 
 .dependency-group-title {

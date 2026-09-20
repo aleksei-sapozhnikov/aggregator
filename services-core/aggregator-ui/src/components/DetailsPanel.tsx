@@ -3,14 +3,10 @@
  */
 
 import TopBarActions from "./TopBarActions";
+import ContactChipContent from "./ContactChipContent";
 import { isPlainLeftClick } from "../shared/catalogUtils";
 import { buildStatusText } from "../shared/statusText";
-import {
-  resolveContactIconId,
-  resolveContactLabel,
-  resolveContactTypeClass,
-  resolveContactTypeDisplayName,
-} from "../shared/contactUtils";
+import { resolveContactLabel } from "../shared/contactUtils";
 import type {
   CatalogActor,
   CatalogContact,
@@ -117,26 +113,6 @@ const buildExtraActorRows = (actors: CatalogActor[]): ExtraActorRow[] =>
       actor,
       typeLabel: String(actor.type || "other").toLowerCase(),
     }));
-
-const renderContactTypeIcon = (
-  iconSpriteHref: string,
-  contactType: string,
-): JSX.Element => (
-  <span
-    className="contact-type-icon-wrap"
-    title={resolveContactTypeDisplayName(contactType)}
-    aria-label={resolveContactTypeDisplayName(contactType)}
-  >
-    <svg
-      className={`contact-type-icon ${resolveContactTypeClass(contactType)}`}
-      viewBox="0 0 24 24"
-      focusable="false"
-      aria-hidden="true"
-    >
-      <use href={`${iconSpriteHref}#${resolveContactIconId(contactType)}`} />
-    </svg>
-  </span>
-);
 
 const renderActorTeamIcon = (iconSpriteHref: string): JSX.Element => (
   <span className="actor-team-icon-wrap" aria-hidden="true">
@@ -428,7 +404,7 @@ export default function DetailsPanel({
               {primaryContact && (
                 <div className="ownership-contact-section">
                   <a
-                    className="ownership-contact-row"
+                    className="ownership-contact-row contact-surface-chip"
                     href={
                       primaryContact.href || `/contacts/${primaryContact.id}`
                     }
@@ -441,20 +417,12 @@ export default function DetailsPanel({
                     }}
                     title={resolveContactLabel(primaryContact)}
                   >
-                    <span className="chip-entry">
-                      <span className="chip-icon-block">
-                        {renderContactTypeIcon(
-                          iconSpriteHref,
-                          primaryContact.type,
-                        )}
-                      </span>
-                      <span className="chip-text-block">
-                        <span className="chip-prefix">Primary contact</span>
-                        <span className="ownership-contact-value">
-                          {resolveContactLabel(primaryContact)}
-                        </span>
-                      </span>
-                    </span>
+                    <ContactChipContent
+                      contact={primaryContact}
+                      iconSpriteHref={iconSpriteHref}
+                      prefix="Primary contact"
+                      valueClassName="ownership-contact-value"
+                    />
                   </a>
                 </div>
               )}
@@ -493,7 +461,7 @@ export default function DetailsPanel({
                       {extraActorRows.map((entry) => (
                         <li key={entry.key}>
                           <a
-                            className="ownership-contact-row"
+                            className="ownership-contact-row contact-surface-chip"
                             href={`/actors/${entry.actor.id}`}
                             onClick={(event) => {
                               if (!isPlainLeftClick(event)) {
