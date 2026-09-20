@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Scan repository files for potential secrets using TruffleHog."""
 
 from __future__ import annotations

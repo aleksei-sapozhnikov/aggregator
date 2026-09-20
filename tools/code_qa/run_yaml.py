@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Validate YAML file syntax by parsing YAML documents."""
 
 from __future__ import annotations

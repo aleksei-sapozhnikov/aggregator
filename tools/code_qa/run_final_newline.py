@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Validate and normalize final newline at end of text files."""
 
 from __future__ import annotations

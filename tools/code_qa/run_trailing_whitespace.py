@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Detect and trim trailing whitespace in text files."""
 
 from __future__ import annotations

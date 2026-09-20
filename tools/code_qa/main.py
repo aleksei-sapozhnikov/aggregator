@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Top-level code QA orchestrator."""
 
 from __future__ import annotations

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Lint and format Python files with Ruff."""
 
 from __future__ import annotations

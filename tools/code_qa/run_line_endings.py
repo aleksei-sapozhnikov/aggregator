@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Validate and normalize line endings in text files."""
 
 from __future__ import annotations
@@ -33,7 +32,11 @@ def main() -> int:
             print(str(path.relative_to(root)))
             failed = True
         else:
-            path.write_text(text.replace("\r\n", "\n").replace("\r", "\n"), encoding="utf-8")
+            path.write_text(
+                text.replace("\r\n", "\n").replace("\r", "\n"),
+                encoding="utf-8",
+                newline="\n",
+            )
             changed += 1
     if args.format and changed:
         print(f"normalized line endings in {changed} files")

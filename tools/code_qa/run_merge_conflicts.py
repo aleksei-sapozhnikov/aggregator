@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Detect unresolved Git merge conflict markers in text files."""
 
 from __future__ import annotations

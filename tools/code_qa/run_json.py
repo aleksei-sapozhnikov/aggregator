@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Validate JSON file syntax by parsing JSON documents."""
 
 from __future__ import annotations

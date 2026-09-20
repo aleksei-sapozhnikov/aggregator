@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Check or apply Java source formatting."""
 
 from __future__ import annotations

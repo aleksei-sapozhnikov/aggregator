@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Shared utility helpers for code_qa scripts."""
 
 from __future__ import annotations
