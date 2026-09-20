@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Install pinned prek tooling."""
 
 from __future__ import annotations

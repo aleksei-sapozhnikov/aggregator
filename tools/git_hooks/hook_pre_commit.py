@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Run pre-commit QA flow according to local git hook mode."""
 
 from __future__ import annotations

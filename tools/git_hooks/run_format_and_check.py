@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Hook flow: run code format flow and fail when files were changed."""
 
 from __future__ import annotations
