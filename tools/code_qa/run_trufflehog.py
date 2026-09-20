@@ -13,6 +13,7 @@ import subprocess
 import sys
 import tarfile
 import tempfile
+import urllib.error
 import urllib.request
 from pathlib import Path
 
@@ -113,7 +114,7 @@ def collect_gitignored(repo_root: Path) -> tuple[list[dict[str, str]], list[str]
     for rel_path in raw:
         if not rel_path:
             continue
-        is_directory = rel_path.endswith("/") or rel_path.endswith("\\")
+        is_directory = rel_path.endswith(("/", "\\"))
         normalized = rel_path.rstrip("/\\")
         if not normalized:
             continue
@@ -222,15 +223,15 @@ def download_trufflehog_binary(repo_root: Path) -> str | None:
 
     try:
         print(f"Downloading {url} -> {archive_path}", file=sys.stderr)
-        urllib.request.urlretrieve(url, archive_path)  # noqa: S310
-    except Exception as exc:
+        urllib.request.urlretrieve(url, archive_path)
+    except (OSError, urllib.error.URLError) as exc:
         print(f"error: failed to download trufflehog: {exc}", file=sys.stderr)
         return None
 
     try:
         with tarfile.open(archive_path, "r:gz") as tf:
             tf.extractall(cache_dir)
-    except Exception as exc:
+    except (OSError, tarfile.TarError) as exc:
         print(f"error: failed to extract trufflehog archive: {exc}", file=sys.stderr)
         return None
 
@@ -245,7 +246,7 @@ def download_trufflehog_binary(repo_root: Path) -> str | None:
     if extracted_path.resolve() != target_path.resolve():
         try:
             shutil.copy2(extracted_path, target_path)
-        except Exception as exc:
+        except OSError as exc:
             print(f"error: failed to copy trufflehog binary: {exc}", file=sys.stderr)
             return None
     else:
@@ -293,7 +294,7 @@ def parse_trufflehog_findings(raw_output: str, repo_root: Path) -> list[dict[str
         file_str = str(file_path) if file_path else "(unknown file)"
         try:
             rel_path = str(Path(file_str).resolve().relative_to(repo_root))
-        except Exception:
+        except (OSError, ValueError):
             rel_path = file_str
 
         verified = item.get("Verified")

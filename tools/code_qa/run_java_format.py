@@ -141,7 +141,7 @@ def ensure_formatter_jar(repo_root: Path) -> Path:
         return jar_path
 
     print(f"Downloading {GOOGLE_JAVA_FORMAT_URL} -> {jar_path}")
-    urllib.request.urlretrieve(GOOGLE_JAVA_FORMAT_URL, jar_path)  # noqa: S310
+    urllib.request.urlretrieve(GOOGLE_JAVA_FORMAT_URL, jar_path)
     return jar_path
 
 

@@ -16,7 +16,7 @@ def main() -> int:
     """Validate syntax of repository YAML files."""
     try:
         import yaml  # type: ignore
-    except Exception:
+    except ImportError:
         if os.environ.get(BOOTSTRAP_ENV) == "1":
             print("PyYAML is not installed and import failed after bootstrap.")
             return 1
@@ -40,7 +40,7 @@ def main() -> int:
             continue
         try:
             yaml.safe_load(path.read_text(encoding="utf-8"))
-        except Exception as exc:
+        except (OSError, UnicodeDecodeError, yaml.YAMLError) as exc:
             print(f"{path.relative_to(root)}: {exc}")
             failed = True
     return 1 if failed else 0

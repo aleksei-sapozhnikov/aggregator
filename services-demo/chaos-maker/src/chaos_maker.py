@@ -24,8 +24,8 @@ import logging
 import os
 import random
 import time
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Dict, Iterable, List, Set
 from urllib.parse import urlsplit
 
 import requests
@@ -128,7 +128,7 @@ def to_control_url(url: str) -> str:
 
 
 def load_signals_payload(signals_source: str) -> dict:
-    if signals_source.startswith("http://") or signals_source.startswith("https://"):
+    if signals_source.startswith(("http://", "https://")):
         response = requests.get(signals_source, timeout=10)
         response.raise_for_status()
         payload = yaml.safe_load(response.text) or {}
@@ -140,11 +140,11 @@ def load_signals_payload(signals_source: str) -> dict:
     return {}
 
 
-def extract_targets(signals_source: str) -> List[ChaosTarget]:
+def extract_targets(signals_source: str) -> list[ChaosTarget]:
     payload = load_signals_payload(signals_source)
 
     signals = payload.get("signals", [])
-    targets: Dict[str, ChaosTarget] = {}
+    targets: dict[str, ChaosTarget] = {}
 
     for signal in signals:
         url = signal.get("url")
@@ -158,8 +158,8 @@ def extract_targets(signals_source: str) -> List[ChaosTarget]:
 
 
 def choose_available(
-    targets: Iterable[ChaosTarget], active: Set[str], statuses: Dict[str, bool]
-) -> List[ChaosTarget]:
+    targets: Iterable[ChaosTarget], active: set[str], statuses: dict[str, bool]
+) -> list[ChaosTarget]:
     return [t for t in targets if t.control_url not in active and statuses.get(t.control_url, False)]
 
 
@@ -197,8 +197,8 @@ def parse_health_status(response: requests.Response) -> str | None:
     return None
 
 
-def fetch_health_statuses(targets: Iterable[ChaosTarget]) -> Dict[str, bool]:
-    statuses: Dict[str, bool] = {}
+def fetch_health_statuses(targets: Iterable[ChaosTarget]) -> dict[str, bool]:
+    statuses: dict[str, bool] = {}
     for target in targets:
         try:
             response = requests.get(target.health_url, timeout=5)
@@ -220,7 +220,7 @@ def fetch_health_statuses(targets: Iterable[ChaosTarget]) -> Dict[str, bool]:
     return statuses
 
 
-def reconcile_active(active: Dict[str, float], statuses: Dict[str, bool]) -> None:
+def reconcile_active(active: dict[str, float], statuses: dict[str, bool]) -> None:
     for control_url in list(active.keys()):
         if statuses.get(control_url, False):
             logger.info("Target %s recovered early; clearing scheduled restore", control_url)
@@ -230,8 +230,8 @@ def reconcile_active(active: Dict[str, float], statuses: Dict[str, bool]) -> Non
 def schedule_restores_for_down_targets(
     config: ChaosConfig,
     targets: Iterable[ChaosTarget],
-    statuses: Dict[str, bool],
-    active: Dict[str, float],
+    statuses: dict[str, bool],
+    active: dict[str, float],
 ) -> None:
     now = time.time()
     for target in targets:
@@ -244,7 +244,7 @@ def schedule_restores_for_down_targets(
         logger.info("Detected %s DOWN; scheduling restore in %.1fs", target.control_url, duration)
 
 
-def restore_due_targets(active: Dict[str, float]) -> List[str]:
+def restore_due_targets(active: dict[str, float]) -> list[str]:
     now = time.time()
     due = [control_url for control_url, restore_at in active.items() if now >= restore_at]
     for control_url in due:
@@ -253,15 +253,15 @@ def restore_due_targets(active: Dict[str, float]) -> List[str]:
     return due
 
 
-def has_any_down(statuses: Dict[str, bool]) -> bool:
+def has_any_down(statuses: dict[str, bool]) -> bool:
     return any(not is_up for is_up in statuses.values())
 
 
 def force_break_random(
     config: ChaosConfig,
-    targets: List[ChaosTarget],
-    statuses: Dict[str, bool],
-    active: Dict[str, float],
+    targets: list[ChaosTarget],
+    statuses: dict[str, bool],
+    active: dict[str, float],
 ) -> None:
     if len(active) >= config.max_concurrent:
         logger.info("Chaos limit reached; skipping forced break")
@@ -279,9 +279,9 @@ def force_break_random(
 
 def _try_inject_once(
     config: ChaosConfig,
-    targets: List[ChaosTarget],
-    statuses: Dict[str, bool],
-    active: Dict[str, float],
+    targets: list[ChaosTarget],
+    statuses: dict[str, bool],
+    active: dict[str, float],
 ) -> None:
     try:
         targets = targets or extract_targets(config.signals_source)
@@ -312,7 +312,7 @@ def _try_inject_once(
 
 
 def run() -> None:
-    active_targets: Dict[str, float] = {}
+    active_targets: dict[str, float] = {}
 
     logger.info("Chaos maker started")
     while True:

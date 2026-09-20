@@ -17,7 +17,7 @@ def main() -> int:
             continue
         try:
             json.loads(path.read_text(encoding="utf-8"))
-        except Exception as exc:
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
             print(f"{path.relative_to(root)}: {exc}")
             failed = True
     return 1 if failed else 0

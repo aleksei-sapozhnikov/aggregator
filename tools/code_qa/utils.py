@@ -6,8 +6,8 @@ from __future__ import annotations
 import os
 import subprocess
 import sys
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
 
 EXCLUDED_DIRS = {
     ".git",
@@ -178,7 +178,7 @@ def list_git_files(root: Path) -> list[Path] | None:
             continue
         try:
             rel = Path(raw.decode("utf-8", errors="surrogateescape"))
-        except Exception:
+        except (OSError, ValueError):
             continue
         if is_excluded(rel):
             continue
