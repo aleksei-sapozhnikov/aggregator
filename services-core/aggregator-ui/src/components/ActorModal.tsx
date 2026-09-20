@@ -1,11 +1,6 @@
+import ContactChipContent from "./ContactChipContent";
 import type { CatalogActor, CatalogContact } from "../shared/types";
 import { isPlainLeftClick } from "../shared/catalogUtils";
-import {
-  resolveContactIconId,
-  resolveContactLabel,
-  resolveContactTypeClass,
-  resolveContactTypeDisplayName,
-} from "../shared/contactUtils";
 
 const resolveActorLabel = (actor?: CatalogActor | null): string => {
   if (!actor) {
@@ -86,7 +81,7 @@ export default function ActorModal({
                 return (
                   <li key={contact.id}>
                     <a
-                      className="contact-chip actor-modal-contact-chip"
+                      className="contact-chip contact-surface-chip actor-modal-contact-chip"
                       href={`/contacts/${contact.id}`}
                       onClick={(event) => {
                         if (!isPlainLeftClick(event)) {
@@ -96,60 +91,11 @@ export default function ActorModal({
                         onOpenContact(contact);
                       }}
                     >
-                      {isPrimary ? (
-                        <span className="actor-modal-contact-text-stack">
-                          <span className="actor-modal-contact-prefix-line">
-                            <span
-                              className="actor-modal-contact-prefix-spacer"
-                              aria-hidden="true"
-                            />
-                            <span className="chip-prefix">Primary contact</span>
-                          </span>
-                          <span className="actor-modal-contact-value-line">
-                            <span
-                              className="contact-type-icon-wrap"
-                              title={resolveContactTypeDisplayName(contact.type)}
-                              aria-label={resolveContactTypeDisplayName(contact.type)}
-                            >
-                              <svg
-                                className={`contact-type-icon ${resolveContactTypeClass(contact.type)}`}
-                                viewBox="0 0 24 24"
-                                focusable="false"
-                                aria-hidden="true"
-                              >
-                                <use
-                                  href={`${iconSpriteHref}#${resolveContactIconId(contact.type)}`}
-                                />
-                              </svg>
-                            </span>
-                            <span className="contact-chip-text">
-                              {resolveContactLabel(contact)}
-                            </span>
-                          </span>
-                        </span>
-                      ) : (
-                        <span className="actor-modal-contact-value-line">
-                          <span
-                            className="contact-type-icon-wrap"
-                            title={resolveContactTypeDisplayName(contact.type)}
-                            aria-label={resolveContactTypeDisplayName(contact.type)}
-                          >
-                            <svg
-                              className={`contact-type-icon ${resolveContactTypeClass(contact.type)}`}
-                              viewBox="0 0 24 24"
-                              focusable="false"
-                              aria-hidden="true"
-                            >
-                              <use
-                                href={`${iconSpriteHref}#${resolveContactIconId(contact.type)}`}
-                              />
-                            </svg>
-                          </span>
-                          <span className="contact-chip-text">
-                            {resolveContactLabel(contact)}
-                          </span>
-                        </span>
-                      )}
+                      <ContactChipContent
+                        contact={contact}
+                        iconSpriteHref={iconSpriteHref}
+                        prefix={isPrimary ? "Primary contact" : undefined}
+                      />
                     </a>
                   </li>
                 );
