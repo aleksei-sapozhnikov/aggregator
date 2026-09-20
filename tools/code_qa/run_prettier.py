@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Check and apply formatting for Prettier-supported files."""
 
 from __future__ import annotations

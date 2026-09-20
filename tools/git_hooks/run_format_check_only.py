@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Hook flow: run code checks only (no formatting, no secrets scan)."""
 
 from __future__ import annotations

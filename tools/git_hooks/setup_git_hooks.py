@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Install local git hooks with explicit QA mode."""
 
 from __future__ import annotations

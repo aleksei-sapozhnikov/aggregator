@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Detect files that exceed the configured repository size limit."""
 
 from __future__ import annotations
