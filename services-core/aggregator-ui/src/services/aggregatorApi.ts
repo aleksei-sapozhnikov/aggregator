@@ -217,6 +217,8 @@ export const loadCatalog = async (): Promise<{
     loadOptionalJson("catalog/api/catalog/actor-contacts"),
   ]);
 
+  const itemsPayload = itemsData as { items?: unknown };
+  const dependenciesPayload = dependenciesData as { dependencies?: unknown };
   const contactsPayload = contactsData as { contacts?: unknown };
   const itemContactsPayload = itemContactsData as { itemContacts?: unknown };
   const actorsPayload = actorsData as { actors?: unknown };
@@ -226,8 +228,8 @@ export const loadCatalog = async (): Promise<{
     actorsContacts?: unknown;
   };
   return {
-    items: normalizeItems(itemsData.items),
-    dependencies: normalizeDependencies(dependenciesData.dependencies),
+    items: normalizeItems(itemsPayload.items),
+    dependencies: normalizeDependencies(dependenciesPayload.dependencies),
     contacts: normalizeContacts(contactsPayload.contacts),
     itemContacts: normalizeItemContacts(itemContactsPayload.itemContacts),
     actors: normalizeActors(actorsPayload.actors),
