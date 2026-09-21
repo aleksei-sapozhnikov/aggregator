@@ -13,7 +13,6 @@ This is a pet project I work on in my free time.
 
 ### System at a glance
 
-
 ```mermaid
 flowchart TB
   browser["User<br>Browser"] --> ui["aggregator-ui<br>Caddy / React + TypeScript"]
