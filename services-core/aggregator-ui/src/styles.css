@@ -19,10 +19,10 @@
   --shadow-strong: 0 6px 18px rgba(15, 23, 42, 0.12);
   --app-edge-offset: 12px;
   --top-control-size: 40px;
-  --theme-toggle-bg: #f1f3f6;
-  --theme-toggle-border: #cdd3dc;
-  --theme-toggle-text: #3a4a5e;
-  --theme-toggle-hover-bg: #e4e8ee;
+  --theme-toggle-bg: #eaf2ff;
+  --theme-toggle-border: #9bbcf3;
+  --theme-toggle-text: #153f79;
+  --theme-toggle-hover-bg: #dbeafe;
   --theme-toggle-icon-accent: #c48a00;
   --about-toggle-bg: #3b82f6;
   --about-toggle-hover-bg: #2f6fdd;
@@ -82,10 +82,10 @@ body[data-theme="dark"] {
   --link: #8ab8ff;
   --shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
   --shadow-strong: 0 6px 18px rgba(0, 0, 0, 0.55);
-  --theme-toggle-bg: #262c35;
-  --theme-toggle-border: #353d48;
-  --theme-toggle-text: #f5f7fa;
-  --theme-toggle-hover-bg: #2f3641;
+  --theme-toggle-bg: #172542;
+  --theme-toggle-border: #42659a;
+  --theme-toggle-text: #e4efff;
+  --theme-toggle-hover-bg: #21365c;
   --theme-toggle-icon-accent: #d9b24b;
   --about-toggle-bg: #1e3a8a;
   --about-toggle-hover-bg: #2447a5;
@@ -374,7 +374,7 @@ body {
 
 .top-control-button:not(.top-control-accent):hover {
   background: var(--theme-toggle-hover-bg);
-  border-color: var(--border);
+  border-color: var(--link);
   box-shadow: var(--shadow-strong);
   transform: translateY(-1px);
 }
@@ -728,6 +728,7 @@ body {
 .feedback-send:focus-visible,
 .feedback-textarea:focus-visible,
 .home-link:focus-visible,
+.about-social-link:focus-visible,
 .sidebar-close:focus-visible {
   outline: 2px solid var(--link);
   outline-offset: 2px;
@@ -1974,28 +1975,30 @@ body[data-theme="dark"] .contacts-actor-type-mark {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: 6px 10px;
-  border: 1px solid var(--border);
+  padding: 8px 14px;
+  border: 1px solid var(--theme-toggle-border);
   border-radius: 999px;
-  background: transparent;
-  color: var(--text);
+  background: var(--theme-toggle-bg);
+  color: var(--theme-toggle-text);
   text-decoration: none;
   font-size: 13px;
-  font-weight: 500;
-  opacity: 0.84;
+  font-weight: 600;
+  box-shadow: var(--shadow);
   white-space: nowrap;
   transition:
     color 150ms ease,
     border-color 150ms ease,
     background 150ms ease,
-    opacity 150ms ease;
+    box-shadow 150ms ease,
+    transform 150ms ease;
 }
 
 .about-social-link:hover {
   border-color: var(--link);
-  background: var(--panel-alt);
-  color: var(--text);
-  opacity: 1;
+  background: var(--theme-toggle-hover-bg);
+  color: var(--theme-toggle-text);
+  box-shadow: var(--shadow-strong);
+  transform: translateY(-1px);
 }
 
 .about-social-icon {
@@ -2007,6 +2010,10 @@ body[data-theme="dark"] .contacts-actor-type-mark {
 
 .about-social-icon-linkedin {
   color: #0a66c2;
+}
+
+body[data-theme="dark"] .about-social-icon-linkedin {
+  color: #70b7ff;
 }
 
 .about-close {
