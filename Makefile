@@ -134,7 +134,6 @@ env:
 info:
 	@echo COMPOSE_CMD=$(COMPOSE_CMD)
 	@echo PROJECT_VERSION=$(PROJECT_VERSION)
-	@echo
 
 # ---- Common targets ----
 up: info
