@@ -12,7 +12,7 @@
     handle /admin/feedback {
         rewrite * /admin-feedback.html
         root * /usr/share/caddy
-        header Cache-Control "no-store"
+        header Cache-Control "private, no-cache"
         file_server
     }
 
@@ -32,7 +32,7 @@
 
     handle {
         root * /usr/share/caddy
-        header Cache-Control "no-store"
+        header Cache-Control "private, no-cache"
         file_server
         try_files {path} /index.html
     }
