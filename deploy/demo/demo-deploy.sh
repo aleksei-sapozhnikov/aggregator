@@ -112,6 +112,7 @@ ssh -i ~/.ssh/demo_key \
    git fetch --prune; \
    git checkout '${DEPLOY_BRANCH}'; \
    git reset --hard 'origin/${DEPLOY_BRANCH}'; \
+   sudo -n journalctl --vacuum-time=7d || true; \
    docker image prune -f || true; \
    docker builder prune -af --keep-storage 500m || true; \
    ADMIN_USERNAME=${ADMIN_USERNAME_ESCAPED} \
