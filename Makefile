@@ -42,6 +42,17 @@ PROJECT := $(PROJECT_$(ENV))
 CONTAINER_RUNTIME :=
 COMPOSE_CMD :=
 
+# ---- Project version ----
+PROJECT_ENV_FILE := .env
+ifeq ($(wildcard $(PROJECT_ENV_FILE)),)
+  $(error Missing $(PROJECT_ENV_FILE))
+endif
+include $(PROJECT_ENV_FILE)
+ifeq ($(PROJECT_VERSION),)
+  $(error PROJECT_VERSION is empty. Set it in $(PROJECT_ENV_FILE))
+endif
+export PROJECT_VERSION
+
 # ---- Container runtime / compose command autodetect ----
 # Override via:
 #   make ... CONTAINER_RUNTIME=docker
@@ -122,6 +133,7 @@ env:
 
 info:
 	@echo COMPOSE_CMD=$(COMPOSE_CMD)
+	@echo PROJECT_VERSION=$(PROJECT_VERSION)
 	@echo
 
 # ---- Common targets ----
