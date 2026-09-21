@@ -9,7 +9,7 @@ services:
     build:
       context: services-core/aggregator-ui
       args:
-        VITE_APP_TITLE: "Health Aggregator DEMO"
+        VITE_APP_TITLE: "Health Aggregator DEMO v${PROJECT_VERSION:?Missing PROJECT_VERSION}"
 
   chaos-maker:
     logging:
