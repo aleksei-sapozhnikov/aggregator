@@ -16,18 +16,18 @@ This is a pet project I work on in my free time.
 ```mermaid
 flowchart TB
   browser["User<br>Browser"] -->|opens app| proxy["Reverse proxy<br>Caddy"]
-  proxy -->|serves static app| ui["aggregator-ui<br>React + TypeScript"]
+  proxy -->|serves static app| ui["aggregator-ui<br>React / TypeScript"]
 
-  ui -->|requests data + panels| proxy
+  ui -->|requests data / panels| proxy
   proxy -->|forwards catalog API| catalog["catalog<br>Go"]
   proxy -->|forwards metrics API| prometheus["Prometheus"]
   proxy -->|forwards dashboard requests| grafana["Grafana"]
 
   grafana -->|queries metrics| prometheus
-  prometheus -->|scrapes Micrometer metrics| aggregator["aggregator<br>Java + Spring Boot"]
+  prometheus -->|scrapes Micrometer metrics| aggregator["aggregator<br>Java / Spring Boot"]
 
-  aggregator -->|loads catalog + signal definitions| catalog
-  catalog -->|reads + validates| catalogFiles["catalog + signal files<br>YAML + JSON Schema"]
+  aggregator -->|loads catalog and signal definitions| catalog
+  catalog -->|reads and validates| catalogFiles["catalog / signal files<br>YAML / JSON Schema"]
 
   aggregator -.->|polls health endpoints| demoServices
   chaos -.->|changes state| demoServices["[demo] dummy-java / dummy-python / dummy-javascript<br>Java / Python / JavaScript"]
