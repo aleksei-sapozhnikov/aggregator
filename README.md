@@ -32,7 +32,7 @@ flowchart TB
   aggregator -.->|polls health endpoints| demoServices
   chaos -.->|changes state| demoServices["[demo] dummy-java / dummy-python / dummy-javascript<br>Java / Python / JavaScript"]
   chaos["[demo] chaos-maker<br>python"] -.->|loads signal targets| catalog
-  
+
 
   classDef optional stroke-dasharray: 5 5
   class chaos,demoServices optional
@@ -48,12 +48,14 @@ Prometheus data and Grafana panels.
 The demo services are not part of the core design. They are replaceable signal
 sources that make the public demo change over time.
 
-Health propagation is deterministic. Severity is ordered as
-`DOWN > UNKNOWN > UP`. An item with no dependencies uses its own signal state.
-For an item with dependencies, its own `DOWN` state dominates. If its own state
-is `UP` or `UNKNOWN`, the item state is derived from dependencies: `DOWN` if any
-dependency is down, `UNKNOWN` if any dependency is unknown, and `UP` when all
-dependencies are up.
+Health propagation is deterministic:
+
+- Severity is ordered as `DOWN > UNKNOWN > UP`.
+- An item without dependencies uses its own signal state only.
+- For an item with dependencies, its own `DOWN` state dominates. If its own state
+  is `UP` or `UNKNOWN`, the item state is derived from dependencies: `DOWN` if
+  any dependency is down, `UNKNOWN` if any dependency is unknown, and `UP` when
+  all dependencies are up.
 
 ---
 
