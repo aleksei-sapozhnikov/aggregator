@@ -29,8 +29,8 @@ flowchart TB
   aggregator -->|loads catalog + signal definitions| catalog
   catalog -->|reads + validates| catalogFiles["catalog + signal files<br>YAML + JSON Schema"]
 
-  chaos["[demo] chaos-maker<br>python"] -->|loads signal targets| catalog
-  chaos -->|changes state| demoServices["[demo] dummy-java / dummy-python / dummy-javascript<br>Java / Python / JavaScript"]
+  chaos["[demo] chaos-maker<br>python"] -.->|loads signal targets| catalog
+  chaos -.->|changes state| demoServices["[demo] dummy-java / dummy-python / dummy-javascript<br>Java / Python / JavaScript"]
   aggregator -.->|polls health endpoints| demoServices
 
   classDef optional stroke-dasharray: 5 5
