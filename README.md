@@ -30,7 +30,7 @@ flowchart TB
   catalog -->|reads and validates| catalogFiles["catalog / signal files<br>YAML / JSON Schema"]
 
   aggregator -.->|polls health endpoints| demoServices
-  chaos -.->|changes state| demoServices["[demo] dummy-java / dummy-python / dummy-javascript<br>Java / Python / JavaScript"]
+  chaos -.->|changes state| demoServices["[demo] dummy services<br>Java / Python / JavaScript"]
   chaos["[demo] chaos-maker<br>python"] -.->|loads signal targets| catalog
 
 
