@@ -15,11 +15,13 @@ This is a pet project I work on in my free time.
 
 ```mermaid
 flowchart TB
-  browser["User<br>Browser"] --> ui["aggregator-ui<br>Caddy / React + TypeScript"]
+  browser["User<br>Browser"] -->|opens app| proxy["Reverse proxy<br>Caddy"]
+  proxy -->|serves static app| ui["aggregator-ui<br>React + TypeScript"]
 
-  ui -->|loads catalog| catalog["catalog<br>Go"]
-  ui -->|queries current state| prometheus["Prometheus"]
-  ui -->|embeds panels| grafana["Grafana"]
+  ui -->|requests data + panels| proxy
+  proxy -->|forwards catalog API| catalog["catalog<br>Go"]
+  proxy -->|forwards metrics API| prometheus["Prometheus"]
+  proxy -->|forwards dashboard requests| grafana["Grafana"]
 
   grafana -->|queries metrics| prometheus
   prometheus -->|scrapes Micrometer metrics| aggregator["aggregator<br>Java + Spring Boot"]
@@ -29,25 +31,27 @@ flowchart TB
 
   chaos["[demo] chaos-maker<br>python"] -->|loads signal targets| catalog
   chaos -->|changes state| demoServices["[demo] dummy-java / dummy-python / dummy-javascript<br>Java / Python / JavaScript"]
-  aggregator -. polls health endpoints .-> demoServices
+  aggregator -.->|polls health endpoints| demoServices
 
-  classDef optional fill:#f8f8f8,stroke:#888,stroke-dasharray: 5 5,color:#555
+  classDef optional stroke-dasharray: 5 5
   class chaos,demoServices optional
 ```
 
 The `catalog` service owns the contract: items, dependencies, contacts, actors,
 and signal definitions. The `aggregator` consumes that contract, polls configured
 HTTP health endpoints, computes item health through the dependency graph, and
-exports the result as metrics. The UI combines catalog structure with current
+exports the result as metrics. The UI reaches catalog, Prometheus, and Grafana
+through the Caddy reverse proxy, combining catalog structure with current
 Prometheus data and Grafana panels.
 
 The demo services are not part of the core design. They are replaceable signal
 sources that make the public demo change over time.
 
 Health propagation is deterministic. Severity is ordered as
-`DOWN > UNKNOWN > UP`; a dependent item becomes `DOWN` if any dependency is
-down, `UNKNOWN` if the state cannot be proven healthy, and `UP` only when its
-own signals and dependencies are healthy.
+`DOWN > UNKNOWN > UP`. An item with no dependencies uses its own signal state.
+For an item with dependencies, its own `DOWN` state dominates; otherwise the
+item state is derived from dependencies: `DOWN` if any dependency is down,
+`UNKNOWN` if any dependency is unknown, and `UP` when all dependencies are up.
 
 ---
 
