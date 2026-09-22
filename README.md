@@ -27,7 +27,7 @@ flowchart TB
   prometheus -->|scrapes Micrometer metrics| aggregator["aggregator<br>Java / Spring Boot"]
 
   aggregator -->|loads catalog and signal definitions| catalog
-  catalog -->|reads and validates| catalogFiles["catalog / signal files<br>YAML / JSON Schema"]
+  catalog -->|reads and validates| catalogFiles["items / health signals<br>YAML / JSON Schema"]
 
   aggregator -.->|polls health endpoints| demoServices
   chaos -.->|changes state| demoServices["[demo] dummy services<br>Java / Python / JavaScript"]
