@@ -50,9 +50,10 @@ sources that make the public demo change over time.
 
 Health propagation is deterministic. Severity is ordered as
 `DOWN > UNKNOWN > UP`. An item with no dependencies uses its own signal state.
-For an item with dependencies, its own `DOWN` state dominates; otherwise the
-item state is derived from dependencies: `DOWN` if any dependency is down,
-`UNKNOWN` if any dependency is unknown, and `UP` when all dependencies are up.
+For an item with dependencies, its own `DOWN` state dominates. If its own state
+is `UP` or `UNKNOWN`, the item state is derived from dependencies: `DOWN` if any
+dependency is down, `UNKNOWN` if any dependency is unknown, and `UP` when all
+dependencies are up.
 
 ---
 
