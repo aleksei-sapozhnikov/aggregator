@@ -81,8 +81,7 @@ export default function AboutContent() {
       <p>
         Real products are built from many services, which may depend on shared
         components owned by different teams. When a product stops working, the
-        visible failure may be only the last symptom. The original problem can
-        be several layers deeper.
+        visible failure may be only the last symptom.
       </p>
       <p>
         The goal is simple: show what is broken, what else is affected, and
