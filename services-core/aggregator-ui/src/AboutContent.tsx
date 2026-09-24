@@ -46,12 +46,15 @@ export default function AboutContent() {
       </p>
       <p>
         Start with the dependency tree on the left. Select any item to see its
-        current state, its own health checks, what it depends on, ownership
-        details, and recent history.
+        current state, health checks, dependencies, recent history, who owns it,
+        and how to contact them.
       </p>
       <p>
-        If an item is DOWN, select it to see whether the problem started there
-        or came from another item it depends on.
+        On a DOWN item, the <strong>Affecting now</strong> section shows which
+        checks are responsible for its current state and whether the problem
+        comes from the item itself or one of its dependencies. Select an
+        affected dependency to open it directly, even if it is several levels
+        deeper in the tree.
       </p>
       <p>
         The demo contains three product lines and dependency chains up to six

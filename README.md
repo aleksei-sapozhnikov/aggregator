@@ -21,10 +21,13 @@ What to look at:
 
 - The dependency tree on the left shows the current health of products,
   services, and shared components.
-- Select an unhealthy item to see whether the problem started there or came
-  from one of its dependencies.
-- The details panel shows signals, dependencies, owners, contacts, and related
-  context.
+- Select any item to inspect its health signals and dependencies, see who owns
+  it, and find the available contact channels.
+- On a `DOWN` item, the `Affecting now` section shows the signals currently
+  responsible for its state and separates its own failed checks from failures
+  inherited from dependencies.
+- Select an affected dependency to jump directly to its details, even when it
+  is several levels below the product in the dependency tree.
 - The timeline and dashboards show recent state changes, Prometheus metrics,
   and Grafana panels.
 
