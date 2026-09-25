@@ -48,6 +48,18 @@ secrets scan.
 
 `lint` runs check-only code validation plus the secrets scan.
 
+## Dependency checks
+
+Check npm dependency advisories and available updates:
+
+```shell
+make deps-audit
+python tools/dependency_audit/check_npm.py
+```
+
+The command fails on npm audit findings at `moderate` severity or above. Outdated
+packages are printed as update suggestions only.
+
 ## Git hooks
 
 Git hooks are managed through `prek`; the QA implementation itself lives under

@@ -99,7 +99,7 @@ export FEEDBACK_STORAGE_CONFIG
 .PHONY: help info env \
         up down restart recreate rebuild rebuild-recreate clean \
         up-svc down-svc restart-svc recreate-svc rebuild-svc rebuild-recreate-svc clean-svc \
-        code-qa code-format code-lint
+        code-qa code-format code-lint deps-audit
 
 help:
 	@echo "Usage:"
@@ -119,6 +119,7 @@ help:
 	@echo "  code-qa          -> run format, then secrets scan"
 	@echo "  code-format      -> run format flow"
 	@echo "  code-lint        -> run lint flow"
+	@echo "  deps-audit       -> check npm dependency advisories and update suggestions"
 	@echo ""
 	@echo "Service-scoped (positional args):"
 	@echo "  make down-svc caddy grafana"
@@ -238,3 +239,6 @@ code-format:
 
 code-lint:
 	python tools/code_qa/main.py lint
+
+deps-audit:
+	python tools/dependency_audit/check_npm.py
