@@ -10,7 +10,7 @@ import type {
   SearchAutocompleteOption,
   SearchResult,
 } from "../shared/types";
-import type { MutableRefObject } from "react";
+import type { RefObject } from "react";
 
 type CatalogNodeProps = {
   node: CatalogTreeNode;
@@ -51,7 +51,7 @@ type SidebarPanelProps = {
   onExpandPathToItem: (itemId: string) => void;
   itemStatuses: Record<string, HealthStatus>;
   lastUpdated: string;
-  catalogTreeRef: MutableRefObject<HTMLDivElement | null>;
+  catalogTreeRef: RefObject<HTMLDivElement | null>;
   filteredTree: CatalogTreeNode[];
   expandedIds: Set<string>;
   onToggleNode: (node: CatalogTreeNode) => void;

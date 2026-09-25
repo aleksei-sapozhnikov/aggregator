@@ -15,20 +15,20 @@ import type {
   HealthStatus,
   ItemSignal,
 } from "../shared/types";
-import type { MouseEvent, MutableRefObject } from "react";
+import type { MouseEvent, ReactElement, RefObject } from "react";
 import { useEffect, useMemo, useState } from "react";
 
 const AFFECTING_PREVIEW_LIMIT = 3;
 
 type DetailsPanelProps = {
-  contentRef: MutableRefObject<HTMLElement | null>;
+  contentRef: RefObject<HTMLElement | null>;
   isSidebarOpen: boolean;
   iconSpriteHref: string;
   onToggleSidebar: () => void;
   shouldOffsetContentHeader: boolean;
   isTitlePrimaryBelowControls: boolean;
-  headerRef: MutableRefObject<HTMLElement | null>;
-  headerActionsRef: MutableRefObject<HTMLDivElement | null>;
+  headerRef: RefObject<HTMLElement | null>;
+  headerActionsRef: RefObject<HTMLDivElement | null>;
   theme: "dark" | "light";
   onToggleTheme: () => void;
   onOpenFeedback: () => void;
@@ -38,7 +38,7 @@ type DetailsPanelProps = {
   lastUpdated: string;
   selectedTitleFirstWord: string;
   selectedTitleRest: string;
-  contentTitlePrimaryRef: MutableRefObject<HTMLElement | null>;
+  contentTitlePrimaryRef: RefObject<HTMLElement | null>;
   selectedFailingSignals: ItemSignal[];
   failingDependencies: FailingDependencyEntry[];
   selectedItemActors: {
@@ -59,7 +59,7 @@ type DetailsPanelProps = {
   isGrafanaOpen: boolean;
   onToggleGrafana: () => void;
   grafanaHeight: number;
-  grafanaIframeRef: MutableRefObject<HTMLIFrameElement | null>;
+  grafanaIframeRef: RefObject<HTMLIFrameElement | null>;
   onGrafanaLoad: () => void;
   grafanaFrameUrl: string;
 };
@@ -114,7 +114,7 @@ const buildExtraActorRows = (actors: CatalogActor[]): ExtraActorRow[] =>
       typeLabel: String(actor.type || "other").toLowerCase(),
     }));
 
-const renderActorTeamIcon = (iconSpriteHref: string): JSX.Element => (
+const renderActorTeamIcon = (iconSpriteHref: string): ReactElement => (
   <span className="actor-team-icon-wrap" aria-hidden="true">
     <svg className="actor-team-icon" viewBox="0 0 24 24" focusable="false">
       <use href={`${iconSpriteHref}#icon-actor`} />
