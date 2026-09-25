@@ -1,17 +1,57 @@
 # Catalog Health Aggregator
 
-Open the live demo: https://aggregator.alivion.cc
+Catalog Health Aggregator shows how failures in technical services affect
+user-facing products and helps explain why a product is unhealthy.
 
-Catalog Health Aggregator turns low-level service health signals into a
-product-level view of customer impact. The goal is to answer a practical
-incident question faster: not only "which service is unhealthy?", but "what is
-broken for users, what depends on it, and where is the likely root cause?"
+It does this by translating service-level health signals into an explainable
+product-level view.
 
 This is a pet project I work on in my free time.
 
 ---
 
-### System at a glance
+## Try the live demo
+
+Open the live demo: https://aggregator.alivion.cc
+
+The demo changes automatically: sample services periodically fail and recover,
+making their impact visible across products and dependencies.
+
+What to look at:
+
+- The dependency tree on the left shows the current health of products,
+  services, and shared components.
+- Select any item to inspect its health signals and dependencies, see who owns
+  it, and find the available contact channels.
+- On a `DOWN` item, the `Affecting now` section shows the signals currently
+  responsible for its state and separates its own failed checks from failures
+  inherited from dependencies.
+- Select an affected dependency to jump directly to its details, even when it
+  is several levels below the product in the dependency tree.
+- The timeline and dashboards show recent state changes, Prometheus metrics,
+  and Grafana panels.
+
+---
+
+## What problem it solves
+
+Monitoring normally reports the health of individual technical components.
+Users and product owners, however, experience problems at the product level.
+
+The aggregator connects these two views. It combines service-level signals with
+a catalog of products, dependencies, and ownership, then propagates health
+through the dependency graph.
+
+For example, if a shared authentication service fails, several products may
+become unavailable at once. The aggregator shows the affected products while
+keeping the shared dependency visible as the likely source of the problem.
+
+The goal is to answer not only "which service is unhealthy?", but also "what is
+broken for users, what depends on it, and where is the likely root cause?"
+
+---
+
+## How it works
 
 ```mermaid
 flowchart TB
@@ -48,6 +88,8 @@ Prometheus data and Grafana panels.
 The demo services are not part of the core design. They are replaceable signal
 sources that make the public demo change over time.
 
+### Health propagation rules
+
 Health propagation is deterministic:
 
 - Severity is ordered as `DOWN > UNKNOWN > UP`.
@@ -59,7 +101,7 @@ Health propagation is deterministic:
 
 ---
 
-### Why so many technologies?
+## Why so many technologies?
 
 Partly because it is more interesting than a single-stack toy app, but also
 because it mirrors a real company with history. Different teams know different
@@ -73,21 +115,7 @@ not the language. It is the contract between services.
 
 ---
 
-### What to look at in the demo
-
-The demo catalog contains product families, products, services, shared technical
-dependencies, owners, and health signals. `chaos-maker` periodically breaks and
-restores demo services so impact is visible without manual setup.
-
-- Left side: dependency tree with current health state.
-- Details panel: selected item, own signals, impacted dependencies, owners, and
-  related context.
-- Timeline and dashboards: recent state changes and Prometheus/Grafana views for
-  the selected item.
-
----
-
-### Run it locally
+## Run it locally
 
 You need Docker or Podman with Compose support. From the repository root:
 
@@ -113,7 +141,7 @@ downloads Prometheus/Grafana/Caddy images. Full local-run options are in
 
 ---
 
-### Repository map
+## Repository map
 
 - [services-core/aggregator](services-core/aggregator): Java / Spring Boot
   backend. Loads catalog and signal definitions, polls health endpoints,
