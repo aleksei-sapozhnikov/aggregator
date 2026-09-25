@@ -10,7 +10,6 @@
     "esModuleInterop": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "skipLibCheck": true,
     "strict": true,
     "types": ["vite/client"]
   },

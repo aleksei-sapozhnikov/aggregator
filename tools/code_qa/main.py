@@ -80,6 +80,13 @@ CHECKS: list[CheckSpec] = [
         format_args=["--format"],
     ),
     CheckSpec(
+        check_id="typescript",
+        display_name="typescript",
+        script_name="run_typescript.py",
+        check_args=[],
+        format_args=None,
+    ),
+    CheckSpec(
         check_id="trailing-whitespace",
         display_name="trailing whitespace",
         script_name="run_trailing_whitespace.py",
