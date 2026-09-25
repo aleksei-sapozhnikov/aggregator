@@ -23,6 +23,10 @@ python -m pip install --upgrade ruff pyyaml
 npm install --global prettier@3.6.2
 ```
 
+TypeScript checks run through each npm package's `typecheck` script. When local
+package dependencies are missing, `code_qa` installs them with `npm ci` from the
+package lockfile.
+
 Available commands:
 
 ```shell
