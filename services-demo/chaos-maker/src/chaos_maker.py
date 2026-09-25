@@ -92,7 +92,8 @@ def load_config() -> ChaosConfig:
             "CATALOG_SIGNALS_URL",
             "http://catalog:8080/api/signals/http-poll",
         ),
-        always_broken=os.getenv("CHAOS_ALWAYS_BROKEN", "false").strip().lower() == "true",
+        always_broken=os.getenv("CHAOS_ALWAYS_BROKEN", "false").strip().lower()
+        == "true",
     )
 
 
@@ -160,7 +161,11 @@ def extract_targets(signals_source: str) -> list[ChaosTarget]:
 def choose_available(
     targets: Iterable[ChaosTarget], active: set[str], statuses: dict[str, bool]
 ) -> list[ChaosTarget]:
-    return [t for t in targets if t.control_url not in active and statuses.get(t.control_url, False)]
+    return [
+        t
+        for t in targets
+        if t.control_url not in active and statuses.get(t.control_url, False)
+    ]
 
 
 def set_health(control_url: str, state: str) -> None:
@@ -223,7 +228,9 @@ def fetch_health_statuses(targets: Iterable[ChaosTarget]) -> dict[str, bool]:
 def reconcile_active(active: dict[str, float], statuses: dict[str, bool]) -> None:
     for control_url in list(active.keys()):
         if statuses.get(control_url, False):
-            logger.info("Target %s recovered early; clearing scheduled restore", control_url)
+            logger.info(
+                "Target %s recovered early; clearing scheduled restore", control_url
+            )
             del active[control_url]
 
 
@@ -241,12 +248,18 @@ def schedule_restores_for_down_targets(
             continue
         duration = jitter(config.min_duration, config.max_duration)
         active[target.control_url] = now + duration
-        logger.info("Detected %s DOWN; scheduling restore in %.1fs", target.control_url, duration)
+        logger.info(
+            "Detected %s DOWN; scheduling restore in %.1fs",
+            target.control_url,
+            duration,
+        )
 
 
 def restore_due_targets(active: dict[str, float]) -> list[str]:
     now = time.time()
-    due = [control_url for control_url, restore_at in active.items() if now >= restore_at]
+    due = [
+        control_url for control_url, restore_at in active.items() if now >= restore_at
+    ]
     for control_url in due:
         set_health(control_url, "up")
         del active[control_url]
@@ -292,7 +305,9 @@ def _try_inject_once(
         logger.error("Failed to fetch signals from %s: %s", config.signals_source, exc)
         return
     except yaml.YAMLError as exc:
-        logger.error("Failed to parse signals payload from %s: %s", config.signals_source, exc)
+        logger.error(
+            "Failed to parse signals payload from %s: %s", config.signals_source, exc
+        )
         return
 
     if not targets:
@@ -329,11 +344,17 @@ def run() -> None:
             time.sleep(5)
             continue
         except requests.RequestException as exc:
-            logger.error("Failed to fetch signals from %s: %s", config.signals_source, exc)
+            logger.error(
+                "Failed to fetch signals from %s: %s", config.signals_source, exc
+            )
             time.sleep(5)
             continue
         except yaml.YAMLError as exc:
-            logger.error("Failed to parse signals payload from %s: %s", config.signals_source, exc)
+            logger.error(
+                "Failed to parse signals payload from %s: %s",
+                config.signals_source,
+                exc,
+            )
             time.sleep(5)
             continue
 

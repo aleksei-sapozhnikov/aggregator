@@ -31,7 +31,9 @@ def main() -> int:
                 print(f"{path.relative_to(root)}: missing final newline")
                 failed = True
             elif text.endswith("\n\n"):
-                print(f"{path.relative_to(root)}: more than one trailing newline at end of file")
+                print(
+                    f"{path.relative_to(root)}: more than one trailing newline at end of file"
+                )
                 failed = True
             continue
         fixed = text.rstrip("\n")

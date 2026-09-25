@@ -17,9 +17,7 @@ import urllib.request
 from pathlib import Path
 
 TRUFFLEHOG_VERSION = "3.94.0"
-TRUFFLEHOG_RELEASE_BASE_URL = (
-    f"https://github.com/trufflesecurity/trufflehog/releases/download/v{TRUFFLEHOG_VERSION}"
-)
+TRUFFLEHOG_RELEASE_BASE_URL = f"https://github.com/trufflesecurity/trufflehog/releases/download/v{TRUFFLEHOG_VERSION}"
 SCOPED_FILES_ENV = "CODE_QA_FILE_LIST"
 QA_RUNTIME_DIR = "qa-runtime"
 
@@ -155,7 +153,9 @@ def resolve_trufflehog_binary(repo_root: Path, explicit_binary: str) -> str:
     if downloaded is not None:
         return downloaded
 
-    print("error: trufflehog binary not found and auto-download failed.", file=sys.stderr)
+    print(
+        "error: trufflehog binary not found and auto-download failed.", file=sys.stderr
+    )
     sys.exit(1)
 
 
@@ -163,7 +163,9 @@ def local_binary_candidates(repo_root: Path) -> list[Path]:
     """Return local cached candidate paths for trufflehog binary."""
     if os.name == "nt":
         return [
-            (repo_root / ".temp" / QA_RUNTIME_DIR / "trufflehog" / "trufflehog.exe").resolve(),
+            (
+                repo_root / ".temp" / QA_RUNTIME_DIR / "trufflehog" / "trufflehog.exe"
+            ).resolve(),
             (repo_root / ".temp" / QA_RUNTIME_DIR / "trufflehog.exe").resolve(),
         ]
     return [

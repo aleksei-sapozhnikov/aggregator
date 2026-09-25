@@ -35,7 +35,8 @@ def main() -> int:
         lines = text.splitlines(keepends=True)
         normalized = "".join(
             [
-                line.rstrip("\r\n").rstrip(" \t") + ("\n" if line.endswith(("\n", "\r")) else "")
+                line.rstrip("\r\n").rstrip(" \t")
+                + ("\n" if line.endswith(("\n", "\r")) else "")
                 for line in lines
             ]
         )

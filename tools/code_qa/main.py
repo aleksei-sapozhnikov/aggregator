@@ -306,9 +306,7 @@ def run_qa_command(
 
 def build_parser() -> argparse.ArgumentParser:
     """Create CLI parser for QA subcommands."""
-    parser = argparse.ArgumentParser(
-        description="Run code QA flows (default: qa)."
-    )
+    parser = argparse.ArgumentParser(description="Run code QA flows (default: qa).")
     sub = parser.add_subparsers(dest="command")
 
     qa_cmd = sub.add_parser(

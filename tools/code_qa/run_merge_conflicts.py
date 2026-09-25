@@ -6,9 +6,7 @@ import re
 
 from utils import iter_repo_files, read_text, repo_root
 
-CONFLICT_MARKERS_RE = re.compile(
-    r"(?m)^(<<<<<<< .+|=======|>>>>>>> .+)$"
-)
+CONFLICT_MARKERS_RE = re.compile(r"(?m)^(<<<<<<< .+|=======|>>>>>>> .+)$")
 
 
 def main() -> int:
