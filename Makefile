@@ -20,13 +20,14 @@ ifeq ($(filter $(ENV),$(SUPPORTED_ENVS)),)
 endif
 
 # ---- Compose files ----
-BASE := -f compose.yaml
-LOCAL := -f compose.local.yaml
-LOCAL_DEMO := -f compose.local-demo.yaml
-DEMO := -f compose.demo.yaml
-LOCAL_PORTS := -f compose.overlay.local-ports.yaml
-DEMO_SERVICES := -f compose.overlay.demo-services.yaml
-DEMO_SERVICES_PORTS := -f compose.overlay.demo-services-local-ports.yaml
+COMPOSE_DIR := compose
+BASE := -f $(COMPOSE_DIR)/compose.yaml
+LOCAL := -f $(COMPOSE_DIR)/compose.local.yaml
+LOCAL_DEMO := -f $(COMPOSE_DIR)/compose.local-demo.yaml
+DEMO := -f $(COMPOSE_DIR)/compose.demo.yaml
+LOCAL_PORTS := -f $(COMPOSE_DIR)/compose.overlay.local-ports.yaml
+DEMO_SERVICES := -f $(COMPOSE_DIR)/compose.overlay.demo-services.yaml
+DEMO_SERVICES_PORTS := -f $(COMPOSE_DIR)/compose.overlay.demo-services-local-ports.yaml
 
 STACK_local := $(BASE) $(LOCAL) $(LOCAL_PORTS)
 STACK_local-demo := $(BASE) $(LOCAL_DEMO) $(DEMO_SERVICES) $(LOCAL_PORTS) $(DEMO_SERVICES_PORTS)
@@ -80,7 +81,7 @@ ifeq ($(COMPOSE),)
 COMPOSE := $(CONTAINER_RUNTIME) compose
 endif
 
-COMPOSE_CMD := $(COMPOSE) --project-name $(PROJECT) $(STACK)
+COMPOSE_CMD := $(COMPOSE) --project-name $(PROJECT) --project-directory . $(STACK)
 
 # ---- Chaos-maker last-start control to ensure ----
 # ---- it starts when services ready            ----

@@ -74,17 +74,19 @@ The default local demo exposes:
 Examples below use Docker. If you use Podman, replace `docker compose` with
 `podman compose`.
 
-Start the default local demo:
+To start the default local demo, run this command from the repository root:
 
 ```shell
-docker compose --project-name aggregator-local-demo -f compose.yaml -f compose.local-demo.yaml -f compose.overlay.demo-services.yaml -f compose.overlay.local-ports.yaml -f compose.overlay.demo-services-local-ports.yaml up --detach --wait --remove-orphans
+docker compose --project-name aggregator-local-demo --project-directory . -f compose/compose.yaml -f compose/compose.local-demo.yaml -f compose/compose.overlay.demo-services.yaml -f compose/compose.overlay.local-ports.yaml -f compose/compose.overlay.demo-services-local-ports.yaml up --detach --wait --remove-orphans
 ```
 
-Stop it:
+To stop it, run this command from the repository root:
 
 ```shell
-docker compose --project-name aggregator-local-demo -f compose.yaml -f compose.local-demo.yaml -f compose.overlay.demo-services.yaml -f compose.overlay.local-ports.yaml -f compose.overlay.demo-services-local-ports.yaml down --remove-orphans
+docker compose --project-name aggregator-local-demo --project-directory . -f compose/compose.yaml -f compose/compose.local-demo.yaml -f compose/compose.overlay.demo-services.yaml -f compose/compose.overlay.local-ports.yaml -f compose/compose.overlay.demo-services-local-ports.yaml down --remove-orphans
 ```
 
-The `Makefile` is the source of truth for supported compose combinations and
-service-scoped commands.
+The compose files live under `compose/`. Keep `--project-directory .` in manual
+commands so relative paths and the root `.env` file resolve from the repository
+root. The `Makefile` is the source of truth for supported compose combinations
+and service-scoped commands.
