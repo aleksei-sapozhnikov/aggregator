@@ -166,7 +166,9 @@ def normalize_files(repo_root: Path, paths: list[str]) -> list[Path]:
 
 def discover_java_files() -> list[Path]:
     """Collect Java files from repository scan when CLI did not provide explicit list."""
-    return [path.resolve() for path in iter_repo_files() if path.suffix.lower() == ".java"]
+    return [
+        path.resolve() for path in iter_repo_files() if path.suffix.lower() == ".java"
+    ]
 
 
 def run_formatter(jar_path: Path, mode: str, files: list[Path], java_major: int) -> int:
@@ -258,7 +260,9 @@ def main() -> int:
 
     java_major = ensure_java_compatible()
     jar_path = ensure_formatter_jar(repo_root)
-    files = normalize_files(repo_root, args.files) if args.files else discover_java_files()
+    files = (
+        normalize_files(repo_root, args.files) if args.files else discover_java_files()
+    )
     return run_formatter(jar_path, args.mode, files, java_major)
 
 

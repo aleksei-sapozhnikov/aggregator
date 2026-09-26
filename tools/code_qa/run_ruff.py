@@ -21,7 +21,9 @@ def resolve_ruff_cmd() -> list[str] | None:
 
 def build_parser() -> argparse.ArgumentParser:
     """Create CLI parser for Ruff modes."""
-    parser = argparse.ArgumentParser(description="Run ruff in check-only or format mode.")
+    parser = argparse.ArgumentParser(
+        description="Run ruff in check-only or format mode."
+    )
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--check-only", action="store_true")
     group.add_argument("--format", action="store_true")
@@ -44,8 +46,12 @@ def main() -> int:
     if not files:
         return 0
     if args.check_only:
-        return subprocess.run([*cmd, "check", "--no-fix", *files], cwd=root, check=False).returncode
-    rc = subprocess.run([*cmd, "check", "--fix", *files], cwd=root, check=False).returncode
+        return subprocess.run(
+            [*cmd, "check", "--no-fix", *files], cwd=root, check=False
+        ).returncode
+    rc = subprocess.run(
+        [*cmd, "check", "--fix", *files], cwd=root, check=False
+    ).returncode
     if rc != 0:
         return rc
     return subprocess.run([*cmd, "format", *files], cwd=root, check=False).returncode

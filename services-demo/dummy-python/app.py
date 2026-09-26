@@ -30,7 +30,7 @@ def get_status(point_id: str) -> str:
 
 
 def status_payload(point_id: str) -> str:
-    return f"{{\n  \"status\": \"{get_status(point_id)}\"\n}}"
+    return f'{{\n  "status": "{get_status(point_id)}"\n}}'
 
 
 class DummyHandler(BaseHTTPRequestHandler):

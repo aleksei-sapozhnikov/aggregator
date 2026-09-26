@@ -82,7 +82,9 @@ def parse_secrets_summary(output: str) -> tuple[str, int] | None:
     return None
 
 
-def run_script(script_name: str, script_args: list[str] | None = None) -> tuple[bool, list[str]]:
+def run_script(
+    script_name: str, script_args: list[str] | None = None
+) -> tuple[bool, list[str]]:
     """Execute QA helper script and return status with short details."""
     script = script_dir() / script_name
     args = script_args or []
@@ -115,6 +117,7 @@ def iter_repo_files() -> list[Path]:
     if scoped is None:
         return files
     return [path for path in files if path.resolve() in scoped]
+
 
 def list_walk_files(root: Path) -> list[Path]:
     """Collect files by recursive walk while honoring exclusions."""

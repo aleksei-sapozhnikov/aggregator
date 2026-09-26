@@ -27,7 +27,9 @@ PRETTIER_SUFFIXES = {
 
 def build_parser() -> argparse.ArgumentParser:
     """Create CLI parser for Prettier modes."""
-    parser = argparse.ArgumentParser(description="Run prettier in check-only or format mode.")
+    parser = argparse.ArgumentParser(
+        description="Run prettier in check-only or format mode."
+    )
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--check-only", action="store_true")
     group.add_argument("--format", action="store_true")
@@ -53,7 +55,9 @@ def main() -> int:
         return subprocess.run(
             [*prettier_cmd, "--check", *files], cwd=root, check=False
         ).returncode
-    return subprocess.run([*prettier_cmd, "--write", *files], cwd=root, check=False).returncode
+    return subprocess.run(
+        [*prettier_cmd, "--write", *files], cwd=root, check=False
+    ).returncode
 
 
 if __name__ == "__main__":

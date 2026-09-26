@@ -35,7 +35,14 @@ def pushed_files() -> list[str] | None:
             continue
         from_sha = remote_sha if remote_sha != ZERO_SHA else EMPTY_TREE_SHA
         result = subprocess.run(
-            ["git", "diff", "--name-only", "--diff-filter=ACMR", f"{from_sha}..{local_sha}", "-z"],
+            [
+                "git",
+                "diff",
+                "--name-only",
+                "--diff-filter=ACMR",
+                f"{from_sha}..{local_sha}",
+                "-z",
+            ],
             cwd=repo_root(),
             check=False,
             capture_output=True,
@@ -45,7 +52,9 @@ def pushed_files() -> list[str] | None:
             return None
         for raw in result.stdout.split(b"\x00"):
             if raw:
-                files.add(raw.decode("utf-8", errors="surrogateescape").replace("\\", "/"))
+                files.add(
+                    raw.decode("utf-8", errors="surrogateescape").replace("\\", "/")
+                )
     return sorted(files)
 
 

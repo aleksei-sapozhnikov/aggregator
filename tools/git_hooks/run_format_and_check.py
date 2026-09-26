@@ -26,7 +26,9 @@ def capture_git_status() -> str:
         text=True,
     )
     if result.returncode != 0:
-        print(result.stderr.strip() or "error: failed to read git status", file=sys.stderr)
+        print(
+            result.stderr.strip() or "error: failed to read git status", file=sys.stderr
+        )
         return "__GIT_STATUS_ERROR__"
     return (result.stdout or "").strip()
 
@@ -86,7 +88,9 @@ def main() -> int:
         if after == "__GIT_STATUS_ERROR__":
             return 1
         if before != after:
-            print("Hook changed repository files. Review and stage updates, then commit again.")
+            print(
+                "Hook changed repository files. Review and stage updates, then commit again."
+            )
             return 1
         return 0
     finally:
