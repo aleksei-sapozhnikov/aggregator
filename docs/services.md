@@ -56,9 +56,10 @@ sequenceDiagram
 ## Detailed service topology
 
 This is the runtime topology of the demo stack. Caddy is the entry point.
-`aggregator-ui` provides the user-facing web interface, `catalog` serves the
-file-backed catalog definitions, `aggregator` calculates Product Health, and the
-optional `ai-agent` handles natural-language Product Health questions.
+The user-facing web interface is provided by `aggregator-ui`, while `catalog`
+serves the file-backed catalog definitions, `aggregator` calculates Product
+Health, and the optional `ai-agent` handles natural-language Product Health
+questions.
 
 Product Health metric history is stored in `prometheus` and visualized by
 `grafana` in dashboards embedded by `aggregator-ui`. The demo-only
