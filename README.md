@@ -88,31 +88,21 @@ flowchart LR
 The LLM is not part of Product Health calculation. Health state is derived from
 catalog relationships and service signals before any AI interaction happens.
 
-### Core Product Health flow
+### Product Health data flow
 
-The deterministic health model is the canonical source for current Product
-Health. REST and metrics are adapters over the same query boundary.
+The aggregator combines catalog relationships with health signals and exposes
+the resulting deterministic Product Health state through two interfaces.
 
 ```mermaid
 flowchart LR
-  catalog["Catalog<br>Go"] --> aggregator["Aggregator<br>Java / Spring Boot"]
-  services["Health endpoints"] --> aggregator
+  catalog["Catalog"] --> aggregator["Aggregator"]
+  signals["Health signals"] --> aggregator
 
-  aggregator --> health["Product Health<br>Query Boundary"]
-
-  health --> api["REST API"]
-  health --> metrics["Metrics Exporter"]
-
-  api --> ui["Web UI"]
-  api --> agent["AI Agent"]
-
-  metrics --> prometheus["Prometheus"]
-  prometheus --> grafana["Grafana"]
+  aggregator -->|REST API| consumers["Web UI / AI agent"]
+  aggregator -->|Exported metrics| observability["Prometheus / Grafana"]
 ```
 
-This keeps application reads and observability aligned: the UI and AI agent
-consume deterministic Product Health facts, while Prometheus receives metrics
-derived from the same state.
+Both paths are derived from the same deterministic Product Health state.
 
 ### AI-assisted investigation
 
