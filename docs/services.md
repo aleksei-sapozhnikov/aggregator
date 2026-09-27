@@ -1,14 +1,49 @@
-# Services And Contracts
+# Services and architecture
 
-Catalog Health Aggregator is intentionally split into small services with clear
-ownership boundaries. HTTP APIs, YAML catalog files, schemas, and metrics are
-treated as contracts between those services.
+Detailed architecture views and service-level reference for Catalog Health Aggregator.
+
+## Product Health data flow
+
+```mermaid
+flowchart LR
+  catalog["Catalog"] --> aggregator["Aggregator"]
+  signals["Health signals"] --> aggregator
+
+  aggregator -->|REST API| consumers["Web UI / AI agent"]
+  aggregator -->|Exported metrics| observability["Prometheus / Grafana"]
+```
+
+Both the REST API and exported metrics are derived from the same deterministic
+Product Health state.
+
+## AI-assisted investigation flow
+
+```mermaid
+sequenceDiagram
+  actor User
+  participant Agent as AI Agent
+  participant Model as Model Provider
+  participant Health as Product Health API
+
+  User->>Agent: Natural-language question
+  Agent->>Model: Question + tool definitions
+  Model-->>Agent: Tool call
+  Agent->>Health: Query health facts
+  Health-->>Agent: Structured Product Health data
+
+  alt Tool result can be rendered directly
+    Agent-->>User: Deterministic response
+  else Model explanation is required
+    Agent->>Model: Product Health facts
+    Model-->>Agent: Explanation
+    Agent-->>User: Final response
+  end
+```
+
+The AI assistant can render structured tool results directly or use the model
+again when an explanation is needed. It does not calculate Product Health.
 
 ## Detailed service topology
-
-This view shows the runtime service relationships. The README keeps the main
-architecture intentionally smaller; this diagram includes the reverse proxy,
-observability stack, demo-only services, and optional model access.
 
 ```mermaid
 flowchart TB
@@ -57,11 +92,6 @@ flowchart TB
   classDef optional stroke-dasharray: 5 5
   class agent,model,chaos,dummy optional
 ```
-
-The core application does not depend on the demo services or the AI agent.
-Product Health remains available if either optional path is absent. Prometheus
-and Grafana observe the same deterministic state exposed by the aggregator but
-are not the canonical application API for current Product Health.
 
 ## Core services
 
