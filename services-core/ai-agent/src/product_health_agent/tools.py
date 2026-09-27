@@ -64,7 +64,27 @@ class RestProductHealthTools:
                         "List deterministic current health facts for all non-UP "
                         "catalog items."
                     ),
-                    input_schema={"type": "object", "properties": {}},
+                    input_schema={
+                        "type": "object",
+                        "properties": {
+                            "presentation": {
+                                "type": "object",
+                                "properties": {
+                                    "header": {"type": "string"},
+                                    "signals_label": {"type": "string"},
+                                    "dependencies_label": {"type": "string"},
+                                    "healthy_message": {"type": "string"},
+                                },
+                                "required": [
+                                    "header",
+                                    "signals_label",
+                                    "dependencies_label",
+                                    "healthy_message",
+                                ],
+                            }
+                        },
+                        "required": ["presentation"],
+                    },
                 ),
                 handler=self.list_unhealthy_items,
             ),

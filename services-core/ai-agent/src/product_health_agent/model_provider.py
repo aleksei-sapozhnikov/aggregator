@@ -16,24 +16,25 @@ class ToolDefinition:
 
 
 @dataclass(frozen=True)
+class PresentationMetadata:
+    header: str
+    signals_label: str
+    dependencies_label: str
+    healthy_message: str
+
+
+@dataclass(frozen=True)
 class ToolCall:
     id: str
     name: str
     arguments: JsonObject
+    presentation: PresentationMetadata | None = None
 
 
 @dataclass(frozen=True)
 class ToolResult:
     tool_call_id: str
     result: JsonObject
-
-
-@dataclass(frozen=True)
-class ModelMessage:
-    role: str
-    text: str | None = None
-    tool_calls: list[ToolCall] = field(default_factory=list)
-    tool_results: list[ToolResult] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -53,11 +54,11 @@ class TokenUsage:
 
 
 @dataclass(frozen=True)
-class PresentationMetadata:
-    header: str
-    signals_label: str
-    dependencies_label: str
-    healthy_message: str
+class ModelMessage:
+    role: str
+    text: str | None = None
+    tool_calls: list[ToolCall] = field(default_factory=list)
+    tool_results: list[ToolResult] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -65,7 +66,6 @@ class ModelResponse:
     text: str
     tool_calls: list[ToolCall]
     usage: TokenUsage = field(default_factory=TokenUsage)
-    presentation: PresentationMetadata | None = None
 
 
 class ModelProvider(Protocol):

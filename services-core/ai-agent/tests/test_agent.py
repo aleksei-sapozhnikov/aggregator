@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 import pytest
@@ -13,12 +13,14 @@ from product_health_agent.model_provider import (
 )
 
 
-@dataclass(frozen=True)
+@dataclass
 class FakeTool:
     definition: ToolDefinition
     result: dict[str, Any]
+    executed_arguments: list[dict[str, Any]] = field(default_factory=list)
 
     def execute(self, arguments: dict[str, Any]) -> dict[str, Any]:
+        self.executed_arguments.append(arguments.copy())
         return self.result
 
 
@@ -205,14 +207,17 @@ def test_agent_uses_russian_presentation_metadata_with_deterministic_facts() -> 
                         id="tool-1",
                         name="list_unhealthy_items",
                         arguments={},
+                        presentation=PresentationMetadata(
+                            header=(
+                                "Сейчас обнаружены проблемы со следующими "
+                                "элементами:"
+                            ),
+                            signals_label="Проблемные сигналы",
+                            dependencies_label="Влияющие зависимости",
+                            healthy_message="Сейчас все элементы здоровы.",
+                        ),
                     )
                 ],
-                presentation=PresentationMetadata(
-                    header="Сейчас обнаружены проблемы со следующими элементами:",
-                    signals_label="Проблемные сигналы",
-                    dependencies_label="Влияющие зависимости",
-                    healthy_message="Сейчас все элементы здоровы.",
-                ),
             )
         ]
     )
@@ -227,6 +232,7 @@ def test_agent_uses_russian_presentation_metadata_with_deterministic_facts() -> 
         "  Проблемные сигналы: Planning cycles complete within the dispatch "
         "schedule window (DOWN)"
     )
+    assert tool.executed_arguments == [{}]
     assert len(model.requests) == 1
 
 
@@ -244,14 +250,18 @@ def test_agent_uses_english_presentation_metadata() -> None:
             ModelResponse(
                 text="",
                 tool_calls=[
-                    ToolCall(id="tool-1", name="list_unhealthy_items", arguments={})
+                    ToolCall(
+                        id="tool-1",
+                        name="list_unhealthy_items",
+                        arguments={},
+                        presentation=PresentationMetadata(
+                            header="Current problems affect these items:",
+                            signals_label="Problem signals",
+                            dependencies_label="Impacting dependencies",
+                            healthy_message="All items are currently healthy.",
+                        ),
+                    )
                 ],
-                presentation=PresentationMetadata(
-                    header="Current problems affect these items:",
-                    signals_label="Problem signals",
-                    dependencies_label="Impacting dependencies",
-                    healthy_message="All items are currently healthy.",
-                ),
             )
         ]
     )
@@ -303,14 +313,18 @@ def test_agent_falls_back_when_presentation_metadata_is_blank() -> None:
             ModelResponse(
                 text="",
                 tool_calls=[
-                    ToolCall(id="tool-1", name="list_unhealthy_items", arguments={})
+                    ToolCall(
+                        id="tool-1",
+                        name="list_unhealthy_items",
+                        arguments={},
+                        presentation=PresentationMetadata(
+                            header="",
+                            signals_label="   ",
+                            dependencies_label="Dependencies",
+                            healthy_message="Healthy",
+                        ),
+                    )
                 ],
-                presentation=PresentationMetadata(
-                    header="",
-                    signals_label="   ",
-                    dependencies_label="Dependencies",
-                    healthy_message="Healthy",
-                ),
             )
         ]
     )
@@ -336,14 +350,18 @@ def test_agent_does_not_take_factual_values_from_presentation_metadata() -> None
             ModelResponse(
                 text="",
                 tool_calls=[
-                    ToolCall(id="tool-1", name="list_unhealthy_items", arguments={})
+                    ToolCall(
+                        id="tool-1",
+                        name="list_unhealthy_items",
+                        arguments={},
+                        presentation=PresentationMetadata(
+                            header="999 items are unhealthy because Payments is DOWN:",
+                            signals_label="HTTP health",
+                            dependencies_label="Commerce Core",
+                            healthy_message="Checkout is healthy.",
+                        ),
+                    )
                 ],
-                presentation=PresentationMetadata(
-                    header="999 items are unhealthy because Payments is DOWN:",
-                    signals_label="HTTP health",
-                    dependencies_label="Commerce Core",
-                    healthy_message="Checkout is healthy.",
-                ),
             )
         ]
     )
@@ -394,14 +412,21 @@ def test_catalog_product_and_signal_names_remain_unchanged() -> None:
             ModelResponse(
                 text="",
                 tool_calls=[
-                    ToolCall(id="tool-1", name="list_unhealthy_items", arguments={})
+                    ToolCall(
+                        id="tool-1",
+                        name="list_unhealthy_items",
+                        arguments={},
+                        presentation=PresentationMetadata(
+                            header=(
+                                "Сейчас обнаружены проблемы со следующими "
+                                "элементами:"
+                            ),
+                            signals_label="Проблемные сигналы",
+                            dependencies_label="Влияющие зависимости",
+                            healthy_message="Сейчас все элементы здоровы.",
+                        ),
+                    )
                 ],
-                presentation=PresentationMetadata(
-                    header="Сейчас обнаружены проблемы со следующими элементами:",
-                    signals_label="Проблемные сигналы",
-                    dependencies_label="Влияющие зависимости",
-                    healthy_message="Сейчас все элементы здоровы.",
-                ),
             )
         ]
     )

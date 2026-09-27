@@ -147,70 +147,95 @@ def test_bedrock_default_credential_chain_uses_no_explicit_credentials(
     ]
 
 
-def test_bedrock_reads_presentation_metadata_from_plain_json() -> None:
-    response = _complete_with_text(_presentation_json())
-
-    assert response.presentation is not None
-    assert response.presentation.header == "Header"
-    assert response.presentation.signals_label == "Signals"
-    assert response.presentation.dependencies_label == "Dependencies"
-    assert response.presentation.healthy_message == "Healthy"
-
-
-def test_bedrock_reads_presentation_metadata_from_fenced_json() -> None:
-    response = _complete_with_text(f"```json\n{_presentation_json()}\n```")
-
-    assert response.presentation is not None
-    assert response.presentation.header == "Header"
-
-
-def test_bedrock_reads_presentation_metadata_from_surrounding_text() -> None:
-    response = _complete_with_text(
-        f"<thinking>choose the terminal tool</thinking>\n{_presentation_json()}\nDone."
+def test_bedrock_reads_presentation_metadata_from_tool_input() -> None:
+    response = _complete_with_tool_input(
+        {
+            "presentation": {
+                "header": "Сейчас обнаружены проблемы со следующими элементами:",
+                "signals_label": "Проблемные сигналы",
+                "dependencies_label": "Влияющие зависимости",
+                "healthy_message": "Сейчас все элементы здоровы.",
+            }
+        }
     )
 
-    assert response.presentation is not None
-    assert response.presentation.signals_label == "Signals"
+    tool_call = response.tool_calls[0]
+    assert tool_call.presentation is not None
+    assert (
+        tool_call.presentation.header
+        == "Сейчас обнаружены проблемы со следующими элементами:"
+    )
+    assert tool_call.presentation.signals_label == "Проблемные сигналы"
+    assert tool_call.presentation.dependencies_label == "Влияющие зависимости"
+    assert tool_call.presentation.healthy_message == "Сейчас все элементы здоровы."
+    assert tool_call.arguments == {}
 
 
-def test_bedrock_ignores_malformed_presentation_json() -> None:
-    response = _complete_with_text(
-        '{"presentation":{"header":"Header","signals_label":"Signals"'
+def test_bedrock_strips_presentation_from_functional_arguments() -> None:
+    response = _complete_with_tool_input(
+        {
+            "query": "Checkout",
+            "presentation": {
+                "header": "Header",
+                "signals_label": "Signals",
+                "dependencies_label": "Dependencies",
+                "healthy_message": "Healthy",
+            },
+        }
     )
 
-    assert response.presentation is None
+    assert response.tool_calls[0].presentation is not None
+    assert response.tool_calls[0].arguments == {"query": "Checkout"}
 
 
-def test_bedrock_ignores_missing_presentation_object() -> None:
-    response = _complete_with_text('{"header":"Header"}')
+def test_bedrock_missing_presentation_metadata_is_none() -> None:
+    response = _complete_with_tool_input({})
 
-    assert response.presentation is None
+    assert response.tool_calls[0].presentation is None
+    assert response.tool_calls[0].arguments == {}
 
 
-def test_bedrock_ignores_presentation_with_non_string_fields() -> None:
-    response = _complete_with_text(
-        '{"presentation":{"header":"Header",'
-        '"signals_label":["Signals"],'
-        '"dependencies_label":"Dependencies",'
-        '"healthy_message":"Healthy"}}'
+def test_bedrock_invalid_presentation_metadata_is_none() -> None:
+    response = _complete_with_tool_input(
+        {
+            "presentation": {
+                "header": "Header",
+                "signals_label": ["Signals"],
+                "dependencies_label": "Dependencies",
+                "healthy_message": "Healthy",
+            }
+        }
     )
 
-    assert response.presentation is None
+    assert response.tool_calls[0].presentation is None
+    assert response.tool_calls[0].arguments == {}
 
 
-def _complete_with_text(text: str):
+def test_bedrock_ignores_presentation_metadata_in_text() -> None:
+    response = _complete_with_tool_input(
+        {},
+        text=(
+            '{"presentation":{"header":"Header","signals_label":"Signals",'
+            '"dependencies_label":"Dependencies","healthy_message":"Healthy"}}'
+        ),
+    )
+
+    assert response.tool_calls[0].presentation is None
+
+
+def _complete_with_tool_input(tool_input: dict, text: str = ""):
     provider = BedrockModelProvider(model_id="model-id")
     provider.client = StaticClient(
         {
             "output": {
                 "message": {
                     "content": [
-                        {"text": text},
+                        *([{"text": text}] if text else []),
                         {
                             "toolUse": {
                                 "toolUseId": "tool-1",
                                 "name": "list_unhealthy_items",
-                                "input": {},
+                                "input": tool_input,
                             }
                         },
                     ]
@@ -220,12 +245,3 @@ def _complete_with_text(text: str):
     )
 
     return provider.complete(system_prompt="system", messages=[], tools=[])
-
-
-def _presentation_json() -> str:
-    return (
-        '{"presentation":{"header":"Header",'
-        '"signals_label":"Signals",'
-        '"dependencies_label":"Dependencies",'
-        '"healthy_message":"Healthy"}}'
-    )

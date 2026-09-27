@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-import json
 import logging
 import os
-import re
 from typing import Any
 
 import boto3
@@ -120,19 +118,12 @@ class BedrockModelProvider(ModelProvider):
                 text_parts.append(str(block["text"]))
             tool_use = block.get("toolUse")
             if isinstance(tool_use, dict):
-                tool_calls.append(
-                    ToolCall(
-                        id=str(tool_use.get("toolUseId", "")),
-                        name=str(tool_use.get("name", "")),
-                        arguments=_dict_or_empty(tool_use.get("input")),
-                    )
-                )
+                tool_calls.append(_tool_call_from_tool_use(tool_use))
         usage = response.get("usage") or {}
         text = "".join(text_parts)
         return ModelResponse(
             text=text,
             tool_calls=tool_calls,
-            presentation=_presentation_from_text(text),
             usage=TokenUsage(
                 input_tokens=usage.get("inputTokens"),
                 output_tokens=usage.get("outputTokens"),
@@ -178,45 +169,22 @@ def _dict_or_empty(value: Any) -> dict[str, Any]:
     return value if isinstance(value, dict) else {}
 
 
-def _presentation_from_text(text: str) -> PresentationMetadata | None:
-    for candidate in _json_candidates(text):
-        presentation = _presentation_from_json(candidate)
-        if presentation is not None:
-            return presentation
-    return None
-
-
-def _json_candidates(text: str) -> list[str]:
-    candidates = [text.strip()]
-    candidates.extend(
-        match.group("json").strip()
-        for match in re.finditer(
-            r"```(?:json)?\s*(?P<json>.*?)```",
-            text,
-            flags=re.IGNORECASE | re.DOTALL,
-        )
+def _tool_call_from_tool_use(tool_use: dict[str, Any]) -> ToolCall:
+    arguments = _dict_or_empty(tool_use.get("input")).copy()
+    presentation = _presentation_from_arguments(arguments)
+    arguments.pop("presentation", None)
+    return ToolCall(
+        id=str(tool_use.get("toolUseId", "")),
+        name=str(tool_use.get("name", "")),
+        arguments=arguments,
+        presentation=presentation,
     )
 
-    decoder = json.JSONDecoder()
-    for index, character in enumerate(text):
-        if character != "{":
-            continue
-        try:
-            _, end = decoder.raw_decode(text[index:])
-        except json.JSONDecodeError:
-            continue
-        candidates.append(text[index : index + end])
-    return candidates
 
-
-def _presentation_from_json(value: str) -> PresentationMetadata | None:
-    try:
-        payload = json.loads(value)
-    except json.JSONDecodeError:
-        return None
-    if not isinstance(payload, dict):
-        return None
-    presentation = payload.get("presentation")
+def _presentation_from_arguments(
+    arguments: dict[str, Any]
+) -> PresentationMetadata | None:
+    presentation = arguments.get("presentation")
     if not isinstance(presentation, dict):
         return None
     if any(

@@ -23,3 +23,26 @@ def test_product_health_tool_reports_api_unavailable(monkeypatch, caplog) -> Non
     assert "base_url=http://product-health" in caplog.text
     assert "endpoint=/api/product-health/search" in caplog.text
     assert "Traceback" in caplog.text
+
+
+def test_list_unhealthy_items_tool_schema_requires_presentation_metadata() -> None:
+    tools = {
+        tool.definition.name: tool.definition
+        for tool in RestProductHealthTools("http://product-health").tools()
+    }
+
+    schema = tools["list_unhealthy_items"].input_schema
+
+    assert schema["required"] == ["presentation"]
+    presentation = schema["properties"]["presentation"]
+    assert presentation["type"] == "object"
+    assert presentation["required"] == [
+        "header",
+        "signals_label",
+        "dependencies_label",
+        "healthy_message",
+    ]
+    assert presentation["properties"]["header"] == {"type": "string"}
+    assert presentation["properties"]["signals_label"] == {"type": "string"}
+    assert presentation["properties"]["dependencies_label"] == {"type": "string"}
+    assert presentation["properties"]["healthy_message"] == {"type": "string"}
