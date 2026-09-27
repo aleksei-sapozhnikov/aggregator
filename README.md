@@ -63,7 +63,7 @@ flowchart LR
 
   subgraph experience["UI integrations"]
     direction TB
-    agent["AI agent"]
+    agent["AI assistant"]
     dashboards["Dashboards / history"]
   end
 
