@@ -70,7 +70,7 @@ flowchart TB
     agent["ai-agent<br>optional"]
   end
 
-  subgraph observability["Observability"]
+  subgraph observability["Health history"]
     prometheus["Prometheus"]
     grafana["Grafana"]
   end
