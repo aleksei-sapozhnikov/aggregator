@@ -8,6 +8,7 @@ from .model_provider import (
     ModelMessage,
     ModelProvider,
     ModelResponse,
+    PresentationMetadata,
     TokenUsage,
     ToolDefinition,
     ToolResult,
@@ -21,6 +22,14 @@ Never calculate, infer, or override UP, DOWN, or UNKNOWN health state yourself.
 Always call a tool before answering.
 If facts are missing or ambiguous, say so and mention the available candidates.
 Keep the answer concise and cite the relevant unhealthy signals or dependencies from tool facts.
+For deterministic terminal tools such as list_unhealthy_items, provide localized
+presentation labels only in a JSON text block alongside the tool call:
+{"presentation":{"header":"...","signals_label":"...","dependencies_label":"...","healthy_message":"..."}}
+Use the same language as the user's question where possible.
+Presentation text must be generic and fact-free. Do not include product names,
+service names, catalog ids, health states, counts, dependency names, signal
+names, or causes. Health facts will be inserted later by the agent.
+Prefer neutral wording that does not depend on dynamic counts or plural forms.
 """.strip()
 
 CAPABILITY_FALLBACK_RESPONSE = """
@@ -108,7 +117,8 @@ class ProductHealthAgent:
                 if tool_call.name == "list_unhealthy_items":
                     return AgentAnswer(
                         answer=_render_list_unhealthy_items(
-                            tool_results[-1].result
+                            tool_results[-1].result,
+                            response.presentation,
                         ),
                         tool_calls=executed_tool_names,
                         usage=usage,
@@ -131,19 +141,38 @@ class ProductHealthAgent:
         )
 
 
-def _render_list_unhealthy_items(result: dict) -> str:
+@dataclass(frozen=True)
+class _ListUnhealthyItemsLabels:
+    header: str
+    signals_label: str
+    dependencies_label: str
+    healthy_message: str
+
+
+_ENGLISH_LIST_UNHEALTHY_ITEMS_LABELS = _ListUnhealthyItemsLabels(
+    header="The following items are currently unhealthy:",
+    signals_label="Unhealthy signals",
+    dependencies_label="Affecting dependencies",
+    healthy_message="No items are currently unhealthy.",
+)
+
+
+def _render_list_unhealthy_items(
+    result: dict,
+    presentation: PresentationMetadata | None = None,
+) -> str:
     items = result.get("items")
     if not isinstance(items, list):
         items = []
     count = result.get("count")
     if not isinstance(count, int):
         count = len(items)
+    labels = _list_unhealthy_items_labels(presentation, result, items, count)
 
     if count == 0:
-        return "No items are currently unhealthy."
+        return labels.healthy_message
 
-    noun = "item is" if count == 1 else "items are"
-    lines = [f"{count} {noun} currently unhealthy:"]
+    lines = [labels.header]
     for item in items:
         if not isinstance(item, dict):
             continue
@@ -153,17 +182,83 @@ def _render_list_unhealthy_items(result: dict) -> str:
 
         signal_details = _unhealthy_signal_details(item.get("signals"))
         if signal_details:
-            lines.append(f"  Unhealthy signals: {', '.join(signal_details)}")
+            lines.append(f"  {labels.signals_label}: {', '.join(signal_details)}")
 
         dependency_details = _dependency_details(
             item.get("affectingDependencies")
         )
         if dependency_details:
             lines.append(
-                f"  Affecting dependencies: {', '.join(dependency_details)}"
+                f"  {labels.dependencies_label}: {', '.join(dependency_details)}"
             )
 
     return "\n".join(lines)
+
+
+def _list_unhealthy_items_labels(
+    presentation: PresentationMetadata | None,
+    result: dict,
+    items: list[object],
+    count: int,
+) -> _ListUnhealthyItemsLabels:
+    if presentation is None:
+        return _ENGLISH_LIST_UNHEALTHY_ITEMS_LABELS
+
+    values = {
+        "header": presentation.header,
+        "signals_label": presentation.signals_label,
+        "dependencies_label": presentation.dependencies_label,
+        "healthy_message": presentation.healthy_message,
+    }
+    if any(_text(value) is None for value in values.values()):
+        return _ENGLISH_LIST_UNHEALTHY_ITEMS_LABELS
+    if any(
+        _contains_forbidden_fact(value, result, items, count)
+        for value in values.values()
+    ):
+        return _ENGLISH_LIST_UNHEALTHY_ITEMS_LABELS
+    return _ListUnhealthyItemsLabels(
+        header=presentation.header.strip(),
+        signals_label=presentation.signals_label.strip(),
+        dependencies_label=presentation.dependencies_label.strip(),
+        healthy_message=presentation.healthy_message.strip(),
+    )
+
+
+def _contains_forbidden_fact(
+    value: str,
+    result: dict,
+    items: list[object],
+    count: int,
+) -> bool:
+    normalized = value.casefold()
+    if str(count) in value:
+        return True
+    forbidden = {"UP", "DOWN", "UNKNOWN"}
+    forbidden.update(_fact_strings(result))
+    for item in items:
+        if isinstance(item, dict):
+            forbidden.update(_fact_strings(item))
+            for signal in _list_or_empty(item.get("signals")):
+                if isinstance(signal, dict):
+                    forbidden.update(_fact_strings(signal))
+            for dependency in _list_or_empty(item.get("affectingDependencies")):
+                if isinstance(dependency, dict):
+                    forbidden.update(_fact_strings(dependency))
+    return any(fact.casefold() in normalized for fact in forbidden if fact)
+
+
+def _fact_strings(value: dict) -> set[str]:
+    facts = set()
+    for key in ("itemId", "id", "title", "state", "source"):
+        text = _text(value.get(key))
+        if text:
+            facts.add(text)
+    return facts
+
+
+def _list_or_empty(value: object) -> list[object]:
+    return value if isinstance(value, list) else []
 
 
 def _unhealthy_signal_details(value: object) -> list[str]:

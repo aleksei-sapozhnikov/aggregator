@@ -53,10 +53,19 @@ class TokenUsage:
 
 
 @dataclass(frozen=True)
+class PresentationMetadata:
+    header: str
+    signals_label: str
+    dependencies_label: str
+    healthy_message: str
+
+
+@dataclass(frozen=True)
 class ModelResponse:
     text: str
     tool_calls: list[ToolCall]
     usage: TokenUsage = field(default_factory=TokenUsage)
+    presentation: PresentationMetadata | None = None
 
 
 class ModelProvider(Protocol):

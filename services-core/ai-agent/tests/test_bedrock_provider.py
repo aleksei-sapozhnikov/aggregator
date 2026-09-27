@@ -11,6 +11,14 @@ class TimeoutClient:
         raise ReadTimeoutError(endpoint_url="https://bedrock-runtime.example")
 
 
+class StaticClient:
+    def __init__(self, response) -> None:
+        self.response = response
+
+    def converse(self, **kwargs):
+        return self.response
+
+
 def test_bedrock_timeout_is_reported_as_provider_failure(caplog) -> None:
     provider = BedrockModelProvider(
         model_id="model-id",
@@ -137,3 +145,66 @@ def test_bedrock_default_credential_chain_uses_no_explicit_credentials(
             None,
         )
     ]
+
+
+def test_bedrock_reads_presentation_metadata_from_json_text() -> None:
+    provider = BedrockModelProvider(model_id="model-id")
+    provider.client = StaticClient(
+        {
+            "output": {
+                "message": {
+                    "content": [
+                        {
+                            "text": (
+                                '{"presentation":{"header":"Header",'
+                                '"signals_label":"Signals",'
+                                '"dependencies_label":"Dependencies",'
+                                '"healthy_message":"Healthy"}}'
+                            )
+                        },
+                        {
+                            "toolUse": {
+                                "toolUseId": "tool-1",
+                                "name": "list_unhealthy_items",
+                                "input": {},
+                            }
+                        },
+                    ]
+                }
+            }
+        }
+    )
+
+    response = provider.complete(system_prompt="system", messages=[], tools=[])
+
+    assert response.presentation is not None
+    assert response.presentation.header == "Header"
+    assert response.presentation.signals_label == "Signals"
+    assert response.presentation.dependencies_label == "Dependencies"
+    assert response.presentation.healthy_message == "Healthy"
+
+
+def test_bedrock_ignores_malformed_presentation_text() -> None:
+    provider = BedrockModelProvider(model_id="model-id")
+    provider.client = StaticClient(
+        {
+            "output": {
+                "message": {
+                    "content": [
+                        {"text": "not-json"},
+                        {
+                            "toolUse": {
+                                "toolUseId": "tool-1",
+                                "name": "list_unhealthy_items",
+                                "input": {},
+                            }
+                        },
+                    ]
+                }
+            }
+        }
+    )
+
+    response = provider.complete(system_prompt="system", messages=[], tools=[])
+
+    assert response.presentation is None

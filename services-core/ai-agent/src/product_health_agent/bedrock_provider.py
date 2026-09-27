@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import logging
 import os
 from typing import Any
@@ -13,6 +14,7 @@ from .model_provider import (
     ModelMessage,
     ModelProvider,
     ModelResponse,
+    PresentationMetadata,
     TokenUsage,
     ToolCall,
     ToolDefinition,
@@ -125,9 +127,11 @@ class BedrockModelProvider(ModelProvider):
                     )
                 )
         usage = response.get("usage") or {}
+        text = "".join(text_parts)
         return ModelResponse(
-            text="".join(text_parts),
+            text=text,
             tool_calls=tool_calls,
+            presentation=_presentation_from_text(text),
             usage=TokenUsage(
                 input_tokens=usage.get("inputTokens"),
                 output_tokens=usage.get("outputTokens"),
@@ -171,6 +175,30 @@ class BedrockModelProvider(ModelProvider):
 
 def _dict_or_empty(value: Any) -> dict[str, Any]:
     return value if isinstance(value, dict) else {}
+
+
+def _presentation_from_text(text: str) -> PresentationMetadata | None:
+    try:
+        payload = json.loads(text)
+    except json.JSONDecodeError:
+        return None
+    if not isinstance(payload, dict):
+        return None
+    presentation = payload.get("presentation")
+    if not isinstance(presentation, dict):
+        return None
+    return PresentationMetadata(
+        header=_string_or_blank(presentation.get("header")),
+        signals_label=_string_or_blank(presentation.get("signals_label")),
+        dependencies_label=_string_or_blank(
+            presentation.get("dependencies_label")
+        ),
+        healthy_message=_string_or_blank(presentation.get("healthy_message")),
+    )
+
+
+def _string_or_blank(value: Any) -> str:
+    return value if isinstance(value, str) else ""
 
 
 def _bedrock_client(client_kwargs: dict[str, str | None], api_key: str | None):
