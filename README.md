@@ -53,45 +53,86 @@ broken for users, what depends on it, and where is the likely root cause?"
 
 ## How it works
 
+At a high level, the system combines service-level signals with catalog
+relationships, computes Product Health deterministically, and exposes that state
+through the UI, observability stack, and an optional AI assistant.
+
 ```mermaid
-flowchart TB
-  browser["User<br>Browser"] -->|opens app| proxy["Reverse proxy<br>Caddy"]
-  proxy -->|serves static app| ui["aggregator-ui<br>React / TypeScript"]
+flowchart LR
+  signals["Service health<br>signals"] --> health["Product Health<br>Aggregator"]
+  catalog["Catalog<br>products / services / dependencies"] --> health
 
-  ui -->|requests data / panels| proxy
-  proxy -->|forwards catalog API| catalog["catalog<br>Go"]
-  proxy -->|forwards current health API| aggregator
-  proxy -->|forwards AI questions| agent["ai-agent<br>Python / optional"]
-  proxy -->|forwards metrics API| prometheus["Prometheus"]
-  proxy -->|forwards dashboard requests| grafana["Grafana"]
+  health --> ui["Web UI"]
+  health --> observability["Prometheus / Grafana"]
+  health --> agent["AI Agent"]
 
-  agent -->|queries deterministic facts| aggregator
-  agent -.->|optional model calls| model["Bedrock / model provider"]
-  grafana -->|queries metrics| prometheus
-  prometheus -->|scrapes Micrometer metrics| aggregator["aggregator<br>Java / Spring Boot"]
+  agent --> model["Model Provider<br>Bedrock / ..."]
 
-  aggregator -->|loads catalog and signal definitions| catalog
-  catalog -->|reads and validates| catalogFiles["items / health signals<br>YAML / JSON Schema"]
-
-  aggregator -.->|polls health endpoints| demoServices
-  chaos -.->|changes state| demoServices["[demo] dummy services<br>Java / Python / JavaScript"]
-  chaos["[demo] chaos-maker<br>python"] -.->|loads signal targets| catalog
-
-
-  classDef optional stroke-dasharray: 5 5
-  class chaos,demoServices optional
+  ui --> user["User"]
+  agent --> user
 ```
 
-The `catalog` service owns the contract: items, dependencies, contacts, actors,
-and signal definitions. The `aggregator` consumes that contract, polls configured
-HTTP health endpoints, computes item health through the dependency graph, and
-exposes current Product Health facts through a REST query API. Prometheus metrics
-are derived from the same query boundary for observability. The UI reaches
-catalog, Product Health, Prometheus, Grafana, and the optional Python AI agent
-through the Caddy reverse proxy.
+The LLM is not part of Product Health calculation. Health state is derived from
+catalog relationships and service signals before any AI interaction happens.
 
-The demo services are not part of the core design. They are replaceable signal
-sources that make the public demo change over time.
+### Core Product Health flow
+
+The deterministic health model is the canonical source for current Product
+Health. REST and metrics are adapters over the same query boundary.
+
+```mermaid
+flowchart LR
+  catalog["Catalog<br>Go"] --> aggregator["Aggregator<br>Java / Spring Boot"]
+  services["Health endpoints"] --> aggregator
+
+  aggregator --> health["Product Health<br>Query Boundary"]
+
+  health --> api["REST API"]
+  health --> metrics["Metrics Exporter"]
+
+  api --> ui["Web UI"]
+  api --> agent["AI Agent"]
+
+  metrics --> prometheus["Prometheus"]
+  prometheus --> grafana["Grafana"]
+```
+
+This keeps application reads and observability aligned: the UI and AI agent
+consume deterministic Product Health facts, while Prometheus receives metrics
+derived from the same state.
+
+### AI-assisted investigation
+
+The optional agent uses the model to understand a natural-language question and
+select a Product Health tool. Simple tool results can be rendered
+deterministically; the model is called again only when natural-language
+explanation adds value.
+
+```mermaid
+sequenceDiagram
+  actor User
+  participant Agent as AI Agent
+  participant Model as Model Provider
+  participant Health as Product Health API
+
+  User->>Agent: Natural-language question
+  Agent->>Model: Question + tool definitions
+  Model-->>Agent: Tool call
+  Agent->>Health: Query deterministic facts
+  Health-->>Agent: Structured Product Health data
+
+  alt deterministic answer is sufficient
+    Agent-->>User: Render structured response
+  else explanation is needed
+    Agent->>Model: Facts to explain
+    Model-->>Agent: Explanation
+    Agent-->>User: Final answer
+  end
+```
+
+For the complete service topology, including Caddy, Prometheus, Grafana, demo
+services, and external model access, see
+[Detailed service topology](docs/services.md#detailed-service-topology).
 
 ### Health propagation rules
 
