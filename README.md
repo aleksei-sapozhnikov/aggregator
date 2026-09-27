@@ -104,12 +104,13 @@ flowchart LR
 
 Both paths are derived from the same deterministic Product Health state.
 
-### AI-assisted investigation
+### AI-assisted investigation flow
 
-The optional agent uses the model to understand a natural-language question and
-select a Product Health tool. Simple tool results can be rendered
-deterministically; the model is called again only when natural-language
-explanation adds value.
+The optional AI agent uses the model to interpret a natural-language question
+and choose which Product Health data to retrieve. The agent then queries the
+deterministic Product Health API. If the structured tool result is sufficient,
+the agent renders the response directly; otherwise, it sends the retrieved facts
+back to the model for explanation.
 
 ```mermaid
 sequenceDiagram
@@ -121,15 +122,15 @@ sequenceDiagram
   User->>Agent: Natural-language question
   Agent->>Model: Question + tool definitions
   Model-->>Agent: Tool call
-  Agent->>Health: Query deterministic facts
+  Agent->>Health: Query health facts
   Health-->>Agent: Structured Product Health data
 
-  alt deterministic answer is sufficient
-    Agent-->>User: Render structured response
-  else explanation is needed
-    Agent->>Model: Facts to explain
+  alt Tool result can be rendered directly
+    Agent-->>User: Deterministic response
+  else Model explanation is required
+    Agent->>Model: Product Health facts
     Model-->>Agent: Explanation
-    Agent-->>User: Final answer
+    Agent-->>User: Final response
   end
 ```
 
