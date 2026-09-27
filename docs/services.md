@@ -51,7 +51,8 @@ sequenceDiagram
 
 This is the runtime topology of the demo stack. Caddy is the entry point, with
 the Web UI, catalog, aggregator, and optional AI agent forming the core
-application. Prometheus and Grafana provide observability, while the demo-only
+application. Prometheus stores Product Health metric history, and Grafana
+visualizes that history in dashboards embedded in the Web UI. The demo-only
 services generate changing health states.
 
 The catalog reads the file-backed definitions, the aggregator consumes the
