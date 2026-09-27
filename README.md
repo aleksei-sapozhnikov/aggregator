@@ -54,7 +54,7 @@ broken for users, what depends on it, and where is the likely root cause?"
 ## How it works
 
 At a high level, the system combines service-level signals with catalog
-relationships, computes Product Health deterministically, and exposes that state
+relationships, computes health deterministically, and exposes that state
 through the UI, dashboards, and an optional AI assistant.
 
 ```mermaid
@@ -85,7 +85,7 @@ flowchart LR
   aggregator --> signals
 ```
 
-The LLM is not part of Product Health calculation. Health state is derived from
+The LLM is not part of health calculation. Health state is derived from
 catalog relationships and service signals before any AI interaction happens.
 
 For detailed data flow, AI interaction, and runtime service topology, see
@@ -169,11 +169,11 @@ boto3 uses its normal default credential chain, including the instance IAM role.
 
 - [services-core/aggregator](services-core/aggregator): Java / Spring Boot
   backend. Loads catalog and signal definitions, polls health endpoints,
-  propagates health through the dependency graph, exposes current Product Health
-  facts, and exports derived metrics.
+  propagates health through the dependency graph, exposes current health facts,
+  and exports derived metrics.
 - [services-core/ai-agent](services-core/ai-agent): optional Python service that
-  answers natural-language Product Health questions by calling the Product Health
-  REST API and using a configured model provider.
+  answers natural-language health questions by calling the aggregator REST API
+  and using a configured model provider.
 - [services-core/catalog](services-core/catalog): Go service. Owns catalog
   files, JSON schemas, validation, and the catalog HTTP API.
 - [services-core/aggregator-ui](services-core/aggregator-ui): React frontend
