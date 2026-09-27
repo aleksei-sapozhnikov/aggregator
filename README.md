@@ -53,45 +53,43 @@ broken for users, what depends on it, and where is the likely root cause?"
 
 ## How it works
 
+At a high level, the system combines service-level signals with catalog
+relationships, computes health deterministically, and exposes that state
+through the UI, dashboards, and an optional AI assistant.
+
 ```mermaid
-flowchart TB
-  browser["User<br>Browser"] -->|opens app| proxy["Reverse proxy<br>Caddy"]
-  proxy -->|serves static app| ui["aggregator-ui<br>React / TypeScript"]
+flowchart LR
+  ui["Web UI"]
 
-  ui -->|requests data / panels| proxy
-  proxy -->|forwards catalog API| catalog["catalog<br>Go"]
-  proxy -->|forwards current health API| aggregator
-  proxy -->|forwards AI questions| agent["ai-agent<br>Python / optional"]
-  proxy -->|forwards metrics API| prometheus["Prometheus"]
-  proxy -->|forwards dashboard requests| grafana["Grafana"]
+  subgraph experience["UI integrations"]
+    direction TB
+    agent["AI assistant"]
+    dashboards["Dashboards / history"]
+  end
 
-  agent -->|queries deterministic facts| aggregator
-  agent -.->|optional model calls| model["Bedrock / model provider"]
-  grafana -->|queries metrics| prometheus
-  prometheus -->|scrapes Micrometer metrics| aggregator["aggregator<br>Java / Spring Boot"]
+  ui --> agent
+  ui --> dashboards
 
-  aggregator -->|loads catalog and signal definitions| catalog
-  catalog -->|reads and validates| catalogFiles["items / health signals<br>YAML / JSON Schema"]
+  aggregator["Aggregator"]
 
-  aggregator -.->|polls health endpoints| demoServices
-  chaos -.->|changes state| demoServices["[demo] dummy services<br>Java / Python / JavaScript"]
-  chaos["[demo] chaos-maker<br>python"] -.->|loads signal targets| catalog
+  subgraph inputs["Data inputs"]
+    direction TB
+    catalog["Catalog"]
+    signals["Health signals"]
+  end
 
+  agent --> aggregator
+  dashboards --> aggregator
 
-  classDef optional stroke-dasharray: 5 5
-  class chaos,demoServices optional
+  aggregator --> catalog
+  aggregator --> signals
 ```
 
-The `catalog` service owns the contract: items, dependencies, contacts, actors,
-and signal definitions. The `aggregator` consumes that contract, polls configured
-HTTP health endpoints, computes item health through the dependency graph, and
-exposes current Product Health facts through a REST query API. Prometheus metrics
-are derived from the same query boundary for observability. The UI reaches
-catalog, Product Health, Prometheus, Grafana, and the optional Python AI agent
-through the Caddy reverse proxy.
+The LLM is not part of health calculation. Health state is derived from
+catalog relationships and service signals before any AI interaction happens.
 
-The demo services are not part of the core design. They are replaceable signal
-sources that make the public demo change over time.
+For detailed data flow, AI interaction, and runtime service topology, see
+[Services and architecture](docs/services.md).
 
 ### Health propagation rules
 
@@ -171,11 +169,11 @@ boto3 uses its normal default credential chain, including the instance IAM role.
 
 - [services-core/aggregator](services-core/aggregator): Java / Spring Boot
   backend. Loads catalog and signal definitions, polls health endpoints,
-  propagates health through the dependency graph, exposes current Product Health
-  facts, and exports derived metrics.
+  propagates health through the dependency graph, exposes current health facts,
+  and exports derived metrics.
 - [services-core/ai-agent](services-core/ai-agent): optional Python service that
-  answers natural-language Product Health questions by calling the Product Health
-  REST API and using a configured model provider.
+  answers natural-language health questions by calling the aggregator REST API
+  and using a configured model provider.
 - [services-core/catalog](services-core/catalog): Go service. Owns catalog
   files, JSON schemas, validation, and the catalog HTTP API.
 - [services-core/aggregator-ui](services-core/aggregator-ui): React frontend
@@ -191,8 +189,8 @@ boto3 uses its normal default credential chain, including the instance IAM role.
 
 More detail:
 
-- [docs/services.md](docs/services.md) explains the service responsibilities,
-  contracts, catalog files, and metrics.
+- [docs/services.md](docs/services.md) contains detailed architecture and
+  interaction diagrams.
 - [docs/development.md](docs/development.md) covers formatting, linting, and git
   hooks.
 - [deploy/demo/README.md](deploy/demo/README.md) covers the hosted demo stack.
