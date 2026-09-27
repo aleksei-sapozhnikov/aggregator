@@ -147,35 +147,8 @@ def test_bedrock_default_credential_chain_uses_no_explicit_credentials(
     ]
 
 
-def test_bedrock_reads_presentation_metadata_from_json_text() -> None:
-    provider = BedrockModelProvider(model_id="model-id")
-    provider.client = StaticClient(
-        {
-            "output": {
-                "message": {
-                    "content": [
-                        {
-                            "text": (
-                                '{"presentation":{"header":"Header",'
-                                '"signals_label":"Signals",'
-                                '"dependencies_label":"Dependencies",'
-                                '"healthy_message":"Healthy"}}'
-                            )
-                        },
-                        {
-                            "toolUse": {
-                                "toolUseId": "tool-1",
-                                "name": "list_unhealthy_items",
-                                "input": {},
-                            }
-                        },
-                    ]
-                }
-            }
-        }
-    )
-
-    response = provider.complete(system_prompt="system", messages=[], tools=[])
+def test_bedrock_reads_presentation_metadata_from_plain_json() -> None:
+    response = _complete_with_text(_presentation_json())
 
     assert response.presentation is not None
     assert response.presentation.header == "Header"
@@ -184,14 +157,55 @@ def test_bedrock_reads_presentation_metadata_from_json_text() -> None:
     assert response.presentation.healthy_message == "Healthy"
 
 
-def test_bedrock_ignores_malformed_presentation_text() -> None:
+def test_bedrock_reads_presentation_metadata_from_fenced_json() -> None:
+    response = _complete_with_text(f"```json\n{_presentation_json()}\n```")
+
+    assert response.presentation is not None
+    assert response.presentation.header == "Header"
+
+
+def test_bedrock_reads_presentation_metadata_from_surrounding_text() -> None:
+    response = _complete_with_text(
+        f"<thinking>choose the terminal tool</thinking>\n{_presentation_json()}\nDone."
+    )
+
+    assert response.presentation is not None
+    assert response.presentation.signals_label == "Signals"
+
+
+def test_bedrock_ignores_malformed_presentation_json() -> None:
+    response = _complete_with_text(
+        '{"presentation":{"header":"Header","signals_label":"Signals"'
+    )
+
+    assert response.presentation is None
+
+
+def test_bedrock_ignores_missing_presentation_object() -> None:
+    response = _complete_with_text('{"header":"Header"}')
+
+    assert response.presentation is None
+
+
+def test_bedrock_ignores_presentation_with_non_string_fields() -> None:
+    response = _complete_with_text(
+        '{"presentation":{"header":"Header",'
+        '"signals_label":["Signals"],'
+        '"dependencies_label":"Dependencies",'
+        '"healthy_message":"Healthy"}}'
+    )
+
+    assert response.presentation is None
+
+
+def _complete_with_text(text: str):
     provider = BedrockModelProvider(model_id="model-id")
     provider.client = StaticClient(
         {
             "output": {
                 "message": {
                     "content": [
-                        {"text": "not-json"},
+                        {"text": text},
                         {
                             "toolUse": {
                                 "toolUseId": "tool-1",
@@ -205,6 +219,13 @@ def test_bedrock_ignores_malformed_presentation_text() -> None:
         }
     )
 
-    response = provider.complete(system_prompt="system", messages=[], tools=[])
+    return provider.complete(system_prompt="system", messages=[], tools=[])
 
-    assert response.presentation is None
+
+def _presentation_json() -> str:
+    return (
+        '{"presentation":{"header":"Header",'
+        '"signals_label":"Signals",'
+        '"dependencies_label":"Dependencies",'
+        '"healthy_message":"Healthy"}}'
+    )

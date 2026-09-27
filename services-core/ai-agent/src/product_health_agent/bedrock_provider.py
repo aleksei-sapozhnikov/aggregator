@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
 from typing import Any
 
 import boto3
@@ -178,8 +179,39 @@ def _dict_or_empty(value: Any) -> dict[str, Any]:
 
 
 def _presentation_from_text(text: str) -> PresentationMetadata | None:
+    for candidate in _json_candidates(text):
+        presentation = _presentation_from_json(candidate)
+        if presentation is not None:
+            return presentation
+    return None
+
+
+def _json_candidates(text: str) -> list[str]:
+    candidates = [text.strip()]
+    candidates.extend(
+        match.group("json").strip()
+        for match in re.finditer(
+            r"```(?:json)?\s*(?P<json>.*?)```",
+            text,
+            flags=re.IGNORECASE | re.DOTALL,
+        )
+    )
+
+    decoder = json.JSONDecoder()
+    for index, character in enumerate(text):
+        if character != "{":
+            continue
+        try:
+            _, end = decoder.raw_decode(text[index:])
+        except json.JSONDecodeError:
+            continue
+        candidates.append(text[index : index + end])
+    return candidates
+
+
+def _presentation_from_json(value: str) -> PresentationMetadata | None:
     try:
-        payload = json.loads(text)
+        payload = json.loads(value)
     except json.JSONDecodeError:
         return None
     if not isinstance(payload, dict):
@@ -187,18 +219,22 @@ def _presentation_from_text(text: str) -> PresentationMetadata | None:
     presentation = payload.get("presentation")
     if not isinstance(presentation, dict):
         return None
+    if any(
+        not isinstance(presentation.get(field), str)
+        for field in (
+            "header",
+            "signals_label",
+            "dependencies_label",
+            "healthy_message",
+        )
+    ):
+        return None
     return PresentationMetadata(
-        header=_string_or_blank(presentation.get("header")),
-        signals_label=_string_or_blank(presentation.get("signals_label")),
-        dependencies_label=_string_or_blank(
-            presentation.get("dependencies_label")
-        ),
-        healthy_message=_string_or_blank(presentation.get("healthy_message")),
+        header=presentation["header"],
+        signals_label=presentation["signals_label"],
+        dependencies_label=presentation["dependencies_label"],
+        healthy_message=presentation["healthy_message"],
     )
-
-
-def _string_or_blank(value: Any) -> str:
-    return value if isinstance(value, str) else ""
 
 
 def _bedrock_client(client_kwargs: dict[str, str | None], api_key: str | None):
