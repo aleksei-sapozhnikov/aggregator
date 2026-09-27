@@ -59,17 +59,29 @@ through the UI, observability stack, and an optional AI assistant.
 
 ```mermaid
 flowchart LR
-  signals["Service health<br>signals"] --> health["Product Health<br>Aggregator"]
-  catalog["Catalog<br>products / services / dependencies"] --> health
+  ui["Web UI"]
 
-  health --> ui["Web UI"]
-  health --> observability["Prometheus / Grafana"]
-  health --> agent["AI Agent"]
+  subgraph experience["UI integrations"]
+    direction TB
+    agent["AI agent"]
+    dashboards["Dashboards / history"]
+  end
 
-  agent --> model["Model Provider<br>Bedrock / ..."]
+  ui --> agent
+  ui --> dashboards
 
-  ui --> user["User"]
-  agent --> user
+  aggregator["Aggregator"]
+
+  subgraph inputs["Data inputs"]
+    direction TB
+    catalog["Catalog"]
+    signals["Health signals"]
+  end
+
+  agent --> aggregator
+  catalog --> aggregator
+  signals --> aggregator
+  aggregator --> dashboards
 ```
 
 The LLM is not part of Product Health calculation. Health state is derived from
