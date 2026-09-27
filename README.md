@@ -189,8 +189,8 @@ boto3 uses its normal default credential chain, including the instance IAM role.
 
 More detail:
 
-- [docs/services.md](docs/services.md) explains the service responsibilities,
-  contracts, catalog files, and metrics.
+- [docs/services.md](docs/services.md) contains detailed architecture and
+  interaction diagrams.
 - [docs/development.md](docs/development.md) covers formatting, linting, and git
   hooks.
 - [deploy/demo/README.md](deploy/demo/README.md) covers the hosted demo stack.
