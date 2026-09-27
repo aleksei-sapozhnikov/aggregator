@@ -2,13 +2,13 @@
 
 Detailed architecture views for Catalog Health Aggregator. Service locations and short descriptions are kept in the main README.
 
-## Product Health data flow
+## Health data flow
 
-This view shows how the deterministic Product Health state is built and exposed.
+This view shows how the deterministic health state is built and exposed.
 The `aggregator` combines catalog data with health signals, then publishes the
 same state through REST and exported metrics. The `aggregator-ui` uses the REST
 API to provide the user-facing interface, while the optional `ai-agent` uses the
-same API for Product Health questions.
+same API for health questions.
 
 ```mermaid
 flowchart LR
@@ -23,9 +23,9 @@ flowchart LR
 
 This sequence shows how a user question moves through the optional AI path.
 The `aggregator-ui` sends the question to `ai-agent`, the model selects which
-Product Health data is needed, and `ai-agent` retrieves the deterministic facts
+health data is needed, and `ai-agent` retrieves the deterministic facts
 from `aggregator`. The result is either rendered directly or sent back to the
-model for explanation. The model does not calculate Product Health.
+model for explanation. The model does not calculate health.
 
 ```mermaid
 sequenceDiagram
@@ -39,13 +39,13 @@ sequenceDiagram
   UI->>Agent: Question
   Agent->>Model: Question + tool definitions
   Model-->>Agent: Tool call
-  Agent->>Aggregator: Query Product Health facts
-  Aggregator-->>Agent: Structured Product Health data
+  Agent->>Aggregator: Query health facts
+  Aggregator-->>Agent: Structured health data
 
   alt Tool result can be rendered directly
     Agent-->>UI: Deterministic response
   else Model explanation is required
-    Agent->>Model: Product Health facts
+    Agent->>Model: Health facts
     Model-->>Agent: Explanation
     Agent-->>UI: Final response
   end
@@ -57,11 +57,10 @@ sequenceDiagram
 
 This is the runtime topology of the demo stack. Caddy is the entry point.
 The user-facing web interface is provided by `aggregator-ui`, while `catalog`
-serves the file-backed catalog definitions, `aggregator` calculates Product
-Health, and the optional `ai-agent` handles natural-language Product Health
-questions.
+serves the file-backed catalog definitions, `aggregator` calculates item health, and the optional `ai-agent` handles
+natural-language health questions.
 
-Product Health metric history is stored in `prometheus` and visualized by
+Item health history is stored in `prometheus` and visualized by
 `grafana` in dashboards embedded by `aggregator-ui`. The demo-only
 `chaos-maker` changes the state of the dummy services so the demo continuously
 produces changing health data.
