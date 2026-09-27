@@ -16,7 +16,7 @@ flowchart LR
   signals["Health signals"] --> aggregator
 
   aggregator -->|REST API| consumers["aggregator-ui / ai-agent"]
-  aggregator -->|Exported metrics| history["Prometheus / Grafana"]
+  aggregator -->|Exported metrics| history["prometheus / grafana"]
 ```
 
 ## AI-assisted investigation flow
@@ -60,7 +60,7 @@ This is the runtime topology of the demo stack. Caddy is the entry point.
 file-backed catalog definitions, `aggregator` calculates Product Health, and the
 optional `ai-agent` handles natural-language Product Health questions.
 
-Prometheus stores Product Health metric history and Grafana visualizes that
+`prometheus` stores Product Health metric history and `grafana` visualizes that
 history in dashboards embedded by `aggregator-ui`. The demo-only
 `chaos-maker` changes the state of the dummy services so the demo continuously
 produces changing health data.
@@ -77,8 +77,8 @@ flowchart TB
   end
 
   subgraph history["Health history"]
-    prometheus["Prometheus"]
-    grafana["Grafana"]
+    prometheus["prometheus"]
+    grafana["grafana"]
   end
 
   subgraph demo["Demo only"]
