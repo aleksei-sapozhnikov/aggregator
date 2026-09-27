@@ -60,8 +60,8 @@ This is the runtime topology of the demo stack. Caddy is the entry point.
 file-backed catalog definitions, `aggregator` calculates Product Health, and the
 optional `ai-agent` handles natural-language Product Health questions.
 
-`prometheus` stores Product Health metric history and `grafana` visualizes that
-history in dashboards embedded by `aggregator-ui`. The demo-only
+Product Health metric history is stored in `prometheus` and visualized by
+`grafana` in dashboards embedded by `aggregator-ui`. The demo-only
 `chaos-maker` changes the state of the dummy services so the demo continuously
 produces changing health data.
 
