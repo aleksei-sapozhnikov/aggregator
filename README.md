@@ -60,9 +60,13 @@ flowchart TB
 
   ui -->|requests data / panels| proxy
   proxy -->|forwards catalog API| catalog["catalog<br>Go"]
+  proxy -->|forwards current health API| aggregator
+  proxy -->|forwards AI questions| agent["ai-agent<br>Python / optional"]
   proxy -->|forwards metrics API| prometheus["Prometheus"]
   proxy -->|forwards dashboard requests| grafana["Grafana"]
 
+  agent -->|queries deterministic facts| aggregator
+  agent -.->|optional model calls| model["Bedrock / model provider"]
   grafana -->|queries metrics| prometheus
   prometheus -->|scrapes Micrometer metrics| aggregator["aggregator<br>Java / Spring Boot"]
 
@@ -81,9 +85,10 @@ flowchart TB
 The `catalog` service owns the contract: items, dependencies, contacts, actors,
 and signal definitions. The `aggregator` consumes that contract, polls configured
 HTTP health endpoints, computes item health through the dependency graph, and
-exports the result as metrics. The UI reaches catalog, Prometheus, and Grafana
-through the Caddy reverse proxy, combining catalog structure with current
-Prometheus data and Grafana panels.
+exposes current Product Health facts through a REST query API. Prometheus metrics
+are derived from the same query boundary for observability. The UI reaches
+catalog, Product Health, Prometheus, Grafana, and the optional Python AI agent
+through the Caddy reverse proxy.
 
 The demo services are not part of the core design. They are replaceable signal
 sources that make the public demo change over time.
@@ -139,13 +144,38 @@ First startup can take a while because Compose builds local service images and
 downloads Prometheus/Grafana/Caddy images. Full local-run options are in
 [docs/running-locally.md](docs/running-locally.md).
 
+### Optional AI agent configuration
+
+The Python AI agent is disabled by default. To use the Bedrock provider, set
+`AGENT_AI_ENABLED=true` and provide `AGENT_AI_CONFIG`.
+
+For local development with a Bedrock API key, use `api_key`. This is a Bedrock
+bearer token, not an AWS access key or secret key:
+
+```shell
+AGENT_AI_CONFIG={"provider":"bedrock","max_tool_rounds":2,"bedrock":{"model_id":"amazon.nova-lite-v1:0","aws_region":"eu-central-1","api_key":"<bedrock-api-key>"}}
+```
+
+For temporary local AWS credentials, use the explicit AWS credential fields:
+
+```shell
+AGENT_AI_CONFIG={"provider":"bedrock","max_tool_rounds":2,"bedrock":{"model_id":"amazon.nova-lite-v1:0","aws_region":"eu-central-1","aws_access_key_id":"<aws-access-key-id>","aws_secret_access_key":"<aws-secret-access-key>","aws_session_token":"<optional-session-token>"}}
+```
+
+For deployment on EC2, omit `api_key` and the explicit AWS credential fields so
+boto3 uses its normal default credential chain, including the instance IAM role.
+
 ---
 
 ## Repository map
 
 - [services-core/aggregator](services-core/aggregator): Java / Spring Boot
   backend. Loads catalog and signal definitions, polls health endpoints,
-  propagates health through the dependency graph, and exposes metrics.
+  propagates health through the dependency graph, exposes current Product Health
+  facts, and exports derived metrics.
+- [services-core/ai-agent](services-core/ai-agent): optional Python service that
+  answers natural-language Product Health questions by calling the Product Health
+  REST API and using a configured model provider.
 - [services-core/catalog](services-core/catalog): Go service. Owns catalog
   files, JSON schemas, validation, and the catalog HTTP API.
 - [services-core/aggregator-ui](services-core/aggregator-ui): React frontend

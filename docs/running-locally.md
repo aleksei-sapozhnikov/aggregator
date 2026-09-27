@@ -62,6 +62,7 @@ The default local demo exposes:
 - UI: `http://localhost:3000`
 - Aggregator API and actuator endpoints: `http://localhost:8080`
 - Aggregator debug port: `localhost:5005`
+- AI agent API: `http://localhost:8085`
 - Grafana: `http://localhost:3001`
 - Prometheus: `http://localhost:9090`
 - Catalog API: `http://localhost:8084`
@@ -90,3 +91,29 @@ The compose files live under `compose/`. Keep `--project-directory .` in manual
 commands so relative paths and the root `.env` file resolve from the repository
 root. The `Makefile` is the source of truth for supported compose combinations
 and service-scoped commands.
+
+## Optional AI agent
+
+The Python AI agent container starts with AI disabled by default. The rest of the
+Product Health stack works normally in that mode. To enable the Bedrock
+provider, set `AGENT_AI_ENABLED=true` and provide one of the supported
+authentication configurations before starting Compose.
+
+For local development with a Bedrock API key, use `api_key`. This is a Bedrock
+bearer token, not an AWS access key or secret key:
+
+```shell
+AGENT_AI_ENABLED=true
+AGENT_AI_CONFIG={"provider":"bedrock","max_tool_rounds":2,"bedrock":{"model_id":"amazon.nova-lite-v1:0","aws_region":"eu-central-1","api_key":"<bedrock-api-key>"}}
+```
+
+For optional local AWS credentials, use the explicit AWS credential fields:
+
+```shell
+AGENT_AI_ENABLED=true
+AGENT_AI_CONFIG={"provider":"bedrock","max_tool_rounds":2,"bedrock":{"model_id":"amazon.nova-lite-v1:0","aws_region":"eu-central-1","aws_access_key_id":"<aws-access-key-id>","aws_secret_access_key":"<aws-secret-access-key>","aws_session_token":"<optional-session-token>"}}
+```
+
+For deployment on EC2, omit `api_key` and the explicit AWS credential fields.
+boto3 then uses the normal default credential chain, including the instance IAM
+role.

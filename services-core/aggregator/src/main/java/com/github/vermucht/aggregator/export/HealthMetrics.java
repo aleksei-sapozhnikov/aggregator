@@ -1,29 +1,21 @@
 package com.github.vermucht.aggregator.export;
 
-import com.github.vermucht.aggregator.catalog.configuration.CatalogRegistry;
-import com.github.vermucht.aggregator.catalog.model.Catalog;
-import com.github.vermucht.aggregator.catalog.model.Dependency;
-import com.github.vermucht.aggregator.catalog.model.Item;
-import com.github.vermucht.aggregator.catalog.model.ItemId;
-import com.github.vermucht.aggregator.signal.state.HealthSignalStateStore;
-import com.github.vermucht.aggregator.signal.state.ItemHealthStateStore;
-import com.github.vermucht.aggregator.signalsource.polling.PollingSignalSource;
-import com.github.vermucht.aggregator.signalsource.polling.PollingSignalSourceRegistry;
+import com.github.vermucht.aggregator.producthealth.ProductHealthQueryService;
+import com.github.vermucht.aggregator.producthealth.model.DependencyHealthFact;
+import com.github.vermucht.aggregator.producthealth.model.HealthSignalFact;
+import com.github.vermucht.aggregator.producthealth.model.ItemHealthFact;
+import com.github.vermucht.aggregator.signal.model.HealthStatus;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.MultiGauge;
 import io.micrometer.core.instrument.Tags;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.PostConstruct;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Deque;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import org.springframework.stereotype.Component;
 
-/** Registers Prometheus metrics for service and product health state. */
+/** Registers Prometheus metrics derived from the product health query boundary. */
 @Component
 public class HealthMetrics {
   public static final String ITEM_METRIC_NAME = "catalog_item_state";
@@ -39,28 +31,19 @@ public class HealthMetrics {
   public static final String LABEL_TARGET_ID = "target_id";
   public static final String LABEL_DEP_DEPTH = "dep_depth";
 
-  private final CatalogRegistry catalogRegistry;
-  private final ItemHealthStateStore healthStateStore;
-  private final HealthSignalStateStore signalStateStore;
-  private final PollingSignalSourceRegistry signalSourceRegistry;
+  private final ProductHealthQueryService productHealthQueryService;
   private final MultiGauge itemStateGauge;
   private final MultiGauge itemOwnStateGauge;
   private final MultiGauge itemSignalStateGauge;
   private final MultiGauge dependencyGauge;
 
-  /** Creates and registers item-level health gauges based on the catalog and health state store. */
+  /** Creates and registers item-level health gauges based on canonical health facts. */
   public HealthMetrics(
       @Nonnull MeterRegistry registry,
-      @Nonnull CatalogRegistry catalogRegistry,
-      @Nonnull ItemHealthStateStore healthStateStore,
-      @Nonnull HealthSignalStateStore signalStateStore,
-      @Nonnull PollingSignalSourceRegistry signalSourceRegistry) {
+      @Nonnull ProductHealthQueryService productHealthQueryService) {
     Objects.requireNonNull(registry, "registry");
-    this.catalogRegistry = Objects.requireNonNull(catalogRegistry, "catalogRegistry");
-    this.healthStateStore = Objects.requireNonNull(healthStateStore, "healthStateStore");
-    this.signalStateStore = Objects.requireNonNull(signalStateStore, "signalStateStore");
-    this.signalSourceRegistry =
-        Objects.requireNonNull(signalSourceRegistry, "signalSourceRegistry");
+    this.productHealthQueryService =
+        Objects.requireNonNull(productHealthQueryService, "productHealthQueryService");
     this.itemStateGauge =
         MultiGauge.builder(ITEM_METRIC_NAME)
             .description("Current health of a catalog item (1=UP, 0.5=UNKNOWN, 0=DOWN)")
@@ -90,136 +73,98 @@ public class HealthMetrics {
     refreshDynamicMetrics();
   }
 
-  /** Refreshes dynamic item/signal gauges using the current catalog and signal source snapshot. */
+  /** Refreshes dynamic item/signal gauges from the product health query boundary. */
   void refreshDynamicMetrics() {
-    Catalog catalog = catalogRegistry.getCatalog();
-    List<PollingSignalSource> signalSources = signalSourceRegistry.getSignalSources();
+    List<ItemHealthFact> items = productHealthQueryService.listAllItems();
     List<MultiGauge.Row<?>> itemRows =
-        catalog.items().values().stream()
+        items.stream()
             .<MultiGauge.Row<?>>map(
                 item ->
                     MultiGauge.Row.of(
-                        Tags.of(
-                            LABEL_ITEM_ID,
-                            item.getId().getValue(),
-                            LABEL_ITEM_NAME,
-                            item.getTitle()),
-                        healthStateStore,
-                        store ->
-                            HealthStatusMetrics.toGaugeValue(
-                                store.getAggregatedStatus(item.getId()))))
+                        Tags.of(LABEL_ITEM_ID, item.itemId(), LABEL_ITEM_NAME, item.title()),
+                        item.itemId(),
+                        this::itemStateGaugeValue))
             .toList();
     itemStateGauge.register(itemRows, true);
 
-    Map<ItemId, Boolean> itemsWithSignals = new HashMap<>();
-    for (PollingSignalSource signalSource : signalSources) {
-      itemsWithSignals.put(signalSource.itemId(), Boolean.TRUE);
-    }
     List<MultiGauge.Row<?>> ownRows =
-        catalog.items().values().stream()
-            .filter(item -> itemsWithSignals.containsKey(item.getId()))
+        items.stream()
+            .filter(item -> !item.signals().isEmpty())
             .<MultiGauge.Row<?>>map(
                 item ->
                     MultiGauge.Row.of(
-                        Tags.of(
-                            LABEL_ITEM_ID,
-                            item.getId().getValue(),
-                            LABEL_ITEM_NAME,
-                            item.getTitle()),
-                        healthStateStore,
-                        store ->
-                            HealthStatusMetrics.toGaugeValue(store.getRawStatus(item.getId()))))
+                        Tags.of(LABEL_ITEM_ID, item.itemId(), LABEL_ITEM_NAME, item.title()),
+                        item.itemId(),
+                        this::itemOwnStateGaugeValue))
             .toList();
     itemOwnStateGauge.register(ownRows, true);
 
-    List<MultiGauge.Row<?>> signalRows = new ArrayList<>(signalSources.size());
-    for (PollingSignalSource signalSource : signalSources) {
-      ItemId itemId = signalSource.itemId();
-      Item item = catalog.items().get(itemId);
-      String itemName = item != null ? item.getTitle() : itemId.getValue();
-      signalRows.add(
-          MultiGauge.Row.of(
-              Tags.of(
-                  LABEL_ITEM_ID,
-                  itemId.getValue(),
-                  LABEL_ITEM_NAME,
-                  itemName,
-                  LABEL_SIGNAL_ID,
-                  signalSource.id(),
-                  LABEL_SIGNAL_NAME,
-                  signalSource.title(),
-                  LABEL_SIGNAL_SOURCE,
-                  signalSource.source()),
-              signalStateStore,
-              store ->
-                  HealthStatusMetrics.toGaugeValue(store.getStatus(itemId, signalSource.id()))));
+    List<MultiGauge.Row<?>> signalRows = new ArrayList<>();
+    for (ItemHealthFact item : items) {
+      for (HealthSignalFact signal : item.signals()) {
+        signalRows.add(
+            MultiGauge.Row.of(
+                Tags.of(
+                    LABEL_ITEM_ID,
+                    item.itemId(),
+                    LABEL_ITEM_NAME,
+                    item.title(),
+                    LABEL_SIGNAL_ID,
+                    signal.id(),
+                    LABEL_SIGNAL_NAME,
+                    signal.title(),
+                    LABEL_SIGNAL_SOURCE,
+                    signal.source()),
+                new SignalGaugeRef(item.itemId(), signal.id()),
+                this::signalStateGaugeValue));
+      }
     }
     itemSignalStateGauge.register(signalRows, true);
-    registerDependencyMetrics(catalog);
+    registerDependencyMetrics(items);
   }
 
   /** Registers dependency edge metrics. */
-  private void registerDependencyMetrics(@Nonnull Catalog catalog) {
-    Map<ItemId, Map<ItemId, Integer>> dependencyDepths = computeDependencyDepths(catalog);
+  private void registerDependencyMetrics(@Nonnull List<ItemHealthFact> items) {
     List<MultiGauge.Row<?>> dependencyRows = new ArrayList<>();
-    for (Map.Entry<ItemId, Map<ItemId, Integer>> sourceEntry : dependencyDepths.entrySet()) {
-      ItemId sourceId = sourceEntry.getKey();
-      for (Map.Entry<ItemId, Integer> targetEntry : sourceEntry.getValue().entrySet()) {
-        ItemId targetId = targetEntry.getKey();
+    for (ItemHealthFact item : items) {
+      for (DependencyHealthFact dependency : item.dependencies()) {
         dependencyRows.add(
             MultiGauge.Row.of(
                 Tags.of(
                     LABEL_SOURCE_ID,
-                    sourceId.getValue(),
+                    item.itemId(),
                     LABEL_TARGET_ID,
-                    targetId.getValue(),
+                    dependency.itemId(),
                     LABEL_DEP_DEPTH,
-                    Integer.toString(targetEntry.getValue())),
-                this,
+                    Integer.toString(dependency.depth())),
+                dependency,
                 ignored -> 1.0));
       }
     }
     dependencyGauge.register(dependencyRows, true);
   }
 
-  /** Computes the minimal traversal depth between catalog items for all transitive dependencies. */
-  private Map<ItemId, Map<ItemId, Integer>> computeDependencyDepths(@Nonnull Catalog catalog) {
-    Map<ItemId, List<ItemId>> adjacency = new HashMap<>();
-    for (Dependency dependency : catalog.dependencies()) {
-      adjacency
-          .computeIfAbsent(dependency.getSourceId(), _ -> new ArrayList<>())
-          .add(dependency.getTargetId());
-    }
-
-    Map<ItemId, Map<ItemId, Integer>> result = new HashMap<>();
-    for (ItemId sourceId : adjacency.keySet()) {
-      Map<ItemId, Integer> depths = new HashMap<>();
-      Deque<DependencyTraversal> queue = new ArrayDeque<>();
-      for (ItemId directTarget : adjacency.getOrDefault(sourceId, List.of())) {
-        if (depths.putIfAbsent(directTarget, 1) == null) {
-          queue.add(new DependencyTraversal(directTarget, 1));
-        }
-      }
-
-      while (!queue.isEmpty()) {
-        DependencyTraversal current = queue.removeFirst();
-        int nextDepth = current.depth() + 1;
-        for (ItemId nextTarget : adjacency.getOrDefault(current.targetId(), List.of())) {
-          Integer existingDepth = depths.get(nextTarget);
-          if (existingDepth == null || nextDepth < existingDepth) {
-            depths.put(nextTarget, nextDepth);
-            queue.add(new DependencyTraversal(nextTarget, nextDepth));
-          }
-        }
-      }
-
-      if (!depths.isEmpty()) {
-        result.put(sourceId, depths);
-      }
-    }
-    return result;
+  private double itemStateGaugeValue(String itemId) {
+    ItemHealthFact item = productHealthQueryService.getItemHealthById(itemId).item();
+    return HealthStatusMetrics.toGaugeValue(item == null ? HealthStatus.UNKNOWN : item.state());
   }
 
-  /** Represents a traversal step during dependency graph breadth-first search. */
-  private record DependencyTraversal(ItemId targetId, int depth) {}
+  private double itemOwnStateGaugeValue(String itemId) {
+    ItemHealthFact item = productHealthQueryService.getItemHealthById(itemId).item();
+    return HealthStatusMetrics.toGaugeValue(item == null ? HealthStatus.UNKNOWN : item.ownState());
+  }
+
+  private double signalStateGaugeValue(SignalGaugeRef signalRef) {
+    ItemHealthFact item = productHealthQueryService.getItemHealthById(signalRef.itemId()).item();
+    if (item == null) {
+      return HealthStatusMetrics.UNKNOWN_VALUE;
+    }
+    return item.signals().stream()
+        .filter(signal -> signal.id().equals(signalRef.signalId()))
+        .findFirst()
+        .map(signal -> HealthStatusMetrics.toGaugeValue(signal.state()))
+        .orElse(HealthStatusMetrics.UNKNOWN_VALUE);
+  }
+
+  private record SignalGaugeRef(String itemId, String signalId) {}
 }

@@ -37,7 +37,9 @@ Responsibilities:
 - Convert raw signal responses into `UP`, `DOWN`, or `UNKNOWN`.
 - Propagate state through the dependency graph with deterministic ordering:
   `DOWN > UNKNOWN > UP`.
-- Expose Prometheus metrics at `/actuator/prometheus`.
+- Expose current Product Health facts at `/api/product-health/*`.
+- Expose Prometheus metrics at `/actuator/prometheus` derived from the Product
+  Health query boundary.
 - Store feedback submitted from the UI when configured.
 
 Important metric names:
@@ -48,6 +50,32 @@ Important metric names:
 - `catalog_dependency`: dependency edge presence and depth.
 
 Gauge values are `1.0` for `UP`, `0.5` for `UNKNOWN`, and `0.0` for `DOWN`.
+Prometheus is an observability representation, not the canonical application API
+for current Product Health state.
+
+Current Product Health REST endpoints:
+
+- `GET /api/product-health/items`: returns deterministic health facts for all
+  catalog items. Pass `unhealthyOnly=true` to return only non-`UP` items.
+- `GET /api/product-health/items/{itemId}`: exact lookup by catalog item id.
+- `GET /api/product-health/search?query=...`: case-insensitive search by item
+  id or display title. It returns a single item when exactly one match is found,
+  or structured candidates when the query is ambiguous.
+
+### `services-core/ai-agent`
+
+Optional Python service that answers simple natural-language Product Health
+questions such as "Why is Checkout down?" or "What is broken right now?"
+
+Responsibilities:
+
+- Accept questions at `/api/agent/ask`.
+- Retrieve deterministic facts from the aggregator's Product Health REST API.
+- Use a configured model provider to explain those facts.
+
+The agent does not calculate product or service health. Its Product Health tool
+adapter is REST-backed in this iteration and can later be replaced by an
+MCP-backed adapter without changing the agent orchestration.
 
 ### `services-core/aggregator-ui`
 
@@ -56,7 +84,7 @@ React UI served by Caddy.
 Responsibilities:
 
 - Load catalog data through the `/catalog/*` reverse proxy path.
-- Query Prometheus for current item and signal state.
+- Query the Product Health REST API for current item and signal state.
 - Embed Grafana panels for deeper metric inspection.
 - Show dependency impact, contacts, actors, signal history, and feedback entry
   points.
@@ -64,6 +92,8 @@ Responsibilities:
 The service Caddyfile also proxies:
 
 - `/api/feedback` and `/api/admin/feedback` to the aggregator.
+- `/api/product-health/*` to the aggregator.
+- `/api/agent/*` to the optional Python AI agent.
 - `/grafana/*` to Grafana.
 - `/prometheus/*` to Prometheus.
 

@@ -42,12 +42,18 @@ instructions before making broad architectural assumptions.
 - Source code, schemas, tests, and repository documentation are the source of
   truth. Generated AI/tooling data is secondary.
 
-## Validation
+## Code Format and Validation
 
 Use the repository's existing QA tooling rather than introducing parallel
 formatting or linting workflows.
 
-For the full check:
+Before the check format the code using:
+
+```shell
+python tools/code_qa/main.py format
+```
+
+Then for the full check:
 
 ```shell
 python tools/code_qa/main.py lint

@@ -9,23 +9,30 @@ import type {
   CatalogItemContact,
   HealthStatus,
   ItemSignal,
+  ProductHealthItem,
 } from "../shared/types";
 
-interface PrometheusMetricLabels {
-  item_id?: string;
-  signal_id?: string;
-  signal_name?: string;
+interface ProductHealthSignalPayload {
+  id?: string;
+  title?: string;
+  state?: string;
 }
 
-interface PrometheusVectorEntry {
-  metric?: PrometheusMetricLabels;
-  value?: [number | string, string];
+interface ProductHealthDependencyPayload {
+  itemId?: string;
+  title?: string;
+  state?: string;
+  depth?: number;
 }
 
-interface PrometheusQueryPayload {
-  data?: {
-    result?: PrometheusVectorEntry[];
-  };
+interface ProductHealthItemPayload {
+  itemId?: string;
+  title?: string;
+  state?: string;
+  ownState?: string;
+  signals?: ProductHealthSignalPayload[];
+  dependencies?: ProductHealthDependencyPayload[];
+  affectingDependencies?: ProductHealthDependencyPayload[];
 }
 
 export const DASHBOARDS = {
@@ -80,33 +87,17 @@ export const resolveGrafanaBaseUrl = (): string => {
   return `${resolveBaseUrl()}grafana`;
 };
 
-export const resolvePrometheusBaseUrl = (): string => {
-  const runtimeConfig = window.__AGGREGATOR_UI__ as
-    | AggregatorUiRuntimeConfig
-    | undefined;
-  const configured = runtimeConfig?.prometheusUrl;
-  if (configured) {
-    return configured;
-  }
-  if (import.meta.env.VITE_PROMETHEUS_URL) {
-    return import.meta.env.VITE_PROMETHEUS_URL;
-  }
-  return `${window.location.origin}/prometheus`;
-};
-
 export const resolveSidebarTitle = (): string =>
   (import.meta.env.VITE_APP_TITLE ?? "").trim();
 
-export const parsePrometheusHealthStatus = (value: number): HealthStatus => {
-  let status: HealthStatus = "unknown";
-  if (Number.isFinite(value)) {
-    if (value >= 0.9) {
-      status = "up";
-    } else if (value <= 0.1) {
-      status = "down";
-    }
+const parseProductHealthStatus = (value: unknown): HealthStatus => {
+  const normalized = String(value || "")
+    .trim()
+    .toLowerCase();
+  if (normalized === "up" || normalized === "down") {
+    return normalized;
   }
-  return status;
+  return "unknown";
 };
 
 export const compareHealthStatus = (
@@ -450,67 +441,81 @@ const loadOptionalJson = async (path: string): Promise<unknown> => {
   return (await response.json()) as unknown;
 };
 
-export const fetchPrometheusStatuses = async (
-  prometheusBaseUrl: string,
-): Promise<{
+export const fetchProductHealth = async (): Promise<{
+  items: ProductHealthItem[];
   itemStatuses: Record<string, HealthStatus>;
   itemSignals: Record<string, ItemSignal[]>;
 }> => {
-  const [itemResponse, signalResponse] = await Promise.all([
-    fetch(
-      `${prometheusBaseUrl}/api/v1/query?query=${encodeURIComponent("catalog_item_state")}`,
-    ),
-    fetch(
-      `${prometheusBaseUrl}/api/v1/query?query=${encodeURIComponent("catalog_item_signal_state")}`,
-    ),
-  ]);
-
-  const nextStatuses: Record<string, HealthStatus> = {};
-  const nextItemSignals: Record<string, ItemSignal[]> = {};
-
-  if (itemResponse.ok) {
-    const itemContentType = itemResponse.headers.get("content-type") || "";
-    if (itemContentType.includes("application/json")) {
-      const payload = (await itemResponse.json()) as PrometheusQueryPayload;
-      const results = payload.data?.result ?? [];
-      results.forEach((entry) => {
-        const itemId = entry.metric?.item_id;
-        if (!itemId) {
-          return;
-        }
-        const value = Number.parseFloat(String(entry.value?.[1] ?? "NaN"));
-        nextStatuses[itemId] = parsePrometheusHealthStatus(value);
-      });
-    }
+  const response = await fetch(
+    new URL("api/product-health/items", resolveBaseUrl()),
+  );
+  if (!response.ok) {
+    throw new Error(`Failed to load product health: ${response.status}`);
   }
+  const payload = (await response.json()) as unknown;
+  const rawItems = Array.isArray(payload) ? payload : [];
+  const items = rawItems
+    .map(normalizeProductHealthItem)
+    .filter((item): item is ProductHealthItem => Boolean(item));
+  const itemStatuses: Record<string, HealthStatus> = {};
+  const itemSignals: Record<string, ItemSignal[]> = {};
+  items.forEach((item) => {
+    itemStatuses[item.itemId] = item.state;
+    itemSignals[item.itemId] = item.signals;
+  });
+  return { items, itemStatuses, itemSignals };
+};
 
-  if (signalResponse.ok) {
-    const signalContentType = signalResponse.headers.get("content-type") || "";
-    if (signalContentType.includes("application/json")) {
-      const payload = (await signalResponse.json()) as PrometheusQueryPayload;
-      const results = payload.data?.result ?? [];
-      results.forEach((entry) => {
-        const itemId = entry.metric?.item_id;
-        const signalId = entry.metric?.signal_id;
-        const signalTitle = entry.metric?.signal_name || signalId;
-        if (!itemId) {
-          return;
-        }
-        const value = Number.parseFloat(String(entry.value?.[1] ?? "NaN"));
-        const status = parsePrometheusHealthStatus(value);
-        if (signalId && signalTitle) {
-          const list = nextItemSignals[itemId] || [];
-          list.push({ id: signalId, title: signalTitle, status });
-          nextItemSignals[itemId] = list;
-        }
-      });
-    }
+const normalizeProductHealthItem = (
+  rawItem: unknown,
+): ProductHealthItem | null => {
+  const item = rawItem as ProductHealthItemPayload;
+  const itemId = String(item?.itemId || "").trim();
+  if (!itemId) {
+    return null;
   }
-
   return {
-    itemStatuses: nextStatuses,
-    itemSignals: nextItemSignals,
+    itemId,
+    title: String(item.title || itemId).trim(),
+    state: parseProductHealthStatus(item.state),
+    ownState: parseProductHealthStatus(item.ownState),
+    signals: normalizeProductHealthSignals(item.signals),
+    dependencies: normalizeProductHealthDependencies(item.dependencies),
+    affectingDependencies: normalizeProductHealthDependencies(
+      item.affectingDependencies,
+    ),
   };
+};
+
+const normalizeProductHealthSignals = (rawSignals: unknown): ItemSignal[] => {
+  if (!Array.isArray(rawSignals)) {
+    return [];
+  }
+  return rawSignals
+    .filter((entry): entry is ProductHealthSignalPayload => Boolean(entry))
+    .map((signal) => ({
+      id: String(signal.id || "").trim(),
+      title: String(signal.title || signal.id || "").trim(),
+      status: parseProductHealthStatus(signal.state),
+    }))
+    .filter((signal) => Boolean(signal.id));
+};
+
+const normalizeProductHealthDependencies = (
+  rawDependencies: unknown,
+): ProductHealthItem["dependencies"] => {
+  if (!Array.isArray(rawDependencies)) {
+    return [];
+  }
+  return rawDependencies
+    .filter((entry): entry is ProductHealthDependencyPayload => Boolean(entry))
+    .map((dependency) => ({
+      itemId: String(dependency.itemId || "").trim(),
+      title: String(dependency.title || dependency.itemId || "").trim(),
+      state: parseProductHealthStatus(dependency.state),
+      depth: Number.isFinite(dependency.depth) ? Number(dependency.depth) : 0,
+    }))
+    .filter((dependency) => Boolean(dependency.itemId));
 };
 
 export const submitFeedback = async (

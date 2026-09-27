@@ -7,6 +7,10 @@ services:
       JAVA_OPTS: >
         -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
 
+  ai-agent:
+    ports:
+      - "8085:8080"
+
   aggregator-ui:
     ports:
       - "3000:3000"
