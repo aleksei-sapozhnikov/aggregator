@@ -69,11 +69,45 @@ class RestProductHealthTools:
                         "properties": {
                             "presentation": {
                                 "type": "object",
+                                "description": (
+                                    "Localized presentation labels. Every string "
+                                    "MUST be written in the same language as the "
+                                    "user's original question."
+                                ),
                                 "properties": {
-                                    "header": {"type": "string"},
-                                    "signals_label": {"type": "string"},
-                                    "dependencies_label": {"type": "string"},
-                                    "healthy_message": {"type": "string"},
+                                    "header": {
+                                        "type": "string",
+                                        "description": (
+                                            "Short declarative heading in the "
+                                            "same language as the user's original "
+                                            "question. Do not repeat or "
+                                            "paraphrase the user's question."
+                                        ),
+                                    },
+                                    "signals_label": {
+                                        "type": "string",
+                                        "description": (
+                                            "Short label for unhealthy signals in "
+                                            "the same language as the user's "
+                                            "original question."
+                                        ),
+                                    },
+                                    "dependencies_label": {
+                                        "type": "string",
+                                        "description": (
+                                            "Short label for affecting "
+                                            "dependencies in the same language as "
+                                            "the user's original question."
+                                        ),
+                                    },
+                                    "healthy_message": {
+                                        "type": "string",
+                                        "description": (
+                                            "Short complete healthy-state message "
+                                            "in the same language as the user's "
+                                            "original question."
+                                        ),
+                                    },
                                 },
                                 "required": [
                                     "header",

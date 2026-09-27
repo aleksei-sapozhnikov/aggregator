@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 import pytest
-from product_health_agent.agent import ProductHealthAgent
+from product_health_agent.agent import SYSTEM_PROMPT, ProductHealthAgent
 from product_health_agent.model_provider import (
     ModelMessage,
     ModelResponse,
@@ -41,6 +41,19 @@ class FakeModelProvider:
     ) -> ModelResponse:
         self.requests.append(list(messages))
         return self.responses.pop(0)
+
+
+def test_system_prompt_requires_same_language_presentation_metadata() -> None:
+    prompt = " ".join(SYSTEM_PROMPT.split())
+
+    assert "Presentation metadata MUST be written" in prompt
+    assert "same language as the user's original question" in prompt
+    assert "This is a strict requirement, not a preference" in prompt
+    assert "Do not default presentation metadata to English" in prompt
+    assert "Russian question -> Russian presentation labels" in prompt
+    assert "English question -> English presentation labels" in prompt
+    assert "Serbian question -> Serbian presentation labels" in prompt
+    assert "only presentation labels are localized" in prompt
 
 
 def test_agent_executes_tool_before_answering() -> None:

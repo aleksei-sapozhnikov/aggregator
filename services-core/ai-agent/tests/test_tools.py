@@ -42,7 +42,34 @@ def test_list_unhealthy_items_tool_schema_requires_presentation_metadata() -> No
         "dependencies_label",
         "healthy_message",
     ]
-    assert presentation["properties"]["header"] == {"type": "string"}
-    assert presentation["properties"]["signals_label"] == {"type": "string"}
-    assert presentation["properties"]["dependencies_label"] == {"type": "string"}
-    assert presentation["properties"]["healthy_message"] == {"type": "string"}
+
+
+def test_list_unhealthy_items_presentation_schema_requires_same_language() -> None:
+    tools = {
+        tool.definition.name: tool.definition
+        for tool in RestProductHealthTools("http://product-health").tools()
+    }
+
+    presentation = tools["list_unhealthy_items"].input_schema["properties"][
+        "presentation"
+    ]
+
+    assert "Every string MUST be written" in presentation["description"]
+    assert "same language as the user's original question" in presentation[
+        "description"
+    ]
+
+    properties = presentation["properties"]
+    for name in (
+        "header",
+        "signals_label",
+        "dependencies_label",
+        "healthy_message",
+    ):
+        assert properties[name]["type"] == "string"
+        assert properties[name]["description"]
+        assert "same language as the user's original question" in properties[name][
+            "description"
+        ]
+
+    assert "Do not repeat or paraphrase" in properties["header"]["description"]

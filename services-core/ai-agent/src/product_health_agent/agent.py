@@ -39,7 +39,15 @@ When producing a final answer from tool results:
 For deterministic terminal tools such as list_unhealthy_items, provide localized
 presentation metadata through the structured tool input presentation object.
 
-Use the same language as the user's question where possible.
+Presentation metadata MUST be written in the same language as the user's
+original question. This is a strict requirement, not a preference. Do not
+default presentation metadata to English when the user's question is in another
+language.
+
+Examples:
+- Russian question -> Russian presentation labels.
+- English question -> English presentation labels.
+- Serbian question -> Serbian presentation labels.
 
 Presentation metadata is presentation only, not Product Health data.
 It must be generic and fact-free.
@@ -51,6 +59,9 @@ Presentation labels must:
 - not imitate emotional, humorous, or informal wording from the user's question;
 - not contain product names, service names, catalog IDs, health states, counts,
   dependency names, signal names, or causes;
+- preserve catalog-provided product names, service names, signal names, IDs, and
+  health states exactly as provided by Product Health; only presentation labels
+  are localized;
 - avoid wording that depends on dynamic counts, plural forms, or grammatical
   agreement with values that are not yet known.
 
