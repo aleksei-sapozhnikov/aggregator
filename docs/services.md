@@ -4,6 +4,65 @@ Catalog Health Aggregator is intentionally split into small services with clear
 ownership boundaries. HTTP APIs, YAML catalog files, schemas, and metrics are
 treated as contracts between those services.
 
+## Detailed service topology
+
+This view shows the runtime service relationships. The README keeps the main
+architecture intentionally smaller; this diagram includes the reverse proxy,
+observability stack, demo-only services, and optional model access.
+
+```mermaid
+flowchart TB
+  browser["User Browser"] --> proxy["Caddy<br>reverse proxy"]
+
+  subgraph core["Core application"]
+    ui["aggregator-ui"]
+    catalog["catalog"]
+    aggregator["aggregator"]
+    agent["ai-agent<br>optional"]
+  end
+
+  subgraph observability["Observability"]
+    prometheus["Prometheus"]
+    grafana["Grafana"]
+  end
+
+  subgraph demo["Demo only"]
+    chaos["chaos-maker"]
+    dummy["dummy services"]
+  end
+
+  files["Catalog files<br>YAML / JSON Schema"]
+  model["Model Provider<br>Bedrock / ..."]
+
+  proxy --> ui
+  proxy --> catalog
+  proxy --> aggregator
+  proxy --> agent
+  proxy --> grafana
+  proxy --> prometheus
+
+  catalog --> files
+  aggregator --> catalog
+  aggregator -. polls .-> dummy
+
+  agent --> aggregator
+  agent -. optional .-> model
+
+  prometheus -. scrapes .-> aggregator
+  grafana --> prometheus
+
+  chaos --> catalog
+  chaos -. changes state .-> dummy
+
+  classDef optional stroke-dasharray: 5 5
+  class agent,model,chaos,dummy optional
+```
+
+The core application does not depend on the demo services or the AI agent.
+Product Health remains available if either optional path is absent. Prometheus
+and Grafana observe the same deterministic state exposed by the aggregator but
+are not the canonical application API for current Product Health.
+
 ## Core services
 
 ### `services-core/catalog`
