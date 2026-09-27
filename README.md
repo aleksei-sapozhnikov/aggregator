@@ -55,7 +55,7 @@ broken for users, what depends on it, and where is the likely root cause?"
 
 At a high level, the system combines service-level signals with catalog
 relationships, computes Product Health deterministically, and exposes that state
-through the UI, observability stack, and an optional AI assistant.
+through the UI, dashboards, and an optional AI assistant.
 
 ```mermaid
 flowchart LR
@@ -88,55 +88,8 @@ flowchart LR
 The LLM is not part of Product Health calculation. Health state is derived from
 catalog relationships and service signals before any AI interaction happens.
 
-### Product Health data flow
-
-The aggregator combines catalog relationships with health signals and exposes
-the resulting deterministic Product Health state through two interfaces.
-
-```mermaid
-flowchart LR
-  catalog["Catalog"] --> aggregator["Aggregator"]
-  signals["Health signals"] --> aggregator
-
-  aggregator -->|REST API| consumers["Web UI / AI agent"]
-  aggregator -->|Exported metrics| observability["Prometheus / Grafana"]
-```
-
-Both paths are derived from the same deterministic Product Health state.
-
-### AI-assisted investigation flow
-
-The optional AI agent uses the model to interpret a natural-language question
-and choose which Product Health data to retrieve. The agent then queries the
-deterministic Product Health API. If the structured tool result is sufficient,
-the agent renders the response directly; otherwise, it sends the retrieved facts
-back to the model for explanation.
-
-```mermaid
-sequenceDiagram
-  actor User
-  participant Agent as AI Agent
-  participant Model as Model Provider
-  participant Health as Product Health API
-
-  User->>Agent: Natural-language question
-  Agent->>Model: Question + tool definitions
-  Model-->>Agent: Tool call
-  Agent->>Health: Query health facts
-  Health-->>Agent: Structured Product Health data
-
-  alt Tool result can be rendered directly
-    Agent-->>User: Deterministic response
-  else Model explanation is required
-    Agent->>Model: Product Health facts
-    Model-->>Agent: Explanation
-    Agent-->>User: Final response
-  end
-```
-
-For the complete service topology, including Caddy, Prometheus, Grafana, demo
-services, and external model access, see
-[Detailed service topology](docs/services.md#detailed-service-topology).
+For detailed data flow, AI interaction, and runtime service topology, see
+[Services and architecture](docs/services.md).
 
 ### Health propagation rules
 
