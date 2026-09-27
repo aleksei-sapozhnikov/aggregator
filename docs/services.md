@@ -5,59 +5,65 @@ Detailed architecture views for Catalog Health Aggregator. Service locations and
 ## Product Health data flow
 
 This view shows how the deterministic Product Health state is built and exposed.
-The aggregator combines catalog data with health signals, then publishes the
-same state through REST for application consumers and as metrics for
-observability.
+The `aggregator` combines catalog data with health signals, then publishes the
+same state through REST and exported metrics. The `aggregator-ui` uses the REST
+API to provide the user-facing interface, while the optional `ai-agent` uses the
+same API for Product Health questions.
 
 ```mermaid
 flowchart LR
-  catalog["Catalog"] --> aggregator["Aggregator"]
+  catalog["catalog"] --> aggregator["aggregator"]
   signals["Health signals"] --> aggregator
 
-  aggregator -->|REST API| consumers["Web UI / AI agent"]
-  aggregator -->|Exported metrics| observability["Prometheus / Grafana"]
+  aggregator -->|REST API| consumers["aggregator-ui / ai-agent"]
+  aggregator -->|Exported metrics| history["Prometheus / Grafana"]
 ```
 
 ## AI-assisted investigation flow
 
-This sequence shows how a user question moves through the optional AI path. The
-model selects which Product Health data is needed, the agent retrieves the
-deterministic facts, and the result is either rendered directly or sent back to
-the model for explanation. The model does not calculate Product Health.
+This sequence shows how a user question moves through the optional AI path.
+The `aggregator-ui` sends the question to `ai-agent`, the model selects which
+Product Health data is needed, and `ai-agent` retrieves the deterministic facts
+from `aggregator`. The result is either rendered directly or sent back to the
+model for explanation. The model does not calculate Product Health.
 
 ```mermaid
 sequenceDiagram
   actor User
-  participant Agent as AI Agent
+  participant UI as aggregator-ui
+  participant Agent as ai-agent
   participant Model as Model Provider
-  participant Health as Product Health API
+  participant Aggregator as aggregator
 
-  User->>Agent: Natural-language question
+  User->>UI: Natural-language question
+  UI->>Agent: Question
   Agent->>Model: Question + tool definitions
   Model-->>Agent: Tool call
-  Agent->>Health: Query health facts
-  Health-->>Agent: Structured Product Health data
+  Agent->>Aggregator: Query Product Health facts
+  Aggregator-->>Agent: Structured Product Health data
 
   alt Tool result can be rendered directly
-    Agent-->>User: Deterministic response
+    Agent-->>UI: Deterministic response
   else Model explanation is required
     Agent->>Model: Product Health facts
     Model-->>Agent: Explanation
-    Agent-->>User: Final response
+    Agent-->>UI: Final response
   end
+
+  UI-->>User: Display response
 ```
 
 ## Detailed service topology
 
-This is the runtime topology of the demo stack. Caddy is the entry point, with
-the Web UI, catalog, aggregator, and optional AI agent forming the core
-application. Prometheus stores Product Health metric history, and Grafana
-visualizes that history in dashboards embedded in the Web UI. The demo-only
-services generate changing health states.
+This is the runtime topology of the demo stack. Caddy is the entry point.
+`aggregator-ui` provides the user-facing web interface, `catalog` serves the
+file-backed catalog definitions, `aggregator` calculates Product Health, and the
+optional `ai-agent` handles natural-language Product Health questions.
 
-The catalog reads the file-backed definitions, the aggregator consumes the
-catalog and polls service health, and the AI agent queries the aggregator and
-optionally calls an external model provider.
+Prometheus stores Product Health metric history and Grafana visualizes that
+history in dashboards embedded by `aggregator-ui`. The demo-only
+`chaos-maker` changes the state of the dummy services so the demo continuously
+produces changing health data.
 
 ```mermaid
 flowchart TB
@@ -70,7 +76,7 @@ flowchart TB
     agent["ai-agent<br>optional"]
   end
 
-  subgraph observability["Health history"]
+  subgraph history["Health history"]
     prometheus["Prometheus"]
     grafana["Grafana"]
   end
