@@ -79,9 +79,10 @@ flowchart LR
   end
 
   agent --> aggregator
-  catalog --> aggregator
-  signals --> aggregator
-  aggregator --> dashboards
+  dashboards --> aggregator
+
+  aggregator --> catalog
+  aggregator --> signals
 ```
 
 The LLM is not part of Product Health calculation. Health state is derived from
