@@ -60,6 +60,23 @@ export interface ItemSignal {
   status: HealthStatus;
 }
 
+export interface ProductHealthDependency {
+  itemId: string;
+  title: string;
+  state: HealthStatus;
+  depth: number;
+}
+
+export interface ProductHealthItem {
+  itemId: string;
+  title: string;
+  state: HealthStatus;
+  ownState: HealthStatus;
+  signals: ItemSignal[];
+  dependencies: ProductHealthDependency[];
+  affectingDependencies: ProductHealthDependency[];
+}
+
 export interface SearchResult {
   item: CatalogItem;
   score: number;
