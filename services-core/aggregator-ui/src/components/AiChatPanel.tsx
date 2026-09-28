@@ -1,18 +1,32 @@
-import type { FormEvent, KeyboardEvent } from "react";
+import type { FormEvent, KeyboardEvent, MouseEvent, ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import { askAgent } from "../services/aggregatorApi";
+import { isPlainLeftClick } from "../shared/catalogUtils";
+import type {
+  AgentHealthDependencyContent,
+  AgentHealthItemContent,
+  AgentHealthSignalContent,
+  AgentStructuredContent,
+} from "../shared/types";
 
 type ChatMessage = {
   id: number;
   role: "user" | "assistant";
   text: string;
+  structuredContent?: AgentStructuredContent | null;
 };
 
 type AiChatPanelProps = {
   isOpen: boolean;
+  buildItemLink: (itemId: string) => string;
+  onSelectItem: (itemId: string) => void;
 };
 
-export default function AiChatPanel({ isOpen }: AiChatPanelProps) {
+export default function AiChatPanel({
+  isOpen,
+  buildItemLink,
+  onSelectItem,
+}: AiChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState("");
   const [isSending, setIsSending] = useState(false);
@@ -26,11 +40,19 @@ export default function AiChatPanel({ isOpen }: AiChatPanelProps) {
     messageEndRef.current?.scrollIntoView({ block: "end" });
   }, [isOpen, messages]);
 
-  const appendMessage = (role: ChatMessage["role"], text: string) => {
+  const appendMessage = (
+    role: ChatMessage["role"],
+    text: string,
+    structuredContent?: AgentStructuredContent | null,
+  ) => {
     setMessages((prev) => [
       ...prev,
-      { id: nextMessageIdRef.current++, role, text },
+      { id: nextMessageIdRef.current++, role, text, structuredContent },
     ]);
+  };
+
+  const handleClearChat = () => {
+    setMessages([]);
   };
 
   const handleSend = async () => {
@@ -46,6 +68,7 @@ export default function AiChatPanel({ isOpen }: AiChatPanelProps) {
       appendMessage(
         "assistant",
         response.answer || "The AI agent returned an empty answer.",
+        response.structured_content,
       );
     } catch (error) {
       const message =
@@ -78,14 +101,29 @@ export default function AiChatPanel({ isOpen }: AiChatPanelProps) {
       aria-hidden={!isOpen}
     >
       <div className="ai-chat-header">
-        <div>
+        <div className="ai-chat-title-block">
           <h2>AI chat</h2>
           <p>Ask about current product health</p>
         </div>
+        <button
+          type="button"
+          className="ai-chat-clear"
+          onClick={handleClearChat}
+          disabled={messages.length === 0}
+          aria-label="Clear chat history"
+        >
+          Clear chat
+        </button>
       </div>
       <div className="ai-chat-messages" aria-live="polite">
         {messages.length === 0 && (
-          <p className="ai-chat-empty">Ask a question to start the chat.</p>
+          <p className="ai-chat-empty">
+            <span>Ask a question to start the chat.</span>
+            <span>
+              I can answer Product Health questions: what is broken, why
+              something is down, and current product or service health.
+            </span>
+          </p>
         )}
         {messages.map((message) => (
           <div
@@ -95,7 +133,16 @@ export default function AiChatPanel({ isOpen }: AiChatPanelProps) {
             <span className="ai-chat-message-role">
               {message.role === "user" ? "You" : "AI"}
             </span>
-            <span className="ai-chat-message-text">{message.text}</span>
+            {message.role === "assistant" &&
+            message.structuredContent?.type === "unhealthy_items" ? (
+              <UnhealthyItemsResponse
+                content={message.structuredContent}
+                buildItemLink={buildItemLink}
+                onSelectItem={onSelectItem}
+              />
+            ) : (
+              <span className="ai-chat-message-text">{message.text}</span>
+            )}
           </div>
         ))}
         {isSending && (
@@ -121,5 +168,187 @@ export default function AiChatPanel({ isOpen }: AiChatPanelProps) {
         </button>
       </form>
     </aside>
+  );
+}
+
+type UnhealthyItemsResponseProps = {
+  content: Extract<AgentStructuredContent, { type: "unhealthy_items" }>;
+  buildItemLink: (itemId: string) => string;
+  onSelectItem: (itemId: string) => void;
+};
+
+function UnhealthyItemsResponse({
+  content,
+  buildItemLink,
+  onSelectItem,
+}: UnhealthyItemsResponseProps) {
+  if (content.items.length === 0) {
+    return (
+      <span className="ai-chat-message-text">
+        {content.presentation.healthy_message}
+      </span>
+    );
+  }
+
+  return (
+    <div className="ai-health-response">
+      <p className="ai-health-response-header">{content.presentation.header}</p>
+      <ul className="ai-health-item-list">
+        {content.items.map((item) => (
+          <ProductHealthItem
+            key={item.item_id}
+            item={item}
+            labels={content.presentation}
+            buildItemLink={buildItemLink}
+            onSelectItem={onSelectItem}
+          />
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+type ProductHealthItemLabels = {
+  signals_label: string;
+  dependencies_label: string;
+};
+
+type ProductHealthItemProps = {
+  item: AgentHealthItemContent;
+  labels: ProductHealthItemLabels;
+  buildItemLink: (itemId: string) => string;
+  onSelectItem: (itemId: string) => void;
+};
+
+function ProductHealthItem({
+  item,
+  labels,
+  buildItemLink,
+  onSelectItem,
+}: ProductHealthItemProps) {
+  return (
+    <li className="ai-health-item">
+      <HealthItemLink
+        itemId={item.item_id}
+        title={item.title}
+        state={item.state}
+        className="ai-health-item-title"
+        buildItemLink={buildItemLink}
+        onSelectItem={onSelectItem}
+      />
+      {item.signals.length > 0 && (
+        <HealthFactGroup label={labels.signals_label}>
+          {item.signals.map((signal) => (
+            <SignalFact signal={signal} key={signal.id} />
+          ))}
+        </HealthFactGroup>
+      )}
+      {item.affecting_dependencies.length > 0 && (
+        <HealthFactGroup label={labels.dependencies_label}>
+          {item.affecting_dependencies.map((dependency) => (
+            <DependencyFact
+              dependency={dependency}
+              signalLabel={labels.signals_label}
+              key={dependency.item_id}
+              buildItemLink={buildItemLink}
+              onSelectItem={onSelectItem}
+            />
+          ))}
+        </HealthFactGroup>
+      )}
+    </li>
+  );
+}
+
+type HealthFactGroupProps = {
+  label: string;
+  children: ReactNode;
+};
+
+function HealthFactGroup({ label, children }: HealthFactGroupProps) {
+  return (
+    <div className="ai-health-fact-group">
+      <div className="ai-health-fact-label">{label}</div>
+      <ul className="ai-health-fact-list">{children}</ul>
+    </div>
+  );
+}
+
+function SignalFact({ signal }: { signal: AgentHealthSignalContent }) {
+  return (
+    <li className="ai-health-fact-row">
+      <span
+        className={`status-indicator status-${signal.state}`}
+        aria-label={signal.state}
+      />
+      <span className="ai-health-fact-text">{signal.title}</span>
+    </li>
+  );
+}
+
+type DependencyFactProps = {
+  dependency: AgentHealthDependencyContent;
+  signalLabel: string;
+  buildItemLink: (itemId: string) => string;
+  onSelectItem: (itemId: string) => void;
+};
+
+function DependencyFact({
+  dependency,
+  signalLabel,
+  buildItemLink,
+  onSelectItem,
+}: DependencyFactProps) {
+  return (
+    <li className="ai-health-dependency-item">
+      <HealthItemLink
+        itemId={dependency.item_id}
+        title={dependency.title}
+        state={dependency.state}
+        className="ai-health-dependency-link"
+        buildItemLink={buildItemLink}
+        onSelectItem={onSelectItem}
+      />
+      {dependency.signals.length > 0 && (
+        <HealthFactGroup label={signalLabel}>
+          {dependency.signals.map((signal) => (
+            <SignalFact signal={signal} key={signal.id} />
+          ))}
+        </HealthFactGroup>
+      )}
+    </li>
+  );
+}
+
+type HealthItemLinkProps = {
+  itemId: string;
+  title: string;
+  state: AgentHealthItemContent["state"];
+  className: string;
+  buildItemLink: (itemId: string) => string;
+  onSelectItem: (itemId: string) => void;
+};
+
+function HealthItemLink({
+  itemId,
+  title,
+  state,
+  className,
+  buildItemLink,
+  onSelectItem,
+}: HealthItemLinkProps) {
+  const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    if (!isPlainLeftClick(event)) {
+      return;
+    }
+    event.preventDefault();
+    onSelectItem(itemId);
+  };
+
+  return (
+    <a href={buildItemLink(itemId)} onClick={handleClick} className={className}>
+      <span className={`status-indicator status-${state}`} aria-label={state} />
+      <span className="ai-health-link-text">{title}</span>
+    </a>
   );
 }
