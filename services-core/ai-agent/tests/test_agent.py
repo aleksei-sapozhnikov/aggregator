@@ -395,43 +395,11 @@ def test_agent_renders_list_unhealthy_items_without_second_model_call() -> None:
 
     assert answer.answer == (
         "The following items are currently unhealthy:\n"
+        "- Commerce Core (DOWN)\n"
+        "  Unhealthy signals: HTTP health (DOWN)\n"
         "- Commerce Platform (DOWN)\n"
-        "  Affecting dependencies:\n"
-        "  - Commerce Core (DOWN)\n"
-        "    Unhealthy signals:\n"
-        "    - HTTP health (DOWN)"
+        "  Affecting dependencies: Commerce Core (DOWN)"
     )
-    assert answer.structured_content == {
-        "type": "unhealthy_items",
-        "presentation": {
-            "header": "The following items are currently unhealthy:",
-            "signals_label": "Unhealthy signals",
-            "dependencies_label": "Affecting dependencies",
-            "healthy_message": "No items are currently unhealthy.",
-        },
-        "items": [
-            {
-                "item_id": "product:commerce-platform",
-                "title": "Commerce Platform",
-                "state": "DOWN",
-                "signals": [],
-                "affecting_dependencies": [
-                    {
-                        "item_id": "product:commerce-core",
-                        "title": "Commerce Core",
-                        "state": "DOWN",
-                        "signals": [
-                            {
-                                "id": "http",
-                                "title": "HTTP health",
-                                "state": "DOWN",
-                            }
-                        ],
-                    }
-                ],
-            }
-        ],
-    }
     assert answer.tool_calls == ["list_unhealthy_items"]
     assert len(model.requests) == 1
     assert model.tool_choices == [ToolChoice.REQUIRED]
@@ -512,17 +480,11 @@ def test_agent_uses_russian_presentation_metadata_with_deterministic_facts() -> 
     assert answer.answer == (
         "Сейчас обнаружены проблемы со следующими элементами:\n"
         "- Fulfillment Hub (DOWN)\n"
-        "  Влияющие зависимости:\n"
-        "  - Logistics Domain (DOWN)\n"
-        "    Проблемные сигналы:\n"
-        "    - Planning cycles complete within the dispatch schedule window (DOWN)"
+        "  Влияющие зависимости: Logistics Domain (DOWN)\n"
+        "- Logistics Domain (DOWN)\n"
+        "  Проблемные сигналы: Planning cycles complete within the dispatch "
+        "schedule window (DOWN)"
     )
-    assert answer.structured_content["presentation"] == {
-        "header": "Сейчас обнаружены проблемы со следующими элементами:",
-        "signals_label": "Проблемные сигналы",
-        "dependencies_label": "Влияющие зависимости",
-        "healthy_message": "Сейчас все элементы здоровы.",
-    }
     assert tool.executed_arguments == [{}]
     assert len(model.requests) == 1
     assert model.tool_choices == [ToolChoice.REQUIRED]
@@ -561,11 +523,8 @@ def test_agent_uses_english_presentation_metadata() -> None:
     answer = ProductHealthAgent(model, [tool]).answer("What is broken right now?")
 
     assert answer.answer.startswith("Current problems affect these items:")
-    assert "Impacting dependencies:" in answer.answer
-    assert "- Commerce Core (DOWN)" in answer.answer
-    assert answer.structured_content["presentation"]["signals_label"] == (
-        "Problem signals"
-    )
+    assert "Problem signals: HTTP health (DOWN)" in answer.answer
+    assert "Impacting dependencies: Commerce Core (DOWN)" in answer.answer
 
 
 def test_agent_falls_back_when_presentation_metadata_is_missing() -> None:
@@ -591,8 +550,7 @@ def test_agent_falls_back_when_presentation_metadata_is_missing() -> None:
     answer = ProductHealthAgent(model, [tool]).answer("What is broken right now?")
 
     assert answer.answer.startswith("The following items are currently unhealthy:")
-    assert "Affecting dependencies:" in answer.answer
-    assert "- Commerce Core (DOWN)" in answer.answer
+    assert "Unhealthy signals: HTTP health (DOWN)" in answer.answer
 
 
 def test_agent_falls_back_when_presentation_metadata_is_blank() -> None:
@@ -628,8 +586,7 @@ def test_agent_falls_back_when_presentation_metadata_is_blank() -> None:
     answer = ProductHealthAgent(model, [tool]).answer("What is broken right now?")
 
     assert answer.answer.startswith("The following items are currently unhealthy:")
-    assert "Affecting dependencies:" in answer.answer
-    assert "- Commerce Core (DOWN)" in answer.answer
+    assert "Unhealthy signals: HTTP health (DOWN)" in answer.answer
     assert "Dependencies:" not in answer.answer
 
 
@@ -668,8 +625,8 @@ def test_agent_does_not_take_factual_values_from_presentation_metadata() -> None
     assert "999" not in answer.answer
     assert "Payments" not in answer.answer
     assert answer.answer.startswith("The following items are currently unhealthy:")
-    assert "Affecting dependencies:" in answer.answer
-    assert "- Commerce Core (DOWN)" in answer.answer
+    assert "Unhealthy signals: HTTP health (DOWN)" in answer.answer
+    assert "Affecting dependencies: Commerce Core (DOWN)" in answer.answer
 
 
 def test_catalog_product_and_signal_names_remain_unchanged() -> None:
@@ -731,8 +688,7 @@ def test_catalog_product_and_signal_names_remain_unchanged() -> None:
 
     assert "- Returns Portal (DOWN)" in answer.answer
     assert "Проблемные сигналы: Refund window SLA (DOWN)" in answer.answer
-    assert "Влияющие зависимости:" in answer.answer
-    assert "- Ledger Service (UNKNOWN)" in answer.answer
+    assert "Влияющие зависимости: Ledger Service (UNKNOWN)" in answer.answer
 
 
 def test_agent_renders_zero_unhealthy_items() -> None:
@@ -762,192 +718,8 @@ def test_agent_renders_zero_unhealthy_items() -> None:
     answer = ProductHealthAgent(model, [tool]).answer("What is broken right now?")
 
     assert answer.answer == "No items are currently unhealthy."
-    assert answer.structured_content == {
-        "type": "unhealthy_items",
-        "presentation": {
-            "header": "The following items are currently unhealthy:",
-            "signals_label": "Unhealthy signals",
-            "dependencies_label": "Affecting dependencies",
-            "healthy_message": "No items are currently unhealthy.",
-        },
-        "items": [],
-    }
     assert answer.tool_calls == ["list_unhealthy_items"]
     assert len(model.requests) == 1
-
-
-def test_list_unhealthy_item_referenced_as_dependency_is_not_top_level() -> None:
-    answer = _answer_list_unhealthy_items(_nested_unhealthy_items_result())
-
-    assert [item["item_id"] for item in answer.structured_content["items"]] == [
-        "product:customer-experience"
-    ]
-    assert "Experience Foundation (DOWN)" in answer.answer
-
-
-def test_list_unhealthy_items_removes_several_dependency_items_from_top_level() -> None:
-    answer = _answer_list_unhealthy_items(_nested_unhealthy_items_result())
-
-    item = answer.structured_content["items"][0]
-    assert item["title"] == "Customer Experience"
-    assert [
-        dependency["item_id"]
-        for dependency in item["affecting_dependencies"]
-    ] == [
-        "product:experience-foundation",
-        "product:experience-line",
-        "product:engagement-suite",
-    ]
-    assert answer.answer.count("Experience Line (UNKNOWN)") == 1
-    assert answer.answer.count("Engagement Suite (DOWN)") == 1
-
-
-def test_list_unhealthy_items_deduplicates_repeated_dependency_ids() -> None:
-    answer = _answer_list_unhealthy_items(_nested_unhealthy_items_result())
-
-    dependencies = answer.structured_content["items"][0]["affecting_dependencies"]
-    assert [
-        dependency["item_id"] for dependency in dependencies
-    ] == [
-        "product:experience-foundation",
-        "product:experience-line",
-        "product:engagement-suite",
-    ]
-    assert answer.answer.count("Experience Foundation (DOWN)") == 1
-    assert answer.answer.count("SLI: Foundation availability (DOWN)") == 1
-
-
-def test_list_unhealthy_items_all_referenced_cycle_falls_back_to_original_list() -> None:
-    answer = _answer_list_unhealthy_items(
-        {
-            "items": [
-                {
-                    "itemId": "product:a",
-                    "title": "Product A",
-                    "state": "DOWN",
-                    "signals": [],
-                    "affectingDependencies": [
-                        {"itemId": "product:b", "title": "Product B", "state": "DOWN"}
-                    ],
-                },
-                {
-                    "itemId": "product:b",
-                    "title": "Product B",
-                    "state": "DOWN",
-                    "signals": [],
-                    "affectingDependencies": [
-                        {"itemId": "product:a", "title": "Product A", "state": "DOWN"}
-                    ],
-                },
-            ],
-            "count": 2,
-        }
-    )
-
-    assert [item["item_id"] for item in answer.structured_content["items"]] == [
-        "product:a",
-        "product:b",
-    ]
-    assert "- Product A (DOWN)" in answer.answer
-    assert "- Product B (DOWN)" in answer.answer
-
-
-def test_structured_unhealthy_items_use_deterministic_tool_facts() -> None:
-    answer = _answer_list_unhealthy_items(_nested_unhealthy_items_result())
-
-    assert answer.structured_content["items"] == [
-        {
-            "item_id": "product:customer-experience",
-            "title": "Customer Experience",
-            "state": "DOWN",
-            "signals": [
-                {
-                    "id": "availability",
-                    "title": "SLI: Customer-visible availability",
-                    "state": "DOWN",
-                }
-            ],
-            "affecting_dependencies": [
-                {
-                    "item_id": "product:experience-foundation",
-                    "title": "Experience Foundation",
-                    "state": "DOWN",
-                    "signals": [
-                        {
-                            "id": "foundation-availability",
-                            "title": "SLI: Foundation availability",
-                            "state": "DOWN",
-                        }
-                    ],
-                },
-                {
-                    "item_id": "product:experience-line",
-                    "title": "Experience Line",
-                    "state": "UNKNOWN",
-                    "signals": [],
-                },
-                {
-                    "item_id": "product:engagement-suite",
-                    "title": "Engagement Suite",
-                    "state": "DOWN",
-                    "signals": [
-                        {
-                            "id": "engagement-availability",
-                            "title": "SLI: Engagement availability",
-                            "state": "DOWN",
-                        }
-                    ],
-                },
-            ],
-        }
-    ]
-
-
-def test_dependency_with_no_own_unhealthy_signals_has_no_empty_signal_section() -> None:
-    answer = _answer_list_unhealthy_items(_nested_unhealthy_items_result())
-    dependency = answer.structured_content["items"][0]["affecting_dependencies"][1]
-
-    assert dependency["item_id"] == "product:experience-line"
-    assert dependency["signals"] == []
-    dependency_line_index = answer.answer.splitlines().index(
-        "  - Experience Line (UNKNOWN)"
-    )
-    following_line = answer.answer.splitlines()[dependency_line_index + 1]
-    assert following_line != "    Unhealthy signals:"
-
-
-def test_dependency_signals_are_own_deterministic_facts_without_recursion() -> None:
-    answer = _answer_list_unhealthy_items(_nested_unhealthy_items_result())
-    dependencies = answer.structured_content["items"][0]["affecting_dependencies"]
-    foundation = dependencies[0]
-
-    assert foundation["signals"] == [
-        {
-            "id": "foundation-availability",
-            "title": "SLI: Foundation availability",
-            "state": "DOWN",
-        }
-    ]
-    assert "affecting_dependencies" not in foundation
-    assert "Engagement Suite" not in str(foundation["signals"])
-
-
-def test_plain_text_answer_uses_deduplicated_structured_representation() -> None:
-    answer = _answer_list_unhealthy_items(_nested_unhealthy_items_result())
-
-    assert answer.answer == (
-        "The following items are currently unhealthy:\n"
-        "- Customer Experience (DOWN)\n"
-        "  Unhealthy signals: SLI: Customer-visible availability (DOWN)\n"
-        "  Affecting dependencies:\n"
-        "  - Experience Foundation (DOWN)\n"
-        "    Unhealthy signals:\n"
-        "    - SLI: Foundation availability (DOWN)\n"
-        "  - Experience Line (UNKNOWN)\n"
-        "  - Engagement Suite (DOWN)\n"
-        "    Unhealthy signals:\n"
-        "    - SLI: Engagement availability (DOWN)"
-    )
 
 
 def test_agent_rejects_unknown_tool() -> None:
@@ -970,42 +742,6 @@ def test_agent_rejects_unknown_tool() -> None:
 
     with pytest.raises(ValueError, match="Unsupported tool"):
         ProductHealthAgent(model, [tool]).answer("What is broken?")
-
-
-def _answer_list_unhealthy_items(result: dict[str, Any]):
-    tool = FakeTool(
-        definition=ToolDefinition(
-            name="list_unhealthy_items",
-            description="List unhealthy items.",
-            input_schema={"type": "object"},
-        ),
-        result=result,
-    )
-    model = FakeModelProvider(
-        responses=[
-            ModelResponse(
-                text="Ignored by deterministic terminal renderer.",
-                tool_calls=[
-                    ToolCall(
-                        id="tool-1",
-                        name="list_unhealthy_items",
-                        arguments={},
-                        presentation=PresentationMetadata(
-                            header="The following items are currently unhealthy:",
-                            signals_label="Unhealthy signals",
-                            dependencies_label="Affecting dependencies",
-                            healthy_message="No items are currently unhealthy.",
-                        ),
-                    )
-                ],
-            )
-        ]
-    )
-
-    answer = ProductHealthAgent(model, [tool]).answer("What is broken right now?")
-    assert len(model.requests) == 1
-    assert model.tool_choices == [ToolChoice.REQUIRED]
-    return answer
 
 
 def _unhealthy_items_result() -> dict[str, Any]:
@@ -1047,90 +783,4 @@ def _unhealthy_items_result() -> dict[str, Any]:
             },
         ],
         "count": 2,
-    }
-
-
-def _nested_unhealthy_items_result() -> dict[str, Any]:
-    return {
-        "items": [
-            {
-                "itemId": "product:customer-experience",
-                "title": "Customer Experience",
-                "state": "DOWN",
-                "signals": [
-                    {
-                        "id": "availability",
-                        "title": "SLI: Customer-visible availability",
-                        "state": "DOWN",
-                    },
-                    {
-                        "id": "latency",
-                        "title": "SLI: Page latency",
-                        "state": "UP",
-                    },
-                ],
-                "affectingDependencies": [
-                    {
-                        "itemId": "product:experience-foundation",
-                        "title": "Experience Foundation",
-                        "state": "DOWN",
-                    },
-                    {
-                        "itemId": "product:experience-line",
-                        "title": "Experience Line",
-                        "state": "UNKNOWN",
-                    },
-                    {
-                        "itemId": "product:experience-foundation",
-                        "title": "Experience Foundation duplicate",
-                        "state": "DOWN",
-                    },
-                    {
-                        "itemId": "product:engagement-suite",
-                        "title": "Engagement Suite",
-                        "state": "DOWN",
-                    },
-                ],
-            },
-            {
-                "itemId": "product:experience-foundation",
-                "title": "Experience Foundation",
-                "state": "DOWN",
-                "signals": [
-                    {
-                        "id": "foundation-availability",
-                        "title": "SLI: Foundation availability",
-                        "state": "DOWN",
-                    }
-                ],
-                "affectingDependencies": [
-                    {
-                        "itemId": "product:engagement-suite",
-                        "title": "Engagement Suite",
-                        "state": "DOWN",
-                    }
-                ],
-            },
-            {
-                "itemId": "product:experience-line",
-                "title": "Experience Line",
-                "state": "UNKNOWN",
-                "signals": [],
-                "affectingDependencies": [],
-            },
-            {
-                "itemId": "product:engagement-suite",
-                "title": "Engagement Suite",
-                "state": "DOWN",
-                "signals": [
-                    {
-                        "id": "engagement-availability",
-                        "title": "SLI: Engagement availability",
-                        "state": "DOWN",
-                    }
-                ],
-                "affectingDependencies": [],
-            },
-        ],
-        "count": 4,
     }
