@@ -1,5 +1,6 @@
 import type {
   AggregatorUiRuntimeConfig,
+  AgentAskResponse,
   CatalogActor,
   CatalogActorContact,
   CatalogContact,
@@ -542,4 +543,33 @@ export const submitFeedback = async (
     throw new Error(details || `Failed to submit feedback: ${response.status}`);
   }
   return (await response.json()) as { id: string; receivedAt: string };
+};
+
+export const askAgent = async (question: string): Promise<AgentAskResponse> => {
+  const response = await fetch("/api/agent/ask", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ question }),
+  });
+  if (!response.ok) {
+    let details = "";
+    try {
+      const payload = (await response.json()) as {
+        message?: string;
+        error?: string;
+      };
+      details = payload.message || payload.error || "";
+    } catch {
+      // Ignore non-JSON error payloads and fall back to status.
+    }
+    throw new Error(details || `Failed to ask AI chat: ${response.status}`);
+  }
+  const payload = (await response.json()) as Partial<AgentAskResponse>;
+  return {
+    answer: String(payload.answer || "").trim(),
+    tool_calls: payload.tool_calls,
+    usage: payload.usage,
+  };
 };
