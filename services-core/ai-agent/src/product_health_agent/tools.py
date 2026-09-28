@@ -71,16 +71,15 @@ class RestProductHealthTools:
                                 "type": "object",
                                 "description": (
                                     "Localized presentation labels. Every string "
-                                    "MUST be written in the same language as the "
-                                    "user's original question."
+                                    "MUST use the RESPONSE LANGUAGE specified by "
+                                    "the agent."
                                 ),
                                 "properties": {
                                     "header": {
                                         "type": "string",
                                         "description": (
                                             "Short declarative heading in the "
-                                            "same language as the user's original "
-                                            "question. Do not repeat or "
+                                            "RESPONSE LANGUAGE. Do not repeat or "
                                             "paraphrase the user's question."
                                         ),
                                     },
@@ -88,24 +87,21 @@ class RestProductHealthTools:
                                         "type": "string",
                                         "description": (
                                             "Short label for unhealthy signals in "
-                                            "the same language as the user's "
-                                            "original question."
+                                            "the RESPONSE LANGUAGE."
                                         ),
                                     },
                                     "dependencies_label": {
                                         "type": "string",
                                         "description": (
                                             "Short label for affecting "
-                                            "dependencies in the same language as "
-                                            "the user's original question."
+                                            "dependencies in the RESPONSE LANGUAGE."
                                         ),
                                     },
                                     "healthy_message": {
                                         "type": "string",
                                         "description": (
                                             "Short complete healthy-state message "
-                                            "in the same language as the user's "
-                                            "original question."
+                                            "in the RESPONSE LANGUAGE."
                                         ),
                                     },
                                 },
@@ -165,14 +161,10 @@ class RestProductHealthTools:
             raise RuntimeError("Product Health API is unavailable.") from exc
 
         if not isinstance(payload, list):
-            raise TypeError(
-                "Product Health API returned an unexpected response."
-            )
+            raise TypeError("Product Health API returned an unexpected response.")
 
         if any(not isinstance(entry, dict) for entry in payload):
-            raise TypeError(
-                "Product Health API returned an unexpected response."
-            )
+            raise TypeError("Product Health API returned an unexpected response.")
 
         return {
             "items": payload,

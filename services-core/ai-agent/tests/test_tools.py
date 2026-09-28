@@ -12,9 +12,10 @@ def test_product_health_tool_reports_api_unavailable(monkeypatch, caplog) -> Non
     monkeypatch.setattr(requests, "get", raise_timeout)
     tool = RestProductHealthTools("http://product-health").tools()[0]
 
-    with caplog.at_level(logging.ERROR), pytest.raises(
-        RuntimeError, match="Product Health API is unavailable"
-    ) as error:
+    with (
+        caplog.at_level(logging.ERROR),
+        pytest.raises(RuntimeError, match="Product Health API is unavailable") as error,
+    ):
         tool.execute({"query": "Checkout"})
 
     assert isinstance(error.value.__cause__, requests.Timeout)
@@ -44,7 +45,7 @@ def test_list_unhealthy_items_tool_schema_requires_presentation_metadata() -> No
     ]
 
 
-def test_list_unhealthy_items_presentation_schema_requires_same_language() -> None:
+def test_list_unhealthy_items_presentation_schema_requires_response_language() -> None:
     tools = {
         tool.definition.name: tool.definition
         for tool in RestProductHealthTools("http://product-health").tools()
@@ -54,10 +55,11 @@ def test_list_unhealthy_items_presentation_schema_requires_same_language() -> No
         "presentation"
     ]
 
-    assert "Every string MUST be written" in presentation["description"]
-    assert "same language as the user's original question" in presentation[
-        "description"
-    ]
+    assert "Every string MUST use the RESPONSE LANGUAGE" in presentation["description"]
+    assert (
+        "same language as the user's original question"
+        not in presentation["description"]
+    )
 
     properties = presentation["properties"]
     for name in (
@@ -68,8 +70,10 @@ def test_list_unhealthy_items_presentation_schema_requires_same_language() -> No
     ):
         assert properties[name]["type"] == "string"
         assert properties[name]["description"]
-        assert "same language as the user's original question" in properties[name][
-            "description"
-        ]
+        assert "RESPONSE LANGUAGE" in properties[name]["description"]
+        assert (
+            "same language as the user's original question"
+            not in properties[name]["description"]
+        )
 
     assert "Do not repeat or paraphrase" in properties["header"]["description"]

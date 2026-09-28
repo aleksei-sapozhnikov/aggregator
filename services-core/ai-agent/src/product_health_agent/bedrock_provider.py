@@ -210,7 +210,7 @@ def _tool_call_from_tool_use(tool_use: dict[str, Any]) -> ToolCall:
 
 
 def _presentation_from_arguments(
-    arguments: dict[str, Any]
+    arguments: dict[str, Any],
 ) -> PresentationMetadata | None:
     presentation = arguments.get("presentation")
     if not isinstance(presentation, dict):

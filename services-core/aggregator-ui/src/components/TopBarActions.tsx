@@ -27,16 +27,13 @@ export default function TopBarActions({
     <>
       <button
         type="button"
-        className={`ai-chat-toggle top-control top-control-button top-control-pill top-control-surface ${
-          isAiChatOpen ? "is-active" : ""
-        }`}
-        onClick={onToggleAiChat}
-        aria-pressed={isAiChatOpen}
+        className="about-toggle top-control top-control-button top-control-pill top-control-surface top-control-accent"
+        onClick={onOpenAbout}
       >
-        <span className="theme-toggle-icon ai-chat-toggle-icon" aria-hidden="true">
-          AI
+        <span className="theme-toggle-icon" aria-hidden="true">
+          ?
         </span>
-        <span className="theme-toggle-text">AI chat</span>
+        <span className="theme-toggle-text">About</span>
       </button>
       <button
         type="button"
@@ -78,13 +75,19 @@ export default function TopBarActions({
       </button>
       <button
         type="button"
-        className="about-toggle top-control top-control-button top-control-pill top-control-surface top-control-accent"
-        onClick={onOpenAbout}
+        className={`ai-chat-toggle top-control top-control-button top-control-pill top-control-surface ${
+          isAiChatOpen ? "is-active" : ""
+        }`}
+        onClick={onToggleAiChat}
+        aria-pressed={isAiChatOpen}
       >
-        <span className="theme-toggle-icon" aria-hidden="true">
-          ?
+        <span
+          className="theme-toggle-icon ai-chat-toggle-icon"
+          aria-hidden="true"
+        >
+          AI
         </span>
-        <span className="theme-toggle-text">About</span>
+        <span className="theme-toggle-text">AI chat</span>
       </button>
     </>
   );

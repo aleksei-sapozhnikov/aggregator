@@ -33,9 +33,10 @@ def test_bedrock_timeout_is_reported_as_provider_failure(caplog) -> None:
     )
     provider.client = TimeoutClient()
 
-    with caplog.at_level(logging.ERROR), pytest.raises(
-        RuntimeError, match="Model provider request failed"
-    ) as error:
+    with (
+        caplog.at_level(logging.ERROR),
+        pytest.raises(RuntimeError, match="Model provider request failed") as error,
+    ):
         provider.complete(system_prompt="system", messages=[], tools=[])
 
     assert isinstance(error.value.__cause__, ReadTimeoutError)
@@ -60,7 +61,9 @@ def test_bedrock_api_key_sets_bearer_token_without_aws_credentials(
         return object()
 
     monkeypatch.delenv("AWS_BEARER_TOKEN_BEDROCK", raising=False)
-    monkeypatch.setattr("product_health_agent.bedrock_provider.boto3.client", fake_client)
+    monkeypatch.setattr(
+        "product_health_agent.bedrock_provider.boto3.client", fake_client
+    )
     provider = BedrockModelProvider.from_config(
         {
             "bedrock": {
@@ -95,7 +98,9 @@ def test_bedrock_explicit_aws_credentials_are_passed_without_api_key(
         return object()
 
     monkeypatch.delenv("AWS_BEARER_TOKEN_BEDROCK", raising=False)
-    monkeypatch.setattr("product_health_agent.bedrock_provider.boto3.client", fake_client)
+    monkeypatch.setattr(
+        "product_health_agent.bedrock_provider.boto3.client", fake_client
+    )
     provider = BedrockModelProvider.from_config(
         {
             "bedrock": {
@@ -134,7 +139,9 @@ def test_bedrock_default_credential_chain_uses_no_explicit_credentials(
         return object()
 
     monkeypatch.delenv("AWS_BEARER_TOKEN_BEDROCK", raising=False)
-    monkeypatch.setattr("product_health_agent.bedrock_provider.boto3.client", fake_client)
+    monkeypatch.setattr(
+        "product_health_agent.bedrock_provider.boto3.client", fake_client
+    )
     provider = BedrockModelProvider.from_config(
         {"bedrock": {"model_id": "model-id", "aws_region": "eu-central-1"}}
     )
@@ -194,7 +201,9 @@ def test_bedrock_inference_settings_do_not_affect_credentials(
         return object()
 
     monkeypatch.delenv("AWS_BEARER_TOKEN_BEDROCK", raising=False)
-    monkeypatch.setattr("product_health_agent.bedrock_provider.boto3.client", fake_client)
+    monkeypatch.setattr(
+        "product_health_agent.bedrock_provider.boto3.client", fake_client
+    )
     provider = BedrockModelProvider.from_config(
         {
             "bedrock": {

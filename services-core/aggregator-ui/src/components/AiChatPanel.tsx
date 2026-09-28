@@ -33,6 +33,10 @@ export default function AiChatPanel({ isOpen }: AiChatPanelProps) {
     ]);
   };
 
+  const handleClearChat = () => {
+    setMessages([]);
+  };
+
   const handleSend = async () => {
     const question = draft.trim();
     if (!question || isSending) {
@@ -78,14 +82,29 @@ export default function AiChatPanel({ isOpen }: AiChatPanelProps) {
       aria-hidden={!isOpen}
     >
       <div className="ai-chat-header">
-        <div>
+        <div className="ai-chat-title-block">
           <h2>AI chat</h2>
           <p>Ask about current product health</p>
         </div>
+        <button
+          type="button"
+          className="ai-chat-clear"
+          onClick={handleClearChat}
+          disabled={messages.length === 0}
+          aria-label="Clear chat history"
+        >
+          Clear chat
+        </button>
       </div>
       <div className="ai-chat-messages" aria-live="polite">
         {messages.length === 0 && (
-          <p className="ai-chat-empty">Ask a question to start the chat.</p>
+          <p className="ai-chat-empty">
+            <span>Ask a question to start the chat.</span>
+            <span>
+              I can answer Product Health questions: what is broken, why
+              something is down, and current product or service health.
+            </span>
+          </p>
         )}
         {messages.map((message) => (
           <div

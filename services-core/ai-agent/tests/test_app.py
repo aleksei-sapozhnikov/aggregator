@@ -1,6 +1,5 @@
 import httpx
 import pytest
-
 from product_health_agent.app import create_app
 
 
