@@ -50,6 +50,12 @@ change.
 
 ## QA and developer tooling
 
+Do not invoke `make` commands at all. This includes repository-level targets
+such as `make code-qa`, `make code-lint`, `make code-format`,
+`make deps-audit`, and service/runtime targets. If validation is needed, run
+the smallest direct service-level command instead, or ask the user before using
+any `make` target.
+
 Repository-level QA helpers under `tools/code_qa`, `make code-qa`,
 `make code-lint`, `make code-format`, `make deps-audit`, and similar aggregate
 developer tooling are intended for human use.

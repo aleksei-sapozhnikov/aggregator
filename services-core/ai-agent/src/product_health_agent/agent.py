@@ -142,6 +142,7 @@ _INTERNAL_REASONING_TAG_PATTERN = re.compile(
 @dataclass(frozen=True)
 class AgentAnswer:
     answer: str
+    structured_content: dict | None
     tool_calls: list[str]
     usage: TokenUsage
 
@@ -200,11 +201,13 @@ class ProductHealthAgent:
                 if not executed_tool_names:
                     return AgentAnswer(
                         answer=CAPABILITY_FALLBACK_RESPONSE,
+                        structured_content=None,
                         tool_calls=[],
                         usage=usage,
                     )
                 return AgentAnswer(
                     answer=response.text,
+                    structured_content=None,
                     tool_calls=executed_tool_names,
                     usage=usage,
                 )
@@ -215,6 +218,7 @@ class ProductHealthAgent:
                     executed_tool_names.append(tool_call.name)
                     return AgentAnswer(
                         answer=_capability_message_or_fallback(tool_call.arguments),
+                        structured_content=None,
                         tool_calls=executed_tool_names,
                         usage=usage,
                     )
@@ -229,11 +233,13 @@ class ProductHealthAgent:
                     )
                 )
                 if tool_call.name == "list_unhealthy_items":
+                    structured_content = _build_unhealthy_items_content(
+                        tool_results[-1].result,
+                        tool_call.presentation,
+                    )
                     return AgentAnswer(
-                        answer=_render_list_unhealthy_items(
-                            tool_results[-1].result,
-                            tool_call.presentation,
-                        ),
+                        answer=_render_list_unhealthy_items(structured_content),
+                        structured_content=structured_content,
                         tool_calls=executed_tool_names,
                         usage=usage,
                     )
@@ -247,6 +253,7 @@ class ProductHealthAgent:
         usage = usage.plus(final_response.usage)
         return AgentAnswer(
             answer=final_response.text,
+            structured_content=None,
             tool_calls=executed_tool_names,
             usage=usage,
         )
@@ -292,51 +299,198 @@ _ENGLISH_LIST_UNHEALTHY_ITEMS_LABELS = _ListUnhealthyItemsLabels(
     healthy_message="No items are currently unhealthy.",
 )
 
-
-def _render_list_unhealthy_items(
+def _build_unhealthy_items_content(
     result: dict,
     presentation: PresentationMetadata | None = None,
-) -> str:
+) -> dict:
     items = result.get("items")
     if not isinstance(items, list):
         items = []
     count = result.get("count")
     if not isinstance(count, int):
         count = len(items)
-    labels = _list_unhealthy_items_labels(presentation, result, items, count)
+    labels = _presentation_labels(
+        presentation,
+        result,
+        items,
+        _ENGLISH_LIST_UNHEALTHY_ITEMS_LABELS,
+        count,
+    )
 
-    if count == 0:
+    structured_items = _compact_unhealthy_items(items)
+    return {
+        "type": "unhealthy_items",
+        "presentation": {
+            "header": labels.header,
+            "signals_label": labels.signals_label,
+            "dependencies_label": labels.dependencies_label,
+            "healthy_message": labels.healthy_message,
+        },
+        "items": structured_items,
+    }
+
+
+def _render_list_unhealthy_items(content: dict) -> str:
+    presentation = content.get("presentation")
+    if not isinstance(presentation, dict):
+        presentation = {}
+    labels = _ListUnhealthyItemsLabels(
+        header=_text(presentation.get("header"))
+        or _ENGLISH_LIST_UNHEALTHY_ITEMS_LABELS.header,
+        signals_label=_text(presentation.get("signals_label"))
+        or _ENGLISH_LIST_UNHEALTHY_ITEMS_LABELS.signals_label,
+        dependencies_label=_text(presentation.get("dependencies_label"))
+        or _ENGLISH_LIST_UNHEALTHY_ITEMS_LABELS.dependencies_label,
+        healthy_message=_text(presentation.get("healthy_message"))
+        or _ENGLISH_LIST_UNHEALTHY_ITEMS_LABELS.healthy_message,
+    )
+    items = _list_or_empty(content.get("items"))
+    if not items:
         return labels.healthy_message
 
     lines = [labels.header]
     for item in items:
         if not isinstance(item, dict):
             continue
-        title = _text(item.get("title")) or _text(item.get("itemId")) or "Unknown item"
+        title = _text(item.get("title")) or _text(item.get("item_id")) or "Unknown item"
         state = _text(item.get("state")) or "UNKNOWN"
         lines.append(f"- {title} ({state})")
 
-        signal_details = _unhealthy_signal_details(item.get("signals"))
+        signal_details = _structured_signal_details(item.get("signals"))
         if signal_details:
             lines.append(f"  {labels.signals_label}: {', '.join(signal_details)}")
 
-        dependency_details = _dependency_details(item.get("affectingDependencies"))
-        if dependency_details:
-            lines.append(
-                f"  {labels.dependencies_label}: {', '.join(dependency_details)}"
-            )
+        dependencies = _list_or_empty(item.get("affecting_dependencies"))
+        if dependencies:
+            lines.append(f"  {labels.dependencies_label}:")
+            for dependency in dependencies:
+                if not isinstance(dependency, dict):
+                    continue
+                title = _text(dependency.get("title")) or _text(
+                    dependency.get("item_id")
+                )
+                state = _text(dependency.get("state"))
+                if not title or not state:
+                    continue
+                lines.append(f"  - {title} ({state})")
+                signal_details = _structured_signal_details(
+                    dependency.get("signals")
+                )
+                if signal_details:
+                    lines.append(f"    {labels.signals_label}:")
+                    lines.extend(f"    - {detail}" for detail in signal_details)
 
     return "\n".join(lines)
 
 
-def _list_unhealthy_items_labels(
+def _compact_unhealthy_items(items: list[object]) -> list[dict]:
+    unhealthy_by_id: dict[str, dict] = {}
+    ordered_ids: list[str] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        item_id = _text(item.get("itemId"))
+        if not item_id or item_id in unhealthy_by_id:
+            continue
+        unhealthy_by_id[item_id] = item
+        ordered_ids.append(item_id)
+
+    referenced_dependency_ids: set[str] = set()
+    for item_id in ordered_ids:
+        item = unhealthy_by_id[item_id]
+        for dependency in _list_or_empty(item.get("affectingDependencies")):
+            if not isinstance(dependency, dict):
+                continue
+            dependency_id = _text(dependency.get("itemId"))
+            if dependency_id:
+                referenced_dependency_ids.add(dependency_id)
+
+    top_level_ids = [
+        item_id for item_id in ordered_ids if item_id not in referenced_dependency_ids
+    ]
+    if ordered_ids and not top_level_ids:
+        top_level_ids = ordered_ids
+
+    return [
+        _structured_health_item(unhealthy_by_id[item_id], unhealthy_by_id)
+        for item_id in top_level_ids
+    ]
+
+
+def _structured_health_item(
+    item: dict,
+    item_lookup: dict[str, dict] | None = None,
+) -> dict:
+    item_id = _text(item.get("itemId")) or ""
+    return {
+        "item_id": item_id,
+        "title": _text(item.get("title")) or item_id or "Unknown item",
+        "state": _text(item.get("state")) or "UNKNOWN",
+        "signals": _structured_unhealthy_signals(item.get("signals")),
+        "affecting_dependencies": _structured_affecting_dependencies(
+            item.get("affectingDependencies"),
+            item_lookup,
+        ),
+    }
+
+
+def _structured_unhealthy_signals(value: object) -> list[dict]:
+    signals = []
+    for signal in _list_or_empty(value):
+        if not isinstance(signal, dict):
+            continue
+        state = _text(signal.get("state"))
+        if state == "UP":
+            continue
+        signal_id = _text(signal.get("id")) or ""
+        title = _text(signal.get("title")) or signal_id
+        if signal_id and title and state:
+            signals.append({"id": signal_id, "title": title, "state": state})
+    return signals
+
+
+def _structured_affecting_dependencies(
+    value: object,
+    item_lookup: dict[str, dict] | None = None,
+) -> list[dict]:
+    dependencies = []
+    seen_ids = set()
+    for dependency in _list_or_empty(value):
+        if not isinstance(dependency, dict):
+            continue
+        item_id = _text(dependency.get("itemId"))
+        if not item_id or item_id in seen_ids:
+            continue
+        title = _text(dependency.get("title")) or item_id
+        state = _text(dependency.get("state"))
+        if title and state:
+            dependency_item = item_lookup.get(item_id) if item_lookup else None
+            own_signals = (
+                _structured_unhealthy_signals(dependency_item.get("signals"))
+                if isinstance(dependency_item, dict)
+                else []
+            )
+            dependencies.append(
+                {
+                    "item_id": item_id,
+                    "title": title,
+                    "state": state,
+                    "signals": own_signals,
+                }
+            )
+            seen_ids.add(item_id)
+    return dependencies
+
+
+def _presentation_labels(
     presentation: PresentationMetadata | None,
     result: dict,
     items: list[object],
-    count: int,
+    fallback: _ListUnhealthyItemsLabels,
+    count: int | None = None,
 ) -> _ListUnhealthyItemsLabels:
     if presentation is None:
-        return _ENGLISH_LIST_UNHEALTHY_ITEMS_LABELS
+        return fallback
 
     values = {
         "header": presentation.header,
@@ -345,12 +499,12 @@ def _list_unhealthy_items_labels(
         "healthy_message": presentation.healthy_message,
     }
     if any(_text(value) is None for value in values.values()):
-        return _ENGLISH_LIST_UNHEALTHY_ITEMS_LABELS
+        return fallback
     if any(
         _contains_forbidden_fact(value, result, items, count)
         for value in values.values()
     ):
-        return _ENGLISH_LIST_UNHEALTHY_ITEMS_LABELS
+        return fallback
     return _ListUnhealthyItemsLabels(
         header=presentation.header.strip(),
         signals_label=presentation.signals_label.strip(),
@@ -363,10 +517,10 @@ def _contains_forbidden_fact(
     value: str,
     result: dict,
     items: list[object],
-    count: int,
+    count: int | None,
 ) -> bool:
     normalized = value.casefold()
-    if str(count) in value:
+    if count is not None and str(count) in value:
         return True
     forbidden = {"UP", "DOWN", "UNKNOWN"}
     forbidden.update(_fact_strings(result))
@@ -395,7 +549,7 @@ def _list_or_empty(value: object) -> list[object]:
     return value if isinstance(value, list) else []
 
 
-def _unhealthy_signal_details(value: object) -> list[str]:
+def _structured_signal_details(value: object) -> list[str]:
     if not isinstance(value, list):
         return []
     details = []
@@ -403,23 +557,7 @@ def _unhealthy_signal_details(value: object) -> list[str]:
         if not isinstance(signal, dict):
             continue
         state = _text(signal.get("state"))
-        if state == "UP":
-            continue
         title = _text(signal.get("title")) or _text(signal.get("id"))
-        if title and state:
-            details.append(f"{title} ({state})")
-    return details
-
-
-def _dependency_details(value: object) -> list[str]:
-    if not isinstance(value, list):
-        return []
-    details = []
-    for dependency in value:
-        if not isinstance(dependency, dict):
-            continue
-        title = _text(dependency.get("title")) or _text(dependency.get("itemId"))
-        state = _text(dependency.get("state"))
         if title and state:
             details.append(f"{title} ({state})")
     return details

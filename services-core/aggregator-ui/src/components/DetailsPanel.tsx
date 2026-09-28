@@ -53,6 +53,7 @@ type DetailsPanelProps = {
     { contacts: CatalogContact[]; primaryContact: CatalogContact | null }
   >;
   buildItemLink: (itemId: string, pathIds?: string[]) => string;
+  onSelectItemById: (itemId: string) => void;
   onSelectItemByPath: (pathIds: string[]) => void;
   onOpenActor: (actor: CatalogActor) => void;
   passingSignalsCount: number;
@@ -158,6 +159,7 @@ export default function DetailsPanel({
   selectedItemActors,
   actorContactsByActorId,
   buildItemLink,
+  onSelectItemById,
   onSelectItemByPath,
   onOpenActor,
   passingSignalsCount,
@@ -770,7 +772,11 @@ export default function DetailsPanel({
             </>
           )}
         </div>
-        <AiChatPanel isOpen={isAiChatOpen} />
+        <AiChatPanel
+          isOpen={isAiChatOpen}
+          buildItemLink={buildItemLink}
+          onSelectItem={onSelectItemById}
+        />
       </div>
     </main>
   );

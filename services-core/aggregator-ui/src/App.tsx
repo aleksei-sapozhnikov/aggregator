@@ -1612,6 +1612,7 @@ export default function App() {
         selectedItemActors={selectedItemActors}
         actorContactsByActorId={actorContactsByActorId}
         buildItemLink={buildItemLink}
+        onSelectItemById={handleSelectItemByIdNoPath}
         onSelectItemByPath={handleSelectItemByPath}
         onOpenActor={(actor) => setOpenedActorId(actor.id)}
         passingSignalsCount={passingSignalsCount}
