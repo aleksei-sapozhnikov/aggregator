@@ -11,17 +11,21 @@ from botocore.exceptions import BotoCoreError, ClientError
 
 from .model_provider import (
     ModelMessage,
-    ModelProvider,
     ModelResponse,
+    PresentationMetadata,
     TokenUsage,
     ToolCall,
+    ToolChoice,
     ToolDefinition,
 )
 
 logger = logging.getLogger(__name__)
 
+DEFAULT_TEMPERATURE = 0.00001
+DEFAULT_MAX_TOKENS = 300
 
-class BedrockModelProvider(ModelProvider):
+
+class BedrockModelProvider:
     """Bedrock Converse implementation.
 
     boto3 uses the normal AWS credential chain, so EC2 can later use an IAM role
@@ -36,11 +40,15 @@ class BedrockModelProvider(ModelProvider):
         aws_access_key_id: str | None = None,
         aws_secret_access_key: str | None = None,
         aws_session_token: str | None = None,
+        temperature: float = DEFAULT_TEMPERATURE,
+        max_tokens: int = DEFAULT_MAX_TOKENS,
     ) -> None:
         self.provider_name = "bedrock"
         self.model_id = model_id
         self.aws_region = aws_region
         self.api_key = api_key
+        self.temperature = temperature
+        self.max_tokens = max_tokens
         self.client_kwargs = _client_kwargs(
             aws_region=aws_region,
             api_key=api_key,
@@ -64,6 +72,12 @@ class BedrockModelProvider(ModelProvider):
                 bedrock_config.get("aws_secret_access_key")
             ),
             aws_session_token=_optional_text(bedrock_config.get("aws_session_token")),
+            temperature=_optional_float(
+                bedrock_config.get("temperature"), DEFAULT_TEMPERATURE
+            ),
+            max_tokens=_optional_int(
+                bedrock_config.get("max_tokens"), DEFAULT_MAX_TOKENS
+            ),
         )
 
     def is_available(self) -> bool:
@@ -80,23 +94,17 @@ class BedrockModelProvider(ModelProvider):
         system_prompt: str,
         messages: list[ModelMessage],
         tools: list[ToolDefinition],
+        tool_choice: ToolChoice = ToolChoice.AUTO,
     ) -> ModelResponse:
         try:
             response = self._client().converse(
                 modelId=self.model_id,
                 system=[{"text": system_prompt}],
                 messages=[self._to_bedrock_message(message) for message in messages],
-                toolConfig={
-                    "tools": [
-                        {
-                            "toolSpec": {
-                                "name": tool.name,
-                                "description": tool.description,
-                                "inputSchema": {"json": tool.input_schema},
-                            }
-                        }
-                        for tool in tools
-                    ]
+                toolConfig=_tool_config(tools, tool_choice),
+                inferenceConfig={
+                    "temperature": self.temperature,
+                    "maxTokens": self.max_tokens,
                 },
             )
         except (BotoCoreError, ClientError) as exc:
@@ -117,16 +125,11 @@ class BedrockModelProvider(ModelProvider):
                 text_parts.append(str(block["text"]))
             tool_use = block.get("toolUse")
             if isinstance(tool_use, dict):
-                tool_calls.append(
-                    ToolCall(
-                        id=str(tool_use.get("toolUseId", "")),
-                        name=str(tool_use.get("name", "")),
-                        arguments=_dict_or_empty(tool_use.get("input")),
-                    )
-                )
+                tool_calls.append(_tool_call_from_tool_use(tool_use))
         usage = response.get("usage") or {}
+        text = "".join(text_parts)
         return ModelResponse(
-            text="".join(text_parts),
+            text=text,
             tool_calls=tool_calls,
             usage=TokenUsage(
                 input_tokens=usage.get("inputTokens"),
@@ -169,8 +172,65 @@ class BedrockModelProvider(ModelProvider):
         }
 
 
+def _tool_config(
+    tools: list[ToolDefinition],
+    tool_choice: ToolChoice,
+) -> dict[str, Any]:
+    tool_config: dict[str, Any] = {
+        "tools": [
+            {
+                "toolSpec": {
+                    "name": tool.name,
+                    "description": tool.description,
+                    "inputSchema": {"json": tool.input_schema},
+                }
+            }
+            for tool in tools
+        ]
+    }
+    if tool_choice == ToolChoice.REQUIRED:
+        tool_config["toolChoice"] = {"any": {}}
+    return tool_config
+
+
 def _dict_or_empty(value: Any) -> dict[str, Any]:
     return value if isinstance(value, dict) else {}
+
+
+def _tool_call_from_tool_use(tool_use: dict[str, Any]) -> ToolCall:
+    arguments = _dict_or_empty(tool_use.get("input")).copy()
+    presentation = _presentation_from_arguments(arguments)
+    arguments.pop("presentation", None)
+    return ToolCall(
+        id=str(tool_use.get("toolUseId", "")),
+        name=str(tool_use.get("name", "")),
+        arguments=arguments,
+        presentation=presentation,
+    )
+
+
+def _presentation_from_arguments(
+    arguments: dict[str, Any],
+) -> PresentationMetadata | None:
+    presentation = arguments.get("presentation")
+    if not isinstance(presentation, dict):
+        return None
+    if any(
+        not isinstance(presentation.get(field), str)
+        for field in (
+            "header",
+            "signals_label",
+            "dependencies_label",
+            "healthy_message",
+        )
+    ):
+        return None
+    return PresentationMetadata(
+        header=presentation["header"],
+        signals_label=presentation["signals_label"],
+        dependencies_label=presentation["dependencies_label"],
+        healthy_message=presentation["healthy_message"],
+    )
 
 
 def _bedrock_client(client_kwargs: dict[str, str | None], api_key: str | None):
@@ -185,6 +245,25 @@ def _bedrock_client(client_kwargs: dict[str, str | None], api_key: str | None):
 def _optional_text(value: Any) -> str | None:
     text = str(value or "").strip()
     return text or None
+
+
+def _optional_float(value: Any, default: float) -> float:
+    if value is None or value == "":
+        return default
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _optional_int(value: Any, default: int) -> int:
+    if value is None or value == "":
+        return default
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError):
+        return default
+    return parsed if parsed > 0 else default
 
 
 def _client_kwargs(
