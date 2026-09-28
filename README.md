@@ -53,40 +53,43 @@ broken for users, what depends on it, and where is the likely root cause?"
 
 ## How it works
 
+At a high level, the system combines service-level signals with catalog
+relationships, computes health deterministically, and exposes that state
+through the UI, dashboards, and an optional AI assistant.
+
 ```mermaid
-flowchart TB
-  browser["User<br>Browser"] -->|opens app| proxy["Reverse proxy<br>Caddy"]
-  proxy -->|serves static app| ui["aggregator-ui<br>React / TypeScript"]
+flowchart LR
+  ui["Web UI"]
 
-  ui -->|requests data / panels| proxy
-  proxy -->|forwards catalog API| catalog["catalog<br>Go"]
-  proxy -->|forwards metrics API| prometheus["Prometheus"]
-  proxy -->|forwards dashboard requests| grafana["Grafana"]
+  subgraph experience["UI integrations"]
+    direction TB
+    agent["AI assistant"]
+    dashboards["Dashboards / history"]
+  end
 
-  grafana -->|queries metrics| prometheus
-  prometheus -->|scrapes Micrometer metrics| aggregator["aggregator<br>Java / Spring Boot"]
+  ui --> agent
+  ui --> dashboards
 
-  aggregator -->|loads catalog and signal definitions| catalog
-  catalog -->|reads and validates| catalogFiles["items / health signals<br>YAML / JSON Schema"]
+  aggregator["Aggregator"]
 
-  aggregator -.->|polls health endpoints| demoServices
-  chaos -.->|changes state| demoServices["[demo] dummy services<br>Java / Python / JavaScript"]
-  chaos["[demo] chaos-maker<br>python"] -.->|loads signal targets| catalog
+  subgraph inputs["Data inputs"]
+    direction TB
+    catalog["Catalog"]
+    signals["Health signals"]
+  end
 
+  agent --> aggregator
+  dashboards --> aggregator
 
-  classDef optional stroke-dasharray: 5 5
-  class chaos,demoServices optional
+  aggregator --> catalog
+  aggregator --> signals
 ```
 
-The `catalog` service owns the contract: items, dependencies, contacts, actors,
-and signal definitions. The `aggregator` consumes that contract, polls configured
-HTTP health endpoints, computes item health through the dependency graph, and
-exports the result as metrics. The UI reaches catalog, Prometheus, and Grafana
-through the Caddy reverse proxy, combining catalog structure with current
-Prometheus data and Grafana panels.
+The LLM is not part of health calculation. Health state is derived from
+catalog relationships and service signals before any AI interaction happens.
 
-The demo services are not part of the core design. They are replaceable signal
-sources that make the public demo change over time.
+For detailed data flow, AI interaction, and runtime service topology, see
+[Services and architecture](docs/services.md).
 
 ### Health propagation rules
 
@@ -139,13 +142,38 @@ First startup can take a while because Compose builds local service images and
 downloads Prometheus/Grafana/Caddy images. Full local-run options are in
 [docs/running-locally.md](docs/running-locally.md).
 
+### Optional AI agent configuration
+
+The Python AI agent is disabled by default. To use the Bedrock provider, set
+`AGENT_AI_ENABLED=true` and provide `AGENT_AI_CONFIG`.
+
+For local development with a Bedrock API key, use `api_key`. This is a Bedrock
+bearer token, not an AWS access key or secret key:
+
+```shell
+AGENT_AI_CONFIG={"provider":"bedrock","max_tool_rounds":2,"bedrock":{"model_id":"amazon.nova-lite-v1:0","aws_region":"eu-central-1","api_key":"<bedrock-api-key>","temperature":0.00001,"max_tokens":300}}
+```
+
+For temporary local AWS credentials, use the explicit AWS credential fields:
+
+```shell
+AGENT_AI_CONFIG={"provider":"bedrock","max_tool_rounds":2,"bedrock":{"model_id":"amazon.nova-lite-v1:0","aws_region":"eu-central-1","aws_access_key_id":"<aws-access-key-id>","aws_secret_access_key":"<aws-secret-access-key>","aws_session_token":"<optional-session-token>","temperature":0.00001,"max_tokens":300}}
+```
+
+For deployment on EC2, omit `api_key` and the explicit AWS credential fields so
+boto3 uses its normal default credential chain, including the instance IAM role.
+
 ---
 
 ## Repository map
 
 - [services-core/aggregator](services-core/aggregator): Java / Spring Boot
   backend. Loads catalog and signal definitions, polls health endpoints,
-  propagates health through the dependency graph, and exposes metrics.
+  propagates health through the dependency graph, exposes current health facts,
+  and exports derived metrics.
+- [services-core/ai-agent](services-core/ai-agent): optional Python service that
+  answers natural-language health questions by calling the aggregator REST API
+  and using a configured model provider.
 - [services-core/catalog](services-core/catalog): Go service. Owns catalog
   files, JSON schemas, validation, and the catalog HTTP API.
 - [services-core/aggregator-ui](services-core/aggregator-ui): React frontend
@@ -161,8 +189,8 @@ downloads Prometheus/Grafana/Caddy images. Full local-run options are in
 
 More detail:
 
-- [docs/services.md](docs/services.md) explains the service responsibilities,
-  contracts, catalog files, and metrics.
+- [docs/services.md](docs/services.md) contains detailed architecture and
+  interaction diagrams.
 - [docs/development.md](docs/development.md) covers formatting, linting, and git
   hooks.
 - [deploy/demo/README.md](deploy/demo/README.md) covers the hosted demo stack.
