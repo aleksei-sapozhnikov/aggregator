@@ -3,6 +3,7 @@
  */
 
 import TopBarActions from "./TopBarActions";
+import AiChatPanel from "./AiChatPanel";
 import ContactChipContent from "./ContactChipContent";
 import { isPlainLeftClick } from "../shared/catalogUtils";
 import { buildStatusText } from "../shared/statusText";
@@ -30,6 +31,8 @@ type DetailsPanelProps = {
   headerRef: RefObject<HTMLElement | null>;
   headerActionsRef: RefObject<HTMLDivElement | null>;
   theme: "dark" | "light";
+  isAiChatOpen: boolean;
+  onToggleAiChat: () => void;
   onToggleTheme: () => void;
   onOpenFeedback: () => void;
   onOpenAbout: () => void;
@@ -139,6 +142,8 @@ export default function DetailsPanel({
   headerRef,
   headerActionsRef,
   theme,
+  isAiChatOpen,
+  onToggleAiChat,
   onToggleTheme,
   onOpenFeedback,
   onOpenAbout,
@@ -324,6 +329,8 @@ export default function DetailsPanel({
         <div className="content-header-actions" ref={headerActionsRef}>
           <TopBarActions
             theme={theme}
+            isAiChatOpen={isAiChatOpen}
+            onToggleAiChat={onToggleAiChat}
             onToggleTheme={onToggleTheme}
             onOpenFeedback={onOpenFeedback}
             onOpenAbout={onOpenAbout}
@@ -359,10 +366,12 @@ export default function DetailsPanel({
           </div>
         </div>
       </header>
-      {!selectedItem ? (
-        <div className="empty">Select a catalog item to view dashboards.</div>
-      ) : (
-        <>
+      <div className={`content-workspace ${isAiChatOpen ? "ai-chat-open" : ""}`}>
+        <div className="item-details-column">
+          {!selectedItem ? (
+            <div className="empty">Select a catalog item to view dashboards.</div>
+          ) : (
+            <>
           <section className="details-inline-block">
             <div
               className="ownership-summary"
@@ -744,8 +753,11 @@ export default function DetailsPanel({
               </div>
             )}
           </section>
-        </>
-      )}
+            </>
+          )}
+        </div>
+        <AiChatPanel isOpen={isAiChatOpen} />
+      </div>
     </main>
   );
 }
