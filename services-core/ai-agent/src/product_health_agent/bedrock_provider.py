@@ -11,7 +11,6 @@ from botocore.exceptions import BotoCoreError, ClientError
 
 from .model_provider import (
     ModelMessage,
-    ModelProvider,
     ModelResponse,
     PresentationMetadata,
     TokenUsage,
@@ -22,8 +21,11 @@ from .model_provider import (
 
 logger = logging.getLogger(__name__)
 
+DEFAULT_TEMPERATURE = 0.00001
+DEFAULT_MAX_TOKENS = 300
 
-class BedrockModelProvider(ModelProvider):
+
+class BedrockModelProvider:
     """Bedrock Converse implementation.
 
     boto3 uses the normal AWS credential chain, so EC2 can later use an IAM role
@@ -38,11 +40,15 @@ class BedrockModelProvider(ModelProvider):
         aws_access_key_id: str | None = None,
         aws_secret_access_key: str | None = None,
         aws_session_token: str | None = None,
+        temperature: float = DEFAULT_TEMPERATURE,
+        max_tokens: int = DEFAULT_MAX_TOKENS,
     ) -> None:
         self.provider_name = "bedrock"
         self.model_id = model_id
         self.aws_region = aws_region
         self.api_key = api_key
+        self.temperature = temperature
+        self.max_tokens = max_tokens
         self.client_kwargs = _client_kwargs(
             aws_region=aws_region,
             api_key=api_key,
@@ -66,6 +72,12 @@ class BedrockModelProvider(ModelProvider):
                 bedrock_config.get("aws_secret_access_key")
             ),
             aws_session_token=_optional_text(bedrock_config.get("aws_session_token")),
+            temperature=_optional_float(
+                bedrock_config.get("temperature"), DEFAULT_TEMPERATURE
+            ),
+            max_tokens=_optional_int(
+                bedrock_config.get("max_tokens"), DEFAULT_MAX_TOKENS
+            ),
         )
 
     def is_available(self) -> bool:
@@ -90,6 +102,10 @@ class BedrockModelProvider(ModelProvider):
                 system=[{"text": system_prompt}],
                 messages=[self._to_bedrock_message(message) for message in messages],
                 toolConfig=_tool_config(tools, tool_choice),
+                inferenceConfig={
+                    "temperature": self.temperature,
+                    "maxTokens": self.max_tokens,
+                },
             )
         except (BotoCoreError, ClientError) as exc:
             logger.exception(
@@ -229,6 +245,25 @@ def _bedrock_client(client_kwargs: dict[str, str | None], api_key: str | None):
 def _optional_text(value: Any) -> str | None:
     text = str(value or "").strip()
     return text or None
+
+
+def _optional_float(value: Any, default: float) -> float:
+    if value is None or value == "":
+        return default
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _optional_int(value: Any, default: int) -> int:
+    if value is None or value == "":
+        return default
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError):
+        return default
+    return parsed if parsed > 0 else default
 
 
 def _client_kwargs(

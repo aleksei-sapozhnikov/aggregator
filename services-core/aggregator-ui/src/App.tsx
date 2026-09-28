@@ -150,6 +150,7 @@ export default function App() {
     useState(false);
   const [pendingScrollId, setPendingScrollId] = useState("");
   const [isGrafanaOpen, setIsGrafanaOpen] = useState(true);
+  const [isAiChatOpen, setIsAiChatOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [openedContact, setOpenedContact] = useState<CatalogContact | null>(
@@ -1528,7 +1529,7 @@ export default function App() {
     <div
       className={`app ${isMobileLayout ? "is-mobile" : "is-desktop"} ${
         isSidebarOpen ? "sidebar-open" : "sidebar-collapsed"
-      }`}
+      } ${isAiChatOpen ? "ai-chat-open" : ""}`}
       onTouchStart={handleMobileSidebarSwipeStart}
       onTouchMove={handleMobileSidebarSwipeMove}
       onTouchEnd={handleMobileSidebarSwipeEnd}
@@ -1590,6 +1591,8 @@ export default function App() {
         headerRef={headerRef}
         headerActionsRef={headerActionsRef}
         theme={theme}
+        isAiChatOpen={isAiChatOpen}
+        onToggleAiChat={() => setIsAiChatOpen((prev) => !prev)}
         onToggleTheme={() =>
           setTheme((prev) => (prev === "dark" ? "light" : "dark"))
         }

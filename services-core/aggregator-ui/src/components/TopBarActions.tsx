@@ -4,6 +4,8 @@
 
 type TopBarActionsProps = {
   theme: "dark" | "light";
+  isAiChatOpen: boolean;
+  onToggleAiChat: () => void;
   onToggleTheme: () => void;
   onOpenFeedback: () => void;
   onOpenAbout: () => void;
@@ -15,12 +17,27 @@ type TopBarActionsProps = {
  */
 export default function TopBarActions({
   theme,
+  isAiChatOpen,
+  onToggleAiChat,
   onToggleTheme,
   onOpenFeedback,
   onOpenAbout,
 }: TopBarActionsProps) {
   return (
     <>
+      <button
+        type="button"
+        className={`ai-chat-toggle top-control top-control-button top-control-pill top-control-surface ${
+          isAiChatOpen ? "is-active" : ""
+        }`}
+        onClick={onToggleAiChat}
+        aria-pressed={isAiChatOpen}
+      >
+        <span className="theme-toggle-icon ai-chat-toggle-icon" aria-hidden="true">
+          AI
+        </span>
+        <span className="theme-toggle-text">AI chat</span>
+      </button>
       <button
         type="button"
         className="theme-toggle top-control top-control-button top-control-pill top-control-surface"

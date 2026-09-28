@@ -9,7 +9,9 @@ does not need provider-specific environment variables. Supported shape today:
   "bedrock": {
     "model_id": "amazon.nova-lite-v1:0",
     "aws_region": "eu-central-1",
-    "api_key": "local-bedrock-api-key"
+    "api_key": "local-bedrock-api-key",
+    "temperature": 0.00001,
+    "max_tokens": 300
   }
 }
 
@@ -28,8 +30,8 @@ For optional explicit AWS credentials, use:
 }
 
 Only provider and bedrock.model_id are required when AGENT_AI_ENABLED=true.
-The api_key and AWS credential fields are optional. When omitted, boto3 uses the
-normal AWS credential chain.
+The api_key, AWS credential fields, temperature, and max_tokens are optional.
+When credentials are omitted, boto3 uses the normal AWS credential chain.
 """
 
 import json

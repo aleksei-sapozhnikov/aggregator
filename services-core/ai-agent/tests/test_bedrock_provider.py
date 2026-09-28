@@ -150,6 +150,74 @@ def test_bedrock_default_credential_chain_uses_no_explicit_credentials(
     ]
 
 
+def test_bedrock_converse_receives_default_inference_config() -> None:
+    provider = BedrockModelProvider(model_id="model-id")
+    client = StaticClient(_empty_message_response())
+    provider.client = client
+
+    provider.complete(system_prompt="system", messages=[], tools=[])
+
+    assert client.calls[0]["inferenceConfig"] == {
+        "temperature": 0.00001,
+        "maxTokens": 300,
+    }
+
+
+def test_bedrock_configured_inference_settings_override_defaults() -> None:
+    provider = BedrockModelProvider.from_config(
+        {
+            "bedrock": {
+                "model_id": "model-id",
+                "temperature": 0.2,
+                "max_tokens": 123,
+            }
+        }
+    )
+    client = StaticClient(_empty_message_response())
+    provider.client = client
+
+    provider.complete(system_prompt="system", messages=[], tools=[])
+
+    assert client.calls[0]["inferenceConfig"] == {
+        "temperature": 0.2,
+        "maxTokens": 123,
+    }
+
+
+def test_bedrock_inference_settings_do_not_affect_credentials(
+    monkeypatch,
+) -> None:
+    calls = []
+
+    def fake_client(service_name, **kwargs):
+        calls.append((service_name, kwargs, os.environ.get("AWS_BEARER_TOKEN_BEDROCK")))
+        return object()
+
+    monkeypatch.delenv("AWS_BEARER_TOKEN_BEDROCK", raising=False)
+    monkeypatch.setattr("product_health_agent.bedrock_provider.boto3.client", fake_client)
+    provider = BedrockModelProvider.from_config(
+        {
+            "bedrock": {
+                "model_id": "model-id",
+                "aws_region": "eu-central-1",
+                "api_key": "bedrock-api-key",
+                "temperature": 0.2,
+                "max_tokens": 123,
+            }
+        }
+    )
+
+    provider._client()
+
+    assert calls == [
+        (
+            "bedrock-runtime",
+            {"region_name": "eu-central-1"},
+            "bedrock-api-key",
+        )
+    ]
+
+
 def test_bedrock_reads_presentation_metadata_from_tool_input() -> None:
     response = _complete_with_tool_input(
         {
