@@ -25,7 +25,7 @@ class ToolCall:
 @dataclass(frozen=True)
 class ToolResult:
     tool_call_id: str
-    result: JsonObject | list[JsonObject]
+    result: JsonObject
 
 
 @dataclass(frozen=True)

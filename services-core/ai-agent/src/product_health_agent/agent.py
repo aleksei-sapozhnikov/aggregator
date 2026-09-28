@@ -23,6 +23,13 @@ If facts are missing or ambiguous, say so and mention the available candidates.
 Keep the answer concise and cite the relevant unhealthy signals or dependencies from tool facts.
 """.strip()
 
+CAPABILITY_FALLBACK_RESPONSE = """
+Sorry, I'm not very clever yet. I can currently help with questions like:
+- What is broken right now?
+- Why is <product or service> down?
+- What is the current health of <product or service>?
+""".strip()
+
 
 @dataclass(frozen=True)
 class AgentAnswer:
@@ -75,8 +82,10 @@ class ProductHealthAgent:
             )
             if not response.tool_calls:
                 if not executed_tool_names:
-                    raise RuntimeError(
-                        "Model returned no tool call for a Product Health question."
+                    return AgentAnswer(
+                        answer=CAPABILITY_FALLBACK_RESPONSE,
+                        tool_calls=[],
+                        usage=usage,
                     )
                 return AgentAnswer(
                     answer=response.text,
@@ -96,6 +105,14 @@ class ProductHealthAgent:
                         result=tool.execute(tool_call.arguments),
                     )
                 )
+                if tool_call.name == "list_unhealthy_items":
+                    return AgentAnswer(
+                        answer=_render_list_unhealthy_items(
+                            tool_results[-1].result
+                        ),
+                        tool_calls=executed_tool_names,
+                        usage=usage,
+                    )
             messages.append(ModelMessage(role="tool", tool_results=tool_results))
 
         final_response = self._complete(messages)
@@ -112,3 +129,75 @@ class ProductHealthAgent:
             messages=messages,
             tools=self.tool_definitions,
         )
+
+
+def _render_list_unhealthy_items(result: dict) -> str:
+    items = result.get("items")
+    if not isinstance(items, list):
+        items = []
+    count = result.get("count")
+    if not isinstance(count, int):
+        count = len(items)
+
+    if count == 0:
+        return "No items are currently unhealthy."
+
+    noun = "item is" if count == 1 else "items are"
+    lines = [f"{count} {noun} currently unhealthy:"]
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        title = _text(item.get("title")) or _text(item.get("itemId")) or "Unknown item"
+        state = _text(item.get("state")) or "UNKNOWN"
+        lines.append(f"- {title} ({state})")
+
+        signal_details = _unhealthy_signal_details(item.get("signals"))
+        if signal_details:
+            lines.append(f"  Unhealthy signals: {', '.join(signal_details)}")
+
+        dependency_details = _dependency_details(
+            item.get("affectingDependencies")
+        )
+        if dependency_details:
+            lines.append(
+                f"  Affecting dependencies: {', '.join(dependency_details)}"
+            )
+
+    return "\n".join(lines)
+
+
+def _unhealthy_signal_details(value: object) -> list[str]:
+    if not isinstance(value, list):
+        return []
+    details = []
+    for signal in value:
+        if not isinstance(signal, dict):
+            continue
+        state = _text(signal.get("state"))
+        if state == "UP":
+            continue
+        title = _text(signal.get("title")) or _text(signal.get("id"))
+        if title and state:
+            details.append(f"{title} ({state})")
+    return details
+
+
+def _dependency_details(value: object) -> list[str]:
+    if not isinstance(value, list):
+        return []
+    details = []
+    for dependency in value:
+        if not isinstance(dependency, dict):
+            continue
+        title = _text(dependency.get("title")) or _text(dependency.get("itemId"))
+        state = _text(dependency.get("state"))
+        if title and state:
+            details.append(f"{title} ({state})")
+    return details
+
+
+def _text(value: object) -> str | None:
+    if not isinstance(value, str):
+        return None
+    stripped = value.strip()
+    return stripped or None

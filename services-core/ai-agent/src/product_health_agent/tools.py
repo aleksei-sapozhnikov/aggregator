@@ -20,7 +20,7 @@ class AgentTool(Protocol):
     def definition(self) -> ToolDefinition:
         """Return the model-visible tool definition."""
 
-    def execute(self, arguments: JsonObject) -> JsonObject | list[JsonObject]:
+    def execute(self, arguments: JsonObject) -> JsonObject:
         """Execute the tool and return structured facts."""
 
 
@@ -91,7 +91,7 @@ class RestProductHealthTools:
             raise RuntimeError("Product Health API is unavailable.") from exc
         return payload if isinstance(payload, dict) else {"found": False}
 
-    def list_unhealthy_items(self, arguments: JsonObject) -> list[JsonObject]:
+    def list_unhealthy_items(self, arguments: JsonObject) -> JsonObject:
         try:
             response = requests.get(
                 f"{self.base_url}/api/product-health/items",
@@ -109,9 +109,21 @@ class RestProductHealthTools:
                 "/api/product-health/items",
             )
             raise RuntimeError("Product Health API is unavailable.") from exc
+
         if not isinstance(payload, list):
-            return []
-        return [entry for entry in payload if isinstance(entry, dict)]
+            raise TypeError(
+                "Product Health API returned an unexpected response."
+            )
+
+        if any(not isinstance(entry, dict) for entry in payload):
+            raise TypeError(
+                "Product Health API returned an unexpected response."
+            )
+
+        return {
+            "items": payload,
+            "count": len(payload),
+        }
 
 
 @dataclass(frozen=True)
@@ -119,5 +131,5 @@ class _SimpleTool:
     definition: ToolDefinition
     handler: Any
 
-    def execute(self, arguments: JsonObject) -> JsonObject | list[JsonObject]:
+    def execute(self, arguments: JsonObject) -> JsonObject:
         return self.handler(arguments)
