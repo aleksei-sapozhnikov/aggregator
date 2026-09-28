@@ -12,6 +12,7 @@ from .model_provider import (
     PresentationMetadata,
     TokenUsage,
     ToolDefinition,
+    ToolChoice,
     ToolResult,
 )
 from .tools import AgentTool
@@ -182,8 +183,13 @@ class ProductHealthAgent:
         executed_tool_names: list[str] = []
         usage = TokenUsage()
 
-        for _ in range(self.max_tool_rounds):
-            response = self._complete(messages)
+        for round_index in range(self.max_tool_rounds):
+            response = self._complete(
+                messages,
+                tool_choice=(
+                    ToolChoice.REQUIRED if round_index == 0 else ToolChoice.AUTO
+                ),
+            )
             usage = usage.plus(response.usage)
             messages.append(
                 ModelMessage(
@@ -235,7 +241,7 @@ class ProductHealthAgent:
                     )
             messages.append(ModelMessage(role="tool", tool_results=tool_results))
 
-        final_response = self._complete(messages)
+        final_response = self._complete(messages, tool_choice=ToolChoice.AUTO)
         usage = usage.plus(final_response.usage)
         return AgentAnswer(
             answer=final_response.text,
@@ -243,11 +249,16 @@ class ProductHealthAgent:
             usage=usage,
         )
 
-    def _complete(self, messages: list[ModelMessage]) -> ModelResponse:
+    def _complete(
+        self,
+        messages: list[ModelMessage],
+        tool_choice: ToolChoice,
+    ) -> ModelResponse:
         return self.model_provider.complete(
             system_prompt=SYSTEM_PROMPT,
             messages=messages,
             tools=self.tool_definitions,
+            tool_choice=tool_choice,
         )
 
 

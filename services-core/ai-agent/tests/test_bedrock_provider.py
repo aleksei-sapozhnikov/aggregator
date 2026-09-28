@@ -4,6 +4,7 @@ import os
 import pytest
 from botocore.exceptions import ReadTimeoutError
 from product_health_agent.bedrock_provider import BedrockModelProvider
+from product_health_agent.model_provider import ToolChoice, ToolDefinition
 
 
 class TimeoutClient:
@@ -14,8 +15,10 @@ class TimeoutClient:
 class StaticClient:
     def __init__(self, response) -> None:
         self.response = response
+        self.calls = []
 
     def converse(self, **kwargs):
+        self.calls.append(kwargs)
         return self.response
 
 
@@ -223,6 +226,36 @@ def test_bedrock_ignores_presentation_metadata_in_text() -> None:
     assert response.tool_calls[0].presentation is None
 
 
+def test_bedrock_required_tool_choice_maps_to_any() -> None:
+    provider = BedrockModelProvider(model_id="model-id")
+    client = StaticClient(_empty_message_response())
+    provider.client = client
+
+    provider.complete(
+        system_prompt="system",
+        messages=[],
+        tools=[_tool_definition()],
+        tool_choice=ToolChoice.REQUIRED,
+    )
+
+    assert client.calls[0]["toolConfig"]["toolChoice"] == {"any": {}}
+
+
+def test_bedrock_auto_tool_choice_does_not_force_tool() -> None:
+    provider = BedrockModelProvider(model_id="model-id")
+    client = StaticClient(_empty_message_response())
+    provider.client = client
+
+    provider.complete(
+        system_prompt="system",
+        messages=[],
+        tools=[_tool_definition()],
+        tool_choice=ToolChoice.AUTO,
+    )
+
+    assert "toolChoice" not in client.calls[0]["toolConfig"]
+
+
 def _complete_with_tool_input(tool_input: dict, text: str = ""):
     provider = BedrockModelProvider(model_id="model-id")
     provider.client = StaticClient(
@@ -245,3 +278,15 @@ def _complete_with_tool_input(tool_input: dict, text: str = ""):
     )
 
     return provider.complete(system_prompt="system", messages=[], tools=[])
+
+
+def _empty_message_response() -> dict:
+    return {"output": {"message": {"content": []}}}
+
+
+def _tool_definition() -> ToolDefinition:
+    return ToolDefinition(
+        name="list_unhealthy_items",
+        description="List unhealthy items.",
+        input_schema={"type": "object"},
+    )

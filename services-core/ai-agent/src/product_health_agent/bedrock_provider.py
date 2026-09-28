@@ -16,6 +16,7 @@ from .model_provider import (
     PresentationMetadata,
     TokenUsage,
     ToolCall,
+    ToolChoice,
     ToolDefinition,
 )
 
@@ -81,24 +82,14 @@ class BedrockModelProvider(ModelProvider):
         system_prompt: str,
         messages: list[ModelMessage],
         tools: list[ToolDefinition],
+        tool_choice: ToolChoice = ToolChoice.AUTO,
     ) -> ModelResponse:
         try:
             response = self._client().converse(
                 modelId=self.model_id,
                 system=[{"text": system_prompt}],
                 messages=[self._to_bedrock_message(message) for message in messages],
-                toolConfig={
-                    "tools": [
-                        {
-                            "toolSpec": {
-                                "name": tool.name,
-                                "description": tool.description,
-                                "inputSchema": {"json": tool.input_schema},
-                            }
-                        }
-                        for tool in tools
-                    ]
-                },
+                toolConfig=_tool_config(tools, tool_choice),
             )
         except (BotoCoreError, ClientError) as exc:
             logger.exception(
@@ -163,6 +154,27 @@ class BedrockModelProvider(ModelProvider):
             "role": "assistant" if message.role == "assistant" else "user",
             "content": content,
         }
+
+
+def _tool_config(
+    tools: list[ToolDefinition],
+    tool_choice: ToolChoice,
+) -> dict[str, Any]:
+    tool_config: dict[str, Any] = {
+        "tools": [
+            {
+                "toolSpec": {
+                    "name": tool.name,
+                    "description": tool.description,
+                    "inputSchema": {"json": tool.input_schema},
+                }
+            }
+            for tool in tools
+        ]
+    }
+    if tool_choice == ToolChoice.REQUIRED:
+        tool_config["toolChoice"] = {"any": {}}
+    return tool_config
 
 
 def _dict_or_empty(value: Any) -> dict[str, Any]:

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import Any, Protocol
 
 JsonObject = dict[str, Any]
@@ -68,6 +69,11 @@ class ModelResponse:
     usage: TokenUsage = field(default_factory=TokenUsage)
 
 
+class ToolChoice(Enum):
+    AUTO = "auto"
+    REQUIRED = "required"
+
+
 class ModelProvider(Protocol):
     """Provider-neutral model boundary."""
 
@@ -80,6 +86,7 @@ class ModelProvider(Protocol):
         system_prompt: str,
         messages: list[ModelMessage],
         tools: list[ToolDefinition],
+        tool_choice: ToolChoice = ToolChoice.AUTO,
     ) -> ModelResponse:
         """Complete one model turn."""
 
@@ -99,6 +106,7 @@ class UnavailableModelProvider:
         system_prompt: str,
         messages: list[ModelMessage],
         tools: list[ToolDefinition],
+        tool_choice: ToolChoice = ToolChoice.AUTO,
     ) -> ModelResponse:
         raise RuntimeError(self.reason)
 

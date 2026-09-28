@@ -15,6 +15,7 @@ from product_health_agent.model_provider import (
     PresentationMetadata,
     TokenUsage,
     ToolCall,
+    ToolChoice,
     ToolDefinition,
 )
 
@@ -35,6 +36,7 @@ class FakeModelProvider(ModelProvider):
         self.responses = responses
         self.requests: list[list[ModelMessage]] = []
         self.tool_requests: list[list[ToolDefinition]] = []
+        self.tool_choices: list[ToolChoice] = []
 
     def is_available(self) -> bool:
         return True
@@ -45,9 +47,11 @@ class FakeModelProvider(ModelProvider):
         system_prompt: str,
         messages: list[ModelMessage],
         tools: list[ToolDefinition],
+        tool_choice: ToolChoice = ToolChoice.AUTO,
     ) -> ModelResponse:
         self.requests.append(list(messages))
         self.tool_requests.append(list(tools))
+        self.tool_choices.append(tool_choice)
         return self.responses.pop(0)
 
 
@@ -109,6 +113,7 @@ def test_agent_exposes_local_capability_action_to_model() -> None:
 
     ProductHealthAgent(model, [tool]).answer("Hi")
 
+    assert model.tool_choices == [ToolChoice.REQUIRED]
     capability_tool = {
         definition.name: definition for definition in model.tool_requests[0]
     }[RESPOND_WITH_CAPABILITIES_TOOL_NAME]
@@ -167,6 +172,7 @@ def test_agent_executes_tool_before_answering() -> None:
     assert answer.answer == "Checkout is down because Payments is down."
     assert answer.tool_calls == ["get_product_health"]
     assert answer.usage.total_tokens == 41
+    assert model.tool_choices == [ToolChoice.REQUIRED, ToolChoice.AUTO]
     assert model.requests[1][-1].tool_results[0].result["found"] is True
 
 
@@ -209,6 +215,7 @@ def test_agent_returns_russian_structured_capability_message() -> None:
     assert answer.tool_calls == [RESPOND_WITH_CAPABILITIES_TOOL_NAME]
     assert tool.executed_arguments == []
     assert len(model.requests) == 1
+    assert model.tool_choices == [ToolChoice.REQUIRED]
 
 
 def test_agent_returns_short_english_structured_capability_message() -> None:
@@ -250,6 +257,7 @@ def test_agent_returns_short_english_structured_capability_message() -> None:
     assert answer.tool_calls == [RESPOND_WITH_CAPABILITIES_TOOL_NAME]
     assert tool.executed_arguments == []
     assert len(model.requests) == 1
+    assert model.tool_choices == [ToolChoice.REQUIRED]
 
 
 def test_agent_never_returns_raw_text_when_first_model_response_has_no_tool_call() -> None:
@@ -278,6 +286,7 @@ def test_agent_never_returns_raw_text_when_first_model_response_has_no_tool_call
     assert answer.answer == CAPABILITY_FALLBACK_RESPONSE
     assert answer.tool_calls == []
     assert len(model.requests) == 1
+    assert model.tool_choices == [ToolChoice.REQUIRED]
 
 
 @pytest.mark.parametrize(
@@ -327,6 +336,7 @@ def test_agent_uses_deterministic_fallback_for_invalid_capability_message(
     assert answer.tool_calls == [RESPOND_WITH_CAPABILITIES_TOOL_NAME]
     assert tool.executed_arguments == []
     assert len(model.requests) == 1
+    assert model.tool_choices == [ToolChoice.REQUIRED]
 
 
 def test_agent_renders_list_unhealthy_items_without_second_model_call() -> None:
@@ -364,6 +374,7 @@ def test_agent_renders_list_unhealthy_items_without_second_model_call() -> None:
     )
     assert answer.tool_calls == ["list_unhealthy_items"]
     assert len(model.requests) == 1
+    assert model.tool_choices == [ToolChoice.REQUIRED]
     assert "Cache health" not in answer.answer
     assert "Payments" not in answer.answer
     assert "because" not in answer.answer
@@ -449,6 +460,7 @@ def test_agent_uses_russian_presentation_metadata_with_deterministic_facts() -> 
     )
     assert tool.executed_arguments == [{}]
     assert len(model.requests) == 1
+    assert model.tool_choices == [ToolChoice.REQUIRED]
 
 
 def test_agent_uses_english_presentation_metadata() -> None:
