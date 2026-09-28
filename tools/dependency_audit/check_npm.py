@@ -129,7 +129,9 @@ def emit_outdated(project_dir: Path, data: dict[str, Any]) -> None:
         wanted = raw.get("wanted", "?")
         latest = raw.get("latest", "?")
         dependent = raw.get("dependent", "")
-        print(f"  {name}: current {current}, wanted {wanted}, latest {latest} ({dependent})")
+        print(
+            f"  {name}: current {current}, wanted {wanted}, latest {latest} ({dependent})"
+        )
 
 
 def main() -> int:
@@ -160,7 +162,9 @@ def main() -> int:
         if not emit_audit(project_dir, audit_data, args.audit_level):
             failed = True
 
-        outdated_rc, outdated_data = run_json([npm, "outdated", "--json"], cwd=project_dir)
+        outdated_rc, outdated_data = run_json(
+            [npm, "outdated", "--json"], cwd=project_dir
+        )
         if outdated_rc not in (0, 1):
             print(f"{project_dir.relative_to(root)}: npm outdated failed")
             failed = True
