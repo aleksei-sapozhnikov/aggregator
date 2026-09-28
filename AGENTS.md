@@ -42,24 +42,37 @@ instructions before making broad architectural assumptions.
 - Source code, schemas, tests, and repository documentation are the source of
   truth. Generated AI/tooling data is secondary.
 
-## Validation
-
-Use the repository's existing QA tooling rather than introducing parallel
-formatting or linting workflows.
-
-For the full check:
-
-```shell
-python tools/code_qa/main.py lint
-```
-
-Formatting and other QA modes are documented in `README.md`.
-
 When changing an individual service, also run its relevant tests or build
 checks when practical.
 
 Do not silently fix unrelated formatting or code while working on a scoped
 change.
+
+## QA and developer tooling
+
+Do not invoke `make` commands at all. This includes repository-level targets
+such as `make code-qa`, `make code-lint`, `make code-format`,
+`make deps-audit`, and service/runtime targets. If validation is needed, run
+the smallest direct service-level command instead, or ask the user before using
+any `make` target.
+
+Repository-level QA helpers under `tools/code_qa`, `make code-qa`,
+`make code-lint`, `make code-format`, `make deps-audit`, and similar aggregate
+developer tooling are intended for human use.
+
+Do not run repository-wide QA, formatting, linting, dependency audit, or helper
+tooling unless the user explicitly asks for it.
+
+For scoped code changes, run only the relevant service-level tests or build
+checks when practical. Prefer the smallest validation command that directly
+covers the changed service.
+
+Do not run formatting tools across unrelated files. If a formatter is required,
+run it only on files changed for the current task, unless the user explicitly
+requests broader formatting.
+
+When the user says "run tests" or "run relevant checks", this does not imply
+running repository-wide QA helpers. Treat repository-wide QA as opt-in only.
 
 ## Commits
 
