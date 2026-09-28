@@ -1,6 +1,10 @@
 import type {
   AggregatorUiRuntimeConfig,
   AgentAskResponse,
+  AgentHealthDependencyContent,
+  AgentHealthItemContent,
+  AgentHealthSignalContent,
+  AgentStructuredContent,
   CatalogActor,
   CatalogActorContact,
   CatalogContact,
@@ -569,7 +573,132 @@ export const askAgent = async (question: string): Promise<AgentAskResponse> => {
   const payload = (await response.json()) as Partial<AgentAskResponse>;
   return {
     answer: String(payload.answer || "").trim(),
+    structured_content: normalizeAgentStructuredContent(
+      payload.structured_content,
+    ),
     tool_calls: payload.tool_calls,
     usage: payload.usage,
   };
+};
+
+const normalizeAgentStructuredContent = (
+  rawContent: unknown,
+): AgentStructuredContent | null => {
+  const content = rawContent as {
+    type?: unknown;
+    presentation?: unknown;
+    items?: unknown;
+  };
+  if (content?.type !== "unhealthy_items") {
+    return null;
+  }
+  return {
+    type: "unhealthy_items",
+    presentation: normalizeAgentUnhealthyPresentation(content.presentation),
+    items: normalizeAgentHealthItems(content.items),
+  };
+};
+
+const normalizeAgentUnhealthyPresentation = (
+  rawPresentation: unknown,
+): AgentStructuredContent["presentation"] => {
+  const presentation = rawPresentation as {
+    header?: unknown;
+    signals_label?: unknown;
+    dependencies_label?: unknown;
+    healthy_message?: unknown;
+  };
+  return {
+    header: String(presentation?.header || "").trim(),
+    signals_label: String(presentation?.signals_label || "").trim(),
+    dependencies_label: String(presentation?.dependencies_label || "").trim(),
+    healthy_message: String(presentation?.healthy_message || "").trim(),
+  };
+};
+
+const normalizeAgentHealthItems = (
+  rawItems: unknown,
+): AgentHealthItemContent[] => {
+  if (!Array.isArray(rawItems)) {
+    return [];
+  }
+  return rawItems
+    .map(normalizeAgentHealthItem)
+    .filter((item): item is AgentHealthItemContent => Boolean(item));
+};
+
+const normalizeAgentHealthItem = (
+  rawItem: unknown,
+): AgentHealthItemContent | null => {
+  const item = rawItem as {
+    item_id?: unknown;
+    title?: unknown;
+    state?: unknown;
+    signals?: unknown;
+    affecting_dependencies?: unknown;
+  };
+  const itemId = String(item?.item_id || "").trim();
+  if (!itemId) {
+    return null;
+  }
+  return {
+    item_id: itemId,
+    title: String(item.title || itemId).trim(),
+    state: parseProductHealthStatus(item.state),
+    signals: normalizeAgentHealthSignals(item.signals),
+    affecting_dependencies: normalizeAgentHealthDependencies(
+      item.affecting_dependencies,
+    ),
+  };
+};
+
+const normalizeAgentHealthSignals = (
+  rawSignals: unknown,
+): AgentHealthSignalContent[] => {
+  if (!Array.isArray(rawSignals)) {
+    return [];
+  }
+  return rawSignals
+    .filter(
+      (entry): entry is { id?: unknown; title?: unknown; state?: unknown } =>
+        Boolean(entry),
+    )
+    .map((signal) => {
+      const id = String(signal.id || "").trim();
+      return {
+        id,
+        title: String(signal.title || id).trim(),
+        state: parseProductHealthStatus(signal.state),
+      };
+    })
+    .filter((signal) => Boolean(signal.id));
+};
+
+const normalizeAgentHealthDependencies = (
+  rawDependencies: unknown,
+): AgentHealthDependencyContent[] => {
+  if (!Array.isArray(rawDependencies)) {
+    return [];
+  }
+  return rawDependencies
+    .filter(
+      (
+        entry,
+      ): entry is {
+        item_id?: unknown;
+        title?: unknown;
+        state?: unknown;
+        signals?: unknown;
+      } => Boolean(entry),
+    )
+    .map((dependency) => {
+      const itemId = String(dependency.item_id || "").trim();
+      return {
+        item_id: itemId,
+        title: String(dependency.title || itemId).trim(),
+        state: parseProductHealthStatus(dependency.state),
+        signals: normalizeAgentHealthSignals(dependency.signals),
+      };
+    })
+    .filter((dependency) => Boolean(dependency.item_id));
 };

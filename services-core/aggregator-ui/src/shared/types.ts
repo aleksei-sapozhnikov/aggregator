@@ -106,8 +106,43 @@ export interface AggregatorUiRuntimeConfig {
   prometheusUrl?: string;
 }
 
+export interface AgentHealthSignalContent {
+  id: string;
+  title: string;
+  state: HealthStatus;
+}
+
+export interface AgentHealthDependencyContent {
+  item_id: string;
+  title: string;
+  state: HealthStatus;
+  signals: AgentHealthSignalContent[];
+}
+
+export interface AgentHealthItemContent {
+  item_id: string;
+  title: string;
+  state: HealthStatus;
+  signals: AgentHealthSignalContent[];
+  affecting_dependencies: AgentHealthDependencyContent[];
+}
+
+export interface AgentUnhealthyItemsContent {
+  type: "unhealthy_items";
+  presentation: {
+    header: string;
+    signals_label: string;
+    dependencies_label: string;
+    healthy_message: string;
+  };
+  items: AgentHealthItemContent[];
+}
+
+export type AgentStructuredContent = AgentUnhealthyItemsContent;
+
 export interface AgentAskResponse {
   answer: string;
+  structured_content?: AgentStructuredContent | null;
   tool_calls?: unknown;
   usage?: unknown;
 }
