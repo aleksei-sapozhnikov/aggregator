@@ -85,7 +85,7 @@ def test_agent_executes_tool_before_answering() -> None:
     assert model.requests[1][-1].tool_results[0].result["found"] is True
 
 
-def test_agent_rejects_answer_without_tool_call() -> None:
+def test_agent_returns_capability_message_without_first_tool_call() -> None:
     tool = FakeTool(
         definition=ToolDefinition(
             name="list_unhealthy_items",
@@ -103,8 +103,121 @@ def test_agent_rejects_answer_without_tool_call() -> None:
         ]
     )
 
-    with pytest.raises(RuntimeError, match="no tool call"):
-        ProductHealthAgent(model, [tool]).answer("What is broken?")
+    answer = ProductHealthAgent(model, [tool]).answer("Hi")
+
+    assert "Checkout is down." not in answer.answer
+    assert "What is broken right now?" in answer.answer
+    assert answer.tool_calls == []
+    assert len(model.requests) == 1
+
+
+def test_agent_renders_list_unhealthy_items_without_second_model_call() -> None:
+    tool = FakeTool(
+        definition=ToolDefinition(
+            name="list_unhealthy_items",
+            description="List unhealthy items.",
+            input_schema={"type": "object"},
+        ),
+        result={
+            "items": [
+                {
+                    "itemId": "product:commerce-core",
+                    "title": "Commerce Core",
+                    "state": "DOWN",
+                    "signals": [
+                        {
+                            "id": "http",
+                            "title": "HTTP health",
+                            "source": "demo",
+                            "state": "DOWN",
+                        },
+                        {
+                            "id": "cache",
+                            "title": "Cache health",
+                            "source": "demo",
+                            "state": "UP",
+                        },
+                    ],
+                    "affectingDependencies": [],
+                },
+                {
+                    "itemId": "product:commerce-platform",
+                    "title": "Commerce Platform",
+                    "state": "DOWN",
+                    "signals": [],
+                    "affectingDependencies": [
+                        {
+                            "itemId": "product:commerce-core",
+                            "title": "Commerce Core",
+                            "state": "DOWN",
+                            "depth": 1,
+                        }
+                    ],
+                },
+            ],
+            "count": 2,
+        },
+    )
+    model = FakeModelProvider(
+        responses=[
+            ModelResponse(
+                text="Payments caused this outage.",
+                tool_calls=[
+                    ToolCall(
+                        id="tool-1",
+                        name="list_unhealthy_items",
+                        arguments={},
+                    )
+                ],
+            )
+        ]
+    )
+
+    answer = ProductHealthAgent(model, [tool]).answer("What is broken right now?")
+
+    assert answer.answer == (
+        "2 items are currently unhealthy:\n"
+        "- Commerce Core (DOWN)\n"
+        "  Unhealthy signals: HTTP health (DOWN)\n"
+        "- Commerce Platform (DOWN)\n"
+        "  Affecting dependencies: Commerce Core (DOWN)"
+    )
+    assert answer.tool_calls == ["list_unhealthy_items"]
+    assert len(model.requests) == 1
+    assert "Cache health" not in answer.answer
+    assert "Payments" not in answer.answer
+    assert "because" not in answer.answer
+
+
+def test_agent_renders_zero_unhealthy_items() -> None:
+    tool = FakeTool(
+        definition=ToolDefinition(
+            name="list_unhealthy_items",
+            description="List unhealthy items.",
+            input_schema={"type": "object"},
+        ),
+        result={"items": [], "count": 0},
+    )
+    model = FakeModelProvider(
+        responses=[
+            ModelResponse(
+                text="",
+                tool_calls=[
+                    ToolCall(
+                        id="tool-1",
+                        name="list_unhealthy_items",
+                        arguments={},
+                    )
+                ],
+            )
+        ]
+    )
+
+    answer = ProductHealthAgent(model, [tool]).answer("What is broken right now?")
+
+    assert answer.answer == "No items are currently unhealthy."
+    assert answer.tool_calls == ["list_unhealthy_items"]
+    assert len(model.requests) == 1
 
 
 def test_agent_rejects_unknown_tool() -> None:
