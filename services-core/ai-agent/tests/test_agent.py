@@ -2,7 +2,11 @@ from dataclasses import dataclass, field
 from typing import Any
 
 import pytest
-from product_health_agent.agent import SYSTEM_PROMPT, ProductHealthAgent
+from product_health_agent.agent import (
+    CAPABILITY_FALLBACK_RESPONSE,
+    SYSTEM_PROMPT,
+    ProductHealthAgent,
+)
 from product_health_agent.model_provider import (
     ModelMessage,
     ModelResponse,
@@ -56,6 +60,20 @@ def test_system_prompt_requires_same_language_presentation_metadata() -> None:
     assert "only presentation labels are localized" in prompt
 
 
+def test_system_prompt_requires_localized_no_tool_capability_response() -> None:
+    prompt = " ".join(SYSTEM_PROMPT.split())
+
+    assert "For greetings, thanks, capability questions" in prompt
+    assert "do not call a Product Health tool" in prompt
+    assert "respond in the same language as the user's original question" in prompt
+    assert "keep the response very short" in prompt
+    assert "what is broken right now" in prompt
+    assert "why a product or service is down" in prompt
+    assert "current health of a product or service" in prompt
+    assert "do not answer unrelated general-knowledge questions" in prompt
+    assert "do not invent Product Health facts" in prompt
+
+
 def test_agent_executes_tool_before_answering() -> None:
     tool = FakeTool(
         definition=ToolDefinition(
@@ -101,7 +119,7 @@ def test_agent_executes_tool_before_answering() -> None:
     assert model.requests[1][-1].tool_results[0].result["found"] is True
 
 
-def test_agent_returns_capability_message_without_first_tool_call() -> None:
+def test_agent_returns_russian_model_response_without_first_tool_call() -> None:
     tool = FakeTool(
         definition=ToolDefinition(
             name="list_unhealthy_items",
@@ -113,7 +131,70 @@ def test_agent_returns_capability_message_without_first_tool_call() -> None:
     model = FakeModelProvider(
         responses=[
             ModelResponse(
-                text="Checkout is down.",
+                text=(
+                    "Я пока не очень умный: могу помочь с тем, что сейчас "
+                    "сломано, почему продукт или сервис недоступен, и текущим "
+                    "здоровьем продукта или сервиса."
+                ),
+                tool_calls=[],
+            )
+        ]
+    )
+
+    answer = ProductHealthAgent(model, [tool]).answer("Привет")
+
+    assert answer.answer == (
+        "Я пока не очень умный: могу помочь с тем, что сейчас сломано, почему "
+        "продукт или сервис недоступен, и текущим здоровьем продукта или сервиса."
+    )
+    assert answer.tool_calls == []
+    assert len(model.requests) == 1
+
+
+def test_agent_returns_short_english_model_response_for_unsupported_question() -> None:
+    tool = FakeTool(
+        definition=ToolDefinition(
+            name="list_unhealthy_items",
+            description="List unhealthy items.",
+            input_schema={"type": "object"},
+        ),
+        result={},
+    )
+    model = FakeModelProvider(
+        responses=[
+            ModelResponse(
+                text=(
+                    "I'm not very clever yet. I can help with what's broken, "
+                    "why something is down, and current product or service health."
+                ),
+                tool_calls=[],
+            )
+        ]
+    )
+
+    answer = ProductHealthAgent(model, [tool]).answer("Who wrote Hamlet?")
+
+    assert answer.answer == (
+        "I'm not very clever yet. I can help with what's broken, why something "
+        "is down, and current product or service health."
+    )
+    assert answer.tool_calls == []
+    assert len(model.requests) == 1
+
+
+def test_agent_uses_deterministic_fallback_when_first_model_text_is_blank() -> None:
+    tool = FakeTool(
+        definition=ToolDefinition(
+            name="list_unhealthy_items",
+            description="List unhealthy items.",
+            input_schema={"type": "object"},
+        ),
+        result={},
+    )
+    model = FakeModelProvider(
+        responses=[
+            ModelResponse(
+                text="   ",
                 tool_calls=[],
             )
         ]
@@ -121,8 +202,7 @@ def test_agent_returns_capability_message_without_first_tool_call() -> None:
 
     answer = ProductHealthAgent(model, [tool]).answer("Hi")
 
-    assert "Checkout is down." not in answer.answer
-    assert "What is broken right now?" in answer.answer
+    assert answer.answer == CAPABILITY_FALLBACK_RESPONSE
     assert answer.tool_calls == []
     assert len(model.requests) == 1
 
