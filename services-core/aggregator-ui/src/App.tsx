@@ -34,13 +34,12 @@ import {
   buildGrafanaFrameUrl,
   compareHealthStatus,
   DASHBOARDS,
-  fetchPrometheusStatuses,
+  fetchProductHealth,
   getInitialTheme,
   loadCatalog,
   resolveBasePath,
   resolveBaseUrl,
   resolveGrafanaBaseUrl,
-  resolvePrometheusBaseUrl,
   resolveSidebarTitle,
   submitFeedback,
 } from "./services/aggregatorApi";
@@ -57,6 +56,7 @@ import type {
   FailingDependencyEntry,
   HealthStatus,
   ItemSignal,
+  ProductHealthItem,
   SearchAutocompleteIndex,
 } from "./shared/types";
 
@@ -133,6 +133,9 @@ export default function App() {
   const [itemSignals, setItemSignals] = useState<Record<string, ItemSignal[]>>(
     {},
   );
+  const [productHealthByItemId, setProductHealthByItemId] = useState<
+    Record<string, ProductHealthItem>
+  >({});
   const [lastUpdated, setLastUpdated] = useState("");
   const [isMobileLayout, setIsMobileLayout] = useState(
     () => window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT}px)`).matches,
@@ -186,7 +189,6 @@ export default function App() {
   const grafanaFrameReadyRef = useRef(false);
 
   const grafanaBaseUrl = useMemo(resolveGrafanaBaseUrl, []);
-  const prometheusBaseUrl = useMemo(resolvePrometheusBaseUrl, []);
   const basePath = useMemo(resolveBasePath, []);
   const appBaseUrl = useMemo(() => resolveBaseUrl().replace(/\/$/, ""), []);
 
@@ -487,10 +489,13 @@ export default function App() {
 
     const fetchStatuses = async () => {
       try {
-        const next = await fetchPrometheusStatuses(prometheusBaseUrl);
+        const next = await fetchProductHealth();
         if (!cancelled) {
           setItemStatuses(next.itemStatuses);
           setItemSignals(next.itemSignals);
+          setProductHealthByItemId(
+            Object.fromEntries(next.items.map((item) => [item.itemId, item])),
+          );
           setLastUpdated(new Date().toLocaleTimeString());
         }
       } catch (err) {
@@ -508,7 +513,7 @@ export default function App() {
       cancelled = true;
       window.clearInterval(interval);
     };
-  }, [catalog.items, prometheusBaseUrl]);
+  }, [catalog.items]);
 
   const tree = useMemo(
     () => buildCatalogTree(catalog.items, catalog.dependencies),
@@ -746,7 +751,7 @@ export default function App() {
   }, [itemSignals, selectedItem]);
 
   const selectedFailingSignals = useMemo(
-    () => selectedSignals.filter((signal) => signal.status === "down"),
+    () => selectedSignals.filter((signal) => signal.status !== "up"),
     [selectedSignals],
   );
   const selectedPassingSignals = useMemo(
@@ -846,14 +851,16 @@ export default function App() {
     () => (selectedItem ? actorsByItemId.get(selectedItem.id) || null : null),
     [actorsByItemId, selectedItem],
   );
-  const failingDependencyNodes = useMemo(() => {
+  const dependencyPathByItemId = useMemo(() => {
+    const result = new Map<string, string[]>();
     if (!selectedNode) {
-      return [];
+      return result;
     }
-    const result: CatalogTreeNode[] = [];
     const visit = (children: CatalogTreeNode[]) => {
       children.forEach((child) => {
-        result.push(child);
+        if (!result.has(child.item.id)) {
+          result.set(child.item.id, child.path || [child.item.id]);
+        }
         visit(child.children);
       });
     };
@@ -861,33 +868,42 @@ export default function App() {
     return result;
   }, [selectedNode]);
   const failingDependencies = useMemo(() => {
-    const seen = new Set();
-    const result: FailingDependencyEntry[] = [];
-    failingDependencyNodes.forEach((dependencyNode) => {
-      const dependencyId = dependencyNode.item.id;
-      if (seen.has(dependencyId)) {
-        return;
-      }
-      seen.add(dependencyId);
-      const dependencyStatus = itemStatuses[dependencyId] || "unknown";
-      const failingSignals = (itemSignals[dependencyId] || [])
-        .filter((signal) => signal.status === "down")
-        .sort(compareSignalsByStatusAndTitle);
-      if (failingSignals.length === 0) {
-        return;
-      }
-      const item = itemMap.get(dependencyId);
-      result.push({
-        id: dependencyId,
-        name: item?.title || dependencyId,
-        path: dependencyNode.path || [dependencyId],
-        status: dependencyStatus,
-        failingSignals,
-        failingCountContribution: 1,
-      });
-    });
-    return result.sort((a, b) => a.name.localeCompare(b.name));
-  }, [failingDependencyNodes, itemMap, itemSignals, itemStatuses]);
+    if (!selectedItem) {
+      return [];
+    }
+    const selectedHealth = productHealthByItemId[selectedItem.id];
+    if (!selectedHealth) {
+      return [];
+    }
+    return selectedHealth.affectingDependencies
+      .map((dependency) => {
+        const failingSignals = (itemSignals[dependency.itemId] || [])
+          .filter((signal) => signal.status !== "up")
+          .sort(compareSignalsByStatusAndTitle);
+        const item = itemMap.get(dependency.itemId);
+        return {
+          id: dependency.itemId,
+          name: item?.title || dependency.title || dependency.itemId,
+          path: dependencyPathByItemId.get(dependency.itemId) || [
+            dependency.itemId,
+          ],
+          status: dependency.state,
+          failingSignals,
+          failingCountContribution: 1,
+        };
+      })
+      .sort(
+        (left, right) =>
+          compareHealthStatus(left.status, right.status) ||
+          left.name.localeCompare(right.name),
+      );
+  }, [
+    dependencyPathByItemId,
+    itemMap,
+    itemSignals,
+    productHealthByItemId,
+    selectedItem,
+  ]);
   const openedActor = useMemo(
     () => (openedActorId ? actorsById.get(openedActorId) || null : null),
     [actorsById, openedActorId],

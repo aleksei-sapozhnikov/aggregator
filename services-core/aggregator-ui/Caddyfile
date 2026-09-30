@@ -9,6 +9,12 @@
     handle /api/admin/feedback {
         reverse_proxy aggregator:8080
     }
+    handle /api/product-health* {
+        reverse_proxy aggregator:8080
+    }
+    handle /api/agent* {
+        reverse_proxy ai-agent:8080
+    }
     handle /admin/feedback {
         rewrite * /admin-feedback.html
         root * /usr/share/caddy
