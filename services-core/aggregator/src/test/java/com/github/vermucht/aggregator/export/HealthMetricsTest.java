@@ -8,6 +8,7 @@ import com.github.vermucht.aggregator.catalog.model.Catalog;
 import com.github.vermucht.aggregator.catalog.model.Dependency;
 import com.github.vermucht.aggregator.catalog.model.Item;
 import com.github.vermucht.aggregator.catalog.model.ItemId;
+import com.github.vermucht.aggregator.producthealth.ProductHealthQueryService;
 import com.github.vermucht.aggregator.signal.model.HealthSignal;
 import com.github.vermucht.aggregator.signal.model.HealthStatus;
 import com.github.vermucht.aggregator.signal.state.HealthSignalStateStore;
@@ -65,14 +66,12 @@ class HealthMetricsTest {
                 new StubSignalSource(
                     ItemId.of("api-gateway"), "gateway-health", "Gateway readiness", "http")));
 
+    ProductHealthQueryService productHealthQueryService =
+        new ProductHealthQueryService(
+            catalogRegistry, healthStateStore, signalStateStore, signalSourceRegistry);
+
     // Registers gauges in constructor.
-    HealthMetrics metrics =
-        new HealthMetrics(
-            meterRegistry,
-            catalogRegistry,
-            healthStateStore,
-            signalStateStore,
-            signalSourceRegistry);
+    HealthMetrics metrics = new HealthMetrics(meterRegistry, productHealthQueryService);
     metrics.registerMetrics();
   }
 
