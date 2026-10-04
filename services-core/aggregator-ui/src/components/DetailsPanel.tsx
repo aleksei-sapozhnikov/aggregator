@@ -305,6 +305,10 @@ export default function DetailsPanel({
     affectingRows.length <= AFFECTING_PREVIEW_LIMIT
       ? affectingRows
       : affectingRows.slice(0, AFFECTING_PREVIEW_LIMIT);
+  const hiddenAffectingRowsCount = Math.max(
+    affectingRows.length - AFFECTING_PREVIEW_LIMIT,
+    0,
+  );
 
   return (
     <main className="content" ref={contentRef}>
@@ -631,7 +635,7 @@ export default function DetailsPanel({
                   affectingRows.length > AFFECTING_PREVIEW_LIMIT && (
                     <button
                       type="button"
-                      className="signals-expand-button"
+                      className="signals-overflow-button"
                       onClick={() =>
                         updateDisclosureState({
                           showAllAffecting:
@@ -639,42 +643,52 @@ export default function DetailsPanel({
                         })
                       }
                     >
+                      <span
+                        className={`details-panel-chevron ${
+                          itemDisclosureState.showAllAffecting ? "is-open" : ""
+                        }`}
+                        aria-hidden="true"
+                      >
+                        ›
+                      </span>
                       {itemDisclosureState.showAllAffecting
-                        ? `Show ${AFFECTING_PREVIEW_LIMIT} affecting signals`
-                        : `Show all ${affectingRows.length} affecting signals`}
+                        ? "Show fewer"
+                        : `Show ${hiddenAffectingRowsCount} more`}
                     </button>
                   )}
 
-                <button
-                  type="button"
-                  className="signals-expand-button"
-                  onClick={() =>
-                    updateDisclosureState({
-                      isHealthyOpen: !itemDisclosureState.isHealthyOpen,
-                    })
-                  }
-                  aria-expanded={itemDisclosureState.isHealthyOpen}
-                >
-                  <span
-                    className={`details-panel-chevron ${
-                      itemDisclosureState.isHealthyOpen ? "is-open" : ""
-                    }`}
-                    aria-hidden="true"
-                  >
-                    ›
-                  </span>
-                  {itemDisclosureState.isHealthyOpen
-                    ? "Hide healthy signals"
-                    : `Show ${passingSignalsCount} healthy signals`}
-                </button>
                 <div
-                  className={`disclosure-panel ${itemDisclosureState.isHealthyOpen ? "is-open" : ""}`}
+                  className={`signals-healthy-section ${
+                    hasAffectingSignals ? "has-affecting-separator" : ""
+                  }`}
                 >
-                  <div className="signals-incident-row">
-                    <ul className="signals-list signals-sublist signals-group-list">
+                  <button
+                    type="button"
+                    className="signals-healthy-toggle"
+                    onClick={() =>
+                      updateDisclosureState({
+                        isHealthyOpen: !itemDisclosureState.isHealthyOpen,
+                      })
+                    }
+                    aria-expanded={itemDisclosureState.isHealthyOpen}
+                  >
+                    <span>Healthy signals ({passingSignalsCount})</span>
+                    <span
+                      className={`details-panel-chevron ${
+                        itemDisclosureState.isHealthyOpen ? "is-open" : ""
+                      }`}
+                      aria-hidden="true"
+                    >
+                      ›
+                    </span>
+                  </button>
+                  <div
+                    className={`disclosure-panel ${itemDisclosureState.isHealthyOpen ? "is-open" : ""}`}
+                  >
+                    <ul className="signals-healthy-list">
                       {selectedPassingSignals.length > 0 ? (
                         selectedPassingSignals.map((entry) => (
-                          <li key={entry.id} className="signal">
+                          <li key={entry.id} className="signals-healthy-row">
                             <div className="signal-row">
                               <span
                                 className={`status-indicator status-${entry.status}`}
@@ -691,7 +705,7 @@ export default function DetailsPanel({
                           </li>
                         ))
                       ) : (
-                        <li className="signal">
+                        <li className="signals-healthy-row">
                           <div className="signal-row">
                             <span className="signal-name">
                               {hasOwnHealthSignals
