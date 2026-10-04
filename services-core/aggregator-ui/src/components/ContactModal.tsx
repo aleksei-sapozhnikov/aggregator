@@ -40,13 +40,9 @@ const onCallActivityByClient: OnCallActivity = {
   pagerduty: [
     "Service problem attached",
     "Paging responder...",
-    "🚨 Responder acknowledged",
+    "Responder acknowledged",
   ],
-  opsgenie: [
-    "Incident created",
-    "Notification sent",
-    "🚨 On-call acknowledged",
-  ],
+  opsgenie: ["Incident created", "Notification sent", "On-call acknowledged"],
 };
 
 const normalizeContactHandle = (label: string): string =>
