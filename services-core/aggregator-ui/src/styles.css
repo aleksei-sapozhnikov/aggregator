@@ -3751,7 +3751,7 @@ body[data-theme="dark"] .about-social-icon-linkedin {
   }
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 900px) {
   .sidebar-swipe-hint {
     display: block;
   }

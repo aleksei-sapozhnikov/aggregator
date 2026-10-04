@@ -60,7 +60,7 @@ import type {
   SearchAutocompleteIndex,
 } from "./shared/types";
 
-const MOBILE_BREAKPOINT = 1100;
+const MOBILE_BREAKPOINT = 900;
 const TREE_SCROLL_LONG_DISTANCE_PX = 600;
 const TREE_SCROLL_SMOOTH_SEGMENT_PX = 360;
 const MOBILE_SWIPE_OPEN_DISTANCE_PX = 96;
