@@ -64,7 +64,57 @@ class RestProductHealthTools:
                         "List deterministic current health facts for all non-UP "
                         "catalog items."
                     ),
-                    input_schema={"type": "object", "properties": {}},
+                    input_schema={
+                        "type": "object",
+                        "properties": {
+                            "presentation": {
+                                "type": "object",
+                                "description": (
+                                    "Localized presentation labels. Every string "
+                                    "MUST use the RESPONSE LANGUAGE specified by "
+                                    "the agent."
+                                ),
+                                "properties": {
+                                    "header": {
+                                        "type": "string",
+                                        "description": (
+                                            "Short declarative heading in the "
+                                            "RESPONSE LANGUAGE. Do not repeat or "
+                                            "paraphrase the user's question."
+                                        ),
+                                    },
+                                    "signals_label": {
+                                        "type": "string",
+                                        "description": (
+                                            "Short label for unhealthy signals in "
+                                            "the RESPONSE LANGUAGE."
+                                        ),
+                                    },
+                                    "dependencies_label": {
+                                        "type": "string",
+                                        "description": (
+                                            "Short label for affecting "
+                                            "dependencies in the RESPONSE LANGUAGE."
+                                        ),
+                                    },
+                                    "healthy_message": {
+                                        "type": "string",
+                                        "description": (
+                                            "Short complete healthy-state message "
+                                            "in the RESPONSE LANGUAGE."
+                                        ),
+                                    },
+                                },
+                                "required": [
+                                    "header",
+                                    "signals_label",
+                                    "dependencies_label",
+                                    "healthy_message",
+                                ],
+                            }
+                        },
+                        "required": ["presentation"],
+                    },
                 ),
                 handler=self.list_unhealthy_items,
             ),
@@ -111,14 +161,10 @@ class RestProductHealthTools:
             raise RuntimeError("Product Health API is unavailable.") from exc
 
         if not isinstance(payload, list):
-            raise TypeError(
-                "Product Health API returned an unexpected response."
-            )
+            raise TypeError("Product Health API returned an unexpected response.")
 
         if any(not isinstance(entry, dict) for entry in payload):
-            raise TypeError(
-                "Product Health API returned an unexpected response."
-            )
+            raise TypeError("Product Health API returned an unexpected response.")
 
         return {
             "items": payload,

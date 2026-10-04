@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import Any, Protocol
 
 JsonObject = dict[str, Any]
@@ -16,24 +17,25 @@ class ToolDefinition:
 
 
 @dataclass(frozen=True)
+class PresentationMetadata:
+    header: str
+    signals_label: str
+    dependencies_label: str
+    healthy_message: str
+
+
+@dataclass(frozen=True)
 class ToolCall:
     id: str
     name: str
     arguments: JsonObject
+    presentation: PresentationMetadata | None = None
 
 
 @dataclass(frozen=True)
 class ToolResult:
     tool_call_id: str
     result: JsonObject
-
-
-@dataclass(frozen=True)
-class ModelMessage:
-    role: str
-    text: str | None = None
-    tool_calls: list[ToolCall] = field(default_factory=list)
-    tool_results: list[ToolResult] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -53,10 +55,23 @@ class TokenUsage:
 
 
 @dataclass(frozen=True)
+class ModelMessage:
+    role: str
+    text: str | None = None
+    tool_calls: list[ToolCall] = field(default_factory=list)
+    tool_results: list[ToolResult] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
 class ModelResponse:
     text: str
     tool_calls: list[ToolCall]
     usage: TokenUsage = field(default_factory=TokenUsage)
+
+
+class ToolChoice(Enum):
+    AUTO = "auto"
+    REQUIRED = "required"
 
 
 class ModelProvider(Protocol):
@@ -71,6 +86,7 @@ class ModelProvider(Protocol):
         system_prompt: str,
         messages: list[ModelMessage],
         tools: list[ToolDefinition],
+        tool_choice: ToolChoice = ToolChoice.AUTO,
     ) -> ModelResponse:
         """Complete one model turn."""
 
@@ -90,6 +106,7 @@ class UnavailableModelProvider:
         system_prompt: str,
         messages: list[ModelMessage],
         tools: list[ToolDefinition],
+        tool_choice: ToolChoice = ToolChoice.AUTO,
     ) -> ModelResponse:
         raise RuntimeError(self.reason)
 
