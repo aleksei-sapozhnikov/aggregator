@@ -381,7 +381,7 @@ export default function DetailsPanel({
             </div>
           ) : (
             <>
-              <section className="details-inline-block">
+              <section className="details-summary-block">
                 <div
                   className="ownership-summary"
                   role="group"
@@ -486,9 +486,7 @@ export default function DetailsPanel({
                     </div>
                   )}
                 </div>
-              </section>
 
-              <section className="details-inline-block details-inline-block-signals">
                 {hasAffectingSignals && (
                   <div className="details-disclosure-section">
                     <button
@@ -684,6 +682,7 @@ export default function DetailsPanel({
                   </div>
                 )}
               </section>
+
               <section
                 className={`details-panel details-panel-grafana ${isGrafanaOpen ? "is-open" : ""}`}
               >

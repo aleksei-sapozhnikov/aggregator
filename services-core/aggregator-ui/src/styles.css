@@ -3981,6 +3981,14 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 }
 
 /* Compact health hierarchy: neutral surfaces, consistent disclosures, and shape-coded states. */
+.details-summary-block {
+  width: 100%;
+  max-width: 760px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
 .status-indicator {
   width: 14px;
   height: 14px;
@@ -4034,7 +4042,7 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 
 .ownership-summary {
   clip-path: none;
-  gap: 6px;
+  gap: 0;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -4052,6 +4060,8 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 .ownership-summary .contact-surface-chip,
 .ownership-summary .contact-chip.contact-surface-chip,
 .ownership-contact-section .ownership-primary-contact {
+  width: fit-content;
+  max-width: 100%;
   min-height: 44px;
   border: 0;
   border-radius: 6px;
@@ -4065,38 +4075,16 @@ body[data-theme="dark"] .about-social-icon-linkedin {
   background: color-mix(in srgb, var(--panel-hover) 58%, transparent);
 }
 
-.details-inline-block-signals {
-  clip-path: none;
-  gap: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  padding: 0;
-}
-
-.details-inline-block-signals::before {
-  display: none;
-}
-
-.details-inline-block-signals.is-degraded {
-  border-color: transparent;
-  background: transparent;
-}
-
 .details-disclosure-section {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.details-disclosure-section + .details-disclosure-section {
-  margin-top: 4px;
-  padding-top: 4px;
-  border-top: 1px solid var(--border);
-}
-
 .details-disclosure-toggle {
-  width: 100%;
+  width: fit-content;
+  max-width: 100%;
+  align-self: flex-start;
   min-height: 40px;
   border: 0;
   border-radius: 6px;
@@ -4136,6 +4124,11 @@ body[data-theme="dark"] .about-social-icon-linkedin {
   padding-left: 18px;
 }
 
+.ownership-extra-list li {
+  width: fit-content;
+  max-width: 100%;
+}
+
 .signals-incident-list {
   gap: 6px;
   padding: 2px 0 4px 18px;
@@ -4150,7 +4143,8 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 }
 
 .signals-dependency-link {
-  width: 100%;
+  width: fit-content;
+  max-width: 100%;
   min-height: 44px;
   border-radius: 6px;
   color: var(--text);
@@ -4179,7 +4173,7 @@ a.signals-dependency-link:focus-visible {
 }
 
 .signals-nav-chevron {
-  margin-left: auto;
+  margin-left: 2px;
   color: var(--link);
   font-size: 18px;
   line-height: 1;
@@ -4254,4 +4248,3 @@ a.signals-dependency-link:focus-visible {
   width: 14px;
   min-width: 14px;
 }
-
