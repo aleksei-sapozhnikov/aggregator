@@ -4053,13 +4053,17 @@ body[data-theme="dark"] .about-social-icon-linkedin {
   display: none;
 }
 
+.ownership-contact-section {
+  margin-left: 10px;
+  margin-bottom: 6px;
+}
+
 .ownership-contact-section + .ownership-actors-group {
   margin-top: 0;
 }
 
 .ownership-summary .contact-surface-chip,
-.ownership-summary .contact-chip.contact-surface-chip,
-.ownership-contact-section .ownership-primary-contact {
+.ownership-summary .contact-chip.contact-surface-chip {
   width: fit-content;
   max-width: 100%;
   min-height: 44px;
@@ -4071,26 +4075,38 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 }
 
 .ownership-summary .contact-surface-chip:hover,
-.ownership-summary .contact-chip.contact-surface-chip:hover,
-.ownership-contact-section .ownership-primary-contact:hover {
+.ownership-summary .contact-chip.contact-surface-chip:hover {
   background: color-mix(in srgb, var(--panel-hover) 58%, transparent);
 }
 
-.details-summary-block .chip-entry {
-  width: auto;
-  flex: 0 1 auto;
-  gap: 7px;
-}
-
-.details-summary-block .chip-text-block {
-  flex: 0 1 auto;
-  display: block;
-}
-
-.details-summary-block .ownership-contact-value {
-  font-size: 16px;
-  line-height: 1.35;
+.primary-contact-row {
+  width: fit-content;
+  max-width: 100%;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 4px;
   white-space: nowrap;
+}
+
+.primary-contact-icon {
+  width: 20px;
+  min-width: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.primary-contact-icon .contact-type-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.primary-contact-link {
+  min-height: 38px;
+  font-size: 18px;
+  font-weight: 600;
 }
 
 .details-row-meta {
@@ -4289,6 +4305,7 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 }
 
 @media (max-width: 640px) {
+  .primary-contact-row,
   .details-summary-block .ownership-contact-value,
   .details-summary-block .signal-name,
   .signals-dependency-row,
@@ -4296,13 +4313,17 @@ body[data-theme="dark"] .about-social-icon-linkedin {
     white-space: normal;
   }
 
+  .primary-contact-row,
   .ownership-summary .contact-surface-chip,
   .ownership-summary .contact-chip.contact-surface-chip,
-  .ownership-contact-section .ownership-primary-contact,
   .ownership-extra-list .ownership-contact-row,
   .signals-dependency-row,
   .signal-status-row,
   .signals-incident-signal {
     flex-wrap: wrap;
+  }
+
+  .ownership-contact-section {
+    margin-left: 0;
   }
 }

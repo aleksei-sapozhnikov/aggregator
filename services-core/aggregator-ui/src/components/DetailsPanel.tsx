@@ -4,12 +4,13 @@
 
 import TopBarActions from "./TopBarActions";
 import AiChatPanel from "./AiChatPanel";
-import ContactChipContent from "./ContactChipContent";
 import { isPlainLeftClick } from "../shared/catalogUtils";
 import { buildStatusText } from "../shared/statusText";
 import {
+  resolveContactIconId,
   resolveContactLabel,
   resolveContactTypeClass,
+  resolveContactTypeDisplayName,
 } from "../shared/contactUtils";
 import type {
   CatalogActor,
@@ -126,6 +127,31 @@ const renderActorTeamIcon = (iconSpriteHref: string): ReactElement => (
     </svg>
   </span>
 );
+
+const renderContactIcon = (
+  contact: CatalogContact,
+  iconSpriteHref: string,
+): ReactElement => {
+  const typeDisplayName = resolveContactTypeDisplayName(contact.type);
+  return (
+    <span
+      className="contact-type-icon-wrap"
+      title={typeDisplayName}
+      aria-label={typeDisplayName}
+    >
+      <svg
+        className={`contact-type-icon ${resolveContactTypeClass(contact.type)}`}
+        viewBox="0 0 24 24"
+        focusable="false"
+        aria-hidden="true"
+      >
+        <use
+          href={`${iconSpriteHref}#${resolveContactIconId(contact.type)}`}
+        />
+      </svg>
+    </span>
+  );
+};
 
 /**
  * Renders the right-side content area:
@@ -377,32 +403,31 @@ export default function DetailsPanel({
                 >
                   {primaryContact && (
                     <div className="ownership-contact-section">
-                      <a
-                        className={`ownership-contact-row contact-surface-chip ownership-primary-contact ${resolveContactTypeClass(
-                          primaryContact.type,
-                        )}`}
-                        href={
-                          primaryContact.href ||
-                          `/contacts/${primaryContact.id}`
-                        }
-                        onClick={(event) => {
-                          if (!isPlainLeftClick(event)) {
-                            return;
+                      <div className="primary-contact-row">
+                        <span className="primary-contact-icon">
+                          {renderContactIcon(primaryContact, iconSpriteHref)}
+                        </span>
+                        <a
+                          className="details-text-link primary-contact-link"
+                          href={
+                            primaryContact.href ||
+                            `/contacts/${primaryContact.id}`
                           }
-                          event.preventDefault();
-                          onOpenContact(primaryContact);
-                        }}
-                        title={resolveContactLabel(primaryContact)}
-                      >
-                        <ContactChipContent
-                          contact={primaryContact}
-                          iconSpriteHref={iconSpriteHref}
-                          valueClassName="ownership-contact-value"
-                        />
+                          onClick={(event) => {
+                            if (!isPlainLeftClick(event)) {
+                              return;
+                            }
+                            event.preventDefault();
+                            onOpenContact(primaryContact);
+                          }}
+                          title={resolveContactLabel(primaryContact)}
+                        >
+                          {resolveContactLabel(primaryContact)}
+                        </a>
                         <span className="details-row-meta">
                           (Primary contact)
                         </span>
-                      </a>
+                      </div>
                     </div>
                   )}
 
