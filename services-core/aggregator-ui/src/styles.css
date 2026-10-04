@@ -4223,11 +4223,11 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 .signals-dependency-row {
   width: fit-content;
   max-width: 100%;
-  min-height: 40px;
+  min-height: 34px;
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 2px 4px;
+  padding: 0 4px;
   white-space: nowrap;
 }
 
@@ -4254,20 +4254,21 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 }
 
 .signals-incident-signal-list {
-  margin: 0 0 2px 11px;
+  margin: -2px 0 2px 11px;
   padding: 0 0 0 17px;
   border-left: 1px solid var(--border);
   gap: 0;
 }
 
 .signals-incident-signal {
-  min-height: 36px;
+  min-height: 26px;
   color: var(--text);
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 15px;
-  line-height: 1.35;
+  gap: 7px;
+  padding: 0;
+  font-size: 14px;
+  line-height: 1.25;
 }
 
 .signals-incident-signal::before {
@@ -4330,4 +4331,3 @@ body[data-theme="dark"] .about-social-icon-linkedin {
     margin-left: 0;
   }
 }
-
