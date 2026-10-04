@@ -4062,23 +4062,6 @@ body[data-theme="dark"] .about-social-icon-linkedin {
   margin-top: 0;
 }
 
-.ownership-summary .contact-surface-chip,
-.ownership-summary .contact-chip.contact-surface-chip {
-  width: fit-content;
-  max-width: 100%;
-  min-height: 44px;
-  border: 0;
-  border-radius: 6px;
-  background: transparent;
-  padding: 5px 4px;
-  gap: 7px;
-}
-
-.ownership-summary .contact-surface-chip:hover,
-.ownership-summary .contact-chip.contact-surface-chip:hover {
-  background: color-mix(in srgb, var(--panel-hover) 58%, transparent);
-}
-
 .primary-contact-row {
   width: fit-content;
   max-width: 100%;
@@ -4195,10 +4178,32 @@ body[data-theme="dark"] .about-social-icon-linkedin {
   max-width: 100%;
 }
 
-.ownership-extra-list .ownership-contact-row {
+.actor-summary-row {
+  width: fit-content;
+  max-width: 100%;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 4px;
+  white-space: nowrap;
+}
+
+.actor-summary-icon {
+  width: 18px;
+  min-width: 18px;
   display: inline-flex;
   align-items: center;
-  min-height: 40px;
+  justify-content: center;
+}
+
+.actor-summary-icon .actor-team-icon {
+  width: 17px;
+  height: 17px;
+  flex-basis: 17px;
+}
+
+.actor-summary-link {
   font-size: 16px;
 }
 
@@ -4306,7 +4311,7 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 
 @media (max-width: 640px) {
   .primary-contact-row,
-  .details-summary-block .ownership-contact-value,
+  .actor-summary-row,
   .details-summary-block .signal-name,
   .signals-dependency-row,
   .signal-status-row {
@@ -4314,9 +4319,7 @@ body[data-theme="dark"] .about-social-icon-linkedin {
   }
 
   .primary-contact-row,
-  .ownership-summary .contact-surface-chip,
-  .ownership-summary .contact-chip.contact-surface-chip,
-  .ownership-extra-list .ownership-contact-row,
+  .actor-summary-row,
   .signals-dependency-row,
   .signal-status-row,
   .signals-incident-signal {
@@ -4327,3 +4330,4 @@ body[data-theme="dark"] .about-social-icon-linkedin {
     margin-left: 0;
   }
 }
+

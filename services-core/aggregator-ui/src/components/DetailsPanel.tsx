@@ -470,28 +470,28 @@ export default function DetailsPanel({
                         <ul className="ownership-extra-list">
                           {actorRowsForContacts.map((entry) => (
                             <li key={entry.key}>
-                              <a
-                                className="ownership-contact-row contact-surface-chip"
-                                href={`/actors/${entry.actor.id}`}
-                                onClick={(event) => {
-                                  if (!isPlainLeftClick(event)) {
-                                    return;
-                                  }
-                                  event.preventDefault();
-                                  onOpenActor(entry.actor);
-                                }}
-                                title={entry.actor.title || entry.actor.id}
-                              >
-                                <span className="chip-icon-block">
+                              <div className="actor-summary-row">
+                                <span className="actor-summary-icon">
                                   {renderActorTeamIcon(iconSpriteHref)}
                                 </span>
-                                <span className="ownership-contact-value">
+                                <a
+                                  className="details-text-link actor-summary-link"
+                                  href={`/actors/${entry.actor.id}`}
+                                  onClick={(event) => {
+                                    if (!isPlainLeftClick(event)) {
+                                      return;
+                                    }
+                                    event.preventDefault();
+                                    onOpenActor(entry.actor);
+                                  }}
+                                  title={entry.actor.title || entry.actor.id}
+                                >
                                   {entry.actor.title || entry.actor.id}
-                                </span>
+                                </a>
                                 <span className="details-row-meta details-row-meta-capitalize">
                                   ({entry.typeLabel})
                                 </span>
-                              </a>
+                              </div>
                             </li>
                           ))}
                         </ul>
