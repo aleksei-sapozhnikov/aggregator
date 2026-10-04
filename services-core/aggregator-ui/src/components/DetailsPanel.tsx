@@ -7,7 +7,10 @@ import AiChatPanel from "./AiChatPanel";
 import ContactChipContent from "./ContactChipContent";
 import { isPlainLeftClick } from "../shared/catalogUtils";
 import { buildStatusText } from "../shared/statusText";
-import { resolveContactLabel } from "../shared/contactUtils";
+import {
+  resolveContactLabel,
+  resolveContactTypeClass,
+} from "../shared/contactUtils";
 import type {
   CatalogActor,
   CatalogContact,
@@ -190,14 +193,14 @@ export default function DetailsPanel({
     ownerContactsEntry?.primaryContact ||
     ownerContactsEntry?.contacts[0] ||
     null;
-  const otherActorsForContacts = selectedItemActors
+  const actorsForContacts = selectedItemActors
     ? selectedItemActors.owner
-      ? selectedItemActors.otherActors
-      : selectedItemActors.otherActors.slice(1)
+      ? [selectedItemActors.owner, ...selectedItemActors.otherActors]
+      : selectedItemActors.otherActors
     : [];
-  const extraActorRows = useMemo(
-    () => buildExtraActorRows(otherActorsForContacts),
-    [otherActorsForContacts],
+  const actorRowsForContacts = useMemo(
+    () => buildExtraActorRows(actorsForContacts),
+    [actorsForContacts],
   );
 
   const affectingRows = useMemo<AffectingSignalRow[]>(() => {
@@ -386,44 +389,12 @@ export default function DetailsPanel({
                   role="group"
                   aria-label="Ownership"
                 >
-                  {ownerActorForContacts ? (
-                    <a
-                      className="ownership-owner-value"
-                      href={`/actors/${ownerActorForContacts.id}`}
-                      onClick={(event) => {
-                        if (!isPlainLeftClick(event)) {
-                          return;
-                        }
-                        event.preventDefault();
-                        onOpenActor(ownerActorForContacts);
-                      }}
-                      title={
-                        ownerActorForContacts.title || ownerActorForContacts.id
-                      }
-                    >
-                      <span className="chip-entry">
-                        <span className="chip-icon-block">
-                          {renderActorTeamIcon(iconSpriteHref)}
-                        </span>
-                        <span className="chip-text-block">
-                          <span className="chip-prefix">Owner</span>
-                          <span className="ownership-contact-value">
-                            {ownerActorForContacts.title ||
-                              ownerActorForContacts.id}
-                          </span>
-                        </span>
-                      </span>
-                    </a>
-                  ) : (
-                    <p className="ownership-empty">
-                      No owner linked to this item
-                    </p>
-                  )}
-
                   {primaryContact && (
                     <div className="ownership-contact-section">
                       <a
-                        className="ownership-contact-row contact-surface-chip"
+                        className={`ownership-contact-row contact-surface-chip ownership-primary-contact ${resolveContactTypeClass(
+                          primaryContact.type,
+                        )}`}
                         href={
                           primaryContact.href ||
                           `/contacts/${primaryContact.id}`
@@ -447,74 +418,78 @@ export default function DetailsPanel({
                     </div>
                   )}
 
-                  {extraActorRows.length > 0 && (
-                    <>
-                      <button
-                        type="button"
-                        className="ownership-expand-button"
-                        onClick={() =>
-                          updateDisclosureState({
-                            isContactsExtraOpen:
-                              !itemDisclosureState.isContactsExtraOpen,
-                          })
-                        }
-                        aria-expanded={itemDisclosureState.isContactsExtraOpen}
-                      >
-                        <span
-                          className={`details-panel-chevron ${
+                  {actorRowsForContacts.length > 0 && (
+                    <div className="ownership-actors-group">
+                      <>
+                        <button
+                          type="button"
+                          className="ownership-expand-button"
+                          onClick={() =>
+                            updateDisclosureState({
+                              isContactsExtraOpen:
+                                !itemDisclosureState.isContactsExtraOpen,
+                            })
+                          }
+                          aria-expanded={
+                            itemDisclosureState.isContactsExtraOpen
+                          }
+                        >
+                          <span
+                            className={`details-panel-chevron ${
+                              itemDisclosureState.isContactsExtraOpen
+                                ? "is-open"
+                                : ""
+                            }`}
+                            aria-hidden="true"
+                          >
+                            ›
+                          </span>
+                          {itemDisclosureState.isContactsExtraOpen
+                            ? "Hide actors"
+                            : "Show actors"}
+                        </button>
+                        <div
+                          className={`disclosure-panel ownership-extra-contacts ${
                             itemDisclosureState.isContactsExtraOpen
                               ? "is-open"
                               : ""
                           }`}
-                          aria-hidden="true"
                         >
-                          ›
-                        </span>
-                        {itemDisclosureState.isContactsExtraOpen
-                          ? "Hide more actors"
-                          : `Show ${extraActorRows.length} more actors`}
-                      </button>
-                      <div
-                        className={`disclosure-panel ownership-extra-contacts ${
-                          itemDisclosureState.isContactsExtraOpen
-                            ? "is-open"
-                            : ""
-                        }`}
-                      >
-                        <ul className="ownership-extra-list">
-                          {extraActorRows.map((entry) => (
-                            <li key={entry.key}>
-                              <a
-                                className="ownership-contact-row contact-surface-chip"
-                                href={`/actors/${entry.actor.id}`}
-                                onClick={(event) => {
-                                  if (!isPlainLeftClick(event)) {
-                                    return;
-                                  }
-                                  event.preventDefault();
-                                  onOpenActor(entry.actor);
-                                }}
-                                title={entry.actor.title || entry.actor.id}
-                              >
-                                <span className="chip-entry">
-                                  <span className="chip-icon-block">
-                                    {renderActorTeamIcon(iconSpriteHref)}
-                                  </span>
-                                  <span className="chip-text-block">
-                                    <span className="chip-prefix">
-                                      {entry.typeLabel}
+                          <ul className="ownership-extra-list">
+                            {actorRowsForContacts.map((entry) => (
+                              <li key={entry.key}>
+                                <a
+                                  className="ownership-contact-row contact-surface-chip"
+                                  href={`/actors/${entry.actor.id}`}
+                                  onClick={(event) => {
+                                    if (!isPlainLeftClick(event)) {
+                                      return;
+                                    }
+                                    event.preventDefault();
+                                    onOpenActor(entry.actor);
+                                  }}
+                                  title={entry.actor.title || entry.actor.id}
+                                >
+                                  <span className="chip-entry">
+                                    <span className="chip-icon-block">
+                                      {renderActorTeamIcon(iconSpriteHref)}
                                     </span>
-                                    <span className="ownership-contact-value">
-                                      {entry.actor.title || entry.actor.id}
+                                    <span className="chip-text-block">
+                                      <span className="chip-prefix">
+                                        {entry.typeLabel}
+                                      </span>
+                                      <span className="ownership-contact-value">
+                                        {entry.actor.title || entry.actor.id}
+                                      </span>
                                     </span>
                                   </span>
-                                </span>
-                              </a>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </>
+                                </a>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </>
+                    </div>
                   )}
                 </div>
               </section>
