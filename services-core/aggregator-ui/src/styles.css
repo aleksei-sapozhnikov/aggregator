@@ -1479,7 +1479,29 @@ body {
 }
 
 .ownership-contact-section {
-  margin-top: 4px;
+  margin: 0;
+}
+
+.ownership-actors-group {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.ownership-contact-section + .ownership-actors-group {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid color-mix(in srgb, var(--owner-panel-border) 72%, transparent);
+}
+
+.ownership-group-label {
+  margin: 0 0 8px;
+  color: var(--owner-panel-label);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  text-transform: uppercase;
 }
 
 .ownership-label {
@@ -1510,6 +1532,24 @@ body {
   overflow-wrap: anywhere;
   word-break: break-word;
   cursor: pointer;
+}
+
+.ownership-contact-section .ownership-primary-contact {
+  min-height: 46px;
+  background: color-mix(in srgb, var(--contact-icon-color, var(--link)) 10%, var(--panel));
+  border-color: color-mix(in srgb, var(--contact-icon-color, var(--link)) 32%, var(--border));
+}
+
+.ownership-contact-section .ownership-primary-contact:hover {
+  background: color-mix(in srgb, var(--contact-icon-color, var(--link)) 14%, var(--panel));
+}
+
+.ownership-contact-section .chip-prefix {
+  font-weight: 500;
+}
+
+.ownership-contact-section .ownership-contact-value {
+  font-weight: 500;
 }
 
 .ownership-owner-value:hover {
@@ -1665,8 +1705,8 @@ body {
   gap: 4px;
 }
 
-.ownership-summary > .ownership-owner-value:last-child,
-.ownership-summary > .ownership-empty:last-child {
+.ownership-actors-group > .ownership-owner-value:last-child,
+.ownership-actors-group > .ownership-empty:last-child {
   margin-bottom: 0;
 }
 
@@ -2006,6 +2046,10 @@ body[data-theme="dark"] .contact-chip:hover {
   --client-accent-soft: #eaf2ff;
   --client-surface: #ffffff;
   --client-thread-bg: #f6f7f9;
+  --client-text: #111827;
+  --client-muted-text: #64748b;
+  --client-composer-bg: color-mix(in srgb, var(--client-surface) 88%, var(--client-thread-bg));
+  --client-composer-text: var(--client-muted-text);
   --client-outgoing-bg: var(--client-accent);
   --client-outgoing-text: #ffffff;
   --client-incoming-bg: #ffffff;
@@ -2025,7 +2069,7 @@ body[data-theme="dark"] .contact-chip:hover {
   gap: 12px;
   padding: 9px 14px;
   background: var(--client-surface);
-  color: var(--text);
+  color: var(--client-text);
   font-size: 13px;
   font-weight: 700;
 }
@@ -2066,7 +2110,7 @@ body[data-theme="dark"] .contact-chip:hover {
 
 .contact-window-context {
   justify-self: end;
-  color: var(--muted);
+  color: var(--client-muted-text);
   font-size: 12px;
   font-weight: 600;
 }
@@ -2104,20 +2148,16 @@ body[data-theme="dark"] .contact-chip:hover {
 .contact-client-discord {
   --client-accent: #5865f2;
   --client-accent-strong: #404eed;
-  --client-accent-soft: #3b3e49;
-  --client-surface: #2b2d31;
-  --client-thread-bg: #313338;
+  --client-accent-soft: #eef0ff;
+  --client-surface: #ffffff;
+  --client-thread-bg: #f2f3f5;
+  --client-text: #1e1f22;
+  --client-muted-text: #5f6672;
+  --client-composer-bg: #e9ebee;
+  --client-composer-text: #313338;
   --client-outgoing-bg: #5865f2;
-  --client-incoming-bg: #3a3c43;
-  --client-incoming-text: #f2f3f5;
-}
-
-.contact-client-discord .contact-demo-window-bar {
-  color: #f2f3f5;
-}
-
-.contact-client-discord .contact-window-context {
-  color: #b5bac1;
+  --client-incoming-bg: #ffffff;
+  --client-incoming-text: #1e1f22;
 }
 
 .contact-client-mattermost {
@@ -2150,6 +2190,14 @@ body[data-theme="dark"] .contact-chip:hover {
   --client-accent: #22c55e;
   --client-accent-strong: #15803d;
   --client-accent-soft: #ecfdf3;
+  --client-surface: #ffffff;
+  --client-thread-bg: #f0fdf4;
+  --client-text: #102016;
+  --client-muted-text: #52635a;
+  --client-incoming-bg: #e5e7eb;
+  --client-incoming-text: #111827;
+  --client-outgoing-bg: #22c55e;
+  --client-outgoing-text: #052e16;
 }
 
 .contact-client-pagerduty {
@@ -2217,8 +2265,8 @@ body[data-theme="dark"] .contact-chip:hover {
   margin: 0 14px 12px;
   padding: 9px 11px;
   border-radius: 8px;
-  background: color-mix(in srgb, var(--client-surface) 88%, var(--client-thread-bg));
-  color: var(--muted);
+  background: var(--client-composer-bg);
+  color: var(--client-composer-text);
   font-size: 14px;
   overflow-wrap: anywhere;
 }
@@ -2261,6 +2309,7 @@ body[data-theme="dark"] .contact-chip:hover {
   padding: 14px 16px 12px;
   background: var(--client-surface);
   line-height: 1.55;
+  white-space: pre-line;
 }
 
 .contact-email-compose.is-sending .contact-email-body {
@@ -2287,7 +2336,7 @@ body[data-theme="dark"] .contact-chip:hover {
   color: var(--text);
 }
 
-.contact-email-sent-state span {
+.contact-email-sent-content span {
   display: block;
 }
 
@@ -2379,13 +2428,13 @@ body[data-theme="dark"] .contact-chip:hover {
 }
 
 .contact-demo-phone {
-  background: #101820;
-  color: #f8fafc;
+  background: var(--client-thread-bg);
+  color: var(--client-text);
 }
 
 .contact-demo-phone .contact-demo-window-bar {
-  background: #101820;
-  color: #f8fafc;
+  background: var(--client-surface);
+  color: var(--client-text);
 }
 
 .contact-phone-screen {
@@ -2417,12 +2466,13 @@ body[data-theme="dark"] .contact-chip:hover {
 .contact-phone-screen strong {
   max-width: 100%;
   font-size: 22px;
+  color: var(--client-text);
   overflow-wrap: anywhere;
 }
 
 .contact-phone-label,
 .contact-phone-status {
-  color: #cbd5e1;
+  color: var(--client-muted-text);
   font-size: 14px;
   font-weight: 700;
 }
@@ -2446,14 +2496,14 @@ body[data-theme="dark"] .contact-chip:hover {
 
 .contact-phone-line-in {
   align-self: flex-start;
-  background: rgba(255, 255, 255, 0.13);
-  color: #f8fafc;
+  background: var(--client-incoming-bg);
+  color: var(--client-incoming-text);
 }
 
 .contact-phone-line-out {
   align-self: flex-end;
-  background: #22c55e;
-  color: #052e16;
+  background: var(--client-outgoing-bg);
+  color: var(--client-outgoing-text);
 }
 
 .contact-demo-oncall,
@@ -2748,6 +2798,10 @@ body[data-theme="dark"] .contact-chip:hover {
 body[data-theme="dark"] .contact-demo {
   --client-surface: #181b1f;
   --client-thread-bg: #111827;
+  --client-text: #f8fafc;
+  --client-muted-text: #aeb6c2;
+  --client-composer-bg: color-mix(in srgb, var(--client-surface) 82%, var(--client-thread-bg));
+  --client-composer-text: #cbd5e1;
   --client-incoming-bg: #252a33;
   --client-incoming-text: #f8fafc;
 }
@@ -2791,6 +2845,29 @@ body[data-theme="dark"] .contact-client-messages {
   --client-thread-bg: #101810;
   --client-incoming-bg: #253025;
   --client-incoming-text: #f8fafc;
+}
+
+body[data-theme="dark"] .contact-client-discord {
+  --client-accent-soft: #3b3e49;
+  --client-surface: #2b2d31;
+  --client-thread-bg: #313338;
+  --client-text: #f2f3f5;
+  --client-muted-text: #b5bac1;
+  --client-composer-bg: #383a40;
+  --client-composer-text: #f2f3f5;
+  --client-incoming-bg: #3a3c43;
+  --client-incoming-text: #f2f3f5;
+}
+
+body[data-theme="dark"] .contact-client-phone {
+  --client-surface: #101820;
+  --client-thread-bg: #101820;
+  --client-text: #f8fafc;
+  --client-muted-text: #cbd5e1;
+  --client-incoming-bg: rgba(255, 255, 255, 0.13);
+  --client-incoming-text: #f8fafc;
+  --client-outgoing-bg: #22c55e;
+  --client-outgoing-text: #052e16;
 }
 
 body[data-theme="dark"] .contact-demo-oncall .contact-oncall-layout {
@@ -3548,7 +3625,7 @@ body[data-theme="dark"] .about-social-icon-linkedin {
   }
 
   .ownership-contact-section {
-    margin-top: 4px;
+    margin-top: 0;
   }
 
   .ownership-owner-value {
