@@ -231,14 +231,16 @@ const renderContactDemo = (
               </div>
             </div>
           )}
-          <div className="contact-email-actions">
-            <button
-              type="button"
-              className={mailStage === "sending" ? "is-sending" : ""}
-            >
-              {sendButtonText}
-            </button>
-          </div>
+          {isComposing && (
+            <div className="contact-email-actions">
+              <button
+                type="button"
+                className={mailStage === "sending" ? "is-sending" : ""}
+              >
+                {sendButtonText}
+              </button>
+            </div>
+          )}
         </div>
         {mailStage === "reply" && (
           <div
