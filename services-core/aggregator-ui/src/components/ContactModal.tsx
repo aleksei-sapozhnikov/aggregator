@@ -29,6 +29,20 @@ type ContactDemoDetails = {
   subject?: string;
 };
 
+type OnCallActivity = {
+  pagerduty: string[];
+  opsgenie: string[];
+};
+
+const onCallActivityByClient: OnCallActivity = {
+  pagerduty: [
+    "Service problem attached",
+    "Paging responder...",
+    "Responder acknowledged",
+  ],
+  opsgenie: ["Incident created", "Notification sent", "On-call acknowledged"],
+};
+
 const normalizeContactHandle = (label: string): string =>
   label.replace(/^#+/, "").replace(/^@+/, "").trim() || "team";
 
@@ -158,6 +172,9 @@ const renderContactDemo = (
   typedText: string,
   isMessageSent: boolean,
   showResponse: boolean,
+  onCallStep: number,
+  phoneStep: number,
+  ellipsis: string,
 ) => {
   if (details.kind === "email") {
     return (
@@ -190,19 +207,47 @@ const renderContactDemo = (
   }
 
   if (details.kind === "phone") {
+    const isConnected = phoneStep >= 1;
     return (
       <section
         className={`contact-demo contact-demo-phone contact-client-${details.clientClass}`}
         aria-label="Phone app preview"
       >
-        <ContactDemoWindowBar details={details} title="Call" />
+        <ContactDemoWindowBar
+          details={details}
+          title={isConnected ? "Connected" : "Calling"}
+        />
         <div className="contact-phone-screen">
           <span className="contact-phone-icon" aria-hidden="true">
             {details.iconLabel}
           </span>
-          <span className="contact-phone-label">Calling</span>
+          <span className="contact-phone-label">
+            {isConnected ? "Connected" : "Calling"}
+          </span>
           <strong>{label}</strong>
-          <span className="contact-phone-status">Ringing...</span>
+          {!isConnected && (
+            <span className="contact-phone-status">Ringing{ellipsis}</span>
+          )}
+          {isConnected && (
+            <div
+              className="contact-phone-dialogue"
+              aria-label="Phone call dialogue"
+            >
+              <p className="contact-phone-line contact-phone-line-in">
+                Listening.
+              </p>
+              {phoneStep >= 2 && (
+                <p className="contact-phone-line contact-phone-line-out">
+                  There is a problem with a service.
+                </p>
+              )}
+              {phoneStep >= 3 && (
+                <p className="contact-phone-line contact-phone-line-in">
+                  Ok, we are on it.
+                </p>
+              )}
+            </div>
+          )}
         </div>
       </section>
     );
@@ -236,6 +281,11 @@ const renderContactDemo = (
   }
 
   if (details.kind === "oncall") {
+    const activity =
+      details.clientClass === "opsgenie"
+        ? onCallActivityByClient.opsgenie
+        : onCallActivityByClient.pagerduty;
+
     return (
       <section
         className={`contact-demo contact-demo-oncall contact-client-${details.clientClass}`}
@@ -256,6 +306,21 @@ const renderContactDemo = (
         <p className="contact-oncall-note">
           Service problem attached to the escalation.
         </p>
+        <ol className="contact-oncall-activity" aria-label="Escalation activity">
+          {activity.map((entry, index) => (
+            <li
+              key={entry}
+              className={
+                index < onCallStep
+                  ? "contact-oncall-activity-item is-visible"
+                  : "contact-oncall-activity-item"
+              }
+            >
+              <span className="contact-oncall-dot" aria-hidden="true" />
+              <span>{entry}</span>
+            </li>
+          ))}
+        </ol>
       </section>
     );
   }
@@ -310,34 +375,81 @@ export default function ContactModal({
 }: ContactModalProps) {
   const [typedLength, setTypedLength] = useState(0);
   const [showResponse, setShowResponse] = useState(false);
+  const [onCallStep, setOnCallStep] = useState(0);
+  const [phoneStep, setPhoneStep] = useState(0);
+  const [ellipsisStep, setEllipsisStep] = useState(1);
   const contactLabel = contact ? resolveContactLabel(contact) : "";
   const outgoingText = contact ? buildOutgoingText(contactLabel) : "";
 
   useEffect(() => {
     setTypedLength(0);
     setShowResponse(false);
+    setOnCallStep(0);
+    setPhoneStep(0);
+    setEllipsisStep(1);
 
-    if (!isOpen || !contact || !outgoingText) {
+    if (!isOpen || !contact) {
       return undefined;
     }
 
-    let nextLength = 0;
-    const intervalId = window.setInterval(() => {
-      nextLength += 1;
-      setTypedLength(nextLength);
-      if (nextLength >= outgoingText.length) {
-        window.clearInterval(intervalId);
-      }
-    }, 28);
+    const timeoutIds: number[] = [];
+    const intervalIds: number[] = [];
+    const isMessageDemo = [
+      "discord",
+      "email",
+      "mattermost",
+      "slack",
+      "sms",
+      "teams",
+      "telegram",
+    ].includes(contact.type);
+    const isPhoneDemo = contact.type === "phone";
+    const isOnCallDemo =
+      contact.type === "pagerduty" || contact.type === "opsgenie";
 
-    const responseTimeoutId = window.setTimeout(
-      () => setShowResponse(true),
-      outgoingText.length * 28 + 1600,
-    );
+    if (isMessageDemo && outgoingText) {
+      let nextLength = 0;
+      const intervalId = window.setInterval(() => {
+        nextLength += 1;
+        setTypedLength(nextLength);
+        if (nextLength >= outgoingText.length) {
+          window.clearInterval(intervalId);
+        }
+      }, 28);
+      intervalIds.push(intervalId);
+
+      timeoutIds.push(
+        window.setTimeout(
+          () => setShowResponse(true),
+          outgoingText.length * 28 + 1600,
+        ),
+      );
+    }
+
+    if (isPhoneDemo) {
+      const ellipsisIntervalId = window.setInterval(() => {
+        setEllipsisStep((previous) => (previous % 3) + 1);
+      }, 420);
+      intervalIds.push(ellipsisIntervalId);
+
+      timeoutIds.push(
+        window.setTimeout(() => setPhoneStep(1), 1400),
+        window.setTimeout(() => setPhoneStep(2), 2300),
+        window.setTimeout(() => setPhoneStep(3), 3400),
+      );
+    }
+
+    if (isOnCallDemo) {
+      timeoutIds.push(
+        window.setTimeout(() => setOnCallStep(1), 450),
+        window.setTimeout(() => setOnCallStep(2), 1250),
+        window.setTimeout(() => setOnCallStep(3), 2300),
+      );
+    }
 
     return () => {
-      window.clearInterval(intervalId);
-      window.clearTimeout(responseTimeoutId);
+      intervalIds.forEach((intervalId) => window.clearInterval(intervalId));
+      timeoutIds.forEach((timeoutId) => window.clearTimeout(timeoutId));
     };
   }, [contact, isOpen, outgoingText]);
 
@@ -349,6 +461,7 @@ export default function ContactModal({
   const demoDetails = buildRealContactHref(contact, contactLabel);
   const typedText = outgoingText.slice(0, typedLength);
   const isMessageSent = typedLength >= outgoingText.length;
+  const ellipsis = ".".repeat(ellipsisStep);
 
   return (
     <div
@@ -363,9 +476,6 @@ export default function ContactModal({
         onClick={(event) => event.stopPropagation()}
       >
         <CloseButton ariaLabel="Close contact details" onClick={onClose} />
-        <header className="contact-modal-header">
-          <span className="contact-modal-kicker">Demo preview</span>
-        </header>
         <div className="contact-modal-body">
           {renderContactDemo(
             contactLabel,
@@ -373,6 +483,9 @@ export default function ContactModal({
             typedText,
             isMessageSent,
             showResponse,
+            onCallStep,
+            phoneStep,
+            ellipsis,
           )}
           <div className="contact-modal-demo-note">
             <p>

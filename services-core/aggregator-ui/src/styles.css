@@ -1961,20 +1961,16 @@ body[data-theme="dark"] .contact-chip:hover {
 
 .about-modal.contact-modal {
   width: min(720px, 100%);
-  padding: 18px;
+  border: none;
+  padding: 18px 20px 20px;
 }
 
-.contact-modal-header {
-  margin: 0 44px 10px 0;
-}
-
-.contact-modal-kicker {
-  display: block;
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+.contact-modal .about-close {
+  top: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  border: 0;
 }
 
 .contact-modal-link-preview {
@@ -1993,6 +1989,10 @@ body[data-theme="dark"] .contact-chip:hover {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.contact-modal-body > .contact-demo:first-child .contact-demo-window-bar {
+  padding-right: 62px;
 }
 
 .about-modal.contact-modal p {
@@ -2143,6 +2143,12 @@ body[data-theme="dark"] .contact-chip:hover {
   --client-accent-soft: #eff6ff;
 }
 
+.contact-client-phone {
+  --client-accent: #22c55e;
+  --client-accent-strong: #15803d;
+  --client-accent-soft: #ecfdf3;
+}
+
 .contact-client-pagerduty {
   --client-accent: #06ac38;
   --client-accent-strong: #047a29;
@@ -2153,6 +2159,12 @@ body[data-theme="dark"] .contact-chip:hover {
   --client-accent: #2684ff;
   --client-accent-strong: #0c66e4;
   --client-accent-soft: #eef6ff;
+}
+
+.contact-client-generic {
+  --client-accent: #64748b;
+  --client-accent-strong: #475569;
+  --client-accent-soft: #f1f5f9;
 }
 
 .contact-demo-chat {
@@ -2288,7 +2300,7 @@ body[data-theme="dark"] .contact-chip:hover {
 }
 
 .contact-phone-screen {
-  min-height: 250px;
+  min-height: 286px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2322,6 +2334,35 @@ body[data-theme="dark"] .contact-chip:hover {
   color: #cbd5e1;
   font-size: 14px;
   font-weight: 700;
+}
+
+.contact-phone-dialogue {
+  width: min(390px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.contact-phone-line {
+  max-width: 82%;
+  padding: 8px 11px;
+  border-radius: 8px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  animation: contact-message-pop 180ms ease-out;
+}
+
+.contact-phone-line-in {
+  align-self: flex-start;
+  background: rgba(255, 255, 255, 0.13);
+  color: #f8fafc;
+}
+
+.contact-phone-line-out {
+  align-self: flex-end;
+  background: #22c55e;
+  color: #052e16;
 }
 
 .contact-demo-oncall,
@@ -2382,9 +2423,48 @@ body[data-theme="dark"] .contact-chip:hover {
 }
 
 .contact-oncall-note {
-  padding: 0 16px 18px 72px;
+  padding: 0 16px 8px 72px;
   color: var(--muted);
   font-size: 13px;
+}
+
+.contact-oncall-activity {
+  list-style: none;
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding: 4px 16px 18px 72px;
+}
+
+.contact-oncall-activity-item {
+  min-height: 22px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 13px;
+  opacity: 0;
+  transform: translateY(4px);
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
+}
+
+.contact-oncall-activity-item.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.contact-oncall-dot {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 8px;
+  border-radius: 50%;
+  background: var(--client-accent);
+}
+
+.contact-oncall-activity-item.is-visible:last-child .contact-oncall-dot {
+  animation: contact-status-pulse 1200ms ease-in-out infinite;
 }
 
 .contact-modal-demo-note {
@@ -2472,6 +2552,10 @@ body[data-theme="dark"] .contact-modal-link-preview {
   .contact-oncall-note {
     padding-left: 16px;
   }
+
+  .contact-oncall-activity {
+    padding-left: 16px;
+  }
 }
 
 @keyframes contact-caret-blink {
@@ -2493,6 +2577,16 @@ body[data-theme="dark"] .contact-modal-link-preview {
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes contact-status-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--client-accent) 32%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 5px transparent;
   }
 }
 
