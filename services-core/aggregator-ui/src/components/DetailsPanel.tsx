@@ -22,8 +22,6 @@ import type {
 import type { MouseEvent, ReactElement, RefObject } from "react";
 import { useEffect, useMemo, useState } from "react";
 
-const AFFECTING_PREVIEW_LIMIT = 3;
-
 type DetailsPanelProps = {
   contentRef: RefObject<HTMLElement | null>;
   isSidebarOpen: boolean;
@@ -62,7 +60,6 @@ type DetailsPanelProps = {
   onOpenActor: (actor: CatalogActor) => void;
   passingSignalsCount: number;
   selectedPassingSignals: ItemSignal[];
-  hasOwnHealthSignals: boolean;
   onOpenContact: (contact: CatalogContact) => void;
   isGrafanaOpen: boolean;
   onToggleGrafana: () => void;
@@ -75,14 +72,14 @@ type DetailsPanelProps = {
 type DetailsDisclosureState = {
   isHealthyOpen: boolean;
   isContactsExtraOpen: boolean;
-  showAllAffecting: boolean;
+  isAffectingOpen: boolean;
 };
 
 type AffectingSignalRow = {
   id: string;
   typeLabel: "Own" | "Dependency";
   title: string;
-  signals?: string[];
+  signals?: ItemSignal[];
   status: HealthStatus;
   href?: string;
   onClick?: (event: MouseEvent<HTMLAnchorElement>) => void;
@@ -97,7 +94,7 @@ type ExtraActorRow = {
 const emptyDisclosureState: DetailsDisclosureState = {
   isHealthyOpen: false,
   isContactsExtraOpen: false,
-  showAllAffecting: false,
+  isAffectingOpen: true,
 };
 
 const buildExtraActorRows = (actors: CatalogActor[]): ExtraActorRow[] =>
@@ -129,6 +126,16 @@ const renderActorTeamIcon = (iconSpriteHref: string): ReactElement => (
     </svg>
   </span>
 );
+
+const buildSignalResultLabel = (status: HealthStatus): string => {
+  if (status === "up") {
+    return "PASSING";
+  }
+  if (status === "down") {
+    return "FAILING";
+  }
+  return "UNKNOWN";
+};
 
 /**
  * Renders the right-side content area:
@@ -169,7 +176,6 @@ export default function DetailsPanel({
   onOpenActor,
   passingSignalsCount,
   selectedPassingSignals,
-  hasOwnHealthSignals,
   onOpenContact,
   isGrafanaOpen,
   onToggleGrafana,
@@ -225,9 +231,7 @@ export default function DetailsPanel({
           id: `dep:${entry.id}`,
           typeLabel: "Dependency",
           title: entry.name,
-          signals: entry.failingSignals.map(
-            (signal) => signal.title || signal.id,
-          ),
+          signals: entry.failingSignals,
           status: entry.status,
           href: buildItemLink(entry.id, entry.path),
           onClick: (event) => {
@@ -299,16 +303,6 @@ export default function DetailsPanel({
       };
     });
   };
-
-  const visibleAffectingRows =
-    itemDisclosureState.showAllAffecting ||
-    affectingRows.length <= AFFECTING_PREVIEW_LIMIT
-      ? affectingRows
-      : affectingRows.slice(0, AFFECTING_PREVIEW_LIMIT);
-  const hiddenAffectingRowsCount = Math.max(
-    affectingRows.length - AFFECTING_PREVIEW_LIMIT,
-    0,
-  );
 
   return (
     <main className="content" ref={contentRef}>
@@ -427,7 +421,7 @@ export default function DetailsPanel({
                     <>
                       <button
                         type="button"
-                        className="ownership-expand-button"
+                        className="details-disclosure-toggle"
                         onClick={() =>
                           updateDisclosureState({
                             isContactsExtraOpen:
@@ -446,9 +440,7 @@ export default function DetailsPanel({
                         >
                           ›
                         </span>
-                        {itemDisclosureState.isContactsExtraOpen
-                          ? "Hide actors"
-                          : "Show actors"}
+                        <span>Actors ({actorRowsForContacts.length})</span>
                       </button>
                       <div
                         className={`disclosure-panel ownership-extra-contacts ${
@@ -496,205 +488,188 @@ export default function DetailsPanel({
                 </div>
               </section>
 
-              <section
-                className={`details-inline-block details-inline-block-signals ${
-                  selectedStatus !== "up" ? "is-degraded" : ""
-                }`}
-              >
+              <section className="details-inline-block details-inline-block-signals">
                 {hasAffectingSignals && (
-                  <div className="details-inline-head">
-                    <p className="ownership-label signals-section-label">
-                      Affecting now{" "}
-                      <span className="details-panel-count">
-                        ({affectingRows.length})
-                      </span>
-                    </p>
-                  </div>
-                )}
-
-                {!hasAffectingSignals && (
-                  <p className="ownership-label signals-section-label">
-                    All signals are healthy
-                  </p>
-                )}
-                {hasAffectingSignals && (
-                  <ul className="signals-incident-list">
-                    {visibleAffectingRows.map((row) => (
-                      <li
-                        key={row.id}
-                        className={`signals-incident-row ${
-                          row.typeLabel !== "Own" && row.href
-                            ? "is-nav-target"
-                            : ""
-                        }`}
-                      >
-                        {row.typeLabel === "Own" ? (
-                          <ul className="signals-list signals-sublist signals-group-list">
-                            {selectedFailingSignals.map((entry) => (
-                              <li key={entry.id} className="signal">
-                                <div className="signals-incident-title">
-                                  <span className="signals-incident-indicator-wrap">
-                                    <span
-                                      className={`status-indicator status-${entry.status}`}
-                                      aria-label={buildStatusText(entry.status)}
-                                      title={buildStatusText(entry.status)}
-                                    />
-                                  </span>
-                                  <span className="signals-incident-text-stack">
-                                    <span className="signals-incident-kind">
-                                      Own
-                                    </span>
-                                    <span
-                                      className="signal-name"
-                                      title={entry.title || entry.id}
-                                    >
-                                      {entry.title || entry.id}
-                                    </span>
-                                  </span>
-                                </div>
-                              </li>
-                            ))}
-                          </ul>
-                        ) : row.href ? (
-                          <a
-                            className="signals-incident-card-link"
-                            title={row.title}
-                            href={row.href}
-                            onClick={row.onClick}
-                          >
-                            <div className="signals-incident-title">
-                              <span className="signals-incident-indicator-wrap">
-                                <span
-                                  className={`status-indicator status-${row.status}`}
-                                  aria-label={buildStatusText(row.status)}
-                                  title={buildStatusText(row.status)}
-                                />
-                              </span>
-                              <span className="signals-incident-text-stack">
-                                <span className="signals-incident-kind">
-                                  {row.typeLabel}
-                                </span>
-                                <span className="signal-name" title={row.title}>
-                                  {row.title}
-                                </span>
-                              </span>
-                            </div>
-                            {row.signals && row.signals.length > 0 && (
-                              <ul className="signals-incident-signal-list">
-                                {row.signals.map((signalLabel, signalIndex) => (
-                                  <li
-                                    key={`${row.id}:${signalIndex}`}
-                                    className="signals-incident-signal"
-                                    title={signalLabel}
-                                  >
-                                    <span>{signalLabel}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
-                          </a>
-                        ) : (
-                          <>
-                            <div className="signals-incident-title">
-                              <span className="signals-incident-indicator-wrap">
-                                <span
-                                  className={`status-indicator status-${row.status}`}
-                                  aria-label={buildStatusText(row.status)}
-                                  title={buildStatusText(row.status)}
-                                />
-                              </span>
-                              <span className="signals-incident-text-stack">
-                                <span className="signals-incident-kind">
-                                  {row.typeLabel}
-                                </span>
-                                <span className="signal-name" title={row.title}>
-                                  {row.title}
-                                </span>
-                              </span>
-                            </div>
-                            {row.signals && row.signals.length > 0 && (
-                              <ul className="signals-incident-signal-list">
-                                {row.signals.map((signalLabel, signalIndex) => (
-                                  <li
-                                    key={`${row.id}:${signalIndex}`}
-                                    className="signals-incident-signal"
-                                    title={signalLabel}
-                                  >
-                                    <span>{signalLabel}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
-                          </>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                {hasAffectingSignals &&
-                  affectingRows.length > AFFECTING_PREVIEW_LIMIT && (
+                  <div className="details-disclosure-section">
                     <button
                       type="button"
-                      className="signals-overflow-button"
+                      className="details-disclosure-toggle"
                       onClick={() =>
                         updateDisclosureState({
-                          showAllAffecting:
-                            !itemDisclosureState.showAllAffecting,
+                          isAffectingOpen:
+                            !itemDisclosureState.isAffectingOpen,
                         })
                       }
+                      aria-expanded={itemDisclosureState.isAffectingOpen}
                     >
                       <span
                         className={`details-panel-chevron ${
-                          itemDisclosureState.showAllAffecting ? "is-open" : ""
+                          itemDisclosureState.isAffectingOpen ? "is-open" : ""
                         }`}
                         aria-hidden="true"
                       >
                         ›
                       </span>
-                      {itemDisclosureState.showAllAffecting
-                        ? "Show fewer"
-                        : `Show ${hiddenAffectingRowsCount} more`}
+                      <span>Affecting now ({affectingRows.length})</span>
                     </button>
-                  )}
+                    <div
+                      className={`disclosure-panel ${
+                        itemDisclosureState.isAffectingOpen ? "is-open" : ""
+                      }`}
+                    >
+                      <ul className="signals-incident-list">
+                        {affectingRows.map((row) => (
+                          <li key={row.id} className="signals-incident-row">
+                            {row.typeLabel === "Own" ? (
+                              <ul className="signals-list signals-sublist signals-group-list">
+                                {selectedFailingSignals.map((entry) => (
+                                  <li key={entry.id} className="signal">
+                                    <div className="signal-row signal-status-row">
+                                      <span
+                                        className={`status-indicator status-${entry.status}`}
+                                        aria-label={buildStatusText(entry.status)}
+                                        title={buildStatusText(entry.status)}
+                                      />
+                                      <span
+                                        className={`signal-result-label signal-result-${entry.status}`}
+                                      >
+                                        {buildSignalResultLabel(entry.status)}
+                                      </span>
+                                      <span
+                                        className="signal-name"
+                                        title={entry.title || entry.id}
+                                      >
+                                        {entry.title || entry.id}
+                                      </span>
+                                    </div>
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <>
+                                {row.href ? (
+                                  <a
+                                    className="signals-dependency-link"
+                                    title={row.title}
+                                    href={row.href}
+                                    onClick={row.onClick}
+                                  >
+                                    <span
+                                      className={`status-indicator status-${row.status}`}
+                                      aria-label={buildStatusText(row.status)}
+                                      title={buildStatusText(row.status)}
+                                    />
+                                    <span className="signals-incident-text-stack">
+                                      <span className="signals-incident-kind">
+                                        {row.typeLabel}
+                                      </span>
+                                      <span
+                                        className="signal-name"
+                                        title={row.title}
+                                      >
+                                        {row.title}
+                                      </span>
+                                    </span>
+                                    <span
+                                      className="signals-nav-chevron"
+                                      aria-hidden="true"
+                                    >
+                                      ›
+                                    </span>
+                                  </a>
+                                ) : (
+                                  <div className="signals-dependency-link is-static">
+                                    <span
+                                      className={`status-indicator status-${row.status}`}
+                                      aria-label={buildStatusText(row.status)}
+                                      title={buildStatusText(row.status)}
+                                    />
+                                    <span className="signals-incident-text-stack">
+                                      <span className="signals-incident-kind">
+                                        {row.typeLabel}
+                                      </span>
+                                      <span
+                                        className="signal-name"
+                                        title={row.title}
+                                      >
+                                        {row.title}
+                                      </span>
+                                    </span>
+                                  </div>
+                                )}
+                                {row.signals && row.signals.length > 0 && (
+                                  <ul className="signals-incident-signal-list">
+                                    {row.signals.map((signal) => (
+                                      <li
+                                        key={signal.id}
+                                        className="signals-incident-signal"
+                                        title={signal.title || signal.id}
+                                      >
+                                        <span
+                                          className={`status-indicator status-${signal.status}`}
+                                          aria-label={buildStatusText(signal.status)}
+                                          title={buildStatusText(signal.status)}
+                                        />
+                                        <span
+                                          className={`signal-result-label signal-result-${signal.status}`}
+                                        >
+                                          {buildSignalResultLabel(signal.status)}
+                                        </span>
+                                        <span>{signal.title || signal.id}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                )}
+                              </>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                )}
 
-                <div
-                  className={`signals-healthy-section ${
-                    hasAffectingSignals ? "has-affecting-separator" : ""
-                  }`}
-                >
-                  <button
-                    type="button"
-                    className="signals-healthy-toggle"
-                    onClick={() =>
-                      updateDisclosureState({
-                        isHealthyOpen: !itemDisclosureState.isHealthyOpen,
-                      })
-                    }
-                    aria-expanded={itemDisclosureState.isHealthyOpen}
-                  >
-                    <span>Healthy signals ({passingSignalsCount})</span>
-                    <span
-                      className={`details-panel-chevron ${
+                {passingSignalsCount > 0 && (
+                  <div className="details-disclosure-section">
+                    <button
+                      type="button"
+                      className="details-disclosure-toggle"
+                      onClick={() =>
+                        updateDisclosureState({
+                          isHealthyOpen: !itemDisclosureState.isHealthyOpen,
+                        })
+                      }
+                      aria-expanded={itemDisclosureState.isHealthyOpen}
+                    >
+                      <span
+                        className={`details-panel-chevron ${
+                          itemDisclosureState.isHealthyOpen ? "is-open" : ""
+                        }`}
+                        aria-hidden="true"
+                      >
+                        ›
+                      </span>
+                      <span>Healthy signals ({passingSignalsCount})</span>
+                    </button>
+                    <div
+                      className={`disclosure-panel ${
                         itemDisclosureState.isHealthyOpen ? "is-open" : ""
                       }`}
-                      aria-hidden="true"
                     >
-                      ›
-                    </span>
-                  </button>
-                  <div
-                    className={`disclosure-panel ${itemDisclosureState.isHealthyOpen ? "is-open" : ""}`}
-                  >
-                    <ul className="signals-healthy-list">
-                      {selectedPassingSignals.length > 0 ? (
-                        selectedPassingSignals.map((entry) => (
+                      <ul className="signals-healthy-list">
+                        {selectedPassingSignals.map((entry) => (
                           <li key={entry.id} className="signals-healthy-row">
-                            <div className="signal-row">
+                            <div className="signal-row signal-status-row">
                               <span
                                 className={`status-indicator status-${entry.status}`}
                                 aria-label={buildStatusText(entry.status)}
                                 title={buildStatusText(entry.status)}
                               />
+                              <span
+                                className={`signal-result-label signal-result-${entry.status}`}
+                              >
+                                {buildSignalResultLabel(entry.status)}
+                              </span>
                               <span
                                 className="signal-name"
                                 title={entry.title || entry.id}
@@ -703,21 +678,11 @@ export default function DetailsPanel({
                               </span>
                             </div>
                           </li>
-                        ))
-                      ) : (
-                        <li className="signals-healthy-row">
-                          <div className="signal-row">
-                            <span className="signal-name">
-                              {hasOwnHealthSignals
-                                ? "No passing health signals right now."
-                                : "This item does not have own health signals."}
-                            </span>
-                          </div>
-                        </li>
-                      )}
-                    </ul>
+                        ))}
+                      </ul>
+                    </div>
                   </div>
-                </div>
+                )}
               </section>
               <section
                 className={`details-panel details-panel-grafana ${isGrafanaOpen ? "is-open" : ""}`}

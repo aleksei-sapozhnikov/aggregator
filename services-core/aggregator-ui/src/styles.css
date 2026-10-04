@@ -3979,3 +3979,279 @@ body[data-theme="dark"] .about-social-icon-linkedin {
     min-height: 0;
   }
 }
+
+/* Compact health hierarchy: neutral surfaces, consistent disclosures, and shape-coded states. */
+.status-indicator {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.status-indicator::before {
+  content: "?";
+}
+
+.status-indicator.status-up {
+  background: transparent;
+  color: var(--status-up);
+}
+
+.status-indicator.status-up::before {
+  content: "✓";
+}
+
+.status-indicator.status-down {
+  background: transparent;
+  color: var(--status-down);
+}
+
+.status-indicator.status-down::before {
+  content: "×";
+}
+
+.status-indicator.status-unknown {
+  background: transparent;
+  color: var(--status-unknown);
+}
+
+.status-indicator.status-unknown::before {
+  content: "?";
+}
+
+.ai-health-response .status-indicator {
+  flex-basis: 14px;
+}
+
+.ownership-summary {
+  clip-path: none;
+  gap: 6px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.ownership-summary::before {
+  display: none;
+}
+
+.ownership-contact-section + .ownership-actors-group {
+  margin-top: 0;
+}
+
+.ownership-summary .contact-surface-chip,
+.ownership-summary .contact-chip.contact-surface-chip,
+.ownership-contact-section .ownership-primary-contact {
+  min-height: 44px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  padding: 6px 4px;
+}
+
+.ownership-summary .contact-surface-chip:hover,
+.ownership-summary .contact-chip.contact-surface-chip:hover,
+.ownership-contact-section .ownership-primary-contact:hover {
+  background: color-mix(in srgb, var(--panel-hover) 58%, transparent);
+}
+
+.details-inline-block-signals {
+  clip-path: none;
+  gap: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.details-inline-block-signals::before {
+  display: none;
+}
+
+.details-inline-block-signals.is-degraded {
+  border-color: transparent;
+  background: transparent;
+}
+
+.details-disclosure-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.details-disclosure-section + .details-disclosure-section {
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid var(--border);
+}
+
+.details-disclosure-toggle {
+  width: 100%;
+  min-height: 40px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--link);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 4px;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.details-disclosure-toggle .details-panel-chevron {
+  color: currentColor;
+}
+
+.details-disclosure-toggle:hover {
+  color: var(--text);
+  background: color-mix(in srgb, var(--panel-hover) 58%, transparent);
+}
+
+.details-disclosure-toggle:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
+}
+
+.ownership-extra-contacts {
+  margin-top: 2px;
+}
+
+.ownership-extra-list {
+  gap: 2px;
+  padding-left: 18px;
+}
+
+.signals-incident-list {
+  gap: 6px;
+  padding: 2px 0 4px 18px;
+}
+
+.signals-incident-row,
+.signals-incident-row.is-nav-target {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 2px 0;
+}
+
+.signals-dependency-link {
+  width: 100%;
+  min-height: 44px;
+  border-radius: 6px;
+  color: var(--text);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 4px;
+}
+
+a.signals-dependency-link {
+  cursor: pointer;
+}
+
+a.signals-dependency-link:hover {
+  background: color-mix(in srgb, var(--panel-hover) 58%, transparent);
+}
+
+a.signals-dependency-link:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
+}
+
+.signals-dependency-link.is-static {
+  cursor: default;
+}
+
+.signals-nav-chevron {
+  margin-left: auto;
+  color: var(--link);
+  font-size: 18px;
+  line-height: 1;
+}
+
+.signals-incident-signal-list {
+  margin: 1px 0 2px 7px;
+  padding: 0 0 0 17px;
+  border-left: 1px solid var(--border);
+  gap: 1px;
+}
+
+.signals-incident-signal {
+  min-height: 30px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.signals-incident-signal::before {
+  display: none;
+}
+
+.signals-group-list {
+  padding: 0;
+}
+
+.signals-group-list .signal {
+  min-height: 34px;
+  padding: 3px 4px;
+}
+
+.signals-healthy-list {
+  gap: 1px;
+  padding: 2px 0 4px 18px;
+}
+
+.signals-healthy-row {
+  padding: 2px 0;
+}
+
+.signal-status-row {
+  min-height: 30px;
+  gap: 7px;
+}
+
+.signal-result-label {
+  flex: 0 0 auto;
+  min-width: 52px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.045em;
+  line-height: 1.2;
+}
+
+.signal-result-up {
+  color: var(--status-up);
+}
+
+.signal-result-down {
+  color: var(--status-down);
+}
+
+.signal-result-unknown {
+  color: var(--muted);
+}
+
+.signals-incident-indicator-wrap {
+  width: 14px;
+  min-width: 14px;
+}
+
