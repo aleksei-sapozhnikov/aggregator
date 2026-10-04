@@ -2307,6 +2307,12 @@ body[data-theme="dark"] .contact-chip:hover {
   text-align: center;
 }
 
+.contact-email-envelope-icon {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
 .contact-email-actions {
   display: flex;
   justify-content: flex-end;
@@ -2455,6 +2461,26 @@ body[data-theme="dark"] .contact-chip:hover {
   background: var(--client-surface);
 }
 
+.contact-oncall-start,
+.contact-oncall-form {
+  --oncall-panel-bg: color-mix(in srgb, var(--client-accent-soft) 34%, #ffffff);
+  --oncall-title: #111827;
+  --oncall-supporting: #4b5563;
+  --oncall-pill-bg: color-mix(in srgb, var(--client-accent-soft) 78%, #ffffff);
+  --oncall-pill-text: var(--client-accent-strong);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-height: 230px;
+  padding: 24px 18px;
+  background: var(--oncall-panel-bg);
+  border-radius: 8px;
+}
+
+.contact-oncall-start {
+  justify-content: center;
+}
+
 .contact-oncall-layout {
   --oncall-panel-bg: color-mix(in srgb, var(--client-accent-soft) 34%, #ffffff);
   --oncall-panel-bg-strong: color-mix(in srgb, var(--client-accent-soft) 58%, #ffffff);
@@ -2566,10 +2592,51 @@ body[data-theme="dark"] .contact-chip:hover {
   min-height: 34px;
 }
 
-.contact-oncall-actions button + button {
+.contact-oncall-actions button.is-active {
+  transform: translateY(1px);
+  opacity: 0.84;
+}
+
+.contact-oncall-actions button + button,
+.contact-oncall-actions .contact-oncall-secondary-action {
   background: var(--oncall-secondary-bg);
   color: var(--oncall-secondary-text);
   border-color: var(--oncall-secondary-border);
+}
+
+.contact-oncall-form {
+  min-height: 270px;
+  justify-content: flex-start;
+}
+
+.contact-oncall-form h3 {
+  margin: 0;
+  color: var(--oncall-title);
+  font-size: 16px;
+}
+
+.contact-oncall-form label {
+  display: grid;
+  gap: 6px;
+}
+
+.contact-oncall-form label > span {
+  color: var(--oncall-supporting);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.contact-oncall-form strong,
+.contact-oncall-form p {
+  min-height: 24px;
+  color: var(--oncall-title);
+  overflow-wrap: anywhere;
+}
+
+.contact-oncall-form p {
+  line-height: 1.45;
 }
 
 .contact-oncall-activity-panel {
@@ -2737,6 +2804,15 @@ body[data-theme="dark"] .contact-demo-oncall .contact-oncall-layout {
   --oncall-secondary-text: #e5e7eb;
   --oncall-secondary-border: #3a414d;
   --oncall-line: color-mix(in srgb, var(--client-accent) 38%, #475569);
+}
+
+body[data-theme="dark"] .contact-demo-oncall .contact-oncall-start,
+body[data-theme="dark"] .contact-demo-oncall .contact-oncall-form {
+  --oncall-panel-bg: #20252d;
+  --oncall-title: #f8fafc;
+  --oncall-supporting: #cbd5e1;
+  --oncall-pill-bg: color-mix(in srgb, var(--client-accent) 18%, #111827);
+  --oncall-pill-text: #f8fafc;
 }
 
 body[data-theme="dark"] .contact-demo-oncall .contact-window-context,

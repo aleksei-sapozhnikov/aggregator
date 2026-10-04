@@ -35,6 +35,14 @@ type OnCallActivity = {
 };
 
 type MailStage = "typing" | "ready" | "sending" | "sent" | "reply";
+type OnCallStage =
+  | "idle"
+  | "opening-form"
+  | "typing"
+  | "creating"
+  | "incident-created"
+  | "notifying"
+  | "acknowledged";
 
 const onCallActivityByClient: OnCallActivity = {
   pagerduty: [
@@ -50,6 +58,10 @@ const normalizeContactHandle = (label: string): string =>
 
 const buildOutgoingText = (label: string): string =>
   `Hey ${normalizeContactHandle(label)}, I have a problem with a service.`;
+
+const onCallIncidentTitle = "Service problem";
+const onCallIncidentDescription =
+  "A service is experiencing a health problem.";
 
 const buildRealContactHref = (
   contact: CatalogContact,
@@ -168,6 +180,31 @@ const ContactDemoWindowBar = ({
   </div>
 );
 
+const MailEnvelopeIcon = () => (
+  <svg
+    className="contact-email-envelope-icon"
+    viewBox="0 0 24 24"
+    focusable="false"
+    aria-hidden="true"
+  >
+    <path
+      d="M4.75 6.75h14.5v10.5H4.75z"
+      fill="none"
+      stroke="currentColor"
+      strokeLinejoin="round"
+      strokeWidth="1.8"
+    />
+    <path
+      d="m5.25 7.25 6.75 5 6.75-5"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="1.8"
+    />
+  </svg>
+);
+
 const renderContactDemo = (
   label: string,
   details: ContactDemoDetails,
@@ -178,6 +215,8 @@ const renderContactDemo = (
   phoneStep: number,
   ellipsis: string,
   mailStage: MailStage,
+  onCallStage: OnCallStage,
+  onCallFormLength: number,
 ) => {
   if (details.kind === "email") {
     const isComposing =
@@ -211,7 +250,7 @@ const renderContactDemo = (
           {(mailStage === "sent" || mailStage === "reply") && (
             <div className="contact-email-sent-state">
               <span className="contact-email-sent-icon" aria-hidden="true">
-                ✉
+                <MailEnvelopeIcon />
               </span>
               <div>
                 <strong>Message sent</strong>
@@ -233,7 +272,7 @@ const renderContactDemo = (
         {mailStage === "reply" && (
           <div className="contact-email-reply" aria-label="Email reply received">
             <span className="contact-email-reply-icon" aria-hidden="true">
-              ✉
+              <MailEnvelopeIcon />
             </span>
             <div>
               <span className="contact-email-reply-meta">Reply received from {label}</span>
@@ -282,7 +321,7 @@ const renderContactDemo = (
               )}
               {phoneStep >= 3 && (
                 <p className="contact-phone-line contact-phone-line-in">
-                  🤘 Ok, we're on it.
+                  Understood, we're on it.
                 </p>
               )}
             </div>
@@ -331,6 +370,18 @@ const renderContactDemo = (
         : isAcknowledged
           ? "Responder acknowledged"
           : "Primary responder available";
+    const isInitial = onCallStage === "idle" || onCallStage === "opening-form";
+    const isForm =
+      onCallStage === "typing" || onCallStage === "creating";
+    const isCreatePressed = onCallStage === "opening-form";
+    const typedIncidentTitle = onCallIncidentTitle.slice(
+      0,
+      Math.min(onCallFormLength, onCallIncidentTitle.length),
+    );
+    const typedDescription = onCallIncidentDescription.slice(
+      0,
+      Math.max(0, onCallFormLength - onCallIncidentTitle.length),
+    );
 
     return (
       <section
@@ -338,7 +389,63 @@ const renderContactDemo = (
         aria-label="On-call profile preview"
       >
         <ContactDemoWindowBar details={details} title="Escalation" />
-        <div className="contact-oncall-layout">
+        {isInitial && (
+          <div className="contact-oncall-start">
+            <div className="contact-oncall-profile">
+              <span className="contact-oncall-avatar">{details.iconLabel}</span>
+              <div>
+                <strong>{label}</strong>
+                <span className="contact-oncall-status">
+                  <span className="contact-oncall-status-dot" aria-hidden="true" />
+                  Primary responder available
+                </span>
+              </div>
+            </div>
+            <div className="contact-oncall-actions">
+              <button
+                type="button"
+                className={isCreatePressed ? "is-active" : ""}
+              >
+                {isCreatePressed ? "Opening..." : "Create incident"}
+              </button>
+            </div>
+          </div>
+        )}
+        {isForm && (
+          <div className="contact-oncall-form" aria-label="Create incident form">
+            <h3>Create incident</h3>
+            <label>
+              <span>Title</span>
+              <strong>
+                {typedIncidentTitle}
+                {onCallStage === "typing" &&
+                  onCallFormLength <= onCallIncidentTitle.length && (
+                    <span className="contact-typing-caret" />
+                  )}
+              </strong>
+            </label>
+            <label>
+              <span>Description</span>
+              <p>
+                {typedDescription}
+                {onCallStage === "typing" &&
+                  onCallFormLength > onCallIncidentTitle.length && (
+                    <span className="contact-typing-caret" />
+                  )}
+              </p>
+            </label>
+            <div className="contact-oncall-actions">
+              <button
+                type="button"
+                className={onCallStage === "creating" ? "is-active" : ""}
+              >
+                {onCallStage === "creating" ? "Creating..." : "Create incident"}
+              </button>
+            </div>
+          </div>
+        )}
+        {!isInitial && !isForm && (
+          <div className="contact-oncall-layout">
           <div className="contact-oncall-summary">
             <div className="contact-oncall-profile">
               <span className="contact-oncall-avatar">{details.iconLabel}</span>
@@ -357,8 +464,9 @@ const renderContactDemo = (
               </div>
             </div>
             <div className="contact-oncall-actions">
-              <button type="button">Create incident</button>
-              <button type="button">Page responder</button>
+              <button type="button" className="contact-oncall-secondary-action">
+                Page responder
+              </button>
             </div>
           </div>
           <div className="contact-oncall-activity-panel">
@@ -390,6 +498,7 @@ const renderContactDemo = (
             </ol>
           </div>
         </div>
+        )}
       </section>
     );
   }
@@ -448,6 +557,8 @@ export default function ContactModal({
   const [phoneStep, setPhoneStep] = useState(0);
   const [ellipsisStep, setEllipsisStep] = useState(1);
   const [mailStage, setMailStage] = useState<MailStage>("typing");
+  const [onCallStage, setOnCallStage] = useState<OnCallStage>("idle");
+  const [onCallFormLength, setOnCallFormLength] = useState(0);
   const contactLabel = contact ? resolveContactLabel(contact) : "";
   const outgoingText = contact ? buildOutgoingText(contactLabel) : "";
 
@@ -458,6 +569,8 @@ export default function ContactModal({
     setPhoneStep(0);
     setEllipsisStep(1);
     setMailStage("typing");
+    setOnCallStage("idle");
+    setOnCallFormLength(0);
 
     if (!isOpen || !contact) {
       return undefined;
@@ -531,10 +644,35 @@ export default function ContactModal({
     }
 
     if (isOnCallDemo) {
+      const formTextLength =
+        onCallIncidentTitle.length + onCallIncidentDescription.length;
       timeoutIds.push(
-        window.setTimeout(() => setOnCallStep(1), 450),
-        window.setTimeout(() => setOnCallStep(2), 1250),
-        window.setTimeout(() => setOnCallStep(3), 2300),
+        window.setTimeout(() => setOnCallStage("opening-form"), 650),
+        window.setTimeout(() => {
+          setOnCallStage("typing");
+          let nextLength = 0;
+          const intervalId = window.setInterval(() => {
+            nextLength += 1;
+            setOnCallFormLength(nextLength);
+            if (nextLength >= formTextLength) {
+              window.clearInterval(intervalId);
+            }
+          }, 24);
+          intervalIds.push(intervalId);
+        }, 1050),
+        window.setTimeout(() => setOnCallStage("creating"), 1050 + formTextLength * 24 + 450),
+        window.setTimeout(() => {
+          setOnCallStage("incident-created");
+          setOnCallStep(1);
+        }, 1050 + formTextLength * 24 + 1100),
+        window.setTimeout(() => {
+          setOnCallStage("notifying");
+          setOnCallStep(2);
+        }, 1050 + formTextLength * 24 + 1900),
+        window.setTimeout(() => {
+          setOnCallStage("acknowledged");
+          setOnCallStep(3);
+        }, 1050 + formTextLength * 24 + 2800),
       );
     }
 
@@ -578,6 +716,8 @@ export default function ContactModal({
             phoneStep,
             ellipsis,
             mailStage,
+            onCallStage,
+            onCallFormLength,
           )}
           <div className="contact-modal-demo-note">
             <p>
