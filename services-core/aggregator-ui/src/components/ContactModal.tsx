@@ -34,13 +34,15 @@ type OnCallActivity = {
   opsgenie: string[];
 };
 
+type MailStage = "typing" | "ready" | "sending" | "sent" | "reply";
+
 const onCallActivityByClient: OnCallActivity = {
   pagerduty: [
     "Service problem attached",
     "Paging responder...",
-    "Responder acknowledged",
+    "🚨 Responder acknowledged",
   ],
-  opsgenie: ["Incident created", "Notification sent", "On-call acknowledged"],
+  opsgenie: ["Incident created", "Notification sent", "🚨 On-call acknowledged"],
 };
 
 const normalizeContactHandle = (label: string): string =>
@@ -175,8 +177,14 @@ const renderContactDemo = (
   onCallStep: number,
   phoneStep: number,
   ellipsis: string,
+  mailStage: MailStage,
 ) => {
   if (details.kind === "email") {
+    const isComposing =
+      mailStage === "typing" || mailStage === "ready" || mailStage === "sending";
+    const sendButtonText =
+      mailStage === "sending" ? "Sending..." : mailStage === "sent" || mailStage === "reply" ? "Sent" : "Send";
+
     return (
       <section
         className={`contact-demo contact-demo-email contact-client-${details.clientClass}`}
@@ -193,15 +201,44 @@ const renderContactDemo = (
             <strong>{details.subject}</strong>
           </div>
         </div>
-        <div className="contact-email-compose">
-          <p className="contact-email-body">
-            {typedText}
-            {!isMessageSent && <span className="contact-typing-caret" />}
-          </p>
+        <div className={`contact-email-compose is-${mailStage}`}>
+          {isComposing && (
+            <p className="contact-email-body">
+              {typedText}
+              {mailStage === "typing" && <span className="contact-typing-caret" />}
+            </p>
+          )}
+          {(mailStage === "sent" || mailStage === "reply") && (
+            <div className="contact-email-sent-state">
+              <span className="contact-email-sent-icon" aria-hidden="true">
+                ✉
+              </span>
+              <div>
+                <strong>Message sent</strong>
+                <span>Delivery accepted for {label}</span>
+              </div>
+            </div>
+          )}
           <div className="contact-email-actions">
-            <button type="button">Send</button>
+            <button
+              type="button"
+              className={mailStage === "sending" ? "is-sending" : ""}
+            >
+              {sendButtonText}
+            </button>
           </div>
         </div>
+        {mailStage === "reply" && (
+          <div className="contact-email-reply" aria-label="Email reply received">
+            <span className="contact-email-reply-icon" aria-hidden="true">
+              ✉
+            </span>
+            <div>
+              <span className="contact-email-reply-meta">Reply received from {label}</span>
+              <p>Thank you for your message. We're on it.</p>
+            </div>
+          </div>
+        )}
       </section>
     );
   }
@@ -243,7 +280,7 @@ const renderContactDemo = (
               )}
               {phoneStep >= 3 && (
                 <p className="contact-phone-line contact-phone-line-in">
-                  Ok, we are on it.
+                  🤘 Ok, we're on it.
                 </p>
               )}
             </div>
@@ -268,7 +305,7 @@ const renderContactDemo = (
           )}
           {showResponse && (
             <p className="contact-chat-bubble contact-chat-bubble-in">
-              Ok, on it!
+              👍 Ok, on it!
             </p>
           )}
         </div>
@@ -285,6 +322,13 @@ const renderContactDemo = (
       details.clientClass === "opsgenie"
         ? onCallActivityByClient.opsgenie
         : onCallActivityByClient.pagerduty;
+    const isAcknowledged = onCallStep >= activity.length;
+    const statusText =
+      isAcknowledged && details.clientClass === "opsgenie"
+        ? "On-call acknowledged"
+        : isAcknowledged
+          ? "Responder acknowledged"
+          : "Primary responder available";
 
     return (
       <section
@@ -292,35 +336,52 @@ const renderContactDemo = (
         aria-label="On-call profile preview"
       >
         <ContactDemoWindowBar details={details} title="Escalation" />
-        <div className="contact-oncall-profile">
-          <span className="contact-oncall-avatar">{details.iconLabel}</span>
-          <div>
-            <strong>{label}</strong>
-            <span>Primary responder available</span>
+        <div className="contact-oncall-layout">
+          <div className="contact-oncall-summary">
+            <div className="contact-oncall-profile">
+              <span className="contact-oncall-avatar">{details.iconLabel}</span>
+              <div>
+                <strong>{label}</strong>
+                <span className={isAcknowledged ? "contact-oncall-status is-complete" : "contact-oncall-status"}>
+                  <span className="contact-oncall-status-dot" aria-hidden="true" />
+                  {statusText}
+                </span>
+              </div>
+            </div>
+            <div className="contact-oncall-actions">
+              <button type="button">Create incident</button>
+              <button type="button">Page responder</button>
+            </div>
+          </div>
+          <div className="contact-oncall-activity-panel">
+            <h3>Activity</h3>
+            <ol className="contact-oncall-activity" aria-label="Escalation activity">
+              {activity.map((entry, index) => {
+                const isVisible = index < onCallStep;
+                const isFinal = index === activity.length - 1;
+                const isCurrent = isVisible && index === onCallStep - 1;
+                return (
+                  <li
+                    key={entry}
+                    className={[
+                      "contact-oncall-activity-item",
+                      isVisible ? "is-visible" : "",
+                      isVisible && isFinal ? "is-final" : "",
+                      isCurrent && !isFinal ? "is-current" : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                  >
+                    <span className="contact-oncall-dot" aria-hidden="true">
+                      {isVisible && isFinal ? "✓" : ""}
+                    </span>
+                    <span>{entry}</span>
+                  </li>
+                );
+              })}
+            </ol>
           </div>
         </div>
-        <div className="contact-oncall-actions">
-          <button type="button">Create incident</button>
-          <button type="button">Page responder</button>
-        </div>
-        <p className="contact-oncall-note">
-          Service problem attached to the escalation.
-        </p>
-        <ol className="contact-oncall-activity" aria-label="Escalation activity">
-          {activity.map((entry, index) => (
-            <li
-              key={entry}
-              className={
-                index < onCallStep
-                  ? "contact-oncall-activity-item is-visible"
-                  : "contact-oncall-activity-item"
-              }
-            >
-              <span className="contact-oncall-dot" aria-hidden="true" />
-              <span>{entry}</span>
-            </li>
-          ))}
-        </ol>
       </section>
     );
   }
@@ -356,7 +417,7 @@ const renderContactDemo = (
         )}
         {showResponse && (
           <p className="contact-chat-bubble contact-chat-bubble-in">
-            Ok, on it!
+            👍 Ok, on it!
           </p>
         )}
       </div>
@@ -378,6 +439,7 @@ export default function ContactModal({
   const [onCallStep, setOnCallStep] = useState(0);
   const [phoneStep, setPhoneStep] = useState(0);
   const [ellipsisStep, setEllipsisStep] = useState(1);
+  const [mailStage, setMailStage] = useState<MailStage>("typing");
   const contactLabel = contact ? resolveContactLabel(contact) : "";
   const outgoingText = contact ? buildOutgoingText(contactLabel) : "";
 
@@ -387,6 +449,7 @@ export default function ContactModal({
     setOnCallStep(0);
     setPhoneStep(0);
     setEllipsisStep(1);
+    setMailStage("typing");
 
     if (!isOpen || !contact) {
       return undefined;
@@ -396,7 +459,6 @@ export default function ContactModal({
     const intervalIds: number[] = [];
     const isMessageDemo = [
       "discord",
-      "email",
       "mattermost",
       "slack",
       "sms",
@@ -404,6 +466,7 @@ export default function ContactModal({
       "telegram",
     ].includes(contact.type);
     const isPhoneDemo = contact.type === "phone";
+    const isMailDemo = contact.type === "email";
     const isOnCallDemo =
       contact.type === "pagerduty" || contact.type === "opsgenie";
 
@@ -423,6 +486,26 @@ export default function ContactModal({
           () => setShowResponse(true),
           outgoingText.length * 28 + 1600,
         ),
+      );
+    }
+
+    if (isMailDemo && outgoingText) {
+      let nextLength = 0;
+      const intervalId = window.setInterval(() => {
+        nextLength += 1;
+        setTypedLength(nextLength);
+        if (nextLength >= outgoingText.length) {
+          window.clearInterval(intervalId);
+        }
+      }, 28);
+      intervalIds.push(intervalId);
+
+      const typingDuration = outgoingText.length * 28;
+      timeoutIds.push(
+        window.setTimeout(() => setMailStage("ready"), typingDuration + 250),
+        window.setTimeout(() => setMailStage("sending"), typingDuration + 950),
+        window.setTimeout(() => setMailStage("sent"), typingDuration + 1650),
+        window.setTimeout(() => setMailStage("reply"), typingDuration + 2550),
       );
     }
 
@@ -486,6 +569,7 @@ export default function ContactModal({
             onCallStep,
             phoneStep,
             ellipsis,
+            mailStage,
           )}
           <div className="contact-modal-demo-note">
             <p>

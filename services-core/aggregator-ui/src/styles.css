@@ -2010,8 +2010,8 @@ body[data-theme="dark"] .contact-chip:hover {
   --client-incoming-bg: #ffffff;
   --client-incoming-text: #111827;
   overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  border: 0;
+  border-radius: 0;
   background: var(--client-surface);
   box-shadow: none;
 }
@@ -2248,6 +2248,9 @@ body[data-theme="dark"] .contact-chip:hover {
 
 .contact-email-compose {
   background: var(--client-surface);
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
 }
 
 .contact-email-body {
@@ -2255,6 +2258,47 @@ body[data-theme="dark"] .contact-chip:hover {
   padding: 14px 16px 12px;
   background: var(--client-surface);
   line-height: 1.55;
+}
+
+.contact-email-compose.is-sending .contact-email-body {
+  transform: translateY(-2px);
+  opacity: 0.82;
+}
+
+.contact-email-compose.is-sent,
+.contact-email-compose.is-reply {
+  padding: 14px 16px 0;
+}
+
+.contact-email-sent-state {
+  min-height: 74px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--muted);
+  animation: contact-email-sent 220ms ease-out;
+}
+
+.contact-email-sent-state strong {
+  display: block;
+  color: var(--text);
+}
+
+.contact-email-sent-state span {
+  display: block;
+}
+
+.contact-email-sent-icon,
+.contact-email-reply-icon {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: var(--client-accent-soft);
+  color: var(--client-accent-strong);
 }
 
 .contact-email-actions {
@@ -2277,6 +2321,39 @@ body[data-theme="dark"] .contact-chip:hover {
 .contact-oncall-actions button:first-child {
   background: var(--client-accent);
   color: #ffffff;
+}
+
+.contact-email-actions button.is-sending {
+  transform: translateY(1px);
+  opacity: 0.82;
+}
+
+.contact-email-reply {
+  display: flex;
+  gap: 12px;
+  margin: 0 16px 16px;
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--panel-alt);
+  animation: contact-message-pop 180ms ease-out;
+}
+
+.contact-email-reply > div {
+  min-width: 0;
+}
+
+.contact-email-reply-meta {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.contact-email-reply p {
+  color: var(--text);
+  line-height: 1.45;
 }
 
 .contact-typing-caret {
@@ -2370,12 +2447,26 @@ body[data-theme="dark"] .contact-chip:hover {
   background: var(--client-surface);
 }
 
+.contact-oncall-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.43fr) minmax(0, 0.57fr);
+  gap: 24px;
+  padding: 18px 16px 20px;
+}
+
+.contact-oncall-summary {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 18px;
+}
+
 .contact-oncall-profile,
 .contact-generic-card {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 18px 16px 10px;
 }
 
 .contact-oncall-avatar {
@@ -2409,11 +2500,34 @@ body[data-theme="dark"] .contact-chip:hover {
   color: var(--muted);
 }
 
+.contact-oncall-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--client-accent-soft);
+  color: var(--client-accent-strong);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.contact-oncall-status.is-complete {
+  background: color-mix(in srgb, var(--client-accent-soft) 70%, #ffffff);
+}
+
+.contact-oncall-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--client-accent);
+}
+
 .contact-oncall-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  padding: 10px 16px 8px;
 }
 
 .contact-oncall-actions button + button {
@@ -2422,25 +2536,33 @@ body[data-theme="dark"] .contact-chip:hover {
   border-color: var(--border);
 }
 
-.contact-oncall-note {
-  padding: 0 16px 8px 72px;
+.contact-oncall-activity-panel {
+  min-width: 0;
+}
+
+.contact-oncall-activity-panel h3 {
+  margin: 0;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .contact-oncall-activity {
   list-style: none;
   display: grid;
-  gap: 7px;
-  margin: 0;
-  padding: 4px 16px 18px 72px;
+  gap: 0;
+  margin: 10px 0 0;
+  padding: 0;
 }
 
 .contact-oncall-activity-item {
-  min-height: 22px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  min-height: 34px;
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 10px;
+  position: relative;
   color: var(--muted);
   font-size: 13px;
   opacity: 0;
@@ -2455,15 +2577,50 @@ body[data-theme="dark"] .contact-chip:hover {
   transform: translateY(0);
 }
 
-.contact-oncall-dot {
-  width: 8px;
-  height: 8px;
-  flex: 0 0 8px;
-  border-radius: 50%;
-  background: var(--client-accent);
+.contact-oncall-activity-item::after {
+  content: "";
+  position: absolute;
+  top: 18px;
+  bottom: -2px;
+  left: 8px;
+  width: 1px;
+  background: color-mix(in srgb, var(--client-accent) 28%, transparent);
+  opacity: 0;
 }
 
-.contact-oncall-activity-item.is-visible:last-child .contact-oncall-dot {
+.contact-oncall-activity-item.is-visible::after {
+  opacity: 1;
+}
+
+.contact-oncall-activity-item:last-child::after {
+  display: none;
+}
+
+.contact-oncall-dot {
+  width: 17px;
+  height: 17px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--client-accent-soft);
+  color: var(--client-accent-strong);
+  font-size: 11px;
+  font-weight: 900;
+  transform: translateY(1px);
+}
+
+.contact-oncall-activity-item.is-visible .contact-oncall-dot {
+  background: var(--client-accent);
+  color: #ffffff;
+}
+
+.contact-oncall-activity-item.is-final {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.contact-oncall-activity-item.is-current .contact-oncall-dot {
   animation: contact-status-pulse 1200ms ease-in-out infinite;
 }
 
@@ -2530,6 +2687,10 @@ body[data-theme="dark"] .contact-modal-link-preview {
   background: #252a33;
 }
 
+body[data-theme="dark"] .contact-email-reply {
+  background: #252a33;
+}
+
 @media (max-width: 640px) {
   .about-modal.contact-modal {
     padding: 16px;
@@ -2549,12 +2710,11 @@ body[data-theme="dark"] .contact-modal-link-preview {
     max-width: 88%;
   }
 
-  .contact-oncall-note {
-    padding-left: 16px;
-  }
-
-  .contact-oncall-activity {
-    padding-left: 16px;
+  .contact-oncall-layout {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    padding-left: 0;
+    padding-right: 0;
   }
 }
 
@@ -2577,6 +2737,17 @@ body[data-theme="dark"] .contact-modal-link-preview {
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes contact-email-sent {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
