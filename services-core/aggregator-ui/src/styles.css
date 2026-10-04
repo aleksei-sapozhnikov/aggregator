@@ -1859,6 +1859,7 @@ body {
   width: 19px;
   height: 19px;
   flex: 0 0 19px;
+  display: block;
   color: var(--contact-icon-color, var(--muted));
 }
 
@@ -2051,6 +2052,8 @@ body[data-theme="dark"] .contact-chip:hover {
     color-mix(in srgb, var(--client-accent) 24%, transparent);
   font-size: 18px;
   font-weight: 800;
+  line-height: 1;
+  text-align: center;
 }
 
 .contact-window-title span:last-child,
@@ -2299,6 +2302,9 @@ body[data-theme="dark"] .contact-chip:hover {
   border-radius: 8px;
   background: var(--client-accent-soft);
   color: var(--client-accent-strong);
+  font-size: 15px;
+  line-height: 1;
+  text-align: center;
 }
 
 .contact-email-actions {
@@ -2398,6 +2404,8 @@ body[data-theme="dark"] .contact-chip:hover {
   color: #ffffff;
   font-size: 18px;
   font-weight: 800;
+  line-height: 1;
+  text-align: center;
 }
 
 .contact-phone-screen strong {
@@ -2448,10 +2456,20 @@ body[data-theme="dark"] .contact-chip:hover {
 }
 
 .contact-oncall-layout {
+  --oncall-panel-bg: color-mix(in srgb, var(--client-accent-soft) 34%, #ffffff);
+  --oncall-panel-bg-strong: color-mix(in srgb, var(--client-accent-soft) 58%, #ffffff);
+  --oncall-title: #111827;
+  --oncall-supporting: #4b5563;
+  --oncall-pill-bg: color-mix(in srgb, var(--client-accent-soft) 78%, #ffffff);
+  --oncall-pill-text: var(--client-accent-strong);
+  --oncall-secondary-bg: #ffffff;
+  --oncall-secondary-text: #111827;
+  --oncall-secondary-border: color-mix(in srgb, var(--client-accent) 22%, var(--border));
+  --oncall-line: color-mix(in srgb, var(--client-accent) 28%, #cbd5e1);
   display: grid;
-  grid-template-columns: minmax(0, 0.43fr) minmax(0, 0.57fr);
-  gap: 24px;
-  padding: 18px 16px 20px;
+  grid-template-columns: minmax(250px, 0.46fr) minmax(290px, 0.54fr);
+  gap: 16px;
+  padding: 16px 0 18px;
 }
 
 .contact-oncall-summary {
@@ -2459,10 +2477,18 @@ body[data-theme="dark"] .contact-chip:hover {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 18px;
+  gap: 16px;
+  padding: 18px;
+  border-radius: 8px;
+  background: var(--oncall-panel-bg);
 }
 
-.contact-oncall-profile,
+.contact-oncall-profile {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
 .contact-generic-card {
   display: flex;
   align-items: center;
@@ -2470,9 +2496,9 @@ body[data-theme="dark"] .contact-chip:hover {
 }
 
 .contact-oncall-avatar {
-  width: 42px;
-  height: 42px;
-  flex: 0 0 42px;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2480,6 +2506,8 @@ body[data-theme="dark"] .contact-chip:hover {
   background: var(--client-accent-soft);
   color: var(--client-accent-strong);
   font-weight: 800;
+  line-height: 1;
+  text-align: center;
 }
 
 .contact-oncall-profile div,
@@ -2490,10 +2518,12 @@ body[data-theme="dark"] .contact-chip:hover {
 .contact-oncall-profile strong,
 .contact-generic-card strong {
   display: block;
+  color: var(--oncall-title, var(--text));
+  font-size: 16px;
+  line-height: 1.25;
   overflow-wrap: anywhere;
 }
 
-.contact-oncall-profile span,
 .contact-generic-card span {
   display: block;
   margin-top: 4px;
@@ -2507,19 +2537,21 @@ body[data-theme="dark"] .contact-chip:hover {
   width: fit-content;
   padding: 3px 8px;
   border-radius: 999px;
-  background: var(--client-accent-soft);
-  color: var(--client-accent-strong);
+  background: var(--oncall-pill-bg);
+  color: var(--oncall-pill-text);
   font-size: 12px;
   font-weight: 700;
+  line-height: 1.35;
 }
 
 .contact-oncall-status.is-complete {
-  background: color-mix(in srgb, var(--client-accent-soft) 70%, #ffffff);
+  background: var(--oncall-pill-bg);
 }
 
 .contact-oncall-status-dot {
   width: 7px;
   height: 7px;
+  flex: 0 0 7px;
   border-radius: 50%;
   background: var(--client-accent);
 }
@@ -2530,14 +2562,21 @@ body[data-theme="dark"] .contact-chip:hover {
   gap: 10px;
 }
 
+.contact-oncall-actions button {
+  min-height: 34px;
+}
+
 .contact-oncall-actions button + button {
-  background: var(--panel-alt);
-  color: var(--text);
-  border-color: var(--border);
+  background: var(--oncall-secondary-bg);
+  color: var(--oncall-secondary-text);
+  border-color: var(--oncall-secondary-border);
 }
 
 .contact-oncall-activity-panel {
   min-width: 0;
+  padding: 18px;
+  border-radius: 8px;
+  background: var(--oncall-panel-bg-strong);
 }
 
 .contact-oncall-activity-panel h3 {
@@ -2558,13 +2597,14 @@ body[data-theme="dark"] .contact-chip:hover {
 }
 
 .contact-oncall-activity-item {
-  min-height: 34px;
+  min-height: 38px;
   display: grid;
-  grid-template-columns: 18px minmax(0, 1fr);
-  gap: 10px;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: 12px;
   position: relative;
-  color: var(--muted);
+  color: var(--oncall-supporting);
   font-size: 13px;
+  line-height: 1.35;
   opacity: 0;
   transform: translateY(4px);
   transition:
@@ -2581,10 +2621,10 @@ body[data-theme="dark"] .contact-chip:hover {
   content: "";
   position: absolute;
   top: 18px;
-  bottom: -2px;
-  left: 8px;
+  bottom: -4px;
+  left: 9px;
   width: 1px;
-  background: color-mix(in srgb, var(--client-accent) 28%, transparent);
+  background: var(--oncall-line);
   opacity: 0;
 }
 
@@ -2597,8 +2637,9 @@ body[data-theme="dark"] .contact-chip:hover {
 }
 
 .contact-oncall-dot {
-  width: 17px;
-  height: 17px;
+  width: 19px;
+  height: 19px;
+  flex: 0 0 19px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2607,6 +2648,8 @@ body[data-theme="dark"] .contact-chip:hover {
   color: var(--client-accent-strong);
   font-size: 11px;
   font-weight: 900;
+  line-height: 1;
+  text-align: center;
   transform: translateY(1px);
 }
 
@@ -2616,7 +2659,7 @@ body[data-theme="dark"] .contact-chip:hover {
 }
 
 .contact-oncall-activity-item.is-final {
-  color: var(--text);
+  color: var(--oncall-title);
   font-weight: 700;
 }
 
@@ -2683,6 +2726,43 @@ body[data-theme="dark"] .contact-client-messages {
   --client-incoming-text: #f8fafc;
 }
 
+body[data-theme="dark"] .contact-demo-oncall .contact-oncall-layout {
+  --oncall-panel-bg: #20252d;
+  --oncall-panel-bg-strong: #1d222a;
+  --oncall-title: #f8fafc;
+  --oncall-supporting: #cbd5e1;
+  --oncall-pill-bg: color-mix(in srgb, var(--client-accent) 18%, #111827);
+  --oncall-pill-text: #f8fafc;
+  --oncall-secondary-bg: #252a33;
+  --oncall-secondary-text: #e5e7eb;
+  --oncall-secondary-border: #3a414d;
+  --oncall-line: color-mix(in srgb, var(--client-accent) 38%, #475569);
+}
+
+body[data-theme="dark"] .contact-demo-oncall .contact-window-context,
+body[data-theme="dark"] .contact-demo-oncall .contact-oncall-activity-panel h3 {
+  color: #aeb6c2;
+}
+
+body[data-theme="dark"] .contact-demo-oncall .contact-oncall-avatar {
+  background: color-mix(in srgb, var(--client-accent) 20%, #111827);
+  color: #f8fafc;
+}
+
+body[data-theme="dark"] .contact-demo-oncall .contact-oncall-status-dot {
+  background: color-mix(in srgb, var(--client-accent) 82%, #ffffff);
+}
+
+body[data-theme="dark"] .contact-demo-oncall .contact-oncall-actions button:first-child {
+  color: #ffffff;
+}
+
+body[data-theme="dark"] .contact-demo-oncall .contact-oncall-actions button + button {
+  background: var(--oncall-secondary-bg);
+  color: var(--oncall-secondary-text);
+  border-color: var(--oncall-secondary-border);
+}
+
 body[data-theme="dark"] .contact-modal-link-preview {
   background: #252a33;
 }
@@ -2713,8 +2793,17 @@ body[data-theme="dark"] .contact-email-reply {
   .contact-oncall-layout {
     grid-template-columns: 1fr;
     gap: 18px;
-    padding-left: 0;
-    padding-right: 0;
+    padding-top: 12px;
+  }
+}
+
+@media (max-width: 760px) {
+  .contact-oncall-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .contact-oncall-summary {
+    justify-content: flex-start;
   }
 }
 

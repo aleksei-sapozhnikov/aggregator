@@ -40,9 +40,9 @@ const onCallActivityByClient: OnCallActivity = {
   pagerduty: [
     "Service problem attached",
     "Paging responder...",
-    "🚨 Responder acknowledged",
+    "Responder acknowledged",
   ],
-  opsgenie: ["Incident created", "Notification sent", "🚨 On-call acknowledged"],
+  opsgenie: ["Incident created", "Notification sent", "On-call acknowledged"],
 };
 
 const normalizeContactHandle = (label: string): string =>
@@ -344,7 +344,13 @@ const renderContactDemo = (
               <span className="contact-oncall-avatar">{details.iconLabel}</span>
               <div>
                 <strong>{label}</strong>
-                <span className={isAcknowledged ? "contact-oncall-status is-complete" : "contact-oncall-status"}>
+                <span
+                  className={
+                    isAcknowledged
+                      ? "contact-oncall-status is-complete"
+                      : "contact-oncall-status"
+                  }
+                >
                   <span className="contact-oncall-status-dot" aria-hidden="true" />
                   {statusText}
                 </span>
