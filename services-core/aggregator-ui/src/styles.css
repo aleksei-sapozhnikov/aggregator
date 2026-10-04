@@ -1960,16 +1960,27 @@ body[data-theme="dark"] .contact-chip:hover {
 }
 
 .contact-modal {
-  width: min(620px, 100%);
+  width: min(760px, 100%);
 }
 
 .contact-modal-header {
   margin: 0 44px 14px 0;
 }
 
+.contact-modal-kicker {
+  display: block;
+  margin: 0 0 6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .contact-modal-header h2 {
   margin: 0 0 8px;
   font-size: 22px;
+  overflow-wrap: anywhere;
 }
 
 .contact-modal-title {
@@ -1994,8 +2005,464 @@ body[data-theme="dark"] .contact-chip:hover {
   word-break: break-word;
 }
 
+.contact-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
 .contact-modal-body p {
   margin: 0;
+}
+
+.contact-demo {
+  --client-accent: #3b82f6;
+  --client-accent-strong: #1d4ed8;
+  --client-accent-soft: #dbeafe;
+  --client-surface: var(--panel);
+  --client-thread-bg: var(--panel-alt);
+  --client-outgoing-bg: var(--client-accent);
+  --client-outgoing-text: #ffffff;
+  --client-incoming-bg: #ffffff;
+  --client-incoming-text: #111827;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--client-surface);
+  box-shadow: var(--shadow);
+}
+
+.contact-demo-window-bar {
+  min-height: 72px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  background:
+    linear-gradient(90deg, var(--client-accent-soft) 0%, transparent 58%),
+    linear-gradient(180deg, #ffffff 0%, #edf0f4 100%);
+  color: #1f2937;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.contact-window-title {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  overflow: hidden;
+}
+
+.contact-window-icon {
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: var(--client-accent);
+  color: #ffffff;
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--client-accent) 24%, transparent);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.contact-window-title span:last-child,
+.contact-window-context {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contact-window-context {
+  justify-self: end;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.contact-client-teams {
+  --client-accent: #6264a7;
+  --client-accent-strong: #464775;
+  --client-accent-soft: #e8e7ff;
+  --client-thread-bg: #f5f4fb;
+  --client-outgoing-bg: #6264a7;
+  --client-incoming-bg: #ffffff;
+  --client-incoming-text: #252547;
+}
+
+.contact-client-slack {
+  --client-accent: #4a154b;
+  --client-accent-strong: #350d36;
+  --client-accent-soft: #f4e7f5;
+  --client-thread-bg: #ffffff;
+  --client-outgoing-bg: #1264a3;
+  --client-incoming-bg: #f4e7f5;
+  --client-incoming-text: #2b0b2c;
+}
+
+.contact-client-telegram {
+  --client-accent: #229ed9;
+  --client-accent-strong: #168ac0;
+  --client-accent-soft: #e1f4fd;
+  --client-thread-bg: #dff1fb;
+  --client-outgoing-bg: #2aabee;
+  --client-incoming-bg: #ffffff;
+  --client-incoming-text: #164c63;
+}
+
+.contact-client-discord {
+  --client-accent: #5865f2;
+  --client-accent-strong: #404eed;
+  --client-accent-soft: #e7e9ff;
+  --client-thread-bg: #313338;
+  --client-outgoing-bg: #5865f2;
+  --client-incoming-bg: #383a40;
+  --client-incoming-text: #f2f3f5;
+}
+
+.contact-client-mattermost {
+  --client-accent: #0058cc;
+  --client-accent-strong: #003ea0;
+  --client-accent-soft: #e5f0ff;
+  --client-thread-bg: #f5f7fb;
+  --client-outgoing-bg: #0058cc;
+  --client-incoming-bg: #e5f0ff;
+  --client-incoming-text: #0f2f59;
+}
+
+.contact-client-messages {
+  --client-accent: #34c759;
+  --client-accent-strong: #248a3d;
+  --client-accent-soft: #e5f8ea;
+  --client-thread-bg: #f7f7f8;
+  --client-outgoing-bg: #34c759;
+  --client-incoming-bg: #e9eaed;
+  --client-incoming-text: #111827;
+}
+
+.contact-client-mail {
+  --client-accent: #2563eb;
+  --client-accent-strong: #1d4ed8;
+  --client-accent-soft: #eff6ff;
+}
+
+.contact-client-pagerduty {
+  --client-accent: #06ac38;
+  --client-accent-strong: #047a29;
+  --client-accent-soft: #e8f8ed;
+}
+
+.contact-client-opsgenie {
+  --client-accent: #2684ff;
+  --client-accent-strong: #0c66e4;
+  --client-accent-soft: #e9f2ff;
+}
+
+.contact-demo-chat {
+  background: var(--client-thread-bg);
+}
+
+.contact-chat-thread {
+  min-height: 210px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 18px;
+  background:
+    radial-gradient(circle at 12px 12px, rgba(0, 0, 0, 0.035) 1px, transparent 1px)
+      0 0 / 22px 22px,
+    var(--client-thread-bg);
+}
+
+.contact-chat-bubble {
+  max-width: min(78%, 460px);
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  animation: contact-message-pop 180ms ease-out;
+}
+
+.contact-chat-bubble-out {
+  align-self: flex-end;
+  background: var(--client-outgoing-bg);
+  color: var(--client-outgoing-text);
+  border-color: color-mix(in srgb, var(--client-outgoing-bg) 75%, #000000 25%);
+}
+
+.contact-chat-bubble-in {
+  align-self: flex-start;
+  background: var(--client-incoming-bg);
+  color: var(--client-incoming-text);
+}
+
+.contact-chat-composer {
+  margin: 0 14px 14px;
+  padding: 11px 12px;
+  border: 1px solid color-mix(in srgb, var(--client-accent) 30%, var(--border));
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.contact-oncall-actions button {
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: var(--client-accent);
+  color: #ffffff;
+  cursor: default;
+  font: inherit;
+  font-weight: 700;
+  padding: 8px 12px;
+}
+
+.contact-email-fields {
+  display: grid;
+  grid-template-columns: 1fr;
+  border-bottom: 1px solid var(--border);
+  background: #ffffff;
+}
+
+.contact-email-fields div {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 10px;
+  padding: 10px 14px;
+}
+
+.contact-email-fields div + div {
+  border-top: 1px solid var(--border);
+}
+
+.contact-email-fields span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.contact-email-fields strong,
+.contact-email-body {
+  overflow-wrap: anywhere;
+}
+
+.contact-email-compose {
+  background: #ffffff;
+}
+
+.contact-email-body {
+  min-height: 150px;
+  padding: 18px;
+  background: #ffffff;
+  line-height: 1.55;
+}
+
+.contact-email-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 18px 16px;
+}
+
+.contact-email-actions button {
+  min-width: 86px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: var(--client-accent);
+  color: #ffffff;
+  cursor: default;
+  font: inherit;
+  font-weight: 700;
+  padding: 8px 14px;
+}
+
+.contact-typing-caret {
+  display: inline-block;
+  width: 2px;
+  height: 1.05em;
+  margin-left: 2px;
+  background: currentColor;
+  vertical-align: -0.15em;
+  animation: contact-caret-blink 900ms steps(1, end) infinite;
+}
+
+.contact-demo-phone {
+  background: #101820;
+}
+
+.contact-phone-screen {
+  width: min(320px, 100%);
+  min-height: 360px;
+  margin: 22px auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 22px;
+  background: #18212b;
+  color: #f8fafc;
+  padding: 28px 20px;
+  text-align: center;
+}
+
+.contact-phone-icon {
+  width: 58px;
+  height: 58px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--client-accent);
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.contact-phone-screen strong {
+  max-width: 100%;
+  font-size: 24px;
+  overflow-wrap: anywhere;
+}
+
+.contact-phone-label,
+.contact-phone-status {
+  color: #cbd5e1;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.contact-oncall-profile,
+.contact-generic-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px;
+  background: var(--panel);
+}
+
+.contact-oncall-avatar {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: var(--client-accent-soft);
+  color: var(--client-accent-strong);
+  font-weight: 800;
+}
+
+.contact-oncall-profile div,
+.contact-generic-card {
+  min-width: 0;
+}
+
+.contact-oncall-profile strong,
+.contact-generic-card strong {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.contact-oncall-profile span,
+.contact-generic-card span {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+}
+
+.contact-oncall-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 0 18px 18px;
+  background: var(--panel);
+}
+
+.contact-oncall-actions button + button {
+  background: var(--panel-alt);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+.contact-oncall-note {
+  padding: 12px 18px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+}
+
+.contact-modal-demo-note {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel-alt);
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+body[data-theme="dark"] .contact-chat-bubble-out {
+  border-color: color-mix(in srgb, var(--client-outgoing-bg) 80%, #ffffff 20%);
+}
+
+body[data-theme="dark"] .contact-demo-window-bar {
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--client-accent) 22%, transparent) 0%, transparent 58%),
+    linear-gradient(180deg, #252a33 0%, #1b1f26 100%);
+  color: #f8fafc;
+}
+
+body[data-theme="dark"] .contact-window-context {
+  color: #a4a9b4;
+}
+
+body[data-theme="dark"] .contact-email-fields,
+body[data-theme="dark"] .contact-email-compose,
+body[data-theme="dark"] .contact-email-body {
+  background: #111827;
+}
+
+body[data-theme="dark"] .contact-demo-phone {
+  background: #05070a;
+}
+
+body[data-theme="dark"] .contact-oncall-avatar {
+  background: color-mix(in srgb, var(--client-accent) 22%, #111827);
+  color: #f8fafc;
+}
+
+@keyframes contact-caret-blink {
+  0%,
+  45% {
+    opacity: 1;
+  }
+  46%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes contact-message-pop {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .actor-modal {
