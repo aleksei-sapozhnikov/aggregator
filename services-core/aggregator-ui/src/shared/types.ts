@@ -105,3 +105,9 @@ export interface AggregatorUiRuntimeConfig {
   grafanaUrl?: string;
   prometheusUrl?: string;
 }
+
+export interface AgentAskResponse {
+  answer: string;
+  tool_calls?: unknown;
+  usage?: unknown;
+}
