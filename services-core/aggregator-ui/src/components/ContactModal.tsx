@@ -183,7 +183,7 @@ const renderContactDemo = (
     const isComposing =
       mailStage === "typing" || mailStage === "ready" || mailStage === "sending";
     const sendButtonText =
-      mailStage === "sending" ? "Sending..." : mailStage === "sent" || mailStage === "reply" ? "Sent" : "Send";
+      mailStage === "sending" ? "Sending..." : "Send";
 
     return (
       <section
@@ -219,14 +219,16 @@ const renderContactDemo = (
               </div>
             </div>
           )}
-          <div className="contact-email-actions">
-            <button
-              type="button"
-              className={mailStage === "sending" ? "is-sending" : ""}
-            >
-              {sendButtonText}
-            </button>
-          </div>
+          {isComposing && (
+            <div className="contact-email-actions">
+              <button
+                type="button"
+                className={mailStage === "sending" ? "is-sending" : ""}
+              >
+                {sendButtonText}
+              </button>
+            </div>
+          )}
         </div>
         {mailStage === "reply" && (
           <div className="contact-email-reply" aria-label="Email reply received">
