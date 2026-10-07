@@ -104,14 +104,14 @@ bearer token, not an AWS access key or secret key:
 
 ```shell
 AGENT_AI_ENABLED=true
-AGENT_AI_CONFIG={"provider":"bedrock","max_tool_rounds":2,"bedrock":{"model_id":"amazon.nova-lite-v1:0","aws_region":"eu-central-1","api_key":"<bedrock-api-key>","temperature":0.00001,"max_tokens":300}}
+AGENT_AI_CONFIG={"provider":"bedrock","max_tool_rounds":2,"bedrock":{"model_id":"eu.amazon.nova-lite-v1:0","aws_region":"eu-central-1","api_key":"<bedrock-api-key>","temperature":0.00001,"max_tokens":300}}
 ```
 
 For optional local AWS credentials, use the explicit AWS credential fields:
 
 ```shell
 AGENT_AI_ENABLED=true
-AGENT_AI_CONFIG={"provider":"bedrock","max_tool_rounds":2,"bedrock":{"model_id":"amazon.nova-lite-v1:0","aws_region":"eu-central-1","aws_access_key_id":"<aws-access-key-id>","aws_secret_access_key":"<aws-secret-access-key>","aws_session_token":"<optional-session-token>","temperature":0.00001,"max_tokens":300}}
+AGENT_AI_CONFIG={"provider":"bedrock","max_tool_rounds":2,"bedrock":{"model_id":"eu.amazon.nova-lite-v1:0","aws_region":"eu-central-1","aws_access_key_id":"<aws-access-key-id>","aws_secret_access_key":"<aws-secret-access-key>","aws_session_token":"<optional-session-token>","temperature":0.00001,"max_tokens":300}}
 ```
 
 For deployment on EC2, omit `api_key` and the explicit AWS credential fields.

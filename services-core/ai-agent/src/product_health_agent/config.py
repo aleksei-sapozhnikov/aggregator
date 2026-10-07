@@ -7,7 +7,7 @@ does not need provider-specific environment variables. Supported shape today:
   "provider": "bedrock",
   "max_tool_rounds": 2,
   "bedrock": {
-    "model_id": "amazon.nova-lite-v1:0",
+    "model_id": "eu.amazon.nova-lite-v1:0",
     "aws_region": "eu-central-1",
     "api_key": "local-bedrock-api-key",
     "temperature": 0.00001,
@@ -21,7 +21,7 @@ For optional explicit AWS credentials, use:
   "provider": "bedrock",
   "max_tool_rounds": 2,
   "bedrock": {
-    "model_id": "amazon.nova-lite-v1:0",
+    "model_id": "eu.amazon.nova-lite-v1:0",
     "aws_region": "eu-central-1",
     "aws_access_key_id": "local-access-key",
     "aws_secret_access_key": "local-secret-key",

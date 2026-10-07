@@ -76,7 +76,7 @@ set -euo pipefail
 #   AI provider configuration as JSON. For demo EC2 deployment, omit api_key
 #   and explicit AWS credential fields so boto3 uses the instance IAM role.
 #   Example:
-#     {"provider":"bedrock","max_tool_rounds":2,"bedrock":{"model_id":"amazon.nova-lite-v1:0","aws_region":"eu-central-1","temperature":0.00001,"max_tokens":300}}
+#     {"provider":"bedrock","max_tool_rounds":2,"bedrock":{"model_id":"eu.amazon.nova-lite-v1:0","aws_region":"eu-central-1","temperature":0.00001,"max_tokens":300}}
 # -------------------------------------------------------------------
 
 : "${SSH_HOST:?Missing SSH_HOST}"
