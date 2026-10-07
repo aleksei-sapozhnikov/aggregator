@@ -197,6 +197,32 @@ body {
   border-color: transparent;
 }
 
+/* TODO (2026-10): Delete temp flag styling when AI feature is considered ready. */
+.theme-toggle {
+  order: 1;
+}
+
+.feedback-toggle {
+  order: 2;
+}
+
+.about-toggle {
+  order: 3;
+}
+
+.ai-chat-toggle {
+  order: 4;
+}
+
+.ai-chat-feature-disabled .about-toggle {
+  order: 4;
+}
+
+.ai-chat-feature-disabled .ai-chat-toggle,
+.ai-chat-feature-disabled .ai-chat-panel {
+  display: none;
+}
+
 .ai-chat-toggle.is-active {
   border-color: var(--link);
 }

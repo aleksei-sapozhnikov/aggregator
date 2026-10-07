@@ -67,6 +67,7 @@ const MOBILE_SWIPE_OPEN_DISTANCE_PX = 96;
 const MOBILE_SWIPE_CLOSE_DISTANCE_PX = 96;
 const MOBILE_SWIPE_MAX_VERTICAL_DRIFT_PX = 48;
 const FEEDBACK_DRAFT_STORAGE_KEY = "aggregator-ui-feedback-draft";
+const TEMP_AI_CHAT_STORAGE_KEY = "aggregator-ui-ai-chat-enabled";
 type RouteUpdateOptions = { replace?: boolean };
 type LocationSelectionOptions = {
   normalize?: boolean;
@@ -110,12 +111,28 @@ const EMPTY_CATALOG: {
 };
 
 /**
+ * TODO (2026-10): Temporary per-browser AI chat UX gate for the demo rollout.
+ *
+ * Enable in the browser console:
+ *   localStorage.setItem("aggregator-ui-ai-chat-enabled", "true"); location.reload();
+ *
+ * Disable in the browser console:
+ *   localStorage.removeItem("aggregator-ui-ai-chat-enabled"); location.reload();
+ *
+ * TODO (2026-10): Delete temp flag when AI feature is considered ready.
+ * Delete this block and the related CSS classes when AI chat is ready for everyone.
+ */
+const isTemporaryAiChatEnabled = (): boolean =>
+  localStorage.getItem(TEMP_AI_CHAT_STORAGE_KEY) === "true";
+
+/**
  * Application orchestrator.
  * Owns cross-cutting state (selection, routing, polling, theme, responsive shell state)
  * and wires large UI blocks (SidebarPanel, DetailsPanel, AboutModal).
  */
 export default function App() {
   const sidebarTitle = resolveSidebarTitle();
+  const isAiChatFeatureEnabled = useMemo(isTemporaryAiChatEnabled, []);
   const [catalog, setCatalog] = useState(EMPTY_CATALOG);
   const [selectedId, setSelectedId] = useState("");
   const [selectedPath, setSelectedPath] = useState<string[]>([]);
@@ -192,6 +209,7 @@ export default function App() {
   const grafanaBaseUrl = useMemo(resolveGrafanaBaseUrl, []);
   const basePath = useMemo(resolveBasePath, []);
   const appBaseUrl = useMemo(() => resolveBaseUrl().replace(/\/$/, ""), []);
+  const effectiveIsAiChatOpen = isAiChatFeatureEnabled && isAiChatOpen;
 
   /**
    * Pushes/replaces browser history for an item route while deduplicating no-op updates.
@@ -1529,7 +1547,11 @@ export default function App() {
     <div
       className={`app ${isMobileLayout ? "is-mobile" : "is-desktop"} ${
         isSidebarOpen ? "sidebar-open" : "sidebar-collapsed"
-      } ${isAiChatOpen ? "ai-chat-open" : ""}`}
+      } ${
+        isAiChatFeatureEnabled
+          ? "ai-chat-feature-enabled"
+          : "ai-chat-feature-disabled"
+      } ${effectiveIsAiChatOpen ? "ai-chat-open" : ""}`}
       onTouchStart={handleMobileSidebarSwipeStart}
       onTouchMove={handleMobileSidebarSwipeMove}
       onTouchEnd={handleMobileSidebarSwipeEnd}
@@ -1591,7 +1613,7 @@ export default function App() {
         headerRef={headerRef}
         headerActionsRef={headerActionsRef}
         theme={theme}
-        isAiChatOpen={isAiChatOpen}
+        isAiChatOpen={effectiveIsAiChatOpen}
         onToggleAiChat={() => setIsAiChatOpen((prev) => !prev)}
         onToggleTheme={() =>
           setTheme((prev) => (prev === "dark" ? "light" : "dark"))
