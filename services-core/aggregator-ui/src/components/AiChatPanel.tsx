@@ -33,14 +33,20 @@ export default function AiChatPanel({
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState("");
   const [isSending, setIsSending] = useState(false);
-  const messageEndRef = useRef<HTMLDivElement | null>(null);
+  const messagesRef = useRef<HTMLDivElement | null>(null);
   const nextMessageIdRef = useRef(1);
 
   useEffect(() => {
     if (!isOpen) {
       return;
     }
-    messageEndRef.current?.scrollIntoView({ block: "end" });
+    window.requestAnimationFrame(() => {
+      const messagesElement = messagesRef.current;
+      if (!messagesElement) {
+        return;
+      }
+      messagesElement.scrollTop = messagesElement.scrollHeight;
+    });
   }, [isOpen, messages]);
 
   const appendMessage = (
@@ -121,7 +127,7 @@ export default function AiChatPanel({
           </button>
         </div>
       </div>
-      <div className="ai-chat-messages" aria-live="polite">
+      <div className="ai-chat-messages" aria-live="polite" ref={messagesRef}>
         {messages.length === 0 && (
           <p className="ai-chat-empty">
             <span>Ask a question to start the chat.</span>
@@ -157,7 +163,6 @@ export default function AiChatPanel({
             <span className="ai-chat-message-text">Thinking...</span>
           </div>
         )}
-        <div ref={messageEndRef} />
       </div>
       <form className="ai-chat-input-row" onSubmit={handleSubmit}>
         <textarea
