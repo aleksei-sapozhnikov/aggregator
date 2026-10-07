@@ -50,6 +50,12 @@ change.
 
 ## QA and developer tooling
 
+Never invoke repository QA helper scripts under `tools/code_qa` for any reason.
+This includes, but is not limited to, `python tools/code_qa/main.py qa`,
+`python tools/code_qa/main.py lint`, and `python tools/code_qa/main.py format`.
+These scripts are reserved for humans and must not be used by agents, even when
+doing broad repository validation.
+
 Do not invoke `make` commands at all. This includes repository-level targets
 such as `make code-qa`, `make code-lint`, `make code-format`,
 `make deps-audit`, and service/runtime targets. If validation is needed, run
@@ -61,7 +67,8 @@ Repository-level QA helpers under `tools/code_qa`, `make code-qa`,
 developer tooling are intended for human use.
 
 Do not run repository-wide QA, formatting, linting, dependency audit, or helper
-tooling unless the user explicitly asks for it.
+tooling. If the user asks for broad validation, ask which direct service-level
+commands they want to run instead.
 
 For scoped code changes, run only the relevant service-level tests or build
 checks when practical. Prefer the smallest validation command that directly
