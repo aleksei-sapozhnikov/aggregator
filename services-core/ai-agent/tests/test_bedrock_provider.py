@@ -67,7 +67,7 @@ def test_bedrock_api_key_sets_bearer_token_without_aws_credentials(
     provider = BedrockModelProvider.from_config(
         {
             "bedrock": {
-                "model_id": "amazon.nova-lite-v1:0",
+                "model_id": "eu.amazon.nova-lite-v1:0",
                 "aws_region": "eu-central-1",
                 "api_key": "bedrock-api-key",
                 "aws_access_key_id": "access-key",
