@@ -1,5 +1,6 @@
 import type { CatalogContact } from "../shared/types";
 import { resolveContactLabel } from "../shared/contactUtils";
+import CloseButton from "./CloseButton";
 
 type ContactModalProps = {
   isOpen: boolean;
@@ -30,14 +31,7 @@ export default function ContactModal({
         className="about-modal contact-modal"
         onClick={(event) => event.stopPropagation()}
       >
-        <button
-          type="button"
-          className="about-close"
-          aria-label="Close contact details"
-          onClick={onClose}
-        >
-          ×
-        </button>
+        <CloseButton ariaLabel="Close contact details" onClick={onClose} />
         <header className="contact-modal-header">
           <h2>{resolveContactLabel(contact)}</h2>
         </header>

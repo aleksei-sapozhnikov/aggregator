@@ -3,6 +3,7 @@
  */
 
 import AboutContent from "../AboutContent";
+import CloseButton from "./CloseButton";
 
 type AboutModalProps = {
   isOpen: boolean;
@@ -30,14 +31,7 @@ export default function AboutModal({ isOpen, onClose }: AboutModalProps) {
         className="about-modal"
         onClick={(event) => event.stopPropagation()}
       >
-        <button
-          type="button"
-          className="about-close"
-          aria-label="Close about page"
-          onClick={onClose}
-        >
-          ×
-        </button>
+        <CloseButton ariaLabel="Close about page" onClick={onClose} />
         <AboutContent />
       </article>
     </div>

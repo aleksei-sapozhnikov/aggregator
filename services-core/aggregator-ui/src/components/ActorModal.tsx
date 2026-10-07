@@ -1,6 +1,7 @@
 import ContactChipContent from "./ContactChipContent";
 import type { CatalogActor, CatalogContact } from "../shared/types";
 import { isPlainLeftClick } from "../shared/catalogUtils";
+import CloseButton from "./CloseButton";
 
 const resolveActorLabel = (actor?: CatalogActor | null): string => {
   if (!actor) {
@@ -54,14 +55,7 @@ export default function ActorModal({
         className="about-modal actor-modal"
         onClick={(event) => event.stopPropagation()}
       >
-        <button
-          type="button"
-          className="about-close"
-          aria-label="Close actor details"
-          onClick={onClose}
-        >
-          ×
-        </button>
+        <CloseButton ariaLabel="Close actor details" onClick={onClose} />
         <header className="actor-modal-header">
           <h2>{resolveActorLabel(actor)}</h2>
         </header>

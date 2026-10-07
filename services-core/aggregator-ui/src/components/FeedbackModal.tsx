@@ -2,6 +2,8 @@
  * @file Feedback modal with draft text editing and explicit send action.
  */
 
+import CloseButton from "./CloseButton";
+
 type FeedbackModalProps = {
   isOpen: boolean;
   value: string;
@@ -41,14 +43,7 @@ export default function FeedbackModal({
         className="about-modal feedback-modal"
         onClick={(event) => event.stopPropagation()}
       >
-        <button
-          type="button"
-          className="about-close"
-          aria-label="Close feedback dialog"
-          onClick={onClose}
-        >
-          ×
-        </button>
+        <CloseButton ariaLabel="Close feedback dialog" onClick={onClose} />
         <header className="feedback-header">
           <h2>Feedback</h2>
         </header>
