@@ -803,7 +803,7 @@ export default function App() {
   }, [itemSignals, selectedItem]);
 
   const selectedFailingSignals = useMemo(
-    () => selectedSignals.filter((signal) => signal.status !== "up"),
+    () => selectedSignals.filter((signal) => signal.status === "down"),
     [selectedSignals],
   );
   const selectedPassingSignals = useMemo(
@@ -902,58 +902,47 @@ export default function App() {
     () => (selectedItem ? actorsByItemId.get(selectedItem.id) || null : null),
     [actorsByItemId, selectedItem],
   );
-  const dependencyPathByItemId = useMemo(() => {
-    const result = new Map<string, string[]>();
+  const failingDependencies = useMemo(() => {
     if (!selectedNode) {
-      return result;
+      return [];
     }
+
+    const result: FailingDependencyEntry[] = [];
+    const displayedItemIds = new Set<string>();
+
     const visit = (children: CatalogTreeNode[]) => {
-      children.forEach((child) => {
-        if (!result.has(child.item.id)) {
-          result.set(child.item.id, child.path || [child.item.id]);
+      children.forEach((node) => {
+        const failingSignals = (itemSignals[node.item.id] || [])
+          .filter((signal) => signal.status === "down")
+          .sort(compareSignalsByStatusAndTitle);
+
+        if (failingSignals.length > 0 && !displayedItemIds.has(node.item.id)) {
+          displayedItemIds.add(node.item.id);
+          result.push({
+            id: node.item.id,
+            name: node.item.title || node.item.id,
+            path: node.path || [node.item.id],
+            status: "down",
+            failingSignals,
+            failingCountContribution: 1,
+          });
         }
-        visit(child.children);
+
+        visit(node.children);
       });
     };
+
     visit(selectedNode.children);
-    return result;
-  }, [selectedNode]);
-  const failingDependencies = useMemo(() => {
-    if (!selectedItem) {
-      return [];
-    }
-    const selectedHealth = productHealthByItemId[selectedItem.id];
-    if (!selectedHealth) {
-      return [];
-    }
-    return selectedHealth.affectingDependencies
-      .map((dependency) => {
-        const failingSignals = (itemSignals[dependency.itemId] || [])
-          .filter((signal) => signal.status !== "up")
-          .sort(compareSignalsByStatusAndTitle);
-        const item = itemMap.get(dependency.itemId);
-        return {
-          id: dependency.itemId,
-          name: item?.title || dependency.title || dependency.itemId,
-          path: dependencyPathByItemId.get(dependency.itemId) || [
-            dependency.itemId,
-          ],
-          status: dependency.state,
-          failingSignals,
-          failingCountContribution: 1,
-        };
-      })
-      .sort(
-        (left, right) =>
-          compareHealthStatus(left.status, right.status) ||
-          left.name.localeCompare(right.name),
-      );
+
+    return result.sort(
+      (left, right) =>
+        left.path.length - right.path.length ||
+        left.name.localeCompare(right.name) ||
+        left.id.localeCompare(right.id),
+    );
   }, [
-    dependencyPathByItemId,
-    itemMap,
     itemSignals,
-    productHealthByItemId,
-    selectedItem,
+    selectedNode,
   ]);
   const openedActor = useMemo(
     () => (openedActorId ? actorsById.get(openedActorId) || null : null),

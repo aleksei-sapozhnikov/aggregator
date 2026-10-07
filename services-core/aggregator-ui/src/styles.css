@@ -4108,7 +4108,7 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 .details-disclosure-section {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
 }
 
 .ownership-summary + .details-disclosure-section,
@@ -4148,6 +4148,20 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 .details-disclosure-toggle:focus-visible {
   outline: 2px solid var(--link);
   outline-offset: 2px;
+}
+
+.details-unhealthy-list {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 4px 23px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.details-unhealthy-list > .signals-incident-row + .signals-incident-row,
+.details-unhealthy-list > .signals-healthy-row + .signals-incident-row {
+  margin-top: 6px;
 }
 
 .details-disclosure-icon {
@@ -4298,6 +4312,10 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 .signals-healthy-list {
   gap: 0;
   padding: 2px 0 4px 23px;
+}
+
+.details-disclosure-section > .disclosure-panel > .signals-healthy-list {
+  padding-top: 0;
 }
 
 .signals-healthy-row {

@@ -76,13 +76,11 @@ type DetailsDisclosureState = {
   isAffectingOpen: boolean;
 };
 
-type AffectingSignalRow = {
+type UnhealthyDependencyRow = {
   id: string;
-  typeLabel: "Own" | "Dependency";
   title: string;
-  signals?: ItemSignal[];
-  status: HealthStatus;
-  href?: string;
+  signals: ItemSignal[];
+  href: string;
   onClick?: (event: MouseEvent<HTMLAnchorElement>) => void;
 };
 
@@ -225,57 +223,31 @@ export default function DetailsPanel({
     [actorsForContacts],
   );
 
-  const affectingRows = useMemo<AffectingSignalRow[]>(() => {
-    const ownRows: AffectingSignalRow[] =
-      selectedFailingSignals.length > 0
-        ? [
-            {
-              id: "own:signals",
-              typeLabel: "Own",
-              title: "",
-              signals: selectedFailingSignals,
-              status: selectedFailingSignals[0]?.status || "down",
-            },
-          ]
-        : [];
+  const unhealthyDependencyRows = useMemo<UnhealthyDependencyRow[]>(
+    () =>
+      failingDependencies.map((entry) => ({
+        id: `dep:${entry.id}`,
+        title: entry.name,
+        signals: entry.failingSignals,
+        href: buildItemLink(entry.id, entry.path),
+        onClick: (event) => {
+          if (!isPlainLeftClick(event)) {
+            return;
+          }
+          event.preventDefault();
+          onSelectItemByPath(entry.path);
+        },
+      })),
+    [buildItemLink, failingDependencies, onSelectItemByPath],
+  );
 
-    const dependencyRows: AffectingSignalRow[] = failingDependencies.map(
-      (entry) => {
-        return {
-          id: `dep:${entry.id}`,
-          typeLabel: "Dependency",
-          title: entry.name,
-          signals: entry.failingSignals,
-          status: entry.status,
-          href: buildItemLink(entry.id, entry.path),
-          onClick: (event) => {
-            if (!isPlainLeftClick(event)) {
-              return;
-            }
-            event.preventDefault();
-            onSelectItemByPath(entry.path);
-          },
-        };
-      },
+  const affectingCount =
+    selectedFailingSignals.length +
+    unhealthyDependencyRows.reduce(
+      (total, row) => total + row.signals.length,
+      0,
     );
-
-    return [...ownRows, ...dependencyRows].sort((left, right) => {
-      const rank = (row: AffectingSignalRow) =>
-        row.typeLabel === "Own" ? 0 : 1;
-      const typeCompare = rank(left) - rank(right);
-      if (typeCompare !== 0) {
-        return typeCompare;
-      }
-      return left.title.localeCompare(right.title);
-    });
-  }, [
-    buildItemLink,
-    failingDependencies,
-    onSelectItemByPath,
-    selectedFailingSignals,
-  ]);
-
-  const hasAffectingSignals = affectingRows.length > 0;
+  const hasAffectingSignals = affectingCount > 0;
 
   useEffect(() => {
     if (!selectedItemId) {
@@ -526,84 +498,62 @@ export default function DetailsPanel({
                         className="status-indicator status-down details-disclosure-status"
                         aria-hidden="true"
                       />
-                      <span>Affecting now ({affectingRows.length})</span>
+                      <span>Unhealthy signals ({affectingCount})</span>
                     </button>
                     <div
                       className={`disclosure-panel ${
                         itemDisclosureState.isAffectingOpen ? "is-open" : ""
                       }`}
                     >
-                      <ul className="signals-incident-list">
-                        {affectingRows.map((row) => (
+                      <ul className="details-unhealthy-list">
+                        {selectedFailingSignals.map((entry) => (
+                          <li key={entry.id} className="signals-healthy-row">
+                            <div className="signal-row signal-status-row">
+                              <span
+                                className={`status-indicator status-${entry.status}`}
+                                aria-label={buildStatusText(entry.status)}
+                                title={buildStatusText(entry.status)}
+                              />
+                              <span
+                                className="signal-name"
+                                title={entry.title || entry.id}
+                              >
+                                {entry.title || entry.id}
+                              </span>
+                            </div>
+                          </li>
+                        ))}
+
+                        {unhealthyDependencyRows.map((row) => (
                           <li key={row.id} className="signals-incident-row">
-                            {row.typeLabel === "Own" ? (
-                              <ul className="signals-list signals-sublist signals-group-list">
-                                {selectedFailingSignals.map((entry) => (
-                                  <li key={entry.id} className="signal">
-                                    <div className="signal-row signal-status-row">
-                                      <span
-                                        className={`status-indicator status-${entry.status}`}
-                                        aria-label={buildStatusText(entry.status)}
-                                        title={buildStatusText(entry.status)}
-                                      />
-                                      <span
-                                        className="signal-name"
-                                        title={entry.title || entry.id}
-                                      >
-                                        {entry.title || entry.id}
-                                      </span>
-                                    </div>
-                                  </li>
-                                ))}
-                              </ul>
-                            ) : (
-                              <>
-                                <div className="signals-dependency-row">
+                            <div className="signals-dependency-row">
+                              <a
+                                className="details-text-link"
+                                title={row.title}
+                                href={row.href}
+                                onClick={row.onClick}
+                              >
+                                {row.title}
+                              </a>
+                            </div>
+                            <ul className="signals-incident-signal-list">
+                              {row.signals.map((signal) => (
+                                <li
+                                  key={signal.id}
+                                  className="signals-incident-signal"
+                                  title={signal.title || signal.id}
+                                >
                                   <span
-                                    className={`status-indicator status-${row.status}`}
-                                    aria-label={buildStatusText(row.status)}
-                                    title={buildStatusText(row.status)}
+                                    className={`status-indicator status-${signal.status}`}
+                                    aria-label={buildStatusText(signal.status)}
+                                    title={buildStatusText(signal.status)}
                                   />
-                                  {row.href ? (
-                                    <a
-                                      className="details-text-link"
-                                      title={row.title}
-                                      href={row.href}
-                                      onClick={row.onClick}
-                                    >
-                                      {row.title}
-                                    </a>
-                                  ) : (
-                                    <span className="signal-name" title={row.title}>
-                                      {row.title}
-                                    </span>
-                                  )}
-                                  <span className="details-row-meta">
-                                    (Dependency)
+                                  <span className="signal-name">
+                                    {signal.title || signal.id}
                                   </span>
-                                </div>
-                                {row.signals && row.signals.length > 0 && (
-                                  <ul className="signals-incident-signal-list">
-                                    {row.signals.map((signal) => (
-                                      <li
-                                        key={signal.id}
-                                        className="signals-incident-signal"
-                                        title={signal.title || signal.id}
-                                      >
-                                        <span
-                                          className={`status-indicator status-${signal.status}`}
-                                          aria-label={buildStatusText(signal.status)}
-                                          title={buildStatusText(signal.status)}
-                                        />
-                                        <span className="signal-name">
-                                          {signal.title || signal.id}
-                                        </span>
-                                      </li>
-                                    ))}
-                                  </ul>
-                                )}
-                              </>
-                            )}
+                                </li>
+                              ))}
+                            </ul>
                           </li>
                         ))}
                       </ul>
