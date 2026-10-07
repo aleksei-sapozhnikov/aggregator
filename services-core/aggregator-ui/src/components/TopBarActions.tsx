@@ -27,16 +27,6 @@ export default function TopBarActions({
     <>
       <button
         type="button"
-        className="about-toggle top-control top-control-button top-control-pill top-control-surface top-control-accent"
-        onClick={onOpenAbout}
-      >
-        <span className="theme-toggle-icon" aria-hidden="true">
-          ?
-        </span>
-        <span className="theme-toggle-text">About</span>
-      </button>
-      <button
-        type="button"
         className="theme-toggle top-control top-control-button top-control-pill top-control-surface"
         onClick={onToggleTheme}
       >
@@ -88,6 +78,16 @@ export default function TopBarActions({
           AI
         </span>
         <span className="theme-toggle-text">AI chat</span>
+      </button>
+      <button
+        type="button"
+        className="about-toggle top-control top-control-button top-control-pill top-control-surface top-control-accent"
+        onClick={onOpenAbout}
+      >
+        <span className="theme-toggle-icon" aria-hidden="true">
+          ?
+        </span>
+        <span className="theme-toggle-text">About</span>
       </button>
     </>
   );

@@ -1614,6 +1614,7 @@ export default function App() {
         headerActionsRef={headerActionsRef}
         theme={theme}
         isAiChatOpen={effectiveIsAiChatOpen}
+        onCloseAiChat={() => setIsAiChatOpen(false)}
         onToggleAiChat={() => setIsAiChatOpen((prev) => !prev)}
         onToggleTheme={() =>
           setTheme((prev) => (prev === "dark" ? "light" : "dark"))

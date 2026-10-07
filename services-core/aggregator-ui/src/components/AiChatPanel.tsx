@@ -2,6 +2,7 @@ import type { FormEvent, KeyboardEvent, MouseEvent, ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import { askAgent } from "../services/aggregatorApi";
 import { isPlainLeftClick } from "../shared/catalogUtils";
+import CloseButton from "./CloseButton";
 import type {
   AgentHealthDependencyContent,
   AgentHealthItemContent,
@@ -19,12 +20,14 @@ type ChatMessage = {
 type AiChatPanelProps = {
   isOpen: boolean;
   buildItemLink: (itemId: string) => string;
+  onClose: () => void;
   onSelectItem: (itemId: string) => void;
 };
 
 export default function AiChatPanel({
   isOpen,
   buildItemLink,
+  onClose,
   onSelectItem,
 }: AiChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -105,15 +108,18 @@ export default function AiChatPanel({
           <h2>AI chat</h2>
           <p>Ask about current product health</p>
         </div>
-        <button
-          type="button"
-          className="ai-chat-clear"
-          onClick={handleClearChat}
-          disabled={messages.length === 0}
-          aria-label="Clear chat history"
-        >
-          Clear chat
-        </button>
+        <CloseButton ariaLabel="Close AI chat" onClick={onClose} />
+        <div className="ai-chat-controls-row">
+          <button
+            type="button"
+            className="ai-chat-clear"
+            onClick={handleClearChat}
+            disabled={messages.length === 0}
+            aria-label="Clear chat history"
+          >
+            Clear chat
+          </button>
+        </div>
       </div>
       <div className="ai-chat-messages" aria-live="polite">
         {messages.length === 0 && (
