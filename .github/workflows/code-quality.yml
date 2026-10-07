@@ -46,7 +46,11 @@ jobs:
           path: |
             ~/.cache/pip
             ~/.npm
-            .temp/qa-runtime
+            .temp/qa-runtime/google-java-format
+            .temp/qa-runtime/node_modules
+            .temp/qa-runtime/package-lock.json
+            .temp/qa-runtime/package.json
+            .temp/qa-runtime/trufflehog
           key: ${{ runner.os }}-qa-cache-py${{ env.PYTHON_VERSION }}-runtime-${{ hashFiles('tools/code_qa/**') }}
           restore-keys: |
             ${{ runner.os }}-qa-cache-py${{ env.PYTHON_VERSION }}-

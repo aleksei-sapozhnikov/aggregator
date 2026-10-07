@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import shutil
 import subprocess
 import sys
 from collections.abc import Callable
@@ -221,8 +222,10 @@ def venv_python() -> Path:
 def ensure_venv() -> Path | None:
     """Ensure local virtual environment exists and return Python path."""
     py = venv_python()
-    if py.exists():
+    if py.exists() and python_has_module(py, "pip"):
         return py
+    if venv_dir().exists():
+        shutil.rmtree(venv_dir(), ignore_errors=True)
     venv_dir().parent.mkdir(parents=True, exist_ok=True)
     result = subprocess.run(
         [sys.executable, "-m", "venv", str(venv_dir())],
@@ -233,18 +236,21 @@ def ensure_venv() -> Path | None:
     )
     if result.returncode != 0:
         return None
-    return py if py.exists() else None
+    return py if py.exists() and python_has_module(py, "pip") else None
 
 
 def python_has_module(python_exe: str | Path, module_name: str) -> bool:
     """Check whether selected Python can import a module."""
-    result = subprocess.run(
-        [str(python_exe), "-c", f"import {module_name}"],
-        cwd=repo_root(),
-        check=False,
-        capture_output=True,
-        text=True,
-    )
+    try:
+        result = subprocess.run(
+            [str(python_exe), "-c", f"import {module_name}"],
+            cwd=repo_root(),
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+    except OSError:
+        return False
     return result.returncode == 0
 
 
