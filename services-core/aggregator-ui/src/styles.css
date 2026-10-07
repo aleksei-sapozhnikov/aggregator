@@ -4054,23 +4054,39 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 }
 
 .ownership-contact-section {
-  margin-left: 10px;
-  margin-bottom: 6px;
+  margin-left: 0;
+  margin-bottom: 0;
 }
 
 .ownership-contact-section + .ownership-actors-group {
   margin-top: 14px;
 }
 
+.primary-contact-block {
+  width: fit-content;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  border-left: 3px solid var(--sidebar-selected-accent);
+  padding: 3px 0 4px 11px;
+}
+
+.primary-contact-heading {
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
 .primary-contact-row {
   width: fit-content;
   max-width: 100%;
-  min-height: 48px;
+  min-height: 34px;
   display: flex;
   align-items: center;
   gap: 9px;
-  padding: 4px;
-  white-space: nowrap;
+  padding: 0;
 }
 
 .primary-contact-icon {
@@ -4087,7 +4103,7 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 }
 
 .primary-contact-link {
-  min-height: 38px;
+  min-height: 34px;
   font-size: 18px;
   font-weight: 600;
 }
@@ -4349,7 +4365,6 @@ body[data-theme="dark"] .about-social-icon-linkedin {
     white-space: normal;
   }
 
-  .primary-contact-row,
   .actor-summary-row,
   .signals-dependency-row,
   .signal-status-row,

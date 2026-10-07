@@ -375,30 +375,35 @@ export default function DetailsPanel({
                 >
                   {primaryContact && (
                     <div className="ownership-contact-section">
-                      <div className="primary-contact-row">
-                        <span className="primary-contact-icon">
-                          {renderContactIcon(primaryContact, iconSpriteHref)}
-                        </span>
-                        <a
-                          className="details-text-link primary-contact-link"
-                          href={
-                            primaryContact.href ||
-                            `/contacts/${primaryContact.id}`
-                          }
-                          onClick={(event) => {
-                            if (!isPlainLeftClick(event)) {
-                              return;
+                      <div
+                        className="primary-contact-block"
+                        aria-label="Primary contact"
+                      >
+                        <div className="primary-contact-heading">
+                          Primary contact
+                        </div>
+                        <div className="primary-contact-row">
+                          <span className="primary-contact-icon">
+                            {renderContactIcon(primaryContact, iconSpriteHref)}
+                          </span>
+                          <a
+                            className="details-text-link primary-contact-link"
+                            href={
+                              primaryContact.href ||
+                              `/contacts/${primaryContact.id}`
                             }
-                            event.preventDefault();
-                            onOpenContact(primaryContact);
-                          }}
-                          title={resolveContactLabel(primaryContact)}
-                        >
-                          {resolveContactLabel(primaryContact)}
-                        </a>
-                        <span className="details-row-meta">
-                          (Primary contact)
-                        </span>
+                            onClick={(event) => {
+                              if (!isPlainLeftClick(event)) {
+                                return;
+                              }
+                              event.preventDefault();
+                              onOpenContact(primaryContact);
+                            }}
+                            title={resolveContactLabel(primaryContact)}
+                          >
+                            {resolveContactLabel(primaryContact)}
+                          </a>
+                        </div>
                       </div>
                     </div>
                   )}
