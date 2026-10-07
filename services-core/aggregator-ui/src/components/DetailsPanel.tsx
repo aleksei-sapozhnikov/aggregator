@@ -32,6 +32,7 @@ type DetailsPanelProps = {
   headerActionsRef: RefObject<HTMLDivElement | null>;
   theme: "dark" | "light";
   isAiChatOpen: boolean;
+  onCloseAiChat: () => void;
   onToggleAiChat: () => void;
   onToggleTheme: () => void;
   onOpenFeedback: () => void;
@@ -144,6 +145,7 @@ export default function DetailsPanel({
   headerActionsRef,
   theme,
   isAiChatOpen,
+  onCloseAiChat,
   onToggleAiChat,
   onToggleTheme,
   onOpenFeedback,
@@ -775,6 +777,7 @@ export default function DetailsPanel({
         <AiChatPanel
           isOpen={isAiChatOpen}
           buildItemLink={buildItemLink}
+          onClose={onCloseAiChat}
           onSelectItem={onSelectItemById}
         />
       </div>

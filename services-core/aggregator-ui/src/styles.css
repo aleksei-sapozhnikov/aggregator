@@ -207,11 +207,11 @@ body {
 }
 
 .about-toggle {
-  order: 3;
+  order: 4;
 }
 
 .ai-chat-toggle {
-  order: 4;
+  order: 3;
 }
 
 .ai-chat-feature-disabled .about-toggle {
@@ -897,6 +897,7 @@ body {
   border-radius: 12px;
   box-shadow: var(--shadow);
   overflow: hidden;
+  position: relative;
 }
 
 .ai-chat-panel.is-open {
@@ -907,9 +908,9 @@ body {
 .ai-chat-header {
   flex: 0 0 auto;
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 18px;
   padding: 14px 16px 12px;
   border-bottom: 1px solid var(--border);
   background: var(--outer-background);
@@ -917,6 +918,7 @@ body {
 
 .ai-chat-title-block {
   min-width: 0;
+  margin-right: 56px;
 }
 
 .ai-chat-header h2 {
@@ -933,10 +935,16 @@ body {
   overflow-wrap: anywhere;
 }
 
+.ai-chat-controls-row {
+  display: flex;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
 .ai-chat-clear {
   flex: 0 0 auto;
-  min-height: 28px;
-  padding: 4px 8px;
+  min-height: 36px;
+  padding: 7px 10px;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: transparent;
@@ -2381,8 +2389,8 @@ body[data-theme="dark"] .about-social-icon-linkedin {
   position: absolute;
   top: 10px;
   right: 10px;
-  width: 38px;
-  height: 38px;
+  width: 44px;
+  height: 44px;
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--danger);
