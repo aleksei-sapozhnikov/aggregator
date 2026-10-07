@@ -211,6 +211,39 @@ export default function App() {
   const appBaseUrl = useMemo(() => resolveBaseUrl().replace(/\/$/, ""), []);
   const effectiveIsAiChatOpen = isAiChatFeatureEnabled && isAiChatOpen;
 
+  useEffect(() => {
+    const viewport = window.visualViewport;
+    if (!viewport) {
+      return undefined;
+    }
+
+    let frameId = 0;
+    const updateViewportHeight = () => {
+      if (frameId) {
+        window.cancelAnimationFrame(frameId);
+      }
+      frameId = window.requestAnimationFrame(() => {
+        document.documentElement.style.setProperty(
+          "--app-viewport-height",
+          `${viewport.height}px`,
+        );
+      });
+    };
+
+    updateViewportHeight();
+    viewport.addEventListener("resize", updateViewportHeight);
+    viewport.addEventListener("scroll", updateViewportHeight);
+
+    return () => {
+      if (frameId) {
+        window.cancelAnimationFrame(frameId);
+      }
+      viewport.removeEventListener("resize", updateViewportHeight);
+      viewport.removeEventListener("scroll", updateViewportHeight);
+      document.documentElement.style.removeProperty("--app-viewport-height");
+    };
+  }, []);
+
   /**
    * Pushes/replaces browser history for an item route while deduplicating no-op updates.
    */
