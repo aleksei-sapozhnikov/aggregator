@@ -29,6 +29,10 @@ services:
       CHAOS_MAX_CONCURRENT: "2"
       CATALOG_SIGNALS_URL: http://catalog:8080/api/signals/http-poll
 
+  ai-agent:
+    mem_limit: 384m
+    memswap_limit: 384m
+
   prometheus:
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"

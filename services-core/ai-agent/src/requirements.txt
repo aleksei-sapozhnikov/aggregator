@@ -3,4 +3,4 @@ uvicorn[standard]==0.37.0
 boto3==1.40.45
 requests==2.33.0
 httpx==0.28.1
-lingua-language-detector==2.1.1
+lingua-language-detector==2.2.0
