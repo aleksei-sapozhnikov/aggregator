@@ -93,9 +93,13 @@ CHAOS_LAST := $(filter $(ENV),$(CHAOS_LAST_ENVS))
 ADMIN_USERNAME ?=
 ADMIN_PASSWORD ?=
 FEEDBACK_STORAGE_CONFIG ?=
+AGENT_AI_ENABLED ?=
+AGENT_AI_CONFIG ?=
 export ADMIN_USERNAME
 export ADMIN_PASSWORD
 export FEEDBACK_STORAGE_CONFIG
+export AGENT_AI_ENABLED
+export AGENT_AI_CONFIG
 
 .PHONY: help info env \
         up down restart recreate rebuild rebuild-recreate clean \
