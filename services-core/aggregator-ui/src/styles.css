@@ -1056,15 +1056,28 @@ body {
   line-height: 1.35;
 }
 
-.ai-health-response-header {
-  margin: 0;
-  color: var(--text);
-  font-weight: 600;
-  overflow-wrap: anywhere;
+.ai-health-item-state {
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.ai-health-item-state.status-down {
+  color: var(--status-down);
+}
+
+.ai-health-item-state.status-unknown {
+  color: var(--status-unknown);
+}
+
+.ai-health-item-state.status-up {
+  color: var(--status-up);
 }
 
 .ai-health-item-list,
-.ai-health-fact-list {
+.ai-health-signal-list,
+.ai-health-dependency-list {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -1080,36 +1093,47 @@ body {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 4px;
 }
 
 .ai-health-item-title,
 .ai-health-dependency-link {
   min-width: 0;
-  color: var(--text);
+  color: var(--link);
   text-decoration: none;
   display: inline-flex;
   align-items: center;
   gap: 7px;
+  min-height: 30px;
+  padding: 0 2px;
   border-radius: 6px;
   overflow-wrap: anywhere;
   word-break: break-word;
+  line-height: 1.35;
 }
 
 .ai-health-item-title {
   width: fit-content;
   max-width: 100%;
   font-weight: 700;
+  font-size: 14px;
 }
 
 .ai-health-dependency-link {
+  width: fit-content;
+  max-width: 100%;
   font-weight: 500;
 }
 
 .ai-health-item-title:hover,
 .ai-health-dependency-link:hover {
-  color: var(--link);
   text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.ai-health-item-title:focus-visible,
+.ai-health-dependency-link:focus-visible {
+  border-radius: 3px;
 }
 
 .ai-health-link-text,
@@ -1119,44 +1143,57 @@ body {
   word-break: break-word;
 }
 
-.ai-health-fact-group {
+.ai-health-own-signal-list,
+.ai-health-dependency-list {
   min-width: 0;
-  padding-left: 17px;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
 }
 
-.ai-health-fact-label {
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 1.25;
-}
-
-.ai-health-fact-list {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
+.ai-health-own-signal-list {
+  padding-left: 2px;
 }
 
 .ai-health-fact-row {
   min-width: 0;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 7px;
   color: var(--text);
+  padding: 2px 0;
+  line-height: 1.3;
 }
 
 .ai-health-dependency-item {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 0;
+  padding-left: 10px;
+}
+
+.ai-health-dependency-signal-list {
+  min-width: 0;
+  margin: -1px 0 2px 9px;
+  padding: 0 0 0 14px;
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
 }
 
 .ai-health-response .status-indicator {
-  flex: 0 0 10px;
+  flex: 0 0 16px;
+}
+
+.ai-health-response .ai-health-fact-row .status-indicator {
+  margin-top: 1px;
+}
+
+.ai-health-response .signal-name,
+.ai-health-response .ai-health-fact-text {
+  font-size: 13px;
 }
 
 .ai-chat-input-row {

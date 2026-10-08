@@ -127,18 +127,13 @@ export interface AgentHealthItemContent {
   affecting_dependencies: AgentHealthDependencyContent[];
 }
 
-export interface AgentUnhealthyItemsContent {
-  type: "unhealthy_items";
-  presentation: {
-    header: string;
-    signals_label: string;
-    dependencies_label: string;
-    healthy_message: string;
-  };
+export interface AgentProductHealthContent {
+  type: "product_health";
+  scope: "unhealthy_items" | "item";
   items: AgentHealthItemContent[];
 }
 
-export type AgentStructuredContent = AgentUnhealthyItemsContent;
+export type AgentStructuredContent = AgentProductHealthContent;
 
 export interface AgentAskResponse {
   answer: string;

@@ -44,6 +44,7 @@ import {
   submitFeedback,
 } from "./services/aggregatorApi";
 import { sortContactsWithPrimaryFirst } from "./shared/contactUtils";
+import { isUnhealthyHealthStatus } from "./shared/healthPresentation";
 import type {
   CatalogActor,
   CatalogActorContact,
@@ -803,7 +804,10 @@ export default function App() {
   }, [itemSignals, selectedItem]);
 
   const selectedFailingSignals = useMemo(
-    () => selectedSignals.filter((signal) => signal.status === "down"),
+    () =>
+      selectedSignals.filter((signal) =>
+        isUnhealthyHealthStatus(signal.status),
+      ),
     [selectedSignals],
   );
   const selectedPassingSignals = useMemo(
@@ -913,7 +917,7 @@ export default function App() {
     const visit = (children: CatalogTreeNode[]) => {
       children.forEach((node) => {
         const failingSignals = (itemSignals[node.item.id] || [])
-          .filter((signal) => signal.status === "down")
+          .filter((signal) => isUnhealthyHealthStatus(signal.status))
           .sort(compareSignalsByStatusAndTitle);
 
         if (failingSignals.length > 0 && !displayedItemIds.has(node.item.id)) {
@@ -922,7 +926,7 @@ export default function App() {
             id: node.item.id,
             name: node.item.title || node.item.id,
             path: node.path || [node.item.id],
-            status: "down",
+            status: failingSignals[0]?.status || "unknown",
             failingSignals,
             failingCountContribution: 1,
           });
