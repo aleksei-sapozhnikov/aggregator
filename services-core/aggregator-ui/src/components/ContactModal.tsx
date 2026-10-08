@@ -4,7 +4,9 @@ import {
   resolveContactLabel,
   resolveContactTypeDisplayName,
 } from "../shared/contactUtils";
+import type { InfoHelpTopic } from "../shared/infoHelpTopics";
 import CloseButton from "./CloseButton";
+import InfoHelp from "./InfoHelp";
 
 type ContactModalProps = {
   isOpen: boolean;
@@ -50,6 +52,62 @@ type ContactDemoCopy = {
   phoneGreeting: string;
   phoneProblem: string;
   phoneResponse: string;
+};
+
+const buildContactDemoHelpTopic = (
+  details: ContactDemoDetails,
+  label: string,
+  openedByLink: string,
+): InfoHelpTopic => {
+  const detailRows = [
+    { label: "URL defined in catalog now", value: openedByLink },
+    { label: "Example real URL for catalog", value: details.realHref },
+  ];
+
+  switch (details.kind) {
+    case "email":
+      return {
+        title: `${details.appName} preview`,
+        summary: "Demo email workflow. Click for details.",
+        description: `This is a demo preview. It simulates opening ${details.appName}, addressing ${label}, sending a service-problem request to the relevant team, and receiving a reply.`,
+        details: detailRows,
+      };
+    case "phone":
+      return {
+        title: `${details.appName} preview`,
+        summary: "Demo phone workflow. Click for details.",
+        description: `This is a demo preview. It simulates opening ${details.appName}, calling ${label}, explaining that a service is unhealthy, and receiving acknowledgement from the contact.`,
+        details: detailRows,
+      };
+    case "sms":
+      return {
+        title: `${details.appName} preview`,
+        summary: "Demo text message workflow. Click for details.",
+        description: `This is a demo preview. It simulates opening ${details.appName}, sending ${label} a service-problem request, and receiving a response.`,
+        details: detailRows,
+      };
+    case "oncall":
+      return {
+        title: `${details.appName} preview`,
+        summary: "Demo on-call workflow. Click for details.",
+        description: `This is a demo preview. It simulates opening ${details.appName}, creating a service-problem incident for ${label}, notifying the on-call responder, and receiving acknowledgement.`,
+        details: detailRows,
+      };
+    case "chat":
+      return {
+        title: `${details.appName} preview`,
+        summary: "Demo team chat workflow. Click for details.",
+        description: `This is a demo preview. It simulates opening ${details.appName}, sending ${label} a service-problem request, and receiving a response from the relevant team.`,
+        details: detailRows,
+      };
+    default:
+      return {
+        title: `${details.appName} preview`,
+        summary: "Demo contact destination. Click for details.",
+        description: `This is a demo preview. It simulates opening the contact destination that Aggregator would use for ${label}.`,
+        details: detailRows,
+      };
+  }
 };
 
 const onCallActivityByClient: OnCallActivity = {
@@ -255,15 +313,18 @@ const buildRealContactHref = (
 
 const ContactDemoWindowBar = ({
   details,
+  helpTopic,
   title,
 }: {
   details: ContactDemoDetails;
+  helpTopic: InfoHelpTopic;
   title: string;
 }) => (
   <div className="contact-demo-window-bar">
     <span className="contact-window-title">
       <span className="contact-window-icon">{details.iconLabel}</span>
       <span>{details.appName}</span>
+      <InfoHelp topic={helpTopic} />
     </span>
     <span className="contact-window-context">{title}</span>
   </div>
@@ -307,6 +368,7 @@ const renderContactDemo = (
   onCallStage: OnCallStage,
   onCallFormLength: number,
   copy: ContactDemoCopy,
+  helpTopic: InfoHelpTopic,
 ) => {
   if (details.kind === "email") {
     const isComposing =
@@ -319,7 +381,11 @@ const renderContactDemo = (
         className={`contact-demo contact-demo-email contact-client-${details.clientClass}`}
         aria-label="Email client preview"
       >
-        <ContactDemoWindowBar details={details} title="New message" />
+        <ContactDemoWindowBar
+          details={details}
+          helpTopic={helpTopic}
+          title="New message"
+        />
         <div className="contact-email-fields">
           <div>
             <span>To</span>
@@ -383,6 +449,7 @@ const renderContactDemo = (
       >
         <ContactDemoWindowBar
           details={details}
+          helpTopic={helpTopic}
           title={isConnected ? "Connected" : "Calling"}
         />
         <div className="contact-phone-screen">
@@ -427,7 +494,11 @@ const renderContactDemo = (
         className={`contact-demo contact-demo-chat contact-client-${details.clientClass}`}
         aria-label="Messages preview"
       >
-        <ContactDemoWindowBar details={details} title={label} />
+        <ContactDemoWindowBar
+          details={details}
+          helpTopic={helpTopic}
+          title={label}
+        />
         <div className="contact-chat-thread">
           {isMessageSent && (
             <p className="contact-chat-bubble contact-chat-bubble-out">
@@ -478,7 +549,11 @@ const renderContactDemo = (
         className={`contact-demo contact-demo-oncall contact-client-${details.clientClass}`}
         aria-label="On-call profile preview"
       >
-        <ContactDemoWindowBar details={details} title="Escalation" />
+        <ContactDemoWindowBar
+          details={details}
+          helpTopic={helpTopic}
+          title="Escalation"
+        />
         {isInitial && (
           <div className="contact-oncall-start">
             <div className="contact-oncall-profile">
@@ -599,7 +674,11 @@ const renderContactDemo = (
         className={`contact-demo contact-demo-generic contact-client-${details.clientClass}`}
         aria-label="Contact application preview"
       >
-        <ContactDemoWindowBar details={details} title="Contact destination" />
+        <ContactDemoWindowBar
+          details={details}
+          helpTopic={helpTopic}
+          title="Contact destination"
+        />
         <div className="contact-generic-card">
           <strong>{label}</strong>
           <span>
@@ -615,7 +694,11 @@ const renderContactDemo = (
       className={`contact-demo contact-demo-chat contact-client-${details.clientClass}`}
       aria-label="Team chat preview"
     >
-      <ContactDemoWindowBar details={details} title={label} />
+      <ContactDemoWindowBar
+        details={details}
+        helpTopic={helpTopic}
+        title={label}
+      />
       <div className="contact-chat-thread">
         {isMessageSent && (
           <p className="contact-chat-bubble contact-chat-bubble-out">
@@ -779,6 +862,11 @@ export default function ContactModal({
 
   const openedByLink = `/contacts/${contact.id}`;
   const demoDetails = buildRealContactHref(contact, contactLabel);
+  const helpTopic = buildContactDemoHelpTopic(
+    demoDetails,
+    contactLabel,
+    openedByLink,
+  );
   const activeDemoCopy = buildContactDemoCopy(contact, contactLabel);
   const typedText = outgoingText.slice(0, typedLength);
   const isMessageSent = typedLength >= outgoingText.length;
@@ -811,24 +899,8 @@ export default function ContactModal({
             onCallStage,
             onCallFormLength,
             activeDemoCopy,
+            helpTopic,
           )}
-          <div className="contact-modal-demo-note">
-            <p>
-              Demo: the catalog link opened this preview inside Aggregator:{" "}
-              <code className="contact-modal-link-preview">
-                {openedByLink}
-              </code>
-              .
-            </p>
-            <p>
-              In a real setup, the same contact would open the actual external
-              client when the link looks like:{" "}
-              <code className="contact-modal-link-preview">
-                {demoDetails.realHref}
-              </code>
-              .
-            </p>
-          </div>
         </div>
       </article>
     </div>
