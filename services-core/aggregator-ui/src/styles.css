@@ -2155,18 +2155,6 @@ body[data-theme="dark"] .contact-chip:hover {
   border: 0;
 }
 
-.contact-modal-link-preview {
-  display: inline;
-  padding: 1px 5px;
-  border-radius: 4px;
-  background: var(--panel-alt);
-  color: var(--text);
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-  font-size: 0.92em;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-}
-
 .contact-modal-body {
   display: flex;
   flex-direction: column;
@@ -2224,7 +2212,7 @@ body[data-theme="dark"] .contact-chip:hover {
   display: inline-flex;
   align-items: center;
   gap: 9px;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .contact-window-icon {
@@ -2251,6 +2239,10 @@ body[data-theme="dark"] .contact-chip:hover {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.contact-window-title .info-help {
+  margin-left: 2px;
 }
 
 .contact-window-context {
@@ -2937,17 +2929,6 @@ body[data-theme="dark"] .contact-chip:hover {
   animation: contact-status-pulse 1200ms ease-in-out infinite;
 }
 
-.contact-modal-demo-note {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  padding-top: 10px;
-  border-top: 1px solid var(--border);
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 1.45;
-}
-
 body[data-theme="dark"] .contact-demo {
   --client-surface: #181b1f;
   --client-thread-bg: #111827;
@@ -3078,10 +3059,6 @@ body[data-theme="dark"]
   background: var(--oncall-secondary-bg);
   color: var(--oncall-secondary-text);
   border-color: var(--oncall-secondary-border);
-}
-
-body[data-theme="dark"] .contact-modal-link-preview {
-  background: #252a33;
 }
 
 body[data-theme="dark"] .contact-email-reply {
