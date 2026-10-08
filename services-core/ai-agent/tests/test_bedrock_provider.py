@@ -227,80 +227,30 @@ def test_bedrock_inference_settings_do_not_affect_credentials(
     ]
 
 
-def test_bedrock_reads_presentation_metadata_from_tool_input() -> None:
+def test_bedrock_keeps_tool_input_as_functional_arguments() -> None:
     response = _complete_with_tool_input(
         {
-            "presentation": {
-                "header": "Сейчас обнаружены проблемы со следующими элементами:",
-                "signals_label": "Проблемные сигналы",
-                "dependencies_label": "Влияющие зависимости",
-                "healthy_message": "Сейчас все элементы здоровы.",
-            }
+            "query": "Checkout",
+            "extra": {"nested": True},
         }
     )
 
     tool_call = response.tool_calls[0]
-    assert tool_call.presentation is not None
-    assert (
-        tool_call.presentation.header
-        == "Сейчас обнаружены проблемы со следующими элементами:"
-    )
-    assert tool_call.presentation.signals_label == "Проблемные сигналы"
-    assert tool_call.presentation.dependencies_label == "Влияющие зависимости"
-    assert tool_call.presentation.healthy_message == "Сейчас все элементы здоровы."
-    assert tool_call.arguments == {}
+    assert tool_call.arguments == {"query": "Checkout", "extra": {"nested": True}}
 
 
-def test_bedrock_strips_presentation_from_functional_arguments() -> None:
+def test_bedrock_does_not_strip_presentation_like_arguments() -> None:
     response = _complete_with_tool_input(
         {
             "query": "Checkout",
-            "presentation": {
-                "header": "Header",
-                "signals_label": "Signals",
-                "dependencies_label": "Dependencies",
-                "healthy_message": "Healthy",
-            },
+            "presentation": "plain input value",
         }
     )
 
-    assert response.tool_calls[0].presentation is not None
-    assert response.tool_calls[0].arguments == {"query": "Checkout"}
-
-
-def test_bedrock_missing_presentation_metadata_is_none() -> None:
-    response = _complete_with_tool_input({})
-
-    assert response.tool_calls[0].presentation is None
-    assert response.tool_calls[0].arguments == {}
-
-
-def test_bedrock_invalid_presentation_metadata_is_none() -> None:
-    response = _complete_with_tool_input(
-        {
-            "presentation": {
-                "header": "Header",
-                "signals_label": ["Signals"],
-                "dependencies_label": "Dependencies",
-                "healthy_message": "Healthy",
-            }
-        }
-    )
-
-    assert response.tool_calls[0].presentation is None
-    assert response.tool_calls[0].arguments == {}
-
-
-def test_bedrock_ignores_presentation_metadata_in_text() -> None:
-    response = _complete_with_tool_input(
-        {},
-        text=(
-            '{"presentation":{"header":"Header","signals_label":"Signals",'
-            '"dependencies_label":"Dependencies","healthy_message":"Healthy"}}'
-        ),
-    )
-
-    assert response.tool_calls[0].presentation is None
+    assert response.tool_calls[0].arguments == {
+        "query": "Checkout",
+        "presentation": "plain input value",
+    }
 
 
 def test_bedrock_required_tool_choice_maps_to_any() -> None:

@@ -12,7 +12,6 @@ from botocore.exceptions import BotoCoreError, ClientError
 from .model_provider import (
     ModelMessage,
     ModelResponse,
-    PresentationMetadata,
     TokenUsage,
     ToolCall,
     ToolChoice,
@@ -199,37 +198,10 @@ def _dict_or_empty(value: Any) -> dict[str, Any]:
 
 def _tool_call_from_tool_use(tool_use: dict[str, Any]) -> ToolCall:
     arguments = _dict_or_empty(tool_use.get("input")).copy()
-    presentation = _presentation_from_arguments(arguments)
-    arguments.pop("presentation", None)
     return ToolCall(
         id=str(tool_use.get("toolUseId", "")),
         name=str(tool_use.get("name", "")),
         arguments=arguments,
-        presentation=presentation,
-    )
-
-
-def _presentation_from_arguments(
-    arguments: dict[str, Any],
-) -> PresentationMetadata | None:
-    presentation = arguments.get("presentation")
-    if not isinstance(presentation, dict):
-        return None
-    if any(
-        not isinstance(presentation.get(field), str)
-        for field in (
-            "header",
-            "signals_label",
-            "dependencies_label",
-            "healthy_message",
-        )
-    ):
-        return None
-    return PresentationMetadata(
-        header=presentation["header"],
-        signals_label=presentation["signals_label"],
-        dependencies_label=presentation["dependencies_label"],
-        healthy_message=presentation["healthy_message"],
     )
 
 
