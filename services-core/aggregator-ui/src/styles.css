@@ -1213,7 +1213,9 @@ body {
   overflow: hidden;
 }
 
-.app.is-mobile.ai-chat-open .content-workspace.ai-chat-open .item-details-column {
+.app.is-mobile.ai-chat-open
+  .content-workspace.ai-chat-open
+  .item-details-column {
   display: none;
 }
 
