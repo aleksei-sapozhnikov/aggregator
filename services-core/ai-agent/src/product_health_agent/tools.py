@@ -66,54 +66,8 @@ class RestProductHealthTools:
                     ),
                     input_schema={
                         "type": "object",
-                        "properties": {
-                            "presentation": {
-                                "type": "object",
-                                "description": (
-                                    "Localized presentation labels. Every string "
-                                    "MUST use the RESPONSE LANGUAGE specified by "
-                                    "the agent."
-                                ),
-                                "properties": {
-                                    "header": {
-                                        "type": "string",
-                                        "description": (
-                                            "Short declarative heading in the "
-                                            "RESPONSE LANGUAGE. Do not repeat or "
-                                            "paraphrase the user's question."
-                                        ),
-                                    },
-                                    "signals_label": {
-                                        "type": "string",
-                                        "description": (
-                                            "Short label for unhealthy signals in "
-                                            "the RESPONSE LANGUAGE."
-                                        ),
-                                    },
-                                    "dependencies_label": {
-                                        "type": "string",
-                                        "description": (
-                                            "Short label for affecting "
-                                            "dependencies in the RESPONSE LANGUAGE."
-                                        ),
-                                    },
-                                    "healthy_message": {
-                                        "type": "string",
-                                        "description": (
-                                            "Short complete healthy-state message "
-                                            "in the RESPONSE LANGUAGE."
-                                        ),
-                                    },
-                                },
-                                "required": [
-                                    "header",
-                                    "signals_label",
-                                    "dependencies_label",
-                                    "healthy_message",
-                                ],
-                            }
-                        },
-                        "required": ["presentation"],
+                        "properties": {},
+                        "additionalProperties": False,
                     },
                 ),
                 handler=self.list_unhealthy_items,
@@ -130,6 +84,21 @@ class RestProductHealthTools:
             )
             response.raise_for_status()
             payload = response.json()
+            if isinstance(payload, dict) and payload.get("found") is True:
+                related_response = requests.get(
+                    f"{self.base_url}/api/product-health/items",
+                    params={"unhealthyOnly": "true"},
+                    timeout=self.timeout_seconds,
+                )
+                related_response.raise_for_status()
+                related_payload = related_response.json()
+                if isinstance(related_payload, list) and all(
+                    isinstance(entry, dict) for entry in related_payload
+                ):
+                    payload = {
+                        **payload,
+                        "relatedUnhealthyItems": related_payload,
+                    }
         except requests.RequestException as exc:
             logger.exception(
                 "Product Health API request failed. operation=%s base_url=%s "
