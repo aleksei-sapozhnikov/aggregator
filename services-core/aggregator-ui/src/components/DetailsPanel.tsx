@@ -4,7 +4,9 @@
 
 import TopBarActions from "./TopBarActions";
 import AiChatPanel from "./AiChatPanel";
+import InfoHelp from "./InfoHelp";
 import { isPlainLeftClick } from "../shared/catalogUtils";
+import { infoHelpTopics } from "../shared/infoHelpTopics";
 import { buildStatusText } from "../shared/statusText";
 import {
   resolveContactIconId,
@@ -379,8 +381,11 @@ export default function DetailsPanel({
                         className="primary-contact-block"
                         aria-label="Primary contact"
                       >
-                        <div className="primary-contact-heading">
-                          Primary contact
+                        <div className="primary-contact-heading-row">
+                          <div className="primary-contact-heading">
+                            Primary contact
+                          </div>
+                          <InfoHelp topic={infoHelpTopics.primaryContact} />
                         </div>
                         <div className="primary-contact-row">
                           <span className="primary-contact-icon">
@@ -410,33 +415,40 @@ export default function DetailsPanel({
 
                   {actorRowsForContacts.length > 0 && (
                     <div className="ownership-actors-group">
-                    <>
-                      <button
-                        type="button"
-                        className="details-disclosure-toggle"
-                        onClick={() =>
-                          updateDisclosureState({
-                            isContactsExtraOpen:
-                              !itemDisclosureState.isContactsExtraOpen,
-                          })
-                        }
-                        aria-expanded={itemDisclosureState.isContactsExtraOpen}
-                      >
-                        <span
-                          className={`details-panel-chevron ${
+                      <div className="details-disclosure-header">
+                        <button
+                          type="button"
+                          className="details-disclosure-toggle"
+                          onClick={() =>
+                            updateDisclosureState({
+                              isContactsExtraOpen:
+                                !itemDisclosureState.isContactsExtraOpen,
+                            })
+                          }
+                          aria-expanded={
                             itemDisclosureState.isContactsExtraOpen
-                              ? "is-open"
-                              : ""
-                          }`}
-                          aria-hidden="true"
+                          }
                         >
-                          ›
-                        </span>
-                        <span className="details-disclosure-icon" aria-hidden="true">
-                          {renderActorTeamIcon(iconSpriteHref)}
-                        </span>
-                        <span>Actors ({actorRowsForContacts.length})</span>
-                      </button>
+                          <span
+                            className={`details-panel-chevron ${
+                              itemDisclosureState.isContactsExtraOpen
+                                ? "is-open"
+                                : ""
+                            }`}
+                            aria-hidden="true"
+                          >
+                            ›
+                          </span>
+                          <span
+                            className="details-disclosure-icon"
+                            aria-hidden="true"
+                          >
+                            {renderActorTeamIcon(iconSpriteHref)}
+                          </span>
+                          <span>Actors ({actorRowsForContacts.length})</span>
+                        </button>
+                        <InfoHelp topic={infoHelpTopics.actors} />
+                      </div>
                       <div
                         className={`disclosure-panel ownership-extra-contacts ${
                           itemDisclosureState.isContactsExtraOpen
@@ -473,38 +485,40 @@ export default function DetailsPanel({
                           ))}
                         </ul>
                       </div>
-                    </>
                     </div>
                   )}
                 </div>
 
                 {hasAffectingSignals && (
                   <div className="details-disclosure-section">
-                    <button
-                      type="button"
-                      className="details-disclosure-toggle"
-                      onClick={() =>
-                        updateDisclosureState({
-                          isAffectingOpen:
-                            !itemDisclosureState.isAffectingOpen,
-                        })
-                      }
-                      aria-expanded={itemDisclosureState.isAffectingOpen}
-                    >
-                      <span
-                        className={`details-panel-chevron ${
-                          itemDisclosureState.isAffectingOpen ? "is-open" : ""
-                        }`}
-                        aria-hidden="true"
+                    <div className="details-disclosure-header">
+                      <button
+                        type="button"
+                        className="details-disclosure-toggle"
+                        onClick={() =>
+                          updateDisclosureState({
+                            isAffectingOpen:
+                              !itemDisclosureState.isAffectingOpen,
+                          })
+                        }
+                        aria-expanded={itemDisclosureState.isAffectingOpen}
                       >
-                        ›
-                      </span>
-                      <span
-                        className="status-indicator status-down details-disclosure-status"
-                        aria-hidden="true"
-                      />
-                      <span>Unhealthy signals ({affectingCount})</span>
-                    </button>
+                        <span
+                          className={`details-panel-chevron ${
+                            itemDisclosureState.isAffectingOpen ? "is-open" : ""
+                          }`}
+                          aria-hidden="true"
+                        >
+                          ›
+                        </span>
+                        <span
+                          className="status-indicator status-down details-disclosure-status"
+                          aria-hidden="true"
+                        />
+                        <span>Unhealthy signals ({affectingCount})</span>
+                      </button>
+                      <InfoHelp topic={infoHelpTopics.unhealthySignals} />
+                    </div>
                     <div
                       className={`disclosure-panel ${
                         itemDisclosureState.isAffectingOpen ? "is-open" : ""
@@ -568,30 +582,33 @@ export default function DetailsPanel({
 
                 {passingSignalsCount > 0 && (
                   <div className="details-disclosure-section">
-                    <button
-                      type="button"
-                      className="details-disclosure-toggle"
-                      onClick={() =>
-                        updateDisclosureState({
-                          isHealthyOpen: !itemDisclosureState.isHealthyOpen,
-                        })
-                      }
-                      aria-expanded={itemDisclosureState.isHealthyOpen}
-                    >
-                      <span
-                        className={`details-panel-chevron ${
-                          itemDisclosureState.isHealthyOpen ? "is-open" : ""
-                        }`}
-                        aria-hidden="true"
+                    <div className="details-disclosure-header">
+                      <button
+                        type="button"
+                        className="details-disclosure-toggle"
+                        onClick={() =>
+                          updateDisclosureState({
+                            isHealthyOpen: !itemDisclosureState.isHealthyOpen,
+                          })
+                        }
+                        aria-expanded={itemDisclosureState.isHealthyOpen}
                       >
-                        ›
-                      </span>
-                      <span
-                        className="status-indicator status-up details-disclosure-status"
-                        aria-hidden="true"
-                      />
-                      <span>Healthy signals ({passingSignalsCount})</span>
-                    </button>
+                        <span
+                          className={`details-panel-chevron ${
+                            itemDisclosureState.isHealthyOpen ? "is-open" : ""
+                          }`}
+                          aria-hidden="true"
+                        >
+                          ›
+                        </span>
+                        <span
+                          className="status-indicator status-up details-disclosure-status"
+                          aria-hidden="true"
+                        />
+                        <span>Healthy signals ({passingSignalsCount})</span>
+                      </button>
+                      <InfoHelp topic={infoHelpTopics.healthySignals} />
+                    </div>
                     <div
                       className={`disclosure-panel ${
                         itemDisclosureState.isHealthyOpen ? "is-open" : ""
