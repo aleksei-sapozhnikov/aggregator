@@ -2066,7 +2066,8 @@ body[data-theme="dark"] .contact-chip:hover {
   border-radius: 12px;
   background: var(--client-accent);
   color: #ffffff;
-  box-shadow: 0 8px 18px color-mix(in srgb, var(--client-accent) 24%, transparent);
+  box-shadow: 0 8px 18px
+    color-mix(in srgb, var(--client-accent) 24%, transparent);
   font-size: 18px;
   font-weight: 800;
 }
@@ -2175,7 +2176,11 @@ body[data-theme="dark"] .contact-chip:hover {
   gap: 12px;
   padding: 18px;
   background:
-    radial-gradient(circle at 12px 12px, rgba(0, 0, 0, 0.035) 1px, transparent 1px)
+    radial-gradient(
+        circle at 12px 12px,
+        rgba(0, 0, 0, 0.035) 1px,
+        transparent 1px
+      )
       0 0 / 22px 22px,
     var(--client-thread-bg);
 }
@@ -2419,7 +2424,11 @@ body[data-theme="dark"] .contact-chat-bubble-out {
 
 body[data-theme="dark"] .contact-demo-window-bar {
   background:
-    linear-gradient(90deg, color-mix(in srgb, var(--client-accent) 22%, transparent) 0%, transparent 58%),
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--client-accent) 22%, transparent) 0%,
+      transparent 58%
+    ),
     linear-gradient(180deg, #252a33 0%, #1b1f26 100%);
   color: #f8fafc;
 }

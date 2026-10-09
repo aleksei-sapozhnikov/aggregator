@@ -269,7 +269,9 @@ const renderContactDemo = (
         <ContactDemoWindowBar details={details} title="Contact destination" />
         <div className="contact-generic-card">
           <strong>{label}</strong>
-          <span>External contact application opened from the catalog link.</span>
+          <span>
+            External contact application opened from the catalog link.
+          </span>
         </div>
       </section>
     );
