@@ -1959,48 +1959,32 @@ body[data-theme="dark"] .contact-chip:hover {
   background: #303641;
 }
 
-.contact-modal {
-  width: min(760px, 100%);
+.about-modal.contact-modal {
+  width: min(720px, 100%);
+  padding: 18px;
 }
 
 .contact-modal-header {
-  margin: 0 44px 14px 0;
+  margin: 0 44px 10px 0;
 }
 
 .contact-modal-kicker {
   display: block;
-  margin: 0 0 6px;
   color: var(--muted);
   font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
-.contact-modal-header h2 {
-  margin: 0 0 8px;
-  font-size: 22px;
-  overflow-wrap: anywhere;
-}
-
-.contact-modal-title {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.contact-modal-header p {
-  margin: 0;
-  color: var(--muted);
-}
-
 .contact-modal-link-preview {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
+  display: inline;
+  padding: 1px 5px;
+  border-radius: 4px;
   background: var(--panel-alt);
   color: var(--text);
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 0.92em;
   overflow-wrap: anywhere;
   word-break: break-word;
 }
@@ -2008,19 +1992,19 @@ body[data-theme="dark"] .contact-chip:hover {
 .contact-modal-body {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 
-.contact-modal-body p {
+.about-modal.contact-modal p {
   margin: 0;
 }
 
 .contact-demo {
   --client-accent: #3b82f6;
   --client-accent-strong: #1d4ed8;
-  --client-accent-soft: #dbeafe;
-  --client-surface: var(--panel);
-  --client-thread-bg: var(--panel-alt);
+  --client-accent-soft: #eaf2ff;
+  --client-surface: #ffffff;
+  --client-thread-bg: #f6f7f9;
   --client-outgoing-bg: var(--client-accent);
   --client-outgoing-text: #ffffff;
   --client-incoming-bg: #ffffff;
@@ -2029,21 +2013,18 @@ body[data-theme="dark"] .contact-chip:hover {
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--client-surface);
-  box-shadow: var(--shadow);
+  box-shadow: none;
 }
 
 .contact-demo-window-bar {
-  min-height: 72px;
+  min-height: 46px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border);
-  background:
-    linear-gradient(90deg, var(--client-accent-soft) 0%, transparent 58%),
-    linear-gradient(180deg, #ffffff 0%, #edf0f4 100%);
-  color: #1f2937;
+  padding: 9px 14px;
+  background: var(--client-surface);
+  color: var(--text);
   font-size: 13px;
   font-weight: 700;
 }
@@ -2052,18 +2033,18 @@ body[data-theme="dark"] .contact-chip:hover {
   min-width: 0;
   display: inline-flex;
   align-items: center;
-  gap: 12px;
+  gap: 9px;
   overflow: hidden;
 }
 
 .contact-window-icon {
-  width: 46px;
-  height: 46px;
-  flex: 0 0 46px;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 26px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 12px;
+  border-radius: 7px;
   background: var(--client-accent);
   color: #ffffff;
   box-shadow: 0 8px 18px
@@ -2082,15 +2063,16 @@ body[data-theme="dark"] .contact-chip:hover {
 
 .contact-window-context {
   justify-self: end;
-  color: #64748b;
+  color: var(--muted);
+  font-size: 12px;
   font-weight: 600;
 }
 
 .contact-client-teams {
   --client-accent: #6264a7;
   --client-accent-strong: #464775;
-  --client-accent-soft: #e8e7ff;
-  --client-thread-bg: #f5f4fb;
+  --client-accent-soft: #f0effb;
+  --client-thread-bg: #f7f6fc;
   --client-outgoing-bg: #6264a7;
   --client-incoming-bg: #ffffff;
   --client-incoming-text: #252547;
@@ -2099,18 +2081,18 @@ body[data-theme="dark"] .contact-chip:hover {
 .contact-client-slack {
   --client-accent: #4a154b;
   --client-accent-strong: #350d36;
-  --client-accent-soft: #f4e7f5;
+  --client-accent-soft: #f7eef7;
   --client-thread-bg: #ffffff;
   --client-outgoing-bg: #1264a3;
-  --client-incoming-bg: #f4e7f5;
-  --client-incoming-text: #2b0b2c;
+  --client-incoming-bg: #f4f4f5;
+  --client-incoming-text: #1f1f1f;
 }
 
 .contact-client-telegram {
   --client-accent: #229ed9;
   --client-accent-strong: #168ac0;
-  --client-accent-soft: #e1f4fd;
-  --client-thread-bg: #dff1fb;
+  --client-accent-soft: #eaf7fd;
+  --client-thread-bg: #edf7fc;
   --client-outgoing-bg: #2aabee;
   --client-incoming-bg: #ffffff;
   --client-incoming-text: #164c63;
@@ -2119,28 +2101,37 @@ body[data-theme="dark"] .contact-chip:hover {
 .contact-client-discord {
   --client-accent: #5865f2;
   --client-accent-strong: #404eed;
-  --client-accent-soft: #e7e9ff;
+  --client-accent-soft: #3b3e49;
+  --client-surface: #2b2d31;
   --client-thread-bg: #313338;
   --client-outgoing-bg: #5865f2;
-  --client-incoming-bg: #383a40;
+  --client-incoming-bg: #3a3c43;
   --client-incoming-text: #f2f3f5;
+}
+
+.contact-client-discord .contact-demo-window-bar {
+  color: #f2f3f5;
+}
+
+.contact-client-discord .contact-window-context {
+  color: #b5bac1;
 }
 
 .contact-client-mattermost {
   --client-accent: #0058cc;
   --client-accent-strong: #003ea0;
-  --client-accent-soft: #e5f0ff;
-  --client-thread-bg: #f5f7fb;
+  --client-accent-soft: #edf5ff;
+  --client-thread-bg: #f7f9fc;
   --client-outgoing-bg: #0058cc;
-  --client-incoming-bg: #e5f0ff;
+  --client-incoming-bg: #eaf2ff;
   --client-incoming-text: #0f2f59;
 }
 
 .contact-client-messages {
   --client-accent: #34c759;
   --client-accent-strong: #248a3d;
-  --client-accent-soft: #e5f8ea;
-  --client-thread-bg: #f7f7f8;
+  --client-accent-soft: #ecf9ef;
+  --client-thread-bg: #f8f8f9;
   --client-outgoing-bg: #34c759;
   --client-incoming-bg: #e9eaed;
   --client-incoming-text: #111827;
@@ -2155,13 +2146,13 @@ body[data-theme="dark"] .contact-chip:hover {
 .contact-client-pagerduty {
   --client-accent: #06ac38;
   --client-accent-strong: #047a29;
-  --client-accent-soft: #e8f8ed;
+  --client-accent-soft: #eefbf2;
 }
 
 .contact-client-opsgenie {
   --client-accent: #2684ff;
   --client-accent-strong: #0c66e4;
-  --client-accent-soft: #e9f2ff;
+  --client-accent-soft: #eef6ff;
 }
 
 .contact-demo-chat {
@@ -2169,7 +2160,7 @@ body[data-theme="dark"] .contact-chip:hover {
 }
 
 .contact-chat-thread {
-  min-height: 210px;
+  min-height: 150px;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -2186,11 +2177,10 @@ body[data-theme="dark"] .contact-chip:hover {
 }
 
 .contact-chat-bubble {
-  max-width: min(78%, 460px);
-  padding: 10px 12px;
-  border: 1px solid var(--border);
+  max-width: min(76%, 430px);
+  padding: 8px 11px;
   border-radius: 8px;
-  line-height: 1.45;
+  line-height: 1.4;
   overflow-wrap: anywhere;
   animation: contact-message-pop 180ms ease-out;
 }
@@ -2199,7 +2189,6 @@ body[data-theme="dark"] .contact-chip:hover {
   align-self: flex-end;
   background: var(--client-outgoing-bg);
   color: var(--client-outgoing-text);
-  border-color: color-mix(in srgb, var(--client-outgoing-bg) 75%, #000000 25%);
 }
 
 .contact-chat-bubble-in {
@@ -2209,44 +2198,33 @@ body[data-theme="dark"] .contact-chip:hover {
 }
 
 .contact-chat-composer {
-  margin: 0 14px 14px;
-  padding: 11px 12px;
-  border: 1px solid color-mix(in srgb, var(--client-accent) 30%, var(--border));
+  min-height: 38px;
+  margin: 0 14px 12px;
+  padding: 9px 11px;
   border-radius: 8px;
-  background: var(--panel);
+  background: color-mix(
+    in srgb,
+    var(--client-surface) 88%,
+    var(--client-thread-bg)
+  );
   color: var(--muted);
   font-size: 14px;
   overflow-wrap: anywhere;
 }
 
-.contact-oncall-actions button {
-  border: 1px solid transparent;
-  border-radius: 6px;
-  background: var(--client-accent);
-  color: #ffffff;
-  cursor: default;
-  font: inherit;
-  font-weight: 700;
-  padding: 8px 12px;
-}
-
 .contact-email-fields {
   display: grid;
-  grid-template-columns: 1fr;
-  border-bottom: 1px solid var(--border);
-  background: #ffffff;
+  gap: 2px;
+  padding: 8px 16px 4px;
+  background: var(--client-surface);
 }
 
 .contact-email-fields div {
   min-width: 0;
   display: grid;
-  grid-template-columns: 72px minmax(0, 1fr);
+  grid-template-columns: 58px minmax(0, 1fr);
   gap: 10px;
-  padding: 10px 14px;
-}
-
-.contact-email-fields div + div {
-  border-top: 1px solid var(--border);
+  padding: 5px 0;
 }
 
 .contact-email-fields span {
@@ -2261,32 +2239,36 @@ body[data-theme="dark"] .contact-chip:hover {
 }
 
 .contact-email-compose {
-  background: #ffffff;
+  background: var(--client-surface);
 }
 
 .contact-email-body {
   min-height: 150px;
-  padding: 18px;
-  background: #ffffff;
+  padding: 14px 16px 12px;
+  background: var(--client-surface);
   line-height: 1.55;
 }
 
 .contact-email-actions {
   display: flex;
   justify-content: flex-end;
-  padding: 0 18px 16px;
+  padding: 0 16px 14px;
 }
 
-.contact-email-actions button {
-  min-width: 86px;
+.contact-email-actions button,
+.contact-oncall-actions button {
   border: 1px solid transparent;
   border-radius: 6px;
-  background: var(--client-accent);
-  color: #ffffff;
   cursor: default;
   font: inherit;
   font-weight: 700;
-  padding: 8px 14px;
+  padding: 7px 12px;
+}
+
+.contact-email-actions button,
+.contact-oncall-actions button:first-child {
+  background: var(--client-accent);
+  color: #ffffff;
 }
 
 .contact-typing-caret {
@@ -2301,41 +2283,41 @@ body[data-theme="dark"] .contact-chip:hover {
 
 .contact-demo-phone {
   background: #101820;
+  color: #f8fafc;
+}
+
+.contact-demo-phone .contact-demo-window-bar {
+  background: #101820;
+  color: #f8fafc;
 }
 
 .contact-phone-screen {
-  width: min(320px, 100%);
-  min-height: 360px;
-  margin: 22px auto;
+  min-height: 250px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 22px;
-  background: #18212b;
-  color: #f8fafc;
-  padding: 28px 20px;
+  gap: 10px;
+  padding: 24px 20px 32px;
   text-align: center;
 }
 
 .contact-phone-icon {
-  width: 58px;
-  height: 58px;
+  width: 48px;
+  height: 48px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background: var(--client-accent);
+  background: #22c55e;
   color: #ffffff;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 800;
 }
 
 .contact-phone-screen strong {
   max-width: 100%;
-  font-size: 24px;
+  font-size: 22px;
   overflow-wrap: anywhere;
 }
 
@@ -2346,19 +2328,23 @@ body[data-theme="dark"] .contact-chip:hover {
   font-weight: 700;
 }
 
+.contact-demo-oncall,
+.contact-demo-generic {
+  background: var(--client-surface);
+}
+
 .contact-oncall-profile,
 .contact-generic-card {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 18px;
-  background: var(--panel);
+  padding: 18px 16px 10px;
 }
 
 .contact-oncall-avatar {
-  width: 48px;
-  height: 48px;
-  flex: 0 0 48px;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2390,8 +2376,7 @@ body[data-theme="dark"] .contact-chip:hover {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  padding: 0 18px 18px;
-  background: var(--panel);
+  padding: 10px 16px 8px;
 }
 
 .contact-oncall-actions button + button {
@@ -2401,25 +2386,27 @@ body[data-theme="dark"] .contact-chip:hover {
 }
 
 .contact-oncall-note {
-  padding: 12px 18px;
-  border-top: 1px solid var(--border);
+  padding: 0 16px 18px 72px;
   color: var(--muted);
+  font-size: 13px;
 }
 
 .contact-modal-demo-note {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 12px 14px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--panel-alt);
+  gap: 5px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
   color: var(--muted);
-  line-height: 1.5;
+  font-size: 12px;
+  line-height: 1.45;
 }
 
-body[data-theme="dark"] .contact-chat-bubble-out {
-  border-color: color-mix(in srgb, var(--client-outgoing-bg) 80%, #ffffff 20%);
+body[data-theme="dark"] .contact-demo {
+  --client-surface: #181b1f;
+  --client-thread-bg: #111827;
+  --client-incoming-bg: #252a33;
+  --client-incoming-text: #f8fafc;
 }
 
 body[data-theme="dark"] .contact-demo-window-bar {
@@ -2433,23 +2420,62 @@ body[data-theme="dark"] .contact-demo-window-bar {
   color: #f8fafc;
 }
 
-body[data-theme="dark"] .contact-window-context {
-  color: #a4a9b4;
+body[data-theme="dark"] .contact-client-slack {
+  --client-thread-bg: #181b1f;
+  --client-incoming-bg: #2a2f37;
+  --client-incoming-text: #f8fafc;
 }
 
-body[data-theme="dark"] .contact-email-fields,
-body[data-theme="dark"] .contact-email-compose,
-body[data-theme="dark"] .contact-email-body {
-  background: #111827;
+body[data-theme="dark"] .contact-client-teams {
+  --client-thread-bg: #191827;
+  --client-incoming-bg: #25243a;
+  --client-incoming-text: #f5f3ff;
 }
 
-body[data-theme="dark"] .contact-demo-phone {
-  background: #05070a;
+body[data-theme="dark"] .contact-client-telegram {
+  --client-thread-bg: #0d2530;
+  --client-incoming-bg: #173746;
+  --client-incoming-text: #e6f8ff;
 }
 
-body[data-theme="dark"] .contact-oncall-avatar {
-  background: color-mix(in srgb, var(--client-accent) 22%, #111827);
-  color: #f8fafc;
+body[data-theme="dark"] .contact-client-mattermost {
+  --client-thread-bg: #101827;
+  --client-incoming-bg: #172a45;
+  --client-incoming-text: #eaf2ff;
+}
+
+body[data-theme="dark"] .contact-client-messages {
+  --client-thread-bg: #101810;
+  --client-incoming-bg: #253025;
+  --client-incoming-text: #f8fafc;
+}
+
+body[data-theme="dark"] .contact-modal-link-preview {
+  background: #252a33;
+}
+
+@media (max-width: 640px) {
+  .about-modal.contact-modal {
+    padding: 16px;
+  }
+
+  .contact-demo-window-bar {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .contact-window-context {
+    justify-self: start;
+    max-width: 100%;
+  }
+
+  .contact-chat-bubble {
+    max-width: 88%;
+  }
+
+  .contact-oncall-note {
+    padding-left: 16px;
+  }
 }
 
 @keyframes contact-caret-blink {

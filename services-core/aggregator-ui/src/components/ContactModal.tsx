@@ -364,10 +364,7 @@ export default function ContactModal({
       >
         <CloseButton ariaLabel="Close contact details" onClick={onClose} />
         <header className="contact-modal-header">
-          <span className="contact-modal-kicker">
-            {demoDetails.appName} demo
-          </span>
-          <h2>{contactLabel}</h2>
+          <span className="contact-modal-kicker">Demo preview</span>
         </header>
         <div className="contact-modal-body">
           {renderContactDemo(
@@ -380,15 +377,15 @@ export default function ContactModal({
           <div className="contact-modal-demo-note">
             <p>
               Demo: the catalog link opened this preview inside Aggregator:{" "}
-              <span className="contact-modal-link-preview">{openedByLink}</span>
+              <code className="contact-modal-link-preview">{openedByLink}</code>
               .
             </p>
             <p>
               In a real setup, the same contact would open the actual external
               client when the link looks like:{" "}
-              <span className="contact-modal-link-preview">
+              <code className="contact-modal-link-preview">
                 {demoDetails.realHref}
-              </span>
+              </code>
               .
             </p>
           </div>
