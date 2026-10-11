@@ -17,7 +17,6 @@ WORKDIR /app
 COPY --from=build /app/target/*.jar ./app.jar
 
 RUN useradd --system --uid 1001 --create-home appuser \
-  && mkdir -p /home/appuser/feedback \
   && chown -R appuser:appuser /app /home/appuser
 USER appuser
 
