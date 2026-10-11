@@ -32,6 +32,7 @@
   --danger: #e24d42;
   --danger-hover: #b93931;
   --on-danger: #ffffff;
+  --modal-paragraph-gap: 10px;
   --transparent: rgba(0, 0, 0, 0);
   --status-border: rgba(0, 0, 0, 0.15);
   --status-inner: rgba(255, 255, 255, 0.35);
@@ -2143,34 +2144,14 @@ body[data-theme="dark"] .contact-chip:hover {
   background: #303641;
 }
 
-.about-modal.contact-modal {
-  width: min(720px, 100%);
-  max-height: min(82vh, 860px);
-  overflow: hidden;
-  border: none;
-  padding: 18px 20px 20px;
-}
-
-.contact-modal .about-close {
-  top: 16px;
-  right: 16px;
-  width: 36px;
-  height: 36px;
-  border: 0;
-}
-
 .contact-modal-body {
+  width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
   gap: 12px;
-}
-
-.contact-modal-body > .contact-demo:first-child .contact-demo-window-bar {
-  padding-right: 62px;
-}
-
-.about-modal.contact-modal p {
-  margin: 0;
+  min-height: 0;
+  min-width: 0;
 }
 
 .contact-demo {
@@ -2191,6 +2172,11 @@ body[data-theme="dark"] .contact-chip:hover {
   --client-outgoing-text: #ffffff;
   --client-incoming-bg: #ffffff;
   --client-incoming-text: #111827;
+  width: 100%;
+  height: 100%;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
   overflow: visible;
   border: 0;
   border-radius: 0;
@@ -2199,7 +2185,6 @@ body[data-theme="dark"] .contact-chip:hover {
 }
 
 .contact-demo-email {
-  height: min(460px, calc(100vh - 88px));
   display: flex;
   flex-direction: column;
 }
@@ -2210,7 +2195,7 @@ body[data-theme="dark"] .contact-chip:hover {
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
-  padding: 9px 14px;
+  padding: 9px 58px 9px 14px;
   background: var(--client-surface);
   color: var(--client-text);
   font-size: 13px;
@@ -2364,7 +2349,6 @@ body[data-theme="dark"] .contact-chip:hover {
 }
 
 .contact-demo-chat {
-  height: min(420px, calc(100vh - 88px));
   display: flex;
   flex-direction: column;
   background: var(--client-thread-bg);
@@ -2382,6 +2366,7 @@ body[data-theme="dark"] .contact-chip:hover {
 }
 
 .contact-chat-bubble {
+  margin: 0;
   max-width: min(76%, 430px);
   padding: 11px 14px;
   border-radius: 8px;
@@ -2457,6 +2442,7 @@ body[data-theme="dark"] .contact-chip:hover {
 }
 
 .contact-email-body {
+  margin: 0;
   flex: 1 1 auto;
   min-height: 0;
   padding: 14px 16px 12px;
@@ -2472,11 +2458,12 @@ body[data-theme="dark"] .contact-chip:hover {
 
 .contact-email-compose.is-sent,
 .contact-email-compose.is-reply {
-  flex: 0 0 auto;
+  flex: 1 1 auto;
   padding: 14px 16px 0;
 }
 
 .contact-email-sent-state {
+  height: 100%;
   min-height: 74px;
   display: flex;
   align-items: center;
@@ -2569,6 +2556,7 @@ body[data-theme="dark"] .contact-chip:hover {
 }
 
 .contact-email-reply p {
+  margin: 0;
   color: var(--text);
   line-height: 1.45;
 }
@@ -2584,7 +2572,6 @@ body[data-theme="dark"] .contact-chip:hover {
 }
 
 .contact-demo-phone {
-  height: min(400px, calc(100vh - 88px));
   display: flex;
   flex-direction: column;
   background: var(--client-thread-bg);
@@ -2646,6 +2633,7 @@ body[data-theme="dark"] .contact-chip:hover {
 }
 
 .contact-phone-line {
+  margin: 0;
   max-width: 82%;
   padding: 8px 11px;
   border-radius: 8px;
@@ -2672,7 +2660,11 @@ body[data-theme="dark"] .contact-chip:hover {
 }
 
 .contact-demo-oncall {
-  height: min(360px, calc(100vh - 88px));
+  display: flex;
+  flex-direction: column;
+}
+
+.contact-demo-generic {
   display: flex;
   flex-direction: column;
 }
@@ -2744,6 +2736,8 @@ body[data-theme="dark"] .contact-chip:hover {
 }
 
 .contact-generic-card {
+  flex: 1 1 auto;
+  min-height: 0;
   display: flex;
   align-items: center;
   gap: 14px;
@@ -2864,6 +2858,9 @@ body[data-theme="dark"] .contact-chip:hover {
 
 .contact-oncall-activity-panel {
   min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
   padding: 18px;
   border-radius: 8px;
   background: var(--oncall-panel-bg-strong);
@@ -2880,7 +2877,9 @@ body[data-theme="dark"] .contact-chip:hover {
 
 .contact-oncall-activity {
   list-style: none;
+  flex: 1 1 auto;
   display: grid;
+  align-content: start;
   gap: 0;
   margin: 10px 0 0;
   padding: 0;
@@ -3083,17 +3082,6 @@ body[data-theme="dark"] .contact-email-reply {
 }
 
 @media (max-width: 640px) {
-  .about-modal.contact-modal {
-    padding: 16px;
-  }
-
-  .contact-demo-email,
-  .contact-demo-chat,
-  .contact-demo-phone,
-  .contact-demo-oncall {
-    height: min(440px, calc(100vh - 72px));
-  }
-
   .contact-demo-window-bar {
     grid-template-columns: 1fr;
     gap: 4px;
@@ -3118,6 +3106,10 @@ body[data-theme="dark"] .contact-email-reply {
 @media (max-width: 760px) {
   .contact-oncall-layout {
     grid-template-columns: 1fr;
+  }
+
+  .contact-oncall-layout:not(.is-preparing) {
+    grid-auto-rows: minmax(min-content, 1fr);
   }
 
   .contact-oncall-summary {
@@ -3169,10 +3161,6 @@ body[data-theme="dark"] .contact-email-reply {
   }
 }
 
-.actor-modal {
-  width: min(700px, 100%);
-}
-
 .actor-modal-header {
   margin: 0 44px 14px 0;
 }
@@ -3204,14 +3192,14 @@ body[data-theme="dark"] .contact-email-reply {
   margin: 0;
   color: var(--muted);
   line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+  gap: var(--modal-paragraph-gap);
 }
 
-.actor-modal-description p {
+.actor-modal-description p,
+.actor-modal-body > p {
   margin: 0;
-}
-
-.actor-modal-description p + p {
-  margin-top: 6px;
 }
 
 .actor-modal .actor-modal-contacts {
@@ -3490,39 +3478,55 @@ body[data-theme="dark"] .contacts-actor-type-mark {
   color: var(--danger);
 }
 
-.about-overlay {
+.modal-overlay {
   position: fixed;
   inset: 0;
   background: var(--backdrop);
-  z-index: 80;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px;
 }
 
-.actor-overlay {
-  z-index: 80;
-}
-
-.contact-overlay {
-  z-index: 85;
-}
-
-.info-help-overlay {
-  z-index: 95;
-}
-
-.about-modal {
-  width: min(760px, 100%);
-  max-height: min(82vh, 860px);
-  overflow: auto;
+.modal-window {
+  width: min(720px, calc(100vw - 48px));
+  height: min(82vh, 860px, calc(var(--app-viewport-height) - 48px));
+  max-width: calc(100vw - 48px);
+  max-height: calc(var(--app-viewport-height) - 48px);
+  overflow: hidden;
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 14px;
   box-shadow: var(--shadow-strong);
-  padding: 24px 24px 20px;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.modal-content {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 24px;
+  overflow-wrap: anywhere;
+}
+
+.modal-text-flow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--modal-paragraph-gap);
+}
+
+.modal-text-flow p {
+  margin: 0;
+  line-height: 1.5;
 }
 
 .about-header {
@@ -3539,19 +3543,14 @@ body[data-theme="dark"] .contacts-actor-type-mark {
   gap: 8px;
 }
 
-.about-modal h2 {
+.modal-window h2 {
   margin: 0;
   font-size: 24px;
 }
 
-.about-modal p {
-  margin: 0;
-  line-height: 1.5;
-}
-
 .about-divider {
   height: 1px;
-  margin: 16px 0 18px;
+  margin: 6px 0 8px;
   background: linear-gradient(
     90deg,
     transparent,
@@ -3561,12 +3560,12 @@ body[data-theme="dark"] .contacts-actor-type-mark {
   );
 }
 
-.about-modal ul {
+.about-content ul {
   margin: 0 0 14px;
   padding-left: 20px;
 }
 
-.about-modal li {
+.about-content li {
   margin-bottom: 6px;
 }
 
@@ -3642,6 +3641,21 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 }
 
 @media (max-width: 640px) {
+  .modal-overlay {
+    padding: 16px;
+  }
+
+  .modal-window {
+    width: calc(100vw - 32px);
+    height: min(82vh, 860px, calc(var(--app-viewport-height) - 32px));
+    max-width: calc(100vw - 32px);
+    max-height: calc(var(--app-viewport-height) - 32px);
+  }
+
+  .modal-content {
+    padding: 18px;
+  }
+
   .about-header {
     align-items: flex-start;
     flex-direction: column;
@@ -4219,10 +4233,6 @@ body[data-theme="dark"] .about-social-icon-linkedin {
   pointer-events: none;
 }
 
-.info-help-modal {
-  width: min(560px, 100%);
-}
-
 .info-help-modal-header {
   margin: 0 56px 12px 0;
 }
@@ -4237,7 +4247,7 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 .info-help-section {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--modal-paragraph-gap);
 }
 
 .info-help-section h3 {
@@ -4248,7 +4258,8 @@ body[data-theme="dark"] .about-social-icon-linkedin {
   line-height: 1.25;
 }
 
-.info-help-section p {
+.info-help-section p,
+.catalog-item-info-content p {
   margin: 0;
 }
 

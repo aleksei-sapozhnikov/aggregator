@@ -5,8 +5,8 @@ import {
   resolveContactTypeDisplayName,
 } from "../shared/contactUtils";
 import type { InfoHelpTopic } from "../shared/infoHelpTopics";
-import CloseButton from "./CloseButton";
 import InfoHelp from "./InfoHelp";
+import ModalWindow from "./ModalWindow";
 
 type ContactModalProps = {
   isOpen: boolean;
@@ -918,36 +918,29 @@ export default function ContactModal({
   const ellipsis = ".".repeat(ellipsisStep);
 
   return (
-    <div
-      className="about-overlay contact-overlay"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Contact details"
-      onClick={onClose}
+    <ModalWindow
+      isOpen={isOpen}
+      onClose={onClose}
+      ariaLabel="Contact details"
+      closeLabel="Close contact details"
     >
-      <article
-        className="about-modal contact-modal"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <CloseButton ariaLabel="Close contact details" onClick={onClose} />
-        <div className="contact-modal-body">
-          {renderContactDemo(
-            contactLabel,
-            demoDetails,
-            typedText,
-            isMessageSent,
-            showResponse,
-            onCallStep,
-            phoneStep,
-            ellipsis,
-            mailStage,
-            onCallStage,
-            onCallFormLength,
-            activeDemoCopy,
-            helpTopic,
-          )}
-        </div>
-      </article>
-    </div>
+      <div className="contact-modal-body">
+        {renderContactDemo(
+          contactLabel,
+          demoDetails,
+          typedText,
+          isMessageSent,
+          showResponse,
+          onCallStep,
+          phoneStep,
+          ellipsis,
+          mailStage,
+          onCallStage,
+          onCallFormLength,
+          activeDemoCopy,
+          helpTopic,
+        )}
+      </div>
+    </ModalWindow>
   );
 }

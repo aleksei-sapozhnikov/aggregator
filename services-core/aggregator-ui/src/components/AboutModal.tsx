@@ -3,7 +3,7 @@
  */
 
 import AboutContent from "../AboutContent";
-import CloseButton from "./CloseButton";
+import ModalWindow from "./ModalWindow";
 
 type AboutModalProps = {
   isOpen: boolean;
@@ -15,25 +15,14 @@ type AboutModalProps = {
  *
  */
 export default function AboutModal({ isOpen, onClose }: AboutModalProps) {
-  if (!isOpen) {
-    return null;
-  }
-
   return (
-    <div
-      className="about-overlay"
-      role="dialog"
-      aria-modal="true"
-      aria-label="About Catalog Health Aggregator"
-      onClick={onClose}
+    <ModalWindow
+      isOpen={isOpen}
+      onClose={onClose}
+      ariaLabel="About Catalog Health Aggregator"
+      closeLabel="Close about page"
     >
-      <article
-        className="about-modal"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <CloseButton ariaLabel="Close about page" onClick={onClose} />
-        <AboutContent />
-      </article>
-    </div>
+      <AboutContent />
+    </ModalWindow>
   );
 }
