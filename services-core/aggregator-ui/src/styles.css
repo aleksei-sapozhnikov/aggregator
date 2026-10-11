@@ -1162,7 +1162,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  min-height: 30px;
+  min-height: 24px;
   padding: 0 2px;
   border-radius: 6px;
   overflow-wrap: anywhere;
@@ -1914,7 +1914,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  min-height: 30px;
+  min-height: 24px;
   margin: 2px 0 0;
   padding: 3px 2px;
   border-radius: 6px;
@@ -1958,7 +1958,7 @@ body {
   background: transparent;
   color: var(--owner-panel-label);
   border-radius: 6px;
-  min-height: 30px;
+  min-height: 24px;
   padding: 3px 2px;
   cursor: pointer;
   display: inline-flex;
@@ -3260,7 +3260,7 @@ body[data-theme="dark"] .contact-email-reply {
   align-items: center;
   gap: 8px;
   max-width: 100%;
-  min-height: 34px;
+  min-height: 24px;
   padding: 0;
 }
 
@@ -3362,7 +3362,7 @@ body[data-theme="dark"] .contact-email-reply {
 .actor-inline-chip {
   width: auto;
   max-width: 100%;
-  min-height: 28px;
+  min-height: 24px;
   padding: 4px 10px;
   border-radius: 999px;
   text-decoration: none;
@@ -4225,6 +4225,7 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 .primary-contact-row {
   width: fit-content;
   max-width: 100%;
+  min-height: 24px;
   display: flex;
   align-items: center;
   gap: 9px;
@@ -4593,6 +4594,7 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 .ownership-extra-list li {
   width: fit-content;
   max-width: 100%;
+  min-height: 24px;
 }
 
 .actor-summary-row {
@@ -4625,6 +4627,7 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 .signals-dependency-row {
   width: fit-content;
   max-width: 100%;
+  min-height: 24px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -4663,7 +4666,7 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 }
 
 .signals-incident-signal {
-  min-height: 26px;
+  min-height: 24px;
   color: var(--muted);
   display: flex;
   align-items: center;
@@ -4701,7 +4704,7 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 
 .details-summary-block .signals-healthy-list .signal-status-row,
 .details-summary-block .details-unhealthy-list .signal-status-row {
-  min-height: 30px;
+  min-height: 24px;
 }
 
 .signal-status-row {
