@@ -246,6 +246,12 @@ func validateCatalogFile(name string, content []byte) error {
 			if err := requireText(entry, "title"); err != nil {
 				return fmt.Errorf("%s: items[%d].title: %w", name, i, err)
 			}
+			if err := optionalText(entry, "shortDescription"); err != nil {
+				return fmt.Errorf("%s: items[%d].shortDescription: %w", name, i, err)
+			}
+			if err := optionalText(entry, "fullDescription"); err != nil {
+				return fmt.Errorf("%s: items[%d].fullDescription: %w", name, i, err)
+			}
 		}
 	case "catalog-dependencies.yaml":
 		deps, err := requireArray(payload, "dependencies")
@@ -325,6 +331,21 @@ func requireText(payload map[string]any, field string) error {
 	raw, ok := payload[field]
 	if !ok {
 		return fmt.Errorf("missing field")
+	}
+	value, ok := raw.(string)
+	if !ok {
+		return fmt.Errorf("must be a string")
+	}
+	if strings.TrimSpace(value) == "" {
+		return fmt.Errorf("must be non-empty")
+	}
+	return nil
+}
+
+func optionalText(payload map[string]any, field string) error {
+	raw, ok := payload[field]
+	if !ok || raw == nil {
+		return nil
 	}
 	value, ok := raw.(string)
 	if !ok {

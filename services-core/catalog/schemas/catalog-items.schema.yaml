@@ -21,3 +21,11 @@ properties:
         title:
           type: string
           minLength: 1
+        shortDescription:
+          type: string
+          minLength: 1
+          pattern: \S
+        fullDescription:
+          type: string
+          minLength: 1
+          pattern: \S
