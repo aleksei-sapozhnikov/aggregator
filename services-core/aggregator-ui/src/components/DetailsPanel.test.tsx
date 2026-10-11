@@ -253,9 +253,15 @@ describe("DetailsPanel contextual help", () => {
     expect(dialog.textContent).not.toContain(
       "No detailed description in catalog.",
     );
-    expect(dialog.textContent).not.toContain(
-      "Accepts and prepares customer orders.",
+    const paragraphs = Array.from(
+      dialog.querySelectorAll(".catalog-item-info-content p"),
+      (element) => element.textContent,
     );
+    expect(paragraphs).toEqual([
+      "Accepts and prepares customer orders.",
+      "Checkout accepts customer orders.",
+      "It prepares them for downstream processing.",
+    ]);
   });
 
   it("falls back to the short description when detailed catalog information is missing", async () => {
@@ -280,6 +286,14 @@ describe("DetailsPanel contextual help", () => {
       "Accepts and prepares customer orders.",
     );
     expect(dialog.textContent).toContain("No detailed description in catalog.");
+    const paragraphs = dialog.querySelectorAll(".catalog-item-info-content p");
+    expect(paragraphs).toHaveLength(2);
+    expect(paragraphs[0].textContent).toBe(
+      "Accepts and prepares customer orders.",
+    );
+    expect(paragraphs[1].querySelector("em")?.textContent).toBe(
+      "No detailed description in catalog.",
+    );
   });
 
   it("uses the generic catalog information tooltip when only a detailed description exists", async () => {
