@@ -3238,18 +3238,31 @@ body[data-theme="dark"] .contact-email-reply {
 .actor-modal-contacts {
   list-style: none;
   margin: 0;
-  padding: 0;
+  padding: 0 0 0 24px;
   display: flex;
   flex-direction: column;
+  gap: 2px;
+}
+
+.actor-modal-contact-link {
+  display: inline-flex;
+  align-items: center;
   gap: 8px;
+  max-width: 100%;
+  min-height: 34px;
+  padding: 0;
 }
 
-.actor-modal-contacts li {
-  width: 100%;
+.actor-modal-contact-icon {
+  flex: 0 0 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
 }
 
-.actor-modal-contact-chip {
-  width: 100%;
+.actor-modal-contact-name {
+  overflow-wrap: anywhere;
 }
 
 .dependency-group-title {

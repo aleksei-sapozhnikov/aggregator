@@ -956,13 +956,6 @@ export default function App() {
         : [],
     [actorContactsByActorId, openedActor],
   );
-  const openedActorPrimaryContact = useMemo(
-    () =>
-      openedActor
-        ? actorContactsByActorId.get(openedActor.id)?.primaryContact || null
-        : null,
-    [actorContactsByActorId, openedActor],
-  );
   const passingSignalsCount = selectedPassingSignals.length;
   const isSidebarOpen = isMobileLayout
     ? isMobileSidebarOpen
@@ -1692,7 +1685,6 @@ export default function App() {
         isOpen={Boolean(openedActor)}
         actor={openedActor}
         contacts={openedActorContacts}
-        primaryContact={openedActorPrimaryContact}
         iconSpriteHref={iconSpriteHref}
         onClose={() => setOpenedActorId("")}
         onOpenContact={(contact) => setOpenedContact(contact)}
