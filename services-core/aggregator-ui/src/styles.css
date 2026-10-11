@@ -780,7 +780,8 @@ body {
 .ai-health-dependency-link:focus-visible,
 .home-link:focus-visible,
 .about-social-link:focus-visible,
-.sidebar-close:focus-visible {
+.sidebar-close:focus-visible,
+.catalog-item-info-button:focus-visible {
   outline: 2px solid var(--link);
   outline-offset: 2px;
 }
@@ -876,6 +877,55 @@ body {
 
 .content-status-label.status-up {
   color: var(--status-up);
+}
+
+.catalog-item-info {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  vertical-align: baseline;
+}
+
+.catalog-item-info-button {
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--link);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.catalog-item-info-button.is-disabled {
+  color: var(--muted-weak);
+  cursor: default;
+}
+
+.catalog-item-info-button.is-enabled:hover,
+.catalog-item-info-button.is-enabled:focus-visible {
+  background: color-mix(in srgb, var(--link) 8%, transparent);
+}
+
+.catalog-item-info-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.catalog-item-info-content p {
+  white-space: pre-line;
+}
+
+.catalog-item-info-missing-detail {
+  color: var(--muted);
 }
 
 .content-workspace {
