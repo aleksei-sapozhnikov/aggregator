@@ -1,12 +1,7 @@
 services:
   aggregator:
     environment:
-      FEEDBACK_STORAGE_CONFIG: '{"type":"local","local":{"path":"/home/appuser/feedback/feedback.ndjson"}}'
-      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin}
       CATALOG_BASE_URL: http://catalog:8080
-    volumes:
-      - feedback-data:/home/appuser/feedback
 
   aggregator-ui:
     build:
@@ -57,4 +52,3 @@ services:
 volumes:
   prometheus-data:
   grafana-data:
-  feedback-data:
