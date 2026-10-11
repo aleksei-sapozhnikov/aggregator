@@ -543,32 +543,6 @@ const normalizeProductHealthDependencies = (
     .filter((dependency) => Boolean(dependency.itemId));
 };
 
-export const submitFeedback = async (
-  text: string,
-): Promise<{ id: string; receivedAt: string }> => {
-  const response = await fetch("/api/feedback", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ text }),
-  });
-  if (!response.ok) {
-    let details = "";
-    try {
-      const payload = (await response.json()) as {
-        message?: string;
-        error?: string;
-      };
-      details = payload.message || payload.error || "";
-    } catch {
-      // Ignore non-JSON error payloads and fall back to status.
-    }
-    throw new Error(details || `Failed to submit feedback: ${response.status}`);
-  }
-  return (await response.json()) as { id: string; receivedAt: string };
-};
-
 export const askAgent = async (question: string): Promise<AgentAskResponse> => {
   const response = await fetch("/api/agent/ask", {
     method: "POST",
