@@ -22,8 +22,14 @@ import type {
   HealthStatus,
   ItemSignal,
 } from "../shared/types";
-import type { MouseEvent, ReactElement, RefObject } from "react";
-import { useEffect, useMemo, useState } from "react";
+import type {
+  KeyboardEvent,
+  MouseEvent,
+  PointerEvent as ReactPointerEvent,
+  ReactElement,
+  RefObject,
+} from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type DetailsPanelProps = {
   contentRef: RefObject<HTMLElement | null>;
@@ -92,6 +98,14 @@ type ExtraActorRow = {
   typeLabel: string;
 };
 
+type DisclosurePointerState = {
+  startX: number;
+  startY: number;
+  startSelection: string;
+  dragged: boolean;
+  suppressClick: boolean;
+};
+
 const emptyDisclosureState: DetailsDisclosureState = {
   isHealthyOpen: false,
   isContactsExtraOpen: false,
@@ -151,6 +165,27 @@ const renderContactIcon = (
   );
 };
 
+const readSelectedText = () => {
+  if (typeof window === "undefined") {
+    return "";
+  }
+  const selection = window.getSelection?.();
+  return selection?.toString() || "";
+};
+
+const DISCLOSURE_DRAG_THRESHOLD_PX = 5;
+
+const handleDisclosureActionKeyDown = (
+  event: KeyboardEvent<HTMLElement>,
+  onToggle: () => void,
+) => {
+  if (event.key !== "Enter" && event.key !== " ") {
+    return;
+  }
+  event.preventDefault();
+  onToggle();
+};
+
 /**
  * Renders the right-side content area:
  * - selected item title/status
@@ -203,6 +238,7 @@ export default function DetailsPanel({
   const [disclosureByItemId, setDisclosureByItemId] = useState<
     Record<string, DetailsDisclosureState>
   >({});
+  const disclosurePointerState = useRef<DisclosurePointerState | null>(null);
 
   const ownerActorForContacts =
     selectedItemActors?.owner || selectedItemActors?.otherActors?.[0] || null;
@@ -288,6 +324,76 @@ export default function DetailsPanel({
         },
       };
     });
+  };
+
+  const toggleContactsExtra = () =>
+    updateDisclosureState({
+      isContactsExtraOpen: !itemDisclosureState.isContactsExtraOpen,
+    });
+  const toggleAffectingSignals = () =>
+    updateDisclosureState({
+      isAffectingOpen: !itemDisclosureState.isAffectingOpen,
+    });
+  const toggleHealthySignals = () =>
+    updateDisclosureState({
+      isHealthyOpen: !itemDisclosureState.isHealthyOpen,
+    });
+
+  const handleDisclosurePointerDown = (
+    event: ReactPointerEvent<HTMLElement>,
+  ) => {
+    disclosurePointerState.current = {
+      startX: event.clientX,
+      startY: event.clientY,
+      startSelection: readSelectedText(),
+      dragged: false,
+      suppressClick: false,
+    };
+  };
+
+  const handleDisclosurePointerMove = (
+    event: ReactPointerEvent<HTMLElement>,
+  ) => {
+    const pointerState = disclosurePointerState.current;
+    if (!pointerState) {
+      return;
+    }
+    const deltaX = event.clientX - pointerState.startX;
+    const deltaY = event.clientY - pointerState.startY;
+    if (Math.hypot(deltaX, deltaY) > DISCLOSURE_DRAG_THRESHOLD_PX) {
+      pointerState.dragged = true;
+    }
+  };
+
+  const updateDisclosureDragState = (
+    pointerState: DisclosurePointerState,
+    event: ReactPointerEvent<HTMLElement>,
+  ) => {
+    const deltaX = event.clientX - pointerState.startX;
+    const deltaY = event.clientY - pointerState.startY;
+    if (Math.hypot(deltaX, deltaY) > DISCLOSURE_DRAG_THRESHOLD_PX) {
+      pointerState.dragged = true;
+    }
+  };
+
+  const handleDisclosurePointerUp = (event: ReactPointerEvent<HTMLElement>) => {
+    const pointerState = disclosurePointerState.current;
+    if (!pointerState) {
+      return;
+    }
+    updateDisclosureDragState(pointerState, event);
+    const endSelection = readSelectedText();
+    pointerState.suppressClick =
+      pointerState.dragged || endSelection !== pointerState.startSelection;
+  };
+
+  const handleDisclosureClick = (onToggle: () => void) => {
+    const pointerState = disclosurePointerState.current;
+    disclosurePointerState.current = null;
+    if (pointerState?.suppressClick) {
+      return;
+    }
+    onToggle();
   };
 
   return (
@@ -414,17 +520,25 @@ export default function DetailsPanel({
                   {actorRowsForContacts.length > 0 && (
                     <div className="ownership-actors-group">
                       <div className="details-disclosure-header">
-                        <button
-                          type="button"
+                        <span
+                          role="button"
+                          tabIndex={0}
                           className="details-disclosure-toggle"
-                          onClick={() =>
-                            updateDisclosureState({
-                              isContactsExtraOpen:
-                                !itemDisclosureState.isContactsExtraOpen,
-                            })
-                          }
+                          aria-label="Toggle Actors"
                           aria-expanded={
                             itemDisclosureState.isContactsExtraOpen
+                          }
+                          onPointerDown={handleDisclosurePointerDown}
+                          onPointerMove={handleDisclosurePointerMove}
+                          onPointerUp={handleDisclosurePointerUp}
+                          onClick={() =>
+                            handleDisclosureClick(toggleContactsExtra)
+                          }
+                          onKeyDown={(event) =>
+                            handleDisclosureActionKeyDown(
+                              event,
+                              toggleContactsExtra,
+                            )
                           }
                         >
                           <span
@@ -443,8 +557,10 @@ export default function DetailsPanel({
                           >
                             {renderActorTeamIcon(iconSpriteHref)}
                           </span>
-                          <span>Actors ({actorRowsForContacts.length})</span>
-                        </button>
+                          <span className="details-disclosure-label">
+                            Actors ({actorRowsForContacts.length})
+                          </span>
+                        </span>
                         <InfoHelp topic={infoHelpTopics.actors} />
                       </div>
                       <div
@@ -490,16 +606,24 @@ export default function DetailsPanel({
                 {hasAffectingSignals && (
                   <div className="details-disclosure-section">
                     <div className="details-disclosure-header">
-                      <button
-                        type="button"
+                      <span
+                        role="button"
+                        tabIndex={0}
                         className="details-disclosure-toggle"
-                        onClick={() =>
-                          updateDisclosureState({
-                            isAffectingOpen:
-                              !itemDisclosureState.isAffectingOpen,
-                          })
-                        }
+                        aria-label="Toggle Unhealthy signals"
                         aria-expanded={itemDisclosureState.isAffectingOpen}
+                        onPointerDown={handleDisclosurePointerDown}
+                        onPointerMove={handleDisclosurePointerMove}
+                        onPointerUp={handleDisclosurePointerUp}
+                        onClick={() =>
+                          handleDisclosureClick(toggleAffectingSignals)
+                        }
+                        onKeyDown={(event) =>
+                          handleDisclosureActionKeyDown(
+                            event,
+                            toggleAffectingSignals,
+                          )
+                        }
                       >
                         <span
                           className={`details-panel-chevron ${
@@ -513,8 +637,10 @@ export default function DetailsPanel({
                           className="status-indicator status-down details-disclosure-status"
                           aria-hidden="true"
                         />
-                        <span>Unhealthy signals ({affectingCount})</span>
-                      </button>
+                        <span className="details-disclosure-label">
+                          Unhealthy signals ({affectingCount})
+                        </span>
+                      </span>
                       <InfoHelp topic={infoHelpTopics.unhealthySignals} />
                     </div>
                     <div
@@ -581,15 +707,24 @@ export default function DetailsPanel({
                 {passingSignalsCount > 0 && (
                   <div className="details-disclosure-section">
                     <div className="details-disclosure-header">
-                      <button
-                        type="button"
+                      <span
+                        role="button"
+                        tabIndex={0}
                         className="details-disclosure-toggle"
-                        onClick={() =>
-                          updateDisclosureState({
-                            isHealthyOpen: !itemDisclosureState.isHealthyOpen,
-                          })
-                        }
+                        aria-label="Toggle Healthy signals"
                         aria-expanded={itemDisclosureState.isHealthyOpen}
+                        onPointerDown={handleDisclosurePointerDown}
+                        onPointerMove={handleDisclosurePointerMove}
+                        onPointerUp={handleDisclosurePointerUp}
+                        onClick={() =>
+                          handleDisclosureClick(toggleHealthySignals)
+                        }
+                        onKeyDown={(event) =>
+                          handleDisclosureActionKeyDown(
+                            event,
+                            toggleHealthySignals,
+                          )
+                        }
                       >
                         <span
                           className={`details-panel-chevron ${
@@ -603,8 +738,10 @@ export default function DetailsPanel({
                           className="status-indicator status-up details-disclosure-status"
                           aria-hidden="true"
                         />
-                        <span>Healthy signals ({passingSignalsCount})</span>
-                      </button>
+                        <span className="details-disclosure-label">
+                          Healthy signals ({passingSignalsCount})
+                        </span>
+                      </span>
                       <InfoHelp topic={infoHelpTopics.healthySignals} />
                     </div>
                     <div
@@ -636,25 +773,40 @@ export default function DetailsPanel({
                 )}
               </section>
 
-              <section
-                className={`details-panel details-panel-grafana ${isGrafanaOpen ? "is-open" : ""}`}
-              >
-                <button
-                  type="button"
-                  className={`details-panel-toggle ${isGrafanaOpen ? "is-open" : ""}`}
-                  onClick={onToggleGrafana}
-                  aria-expanded={isGrafanaOpen}
-                >
+              <section className="details-disclosure-section details-timeline-section">
+                <div className="details-disclosure-header">
                   <span
-                    className={`details-panel-chevron ${isGrafanaOpen ? "is-open" : ""}`}
-                    aria-hidden="true"
+                    role="button"
+                    tabIndex={0}
+                    className="details-disclosure-toggle"
+                    aria-label="Toggle Timeline"
+                    aria-expanded={isGrafanaOpen}
+                    onPointerDown={handleDisclosurePointerDown}
+                    onPointerMove={handleDisclosurePointerMove}
+                    onPointerUp={handleDisclosurePointerUp}
+                    onClick={() => handleDisclosureClick(onToggleGrafana)}
+                    onKeyDown={(event) =>
+                      handleDisclosureActionKeyDown(event, onToggleGrafana)
+                    }
                   >
-                    ›
+                    <span
+                      className={`details-panel-chevron ${isGrafanaOpen ? "is-open" : ""}`}
+                      aria-hidden="true"
+                    >
+                      ›
+                    </span>
+                    <span
+                      className="details-disclosure-icon details-disclosure-symbol"
+                      aria-hidden="true"
+                    >
+                      ◷
+                    </span>
+                    <span className="details-disclosure-label">Timeline</span>
                   </span>
-                  <span className="details-panel-title">Timeline</span>
-                </button>
+                  <InfoHelp topic={infoHelpTopics.timeline} />
+                </div>
                 {isGrafanaOpen && (
-                  <div className="details-panel-body details-panel-body-grafana">
+                  <div className="details-timeline-body">
                     <div className="grafana-grid">
                       <section
                         className="grafana-panel"

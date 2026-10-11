@@ -103,6 +103,34 @@ export default function InfoHelp({ topic }: InfoHelpProps) {
                 <h2>{topic.title}</h2>
               </header>
               <p>{topic.description}</p>
+              {topic.sections && topic.sections.length > 0 && (
+                <div className="info-help-sections">
+                  {topic.sections.map((section) => (
+                    <section
+                      key={section.heading}
+                      className="info-help-section"
+                    >
+                      <h3>{section.heading}</h3>
+                      {section.paragraphs?.map((paragraph) => (
+                        <p key={paragraph}>{paragraph}</p>
+                      ))}
+                      {section.items && section.items.length > 0 && (
+                        <dl className="info-help-section-list">
+                          {section.items.map((entry) => (
+                            <div
+                              key={`${section.heading}:${entry.label}`}
+                              className="info-help-section-row"
+                            >
+                              <dt>{entry.label}</dt>
+                              <dd>{entry.text}</dd>
+                            </div>
+                          ))}
+                        </dl>
+                      )}
+                    </section>
+                  ))}
+                </div>
+              )}
               {topic.details && topic.details.length > 0 && (
                 <dl className="info-help-detail-list">
                   {topic.details.map((entry) => (
