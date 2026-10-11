@@ -1,4 +1,11 @@
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import {
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { createPortal } from "react-dom";
 import type { CatalogItem } from "../shared/types";
 import CloseButton from "./CloseButton";
@@ -10,6 +17,8 @@ type CatalogItemInfoProps = {
 const missingTooltip = "No description in catalog";
 const viewDescriptionTooltip = "View item description";
 const missingDetailNotice = "No detailed description in catalog.";
+const tooltipGap = 6;
+const viewportPadding = 8;
 
 const normalizeDescription = (value: string | undefined): string =>
   typeof value === "string" ? value.trim() : "";
@@ -23,12 +32,13 @@ const splitParagraphs = (value: string): string[] =>
 export default function CatalogItemInfo({ item }: CatalogItemInfoProps) {
   const tooltipId = useId();
   const buttonRef = useRef<HTMLButtonElement | null>(null);
+  const tooltipRef = useRef<HTMLSpanElement | null>(null);
   const [isTooltipVisible, setIsTooltipVisible] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [tooltipPosition, setTooltipPosition] = useState({
-    left: 0,
-    top: 0,
-  });
+  const [tooltipPosition, setTooltipPosition] = useState<{
+    left: number;
+    top: number;
+  } | null>(null);
 
   const shortDescription = normalizeDescription(item.shortDescription);
   const fullDescription = normalizeDescription(item.fullDescription);
@@ -44,16 +54,66 @@ export default function CatalogItemInfo({ item }: CatalogItemInfoProps) {
   const paragraphs = useMemo(() => splitParagraphs(modalText), [modalText]);
 
   const showTooltip = () => {
-    const button = buttonRef.current;
-    if (button) {
-      const rect = button.getBoundingClientRect();
-      setTooltipPosition({
-        left: rect.left + rect.width / 2,
-        top: rect.top,
-      });
+    if (!isTooltipVisible) {
+      setTooltipPosition(null);
     }
     setIsTooltipVisible(true);
   };
+
+  useLayoutEffect(() => {
+    if (!isTooltipVisible) {
+      return undefined;
+    }
+
+    const updateTooltipPosition = () => {
+      const button = buttonRef.current;
+      const tooltipElement = tooltipRef.current;
+      if (!button || !tooltipElement) {
+        return;
+      }
+
+      const anchor = button.getBoundingClientRect();
+      const tooltipRect = tooltipElement.getBoundingClientRect();
+      const spaceAbove = anchor.top - tooltipGap - viewportPadding;
+      const spaceBelow =
+        window.innerHeight - anchor.bottom - tooltipGap - viewportPadding;
+      const placeBelow =
+        tooltipRect.height > spaceAbove && spaceBelow > spaceAbove;
+
+      const preferredTop = placeBelow
+        ? anchor.bottom + tooltipGap
+        : anchor.top - tooltipRect.height - tooltipGap;
+      const preferredLeft =
+        anchor.left + anchor.width / 2 - tooltipRect.width / 2;
+
+      const top = Math.max(
+        viewportPadding,
+        Math.min(
+          preferredTop,
+          window.innerHeight - tooltipRect.height - viewportPadding,
+        ),
+      );
+      const left = Math.max(
+        viewportPadding,
+        Math.min(
+          preferredLeft,
+          window.innerWidth - tooltipRect.width - viewportPadding,
+        ),
+      );
+
+      setTooltipPosition((current) =>
+        current?.left === left && current.top === top ? current : { left, top },
+      );
+    };
+
+    updateTooltipPosition();
+    window.addEventListener("resize", updateTooltipPosition);
+    window.addEventListener("scroll", updateTooltipPosition, true);
+    return () => {
+      window.removeEventListener("resize", updateTooltipPosition);
+      window.removeEventListener("scroll", updateTooltipPosition, true);
+    };
+  }, [isTooltipVisible, tooltip]);
 
   useEffect(() => {
     if (!isModalOpen) {
@@ -99,12 +159,15 @@ export default function CatalogItemInfo({ item }: CatalogItemInfoProps) {
       {isTooltipVisible &&
         createPortal(
           <span
+            ref={tooltipRef}
             id={tooltipId}
             role="tooltip"
             className="info-help-tooltip"
             style={{
-              left: `${tooltipPosition.left}px`,
-              top: `${tooltipPosition.top}px`,
+              left: `${tooltipPosition?.left ?? 0}px`,
+              top: `${tooltipPosition?.top ?? 0}px`,
+              transform: "none",
+              visibility: tooltipPosition ? "visible" : "hidden",
             }}
           >
             {tooltip}
