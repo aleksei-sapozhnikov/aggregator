@@ -2656,16 +2656,13 @@ body[data-theme="dark"] .contact-chip:hover {
   --oncall-pill-text: var(--client-accent-strong);
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  justify-content: flex-start;
+  gap: 16px;
   flex: 1 1 auto;
   min-height: 0;
-  padding: 24px 18px;
+  padding: 18px;
   background: var(--oncall-panel-bg);
   border-radius: 8px;
-}
-
-.contact-oncall-start {
-  justify-content: center;
 }
 
 .contact-oncall-layout {
@@ -2693,6 +2690,10 @@ body[data-theme="dark"] .contact-chip:hover {
   flex: 1 1 auto;
   min-height: 0;
   padding: 16px 0 18px;
+}
+
+.contact-oncall-layout.is-preparing {
+  align-items: stretch;
 }
 
 .contact-oncall-summary {
@@ -2782,6 +2783,8 @@ body[data-theme="dark"] .contact-chip:hover {
 .contact-oncall-actions {
   display: flex;
   flex-wrap: wrap;
+  justify-content: flex-start;
+  margin-top: auto;
   gap: 10px;
 }
 
@@ -2799,10 +2802,6 @@ body[data-theme="dark"] .contact-chip:hover {
   background: var(--oncall-secondary-bg);
   color: var(--oncall-secondary-text);
   border-color: var(--oncall-secondary-border);
-}
-
-.contact-oncall-form {
-  justify-content: flex-start;
 }
 
 .contact-oncall-form h3 {
@@ -2826,12 +2825,14 @@ body[data-theme="dark"] .contact-chip:hover {
 
 .contact-oncall-form strong,
 .contact-oncall-form p {
+  display: block;
   min-height: 24px;
   color: var(--oncall-title);
   overflow-wrap: anywhere;
 }
 
 .contact-oncall-form p {
+  margin: 0;
   line-height: 1.45;
 }
 
