@@ -38,6 +38,7 @@ const renderActorModal = (overrides = {}) => {
         isOpen={true}
         actor={actor}
         contacts={contacts}
+        primaryContact={contacts[0]}
         iconSpriteHref="/icons.svg"
         onClose={onClose}
         onOpenContact={onOpenContact}
@@ -66,12 +67,38 @@ describe("ActorModal contact list", () => {
     expect(list?.querySelectorAll(".contact-chip")).toHaveLength(0);
     expect(list?.querySelectorAll(".chip-prefix")).toHaveLength(0);
     expect(
+      Array.from(list?.querySelectorAll(".actor-role") || [], (role) =>
+        role.textContent?.trim(),
+      ),
+    ).toEqual(["Primary"]);
+    expect(
+      links[0]?.parentElement?.querySelector(".actor-role")?.textContent,
+    ).toBe("Primary");
+    expect(links[0]?.querySelector(".actor-role")).toBeNull();
+    expect(
       links.map((link) => link.querySelector("svg use")?.getAttribute("href")),
     ).toEqual([
       "/icons.svg#icon-contact-email",
       "/icons.svg#icon-contact-teams",
       "/icons.svg#icon-contact-discord",
     ]);
+  });
+
+  it("labels the designated primary contact rather than assuming the first item", () => {
+    const { container } = renderActorModal({ primaryContact: contacts[2] });
+    const rows = Array.from(
+      container.querySelectorAll(".actor-modal-contact-row"),
+    );
+
+    expect(rows[0].querySelector(".actor-role")).toBeNull();
+    expect(rows[1].querySelector(".actor-role")).toBeNull();
+    expect(rows[2].querySelector(".actor-role")?.textContent).toBe("Primary");
+  });
+
+  it("omits the primary label when no contact is designated", () => {
+    const { container } = renderActorModal({ primaryContact: null });
+
+    expect(container.querySelector(".actor-role")).toBeNull();
   });
 
   it("opens contact details on a plain click but preserves modified links", async () => {

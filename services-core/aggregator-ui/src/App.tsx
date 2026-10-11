@@ -1685,6 +1685,12 @@ export default function App() {
         isOpen={Boolean(openedActor)}
         actor={openedActor}
         contacts={openedActorContacts}
+        primaryContact={
+          openedActor
+            ? (actorContactsByActorId.get(openedActor.id)?.primaryContact ??
+              null)
+            : null
+        }
         iconSpriteHref={iconSpriteHref}
         onClose={() => setOpenedActorId("")}
         onOpenContact={(contact) => setOpenedContact(contact)}
