@@ -56,6 +56,11 @@ describe("ActorModal contact list", () => {
         .getByRole("dialog", { name: "Actor details" })
         .classList.contains("modal-window"),
     ).toBe(true);
+    const dialog = screen.getByRole("dialog", { name: "Actor details" });
+    expect(dialog.querySelector(".modal-header h2")?.textContent).toBe(
+      actor.title,
+    );
+    expect(dialog.querySelector(".modal-content h2")).toBeNull();
     const list = document.querySelector(".actor-modal-contacts");
     const links = Array.from(list?.querySelectorAll("a") || []);
 

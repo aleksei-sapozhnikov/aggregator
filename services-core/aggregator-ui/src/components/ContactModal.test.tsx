@@ -73,6 +73,16 @@ describe("ContactModal demo help", () => {
       expect(preview).not.toBeNull();
       expect(preview?.classList).toContain(demoClass);
       expect(preview?.classList).toContain(clientClass);
+      const dialog = screen.getByRole("dialog", { name: "Contact details" });
+      const header = dialog.querySelector(".modal-header");
+      expect(header?.querySelector(".contact-demo-window-bar")).not.toBeNull();
+      expect(
+        header?.querySelector(".contact-demo-window-bar")?.classList,
+      ).toContain(clientClass);
+      expect(preview?.querySelector(".contact-demo-window-bar")).toBeNull();
+      expect(dialog.querySelectorAll(".contact-demo-window-bar")).toHaveLength(
+        1,
+      );
       expect(screen.getByRole("dialog", { name: "Contact details" })).toBe(
         document.querySelector(".modal-window"),
       );
