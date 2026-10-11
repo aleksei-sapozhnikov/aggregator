@@ -108,6 +108,17 @@ describe("ContactModal demo help", () => {
     expect(styles).not.toMatch(/padding:\s*18px\s+64px\s+18px\s+18px/);
   });
 
+  it("keeps sent and reply messages at the top of the email preview", () => {
+    const styles = readFileSync(resolve("src", "styles.css"), "utf8");
+
+    expect(styles).toMatch(
+      /\.contact-email-compose\.is-sent,\s*\.contact-email-compose\.is-reply\s*\{\s*flex:\s*0 0 auto;/,
+    );
+    expect(styles).not.toMatch(
+      /\.contact-email-sent-state\s*\{[^}]*height:\s*100%;/s,
+    );
+  });
+
   it("shows mail-specific help and removes the old footer note", async () => {
     const { user } = renderContactModal({
       id: "ct_mail",
