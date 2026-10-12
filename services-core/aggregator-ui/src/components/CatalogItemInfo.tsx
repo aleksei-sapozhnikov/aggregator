@@ -150,7 +150,12 @@ export default function CatalogItemInfo({ item }: CatalogItemInfoProps) {
               visibility: tooltipPosition ? "visible" : "hidden",
             }}
           >
-            {tooltip}
+            <span>{tooltip}</span>
+            {isEnabled && (
+              <span className="catalog-item-info-tooltip-action">
+                Click for details
+              </span>
+            )}
           </span>,
           document.body,
         )}
@@ -164,7 +169,11 @@ export default function CatalogItemInfo({ item }: CatalogItemInfoProps) {
         >
           <div className="info-help-modal catalog-item-info-modal">
             <div className="catalog-item-info-content modal-text-flow">
-              {hasShortDescription && <p>{shortDescription}</p>}
+              {hasShortDescription && (
+                <p>
+                  <strong>{shortDescription}</strong>
+                </p>
+              )}
               {paragraphs.map((paragraph, index) => (
                 <p key={index}>{paragraph}</p>
               ))}
