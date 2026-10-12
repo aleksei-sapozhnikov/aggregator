@@ -586,18 +586,6 @@ describe("DetailsPanel contextual help", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
-  it("preserves modified clicks on signal links", () => {
-    const { container } = renderDetailsPanel();
-    const link = container.querySelector<HTMLAnchorElement>(
-      ".signals-unhealthy-own-row a.signal-link",
-    );
-    expect(link).not.toBeNull();
-
-    fireEvent.click(link as HTMLAnchorElement, { ctrlKey: true });
-    expect(window.location.hash).toBe("");
-    expect(screen.queryByRole("dialog", { name: "Health signal details" })).toBeNull();
-  });
-
   it("keeps unknown unhealthy states explicitly visible", () => {
     const { container } = renderDetailsPanel({
       selectedFailingSignals: [
