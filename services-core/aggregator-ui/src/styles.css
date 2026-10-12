@@ -1142,7 +1142,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  min-height: 28px;
+  min-height: 34px;
   padding: 0 2px;
   border-radius: 6px;
   overflow-wrap: anywhere;
@@ -1453,7 +1453,7 @@ body {
 .details-inline-head {
   display: flex;
   align-items: center;
-  min-height: 28px;
+  min-height: 34px;
 }
 
 .signals-section-label {
@@ -1894,7 +1894,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  min-height: 28px;
+  min-height: 34px;
   margin: 2px 0 0;
   padding: 3px 2px;
   border-radius: 6px;
@@ -1938,7 +1938,7 @@ body {
   background: transparent;
   color: var(--owner-panel-label);
   border-radius: 6px;
-  min-height: 28px;
+  min-height: 34px;
   padding: 3px 2px;
   cursor: pointer;
   display: inline-flex;
@@ -2854,7 +2854,7 @@ body[data-theme="dark"] .contact-chip:hover {
 .contact-oncall-form strong,
 .contact-oncall-form p {
   display: block;
-  min-height: 28px;
+  min-height: 34px;
   color: var(--oncall-title);
   overflow-wrap: anywhere;
 }
@@ -3221,10 +3221,13 @@ body[data-theme="dark"] .contact-email-reply {
   gap: 8px;
 }
 
-.actor-modal-contact-trigger {
-  max-width: 100%;
-  min-height: 28px;
+.actor-modal-contact-details {
+  display: inline-flex;
+  align-items: center;
   gap: 8px;
+  max-width: 100%;
+  min-height: 34px;
+  padding: 0;
 }
 
 .actor-modal-contact-icon {
@@ -3325,7 +3328,7 @@ body[data-theme="dark"] .contact-email-reply {
 .actor-inline-chip {
   width: auto;
   max-width: 100%;
-  min-height: 28px;
+  min-height: 34px;
   padding: 4px 10px;
   border-radius: 999px;
   text-decoration: none;
@@ -4082,7 +4085,7 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 .primary-contact-row {
   width: fit-content;
   max-width: 100%;
-  min-height: 28px;
+  min-height: 34px;
   display: flex;
   align-items: center;
   gap: 9px;
@@ -4444,7 +4447,7 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 .ownership-extra-list li {
   width: fit-content;
   max-width: 100%;
-  min-height: 28px;
+  min-height: 34px;
 }
 
 .actor-summary-row {
@@ -4479,7 +4482,7 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 .signals-dependency-row {
   width: fit-content;
   max-width: 100%;
-  min-height: 28px;
+  min-height: 34px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -4510,29 +4513,35 @@ body[data-theme="dark"] .about-social-icon-linkedin {
   border-radius: 3px;
 }
 
-.modal-details-trigger {
+.entity-info-action {
+  flex: 0 0 26px;
+  width: 26px;
+  height: 26px;
   border: 0;
+  border-radius: 50%;
   background: transparent;
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 0;
-  font-family: inherit;
-  cursor: pointer;
-  text-align: left;
-}
-
-.item-navigation-link {
-  gap: 5px;
-}
-
-.item-navigation-link-text {
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-
-.item-navigation-link-arrow {
-  flex: 0 0 auto;
-  font-size: 0.9em;
-  color: var(--link);
+  font: inherit;
+  font-size: 17px;
+  line-height: 1;
   text-decoration: none;
+  cursor: pointer;
+}
+
+.entity-info-action:hover {
+  color: var(--link);
+  background: color-mix(in srgb, var(--link) 8%, transparent);
+  text-decoration: none;
+}
+
+.entity-info-action:focus-visible {
+  color: var(--link);
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
 }
 
 .signals-incident-signal-list {
@@ -4543,7 +4552,7 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 }
 
 .signals-incident-signal {
-  min-height: 28px;
+  min-height: 34px;
   color: var(--muted);
   display: flex;
   align-items: center;
@@ -4606,7 +4615,7 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 
 .details-summary-block .signals-healthy-list .signal-status-row,
 .details-summary-block .details-unhealthy-list .signal-status-row {
-  min-height: 28px;
+  min-height: 34px;
 }
 
 .signal-status-row {
