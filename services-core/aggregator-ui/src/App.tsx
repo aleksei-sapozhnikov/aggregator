@@ -1501,6 +1501,7 @@ export default function App() {
         }
         onOpenAbout={() => setIsAboutOpen(true)}
         selectedItem={selectedItem}
+        catalogItems={catalog.items}
         selectedStatus={selectedStatus}
         lastUpdated={lastUpdated}
         selectedTitleFirstWord={selectedTitleFirstWord}
