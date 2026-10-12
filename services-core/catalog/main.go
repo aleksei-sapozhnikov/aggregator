@@ -178,7 +178,8 @@ func (s *service) fileHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *service) handleAPI(w http.ResponseWriter, r *http.Request, endpoint string) {
-	if strings.HasPrefix(endpoint, "signals/") && endpoint != "signals/http-poll" {
+	if _, isCollection := apiToFile[endpoint]; !isCollection &&
+		strings.HasPrefix(endpoint, "signals/") {
 		s.handleSignalByID(w, r, strings.TrimPrefix(endpoint, "signals/"))
 		return
 	}
