@@ -119,6 +119,7 @@ describe("ContactModal demo help", () => {
     expect(styles).toMatch(
       /\.contact-chat-thread\s*\{[^}]*min-height:\s*0;[^}]*overflow-y:\s*auto;/s,
     );
+    expect(styles).toMatch(/\.contact-chat-bubble\s*\{[^}]*flex:\s*0 0 auto;/s);
   });
 
   it.each([

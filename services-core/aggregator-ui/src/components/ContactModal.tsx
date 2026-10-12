@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import type { RefObject } from "react";
 import type { CatalogContact } from "../shared/types";
 import {
   resolveContactLabel,
@@ -369,7 +370,7 @@ const renderContactDemo = (
   onCallStage: OnCallStage,
   onCallFormLength: number,
   copy: ContactDemoCopy,
-  chatThreadRef: React.RefObject<HTMLDivElement | null>,
+  chatThreadRef: RefObject<HTMLDivElement | null>,
 ) => {
   if (details.kind === "email") {
     const isComposing =
