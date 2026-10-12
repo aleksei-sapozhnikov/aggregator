@@ -44,6 +44,14 @@ type OnCallStage =
   | "notifying"
   | "acknowledged";
 
+type ContactDemoCopy = {
+  outgoing: string;
+  response: string;
+  phoneGreeting: string;
+  phoneProblem: string;
+  phoneResponse: string;
+};
+
 const onCallActivityByClient: OnCallActivity = {
   pagerduty: [
     "Service problem attached",
@@ -58,6 +66,87 @@ const normalizeContactHandle = (label: string): string =>
 
 const buildOutgoingText = (label: string): string =>
   `Hey ${normalizeContactHandle(label)}, I have a problem with a service.`;
+
+const buildContactDemoCopy = (
+  contact: CatalogContact,
+  label: string,
+): ContactDemoCopy => {
+  const handle = normalizeContactHandle(label);
+  switch (contact.type) {
+    case "email":
+      return {
+        outgoing: `Hello ${handle},\n\nI am seeing a problem with a service. Could you please take a look?\n\nThank you.`,
+        response: "Thank you for your message. We're on it.",
+        phoneGreeting: "Listening.",
+        phoneProblem: "There is a problem with a service.",
+        phoneResponse: "Understood, we're on it.",
+      };
+    case "teams":
+      return {
+        outgoing: `Hey ${handle}, service issue on our side. Can you check?`,
+        response: "👍 On it.",
+        phoneGreeting: "Listening.",
+        phoneProblem: "There is a problem with a service.",
+        phoneResponse: "Understood, we're on it.",
+      };
+    case "slack":
+      return {
+        outgoing: `Hey ${handle}, seeing a service problem. Can you take a look?`,
+        response: "👍 Taking a look now.",
+        phoneGreeting: "Listening.",
+        phoneProblem: "There is a problem with a service.",
+        phoneResponse: "Understood, we're on it.",
+      };
+    case "discord":
+      return {
+        outgoing: `Hey ${handle}, service looks unhealthy. Can someone check?`,
+        response: "👍 Yep, checking.",
+        phoneGreeting: "Listening.",
+        phoneProblem: "There is a problem with a service.",
+        phoneResponse: "Understood, we're on it.",
+      };
+    case "mattermost":
+      return {
+        outgoing: `Hey ${handle}, there is a service health issue. Can you check?`,
+        response: "👍 On it, checking now.",
+        phoneGreeting: "Listening.",
+        phoneProblem: "There is a problem with a service.",
+        phoneResponse: "Understood, we're on it.",
+      };
+    case "telegram":
+      return {
+        outgoing: `Hi ${handle}, a service is having trouble. Can you check?`,
+        response: "👍 Checking it now.",
+        phoneGreeting: "Listening.",
+        phoneProblem: "There is a problem with a service.",
+        phoneResponse: "Understood, we're on it.",
+      };
+    case "sms":
+      return {
+        outgoing: `Service issue detected. Can you check?`,
+        response: "👍 Got it, on it.",
+        phoneGreeting: "Listening.",
+        phoneProblem: "There is a problem with a service.",
+        phoneResponse: "Understood, we're on it.",
+      };
+    case "phone":
+      return {
+        outgoing: buildOutgoingText(label),
+        response: "Ok, we're on it.",
+        phoneGreeting: "Support line, listening.",
+        phoneProblem: "A service is having a health problem.",
+        phoneResponse: "Got it. We'll take it from here.",
+      };
+    default:
+      return {
+        outgoing: buildOutgoingText(label),
+        response: "👍 Ok, on it!",
+        phoneGreeting: "Listening.",
+        phoneProblem: "There is a problem with a service.",
+        phoneResponse: "Understood, we're on it.",
+      };
+  }
+};
 
 const onCallIncidentTitle = "Service problem";
 const onCallIncidentDescription = "A service is experiencing a health problem.";
@@ -216,6 +305,7 @@ const renderContactDemo = (
   mailStage: MailStage,
   onCallStage: OnCallStage,
   onCallFormLength: number,
+  copy: ContactDemoCopy,
 ) => {
   if (details.kind === "email") {
     const isComposing =
@@ -259,7 +349,7 @@ const renderContactDemo = (
               <span className="contact-email-sent-icon" aria-hidden="true">
                 <MailEnvelopeIcon />
               </span>
-              <div>
+              <div className="contact-email-sent-content">
                 <strong>Message sent</strong>
                 <span>Delivery accepted for {label}</span>
               </div>
@@ -288,7 +378,7 @@ const renderContactDemo = (
               <span className="contact-email-reply-meta">
                 Reply received from {label}
               </span>
-              <p>Thank you for your message. We're on it.</p>
+              <p>{copy.response}</p>
             </div>
           </div>
         )}
@@ -324,16 +414,16 @@ const renderContactDemo = (
               aria-label="Phone call dialogue"
             >
               <p className="contact-phone-line contact-phone-line-in">
-                Listening.
+                {copy.phoneGreeting}
               </p>
               {phoneStep >= 2 && (
                 <p className="contact-phone-line contact-phone-line-out">
-                  There is a problem with a service.
+                  {copy.phoneProblem}
                 </p>
               )}
               {phoneStep >= 3 && (
                 <p className="contact-phone-line contact-phone-line-in">
-                  Understood, we're on it.
+                  {copy.phoneResponse}
                 </p>
               )}
             </div>
@@ -358,7 +448,7 @@ const renderContactDemo = (
           )}
           {showResponse && (
             <p className="contact-chat-bubble contact-chat-bubble-in">
-              👍 Ok, on it!
+              {copy.response}
             </p>
           )}
         </div>
@@ -562,7 +652,7 @@ const renderContactDemo = (
         )}
         {showResponse && (
           <p className="contact-chat-bubble contact-chat-bubble-in">
-            👍 Ok, on it!
+            {copy.response}
           </p>
         )}
       </div>
@@ -588,7 +678,8 @@ export default function ContactModal({
   const [onCallStage, setOnCallStage] = useState<OnCallStage>("idle");
   const [onCallFormLength, setOnCallFormLength] = useState(0);
   const contactLabel = contact ? resolveContactLabel(contact) : "";
-  const outgoingText = contact ? buildOutgoingText(contactLabel) : "";
+  const demoCopy = contact ? buildContactDemoCopy(contact, contactLabel) : null;
+  const outgoingText = demoCopy?.outgoing || "";
 
   useEffect(() => {
     setTypedLength(0);
@@ -728,6 +819,7 @@ export default function ContactModal({
 
   const openedByLink = `/contacts/${contact.id}`;
   const demoDetails = buildRealContactHref(contact, contactLabel);
+  const activeDemoCopy = buildContactDemoCopy(contact, contactLabel);
   const typedText = outgoingText.slice(0, typedLength);
   const isMessageSent = typedLength >= outgoingText.length;
   const ellipsis = ".".repeat(ellipsisStep);
@@ -758,6 +850,7 @@ export default function ContactModal({
             mailStage,
             onCallStage,
             onCallFormLength,
+            activeDemoCopy,
           )}
           <div className="contact-modal-demo-note">
             <p>
