@@ -2,6 +2,8 @@
  * @vitest-environment jsdom
  */
 
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import type { MouseEvent } from "react";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -36,5 +38,13 @@ describe("ModalDetailsTrigger", () => {
     expect(trigger.getAttribute("aria-haspopup")).toBe("dialog");
     fireEvent.click(trigger);
     expect(onClick).toHaveBeenCalledTimes(1);
+  });
+  it("resets native button decoration while keeping link styling", () => {
+    const css = readFileSync(resolve("src", "styles.css"), "utf8");
+
+    expect(css).toMatch(
+      /button\\.modal-details-trigger\\s*\\{[^}]*appearance:\\s*none;[^}]*border:\\s*0;[^}]*background:\\s*transparent;[^}]*padding:\\s*0;/s,
+    );
+    expect(css).not.toContain(".entity-info-action {");
   });
 });
