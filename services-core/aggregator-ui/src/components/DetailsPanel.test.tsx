@@ -477,6 +477,37 @@ describe("DetailsPanel contextual help", () => {
     ).toBe("Errors, Status: DOWN");
   });
 
+  it("labels only dependency items in Unhealthy signals", () => {
+    const { container } = renderDetailsPanel();
+    const list = container.querySelector(".details-unhealthy-list");
+    const dependencyRows = list?.querySelectorAll(".signals-incident-row");
+
+    expect(dependencyRows).toHaveLength(1);
+    expect(
+      dependencyRows?.[0].querySelector(".signals-dependency-row .actor-role")
+        ?.textContent,
+    ).toBe("Dependency");
+    expect(
+      dependencyRows?.[0].querySelector(".signals-dependency-row a")
+        ?.textContent,
+    ).toBe("Payments");
+    expect(
+      list?.querySelector(".signals-unhealthy-own-row .actor-role"),
+    ).toBeNull();
+    expect(
+      list?.querySelector(".signals-incident-signal .actor-role"),
+    ).toBeNull();
+  });
+
+  it("omits the dependency label when only own signals are unhealthy", () => {
+    const { container } = renderDetailsPanel({ failingDependencies: [] });
+    const list = container.querySelector(".details-unhealthy-list");
+
+    expect(list?.querySelectorAll(".signals-incident-row")).toHaveLength(0);
+    expect(list?.querySelectorAll(".actor-role")).toHaveLength(0);
+    expect(list?.querySelectorAll(".signals-unhealthy-own-row")).toHaveLength(1);
+  });
+
   it("keeps unknown unhealthy states explicitly visible", () => {
     const { container } = renderDetailsPanel({
       selectedFailingSignals: [
