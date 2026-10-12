@@ -26,7 +26,7 @@ export default function CatalogItemInfo({ item }: CatalogItemInfoProps) {
   const tooltipId = useId();
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const tooltipRef = useRef<HTMLSpanElement | null>(null);
-  const suppressTooltipRef = useRef(false);
+  const suppressRestoredFocusRef = useRef(false);
   const [isTooltipVisible, setIsTooltipVisible] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState<{
@@ -50,7 +50,7 @@ export default function CatalogItemInfo({ item }: CatalogItemInfoProps) {
   );
 
   const showTooltip = () => {
-    if (isModalOpen || suppressTooltipRef.current) {
+    if (isModalOpen) {
       return;
     }
 
@@ -128,24 +128,23 @@ export default function CatalogItemInfo({ item }: CatalogItemInfoProps) {
           event.stopPropagation();
           setIsTooltipVisible(false);
           if (isEnabled) {
-            suppressTooltipRef.current = true;
+            suppressRestoredFocusRef.current = true;
             setIsModalOpen(true);
           }
         }}
-        onFocus={showTooltip}
-        onBlur={() => {
-          setIsTooltipVisible(false);
-          if (!isModalOpen) {
-            suppressTooltipRef.current = false;
+        onFocus={() => {
+          if (suppressRestoredFocusRef.current) {
+            suppressRestoredFocusRef.current = false;
+            return;
           }
+          showTooltip();
         }}
-        onMouseEnter={showTooltip}
-        onMouseLeave={() => {
-          setIsTooltipVisible(false);
-          if (!isModalOpen) {
-            suppressTooltipRef.current = false;
-          }
+        onBlur={() => setIsTooltipVisible(false)}
+        onMouseEnter={() => {
+          suppressRestoredFocusRef.current = false;
+          showTooltip();
         }}
+        onMouseLeave={() => setIsTooltipVisible(false)}
       >
         ⓘ
       </button>
