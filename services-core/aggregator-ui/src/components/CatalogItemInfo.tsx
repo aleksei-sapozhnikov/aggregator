@@ -26,7 +26,6 @@ export default function CatalogItemInfo({ item }: CatalogItemInfoProps) {
   const tooltipId = useId();
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const tooltipRef = useRef<HTMLSpanElement | null>(null);
-  const suppressRestoredFocusRef = useRef(false);
   const [isTooltipVisible, setIsTooltipVisible] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState<{
@@ -128,22 +127,11 @@ export default function CatalogItemInfo({ item }: CatalogItemInfoProps) {
           event.stopPropagation();
           setIsTooltipVisible(false);
           if (isEnabled) {
-            suppressRestoredFocusRef.current = true;
             setIsModalOpen(true);
           }
         }}
-        onFocus={() => {
-          if (suppressRestoredFocusRef.current) {
-            suppressRestoredFocusRef.current = false;
-            return;
-          }
-          showTooltip();
-        }}
         onBlur={() => setIsTooltipVisible(false)}
-        onMouseEnter={() => {
-          suppressRestoredFocusRef.current = false;
-          showTooltip();
-        }}
+        onMouseEnter={showTooltip}
         onMouseLeave={() => setIsTooltipVisible(false)}
       >
         ⓘ

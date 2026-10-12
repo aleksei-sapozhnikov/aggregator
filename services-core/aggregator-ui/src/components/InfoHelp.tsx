@@ -10,7 +10,6 @@ type InfoHelpProps = {
 export default function InfoHelp({ topic }: InfoHelpProps) {
   const tooltipId = useId();
   const buttonRef = useRef<HTMLButtonElement | null>(null);
-  const suppressRestoredFocusRef = useRef(false);
   const [isTooltipVisible, setIsTooltipVisible] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState({
@@ -44,22 +43,11 @@ export default function InfoHelp({ topic }: InfoHelpProps) {
         aria-describedby={isTooltipVisible ? tooltipId : undefined}
         onClick={(event) => {
           event.stopPropagation();
-          suppressRestoredFocusRef.current = true;
           setIsTooltipVisible(false);
           setIsModalOpen(true);
         }}
-        onFocus={() => {
-          if (suppressRestoredFocusRef.current) {
-            suppressRestoredFocusRef.current = false;
-            return;
-          }
-          showTooltip();
-        }}
         onBlur={() => setIsTooltipVisible(false)}
-        onMouseEnter={() => {
-          suppressRestoredFocusRef.current = false;
-          showTooltip();
-        }}
+        onMouseEnter={showTooltip}
         onMouseLeave={() => setIsTooltipVisible(false)}
       >
         ?

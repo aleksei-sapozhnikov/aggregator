@@ -107,7 +107,7 @@ describe("CatalogItemInfo tooltip positioning", () => {
 });
 
 describe("CatalogItemInfo modal tooltip lifecycle", () => {
-  it("keeps the tooltip hidden after modal Escape restores focus", async () => {
+  it("shows tooltip on hover only, not after modal Escape restores focus", async () => {
     render(
       <CatalogItemInfo
         item={{
@@ -123,7 +123,9 @@ describe("CatalogItemInfo modal tooltip lifecycle", () => {
     });
 
     trigger.focus();
-    fireEvent.focus(trigger);
+    expect(screen.queryByRole("tooltip")).toBeNull();
+
+    fireEvent.mouseEnter(trigger);
     expect(screen.getByRole("tooltip")).not.toBeNull();
 
     fireEvent.click(trigger);
@@ -140,18 +142,16 @@ describe("CatalogItemInfo modal tooltip lifecycle", () => {
     await waitFor(() => expect(document.activeElement).toBe(trigger));
     expect(screen.queryByRole("tooltip")).toBeNull();
 
-    // The first new hover must work without an extra leave/enter cycle.
+    // Automatic focus restoration and subsequent focus do not show the tooltip.
+    trigger.blur();
+    trigger.focus();
+    expect(screen.queryByRole("tooltip")).toBeNull();
+
+    // The first new hover does show it without an extra leave/enter cycle.
     fireEvent.mouseEnter(trigger);
     expect(screen.getByRole("tooltip")).not.toBeNull();
 
     fireEvent.mouseLeave(trigger);
     expect(screen.queryByRole("tooltip")).toBeNull();
-
-    // Keyboard focus works again after the restored-focus event.
-    trigger.blur();
-    fireEvent.blur(trigger);
-    trigger.focus();
-    fireEvent.focus(trigger);
-    expect(screen.getByRole("tooltip")).not.toBeNull();
   });
 });
