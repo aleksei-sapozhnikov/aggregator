@@ -4514,13 +4514,18 @@ body[data-theme="dark"] .about-social-icon-linkedin {
   border: 0;
   background: transparent;
   padding: 0;
-  font: inherit;
+  font-family: inherit;
   cursor: pointer;
   text-align: left;
 }
 
 .item-navigation-link {
   gap: 5px;
+}
+
+.item-navigation-link-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .item-navigation-link-arrow {

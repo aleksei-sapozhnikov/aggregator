@@ -89,15 +89,17 @@ describe("HealthSignalModal", () => {
     expect(rows[0].querySelector("td")?.textContent?.trim()).toBe(
       "Availability heartbeat responds",
     );
-    expect(dialog.querySelectorAll(".health-signal-details-table th")).toHaveLength(
-      7,
-    );
-    expect(dialog.textContent).toContain('"threshold": 2');
     expect(
-      screen
-        .getByRole("link", { name: "Payments Service" })
-        .getAttribute("href"),
-    ).toBe("/item/payments");
+      dialog.querySelectorAll(".health-signal-details-table th"),
+    ).toHaveLength(7);
+    expect(dialog.textContent).toContain('"threshold": 2');
+    const itemLink = screen.getByRole("link", { name: "Payments Service" });
+    expect(itemLink.getAttribute("href")).toBe("/item/payments");
+    expect(
+      itemLink
+        .querySelector(".item-navigation-link-arrow")
+        ?.textContent?.trim(),
+    ).toBe("→");
   });
 
   it("opens the linked catalog item and closes the signal dialog", async () => {
