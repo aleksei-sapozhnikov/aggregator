@@ -3221,7 +3221,7 @@ body[data-theme="dark"] .contact-email-reply {
   gap: 8px;
 }
 
-.actor-modal-contact-link {
+.actor-modal-contact-details {
   display: inline-flex;
   align-items: center;
   gap: 8px;
