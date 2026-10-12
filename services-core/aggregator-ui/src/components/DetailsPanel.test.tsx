@@ -436,7 +436,7 @@ describe("DetailsPanel contextual help", () => {
 
     expect(
       Array.from(
-        container.querySelectorAll(".ownership-extra-list .actor-role"),
+        container.querySelectorAll(".ownership-extra-list .secondary-label"),
         (role) => role.textContent?.trim(),
       ),
     ).toEqual(["Owner", "User", "Other"]);
@@ -484,7 +484,7 @@ describe("DetailsPanel contextual help", () => {
 
     expect(dependencyRows).toHaveLength(1);
     expect(
-      dependencyRows?.[0].querySelector(".signals-dependency-row .actor-role")
+      dependencyRows?.[0].querySelector(".signals-dependency-row .secondary-label")
         ?.textContent,
     ).toBe("Dependency");
     expect(
@@ -492,10 +492,10 @@ describe("DetailsPanel contextual help", () => {
         ?.textContent,
     ).toBe("Payments");
     expect(
-      list?.querySelector(".signals-unhealthy-own-row .actor-role"),
+      list?.querySelector(".signals-unhealthy-own-row .secondary-label"),
     ).toBeNull();
     expect(
-      list?.querySelector(".signals-incident-signal .actor-role"),
+      list?.querySelector(".signals-incident-signal .secondary-label"),
     ).toBeNull();
   });
 
@@ -504,7 +504,7 @@ describe("DetailsPanel contextual help", () => {
     const list = container.querySelector(".details-unhealthy-list");
 
     expect(list?.querySelectorAll(".signals-incident-row")).toHaveLength(0);
-    expect(list?.querySelectorAll(".actor-role")).toHaveLength(0);
+    expect(list?.querySelectorAll(".secondary-label")).toHaveLength(0);
     expect(list?.querySelectorAll(".signals-unhealthy-own-row")).toHaveLength(1);
   });
 

@@ -4110,7 +4110,7 @@ body[data-theme="dark"] .about-social-icon-linkedin {
   font-weight: 600;
 }
 
-.actor-role {
+.secondary-label {
   flex: 0 0 auto;
   color: var(--muted);
   font-size: 12px;
