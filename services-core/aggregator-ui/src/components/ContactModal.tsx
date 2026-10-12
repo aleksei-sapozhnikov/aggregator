@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { CatalogContact } from "../shared/types";
 import {
   resolveContactLabel,
@@ -369,6 +369,7 @@ const renderContactDemo = (
   onCallStage: OnCallStage,
   onCallFormLength: number,
   copy: ContactDemoCopy,
+  chatThreadRef: React.RefObject<HTMLDivElement | null>,
 ) => {
   if (details.kind === "email") {
     const isComposing =
@@ -492,7 +493,7 @@ const renderContactDemo = (
         className={`contact-demo contact-demo-chat contact-client-${details.clientClass}`}
         aria-label="Messages preview"
       >
-        <div className="contact-chat-thread">
+        <div ref={chatThreadRef} className="contact-chat-thread">
           {isMessageSent && (
             <p className="contact-chat-bubble contact-chat-bubble-out">
               {typedText}
@@ -504,10 +505,12 @@ const renderContactDemo = (
             </p>
           )}
         </div>
-        <div className="contact-chat-composer">
-          {isMessageSent ? `Message ${label}` : typedText}
-          {!isMessageSent && <span className="contact-typing-caret" />}
-        </div>
+        {!showResponse && (
+          <div className="contact-chat-composer">
+            {isMessageSent ? `Message ${label}` : typedText}
+            {!isMessageSent && <span className="contact-typing-caret" />}
+          </div>
+        )}
       </section>
     );
   }
@@ -703,7 +706,7 @@ const renderContactDemo = (
       className={`contact-demo contact-demo-chat contact-client-${details.clientClass}`}
       aria-label="Team chat preview"
     >
-      <div className="contact-chat-thread">
+      <div ref={chatThreadRef} className="contact-chat-thread">
         {isMessageSent && (
           <p className="contact-chat-bubble contact-chat-bubble-out">
             {typedText}
@@ -715,10 +718,12 @@ const renderContactDemo = (
           </p>
         )}
       </div>
-      <div className="contact-chat-composer">
-        {isMessageSent ? `Message ${label}` : typedText}
-        {!isMessageSent && <span className="contact-typing-caret" />}
-      </div>
+      {!showResponse && (
+        <div className="contact-chat-composer">
+          {isMessageSent ? `Message ${label}` : typedText}
+          {!isMessageSent && <span className="contact-typing-caret" />}
+        </div>
+      )}
     </section>
   );
 };
@@ -728,6 +733,7 @@ export default function ContactModal({
   contact,
   onClose,
 }: ContactModalProps) {
+  const chatThreadRef = useRef<HTMLDivElement | null>(null);
   const [typedLength, setTypedLength] = useState(0);
   const [showResponse, setShowResponse] = useState(false);
   const [onCallStep, setOnCallStep] = useState(0);
@@ -872,6 +878,12 @@ export default function ContactModal({
     };
   }, [contact, isOpen, outgoingText]);
 
+  useEffect(() => {
+    if (showResponse && chatThreadRef.current) {
+      chatThreadRef.current.scrollTop = chatThreadRef.current.scrollHeight;
+    }
+  }, [showResponse]);
+
   if (!isOpen || !contact) {
     return null;
   }
@@ -928,6 +940,7 @@ export default function ContactModal({
           onCallStage,
           onCallFormLength,
           activeDemoCopy,
+          chatThreadRef,
         )}
       </div>
     </ModalWindow>
