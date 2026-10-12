@@ -54,7 +54,10 @@ describe("HealthSignalModal", () => {
 
     await screen.findByText("PT30S");
     expect(fetchMock).toHaveBeenCalledWith(
-      "/catalog/api/signals/sg_check",
+      new URL(
+        "catalog/api/signals/sg_check",
+        new URL(import.meta.env.BASE_URL || "/", window.location.origin),
+      ),
       expect.objectContaining({ signal: expect.any(AbortSignal) }),
     );
     const dialog = screen.getByRole("dialog", { name: "Health signal details" });

@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import type { CatalogItem } from "../shared/types";
 import { isPlainLeftClick } from "../shared/catalogUtils";
-import { resolveBaseUrl } from "../services/aggregatorApi";
 import ModalWindow from "./ModalWindow";
 
 type HealthSignalDetails = Record<string, unknown> & {
@@ -70,7 +69,7 @@ export default function HealthSignalModal({
         const response = await fetch(
           new URL(
             `catalog/api/signals/${encodeURIComponent(signalId)}`,
-            resolveBaseUrl(),
+            new URL(import.meta.env.BASE_URL || "/", window.location.origin),
           ),
           { signal: controller.signal },
         );
