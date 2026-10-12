@@ -3221,13 +3221,10 @@ body[data-theme="dark"] .contact-email-reply {
   gap: 8px;
 }
 
-.actor-modal-contact-details {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
+.actor-modal-contact-trigger {
   max-width: 100%;
   min-height: 28px;
-  padding: 0;
+  gap: 8px;
 }
 
 .actor-modal-contact-icon {
@@ -4513,35 +4510,24 @@ body[data-theme="dark"] .about-social-icon-linkedin {
   border-radius: 3px;
 }
 
-.entity-info-action {
-  flex: 0 0 26px;
-  width: 26px;
-  height: 26px;
+.modal-details-trigger {
   border: 0;
-  border-radius: 50%;
   background: transparent;
-  color: var(--muted);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   padding: 0;
   font: inherit;
-  font-size: 17px;
-  line-height: 1;
-  text-decoration: none;
   cursor: pointer;
+  text-align: left;
 }
 
-.entity-info-action:hover {
-  color: var(--link);
-  background: color-mix(in srgb, var(--link) 8%, transparent);
+.item-navigation-link {
+  gap: 5px;
+}
+
+.item-navigation-link-arrow {
+  flex: 0 0 auto;
+  font-size: 0.9em;
+  color: var(--muted);
   text-decoration: none;
-}
-
-.entity-info-action:focus-visible {
-  color: var(--link);
-  outline: 2px solid var(--link);
-  outline-offset: 2px;
 }
 
 .signals-incident-signal-list {

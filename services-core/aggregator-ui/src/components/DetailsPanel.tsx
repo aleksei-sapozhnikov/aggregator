@@ -8,7 +8,8 @@ import CatalogItemInfo from "./CatalogItemInfo";
 import InfoHelp from "./InfoHelp";
 import HealthSignalModal from "./HealthSignalModal";
 import SecondaryLabel from "./SecondaryLabel";
-import EntityInfoAction from "./EntityInfoAction";
+import ModalDetailsTrigger from "./ModalDetailsTrigger";
+import ItemNavigationLink from "./ItemNavigationLink";
 import { isPlainLeftClick } from "../shared/catalogUtils";
 import { infoHelpTopics } from "../shared/infoHelpTopics";
 import { buildStatusText } from "../shared/statusText";
@@ -561,23 +562,13 @@ export default function DetailsPanel({
                           <span className="primary-contact-icon">
                             {renderContactIcon(primaryContact, iconSpriteHref)}
                           </span>
-                          <a
-                            className="details-text-link primary-contact-link"
-                            href={
-                              primaryContact.href ||
-                              `/contacts/${primaryContact.id}`
-                            }
-                            onClick={(event) => {
-                              if (!isPlainLeftClick(event)) {
-                                return;
-                              }
-                              event.preventDefault();
-                              onOpenContact(primaryContact);
-                            }}
+                          <ModalDetailsTrigger
+                            className="primary-contact-link"
+                            onClick={() => onOpenContact(primaryContact)}
                             title={resolveContactLabel(primaryContact)}
                           >
                             {resolveContactLabel(primaryContact)}
-                          </a>
+                          </ModalDetailsTrigger>
                         </div>
                       </div>
                     </div>
@@ -640,16 +631,13 @@ export default function DetailsPanel({
                           {actorRowsForContacts.map((entry) => (
                             <li key={entry.key}>
                               <div className="actor-summary-row">
-                                <span
+                                <ModalDetailsTrigger
                                   className="actor-summary-name"
+                                  onClick={() => onOpenActor(entry.actor)}
                                   title={entry.actor.title || entry.actor.id}
                                 >
                                   {entry.actor.title || entry.actor.id}
-                                </span>
-                                <EntityInfoAction
-                                  label={`Details for actor: ${entry.actor.title || entry.actor.id}`}
-                                  onClick={() => onOpenActor(entry.actor)}
-                                />
+                                </ModalDetailsTrigger>
                                 <SecondaryLabel text={entry.typeLabel} />
                               </div>
                             </li>
@@ -713,19 +701,16 @@ export default function DetailsPanel({
                             aria-label={`${entry.title || entry.id}, ${buildStatusText(entry.status)}`}
                           >
                             <div className="signal-row signal-status-row">
-                              <span
+                              <ModalDetailsTrigger
                                 className="signal-name"
                                 title={entry.title || entry.id}
-                              >
-                                {entry.title || entry.id}
-                              </span>
-                              <EntityInfoAction
-                                label={`Details for signal: ${entry.title || entry.id}`}
                                 href={buildSignalLink(entry.id)}
                                 onClick={(event) =>
                                   handleSignalClick(event, entry)
                                 }
-                              />
+                              >
+                                {entry.title || entry.id}
+                              </ModalDetailsTrigger>
                               {entry.status === "unknown" && (
                                 <span className="signal-unknown-label">
                                   UNKNOWN
@@ -738,14 +723,13 @@ export default function DetailsPanel({
                         {unhealthyDependencyRows.map((row) => (
                           <li key={row.id} className="signals-incident-row">
                             <div className="signals-dependency-row">
-                              <a
-                                className="details-text-link"
+                              <ItemNavigationLink
                                 title={row.title}
                                 href={row.href}
                                 onClick={row.onClick}
                               >
                                 {row.title}
-                              </a>
+                              </ItemNavigationLink>
                               <SecondaryLabel text="Dependency" />
                             </div>
                             <ul className="signals-incident-signal-list">
@@ -756,16 +740,16 @@ export default function DetailsPanel({
                                   title={signal.title || signal.id}
                                   aria-label={`${signal.title || signal.id}, ${buildStatusText(signal.status)}`}
                                 >
-                                  <span className="signal-name">
-                                    {signal.title || signal.id}
-                                  </span>
-                                  <EntityInfoAction
-                                    label={`Details for signal: ${signal.title || signal.id}`}
+                                  <ModalDetailsTrigger
+                                    className="signal-name"
+                                    title={signal.title || signal.id}
                                     href={buildSignalLink(signal.id)}
                                     onClick={(event) =>
                                       handleSignalClick(event, signal)
                                     }
-                                  />
+                                  >
+                                    {signal.title || signal.id}
+                                  </ModalDetailsTrigger>
                                   {signal.status === "unknown" && (
                                     <span className="signal-unknown-label">
                                       UNKNOWN
@@ -834,19 +818,16 @@ export default function DetailsPanel({
                             aria-label={`${entry.title || entry.id}, ${buildStatusText(entry.status)}`}
                           >
                             <div className="signal-row signal-status-row">
-                              <span
+                              <ModalDetailsTrigger
                                 className="signal-name"
                                 title={entry.title || entry.id}
-                              >
-                                {entry.title || entry.id}
-                              </span>
-                              <EntityInfoAction
-                                label={`Details for signal: ${entry.title || entry.id}`}
                                 href={buildSignalLink(entry.id)}
                                 onClick={(event) =>
                                   handleSignalClick(event, entry)
                                 }
-                              />
+                              >
+                                {entry.title || entry.id}
+                              </ModalDetailsTrigger>
                             </div>
                           </li>
                         ))}
