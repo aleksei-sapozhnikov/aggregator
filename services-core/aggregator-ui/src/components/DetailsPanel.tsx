@@ -8,6 +8,7 @@ import CatalogItemInfo from "./CatalogItemInfo";
 import InfoHelp from "./InfoHelp";
 import HealthSignalModal from "./HealthSignalModal";
 import SecondaryLabel from "./SecondaryLabel";
+import EntityInfoAction from "./EntityInfoAction";
 import { isPlainLeftClick } from "../shared/catalogUtils";
 import { infoHelpTopics } from "../shared/infoHelpTopics";
 import { buildStatusText } from "../shared/statusText";
@@ -639,20 +640,16 @@ export default function DetailsPanel({
                           {actorRowsForContacts.map((entry) => (
                             <li key={entry.key}>
                               <div className="actor-summary-row">
-                                <a
-                                  className="details-text-link actor-summary-link"
-                                  href={`/actors/${entry.actor.id}`}
-                                  onClick={(event) => {
-                                    if (!isPlainLeftClick(event)) {
-                                      return;
-                                    }
-                                    event.preventDefault();
-                                    onOpenActor(entry.actor);
-                                  }}
+                                <span
+                                  className="actor-summary-name"
                                   title={entry.actor.title || entry.actor.id}
                                 >
                                   {entry.actor.title || entry.actor.id}
-                                </a>
+                                </span>
+                                <EntityInfoAction
+                                  label={`Details for actor: ${entry.actor.title || entry.actor.id}`}
+                                  onClick={() => onOpenActor(entry.actor)}
+                                />
                                 <SecondaryLabel text={entry.typeLabel} />
                               </div>
                             </li>
@@ -716,16 +713,19 @@ export default function DetailsPanel({
                             aria-label={`${entry.title || entry.id}, ${buildStatusText(entry.status)}`}
                           >
                             <div className="signal-row signal-status-row">
-                              <a
-                                className="details-text-link signal-name signal-link"
+                              <span
+                                className="signal-name"
                                 title={entry.title || entry.id}
+                              >
+                                {entry.title || entry.id}
+                              </span>
+                              <EntityInfoAction
+                                label={`Details for signal: ${entry.title || entry.id}`}
                                 href={buildSignalLink(entry.id)}
                                 onClick={(event) =>
                                   handleSignalClick(event, entry)
                                 }
-                              >
-                                {entry.title || entry.id}
-                              </a>
+                              />
                               {entry.status === "unknown" && (
                                 <span className="signal-unknown-label">
                                   UNKNOWN
@@ -756,15 +756,16 @@ export default function DetailsPanel({
                                   title={signal.title || signal.id}
                                   aria-label={`${signal.title || signal.id}, ${buildStatusText(signal.status)}`}
                                 >
-                                  <a
-                                    className="details-text-link signal-name signal-link"
+                                  <span className="signal-name">
+                                    {signal.title || signal.id}
+                                  </span>
+                                  <EntityInfoAction
+                                    label={`Details for signal: ${signal.title || signal.id}`}
                                     href={buildSignalLink(signal.id)}
                                     onClick={(event) =>
                                       handleSignalClick(event, signal)
                                     }
-                                  >
-                                    {signal.title || signal.id}
-                                  </a>
+                                  />
                                   {signal.status === "unknown" && (
                                     <span className="signal-unknown-label">
                                       UNKNOWN
@@ -833,16 +834,19 @@ export default function DetailsPanel({
                             aria-label={`${entry.title || entry.id}, ${buildStatusText(entry.status)}`}
                           >
                             <div className="signal-row signal-status-row">
-                              <a
-                                className="details-text-link signal-name signal-link"
+                              <span
+                                className="signal-name"
                                 title={entry.title || entry.id}
+                              >
+                                {entry.title || entry.id}
+                              </span>
+                              <EntityInfoAction
+                                label={`Details for signal: ${entry.title || entry.id}`}
                                 href={buildSignalLink(entry.id)}
                                 onClick={(event) =>
                                   handleSignalClick(event, entry)
                                 }
-                              >
-                                {entry.title || entry.id}
-                              </a>
+                              />
                             </div>
                           </li>
                         ))}
