@@ -62,11 +62,15 @@ describe("ActorModal contact list", () => {
     );
     expect(dialog.querySelector(".modal-content h2")).toBeNull();
     const list = document.querySelector(".actor-modal-contacts");
-    const rows = Array.from(list?.querySelectorAll(".actor-modal-contact-row") || []);
+    const rows = Array.from(
+      list?.querySelectorAll(".actor-modal-contact-row") || [],
+    );
 
     expect(list?.querySelectorAll("a")).toHaveLength(0);
     expect(
-      rows.map((row) => row.querySelector(".actor-modal-contact-name")?.textContent?.trim()),
+      rows.map((row) =>
+        row.querySelector(".actor-modal-contact-name")?.textContent?.trim(),
+      ),
     ).toEqual([
       "profile-team@demo.email",
       "Campaign Operations",
@@ -74,7 +78,9 @@ describe("ActorModal contact list", () => {
     ]);
     expect(
       rows.map((row) =>
-        row.querySelector("button.entity-info-action")?.getAttribute("aria-label"),
+        row
+          .querySelector("button.entity-info-action")
+          ?.getAttribute("aria-label"),
       ),
     ).toEqual([
       "Details for contact: profile-team@demo.email",
@@ -88,9 +94,9 @@ describe("ActorModal contact list", () => {
         role.textContent?.trim(),
       ),
     ).toEqual(["Primary"]);
-    expect(
-      rows[0]?.querySelector(".secondary-label")?.textContent,
-    ).toBe("Primary");
+    expect(rows[0]?.querySelector(".secondary-label")?.textContent).toBe(
+      "Primary",
+    );
     expect(
       rows[0]?.querySelector(".actor-modal-contact-details .secondary-label"),
     ).toBeNull();

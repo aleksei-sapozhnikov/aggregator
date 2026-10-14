@@ -11,7 +11,9 @@ afterEach(cleanup);
 describe("EntityInfoAction", () => {
   it("provides an always-visible button for modal-only entities", () => {
     const onClick = vi.fn();
-    render(<EntityInfoAction label="Details for actor: Owner" onClick={onClick} />);
+    render(
+      <EntityInfoAction label="Details for actor: Owner" onClick={onClick} />,
+    );
 
     const button = screen.getByRole("button", {
       name: "Details for actor: Owner",
