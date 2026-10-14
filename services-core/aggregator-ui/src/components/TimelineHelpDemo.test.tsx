@@ -86,7 +86,7 @@ describe("Timeline help walkthrough", () => {
     expect(rowCount()).toBe(6);
     expect(preview.querySelectorAll(".timeline-help-track.is-highlighted")).toHaveLength(0);
 
-    advance(2700);
+    advance(3000);
     expect(rowCount()).toBe(6);
     expect(within(preview).queryByLabelText("Available signal groups")).toBeNull();
   });
