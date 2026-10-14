@@ -738,7 +738,7 @@
   .timeline-help-preview { height: 465px; min-height: 465px; }
   .timeline-help-popup-hover, .timeline-help-popup-dependency {
     width: 88%;
-    left: 6% !important;
+    left: 6%;
     top: 145px;
   }
 }
@@ -824,4 +824,26 @@
 @media (prefers-reduced-motion: reduce) {
   .timeline-help-tracks > .timeline-help-cursor,
   .timeline-help-popup-link > .timeline-help-cursor { display: none; }
+}
+
+/* Mobile popup follows the playhead without escaping the narrower preview. */
+@media (max-width: 540px) {
+  .timeline-help-preview {
+    height: 390px;
+    min-height: 390px;
+  }
+  .timeline-help-tracks > .timeline-help-popup-hover {
+    top: -20px;
+    width: min(190px, 59vw);
+    transform: translateX(-68%);
+  }
+  .timeline-help-tracks > .timeline-help-popup-dependency {
+    top: 0;
+    width: min(210px, 63vw);
+    transform: translateX(-66%);
+  }
+  .timeline-help-popup-row {
+    gap: 5px;
+    padding: 2px 0;
+  }
 }
