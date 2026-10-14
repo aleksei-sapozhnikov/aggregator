@@ -127,6 +127,12 @@ describe("Timeline help walkthrough", () => {
     const preview = screen.getByLabelText("Example Timeline");
     advance(1600);
     expect(within(preview).getByLabelText("States at selected time")).not.toBeNull();
+    const signalRows = preview.querySelectorAll(".timeline-help-track");
+    // Payment Gateway is row four: three 26px rows plus three 7px gaps.
+    expect(signalRows).toHaveLength(6);
+    const cursor = preview.querySelector(".timeline-help-tracks > .timeline-help-cursor") as SVGElement;
+    expect(cursor.style.top).toBe("107px");
+    expect(within(preview).getByText("↳ Payment Gateway · readiness check")).not.toBeNull();
     advance(2100);
     expect(within(preview).queryByLabelText("States at selected time")).toBeNull();
     expect(within(preview).getByLabelText("Dependency signal details")).not.toBeNull();

@@ -370,7 +370,7 @@ export default function TimelineHelpDemo() {
                       <TimelineDependencyPopup x={x} elapsed={elapsed} linkPressed={linkPressed} />
                     )}
                     {!navigateDetails && (
-                      <ExampleCursor left={x + "%"} top="7px" />
+                      <ExampleCursor left={x + "%"} top={scenario === "navigate" ? "107px" : "7px"} />
                     )}
                   </>
                 )}
