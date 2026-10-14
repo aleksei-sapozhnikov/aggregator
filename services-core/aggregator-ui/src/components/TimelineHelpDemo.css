@@ -847,3 +847,37 @@
     padding: 2px 0;
   }
 }
+
+/* Anchor the popup to the cursor tip instead of centering it on the playhead.
+   When there is insufficient space to the right, place it to the left. */
+.timeline-help-tracks > .timeline-help-popup {
+  top: 17px;
+  left: 20%;
+  transform: translateX(12px);
+  transition: none;
+}
+.timeline-help-tracks > .timeline-help-popup.is-flipped {
+  transform: translateX(calc(-100% - 12px));
+}
+.timeline-help-tracks > .timeline-help-popup-hover {
+  top: 17px;
+}
+.timeline-help-tracks > .timeline-help-popup-dependency {
+  top: 17px;
+}
+.timeline-help-popup-date {
+  padding: 7px 10px;
+}
+.timeline-help-popup-rows {
+  padding: 5px 10px;
+}
+.timeline-help-popup-row {
+  padding: 2px 0;
+  min-height: 20px;
+}
+@media (max-width: 540px) {
+  .timeline-help-tracks > .timeline-help-popup-hover,
+  .timeline-help-tracks > .timeline-help-popup-dependency {
+    top: 17px;
+  }
+}

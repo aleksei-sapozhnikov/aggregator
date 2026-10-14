@@ -24,7 +24,7 @@ const exampleRows: TimelineRow[] = [
   { id: "payment", label: "↳ Payment Gateway · readiness check", kind: "dependencies",
     item: "Payment Gateway", states: ["UP", "UP", "DOWN", "UP", "UP"] },
   { id: "inventory", label: "↳ Inventory API · synchronization check", kind: "dependencies",
-    item: "Inventory API", states: ["UP", "UP", "UP", "UNKNOWN", "UP"] },
+    item: "Inventory API", states: ["UP", "UP", "UNKNOWN", "UP", "UP"] },
   { id: "notifications", label: "↳ Notification Worker · backlog check", kind: "dependencies",
     item: "Notification Worker", states: ["UP", "DOWN", "UP", "UP", "UP"] },
 ];
@@ -83,7 +83,7 @@ function timestampAt(position: number): string {
 function TimelineHoverPopup({ x }: { x: number }) {
   return (
     <div
-      className="timeline-help-popup timeline-help-popup-hover"
+      className={"timeline-help-popup timeline-help-popup-hover" + (x >= 34 ? " is-flipped" : "")}
       style={{ left: x + "%" }}
       aria-label="States at selected time"
     >
@@ -117,7 +117,7 @@ function TimelineDependencyPopup({
 }) {
   return (
     <div
-      className="timeline-help-popup timeline-help-popup-dependency"
+      className={"timeline-help-popup timeline-help-popup-dependency" + (x >= 34 ? " is-flipped" : "")}
       style={{ left: x + "%" }}
       aria-label="Dependency signal details"
     >
@@ -247,7 +247,7 @@ function OpenedDependencyItem() {
         <span className="timeline-help-item-question" aria-hidden="true">?</span>
       </div>
       <div className="timeline-help-item-section">
-        <span aria-hidden="true">⌄</span>
+        <span aria-hidden="true">›</span>
         <span aria-hidden="true">◷</span>
         <strong>Timeline</strong>
         <span className="timeline-help-item-question" aria-hidden="true">?</span>
@@ -285,7 +285,8 @@ export default function TimelineHelpDemo() {
 
   // The playhead is a percentage of the actual bars, shared by the line,
   // cursor, hover popup and state lookup. No independent CSS animation drives it.
-  const endX = scenario === "navigate" ? 48 : 68;
+  // Stop within a segment showing healthy, unhealthy and unknown signals together.
+  const endX = scenario === "inspect" ? 50 : 48;
   const x = lerp(20, endX, (elapsed - 600) / 2200);
   const inspectPopup = scenario === "inspect" && elapsed >= 1100 && elapsed < 8150;
   const navigateHover = scenario === "navigate" && elapsed >= 1100 && elapsed < 3400;
@@ -369,7 +370,7 @@ export default function TimelineHelpDemo() {
                       <TimelineDependencyPopup x={x} elapsed={elapsed} linkPressed={linkPressed} />
                     )}
                     {!navigateDetails && (
-                      <ExampleCursor left={x + "%"} top="105px" />
+                      <ExampleCursor left={x + "%"} top="7px" />
                     )}
                   </>
                 )}

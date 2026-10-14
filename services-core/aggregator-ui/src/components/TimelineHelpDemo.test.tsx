@@ -43,13 +43,43 @@ describe("Timeline help walkthrough", () => {
 
     advance(1900);
     const earlier = assertAligned();
-    expect(earlier.paymentState).toBe("DOWN");
+    expect(earlier.paymentState).toBe("UP");
     advance(1000);
     const later = assertAligned();
     expect(later.x).toBeGreaterThan(earlier.x);
-    expect(later.paymentState).toBe("UP");
+    expect(later.paymentState).toBe("DOWN");
     advance(3100);
     expect(assertAligned().x).toBe(later.x);
+  });
+
+  it("shows all three states at the stop point and flips the popup to the left", () => {
+    render(<TimelineHelpDemo />);
+    const preview = screen.getByLabelText("Example Timeline");
+
+    advance(2900);
+    const popup = within(preview).getByLabelText("States at selected time");
+    const cursor = preview.querySelector(".timeline-help-tracks > .timeline-help-cursor") as SVGElement;
+    const x = Number.parseFloat(cursor.style.left);
+    expect(x).toBe(50);
+    expect(popup.classList.contains("is-flipped")).toBe(true);
+    const states = within(popup)
+      .getAllByText(/^(UP|DOWN|UNKNOWN)$/)
+      .map((node) => node.textContent);
+    expect(new Set(states)).toEqual(new Set(["UP", "DOWN", "UNKNOWN"]));
+
+    advance(3100);
+    expect((preview.querySelector(".timeline-help-tracks > .timeline-help-cursor") as SVGElement).style.left).toBe("50%");
+  });
+
+  it("renders the destination Item with Timeline collapsed", () => {
+    render(<TimelineHelpDemo />);
+    fireEvent.click(screen.getByRole("button", { name: "Open a dependency" }));
+    advance(7400);
+    const item = screen.getByLabelText("Opened Payment Gateway Item");
+    const timeline = within(item).getByText("Timeline");
+    expect(timeline.parentElement?.textContent).toContain("›");
+    expect(timeline.parentElement?.textContent).not.toContain("⌄");
+    expect(item.querySelector(".timeline-help-chart")).toBeNull();
   });
 
   it("omits the status legend from the demonstration", () => {
