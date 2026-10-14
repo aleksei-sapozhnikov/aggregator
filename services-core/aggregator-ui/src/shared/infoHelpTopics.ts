@@ -10,6 +10,7 @@ export type InfoHelpTopic = {
       text: string;
     }[];
   }[];
+  demo?: "timeline";
   details?: {
     label: string;
     value: string;
@@ -45,99 +46,9 @@ export const infoHelpTopics = {
   },
   timeline: {
     title: "Timeline",
-    summary:
-      "See how product and service health changes over time. Click to learn how to read the chart.",
+    summary: "See historical health states and how to use the chart. Click for examples.",
     description:
-      "Timeline shows how the selected item's health changes over time. The first row shows its overall health, including the impact of dependencies. The remaining rows show individual health signals that experienced problems during the selected period.",
-    sections: [
-      {
-        heading: "What is Timeline?",
-        paragraphs: [
-          "The first row is the selected item's aggregated health state.",
-          "Signal rows appear underneath it when those signals were unhealthy or unknown at least once in the selected time range.",
-          "Use Timeline to investigate past failures, not just the current health state.",
-        ],
-      },
-      {
-        heading: "Colors",
-        items: [
-          {
-            label: "Green",
-            text: "Healthy (UP).",
-          },
-          {
-            label: "Red",
-            text: "Unhealthy (DOWN).",
-          },
-          {
-            label: "Yellow",
-            text: "Unknown health state (UNKNOWN).",
-          },
-          {
-            label: "No data",
-            text: "No measurements are available for that period.",
-          },
-        ],
-      },
-      {
-        heading: "Symbols",
-        items: [
-          {
-            label: "●",
-            text: "A health signal belonging to the selected item.",
-          },
-          {
-            label: "↳",
-            text: "A health signal belonging to a dependency.",
-          },
-        ],
-      },
-      {
-        heading: "Signals filter",
-        items: [
-          {
-            label: "All",
-            text: "Show own and dependency signals.",
-          },
-          {
-            label: "● Own",
-            text: "Show only the selected item's signals.",
-          },
-          {
-            label: "↳ Dependencies",
-            text: "Show only dependency signals.",
-          },
-        ],
-      },
-      {
-        heading: "Which signals appear?",
-        paragraphs: [
-          "Only signals that were unhealthy or had an unknown state at some point during the selected time range are shown.",
-          "Their full history is displayed, including periods when they were healthy.",
-          "For dependency signal rows, use the row link to identify and open the item that owns the signal.",
-        ],
-      },
-      {
-        heading: "Time range and refresh",
-        items: [
-          {
-            label: "Time axis",
-            text: "The horizontal axis represents time.",
-          },
-          {
-            label: "Time range",
-            text: "The time-range selector controls which period is displayed.",
-          },
-          {
-            label: "Navigation and zoom",
-            text: "Use these controls to inspect different periods in more detail.",
-          },
-          {
-            label: "Refresh",
-            text: "Refresh updates the displayed data. Auto-refresh can periodically update the chart.",
-          },
-        ],
-      },
-    ],
+      "Timeline shows the selected Item's [Overall] state, including dependency impact, and signals that were DOWN or UNKNOWN at some point in the selected range.",
+    demo: "timeline",
   },
 } satisfies Record<string, InfoHelpTopic>;

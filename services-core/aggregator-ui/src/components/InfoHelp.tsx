@@ -2,6 +2,7 @@ import { useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { InfoHelpTopic } from "../shared/infoHelpTopics";
 import ModalWindow from "./ModalWindow";
+import TimelineHelpDemo from "./TimelineHelpDemo";
 
 type InfoHelpProps = {
   topic: InfoHelpTopic;
@@ -78,6 +79,7 @@ export default function InfoHelp({ topic }: InfoHelpProps) {
           <div className="info-help-description modal-text-flow">
             <p>{topic.description}</p>
           </div>
+          {topic.demo === "timeline" && <TimelineHelpDemo />}
           {topic.sections && topic.sections.length > 0 && (
             <div className="info-help-sections">
               {topic.sections.map((section) => (

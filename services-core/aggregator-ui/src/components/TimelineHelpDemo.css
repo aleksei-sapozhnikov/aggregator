@@ -1,0 +1,420 @@
+.timeline-help {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 14px;
+  color: var(--text);
+  font-size: 13px;
+}
+
+.timeline-help button {
+  font: inherit;
+  cursor: pointer;
+}
+
+.timeline-help button:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
+}
+
+.timeline-help-scenarios {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.timeline-help-scenarios button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 7px 9px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--panel-alt);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+}
+
+.timeline-help-scenarios button[aria-pressed="true"] {
+  border-color: var(--link);
+  background: color-mix(in srgb, var(--link) 10%, var(--panel));
+}
+
+.timeline-help-step {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--muted-weak);
+  border-radius: 50%;
+}
+
+.timeline-help-description {
+  min-height: 36px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.timeline-help-preview {
+  min-width: 0;
+  padding: 13px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+}
+
+.timeline-help-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 13px;
+}
+
+.timeline-help-preview-header span,
+.timeline-help-caption,
+.timeline-help-hint,
+.timeline-help-navigation p {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.timeline-help-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 9px;
+  margin-bottom: 11px;
+  font-size: 11px;
+}
+
+.timeline-help-filters {
+  display: flex;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+}
+
+.timeline-help-filters button {
+  padding: 6px 9px;
+  border: 0;
+  border-left: 1px solid var(--border);
+  background: var(--panel-alt);
+  color: var(--text);
+  font-size: 11px;
+}
+
+.timeline-help-filters button:first-child {
+  border-left: 0;
+}
+
+.timeline-help-filters button[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--link) 14%, var(--panel));
+  box-shadow: inset 0 -2px var(--link);
+}
+
+.timeline-help-chart {
+  display: grid;
+  grid-template-columns: minmax(100px, 30%) minmax(0, 1fr);
+  gap: 8px;
+  min-width: 0;
+  font-size: 11px;
+}
+
+.timeline-help-labels,
+.timeline-help-tracks {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 5px;
+}
+
+.timeline-help-label,
+.timeline-help-track {
+  height: 24px;
+}
+
+.timeline-help-label {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.timeline-help-label:first-child {
+  font-weight: 700;
+}
+
+.timeline-help-label span {
+  display: block;
+  overflow: hidden;
+  min-width: 0;
+  max-width: 100%;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.timeline-help-track,
+.timeline-help-track-link {
+  display: flex;
+  overflow: hidden;
+  border-radius: 2px;
+}
+
+.timeline-help-track {
+  min-width: 0;
+}
+
+.timeline-help-track-link {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 1px solid transparent;
+  background: none;
+  cursor: pointer;
+}
+
+.timeline-help-track-link:hover,
+.timeline-help-track-link:focus-visible {
+  border-color: var(--link);
+}
+
+.timeline-help-state {
+  display: block;
+  height: 100%;
+  box-shadow: inset -1px 0 color-mix(in srgb, var(--panel) 55%, transparent);
+}
+
+.timeline-help-state.is-up,
+.timeline-help-legend i.is-up {
+  background: var(--status-up);
+}
+
+.timeline-help-state.is-down,
+.timeline-help-legend i.is-down {
+  background: var(--status-down);
+}
+
+.timeline-help-state.is-unknown,
+.timeline-help-legend i.is-unknown {
+  background: var(--status-unknown);
+}
+
+.timeline-help-crosshair {
+  position: absolute;
+  z-index: 1;
+  top: -2px;
+  bottom: -2px;
+  left: 70%;
+  border-left: 1px dashed var(--text);
+  pointer-events: none;
+}
+
+.timeline-help-cursor {
+  position: absolute;
+  z-index: 2;
+  width: 19px;
+  height: 24px;
+  pointer-events: none;
+  filter: drop-shadow(1px 1px 1px var(--bg));
+}
+
+.timeline-help-crosshair.is-animated {
+  animation: timeline-help-scan-line 5s ease-in-out infinite;
+}
+
+.timeline-help-tracks .timeline-help-cursor {
+  animation: timeline-help-scan-cursor 5s ease-in-out infinite;
+}
+
+.timeline-help-tracks:has(.timeline-help-track-link) .timeline-help-cursor {
+  animation: timeline-help-link-cursor 5s ease-in-out infinite;
+}
+
+@keyframes timeline-help-scan-line {
+  0%, 8% { left: 12%; opacity: 0; }
+  18% { opacity: 1; }
+  50%, 85% { left: 70%; opacity: 1; }
+  100% { left: 70%; opacity: 0; }
+}
+
+@keyframes timeline-help-scan-cursor {
+  0%, 8% { left: 12%; top: 7px; opacity: 0; }
+  18% { opacity: 1; }
+  50%, 85% { left: 70%; top: 43px; opacity: 1; }
+  100% { left: 70%; top: 43px; opacity: 0; }
+}
+
+@keyframes timeline-help-link-cursor {
+  0%, 8% { left: 18%; top: 4px; opacity: 0; }
+  18% { opacity: 1; }
+  52%, 84% { left: 70%; top: 68px; opacity: 1; }
+  100% { left: 70%; top: 68px; opacity: 0; }
+}
+
+.timeline-help-axis {
+  display: flex;
+  justify-content: space-between;
+  padding-left: calc(30% + 8px);
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.timeline-help-readout {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.timeline-help-readout > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 14px;
+}
+
+.timeline-help-readout > div > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  font-size: 11px;
+}
+
+.timeline-help-readout > div > div > span {
+  overflow-wrap: anywhere;
+}
+
+.timeline-help-readout b {
+  flex: none;
+  font-size: 10px;
+}
+
+.timeline-help-readout b.is-up {
+  color: var(--status-up);
+}
+
+.timeline-help-readout b.is-down {
+  color: var(--status-down);
+}
+
+.timeline-help-readout b.is-unknown {
+  color: var(--status-unknown);
+}
+
+.timeline-help-navigation {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+}
+
+.timeline-help-navigation p,
+.timeline-help-hint {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.timeline-help-hint {
+  margin-top: 12px;
+}
+
+.timeline-help-navigation button,
+.timeline-help-destination button {
+  padding: 6px 9px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--panel-alt);
+  color: var(--link);
+  font-size: 12px;
+}
+
+.timeline-help-destination {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 10px;
+  min-height: 190px;
+}
+
+.timeline-help-destination strong {
+  font-size: 18px;
+}
+
+.timeline-help-destination p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.timeline-help-legend {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.timeline-help-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.timeline-help-legend i {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+@media (max-width: 540px) {
+  .timeline-help-scenarios {
+    grid-template-columns: 1fr;
+  }
+
+  .timeline-help-scenarios button {
+    min-height: 34px;
+  }
+
+  .timeline-help-description {
+    min-height: 0;
+  }
+
+  .timeline-help-chart {
+    grid-template-columns: minmax(90px, 35%) minmax(0, 1fr);
+  }
+
+  .timeline-help-axis {
+    padding-left: calc(35% + 8px);
+  }
+
+  .timeline-help-readout > div {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .timeline-help-cursor {
+    display: none;
+  }
+
+  .timeline-help-crosshair.is-animated {
+    animation: none;
+  }
+}
