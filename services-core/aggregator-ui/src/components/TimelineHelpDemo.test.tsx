@@ -23,6 +23,40 @@ describe("Timeline help walkthrough", () => {
     expect(within(preview).getByLabelText("States at selected time")).not.toBeNull();
   });
 
+  it("uses the same playhead position for cursor, line and popup states", () => {
+    render(<TimelineHelpDemo />);
+    const preview = screen.getByLabelText("Example Timeline");
+    const assertAligned = () => {
+      const cursor = preview.querySelector(".timeline-help-tracks > .timeline-help-cursor") as SVGElement;
+      const crosshair = preview.querySelector(".timeline-help-tracks > .timeline-help-crosshair") as HTMLElement;
+      const popup = within(preview).getByLabelText("States at selected time");
+      expect(cursor.style.left).toBe(crosshair.style.left);
+      expect(cursor.style.left).toBe((popup as HTMLElement).style.left);
+      const x = Number.parseFloat(cursor.style.left);
+      const paymentState = (popup.querySelectorAll(".timeline-help-popup-row")[3] as HTMLElement)
+        .querySelector("strong")?.textContent;
+      const paymentSegment = preview.querySelectorAll(".timeline-help-track")[3]
+        .querySelectorAll(".timeline-help-state")[Math.floor(x / 20)];
+      expect(paymentSegment.classList.contains("is-" + paymentState?.toLowerCase())).toBe(true);
+      return { x, paymentState };
+    };
+
+    advance(1900);
+    const earlier = assertAligned();
+    expect(earlier.paymentState).toBe("DOWN");
+    advance(1000);
+    const later = assertAligned();
+    expect(later.x).toBeGreaterThan(earlier.x);
+    expect(later.paymentState).toBe("UP");
+    advance(3100);
+    expect(assertAligned().x).toBe(later.x);
+  });
+
+  it("omits the status legend from the demonstration", () => {
+    render(<TimelineHelpDemo />);
+    expect(screen.queryByLabelText("Timeline status colors")).toBeNull();
+  });
+
   it("opens the selector, filters to two Own and then three Dependencies", () => {
     render(<TimelineHelpDemo />);
     fireEvent.click(screen.getByRole("button", { name: "Switch signal groups" }));
@@ -52,7 +86,8 @@ describe("Timeline help walkthrough", () => {
     advance(2100);
     expect(within(preview).queryByLabelText("States at selected time")).toBeNull();
     expect(within(preview).getByLabelText("Dependency signal details")).not.toBeNull();
-    expect(within(preview).getByText("Item: Payment Gateway")).not.toBeNull();
+    const link = within(preview).getByText("Item: Payment Gateway");
+    expect(link.querySelector(".timeline-help-cursor")).not.toBeNull();
     advance(3800);
     const item = within(preview).getByLabelText("Opened Payment Gateway Item");
     expect(within(item).getByText("Payment Gateway")).not.toBeNull();
