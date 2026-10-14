@@ -217,9 +217,7 @@ export default function DetailsPanel({
               id: "own:signals",
               typeLabel: "Own",
               title: "",
-              signals: selectedFailingSignals.map(
-                (signal) => signal.title || signal.id,
-              ),
+              signals: selectedFailingSignals,
               status: selectedFailingSignals[0]?.status || "down",
             },
           ]
