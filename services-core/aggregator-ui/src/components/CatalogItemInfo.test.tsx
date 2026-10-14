@@ -127,18 +127,25 @@ describe("CatalogItemInfo description presentation", () => {
 
     expect(tooltip.textContent).toContain("Coordinates customer ordering.");
     expect(
-      tooltip.querySelector(".catalog-item-info-tooltip-action")?.textContent?.trim(),
+      tooltip
+        .querySelector(".catalog-item-info-tooltip-action")
+        ?.textContent?.trim(),
     ).toBe("Click for details");
 
     fireEvent.click(button);
     const dialog = screen.getByRole("dialog", {
       name: "Catalog information for Commerce Platform",
     });
-    expect(dialog.querySelector(".catalog-item-info-content p:first-child strong")?.textContent).toBe(
-      "Coordinates customer ordering.",
+    expect(
+      dialog.querySelector(".catalog-item-info-content p:first-child strong")
+        ?.textContent,
+    ).toBe("Coordinates customer ordering.");
+    expect(
+      dialog.querySelectorAll(".catalog-item-info-content strong"),
+    ).toHaveLength(1);
+    expect(dialog.textContent).toContain(
+      "The platform connects the commerce services.",
     );
-    expect(dialog.querySelectorAll(".catalog-item-info-content strong")).toHaveLength(1);
-    expect(dialog.textContent).toContain("The platform connects the commerce services.");
   });
 
   it("shows an action hint when only the full description is available", () => {
@@ -158,12 +165,18 @@ describe("CatalogItemInfo description presentation", () => {
     fireEvent.mouseEnter(button);
     const tooltip = screen.getByRole("tooltip");
     expect(tooltip.textContent).toBe("Click for details");
-    expect(tooltip.querySelector(".catalog-item-info-tooltip-action")).toBeNull();
+    expect(
+      tooltip.querySelector(".catalog-item-info-tooltip-action"),
+    ).toBeNull();
 
     fireEvent.click(button);
-    expect(screen.getByRole("dialog", { name: "Catalog information for Payments" }).textContent)
-      .toContain("Details about payments.");
-    expect(document.querySelector(".catalog-item-info-content strong")).toBeNull();
+    expect(
+      screen.getByRole("dialog", { name: "Catalog information for Payments" })
+        .textContent,
+    ).toContain("Details about payments.");
+    expect(
+      document.querySelector(".catalog-item-info-content strong"),
+    ).toBeNull();
   });
 
   it("does not suggest opening details when no description exists", () => {
