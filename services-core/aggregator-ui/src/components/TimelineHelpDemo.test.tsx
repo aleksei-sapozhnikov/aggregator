@@ -75,6 +75,20 @@ describe("Timeline help walkthrough", () => {
     expect(rowCount()).toBe(4);
     expect(preview.querySelectorAll(".timeline-help-track.is-highlighted")).toHaveLength(3);
     expect(within(preview).getByText("[Overall] Orders Service")).not.toBeNull();
+
+    advance(3000);
+    const menu = within(preview).getByLabelText("Available signal groups");
+    expect(menu.querySelector(".timeline-help-option.is-targeted")?.textContent).toContain("All");
+    expect(rowCount()).toBe(4);
+
+    advance(700);
+    expect(within(preview).queryByLabelText("Available signal groups")).toBeNull();
+    expect(rowCount()).toBe(6);
+    expect(preview.querySelectorAll(".timeline-help-track.is-highlighted")).toHaveLength(0);
+
+    advance(2700);
+    expect(rowCount()).toBe(6);
+    expect(within(preview).queryByLabelText("Available signal groups")).toBeNull();
   });
 
   it("replaces the hover popup with details then opens a miniature Item", () => {

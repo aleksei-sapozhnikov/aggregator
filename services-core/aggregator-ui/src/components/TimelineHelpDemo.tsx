@@ -52,15 +52,17 @@ const scenarios: { id: Scenario; title: string; description: string }[] = [
 
 const cycleDurations: Record<Scenario, number> = {
   inspect: 8500,
-  filter: 9500,
+  filter: 12000,
   navigate: 13000,
 };
 
 const getFilter = (time: number): SignalFilter =>
-  time >= 5400 ? "dependencies" : time >= 1800 ? "own" : "all";
+  time >= 9200 ? "all" : time >= 5400 ? "dependencies" : time >= 1800 ? "own" : "all";
 
 const isFilterMenuOpen = (time: number): boolean =>
-  (time >= 950 && time < 1800) || (time >= 4550 && time < 5400);
+  (time >= 950 && time < 1800) ||
+  (time >= 4550 && time < 5400) ||
+  (time >= 8350 && time < 9200);
 
 const lerp = (start: number, end: number, fraction: number) =>
   start + (end - start) * Math.max(0, Math.min(1, fraction));
@@ -294,7 +296,7 @@ export default function TimelineHelpDemo() {
   // The filter selector is above the bars, so its cursor uses preview coordinates.
   const cursorLeft = "172px";
   const cursorTop = menuOpen
-    ? (elapsed < 1800 ? "134px" : "172px")
+    ? (elapsed < 1800 ? "134px" : elapsed < 5400 ? "172px" : "96px")
     : "65px";
 
   return (
@@ -327,7 +329,7 @@ export default function TimelineHelpDemo() {
             <TimelineSignalSelect
               filter={filter}
               menuOpen={menuOpen}
-              target={menuOpen ? (elapsed < 1800 ? "own" : "dependencies") : null}
+              target={menuOpen ? (elapsed < 1800 ? "own" : elapsed < 5400 ? "dependencies" : "all") : null}
             />
             <div className="timeline-help-chart">
               <div className="timeline-help-labels">
