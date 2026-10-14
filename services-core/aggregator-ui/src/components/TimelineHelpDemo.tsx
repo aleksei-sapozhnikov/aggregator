@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./TimelineHelpDemo.css";
 
 type Scenario = "inspect" | "filter" | "navigate";
@@ -48,28 +48,98 @@ const scenarios: { id: Scenario; title: string; description: string }[] = [
     id: "inspect",
     title: "Inspect a moment",
     description:
-      "Move the pointer over the chart (or tap it) to see full signal names and their states at that moment.",
+      "Watch the cursor reveal the full names and health states for one moment.",
   },
   {
     id: "filter",
-    title: "Filter signals",
+    title: "Switch signal groups",
     description:
-      "Choose All, Own, or Dependencies. [Overall] stays at the top in every view.",
+      "Watch the signal selector switch between All, Own, and Dependencies. [Overall] remains visible.",
   },
   {
     id: "navigate",
     title: "Open a dependency",
     description:
-      "Select a dependency's bar, then follow the Item link to investigate that service.",
+      "The selected dependency segment has a popup containing an Item link. Watch it open the dependency.",
   },
 ];
 
-function getStateAt(row: TimelineRow, percent: number): HealthState {
-  const index = Math.min(
-    row.states.length - 1,
-    Math.floor(Math.max(0, Math.min(99.99, percent)) / 20),
+const filterCycle: SignalFilter[] = ["all", "own", "dependencies"];
+const shownStates: { label: string; state: HealthState }[] = [
+  { label: "[Overall] Orders Service", state: "DOWN" },
+  { label: "● HTTP availability check", state: "UP" },
+  { label: "↳ Payment Gateway · readiness check", state: "DOWN" },
+  { label: "↳ Inventory API · synchronization check", state: "UP" },
+];
+
+function TimelineStatusMarker({ state }: { state: HealthState }) {
+  return <span className={"timeline-help-popup-marker is-" + state.toLowerCase()} aria-hidden="true" />;
+}
+
+function TimelineHoverPopup() {
+  return (
+    <div className="timeline-help-popup timeline-help-popup-hover" aria-label="States at selected time">
+      <div className="timeline-help-popup-date">2026-10-14 23:59:45</div>
+      <div className="timeline-help-popup-rows">
+        {shownStates.map(({ label, state }) => (
+          <div key={label} className="timeline-help-popup-row">
+            <span className="timeline-help-popup-name">
+              <TimelineStatusMarker state={state} />
+              <span>{label}</span>
+            </span>
+            <strong>{state}</strong>
+          </div>
+        ))}
+      </div>
+    </div>
   );
-  return row.states[index];
+}
+
+function TimelineDependencyPopup() {
+  return (
+    <div className="timeline-help-popup timeline-help-popup-dependency" aria-label="Dependency signal details">
+      <div className="timeline-help-popup-date">
+        2026-10-14 23:57:45 – 2026-10-15 00:04:00
+      </div>
+      <div className="timeline-help-popup-row">
+        <span className="timeline-help-popup-name">
+          <TimelineStatusMarker state="UP" />
+          <span>↳ Payment Gateway · readiness check</span>
+        </span>
+        <strong>UP</strong>
+      </div>
+      <div className="timeline-help-popup-duration">
+        <span>Duration</span>
+        <strong>6m 15s</strong>
+      </div>
+      <div className="timeline-help-popup-link">
+        <span aria-hidden="true">↗</span>
+        Item: Payment Gateway
+      </div>
+    </div>
+  );
+}
+
+function TimelineSignalSelect({ filter }: { filter: SignalFilter }) {
+  return (
+    <div className="timeline-help-toolbar-demo" aria-label="Signal filter demonstration">
+      <span className="timeline-help-toolbar-caption">Signals</span>
+      <span className="timeline-help-selector">
+        <span className="timeline-help-selector-value">
+          {filter === "dependencies" ? "↳ " : "● "}{filter === "all" ? "↳ All" : filter === "own" ? "Own" : "Dependencies"}
+          <span aria-hidden="true">⌄</span>
+        </span>
+        <span className="timeline-help-options" aria-hidden="true">
+          {filterCycle.map((item) => (
+            <span key={item} className={"timeline-help-option" + (filter === item ? " is-selected" : "")}>
+              {item === "dependencies" ? "↳" : "●"} {item === "all" ? "↳ All" : item === "own" ? "Own" : "Dependencies"}
+            </span>
+          ))}
+        </span>
+        <ExampleCursor />
+      </span>
+    </div>
+  );
 }
 
 function ExampleCursor() {
@@ -94,31 +164,31 @@ function ExampleCursor() {
 export default function TimelineHelpDemo() {
   const [scenario, setScenario] = useState<Scenario>("inspect");
   const [filter, setFilter] = useState<SignalFilter>("all");
-  const [position, setPosition] = useState<number | null>(null);
-  const [selectedDependency, setSelectedDependency] = useState<TimelineRow | null>(
-    null,
-  );
-  const [openedItem, setOpenedItem] = useState<string | null>(null);
+  const [navigationStep, setNavigationStep] = useState(0);
+
+  useEffect(() => {
+    if (scenario !== "filter") return undefined;
+    const interval = window.setInterval(() => {
+      setFilter((previous) => filterCycle[(filterCycle.indexOf(previous) + 1) % filterCycle.length]);
+    }, 1800);
+    return () => window.clearInterval(interval);
+  }, [scenario]);
+
+  useEffect(() => {
+    if (scenario !== "navigate") return undefined;
+    const interval = window.setInterval(() => setNavigationStep((previous) => (previous + 1) % 3), 1800);
+    return () => window.clearInterval(interval);
+  }, [scenario]);
+
+  const openedItem = scenario === "navigate" && navigationStep === 2 ? "Payment Gateway" : null;
 
   const visibleRows = exampleRows.filter(
     (row) => row.kind === "overall" || filter === "all" || row.kind === filter,
   );
-  const inspectedPosition = position ?? 70;
-
   const changeScenario = (nextScenario: Scenario) => {
     setScenario(nextScenario);
     setFilter("all");
-    setPosition(null);
-    setSelectedDependency(null);
-    setOpenedItem(null);
-  };
-
-  const inspectPointer = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (scenario !== "inspect") return;
-    const rect = event.currentTarget.getBoundingClientRect();
-    if (rect.width <= 0) return;
-    const percent = ((event.clientX - rect.left) / rect.width) * 100;
-    setPosition(Math.max(0, Math.min(99.99, percent)));
+    setNavigationStep(0);
   };
 
   return (
@@ -152,41 +222,17 @@ export default function TimelineHelpDemo() {
             <span className="timeline-help-caption">Destination Item</span>
             <strong>{openedItem}</strong>
             <p>This is the Item associated with the selected dependency signal.</p>
-            <button type="button" onClick={() => setOpenedItem(null)}>
-              ← Back to Orders Service
-            </button>
+            <span className="timeline-help-simulated-back">← Back to Orders Service</span>
           </div>
         ) : (
           <>
-            <div className="timeline-help-toolbar">
-              <span>Signals</span>
-              <div role="group" aria-label="Signal filter" className="timeline-help-filters">
-                {([
-                  ["all", "All"],
-                  ["own", "Own"],
-                  ["dependencies", "Dependencies"],
-                ] as const).map(([value, label]) => (
-                  <button
-                    key={value}
-                    type="button"
-                    aria-pressed={filter === value}
-                    onClick={() => {
-                      setFilter(value);
-                      setSelectedDependency(null);
-                      setPosition(null);
-                    }}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <TimelineSignalSelect filter={filter} />
 
             <div className="timeline-help-chart">
               <div className="timeline-help-labels">
                 {visibleRows.map((row) => (
                   <div key={row.id} className="timeline-help-label">
-                    <span title={row.label}>
+                    <span>
                       {row.kind === "dependencies" ? "↳ " : ""}
                       {row.label}
                     </span>
@@ -194,51 +240,24 @@ export default function TimelineHelpDemo() {
                 ))}
               </div>
 
-              <div
-                className="timeline-help-tracks"
-                onPointerMove={inspectPointer}
-                onPointerDown={inspectPointer}
-                onPointerLeave={() => setPosition(null)}
-              >
+              <div className={"timeline-help-tracks scenario-" + scenario}>
                 {visibleRows.map((row) => (
                   <div key={row.id} className="timeline-help-track">
-                    {row.kind === "dependencies" && scenario === "navigate" ? (
-                      <button
-                        type="button"
-                        className="timeline-help-track-link"
-                        aria-label={`Inspect ${row.item} dependency signal`}
-                        onClick={() => setSelectedDependency(row)}
-                      >
-                        {row.states.map((state, index) => (
-                          <span
-                            key={index}
-                            className={`timeline-help-state is-${state.toLowerCase()}`}
-                            style={{ width: `${segmentWidths[index]}%` }}
-                          />
-                        ))}
-                      </button>
-                    ) : (
-                      row.states.map((state, index) => (
-                        <span
-                          key={index}
-                          className={`timeline-help-state is-${state.toLowerCase()}`}
-                          style={{ width: `${segmentWidths[index]}%` }}
-                        />
-                      ))
-                    )}
+                    {row.states.map((state, index) => (
+                      <span
+                        key={index}
+                        className={"timeline-help-state is-" + state.toLowerCase()}
+                        style={{ width: segmentWidths[index] + "%" }}
+                      />
+                    ))}
                   </div>
                 ))}
-                {scenario === "inspect" && (
+                {scenario !== "filter" && (
                   <>
-                    <span
-                      aria-hidden="true"
-                      className={`timeline-help-crosshair ${position === null ? "is-animated" : ""}`}
-                      style={position !== null ? { left: `${position}%` } : undefined}
-                    />
-                    {position === null && <ExampleCursor />}
+                    <span aria-hidden="true" className="timeline-help-crosshair is-animated" />
+                    <ExampleCursor />
                   </>
                 )}
-                {scenario === "navigate" && <ExampleCursor />}
               </div>
             </div>
 
@@ -249,53 +268,19 @@ export default function TimelineHelpDemo() {
               <span>14:00</span>
             </div>
 
-            {scenario === "inspect" && (
-              <div className="timeline-help-readout" aria-label="States at selected time">
-                <strong>At the selected moment</strong>
-                <div>
-                  {visibleRows.map((row) => {
-                    const state = getStateAt(row, inspectedPosition);
-                    return (
-                      <div key={row.id}>
-                        <span>{row.label}</span>
-                        <b className={`is-${state.toLowerCase()}`}>{state}</b>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
+            {scenario === "inspect" && <TimelineHoverPopup />}
+            {scenario === "navigate" && navigationStep !== 2 && (
+              <TimelineDependencyPopup />
             )}
-
-            {scenario === "navigate" && (
-              <div className="timeline-help-navigation">
-                {selectedDependency ? (
-                  <>
-                    <span>
-                      <strong>{selectedDependency.item}</strong>
-                      {" · "}
-                      {selectedDependency.label.split(" · ")[1]}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setOpenedItem(selectedDependency.item ?? null)}
-                    >
-                      Open {selectedDependency.item} ↗
-                    </button>
-                  </>
-                ) : (
-                  <p>Select the Payment Gateway or Inventory API bar to see its Item link.</p>
-                )}
-              </div>
-            )}
-
             {scenario === "filter" && (
               <p className="timeline-help-hint">
-                A signal appears only if it was DOWN or UNKNOWN at least once
-                during the selected period. Its healthy intervals remain visible.
+                Only signals that were DOWN or UNKNOWN during the period are listed.
+                Their UP intervals remain visible.
               </p>
             )}
           </>
         )}
+        <div className="timeline-help-interaction-shield" aria-hidden="true" />
       </section>
 
       <div className="timeline-help-legend" aria-label="Timeline status colors">

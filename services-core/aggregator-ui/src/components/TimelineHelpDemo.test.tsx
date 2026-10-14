@@ -1,49 +1,40 @@
 /**
  * @vitest-environment jsdom
  */
-
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import TimelineHelpDemo from "./TimelineHelpDemo";
 
-afterEach(cleanup);
+afterEach(() => { cleanup(); vi.useRealTimers(); });
 
-describe("Timeline help scenarios", () => {
-  it("shows full names and states for a selected moment", () => {
+describe("Timeline help walkthrough", () => {
+  it("shows a complete hover-style status popup", () => {
     render(<TimelineHelpDemo />);
-
-    const readout = screen.getByLabelText("States at selected time");
-    expect(within(readout).getByText("Payment Gateway · readiness check")).not.toBeNull();
-    expect(within(readout).getAllByText("DOWN").length).toBeGreaterThan(0);
+    const preview = screen.getByLabelText("Example Timeline");
+    expect(within(preview).getByLabelText("States at selected time")).not.toBeNull();
+    expect(within(preview).getByText("2026-10-14 23:59:45")).not.toBeNull();
+    expect(within(preview).getByText("↳ Payment Gateway · readiness check")).not.toBeNull();
   });
 
-  it("keeps Overall when switching from own to dependency signals", () => {
+  it("cycles the filter independently and retains Overall", () => {
+    vi.useFakeTimers();
     render(<TimelineHelpDemo />);
-    fireEvent.click(screen.getByRole("button", { name: "Filter signals" }));
-    const chart = screen.getByLabelText("Example Timeline");
-
-    fireEvent.click(screen.getByRole("button", { name: "Own" }));
-    expect(within(chart).getByText("[Overall]")).not.toBeNull();
-    expect(within(chart).getByText("● HTTP availability check")).not.toBeNull();
-    expect(within(chart).queryByText("Payment Gateway · readiness check")).toBeNull();
-
-    fireEvent.click(screen.getByRole("button", { name: "Dependencies" }));
-    expect(within(chart).getByText("[Overall]")).not.toBeNull();
-    expect(within(chart).getByText("Payment Gateway · readiness check")).not.toBeNull();
-    expect(within(chart).queryByText("● HTTP availability check")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Switch signal groups" }));
+    expect(screen.getByLabelText("Signal filter demonstration")).not.toBeNull();
+    expect(screen.getAllByText("[Overall]").length).toBeGreaterThan(0);
+    act(() => { vi.advanceTimersByTime(1800); });
+    expect(screen.getAllByText("[Overall]").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Own").length).toBeGreaterThan(0);
   });
 
-  it("shows a simulated Item link for a dependency bar without leaving the dialog", () => {
+  it("shows a dependency link and simulates opening its Item", () => {
+    vi.useFakeTimers();
     render(<TimelineHelpDemo />);
     fireEvent.click(screen.getByRole("button", { name: "Open a dependency" }));
-    fireEvent.click(
-      screen.getByRole("button", { name: "Inspect Payment Gateway dependency signal" }),
-    );
-    fireEvent.click(screen.getByRole("button", { name: "Open Payment Gateway ↗" }));
+    expect(screen.getByLabelText("Dependency signal details")).not.toBeNull();
+    expect(screen.getByText("Item: Payment Gateway")).not.toBeNull();
+    act(() => { vi.advanceTimersByTime(3600); });
     expect(screen.getByText("Destination Item")).not.toBeNull();
     expect(screen.getByText("Payment Gateway")).not.toBeNull();
-
-    fireEvent.click(screen.getByRole("button", { name: /Back to Orders Service/ }));
-    expect(screen.getByText("[Overall]")).not.toBeNull();
   });
 });
