@@ -810,7 +810,6 @@ export default function App() {
     () => selectedSignals.filter((signal) => signal.status === "up"),
     [selectedSignals],
   );
-  const hasOwnHealthSignals = selectedSignals.length > 0;
   const contactsById = useMemo(
     () => new Map(catalog.contacts.map((contact) => [contact.id, contact])),
     [catalog.contacts],
@@ -1673,7 +1672,6 @@ export default function App() {
         onOpenActor={(actor) => setOpenedActorId(actor.id)}
         passingSignalsCount={passingSignalsCount}
         selectedPassingSignals={selectedPassingSignals}
-        hasOwnHealthSignals={hasOwnHealthSignals}
         onOpenContact={(contact) => setOpenedContact(contact)}
         isGrafanaOpen={isGrafanaOpen}
         onToggleGrafana={() => setIsGrafanaOpen((prev) => !prev)}
