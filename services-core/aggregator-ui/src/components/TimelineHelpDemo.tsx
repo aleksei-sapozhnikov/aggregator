@@ -69,17 +69,26 @@ function TimelineStatusMarker({ state }: { state: HealthState }) {
   return <span className={"timeline-help-popup-marker is-" + state.toLowerCase()} aria-hidden="true" />;
 }
 
+const timelineStart = Date.UTC(2026, 9, 14, 23, 50, 0);
+function timestampAt(position: number): string {
+  const date = new Date(timelineStart + Math.round(position * 9000));
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return date.getUTCFullYear() + "-" + pad(date.getUTCMonth() + 1) + "-" +
+    pad(date.getUTCDate()) + " " + pad(date.getUTCHours()) + ":" +
+    pad(date.getUTCMinutes()) + ":" + pad(date.getUTCSeconds());
+}
+
 function TimelineHoverPopup({ x }: { x: number }) {
   return (
     <div
       className="timeline-help-popup timeline-help-popup-hover"
-      style={{ left: String(12 + x * 0.26) + "%" }}
+      style={{ left: x + "%" }}
       aria-label="States at selected time"
     >
-      <div className="timeline-help-popup-date">2026-10-14 23:59:45</div>
+      <div className="timeline-help-popup-date">{timestampAt(x)}</div>
       <div className="timeline-help-popup-rows">
         {exampleRows.map((row) => {
-          const state = row.states[Math.min(4, Math.floor(x / 20))];
+          const state = row.states[Math.min(row.states.length - 1, Math.floor(x / 20))];
           return (
             <div key={row.id} className="timeline-help-popup-row">
               <span className="timeline-help-popup-name">
@@ -95,26 +104,43 @@ function TimelineHoverPopup({ x }: { x: number }) {
   );
 }
 
-function TimelineDependencyPopup() {
+function TimelineDependencyPopup({
+  x,
+  elapsed,
+  linkPressed,
+}: {
+  x: number;
+  elapsed: number;
+  linkPressed: boolean;
+}) {
   return (
-    <div className="timeline-help-popup timeline-help-popup-dependency" aria-label="Dependency signal details">
+    <div
+      className="timeline-help-popup timeline-help-popup-dependency"
+      style={{ left: x + "%" }}
+      aria-label="Dependency signal details"
+    >
       <div className="timeline-help-popup-date">
-        2026-10-14 23:57:45 – 2026-10-15 00:04:00
+        2026-10-14 23:56:00 – 2026-10-14 23:59:00
       </div>
       <div className="timeline-help-popup-row">
         <span className="timeline-help-popup-name">
-          <TimelineStatusMarker state="UP" />
+          <TimelineStatusMarker state="DOWN" />
           <span>↳ Payment Gateway · readiness check</span>
         </span>
-        <strong>UP</strong>
+        <strong>DOWN</strong>
       </div>
       <div className="timeline-help-popup-duration">
         <span>Duration</span>
-        <strong>6m 15s</strong>
+        <strong>3m</strong>
       </div>
-      <div className="timeline-help-popup-link">
+      <div className={"timeline-help-popup-link" + (linkPressed ? " is-selected" : "")}>
         <span aria-hidden="true">↗</span>
         Item: Payment Gateway
+        <ExampleCursor
+          left="78px"
+          top={elapsed >= 5100 ? "8px" : "-92px"}
+          pressed={linkPressed}
+        />
       </div>
     </div>
   );
@@ -255,24 +281,21 @@ export default function TimelineHelpDemo() {
     (row) => row.kind === "overall" || filter === "all" || row.kind === filter,
   );
 
-  // All cursor, popup, selection and highlight changes share this clock.
-  // The inspect cursor holds its final position with the popup for over three seconds.
-  const x = lerp(22, 58, (elapsed - 700) / 1950);
-  const inspectPopup = scenario === "inspect" && elapsed >= 1300 && elapsed < 8100;
+  // The playhead is a percentage of the actual bars, shared by the line,
+  // cursor, hover popup and state lookup. No independent CSS animation drives it.
+  const endX = scenario === "navigate" ? 48 : 68;
+  const x = lerp(20, endX, (elapsed - 600) / 2200);
+  const inspectPopup = scenario === "inspect" && elapsed >= 1100 && elapsed < 8150;
   const navigateHover = scenario === "navigate" && elapsed >= 1100 && elapsed < 3400;
   const navigateDetails = scenario === "navigate" && elapsed >= 3400 && elapsed < 7300;
   const openedItem = scenario === "navigate" && elapsed >= 7300;
   const linkPressed = scenario === "navigate" && elapsed >= 6400 && elapsed < 7300;
 
-  let cursorLeft = String(30 + x * 0.56) + "%";
-  let cursorTop = "185px";
-  if (scenario === "filter") {
-    cursorLeft = "172px";
-    cursorTop = menuOpen ? (elapsed < 1800 ? "134px" : "172px") : "65px";
-  } else if (scenario === "navigate") {
-    cursorLeft = elapsed >= 5000 ? "52%" : String(30 + x * 0.56) + "%";
-    cursorTop = elapsed >= 5000 ? "289px" : "207px";
-  }
+  // The filter selector is above the bars, so its cursor uses preview coordinates.
+  const cursorLeft = "172px";
+  const cursorTop = menuOpen
+    ? (elapsed < 1800 ? "134px" : "172px")
+    : "65px";
 
   return (
     <div className="timeline-help">
@@ -299,7 +322,7 @@ export default function TimelineHelpDemo() {
           <>
             <header className="timeline-help-preview-header">
               <strong>Orders Service</strong>
-              <span>Example data · Last 6 hours</span>
+              <span>Example data · Last 15 minutes</span>
             </header>
             <TimelineSignalSelect
               filter={filter}
@@ -332,30 +355,34 @@ export default function TimelineHelpDemo() {
                     ))}
                   </div>
                 ))}
+                {scenario !== "filter" && (
+                  <>
+                    <span
+                      aria-hidden="true"
+                      className="timeline-help-crosshair"
+                      style={{ left: x + "%" }}
+                    />
+                    {(inspectPopup || navigateHover) && <TimelineHoverPopup x={x} />}
+                    {navigateDetails && (
+                      <TimelineDependencyPopup x={x} elapsed={elapsed} linkPressed={linkPressed} />
+                    )}
+                    {!navigateDetails && (
+                      <ExampleCursor left={x + "%"} top="105px" />
+                    )}
+                  </>
+                )}
               </div>
             </div>
             <div className="timeline-help-axis" aria-hidden="true">
-              <span>08:00</span><span>10:00</span><span>12:00</span><span>14:00</span>
+              <span>23:50</span><span>23:55</span><span>00:00</span><span>00:05</span>
             </div>
-            {(inspectPopup || navigateHover) && <TimelineHoverPopup x={x} />}
-            {navigateDetails && <TimelineDependencyPopup />}
-            {scenario !== "filter" && (
-              <span
-                aria-hidden="true"
-                className="timeline-help-crosshair"
-                style={{ left: String(30 + x * 0.56) + "%" }}
-              />
+            {scenario === "filter" && (
+              <ExampleCursor left={cursorLeft} top={cursorTop} />
             )}
-            <ExampleCursor left={cursorLeft} top={cursorTop} pressed={linkPressed} />
           </>
         )}
         <div className="timeline-help-interaction-shield" aria-hidden="true" />
       </section>
-      <div className="timeline-help-legend" aria-label="Timeline status colors">
-        <span><i className="is-up" /> UP</span>
-        <span><i className="is-down" /> DOWN</span>
-        <span><i className="is-unknown" /> UNKNOWN</span>
-      </div>
     </div>
   );
 }

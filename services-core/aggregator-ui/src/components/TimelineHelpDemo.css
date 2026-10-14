@@ -747,3 +747,81 @@
   .timeline-help-crosshair, .timeline-help-popup-hover { transition: none; }
   .timeline-help-label.is-highlighted, .timeline-help-track.is-highlighted { animation: none; }
 }
+
+/* Keep all animated coordinates in the chart's bar coordinate system. */
+.timeline-help-preview {
+  height: 316px;
+  min-height: 316px;
+}
+.timeline-help-tracks {
+  overflow: visible;
+}
+.timeline-help-tracks > .timeline-help-crosshair {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  height: auto;
+  z-index: 11;
+  transition: none;
+}
+.timeline-help-tracks > .timeline-help-cursor {
+  position: absolute;
+  z-index: 23;
+  opacity: 1;
+  animation: none;
+  transition: none;
+}
+.timeline-help-tracks > .timeline-help-popup {
+  position: absolute;
+  top: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  transition: none;
+  animation: none;
+  z-index: 20;
+}
+.timeline-help-tracks > .timeline-help-popup-hover {
+  width: min(340px, 75vw);
+}
+.timeline-help-tracks > .timeline-help-popup-dependency {
+  width: min(310px, 70vw);
+  top: 18px;
+}
+.timeline-help-popup-link {
+  position: relative;
+  animation: none;
+}
+.timeline-help-popup-link.is-selected {
+  background: color-mix(in srgb, var(--link) 17%, var(--panel));
+}
+.timeline-help-popup-link > .timeline-help-cursor {
+  position: absolute;
+  z-index: 24;
+  width: 19px;
+  height: 24px;
+  animation: none;
+  opacity: 1;
+  transition: top 550ms ease-in-out;
+  pointer-events: none;
+}
+@media (max-width: 540px) {
+  .timeline-help-preview {
+    height: 334px;
+    min-height: 334px;
+  }
+  .timeline-help-tracks > .timeline-help-popup-hover {
+    width: min(220px, 66vw);
+  }
+  .timeline-help-tracks > .timeline-help-popup-dependency {
+    width: min(240px, 70vw);
+  }
+  .timeline-help-tracks > .timeline-help-popup {
+    left: inherit;
+    transform: translateX(-50%);
+  }
+  .timeline-help-popup-row { padding: 3px 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .timeline-help-tracks > .timeline-help-cursor,
+  .timeline-help-popup-link > .timeline-help-cursor { display: none; }
+}
