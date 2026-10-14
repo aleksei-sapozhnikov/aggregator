@@ -629,3 +629,121 @@
   .timeline-help-popup { opacity: 1; }
   .timeline-help-selector .timeline-help-cursor { display: none; }
 }
+
+
+/* Timeline guide: all visible actions follow the same React clock. */
+.timeline-help-preview {
+  height: 430px;
+  min-height: 430px;
+  overflow: hidden;
+}
+.timeline-help-preview-header { margin-bottom: 10px; }
+.timeline-help-toolbar-demo { z-index: 16; }
+.timeline-help-selector { min-width: 130px; }
+.timeline-help-selector-value.is-open {
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--link) 65%, transparent);
+}
+.timeline-help-options {
+  display: block;
+  opacity: 1;
+  z-index: 19;
+}
+.timeline-help-option.is-targeted {
+  background: color-mix(in srgb, var(--text) 11%, var(--panel-alt));
+}
+.timeline-help-labels, .timeline-help-tracks { gap: 7px; }
+.timeline-help-label, .timeline-help-track { height: 26px; flex: 0 0 26px; }
+.timeline-help-label.is-highlighted,
+.timeline-help-track.is-highlighted {
+  animation: timeline-help-highlight 1.4s ease-out;
+}
+.timeline-help-track.is-highlighted { outline: 2px solid var(--status-unknown); outline-offset: 2px; }
+@keyframes timeline-help-highlight {
+  0%,100% { background: transparent; }
+  35%,70% { background: color-mix(in srgb, var(--status-unknown) 22%, transparent); }
+}
+.timeline-help-popup-hover {
+  top: 141px;
+  width: min(440px, 73%);
+  animation: none;
+  transition: left 100ms linear;
+}
+.timeline-help-popup-dependency {
+  top: 147px;
+  left: 31%;
+  width: min(332px, 65%);
+  animation: none;
+}
+.timeline-help-popup-name span:last-child {
+  white-space: normal;
+  line-height: 1.25;
+}
+.timeline-help-crosshair {
+  position: absolute;
+  z-index: 11;
+  top: 112px;
+  height: 188px;
+  opacity: 0.55;
+  transition: left 100ms linear;
+}
+.timeline-help-preview > .timeline-help-cursor {
+  position: absolute;
+  z-index: 24;
+  width: 19px;
+  height: 24px;
+  opacity: 1;
+  pointer-events: none;
+  animation: none;
+  transition: top 480ms ease-in-out, left 350ms ease-in-out;
+}
+.timeline-help-preview > .timeline-help-cursor.is-pressed { transform: scale(0.85); }
+.timeline-help-item-preview { min-height: 100%; padding: 2px 4px; }
+.timeline-help-item-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 3px 0 29px;
+  font-size: 17px;
+}
+.timeline-help-item-heading strong { font-weight: 600; }
+.timeline-help-item-check { color: var(--status-up); font-size: 20px; line-height: 1; }
+.timeline-help-item-info { color: var(--link); font-size: 16px; }
+.timeline-help-item-primary {
+  border-left: 3px solid var(--link);
+  padding: 9px 0 15px 29px;
+  margin: 0 0 18px;
+}
+.timeline-help-item-primary h3 { margin: 0 0 13px; font-size: 14px; }
+.timeline-help-item-primary h3 span { margin-left: 7px; color: var(--muted); }
+.timeline-help-item-primary div { display: flex; gap: 10px; color: var(--link); font-size: 13px; }
+.timeline-help-item-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 5px;
+  font-size: 14px;
+}
+.timeline-help-item-question {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--muted-weak);
+  border-radius: 50%;
+  color: var(--muted);
+  font-size: 10px;
+}
+.timeline-help-interaction-shield { z-index: 26; }
+@media (max-width: 540px) {
+  .timeline-help-preview { height: 465px; min-height: 465px; }
+  .timeline-help-popup-hover, .timeline-help-popup-dependency {
+    width: 88%;
+    left: 6% !important;
+    top: 145px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .timeline-help-preview > .timeline-help-cursor { display: none; }
+  .timeline-help-crosshair, .timeline-help-popup-hover { transition: none; }
+  .timeline-help-label.is-highlighted, .timeline-help-track.is-highlighted { animation: none; }
+}
