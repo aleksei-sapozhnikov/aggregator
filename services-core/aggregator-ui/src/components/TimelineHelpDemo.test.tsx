@@ -82,6 +82,19 @@ describe("Timeline help walkthrough", () => {
     expect(item.querySelector(".timeline-help-chart")).toBeNull();
   });
 
+  it("renders a white cursor with a dark outline in both themes", () => {
+    document.body.dataset.theme = "dark";
+    try {
+      render(<TimelineHelpDemo />);
+      const cursor = screen.getByLabelText("Example Timeline")
+        .querySelector(".timeline-help-cursor path");
+      expect(cursor?.getAttribute("fill")).toBe("#ffffff");
+      expect(cursor?.getAttribute("stroke")).toBe("#151515");
+    } finally {
+      delete document.body.dataset.theme;
+    }
+  });
+
   it("omits the status legend from the demonstration", () => {
     render(<TimelineHelpDemo />);
     expect(screen.queryByLabelText("Timeline status colors")).toBeNull();

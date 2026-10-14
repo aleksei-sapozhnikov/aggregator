@@ -210,8 +210,8 @@ function ExampleCursor({
     >
       <path
         d="M2 2v21l5.7-5.3 3.5 8 4-1.9-3.8-7.9H20L2 2Z"
-        fill="var(--panel)"
-        stroke="var(--text)"
+        fill="#ffffff"
+        stroke="#151515"
         strokeWidth="1.8"
         strokeLinejoin="round"
       />
