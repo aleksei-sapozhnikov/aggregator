@@ -179,6 +179,11 @@ describe("Signal flow help demonstrations", () => {
     const groups = Array.from(
       diagram.querySelectorAll(".signal-flow-help-moving-dependency"),
     );
+    const item = diagram.querySelector('[data-unhealthy-source="item"]') as Element;
+    const itemFrame = item.querySelector('[data-unhealthy-frame="item"]') as Element;
+    const itemBox = item.querySelector('[data-moving-item-box="true"]') as Element;
+    const itemTitle = item.querySelector('[data-moving-item-title="true"]') as Element;
+    const itemStatus = item.querySelector('[data-moving-item-status="true"]') as Element;
     const parent = diagram.querySelector('[data-unhealthy-source="dep1"]') as Element;
     const nested = diagram.querySelector('[data-unhealthy-source="nested1"]') as Element;
     const parentFrame = parent.querySelector('[data-unhealthy-frame="dep1"]') as Element;
@@ -186,7 +191,8 @@ describe("Signal flow help demonstrations", () => {
     const parentBox = parent.querySelector(".signal-flow-help-node-frame") as Element;
     const nestedBox = nested.querySelector(".signal-flow-help-node-frame") as Element;
 
-    expect(groups).toHaveLength(2);
+    expect(groups).toHaveLength(3);
+    expect(item.textContent).toContain("client-service");
     expect(parent.textContent).toContain("client-ux");
     expect(nested.textContent).toContain("frontend-enabler");
     expect(diagram.querySelectorAll("[data-flow-node]")).toHaveLength(6);
@@ -194,16 +200,25 @@ describe("Signal flow help demonstrations", () => {
     expect(graph.style.opacity).toBe("1");
     expect(parentBox.getAttribute("x")).toBe("115");
     expect(nestedBox.getAttribute("x")).toBe("19");
+    expect(itemBox.getAttribute("x")).toBe("244");
+    expect(itemTitle.getAttribute("x")).toBe("274");
+    expect(item.getAttribute("data-health")).toBe("healthy");
 
     advance(9400);
     expect(parent.getAttribute("data-health")).toBe("unhealthy");
     expect(nested.getAttribute("data-health")).toBe("unhealthy");
+    expect(item.getAttribute("data-health")).toBe("unhealthy");
+    expect(itemFrame.getAttribute("opacity")).toBe("1");
     expect(parentFrame.getAttribute("opacity")).toBe("1");
     expect(nestedFrame.getAttribute("opacity")).toBe("1");
     expect(page.style.opacity).toBe("0");
     expect(diagram.querySelectorAll(".signal-flow-help-moving-dependency .signal-flow-help-page-link")).toHaveLength(2);
 
     advance(1800);
+    expect(Number(itemBox.getAttribute("width"))).toBeGreaterThan(152);
+    expect(Number(itemBox.getAttribute("width"))).toBeLessThan(389);
+    expect(Number(itemTitle.getAttribute("x"))).toBeLessThan(274);
+    expect(itemFrame.getAttribute("opacity")).toBe("1");
     expect(Number(parentBox.getAttribute("width"))).toBeGreaterThan(154);
     expect(Number(parentBox.getAttribute("width"))).toBeLessThan(388);
     expect(Number(page.style.opacity)).toBeGreaterThan(0);
@@ -220,6 +235,12 @@ describe("Signal flow help demonstrations", () => {
     expect(surface.getAttribute("x")).toBe("0");
     expect(surface.getAttribute("width")).toBe("640");
     expect(surface.getAttribute("stroke")).toBe("none");
+    expect(itemBox.getAttribute("x")).toBe("113");
+    expect(itemBox.getAttribute("width")).toBe("389");
+    expect(itemTitle.getAttribute("x")).toBe("150");
+    expect(itemTitle.getAttribute("y")).toBe("51");
+    expect(itemStatus.getAttribute("opacity")).toBe("1");
+    expect(page.querySelector(".signal-flow-help-page-title")).toBeNull();
     expect(parentBox.getAttribute("x")).toBe("126");
     expect(parentBox.getAttribute("width")).toBe("388");
     expect(nestedBox.getAttribute("x")).toBe("126");
@@ -232,10 +253,15 @@ describe("Signal flow help demonstrations", () => {
     expect(diagram.querySelectorAll(".signal-flow-help-moving-dependency .signal-flow-help-page-link")).toHaveLength(2);
 
     advance(600);
+    expect(itemFrame.getAttribute("opacity")).toBe("0");
+    expect(itemBox.getAttribute("opacity")).toBe("0");
+    expect(itemTitle.textContent).toBe("client-service");
+    expect(itemStatus.getAttribute("opacity")).toBe("1");
     expect(parentFrame.getAttribute("opacity")).toBe("0");
     expect(nestedFrame.getAttribute("opacity")).toBe("0");
     expect(parentBox.getAttribute("opacity")).toBe("0");
     advance(1400);
+    expect(itemFrame.getAttribute("opacity")).toBe("1");
     expect(parentFrame.getAttribute("opacity")).toBe("1");
     expect(nestedFrame.getAttribute("opacity")).toBe("1");
     advance(1200);
@@ -247,14 +273,19 @@ describe("Signal flow help demonstrations", () => {
     advance(2400);
     expect(page.style.opacity).toBe("0");
     expect(graph.style.opacity).toBe("1");
+    expect(itemBox.getAttribute("x")).toBe("244");
+    expect(itemBox.getAttribute("width")).toBe("152");
+    expect(itemTitle.getAttribute("x")).toBe("274");
     expect(parentBox.getAttribute("x")).toBe("115");
     expect(parentBox.getAttribute("width")).toBe("154");
     expect(nestedBox.getAttribute("x")).toBe("19");
     expect(groups.every((group) => group.isConnected)).toBe(true);
 
     advance(1800);
+    expect(itemFrame.getAttribute("opacity")).toBe("0");
     expect(parentFrame.getAttribute("opacity")).toBe("0");
     expect(nestedFrame.getAttribute("opacity")).toBe("0");
+    expect(item.getAttribute("data-health")).toBe("healthy");
     expect(parent.getAttribute("data-health")).toBe("healthy");
     expect(nested.getAttribute("data-health")).toBe("healthy");
   });
@@ -277,8 +308,12 @@ describe("Signal flow help demonstrations", () => {
         expect(frame.getAttribute("width")).toBe("570");
       } else {
         const frame = diagram.querySelector('[data-unhealthy-source="dep1"] .signal-flow-help-node-frame') as Element;
+        const itemBox = diagram.querySelector('[data-moving-item-box="true"]') as Element;
+        const itemTitle = diagram.querySelector('[data-moving-item-title="true"]') as Element;
         expect(frame.getAttribute("x")).toBe("33");
         expect(frame.getAttribute("width")).toBe("575");
+        expect(itemBox.getAttribute("x")).toBe("21");
+        expect(itemTitle.getAttribute("x")).toBe("60");
       }
     },
   );
