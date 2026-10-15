@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import type { CSSProperties } from "react";
 import HelpAnimationProgress from "./HelpAnimationProgress";
 import "./ActorsHelpDemo.css";
 
@@ -42,11 +41,11 @@ type Actor = {
 };
 
 const actors: Actor[] = [
-  { id: "owner", start: [102, 165], destination: [98, 206],
+  { id: "owner", start: [102, 165], destination: [360, 206],
     name: "Order Platform Team", role: "Owner", color: "#4384c5" },
-  { id: "user", start: [539, 137], destination: [98, 240],
+  { id: "user", start: [539, 137], destination: [352, 240],
     name: "Fulfillment Operators", role: "User", color: "#50b28b" },
-  { id: "other", start: [537, 257], destination: [98, 274],
+  { id: "other", start: [537, 257], destination: [338, 274],
     name: "Customer Support", role: "Other", color: "#a38cdb" },
 ];
 
@@ -96,13 +95,15 @@ function ActorCharacter({ actor }: { actor: Actor }) {
           </g>
           <path d="M74 83 89 108" fill="none" stroke={actor.color}
             strokeWidth="15" strokeLinecap="round" />
-          <rect x="13" y="98" width="64" height="37" rx="4"
-            fill="#304d67" stroke="#243442" strokeWidth="3" />
-          <path d="M8 136h74" stroke="#243442" strokeWidth="5" strokeLinecap="round" />
-          <circle cx="46" cy="114" r="5" fill="#8bacc8" />
-          <g className="actors-help-typing">
-            <path d="M21 125 29 121M34 126 42 122"
-              stroke="#f6c29b" strokeWidth="5" strokeLinecap="round" />
+          <g className="actors-help-laptop">
+            <rect x="13" y="98" width="64" height="37" rx="4"
+              fill="#304d67" stroke="#243442" strokeWidth="3" />
+            <path d="M8 136h74" stroke="#243442" strokeWidth="5" strokeLinecap="round" />
+            <circle cx="46" cy="114" r="5" fill="#8bacc8" />
+            <g className="actors-help-typing">
+              <path d="M21 125 29 121M34 126 42 122"
+                stroke="#f6c29b" strokeWidth="6" strokeLinecap="round" />
+            </g>
           </g>
         </>
       )}
@@ -110,11 +111,13 @@ function ActorCharacter({ actor }: { actor: Actor }) {
         <>
           <path d="M20 82 11 108 26 115M79 82 89 109 74 115"
             fill="none" stroke={actor.color} strokeWidth="14" strokeLinecap="round" />
-          <rect x="26" y="92" width="49" height="49" rx="7"
-            fill="#35556a" stroke="#253a4a" strokeWidth="2.5" />
-          <rect x="31" y="97" width="39" height="37" rx="4" fill="#f4f8fb" />
-          <path d="m41 115 7 7 15-17" fill="none"
-            stroke="#52b88d" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+          <g className="actors-help-tablet">
+            <rect x="26" y="92" width="49" height="49" rx="7"
+              fill="#35556a" stroke="#253a4a" strokeWidth="2.5" />
+            <rect x="31" y="97" width="39" height="37" rx="4" fill="#f4f8fb" />
+            <path d="m41 115 7 7 15-17" fill="none"
+              stroke="#52b88d" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+          </g>
           <g className="actors-help-moving-arm">
             <path d="M75 92 65 112" stroke="#f6c29b" strokeWidth="7" strokeLinecap="round" />
           </g>
@@ -242,7 +245,6 @@ function ItemPreview({ opacity }: { opacity: number }) {
 }
 
 export default function ActorsHelpDemo() {
-  const [run, setRun] = useState(0);
   const [elapsed, setElapsed] = useState(0);
   const [reduceMotion] = useState(() =>
     typeof window !== "undefined" &&
@@ -254,30 +256,24 @@ export default function ActorsHelpDemo() {
       setElapsed(previewTime);
       return undefined;
     }
-    setElapsed(0);
-    const start = performance.now();
+    // A discrete interval lands exactly on zero, so the progress bar resets
+    // without animating backwards at the cycle boundary.
     const timer = window.setInterval(() => {
-      const next = Math.min(actorsHelpDuration, performance.now() - start);
-      setElapsed(next);
-      if (next >= actorsHelpDuration) window.clearInterval(timer);
+      setElapsed((current) => (current + 50) % actorsHelpDuration);
     }, 50);
     return () => window.clearInterval(timer);
-  }, [run, reduceMotion]);
+  }, [reduceMotion]);
 
   const frame = getActorsHelpFrame(elapsed);
-  const finished = !reduceMotion && elapsed >= actorsHelpDuration;
-  const illustrating = !reduceMotion && !finished &&
-    (elapsed < 1800 || elapsed >= 10450);
+  const illustrating = !reduceMotion && (elapsed < 1800 || elapsed >= 10450);
   const moving = frame.travel;
-  const figureStyle = { "--actors-help-progress": String(elapsed / actorsHelpDuration) } as CSSProperties;
 
   return (
     <figure
       className={"actors-help-demo" +
-        (finished || reduceMotion ? " is-still" : "") +
+        (reduceMotion ? " is-still" : "") +
         (illustrating ? " is-illustrating" : "")}
       aria-label="Actors become Item ownership and relationship entries"
-      style={figureStyle}
     >
       <HelpAnimationProgress progress={elapsed / actorsHelpDuration} />
       <svg viewBox="0 0 640 326" className="actors-help-diagram"
@@ -287,9 +283,9 @@ export default function ActorsHelpDemo() {
         {!reduceMotion && (
           <g data-service="item" opacity={frame.machineOpacity}
             transform={"translate(" +
-              lerp(314, 65, moving) + " " +
+              lerp(314, 340, moving) + " " +
               lerp(169, 40, moving) + ") scale(" +
-              lerp(0.84, 0.10, moving) + ") translate(-94 -110)"}
+              lerp(0.84, 0.085, moving) + ") translate(-94 -110)"}
           >
             <Machine />
           </g>
@@ -308,14 +304,6 @@ export default function ActorsHelpDemo() {
           );
         })}
       </svg>
-      <figcaption className="actors-help-footer">
-        <span>People and teams become Actors in the Item view.</span>
-        {!reduceMotion && (
-          <button type="button" onClick={() => setRun((value) => value + 1)}>
-            Replay
-          </button>
-        )}
-      </figcaption>
     </figure>
   );
 }

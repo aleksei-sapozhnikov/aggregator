@@ -85,37 +85,6 @@
   fill: #1f1f1f;
 }
 
-.actors-help-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 1.4;
-}
-
-.actors-help-footer button {
-  flex: none;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 6px 12px;
-  background: var(--panel-alt);
-  color: var(--text);
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.actors-help-footer button:hover {
-  background: var(--panel-hover);
-}
-
-.actors-help-footer button:focus-visible {
-  outline: 2px solid var(--link);
-  outline-offset: 2px;
-}
-
 .actors-help-machine,
 .actors-help-person {
   stroke-linecap: round;
@@ -130,11 +99,24 @@
   animation: actors-help-blink 1s ease-in-out infinite;
 }
 
-/* Use local fill boxes so tools rotate around their hands, not the SVG canvas. */
+/* Exaggerate gestures so each tool stays animated at small modal sizes.
+   Local fill boxes keep the pivot on the tool, not the full SVG canvas. */
+.actors-help-demo.is-illustrating .actors-help-person-owner .actors-help-laptop {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: actors-help-laptop-tilt 1.2s ease-in-out infinite alternate;
+}
+
 .actors-help-demo.is-illustrating .actors-help-person-owner .actors-help-typing {
   transform-box: fill-box;
   transform-origin: center;
-  animation: actors-help-type .35s ease-in-out infinite alternate;
+  animation: actors-help-type .32s ease-in-out infinite alternate;
+}
+
+.actors-help-demo.is-illustrating .actors-help-person-user .actors-help-tablet {
+  transform-box: fill-box;
+  transform-origin: 50% 85%;
+  animation: actors-help-tablet-tilt .85s ease-in-out infinite alternate;
 }
 
 .actors-help-demo.is-illustrating .actors-help-person-user .actors-help-moving-arm {
@@ -154,24 +136,31 @@
 }
 
 @keyframes actors-help-blink {
-  50% { opacity: .28; }
+  50% { opacity: .12; }
+}
+
+@keyframes actors-help-laptop-tilt {
+  to { transform: rotate(-9deg) translateY(-3px); }
 }
 
 @keyframes actors-help-type {
-  to { transform: translateY(-5px); }
+  to { transform: translateY(-12px); }
+}
+
+@keyframes actors-help-tablet-tilt {
+  to { transform: rotate(15deg) translateY(-4px); }
 }
 
 @keyframes actors-help-check {
-  to { transform: translate(-3px, 5px) rotate(8deg); }
+  to { transform: translate(-9px, 13px) rotate(20deg); }
 }
 
 @keyframes actors-help-wrench-turn {
-  to { transform: rotate(18deg); }
+  to { transform: rotate(38deg) translate(3px, -4px); }
 }
 
 @media (max-width: 540px) {
   .actors-help-demo { padding: 5px; }
-  .actors-help-footer { font-size: 11px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

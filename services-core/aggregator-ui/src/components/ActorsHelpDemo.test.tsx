@@ -2,7 +2,7 @@
  * @vitest-environment jsdom
  */
 
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import ActorsHelpDemo, { actorsHelpDuration, getActorsHelpFrame } from "./ActorsHelpDemo";
 
@@ -48,9 +48,32 @@ describe("Actors contextual help animation", () => {
     expect(figure.textContent).toContain("Fulfillment Operators");
     expect(figure.textContent).toContain("Customer Support");
     expect(figure.querySelectorAll("img")).toHaveLength(0);
-    expect(screen.getByRole("button", { name: "Replay" })).not.toBeNull();
-    fireEvent.click(screen.getByRole("button", { name: "Replay" }));
+    expect(screen.queryByRole("button", { name: "Replay" })).toBeNull();
+    expect(figure.querySelector("figcaption")).toBeNull();
     expect(screen.getByRole("progressbar", { name: "Animation progress" })).not.toBeNull();
+  });
+
+  it("loops automatically and places sprites after the labels", () => {
+    vi.useFakeTimers();
+    render(<ActorsHelpDemo />);
+    const owner = document.querySelector('[data-actor="owner"]');
+    const user = document.querySelector('[data-actor="user"]');
+    const other = document.querySelector('[data-actor="other"]');
+    const machine = document.querySelector('[data-service="item"]');
+
+    act(() => { vi.advanceTimersByTime(4600); });
+    expect(owner?.getAttribute("transform")).toContain("translate(360 206)");
+    expect(user?.getAttribute("transform")).toContain("translate(352 240)");
+    expect(other?.getAttribute("transform")).toContain("translate(338 274)");
+    expect(machine?.getAttribute("transform")).toContain("translate(340 40)");
+    expect(machine?.getAttribute("transform")).toContain("scale(0.085)");
+
+    act(() => { vi.advanceTimersByTime(actorsHelpDuration - 4600); });
+    expect(screen.getByRole("progressbar", { name: "Animation progress" })
+      .getAttribute("aria-valuenow")).toBe("0");
+    act(() => { vi.advanceTimersByTime(1800); });
+    expect(screen.getByRole("progressbar", { name: "Animation progress" })
+      .getAttribute("aria-valuenow")).not.toBe("0");
   });
 
   it("shows a static Item preview when reduced motion is requested", () => {
