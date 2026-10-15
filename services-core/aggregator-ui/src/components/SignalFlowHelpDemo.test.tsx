@@ -221,10 +221,10 @@ describe("Signal flow help demonstrations", () => {
     expect(parentFrame.getAttribute("opacity")).toBe("0");
     expect(nestedFrame.getAttribute("opacity")).toBe("0");
     expect(parentBox.getAttribute("opacity")).toBe("0");
-    advance(1100);
+    advance(1400);
     expect(parentFrame.getAttribute("opacity")).toBe("1");
     expect(nestedFrame.getAttribute("opacity")).toBe("1");
-    advance(1500);
+    advance(1200);
     expect(Number(page.style.opacity)).toBeGreaterThan(0);
     expect(Number(page.style.opacity)).toBeLessThan(1);
     expect(parentFrame.getAttribute("opacity")).toBe("1");
