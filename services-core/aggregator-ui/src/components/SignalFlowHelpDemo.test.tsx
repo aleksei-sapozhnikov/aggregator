@@ -37,7 +37,7 @@ describe("Signal flow help demonstrations", () => {
     expect(document.querySelectorAll('[data-health="unhealthy"]')).toHaveLength(0);
     expect(screen.queryByText(/All Items have their own checks/)).toBeNull();
     expect(document.querySelector("figcaption")).toBeNull();
-    expect(screen.getByText("client-service")).not.toBeNull();
+    expect(getNode("item").textContent).toContain("client-service");
     expect(screen.getByText("client-ux")).not.toBeNull();
     expect(screen.getByText("client-backend")).not.toBeNull();
     expect(screen.getByText("frontend-enabler")).not.toBeNull();
