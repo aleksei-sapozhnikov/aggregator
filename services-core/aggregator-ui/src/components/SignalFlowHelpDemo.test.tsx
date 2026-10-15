@@ -105,7 +105,9 @@ describe("Signal flow help demonstrations", () => {
     expect(screen.getByText("Availability").getAttribute("opacity")).toBe("1");
     expect(screen.getByText("Success ratio").getAttribute("opacity")).toBe("1");
     expect(screen.getByText("Latency").getAttribute("opacity")).toBe("1");
-    expect(screen.getByText("client-service")).not.toBeNull();
+    expect(
+      diagram.querySelector('[data-healthy-page="true"] .signal-flow-help-page-title')?.textContent,
+    ).toBe("client-service");
 
     advance(100);
     expect(frames.every((frame) => frame.getAttribute("opacity") === "0")).toBe(true);
