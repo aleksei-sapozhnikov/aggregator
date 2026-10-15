@@ -100,6 +100,8 @@ export default function SignalFlowHelpDemo({
   const greenArrow = "signal-flow-green-" + id;
   const redArrow = "signal-flow-red-" + id;
   const unhealthy = mode === "unhealthy";
+  const cycleDuration = unhealthy ? unhealthyCycleDuration : healthyCycleDuration;
+  const animationProgress = elapsed / cycleDuration;
 
   useEffect(() => {
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
@@ -107,12 +109,11 @@ export default function SignalFlowHelpDemo({
       return undefined;
     }
 
-    const duration = unhealthy ? unhealthyCycleDuration : healthyCycleDuration;
     const interval = window.setInterval(() => {
-      setElapsed((current) => (current + 100) % duration);
+      setElapsed((current) => (current + 100) % cycleDuration);
     }, 100);
     return () => window.clearInterval(interval);
-  }, [unhealthy]);
+  }, [unhealthy, cycleDuration]);
 
   // During the final pause the sample resets to green before repeating.
   const time = unhealthy && elapsed >= unhealthyResetAt ? 0 : elapsed;
@@ -185,6 +186,22 @@ export default function SignalFlowHelpDemo({
       className={"signal-flow-help" + (unhealthy ? " is-unhealthy-demo" : " is-healthy-demo")}
       aria-label={unhealthy ? "Unhealthy dependency propagation example" : "Healthy dependency signals example"}
     >
+      <div
+        className="signal-flow-help-progress"
+        role="progressbar"
+        aria-label="Animation progress"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={Math.round(animationProgress * 100)}
+      >
+        <div
+          className="signal-flow-help-progress-fill"
+          style={{
+            transform: `scaleX(${animationProgress})`,
+            transition: elapsed === 0 ? "none" : undefined,
+          }}
+        />
+      </div>
       <svg
         className="signal-flow-help-diagram"
         viewBox="0 0 640 326"

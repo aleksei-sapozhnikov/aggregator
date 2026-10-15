@@ -40,6 +40,30 @@ describe("Signal flow help demonstrations", () => {
     expect(document.querySelectorAll('[data-health="unhealthy"]')).toHaveLength(0);
   });
 
+  it.each([
+    ["healthy", 13000],
+    ["unhealthy", 20200],
+  ] as const)("tracks the %s animation cycle at the top", (mode, duration) => {
+    const { container } = render(<SignalFlowHelpDemo mode={mode} />);
+    const progress = screen.getByRole("progressbar", { name: "Animation progress" });
+    const fill = container.querySelector(".signal-flow-help-progress-fill") as HTMLElement;
+
+    expect(progress.getAttribute("aria-valuenow")).toBe("0");
+    expect(fill.style.transform).toBe("scaleX(0)");
+
+    advance(duration / 2);
+    expect(progress.getAttribute("aria-valuenow")).toBe("50");
+    expect(fill.style.transform).toBe("scaleX(0.5)");
+
+    advance(duration / 2);
+    expect(progress.getAttribute("aria-valuenow")).toBe("0");
+    expect(fill.style.transform).toBe("scaleX(0)");
+    expect(fill.style.transition).toBe("none");
+
+    advance(100);
+    expect(Number(progress.getAttribute("aria-valuenow"))).toBeGreaterThan(0);
+  });
+
   it("highlights only the current Item checks and morphs them into the page's links", () => {
     render(<SignalFlowHelpDemo mode="healthy" />);
     const diagram = screen.getByRole("img", {
