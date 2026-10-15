@@ -127,16 +127,6 @@ const renderActorTeamIcon = (iconSpriteHref: string): ReactElement => (
   </span>
 );
 
-const buildSignalResultLabel = (status: HealthStatus): string => {
-  if (status === "up") {
-    return "PASSING";
-  }
-  if (status === "down") {
-    return "FAILING";
-  }
-  return "UNKNOWN";
-};
-
 /**
  * Renders the right-side content area:
  * - selected item title/status
@@ -407,9 +397,11 @@ export default function DetailsPanel({
                         <ContactChipContent
                           contact={primaryContact}
                           iconSpriteHref={iconSpriteHref}
-                          prefix="Primary contact"
                           valueClassName="ownership-contact-value"
                         />
+                        <span className="details-row-meta">
+                          (Primary contact)
+                        </span>
                       </a>
                     </div>
                   )}
@@ -440,6 +432,12 @@ export default function DetailsPanel({
                           >
                             ›
                           </span>
+                          <span
+                            className="details-disclosure-icon"
+                            aria-hidden="true"
+                          >
+                            {renderActorTeamIcon(iconSpriteHref)}
+                          </span>
                           <span>Actors ({actorRowsForContacts.length})</span>
                         </button>
                         <div
@@ -464,18 +462,14 @@ export default function DetailsPanel({
                                   }}
                                   title={entry.actor.title || entry.actor.id}
                                 >
-                                  <span className="chip-entry">
-                                    <span className="chip-icon-block">
-                                      {renderActorTeamIcon(iconSpriteHref)}
-                                    </span>
-                                    <span className="chip-text-block">
-                                      <span className="chip-prefix">
-                                        {entry.typeLabel}
-                                      </span>
-                                      <span className="ownership-contact-value">
-                                        {entry.actor.title || entry.actor.id}
-                                      </span>
-                                    </span>
+                                  <span className="chip-icon-block">
+                                    {renderActorTeamIcon(iconSpriteHref)}
+                                  </span>
+                                  <span className="ownership-contact-value">
+                                    {entry.actor.title || entry.actor.id}
+                                  </span>
+                                  <span className="details-row-meta details-row-meta-capitalize">
+                                    ({entry.typeLabel})
                                   </span>
                                 </a>
                               </li>
@@ -507,6 +501,10 @@ export default function DetailsPanel({
                       >
                         ›
                       </span>
+                      <span
+                        className="status-indicator status-down details-disclosure-status"
+                        aria-hidden="true"
+                      />
                       <span>Affecting now ({affectingRows.length})</span>
                     </button>
                     <div
@@ -530,11 +528,6 @@ export default function DetailsPanel({
                                         title={buildStatusText(entry.status)}
                                       />
                                       <span
-                                        className={`signal-result-label signal-result-${entry.status}`}
-                                      >
-                                        {buildSignalResultLabel(entry.status)}
-                                      </span>
-                                      <span
                                         className="signal-name"
                                         title={entry.title || entry.id}
                                       >
@@ -546,56 +539,33 @@ export default function DetailsPanel({
                               </ul>
                             ) : (
                               <>
-                                {row.href ? (
-                                  <a
-                                    className="signals-dependency-link"
-                                    title={row.title}
-                                    href={row.href}
-                                    onClick={row.onClick}
-                                  >
-                                    <span
-                                      className={`status-indicator status-${row.status}`}
-                                      aria-label={buildStatusText(row.status)}
-                                      title={buildStatusText(row.status)}
-                                    />
-                                    <span className="signals-incident-text-stack">
-                                      <span className="signals-incident-kind">
-                                        {row.typeLabel}
-                                      </span>
-                                      <span
-                                        className="signal-name"
-                                        title={row.title}
-                                      >
-                                        {row.title}
-                                      </span>
-                                    </span>
-                                    <span
-                                      className="signals-nav-chevron"
-                                      aria-hidden="true"
+                                <div className="signals-dependency-row">
+                                  <span
+                                    className={`status-indicator status-${row.status}`}
+                                    aria-label={buildStatusText(row.status)}
+                                    title={buildStatusText(row.status)}
+                                  />
+                                  {row.href ? (
+                                    <a
+                                      className="details-text-link"
+                                      title={row.title}
+                                      href={row.href}
+                                      onClick={row.onClick}
                                     >
-                                      ›
-                                    </span>
-                                  </a>
-                                ) : (
-                                  <div className="signals-dependency-link is-static">
+                                      {row.title}
+                                    </a>
+                                  ) : (
                                     <span
-                                      className={`status-indicator status-${row.status}`}
-                                      aria-label={buildStatusText(row.status)}
-                                      title={buildStatusText(row.status)}
-                                    />
-                                    <span className="signals-incident-text-stack">
-                                      <span className="signals-incident-kind">
-                                        {row.typeLabel}
-                                      </span>
-                                      <span
-                                        className="signal-name"
-                                        title={row.title}
-                                      >
-                                        {row.title}
-                                      </span>
+                                      className="signal-name"
+                                      title={row.title}
+                                    >
+                                      {row.title}
                                     </span>
-                                  </div>
-                                )}
+                                  )}
+                                  <span className="details-row-meta">
+                                    (Dependency)
+                                  </span>
+                                </div>
                                 {row.signals && row.signals.length > 0 && (
                                   <ul className="signals-incident-signal-list">
                                     {row.signals.map((signal) => (
@@ -611,14 +581,9 @@ export default function DetailsPanel({
                                           )}
                                           title={buildStatusText(signal.status)}
                                         />
-                                        <span
-                                          className={`signal-result-label signal-result-${signal.status}`}
-                                        >
-                                          {buildSignalResultLabel(
-                                            signal.status,
-                                          )}
+                                        <span className="signal-name">
+                                          {signal.title || signal.id}
                                         </span>
-                                        <span>{signal.title || signal.id}</span>
                                       </li>
                                     ))}
                                   </ul>
@@ -652,6 +617,10 @@ export default function DetailsPanel({
                       >
                         ›
                       </span>
+                      <span
+                        className="status-indicator status-up details-disclosure-status"
+                        aria-hidden="true"
+                      />
                       <span>Healthy signals ({passingSignalsCount})</span>
                     </button>
                     <div
@@ -668,11 +637,6 @@ export default function DetailsPanel({
                                 aria-label={buildStatusText(entry.status)}
                                 title={buildStatusText(entry.status)}
                               />
-                              <span
-                                className={`signal-result-label signal-result-${entry.status}`}
-                              >
-                                {buildSignalResultLabel(entry.status)}
-                              </span>
                               <span
                                 className="signal-name"
                                 title={entry.title || entry.id}
