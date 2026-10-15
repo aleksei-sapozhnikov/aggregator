@@ -45,8 +45,16 @@ describe("Actors contextual help animation", () => {
     expect(figure.querySelectorAll("[data-service='item']")).toHaveLength(1);
     expect(figure.querySelector("svg[viewBox='0 0 420 310']")).not.toBeNull();
     expect(Array.from(figure.querySelectorAll("[data-scene-label]"),
-      (label) => label.getAttribute("data-scene-label")))
-      .toEqual(["Owner", "User", "Support", "Service"]);
+      (label) => label.getAttribute("data-scene-label")).sort())
+      .toEqual(["Owner", "Service", "Support", "User"]);
+    expect(figure.querySelector("[data-service='item'] [data-scene-label='Service']"))
+      .not.toBeNull();
+    for (const [id, role] of [
+      ["owner", "Owner"], ["user", "User"], ["support", "Support"],
+    ]) {
+      expect(figure.querySelector(`[data-actor="${id}"] [data-scene-label="${role}"]`))
+        .not.toBeNull();
+    }
     expect(figure.textContent).toContain("Order Platform Team");
     expect(figure.textContent).toContain("Fulfillment Team");
     expect(figure.textContent).toContain("Service Desk");
@@ -69,7 +77,11 @@ describe("Actors contextual help animation", () => {
     expect(user?.getAttribute("transform")).toContain("translate(283 231)");
     expect(other?.getAttribute("transform")).toContain("translate(272 261)");
     expect(machine?.getAttribute("transform")).toContain("translate(310 36)");
-    expect(machine?.getAttribute("transform")).toContain("scale(0.078)");
+    expect(machine?.querySelector("[data-service-sprite]")?.getAttribute("transform"))
+      .toContain("scale(0.078)");
+    expect(owner?.querySelector("[data-scene-label='Owner']")).not.toBeNull();
+    expect(user?.querySelector("[data-scene-label='User']")).not.toBeNull();
+    expect(other?.querySelector("[data-scene-label='Support']")).not.toBeNull();
 
     act(() => { vi.advanceTimersByTime(actorsHelpDuration - 4600); });
     expect(screen.getByRole("progressbar", { name: "Animation progress" })

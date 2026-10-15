@@ -294,29 +294,27 @@ export default function ActorsHelpDemo() {
     >
       <HelpAnimationProgress progress={elapsed / actorsHelpDuration} />
       <svg viewBox="0 0 420 310" className="actors-help-diagram"
-        role="img" aria-label="Three people work with a service, become Owner, User, and Other rows on an Item page, then return"
+        role="img" aria-label="Three people work with a service, become Owner, User, and Support rows on an Item page, then return"
       >
         <ItemPreview opacity={reduceMotion ? 1 : frame.pageOpacity} />
         {!reduceMotion && (
-          <>
-            <g data-service="item" opacity={frame.machineOpacity}
-              transform={"translate(" +
-                lerp(210, 310, moving) + " " +
-                lerp(197, 36, moving) + ") scale(" +
+          <g data-service="item" opacity={frame.machineOpacity}
+            transform={"translate(" +
+              lerp(210, 310, moving) + " " +
+              lerp(197, 36, moving) + ")"}
+          >
+            <g data-service-sprite="true"
+              transform={"scale(" +
                 lerp(0.49, 0.078, moving).toFixed(3) + ") translate(-94 -110)"}
             >
               <Machine />
             </g>
-            <g className="actors-help-scene-labels"
+            <g aria-hidden="true"
               style={{ opacity: 1 - smooth(between(moving, 0.12, 0.70)) }}
-              aria-hidden="true"
             >
-              <ScenePlate x={98} y={243} width={70} label="Owner" />
-              <ScenePlate x={322} y={243} width={62} label="User" />
-              <ScenePlate x={210} y={101} width={80} label="Support" />
-              <ScenePlate x={210} y={280} width={74} label="Service" />
+              <ScenePlate x={0} y={83} width={74} label="Service" />
             </g>
-          </>
+          </g>
         )}
         {!reduceMotion && actors.map((actor) => {
           const x = lerp(actor.start[0], actor.destination[0], moving);
@@ -325,9 +323,23 @@ export default function ActorsHelpDemo() {
           return (
             <g key={actor.id} data-actor={actor.id}
               opacity={frame.actorOpacity}
-              transform={"translate(" + x + " " + y + ") scale(" + scale + ") translate(-50 -70)"}
+              transform={"translate(" + x + " " + y + ")"}
             >
-              <ActorCharacter actor={actor} />
+              <g data-actor-sprite="true"
+                transform={"scale(" + scale + ") translate(-50 -70)"}
+              >
+                <ActorCharacter actor={actor} />
+              </g>
+              <g aria-hidden="true"
+                style={{ opacity: 1 - smooth(between(moving, 0.12, 0.70)) }}
+              >
+                <ScenePlate
+                  x={0}
+                  y={actor.id === "support" ? 45 : 52}
+                  width={actor.id === "support" ? 80 : actor.id === "owner" ? 70 : 62}
+                  label={actor.role}
+                />
+              </g>
             </g>
           );
         })}
