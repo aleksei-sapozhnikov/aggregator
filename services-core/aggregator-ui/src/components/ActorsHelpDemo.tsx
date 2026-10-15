@@ -229,7 +229,7 @@ function ItemPreview({ opacity }: { opacity: number }) {
             {actor.name}
           </text>
           <text
-            x={[286, 286, 252][index]}
+            x={[306, 306, 285][index]}
             y={211 + index * 34}
             className="actors-help-role"
           >
