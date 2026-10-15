@@ -70,7 +70,7 @@ describe("Signal flow help demonstrations", () => {
     expect(screen.getByText("Success ratio").getAttribute("opacity")).toBe("1");
     expect(screen.getByText("Latency").getAttribute("opacity")).toBe("1");
 
-    advance(3300);
+    advance(3500);
     expect(page.style.opacity).toBe("0");
     expect(graph.style.opacity).toBe("1");
     expect(frames[0].getAttribute("x")).toBe("280");
