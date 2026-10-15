@@ -148,7 +148,10 @@ export default function UnhealthySignalProjection({
 
             <g className="signal-flow-help-projected-state" opacity={symbolOpacity}>
               {affected ? (
-                <g className="signal-flow-help-alarm">
+                <g
+                  className="signal-flow-help-alarm"
+                  data-failing-check={dependency.id === "nested1" ? "true" : undefined}
+                >
                   <path
                     d={
                       "M" + (symbolX - 9) + " " + (symbolY + 3)

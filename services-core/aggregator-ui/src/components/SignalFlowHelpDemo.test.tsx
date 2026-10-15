@@ -42,7 +42,7 @@ describe("Signal flow help demonstrations", () => {
 
   it.each([
     ["healthy", 13000],
-    ["unhealthy", 20200],
+    ["unhealthy", 21800],
   ] as const)("tracks the %s animation cycle at the top", (mode, duration) => {
     const { container } = render(<SignalFlowHelpDemo mode={mode} />);
     const progress = screen.getByRole("progressbar", { name: "Animation progress" });
@@ -230,7 +230,7 @@ describe("Signal flow help demonstrations", () => {
 
     expect(getNode("nested1").getAttribute("data-health")).toBe("healthy");
     expect(getNode("item").getAttribute("data-health")).toBe("healthy");
-    advance(2700);
+    advance(3400);
     expect(getNode("nested1").getAttribute("data-health")).toBe("unhealthy");
   });
 });

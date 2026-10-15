@@ -169,7 +169,7 @@ export default function SignalFlowHelpDemo({
         : !affectedItem
           ? "Dependency 1 is affected. The impact now moves toward the current Item."
           : elapsed < 8200
-            ? "Nested dep 1 fails, and Dependency 1 also has a failing check."
+            ? "The current Item is unhealthy: Nested dep 1 fails, and Dependency 1 has a failing check."
             : elapsed < 15800
               ? "Each affected dependency and its one failing check appear under Unhealthy signals."
               : elapsed < unhealthyResetAt

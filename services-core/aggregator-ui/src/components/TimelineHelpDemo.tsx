@@ -321,7 +321,7 @@ export default function TimelineHelpDemo() {
             aria-pressed={scenario === entry.id}
             onClick={() => changeScenario(entry.id)}
           >
-            <span className="timeline-help-step">{index + 1}</span>
+            <span className="timeline-help-step" aria-hidden="true">{index + 1}</span>
             {entry.title}
           </button>
         ))}
