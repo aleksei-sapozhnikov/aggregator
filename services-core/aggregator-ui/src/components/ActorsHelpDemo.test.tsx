@@ -13,7 +13,7 @@ afterEach(() => {
 });
 
 describe("Actors contextual help animation", () => {
-  it("maps three distinct people to Owner, User and Other rows", () => {
+  it("maps three distinct people to Owner, User and Support rows", () => {
     const besideRows = getActorsHelpFrame(4600);
     expect(besideRows.travel).toBe(1);
     expect(besideRows.pageOpacity).toBe(1);
@@ -43,10 +43,13 @@ describe("Actors contextual help animation", () => {
     });
     expect(figure.querySelectorAll("[data-actor]")).toHaveLength(3);
     expect(figure.querySelectorAll("[data-service='item']")).toHaveLength(1);
-    expect(figure.querySelector("svg[viewBox='0 0 640 326']")).not.toBeNull();
+    expect(figure.querySelector("svg[viewBox='0 0 420 310']")).not.toBeNull();
+    expect(Array.from(figure.querySelectorAll("[data-scene-label]"),
+      (label) => label.getAttribute("data-scene-label")))
+      .toEqual(["Owner", "User", "Support", "Service"]);
     expect(figure.textContent).toContain("Order Platform Team");
-    expect(figure.textContent).toContain("Fulfillment Operators");
-    expect(figure.textContent).toContain("Customer Support");
+    expect(figure.textContent).toContain("Fulfillment Team");
+    expect(figure.textContent).toContain("Service Desk");
     expect(figure.querySelectorAll("img")).toHaveLength(0);
     expect(screen.queryByRole("button", { name: "Replay" })).toBeNull();
     expect(figure.querySelector("figcaption")).toBeNull();
@@ -58,15 +61,15 @@ describe("Actors contextual help animation", () => {
     render(<ActorsHelpDemo />);
     const owner = document.querySelector('[data-actor="owner"]');
     const user = document.querySelector('[data-actor="user"]');
-    const other = document.querySelector('[data-actor="other"]');
+    const other = document.querySelector('[data-actor="support"]');
     const machine = document.querySelector('[data-service="item"]');
 
     act(() => { vi.advanceTimersByTime(4600); });
-    expect(owner?.getAttribute("transform")).toContain("translate(360 206)");
-    expect(user?.getAttribute("transform")).toContain("translate(352 240)");
-    expect(other?.getAttribute("transform")).toContain("translate(338 274)");
-    expect(machine?.getAttribute("transform")).toContain("translate(340 40)");
-    expect(machine?.getAttribute("transform")).toContain("scale(0.085)");
+    expect(owner?.getAttribute("transform")).toContain("translate(314 201)");
+    expect(user?.getAttribute("transform")).toContain("translate(283 231)");
+    expect(other?.getAttribute("transform")).toContain("translate(272 261)");
+    expect(machine?.getAttribute("transform")).toContain("translate(310 36)");
+    expect(machine?.getAttribute("transform")).toContain("scale(0.078)");
 
     act(() => { vi.advanceTimersByTime(actorsHelpDuration - 4600); });
     expect(screen.getByRole("progressbar", { name: "Animation progress" })

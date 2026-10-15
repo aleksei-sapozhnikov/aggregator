@@ -2,13 +2,13 @@
   position: relative;
   align-self: center;
   width: 100%;
-  max-width: 640px;
+  max-width: 460px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0;
   min-width: 0;
   margin: 0;
-  padding: 10px;
+  padding: 7px;
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--panel);
@@ -32,25 +32,25 @@
 }
 
 .actors-help-title {
-  font-size: 21px;
+  font-size: 17px;
   font-weight: 600;
   fill: #1f1f1f;
 }
 
 .actors-help-heading {
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 600;
   fill: #1f1f1f;
 }
 
 .actors-help-link {
-  font-size: 17px;
+  font-size: 14px;
   font-weight: 400;
   fill: #1550b3;
 }
 
 .actors-help-role {
-  font-size: 12px;
+  font-size: 11px;
   fill: #5b616f;
 }
 
@@ -91,6 +91,19 @@
   stroke-linejoin: round;
 }
 
+.actors-help-scene-plate rect {
+  fill: var(--panel);
+  stroke: var(--border);
+  stroke-width: 1.4;
+}
+
+.actors-help-scene-plate text {
+  fill: var(--text);
+  font-family: Inter, "Segoe UI", system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 650;
+}
+
 .actors-help-demo.is-illustrating .actors-help-gear {
   animation: actors-help-rotate 3s linear infinite;
 }
@@ -125,7 +138,7 @@
   animation: actors-help-check .75s ease-in-out infinite alternate;
 }
 
-.actors-help-demo.is-illustrating .actors-help-person-other .actors-help-wrench {
+.actors-help-demo.is-illustrating .actors-help-person-support .actors-help-wrench {
   transform-box: fill-box;
   transform-origin: 50% 75%;
   animation: actors-help-wrench-turn .85s ease-in-out infinite alternate;

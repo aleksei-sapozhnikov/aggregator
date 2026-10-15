@@ -30,23 +30,24 @@ export function getActorsHelpFrame(time: number) {
   };
 }
 
-type Role = "owner" | "user" | "other";
+type Role = "owner" | "user" | "support";
 type Actor = {
   id: Role;
   start: [number, number];
   destination: [number, number];
+  sceneScale: number;
   name: string;
   role: string;
   color: string;
 };
 
 const actors: Actor[] = [
-  { id: "owner", start: [102, 165], destination: [360, 206],
+  { id: "owner", start: [98, 191], destination: [314, 201], sceneScale: 0.65,
     name: "Order Platform Team", role: "Owner", color: "#4384c5" },
-  { id: "user", start: [539, 137], destination: [352, 240],
-    name: "Fulfillment Operators", role: "User", color: "#50b28b" },
-  { id: "other", start: [537, 257], destination: [338, 274],
-    name: "Customer Support", role: "Other", color: "#a38cdb" },
+  { id: "user", start: [322, 191], destination: [283, 231], sceneScale: 0.65,
+    name: "Fulfillment Team", role: "User", color: "#50b28b" },
+  { id: "support", start: [210, 56], destination: [272, 261], sceneScale: 0.55,
+    name: "Service Desk", role: "Support", color: "#a38cdb" },
 ];
 
 function ActorCharacter({ actor }: { actor: Actor }) {
@@ -70,7 +71,7 @@ function ActorCharacter({ actor }: { actor: Actor }) {
         <path d="M25 40Q17 6 50 8Q80 8 77 42Q65 27 53 22Q39 34 25 40Z"
           fill="#9b593b" stroke="#243442" strokeWidth="2" />
       )}
-      {actor.id === "other" && (
+      {actor.id === "support" && (
         <>
           <path d="M25 39Q16 7 49 9Q81 10 76 43L67 33Q53 18 38 31Z"
             fill="#483b46" stroke="#243442" strokeWidth="2" />
@@ -123,7 +124,7 @@ function ActorCharacter({ actor }: { actor: Actor }) {
           </g>
         </>
       )}
-      {actor.id === "other" && (
+      {actor.id === "support" && (
         <>
           <path d="M22 85 16 111 38 119M79 85 89 111 72 119"
             fill="none" stroke={actor.color} strokeWidth="14" strokeLinecap="round" />
@@ -200,40 +201,56 @@ function ActorIcon() {
   );
 }
 
+function ScenePlate({
+  x, y, width, label,
+}: {
+  x: number;
+  y: number;
+  width: number;
+  label: string;
+}) {
+  return (
+    <g className="actors-help-scene-plate" data-scene-label={label}>
+      <rect x={x - width / 2} y={y} width={width} height="22" rx="6" />
+      <text x={x} y={y + 15} textAnchor="middle">{label}</text>
+    </g>
+  );
+}
+
 function ItemPreview({ opacity }: { opacity: number }) {
   return (
     <g className="actors-help-item" style={{ opacity }} aria-hidden="true">
-      <rect x="12" y="9" width="616" height="308" rx="8"
+      <rect x="32" y="6" width="356" height="295" rx="8"
         fill="#f5f6f8" stroke="#d8dadd" />
-      <text x="34" y="48" className="actors-help-check">✓</text>
-      <text x="86" y="48" className="actors-help-title">Order Fulfillment</text>
-      <circle cx="273" cy="40" r="8" fill="none"
+      <text x="51" y="42" className="actors-help-check">✓</text>
+      <text x="76" y="42" className="actors-help-title">Order Fulfillment</text>
+      <circle cx="242" cy="34" r="8" fill="none"
         stroke="#1550b3" strokeWidth="1.8" />
-      <text x="273" y="45" className="actors-help-info" textAnchor="middle">i</text>
-      <text x="295" y="46" className="actors-help-up">UP</text>
-      <path d="M39 83v66" stroke="#2f6feb" strokeWidth="3" />
-      <text x="65" y="101" className="actors-help-heading">Primary contact</text>
-      <circle cx="202" cy="95" r="9" fill="none" stroke="#9da5b2" />
-      <text x="202" y="99" className="actors-help-question" textAnchor="middle">?</text>
-      <g transform="translate(65 121)" fill="none"
+      <text x="242" y="39" className="actors-help-info" textAnchor="middle">i</text>
+      <text x="263" y="40" className="actors-help-up">UP</text>
+      <path d="M65 73v65" stroke="#2f6feb" strokeWidth="3" />
+      <text x="88" y="91" className="actors-help-heading">Primary contact</text>
+      <circle cx="217" cy="86" r="8" fill="none" stroke="#9da5b2" />
+      <text x="217" y="90" className="actors-help-question" textAnchor="middle">?</text>
+      <g transform="translate(88 110)" fill="none"
         stroke="#1f2328" strokeWidth="2" strokeLinejoin="round">
-        <rect x="0" y="0" width="19" height="14" rx="2" fill="#fffaf0" />
-        <path d="m1 2 8.5 7L18 2" />
+        <rect x="0" y="0" width="18" height="13" rx="2" fill="#fffaf0" />
+        <path d="m1 2 8 6 8-6" />
       </g>
-      <text x="94" y="135" className="actors-help-link">orders-team@demo.email</text>
-      <text x="30" y="179" className="actors-help-chevron">⌄</text>
-      <g transform="translate(63 174)"><ActorIcon /></g>
-      <text x="84" y="179" className="actors-help-heading">Actors (3)</text>
-      <circle cx="188" cy="174" r="9" fill="none" stroke="#9da5b2" />
-      <text x="188" y="178" className="actors-help-question" textAnchor="middle">?</text>
+      <text x="113" y="121" className="actors-help-link">orders-team@demo.email</text>
+      <text x="62" y="166" className="actors-help-chevron">⌄</text>
+      <g transform="translate(87 161)"><ActorIcon /></g>
+      <text x="110" y="166" className="actors-help-heading">Actors (3)</text>
+      <circle cx="205" cy="160" r="8" fill="none" stroke="#9da5b2" />
+      <text x="205" y="164" className="actors-help-question" textAnchor="middle">?</text>
       {actors.map((actor, index) => (
         <g key={actor.id}>
-          <text x="121" y={212 + index * 34} className="actors-help-link">
+          <text x="112" y={206 + index * 30} className="actors-help-link">
             {actor.name}
           </text>
           <text
-            x={[306, 306, 285][index]}
-            y={211 + index * 34}
+            x={[263, 239, 207][index]}
+            y={205 + index * 30}
             className="actors-help-role"
           >
             {actor.role}
@@ -276,24 +293,35 @@ export default function ActorsHelpDemo() {
       aria-label="Actors become Item ownership and relationship entries"
     >
       <HelpAnimationProgress progress={elapsed / actorsHelpDuration} />
-      <svg viewBox="0 0 640 326" className="actors-help-diagram"
+      <svg viewBox="0 0 420 310" className="actors-help-diagram"
         role="img" aria-label="Three people work with a service, become Owner, User, and Other rows on an Item page, then return"
       >
         <ItemPreview opacity={reduceMotion ? 1 : frame.pageOpacity} />
         {!reduceMotion && (
-          <g data-service="item" opacity={frame.machineOpacity}
-            transform={"translate(" +
-              lerp(314, 340, moving) + " " +
-              lerp(169, 40, moving) + ") scale(" +
-              lerp(0.84, 0.085, moving).toFixed(3) + ") translate(-94 -110)"}
-          >
-            <Machine />
-          </g>
+          <>
+            <g data-service="item" opacity={frame.machineOpacity}
+              transform={"translate(" +
+                lerp(210, 310, moving) + " " +
+                lerp(197, 36, moving) + ") scale(" +
+                lerp(0.49, 0.078, moving).toFixed(3) + ") translate(-94 -110)"}
+            >
+              <Machine />
+            </g>
+            <g className="actors-help-scene-labels"
+              style={{ opacity: 1 - smooth(between(moving, 0.12, 0.70)) }}
+              aria-hidden="true"
+            >
+              <ScenePlate x={98} y={243} width={70} label="Owner" />
+              <ScenePlate x={322} y={243} width={62} label="User" />
+              <ScenePlate x={210} y={101} width={80} label="Support" />
+              <ScenePlate x={210} y={280} width={74} label="Service" />
+            </g>
+          </>
         )}
         {!reduceMotion && actors.map((actor) => {
           const x = lerp(actor.start[0], actor.destination[0], moving);
           const y = lerp(actor.start[1], actor.destination[1], moving);
-          const scale = lerp(0.87, 0.23, moving);
+          const scale = lerp(actor.sceneScale, 0.20, moving);
           return (
             <g key={actor.id} data-actor={actor.id}
               opacity={frame.actorOpacity}
