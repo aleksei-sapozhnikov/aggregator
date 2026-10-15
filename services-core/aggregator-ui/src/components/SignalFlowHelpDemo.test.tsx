@@ -46,7 +46,7 @@ describe("Signal flow help demonstrations", () => {
   ] as const)("tracks the %s animation cycle at the top", (mode, duration) => {
     const { container } = render(<SignalFlowHelpDemo mode={mode} />);
     const progress = screen.getByRole("progressbar", { name: "Animation progress" });
-    const fill = container.querySelector(".signal-flow-help-progress-fill") as HTMLElement;
+    const fill = container.querySelector(".help-animation-progress-fill") as HTMLElement;
 
     expect(progress.getAttribute("aria-valuenow")).toBe("0");
     expect(fill.style.transform).toBe("scaleX(0)");

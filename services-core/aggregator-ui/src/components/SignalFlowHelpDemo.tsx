@@ -1,5 +1,6 @@
 import { useEffect, useId, useState } from "react";
 import "./SignalFlowHelpDemo.css";
+import HelpAnimationProgress from "./HelpAnimationProgress";
 import UnhealthySignalProjection, {
   unhealthyCycleDuration,
   unhealthyResetAt,
@@ -186,22 +187,7 @@ export default function SignalFlowHelpDemo({
       className={"signal-flow-help" + (unhealthy ? " is-unhealthy-demo" : " is-healthy-demo")}
       aria-label={unhealthy ? "Unhealthy dependency propagation example" : "Healthy dependency signals example"}
     >
-      <div
-        className="signal-flow-help-progress"
-        role="progressbar"
-        aria-label="Animation progress"
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={Math.round(animationProgress * 100)}
-      >
-        <div
-          className="signal-flow-help-progress-fill"
-          style={{
-            transform: `scaleX(${animationProgress})`,
-            transition: elapsed === 0 ? "none" : undefined,
-          }}
-        />
-      </div>
+      <HelpAnimationProgress progress={animationProgress} />
       <svg
         className="signal-flow-help-diagram"
         viewBox="0 0 640 326"

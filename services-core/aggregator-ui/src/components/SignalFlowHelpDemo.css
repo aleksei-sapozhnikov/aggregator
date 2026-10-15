@@ -12,25 +12,6 @@
   color: var(--text);
 }
 
-.signal-flow-help-progress {
-  position: absolute;
-  top: 0;
-  right: 0;
-  left: 0;
-  height: 3px;
-  overflow: hidden;
-  border-radius: 9px 9px 0 0;
-  background: color-mix(in srgb, var(--sidebar-selected-accent) 12%, transparent);
-}
-
-.signal-flow-help-progress-fill {
-  width: 100%;
-  height: 100%;
-  background: var(--sidebar-selected-accent);
-  transform-origin: left center;
-  transition: transform 100ms linear;
-}
-
 .signal-flow-help-diagram {
   display: block;
   width: 100%;
@@ -151,9 +132,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .signal-flow-help-progress-fill {
-    transition: none;
-  }
   .signal-flow-help-current {
     animation: none;
     stroke-dasharray: none;
