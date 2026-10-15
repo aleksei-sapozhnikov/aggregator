@@ -881,3 +881,28 @@
     top: 17px;
   }
 }
+
+
+/* The cursor stays mounted at its chart coordinate when details appear, then
+   travels toward the Item link in the same positioning context. */
+.timeline-help-tracks {
+  --timeline-help-dependency-popup-width: min(310px, 70vw);
+  --timeline-help-link-cursor-top: 122px;
+}
+.timeline-help-tracks > .timeline-help-popup-dependency {
+  width: var(--timeline-help-dependency-popup-width);
+}
+.timeline-help-tracks > .timeline-help-cursor.is-moving-to-link {
+  transition: left 1.1s ease-in-out, top 1.1s ease-in-out;
+}
+@media (max-width: 540px) {
+  .timeline-help-tracks {
+    --timeline-help-dependency-popup-width: min(210px, 63vw);
+    --timeline-help-link-cursor-top: 142px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .timeline-help-tracks > .timeline-help-cursor.is-moving-to-link {
+    transition: none;
+  }
+}

@@ -108,11 +108,9 @@ function TimelineHoverPopup({ x }: { x: number }) {
 
 function TimelineDependencyPopup({
   x,
-  elapsed,
   linkPressed,
 }: {
   x: number;
-  elapsed: number;
   linkPressed: boolean;
 }) {
   return (
@@ -138,11 +136,6 @@ function TimelineDependencyPopup({
       <div className={"timeline-help-popup-link" + (linkPressed ? " is-selected" : "")}>
         <span aria-hidden="true">↗</span>
         Item: Payment Gateway
-        <ExampleCursor
-          left="78px"
-          top={elapsed >= 5100 ? "8px" : "-92px"}
-          pressed={linkPressed}
-        />
       </div>
     </div>
   );
@@ -195,14 +188,20 @@ function ExampleCursor({
   left,
   top,
   pressed = false,
+  movingToLink = false,
 }: {
   left: string;
   top: string;
   pressed?: boolean;
+  movingToLink?: boolean;
 }) {
   return (
     <svg
-      className={"timeline-help-cursor" + (pressed ? " is-pressed" : "")}
+      className={[
+        "timeline-help-cursor",
+        pressed ? "is-pressed" : "",
+        movingToLink ? "is-moving-to-link" : "",
+      ].filter(Boolean).join(" ")}
       style={{ left, top }}
       viewBox="0 0 24 28"
       focusable="false"
@@ -293,6 +292,17 @@ export default function TimelineHelpDemo() {
   const navigateDetails = scenario === "navigate" && elapsed >= 3400 && elapsed < 7300;
   const openedItem = scenario === "navigate" && elapsed >= 7300;
   const linkPressed = scenario === "navigate" && elapsed >= 6400 && elapsed < 7300;
+  const movingToLink = navigateDetails && elapsed >= 5100;
+
+  // The dependency popup opens beside the chart cursor. Keep the same cursor
+  // in the tracks while the popup opens, then animate it toward the Item link
+  // without changing its positioning context.
+  const navigationCursorLeft = movingToLink
+    ? `calc(${x}% - var(--timeline-help-dependency-popup-width) + 66px)`
+    : x + "%";
+  const navigationCursorTop = movingToLink
+    ? "var(--timeline-help-link-cursor-top)"
+    : "107px";
 
   // The filter selector is above the bars, so its cursor uses preview coordinates.
   const cursorLeft = "172px";
@@ -367,11 +377,14 @@ export default function TimelineHelpDemo() {
                     />
                     {(inspectPopup || navigateHover) && <TimelineHoverPopup x={x} />}
                     {navigateDetails && (
-                      <TimelineDependencyPopup x={x} elapsed={elapsed} linkPressed={linkPressed} />
+                      <TimelineDependencyPopup x={x} linkPressed={linkPressed} />
                     )}
-                    {!navigateDetails && (
-                      <ExampleCursor left={x + "%"} top={scenario === "navigate" ? "107px" : "7px"} />
-                    )}
+                    <ExampleCursor
+                      left={scenario === "navigate" ? navigationCursorLeft : x + "%"}
+                      top={scenario === "navigate" ? navigationCursorTop : "7px"}
+                      pressed={linkPressed}
+                      movingToLink={movingToLink}
+                    />
                   </>
                 )}
               </div>

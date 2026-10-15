@@ -146,12 +146,26 @@ describe("Timeline help walkthrough", () => {
     const cursor = preview.querySelector(".timeline-help-tracks > .timeline-help-cursor") as SVGElement;
     expect(cursor.style.top).toBe("107px");
     expect(within(preview).getAllByText("↳ Payment Gateway · readiness check").length).toBeGreaterThan(0);
+    const graphCursor = preview.querySelector(".timeline-help-tracks > .timeline-help-cursor") as SVGElement;
+    const originalLeft = graphCursor.style.left;
+    const originalTop = graphCursor.style.top;
     advance(2100);
     expect(within(preview).queryByLabelText("States at selected time")).toBeNull();
     expect(within(preview).getByLabelText("Dependency signal details")).not.toBeNull();
     const link = within(preview).getByText("Item: Payment Gateway");
-    expect(link.querySelector(".timeline-help-cursor")).not.toBeNull();
-    advance(3800);
+    expect(link.querySelector(".timeline-help-cursor")).toBeNull();
+    const sameCursor = preview.querySelector(".timeline-help-tracks > .timeline-help-cursor") as SVGElement;
+    expect(sameCursor).toBe(graphCursor);
+    expect(sameCursor.style.left).toBe(originalLeft);
+    expect(sameCursor.style.top).toBe(originalTop);
+    expect(sameCursor.classList.contains("is-moving-to-link")).toBe(false);
+
+    advance(1500);
+    expect(sameCursor.classList.contains("is-moving-to-link")).toBe(true);
+    expect(sameCursor.style.left).toContain("--timeline-help-dependency-popup-width");
+    advance(1500);
+    expect(sameCursor.classList.contains("is-pressed")).toBe(true);
+    advance(800);
     const item = within(preview).getByLabelText("Opened Payment Gateway Item");
     expect(within(item).getByText("Payment Gateway")).not.toBeNull();
     expect(within(item).getByText(/Primary contact/)).not.toBeNull();
