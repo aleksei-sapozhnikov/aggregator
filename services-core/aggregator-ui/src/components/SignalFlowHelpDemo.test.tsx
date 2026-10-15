@@ -49,8 +49,8 @@ describe("Signal flow help demonstrations", () => {
   });
 
   it.each([
-    ["healthy", 13000],
-    ["unhealthy", 21800],
+    ["healthy", 15000],
+    ["unhealthy", 23800],
   ] as const)("tracks the %s animation cycle at the top", (mode, duration) => {
     const { container } = render(<SignalFlowHelpDemo mode={mode} />);
     const progress = screen.getByRole("progressbar", { name: "Animation progress" });
@@ -71,6 +71,36 @@ describe("Signal flow help demonstrations", () => {
     advance(100);
     expect(Number(progress.getAttribute("aria-valuenow"))).toBeGreaterThan(0);
   });
+
+  it.each([
+    ["healthy", 6500, '[data-selection-frame="availability"]', 15000],
+    ["unhealthy", 13800, '[data-unhealthy-frame="item"]', 23800],
+  ] as const)(
+    "holds the complete %s page for two additional seconds after highlights disappear",
+    (mode, start, frameSelector, duration) => {
+      const { container } = render(<SignalFlowHelpDemo mode={mode} />);
+      const diagram = container.querySelector(".signal-flow-help-diagram") as SVGElement;
+      const page = diagram.querySelector(".signal-flow-help-page") as SVGElement;
+      const frame = diagram.querySelector(frameSelector) as Element;
+      const progress = screen.getByRole("progressbar", { name: "Animation progress" });
+
+      advance(start);
+      expect(page.style.opacity).toBe("1");
+      expect(frame.getAttribute("opacity")).toBe("0");
+      const firstProgress = Number(progress.getAttribute("aria-valuenow"));
+
+      advance(2000);
+      expect(page.style.opacity).toBe("1");
+      expect(frame.getAttribute("opacity")).toBe("0");
+      expect(Number(progress.getAttribute("aria-valuenow"))).toBeGreaterThan(firstProgress);
+      expect(Number(progress.getAttribute("aria-valuenow"))).toBe(
+        Math.round(((start + 2000) / duration) * 100),
+      );
+
+      advance(mode === "healthy" ? 1100 : 1700);
+      expect(frame.getAttribute("opacity")).toBe("1");
+    },
+  );
 
   it("highlights only the current Item checks and morphs them into the page's links", () => {
     render(<SignalFlowHelpDemo mode="healthy" />);
@@ -112,6 +142,8 @@ describe("Signal flow help demonstrations", () => {
     advance(100);
     expect(frames.every((frame) => frame.getAttribute("opacity") === "0")).toBe(true);
     advance(1000);
+    expect(frames.every((frame) => frame.getAttribute("opacity") === "0")).toBe(true);
+    advance(2000);
     expect(frames.every((frame) => frame.getAttribute("opacity") === "1")).toBe(true);
     advance(2400);
     expect(page.style.opacity).toBe("0");
@@ -261,6 +293,9 @@ describe("Signal flow help demonstrations", () => {
     expect(nestedFrame.getAttribute("opacity")).toBe("0");
     expect(parentBox.getAttribute("opacity")).toBe("0");
     advance(1400);
+    expect(itemFrame.getAttribute("opacity")).toBe("0");
+    expect(parentFrame.getAttribute("opacity")).toBe("0");
+    advance(2000);
     expect(itemFrame.getAttribute("opacity")).toBe("1");
     expect(parentFrame.getAttribute("opacity")).toBe("1");
     expect(nestedFrame.getAttribute("opacity")).toBe("1");
@@ -320,7 +355,7 @@ describe("Signal flow help demonstrations", () => {
 
   it("resets and replays after the unhealthy state is shown", () => {
     render(<SignalFlowHelpDemo mode="unhealthy" />);
-    advance(20200);
+    advance(22200);
 
     expect(getNode("nested1").getAttribute("data-health")).toBe("healthy");
     expect(getNode("item").getAttribute("data-health")).toBe("healthy");

@@ -31,7 +31,8 @@ const mix = (start: number, end: number, progress: number): number =>
   start + (end - start) * progress;
 
 // Include time for the restored graph and the pause before the next failure.
-export const unhealthyCycleDuration = 21800;
+export const expandedListHoldMs = 2000;
+export const unhealthyCycleDuration = 21800 + expandedListHoldMs;
 export const unhealthyResetAt = 20000;
 
 // Graph and page fade in opposite directions over the entire transformation.

@@ -4,6 +4,7 @@ import HelpAnimationProgress from "./HelpAnimationProgress";
 import UnhealthySignalProjection, {
   unhealthyCycleDuration,
   unhealthyResetAt,
+  expandedListHoldMs,
   getUnhealthyDiagramOpacity,
 } from "./UnhealthySignalProjection";
 
@@ -69,7 +70,7 @@ const edges: FlowEdge[] = [
   },
 ];
 
-const healthyCycleDuration = 13000;
+const healthyCycleDuration = 13000 + expandedListHoldMs;
 
 // The selected Item owns these checks. Dependencies have separate checks
 // but their passing checks are not included in this Item's Healthy signals.
@@ -107,6 +108,14 @@ export default function SignalFlowHelpDemo({
   const cycleDuration = unhealthy ? unhealthyCycleDuration : healthyCycleDuration;
   const animationProgress = elapsed / cycleDuration;
 
+  // Hold the complete, unhighlighted Item page for two extra seconds.
+  // Only the scene clock pauses; the progress bar tracks the full cycle.
+  const listHoldAt = unhealthy ? 13800 : 6500;
+  const sceneElapsed = elapsed - Math.min(
+    expandedListHoldMs,
+    Math.max(0, elapsed - listHoldAt),
+  );
+
   useEffect(() => {
     const figure = figureRef.current;
     if (!figure) return undefined;
@@ -125,7 +134,7 @@ export default function SignalFlowHelpDemo({
 
   useEffect(() => {
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
-      setElapsed(unhealthy ? 13000 : 6500);
+      setElapsed(unhealthy ? 15000 : 7500);
       return undefined;
     }
 
@@ -136,7 +145,7 @@ export default function SignalFlowHelpDemo({
   }, [unhealthy, cycleDuration]);
 
   // During the final pause the sample resets to green before repeating.
-  const time = unhealthy && elapsed >= unhealthyResetAt ? 0 : elapsed;
+  const time = unhealthy && sceneElapsed >= unhealthyResetAt ? 0 : sceneElapsed;
   const failedLeaf = unhealthy && time >= failureStart;
   const affectedDependency = unhealthy && time >= dependencyAffectedAt;
   const affectedItem = unhealthy && time >= itemAffectedAt;
@@ -157,7 +166,7 @@ export default function SignalFlowHelpDemo({
 
   // The same three checkmarks and outlines travel from the Item into the
   // list and back, rather than being replaced with unrelated elements.
-  const healthyTime = unhealthy ? 0 : elapsed;
+  const healthyTime = unhealthy ? 0 : sceneElapsed;
   const presentationProgress = smooth(progressBetween(healthyTime, 3500, 5600))
     * (1 - smooth(progressBetween(healthyTime, 7700, 9900)));
   // Temporarily remove selection backgrounds so the plain list is readable.
@@ -179,7 +188,7 @@ export default function SignalFlowHelpDemo({
   const pageOpacity = progressBetween(healthyTime, 3400, 4500)
     * (1 - progressBetween(healthyTime, 8200, 9300));
   const linkOpacity = progressBetween(presentationProgress, 0.7, 0.95);
-  const unhealthyDiagramOpacity = getUnhealthyDiagramOpacity(elapsed);
+  const unhealthyDiagramOpacity = getUnhealthyDiagramOpacity(sceneElapsed);
   return (
     <figure
       ref={figureRef}
@@ -335,7 +344,7 @@ export default function SignalFlowHelpDemo({
 
         {unhealthy && (
           <UnhealthySignalProjection
-            elapsed={elapsed}
+            elapsed={sceneElapsed}
             dependencyFailed={affectedDependency}
             nestedFailed={failedLeaf}
             itemAffected={affectedItem}
