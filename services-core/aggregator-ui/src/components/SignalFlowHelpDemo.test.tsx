@@ -35,7 +35,14 @@ describe("Signal flow help demonstrations", () => {
     expect(document.querySelectorAll("[data-own-signal]")).toHaveLength(3);
     expect(document.querySelector("[data-failing-check]")).toBeNull();
     expect(document.querySelectorAll('[data-health="unhealthy"]')).toHaveLength(0);
-    expect(screen.getByText(/All Items have their own checks/)).not.toBeNull();
+    expect(screen.queryByText(/All Items have their own checks/)).toBeNull();
+    expect(document.querySelector("figcaption")).toBeNull();
+    expect(screen.getByText("client-service")).not.toBeNull();
+    expect(screen.getByText("client-ux")).not.toBeNull();
+    expect(screen.getByText("client-backend")).not.toBeNull();
+    expect(screen.getByText("frontend-enabler")).not.toBeNull();
+    expect(screen.getByText("auth-service")).not.toBeNull();
+    expect(screen.getByText("postgres-db")).not.toBeNull();
 
     advance(9000);
     expect(document.querySelectorAll('[data-health="unhealthy"]')).toHaveLength(0);
@@ -68,7 +75,7 @@ describe("Signal flow help demonstrations", () => {
   it("highlights only the current Item checks and morphs them into the page's links", () => {
     render(<SignalFlowHelpDemo mode="healthy" />);
     const diagram = screen.getByRole("img", {
-      name: /Passing checks in six connected items/,
+      name: /Passing checks in six connected services/,
     });
     const selected = Array.from(diagram.querySelectorAll("[data-own-signal]"));
     const frames = Array.from(diagram.querySelectorAll("[data-selection-frame]"));
@@ -98,6 +105,7 @@ describe("Signal flow help demonstrations", () => {
     expect(screen.getByText("Availability").getAttribute("opacity")).toBe("1");
     expect(screen.getByText("Success ratio").getAttribute("opacity")).toBe("1");
     expect(screen.getByText("Latency").getAttribute("opacity")).toBe("1");
+    expect(screen.getByText("client-service")).not.toBeNull();
 
     advance(100);
     expect(frames.every((frame) => frame.getAttribute("opacity") === "0")).toBe(true);
@@ -154,13 +162,15 @@ describe("Signal flow help demonstrations", () => {
     expect(getNode("item").getAttribute("data-health")).toBe("unhealthy");
     expect(getNode("nested2").getAttribute("data-health")).toBe("healthy");
     expect(getNode("nested3").getAttribute("data-health")).toBe("healthy");
-    expect(screen.getByText(/current Item is unhealthy/)).not.toBeNull();
+    expect(document.querySelector("figcaption")).toBeNull();
+    expect(getNode("item").textContent).toContain("client-service");
+    expect(getNode("dep2").textContent).toContain("client-backend");
   });
 
   it("morphs two full dependency nodes, each with one signal, into the unhealthy list and back", () => {
     render(<SignalFlowHelpDemo mode="unhealthy" />);
     const diagram = screen.getByRole("img", {
-      name: /A failing check in Nested dependency 1/,
+      name: /A failing check in frontend-enabler/,
     });
     const page = diagram.querySelector('[data-unhealthy-page="true"]') as SVGElement;
     const graph = diagram.querySelector(".signal-flow-help-graph") as SVGElement;
@@ -175,6 +185,8 @@ describe("Signal flow help demonstrations", () => {
     const nestedBox = nested.querySelector(".signal-flow-help-node-frame") as Element;
 
     expect(groups).toHaveLength(2);
+    expect(parent.textContent).toContain("client-ux");
+    expect(nested.textContent).toContain("frontend-enabler");
     expect(diagram.querySelectorAll("[data-flow-node]")).toHaveLength(6);
     expect(page.style.opacity).toBe("0");
     expect(graph.style.opacity).toBe("1");

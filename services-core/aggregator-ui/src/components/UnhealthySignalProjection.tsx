@@ -9,14 +9,14 @@ type MovingDependency = {
 const dependencies: MovingDependency[] = [
   {
     id: "dep1",
-    title: "Dependency 1",
+    title: "client-ux",
     signal: "Error rate",
     source: { x: 115, y: 131, width: 154, height: 60 },
     targetY: 157,
   },
   {
     id: "nested1",
-    title: "Nested dep 1",
+    title: "frontend-enabler",
     signal: "Readiness check",
     source: { x: 19, y: 245, width: 164, height: 60 },
     targetY: 232,
@@ -77,7 +77,7 @@ export default function UnhealthySignalProjection({
         <rect className="signal-flow-help-page-surface" x="0" y="0" width="640" height="326" stroke="none" />
         <g transform={compact ? "translate(-90 0)" : undefined}>
         <text className="signal-flow-help-page-failed-status" x="124" y="51">×</text>
-        <text className="signal-flow-help-page-title" x="150" y="51">Current Item</text>
+        <text className="signal-flow-help-page-title" x="150" y="51">client-service</text>
         <line className="signal-flow-help-page-divider" x1="121" y1="67" x2={compact ? 699 : 519} y2="67" />
         <text className="signal-flow-help-page-muted" x="123" y="91">Primary contact</text>
         <text className="signal-flow-help-page-contact" x="123" y="111">team@example.test</text>

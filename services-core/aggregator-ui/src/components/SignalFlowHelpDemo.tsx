@@ -27,12 +27,12 @@ type FlowEdge = {
 };
 
 const nodes: FlowNode[] = [
-  { id: "item", title: "Current Item", x: 244, y: 20, width: 152, height: 60 },
-  { id: "dep1", title: "Dependency 1", x: 115, y: 131, width: 154, height: 60 },
-  { id: "dep2", title: "Dependency 2", x: 371, y: 131, width: 154, height: 60 },
-  { id: "nested1", title: "Nested dep 1", x: 19, y: 245, width: 164, height: 60 },
-  { id: "nested2", title: "Nested dep 2", x: 202, y: 245, width: 164, height: 60 },
-  { id: "nested3", title: "Nested dep 3", x: 457, y: 245, width: 164, height: 60 },
+  { id: "item", title: "client-service", x: 244, y: 20, width: 152, height: 60 },
+  { id: "dep1", title: "client-ux", x: 115, y: 131, width: 154, height: 60 },
+  { id: "dep2", title: "client-backend", x: 371, y: 131, width: 154, height: 60 },
+  { id: "nested1", title: "frontend-enabler", x: 19, y: 245, width: 164, height: 60 },
+  { id: "nested2", title: "auth-service", x: 202, y: 245, width: 164, height: 60 },
+  { id: "nested3", title: "postgres-db", x: 457, y: 245, width: 164, height: 60 },
 ];
 
 // Every path runs from a dependency upward toward the Item that uses it.
@@ -180,26 +180,6 @@ export default function SignalFlowHelpDemo({
     * (1 - progressBetween(healthyTime, 8200, 9300));
   const linkOpacity = progressBetween(presentationProgress, 0.7, 0.95);
   const unhealthyDiagramOpacity = getUnhealthyDiagramOpacity(elapsed);
-  const explanation = !unhealthy
-    ? healthyTime < 2200
-      ? "All Items have their own checks. Watch which ones appear in this Item's Healthy signals."
-      : healthyTime < 7600
-        ? "Only the current Item's three passing checks become links in its Healthy signals list."
-        : "The same links return to the checks on the current Item."
-    : !failedLeaf
-      ? "All checks are passing."
-      : !affectedDependency
-        ? "A check fails in Nested dep 1. Its impact travels toward Dependency 1."
-        : !affectedItem
-          ? "Dependency 1 is affected. The impact now moves toward the current Item."
-          : elapsed < 8200
-            ? "The current Item is unhealthy: Nested dep 1 fails, and Dependency 1 has a failing check."
-            : elapsed < 15800
-              ? "Each affected dependency and its one failing check appear under Unhealthy signals."
-              : elapsed < unhealthyResetAt
-                ? "Both dependency entries return to their places in the graph."
-                : "All checks are passing. The example will repeat.";
-
   return (
     <figure
       ref={figureRef}
@@ -214,8 +194,8 @@ export default function SignalFlowHelpDemo({
         role="img"
         aria-label={
           unhealthy
-            ? "A failing check in Nested dependency 1 affects Dependency 1, then the current Item"
-            : "Passing checks in six connected items flow upward through the dependency graph"
+            ? "A failing check in frontend-enabler affects client-ux, then client-service"
+            : "Passing checks in six connected services flow upward through their relationships"
         }
       >
         <defs>
@@ -373,7 +353,7 @@ export default function SignalFlowHelpDemo({
               <rect className="signal-flow-help-page-surface" x="0" y="0" width="640" height="326" stroke="none" />
               <g transform={compact ? "translate(-90 0)" : undefined}>
               <text className="signal-flow-help-page-status" x="124" y="51">✓</text>
-              <text className="signal-flow-help-page-title" x="150" y="51">Current Item</text>
+              <text className="signal-flow-help-page-title" x="150" y="51">client-service</text>
               <line className="signal-flow-help-page-divider" x1="121" y1="67" x2={compact ? 699 : 519} y2="67" />
               <text className="signal-flow-help-page-muted" x="123" y="91">Primary contact</text>
               <text className="signal-flow-help-page-contact" x="123" y="111">team@example.test</text>
@@ -441,10 +421,6 @@ export default function SignalFlowHelpDemo({
           </>
         )}
       </svg>
-      <figcaption className="signal-flow-help-caption">
-        <span className="signal-flow-help-caption-indicator" aria-hidden="true" />
-        {explanation}
-      </figcaption>
     </figure>
   );
 }

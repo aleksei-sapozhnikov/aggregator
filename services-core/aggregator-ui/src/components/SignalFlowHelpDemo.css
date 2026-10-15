@@ -96,38 +96,9 @@
   font-weight: 800;
 }
 
-.signal-flow-help-caption {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  min-height: 38px;
-  padding: 4px 6px 0;
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 1.45;
-}
-
-.signal-flow-help-caption-indicator {
-  flex: none;
-  width: 8px;
-  height: 8px;
-  margin-top: 5px;
-  border-radius: 50%;
-  background: var(--status-up);
-}
-
-.signal-flow-help.is-unhealthy-demo:has(.signal-flow-help-node.is-affected)
-  .signal-flow-help-caption-indicator {
-  background: var(--status-down);
-}
-
 @media (max-width: 540px) {
   .signal-flow-help {
     padding: 5px;
-  }
-  .signal-flow-help-caption {
-    min-height: 56px;
-    padding: 6px 5px 2px;
   }
 }
 
