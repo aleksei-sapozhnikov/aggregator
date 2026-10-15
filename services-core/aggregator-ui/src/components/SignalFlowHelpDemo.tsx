@@ -266,9 +266,8 @@ export default function SignalFlowHelpDemo({
         })}
 
         {nodes.map((node) => {
-          // These two nodes are rendered by the projection from the beginning
-          // so their entire boxes can move into the list and back.
-          if (unhealthy && (node.id === "dep1" || node.id === "nested1")) {
+          // Keep the Item and its affected dependencies mounted through the morph.
+          if (unhealthy && (node.id === "item" || node.id === "dep1" || node.id === "nested1")) {
             return null;
           }
           const affected = affectedNodes.has(node.id);
@@ -339,6 +338,7 @@ export default function SignalFlowHelpDemo({
             elapsed={elapsed}
             dependencyFailed={affectedDependency}
             nestedFailed={failedLeaf}
+            itemAffected={affectedItem}
             compact={compact}
           />
         )}

@@ -45,11 +45,13 @@ export default function UnhealthySignalProjection({
   elapsed,
   nestedFailed,
   dependencyFailed,
+  itemAffected,
   compact,
 }: {
   elapsed: number;
   nestedFailed: boolean;
   dependencyFailed: boolean;
+  itemAffected: boolean;
   compact: boolean;
 }) {
   const progress = ease(between(elapsed, 9600, 12800))
@@ -76,14 +78,88 @@ export default function UnhealthySignalProjection({
       >
         <rect className="signal-flow-help-page-surface" x="0" y="0" width="640" height="326" stroke="none" />
         <g transform={compact ? "translate(-90 0)" : undefined}>
-        <text className="signal-flow-help-page-failed-status" x="124" y="51">×</text>
-        <text className="signal-flow-help-page-title" x="150" y="51">client-service</text>
         <line className="signal-flow-help-page-divider" x1="121" y1="67" x2={compact ? 699 : 519} y2="67" />
         <text className="signal-flow-help-page-muted" x="123" y="91">Primary contact</text>
         <text className="signal-flow-help-page-contact" x="123" y="111">support@client-service</text>
         <text className="signal-flow-help-page-heading" x="123" y="143">⌄ Unhealthy signals (2)</text>
         <line className="signal-flow-help-page-divider" x1="121" y1="151" x2={compact ? 699 : 519} y2="151" />
         </g>
+      </g>
+
+
+      {/* The selected Item itself becomes the page title; no duplicate title is mounted. */}
+      <g
+        data-flow-node="item"
+        data-health={itemAffected ? "unhealthy" : "healthy"}
+        data-unhealthy-source="item"
+        className={
+          "signal-flow-help-node signal-flow-help-moving-dependency signal-flow-help-moving-item"
+          + (itemAffected ? " is-affected" : "")
+        }
+      >
+        <rect
+          className="signal-flow-help-selection-frame is-unhealthy-frame"
+          data-unhealthy-frame="item"
+          x={mix(240, compact ? 17 : 109, progress)}
+          y={mix(16, 18, progress)}
+          width={mix(160, compact ? 595 : 397, progress)}
+          height={mix(68, 46, progress)}
+          rx={10}
+          opacity={selectionOpacity}
+        />
+        <rect
+          className="signal-flow-help-node-frame"
+          data-moving-item-box="true"
+          x={mix(244, compact ? 21 : 113, progress)}
+          y={mix(20, 22, progress)}
+          width={mix(152, compact ? 587 : 389, progress)}
+          height={mix(60, 38, progress)}
+          rx={10}
+          opacity={listHighlightVisibility}
+        />
+        <text
+          className="signal-flow-help-node-title signal-flow-help-moving-item-title"
+          data-moving-item-title="true"
+          x={mix(274, compact ? 60 : 150, progress)}
+          y={mix(44, 51, progress)}
+          style={{ fontSize: mix(15, 19, progress) + "px" }}
+        >
+          client-service
+        </text>
+        <g opacity={symbolOpacity}>
+          {itemAffected ? (
+            <text
+              className="signal-flow-help-impacted-label"
+              x={mix(320, compact ? 90 : 205, progress)}
+              y={mix(67, 51, progress)}
+              textAnchor="middle"
+            >
+              Affected by dependency
+            </text>
+          ) : (
+            <g className="signal-flow-help-checks" aria-label="Passing checks">
+              {[-18, 0, 18].map((offset) => (
+                <text
+                  key={offset}
+                  x={mix(320 + offset, compact ? 34 : 124, progress)}
+                  y={mix(68, 51, progress)}
+                  textAnchor="middle"
+                >
+                  ✓
+                </text>
+              ))}
+            </g>
+          )}
+        </g>
+        <text
+          className="signal-flow-help-page-failed-status"
+          data-moving-item-status="true"
+          x={compact ? 34 : 124}
+          y="51"
+          opacity={itemAffected ? linkOpacity : 0}
+        >
+          ×
+        </text>
       </g>
 
       {dependencies.map((dependency) => {
