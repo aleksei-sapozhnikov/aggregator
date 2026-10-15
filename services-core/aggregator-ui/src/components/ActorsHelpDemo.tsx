@@ -191,7 +191,7 @@ function Machine() {
 
 function ActorIcon() {
   return (
-    <g fill="none" stroke="#172336" strokeWidth="2.3"
+    <g className="actors-help-actor-icon" fill="none" strokeWidth="2.3"
       strokeLinecap="round" strokeLinejoin="round">
       <circle cx="0" cy="-4" r="3" />
       <path d="M-6 7q0-7 6-7t6 7" />
@@ -220,28 +220,28 @@ function ScenePlate({
 function ItemPreview({ opacity }: { opacity: number }) {
   return (
     <g className="actors-help-item" style={{ opacity }} aria-hidden="true">
-      <rect x="32" y="6" width="356" height="295" rx="8"
-        fill="#f5f6f8" stroke="#d8dadd" />
       <text x="51" y="42" className="actors-help-check">✓</text>
       <text x="76" y="42" className="actors-help-title">Order Fulfillment</text>
-      <circle cx="242" cy="34" r="8" fill="none"
-        stroke="#1550b3" strokeWidth="1.8" />
+      <circle className="actors-help-info-outline"
+        cx="242" cy="34" r="8" fill="none" strokeWidth="1.8" />
       <text x="242" y="39" className="actors-help-info" textAnchor="middle">i</text>
       <text x="263" y="40" className="actors-help-up">UP</text>
-      <path d="M65 73v65" stroke="#2f6feb" strokeWidth="3" />
+      <path className="actors-help-primary-marker" d="M65 73v65" strokeWidth="3" />
       <text x="88" y="91" className="actors-help-heading">Primary contact</text>
-      <circle cx="217" cy="86" r="8" fill="none" stroke="#9da5b2" />
+      <circle className="actors-help-question-outline"
+        cx="217" cy="86" r="8" fill="none" />
       <text x="217" y="90" className="actors-help-question" textAnchor="middle">?</text>
-      <g transform="translate(88 110)" fill="none"
-        stroke="#1f2328" strokeWidth="2" strokeLinejoin="round">
-        <rect x="0" y="0" width="18" height="13" rx="2" fill="#fffaf0" />
+      <g className="actors-help-contact-icon" transform="translate(88 110)" fill="none"
+        strokeWidth="2" strokeLinejoin="round">
+        <rect x="0" y="0" width="18" height="13" rx="2" />
         <path d="m1 2 8 6 8-6" />
       </g>
       <text x="113" y="121" className="actors-help-link">orders-team@demo.email</text>
       <text x="62" y="166" className="actors-help-chevron">⌄</text>
       <g transform="translate(87 161)"><ActorIcon /></g>
       <text x="110" y="166" className="actors-help-heading">Actors (3)</text>
-      <circle cx="205" cy="160" r="8" fill="none" stroke="#9da5b2" />
+      <circle className="actors-help-question-outline"
+        cx="205" cy="160" r="8" fill="none" />
       <text x="205" y="164" className="actors-help-question" textAnchor="middle">?</text>
       {actors.map((actor, index) => (
         <g key={actor.id}>
