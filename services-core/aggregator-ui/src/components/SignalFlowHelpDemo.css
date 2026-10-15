@@ -1,0 +1,142 @@
+.signal-flow-help {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  min-width: 0;
+  margin: 0;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel-alt);
+  color: var(--text);
+}
+
+.signal-flow-help-diagram {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.signal-flow-help-wire,
+.signal-flow-help-current,
+.signal-flow-help-propagation {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.signal-flow-help-wire {
+  stroke: var(--status-up);
+  stroke-width: 2.8;
+  opacity: 0.55;
+}
+
+.signal-flow-help-current {
+  stroke: var(--status-up);
+  stroke-width: 3.3;
+  stroke-dasharray: 4 13;
+  animation: signal-flow-help-current-move 1.35s linear infinite;
+}
+
+.signal-flow-help-current.is-red {
+  stroke: var(--status-down);
+}
+
+.signal-flow-help-propagation {
+  stroke: var(--status-down);
+  stroke-width: 3.5;
+}
+
+@keyframes signal-flow-help-current-move {
+  to { stroke-dashoffset: -34; }
+}
+
+.signal-flow-help-node-frame {
+  fill: var(--panel);
+  stroke: var(--status-up);
+  stroke-width: 2.4;
+  transition: stroke 220ms ease, fill 220ms ease;
+}
+
+.signal-flow-help-node.is-affected .signal-flow-help-node-frame {
+  stroke: var(--status-down);
+  fill: color-mix(in srgb, var(--status-down) 12%, var(--panel));
+}
+
+.signal-flow-help-node-title {
+  fill: var(--text);
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.signal-flow-help-checks {
+  fill: var(--status-up);
+  font-size: 19px;
+  font-weight: 800;
+}
+
+.signal-flow-help-impacted-label {
+  fill: var(--status-down);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.signal-flow-help-alarm path {
+  fill: color-mix(in srgb, var(--status-down) 15%, var(--panel));
+  stroke: var(--status-down);
+  stroke-width: 1.8;
+}
+
+.signal-flow-help-alarm text {
+  fill: var(--status-down);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.signal-flow-help-caption {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-height: 38px;
+  padding: 4px 6px 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.signal-flow-help-caption-indicator {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin-top: 5px;
+  border-radius: 50%;
+  background: var(--status-up);
+}
+
+.signal-flow-help.is-unhealthy-demo:has(.signal-flow-help-node.is-affected)
+  .signal-flow-help-caption-indicator {
+  background: var(--status-down);
+}
+
+@media (max-width: 540px) {
+  .signal-flow-help {
+    padding: 5px;
+  }
+  .signal-flow-help-caption {
+    min-height: 56px;
+    padding: 6px 5px 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .signal-flow-help-current {
+    animation: none;
+    stroke-dasharray: none;
+    opacity: 0.5;
+  }
+  .signal-flow-help-node-frame {
+    transition: none;
+  }
+}

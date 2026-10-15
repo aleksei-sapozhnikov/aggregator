@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import type { InfoHelpTopic } from "../shared/infoHelpTopics";
 import ModalWindow from "./ModalWindow";
 import TimelineHelpDemo from "./TimelineHelpDemo";
+import SignalFlowHelpDemo from "./SignalFlowHelpDemo";
 
 type InfoHelpProps = {
   topic: InfoHelpTopic;
@@ -80,6 +81,8 @@ export default function InfoHelp({ topic }: InfoHelpProps) {
             <p>{topic.description}</p>
           </div>
           {topic.demo === "timeline" && <TimelineHelpDemo />}
+          {topic.demo === "healthy-signals" && <SignalFlowHelpDemo mode="healthy" />}
+          {topic.demo === "unhealthy-signals" && <SignalFlowHelpDemo mode="unhealthy" />}
           {topic.sections && topic.sections.length > 0 && (
             <div className="info-help-sections">
               {topic.sections.map((section) => (
