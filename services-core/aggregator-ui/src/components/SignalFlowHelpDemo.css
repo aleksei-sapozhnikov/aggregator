@@ -140,3 +140,79 @@
     transition: none;
   }
 }
+
+
+/* Healthy signals: the graph, Item preview and moving checks share one
+   SVG coordinate system, so the motion scales with the diagram. */
+.signal-flow-help-graph,
+.signal-flow-help-page {
+  pointer-events: none;
+}
+
+.signal-flow-help-page-surface {
+  fill: var(--panel);
+  stroke: var(--border);
+  stroke-width: 2;
+}
+
+.signal-flow-help-page-divider {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.signal-flow-help-page-status {
+  fill: var(--status-up);
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.signal-flow-help-page-title {
+  fill: var(--text);
+  font-size: 19px;
+  font-weight: 650;
+}
+
+.signal-flow-help-page-muted {
+  fill: var(--muted);
+  font-size: 12px;
+}
+
+.signal-flow-help-page-contact {
+  fill: var(--link);
+  font-size: 12px;
+}
+
+.signal-flow-help-page-heading {
+  fill: var(--text);
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.signal-flow-help-selection-frame {
+  fill: color-mix(in srgb, var(--link) 10%, transparent);
+  stroke: var(--link);
+  stroke-width: 2;
+}
+
+.signal-flow-help-owned-check {
+  fill: var(--status-up);
+  font-size: 19px;
+  font-weight: 800;
+}
+
+.signal-flow-help-page-link,
+.signal-flow-help-page-link-arrow {
+  fill: var(--link);
+  font-size: 14px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.signal-flow-help-page-link-arrow {
+  font-size: 16px;
+  text-decoration: none;
+}
+
+.signal-flow-help-owned-signal {
+  pointer-events: none;
+}

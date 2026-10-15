@@ -64,6 +64,17 @@ const edges: FlowEdge[] = [
 ];
 
 const cycleDuration = 11200;
+const healthyCycleDuration = 13000;
+
+// The selected Item owns these checks. Dependencies have separate checks
+// but their passing checks are not included in this Item's Healthy signals.
+const ownChecks = [
+  { id: "availability", label: "Availability", offset: -28 },
+  { id: "success-ratio", label: "Success ratio", offset: 0 },
+  { id: "latency", label: "Latency", offset: 28 },
+] as const;
+
+const smooth = (value: number): number => value * value * (3 - 2 * value);
 const failureStart = 1500;
 const firstLinkStart = 2400;
 const firstLinkEnd = 4200;
@@ -88,17 +99,14 @@ export default function SignalFlowHelpDemo({
   const unhealthy = mode === "unhealthy";
 
   useEffect(() => {
-    if (!unhealthy) {
-      return undefined;
-    }
-
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
-      setElapsed(itemAffectedAt + 100);
+      setElapsed(unhealthy ? itemAffectedAt + 100 : 6500);
       return undefined;
     }
 
+    const duration = unhealthy ? cycleDuration : healthyCycleDuration;
     const interval = window.setInterval(() => {
-      setElapsed((current) => (current + 100) % cycleDuration);
+      setElapsed((current) => (current + 100) % duration);
     }, 100);
     return () => window.clearInterval(interval);
   }, [unhealthy]);
@@ -123,8 +131,30 @@ export default function SignalFlowHelpDemo({
       : 0,
   };
 
+  // The same three checkmarks and outlines travel from the Item into the
+  // list and back, rather than being replaced with unrelated elements.
+  const healthyTime = unhealthy ? 0 : elapsed;
+  const presentationProgress = smooth(progressBetween(healthyTime, 3500, 5600))
+    * (1 - smooth(progressBetween(healthyTime, 7700, 9900)));
+  const selectionOpacity = progressBetween(healthyTime, 2100, 2900)
+    * (1 - progressBetween(healthyTime, 10300, 11100));
+  const diagramOpacity = Math.min(
+    1,
+    Math.max(
+      0,
+      1 - progressBetween(healthyTime, 3450, 4450)
+        + progressBetween(healthyTime, 8250, 9500),
+    ),
+  );
+  const pageOpacity = progressBetween(healthyTime, 3400, 4500)
+    * (1 - progressBetween(healthyTime, 8200, 9300));
+  const linkOpacity = progressBetween(presentationProgress, 0.7, 0.95);
   const explanation = !unhealthy
-    ? "Each Item has its own passing checks. Dependency health also contributes to the current Item's overall health."
+    ? healthyTime < 2200
+      ? "All Items have their own checks. Watch which ones appear in this Item's Healthy signals."
+      : healthyTime < 7600
+        ? "Only the current Item's three passing checks become links in its Healthy signals list."
+        : "The same links return to the checks on the current Item."
     : !failedLeaf
       ? "All checks are passing."
       : !affectedDependency
@@ -173,6 +203,10 @@ export default function SignalFlowHelpDemo({
           </marker>
         </defs>
 
+        <g
+          className="signal-flow-help-graph"
+          style={{ opacity: unhealthy ? 1 : diagramOpacity }}
+        >
         {edges.map((edge, index) => {
           const progress = redProgress[edge.id] ?? 0;
           const fullyRed = progress >= 1;
@@ -258,7 +292,7 @@ export default function SignalFlowHelpDemo({
                 </text>
               ) : (
                 <g className="signal-flow-help-checks" aria-label="Passing checks">
-                  {[-18, 0, 18].map((offset) => (
+                  {(unhealthy || node.id !== "item" ? [-18, 0, 18] : []).map((offset) => (
                     <text
                       key={offset}
                       x={center + offset}
@@ -273,6 +307,83 @@ export default function SignalFlowHelpDemo({
             </g>
           );
         })}
+        </g>
+
+        {!unhealthy && (
+          <>
+            <g
+              className="signal-flow-help-page"
+              data-healthy-page="true"
+              style={{ opacity: pageOpacity }}
+            >
+              <rect className="signal-flow-help-page-surface" x="95" y="14" width="450" height="298" rx="12" />
+              <text className="signal-flow-help-page-status" x="124" y="51">✓</text>
+              <text className="signal-flow-help-page-title" x="150" y="51">Current Item</text>
+              <line className="signal-flow-help-page-divider" x1="121" y1="67" x2="519" y2="67" />
+              <text className="signal-flow-help-page-muted" x="123" y="91">Primary contact</text>
+              <text className="signal-flow-help-page-contact" x="123" y="111">team@example.test</text>
+              <text className="signal-flow-help-page-heading" x="123" y="143">⌄ Healthy signals (3)</text>
+              <line className="signal-flow-help-page-divider" x1="121" y1="151" x2="519" y2="151" />
+            </g>
+
+            {ownChecks.map((check, index) => {
+              const startX = 320 + check.offset - 12;
+              const startY = 53;
+              const targetX = 132;
+              const targetY = 157 + index * 41;
+              const rectX = startX + (targetX - startX) * presentationProgress;
+              const rectY = startY + (targetY - startY) * presentationProgress;
+              const rectWidth = 24 + (374 - 24) * presentationProgress;
+              const rectHeight = 22 + (35 - 22) * presentationProgress;
+              const checkX = 320 + check.offset +
+                (targetX + 19 - 320 - check.offset) * presentationProgress;
+              const checkY = 69 + (targetY + 25 - 69) * presentationProgress;
+              return (
+                <g
+                  key={check.id}
+                  className="signal-flow-help-owned-signal"
+                  data-own-signal={check.id}
+                >
+                  <rect
+                    className="signal-flow-help-selection-frame"
+                    data-selection-frame={check.id}
+                    x={rectX}
+                    y={rectY}
+                    width={rectWidth}
+                    height={rectHeight}
+                    rx={6}
+                    opacity={selectionOpacity}
+                  />
+                  <text
+                    className="signal-flow-help-owned-check"
+                    x={checkX}
+                    y={checkY}
+                    textAnchor="middle"
+                  >
+                    ✓
+                  </text>
+                  <text
+                    className="signal-flow-help-page-link"
+                    x={targetX + 40}
+                    y={targetY + 24}
+                    opacity={linkOpacity}
+                  >
+                    {check.label}
+                  </text>
+                  <text
+                    className="signal-flow-help-page-link-arrow"
+                    x={targetX + 352}
+                    y={targetY + 24}
+                    opacity={linkOpacity}
+                    textAnchor="end"
+                  >
+                    ↗
+                  </text>
+                </g>
+              );
+            })}
+          </>
+        )}
       </svg>
       <figcaption className="signal-flow-help-caption">
         <span className="signal-flow-help-caption-indicator" aria-hidden="true" />

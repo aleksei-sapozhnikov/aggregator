@@ -31,12 +31,56 @@ describe("Signal flow help demonstrations", () => {
     expect(document.querySelectorAll("[data-flow-node]")).toHaveLength(6);
     expect(document.querySelectorAll("[data-flow-edge]")).toHaveLength(5);
     expect(document.querySelectorAll(".signal-flow-help-checks")).toHaveLength(6);
+    expect(document.querySelectorAll("[data-own-signal]")).toHaveLength(3);
     expect(document.querySelector("[data-failing-check]")).toBeNull();
     expect(document.querySelectorAll('[data-health="unhealthy"]')).toHaveLength(0);
-    expect(screen.getByText(/Each Item has its own passing checks/)).not.toBeNull();
+    expect(screen.getByText(/All Items have their own checks/)).not.toBeNull();
 
     advance(9000);
     expect(document.querySelectorAll('[data-health="unhealthy"]')).toHaveLength(0);
+  });
+
+  it("highlights only the current Item checks and morphs them into the page's links", () => {
+    render(<SignalFlowHelpDemo mode="healthy" />);
+    const diagram = screen.getByRole("img", {
+      name: /Passing checks in six connected items/,
+    });
+    const selected = Array.from(diagram.querySelectorAll("[data-own-signal]"));
+    const frames = Array.from(diagram.querySelectorAll("[data-selection-frame]"));
+    const page = diagram.querySelector('[data-healthy-page="true"]') as SVGElement;
+    const graph = diagram.querySelector(".signal-flow-help-graph") as SVGElement;
+
+    expect(selected).toHaveLength(3);
+    expect(frames).toHaveLength(3);
+    expect(page.style.opacity).toBe("0");
+    expect(graph.style.opacity).toBe("1");
+
+    advance(2900);
+    expect(frames.every((frame) => Number(frame.getAttribute("opacity")) === 1)).toBe(true);
+    expect(frames[0].getAttribute("x")).toBe("280");
+    expect(page.style.opacity).toBe("0");
+
+    advance(3600);
+    expect(page.style.opacity).toBe("1");
+    expect(graph.style.opacity).toBe("0");
+    expect(frames[0].getAttribute("x")).toBe("132");
+    expect(frames[0].getAttribute("width")).toBe("374");
+    expect(diagram.querySelectorAll(".signal-flow-help-page-link")).toHaveLength(3);
+    expect(screen.getByText("Availability").getAttribute("opacity")).toBe("1");
+    expect(screen.getByText("Success ratio").getAttribute("opacity")).toBe("1");
+    expect(screen.getByText("Latency").getAttribute("opacity")).toBe("1");
+
+    advance(3300);
+    expect(page.style.opacity).toBe("0");
+    expect(graph.style.opacity).toBe("1");
+    expect(frames[0].getAttribute("x")).toBe("280");
+    expect(frames[0].getAttribute("width")).toBe("24");
+    expect(diagram.querySelectorAll("[data-own-signal]")[0]).toBe(selected[0]);
+
+    advance(3200);
+    expect(frames[0].getAttribute("opacity")).toBe("0");
+    expect(page.style.opacity).toBe("0");
+    expect(graph.style.opacity).toBe("1");
   });
 
   it("propagates the failed nested dependency toward its parent and current Item", () => {
