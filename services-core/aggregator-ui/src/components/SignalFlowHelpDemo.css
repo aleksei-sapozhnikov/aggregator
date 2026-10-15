@@ -152,8 +152,7 @@
 
 .signal-flow-help-page-surface {
   fill: var(--panel);
-  stroke: var(--border);
-  stroke-width: 2;
+  stroke: none;
 }
 
 .signal-flow-help-page-divider {

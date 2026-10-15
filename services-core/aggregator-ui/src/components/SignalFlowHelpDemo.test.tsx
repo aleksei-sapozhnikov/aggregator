@@ -9,6 +9,7 @@ beforeEach(() => vi.useFakeTimers());
 afterEach(() => {
   cleanup();
   vi.useRealTimers();
+  vi.restoreAllMocks();
 });
 
 const advance = (milliseconds: number) =>
@@ -90,11 +91,19 @@ describe("Signal flow help demonstrations", () => {
     expect(frames[0].getAttribute("x")).toBe("132");
     expect(frames[0].getAttribute("width")).toBe("374");
     expect(diagram.querySelectorAll(".signal-flow-help-page-link")).toHaveLength(3);
+    const surface = diagram.querySelector(".signal-flow-help-page-surface") as Element;
+    expect(surface.getAttribute("x")).toBe("0");
+    expect(surface.getAttribute("width")).toBe("640");
+    expect(surface.getAttribute("stroke")).toBe("none");
     expect(screen.getByText("Availability").getAttribute("opacity")).toBe("1");
     expect(screen.getByText("Success ratio").getAttribute("opacity")).toBe("1");
     expect(screen.getByText("Latency").getAttribute("opacity")).toBe("1");
 
-    advance(3500);
+    advance(100);
+    expect(frames.every((frame) => frame.getAttribute("opacity") === "0")).toBe(true);
+    advance(1000);
+    expect(frames.every((frame) => frame.getAttribute("opacity") === "1")).toBe(true);
+    advance(2400);
     expect(page.style.opacity).toBe("0");
     expect(graph.style.opacity).toBe("1");
     expect(frames[0].getAttribute("x")).toBe("280");
@@ -193,17 +202,29 @@ describe("Signal flow help demonstrations", () => {
     advance(2200);
     expect(page.style.opacity).toBe("1");
     expect(graph.style.opacity).toBe("0");
+    const surface = diagram.querySelector(".signal-flow-help-page-surface") as Element;
+    expect(surface.getAttribute("x")).toBe("0");
+    expect(surface.getAttribute("width")).toBe("640");
+    expect(surface.getAttribute("stroke")).toBe("none");
     expect(parentBox.getAttribute("x")).toBe("126");
     expect(parentBox.getAttribute("width")).toBe("388");
     expect(nestedBox.getAttribute("x")).toBe("126");
     expect(nestedBox.getAttribute("y")).toBe("232");
     expect(screen.getByText("Error rate").getAttribute("opacity")).toBe("1");
     expect(screen.getByText("Readiness check").getAttribute("opacity")).toBe("1");
-    expect(parentFrame.getAttribute("opacity")).toBe("1");
-    expect(nestedFrame.getAttribute("opacity")).toBe("1");
+    expect(Number(parentFrame.getAttribute("opacity"))).toBeLessThan(1);
+    expect(Number(parentFrame.getAttribute("opacity"))).toBeGreaterThan(0);
+    expect(Number(nestedFrame.getAttribute("opacity"))).toBeLessThan(1);
     expect(diagram.querySelectorAll(".signal-flow-help-moving-dependency .signal-flow-help-page-link")).toHaveLength(2);
 
-    advance(3200);
+    advance(600);
+    expect(parentFrame.getAttribute("opacity")).toBe("0");
+    expect(nestedFrame.getAttribute("opacity")).toBe("0");
+    expect(parentBox.getAttribute("opacity")).toBe("0");
+    advance(1100);
+    expect(parentFrame.getAttribute("opacity")).toBe("1");
+    expect(nestedFrame.getAttribute("opacity")).toBe("1");
+    advance(1500);
     expect(Number(page.style.opacity)).toBeGreaterThan(0);
     expect(Number(page.style.opacity)).toBeLessThan(1);
     expect(parentFrame.getAttribute("opacity")).toBe("1");
@@ -223,6 +244,30 @@ describe("Signal flow help demonstrations", () => {
     expect(parent.getAttribute("data-health")).toBe("healthy");
     expect(nested.getAttribute("data-health")).toBe("healthy");
   });
+
+  it.each(["healthy", "unhealthy"] as const)(
+    "fills the card with the %s list on narrow containers",
+    (mode) => {
+      vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(
+        () => ({ width: 420, height: 420, toJSON: () => ({}) }) as DOMRect,
+      );
+      const { container } = render(<SignalFlowHelpDemo mode={mode} />);
+      const diagram = container.querySelector(".signal-flow-help-diagram") as SVGElement;
+      expect(diagram.getAttribute("data-page-layout")).toBe("compact");
+      const page = diagram.querySelector(".signal-flow-help-page") as SVGElement;
+      expect(page.querySelector('g[transform="translate(-90 0)"]')).not.toBeNull();
+      advance(mode === "healthy" ? 6500 : 14000);
+      if (mode === "healthy") {
+        const frame = diagram.querySelector('[data-selection-frame="availability"]') as Element;
+        expect(frame.getAttribute("x")).toBe("42");
+        expect(frame.getAttribute("width")).toBe("570");
+      } else {
+        const frame = diagram.querySelector('[data-unhealthy-source="dep1"] .signal-flow-help-node-frame') as Element;
+        expect(frame.getAttribute("x")).toBe("33");
+        expect(frame.getAttribute("width")).toBe("575");
+      }
+    },
+  );
 
   it("resets and replays after the unhealthy state is shown", () => {
     render(<SignalFlowHelpDemo mode="unhealthy" />);

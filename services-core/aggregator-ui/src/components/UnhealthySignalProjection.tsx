@@ -45,17 +45,25 @@ export default function UnhealthySignalProjection({
   elapsed,
   nestedFailed,
   dependencyFailed,
+  compact,
 }: {
   elapsed: number;
   nestedFailed: boolean;
   dependencyFailed: boolean;
+  compact: boolean;
 }) {
   const progress = ease(between(elapsed, 9600, 12800))
     * (1 - ease(between(elapsed, 15600, 18600)));
   const pageOpacity = between(elapsed, 9600, 12800)
     * (1 - between(elapsed, 15800, 18600));
+  // Keep the grouped list visible without colored boxes during its pause.
+  const listHighlightVisibility = clamp(
+    1 - between(elapsed, 12900, 13600)
+      + between(elapsed, 14800, 15400),
+  );
   const selectionOpacity = between(elapsed, 8300, 9300)
-    * (1 - between(elapsed, 18900, 19600));
+    * (1 - between(elapsed, 18900, 19600))
+    * listHighlightVisibility;
   const linkOpacity = between(progress, 0.48, 0.94);
   const symbolOpacity = 1 - between(progress, 0.38, 0.88);
 
@@ -66,27 +74,29 @@ export default function UnhealthySignalProjection({
         data-unhealthy-page="true"
         style={{ opacity: pageOpacity }}
       >
-        <rect className="signal-flow-help-page-surface" x="95" y="14" width="450" height="298" rx="12" />
+        <rect className="signal-flow-help-page-surface" x="0" y="0" width="640" height="326" stroke="none" />
+        <g transform={compact ? "translate(-90 0)" : undefined}>
         <text className="signal-flow-help-page-failed-status" x="124" y="51">×</text>
         <text className="signal-flow-help-page-title" x="150" y="51">Current Item</text>
-        <line className="signal-flow-help-page-divider" x1="121" y1="67" x2="519" y2="67" />
+        <line className="signal-flow-help-page-divider" x1="121" y1="67" x2={compact ? 699 : 519} y2="67" />
         <text className="signal-flow-help-page-muted" x="123" y="91">Primary contact</text>
         <text className="signal-flow-help-page-contact" x="123" y="111">team@example.test</text>
         <text className="signal-flow-help-page-heading" x="123" y="143">⌄ Unhealthy signals (2)</text>
-        <line className="signal-flow-help-page-divider" x1="121" y1="151" x2="519" y2="151" />
+        <line className="signal-flow-help-page-divider" x1="121" y1="151" x2={compact ? 699 : 519} y2="151" />
+        </g>
       </g>
 
       {dependencies.map((dependency) => {
         const affected = dependency.id === "dep1" ? dependencyFailed : nestedFailed;
         const { x, y, width, height } = dependency.source;
-        const destX = 126;
+        const destX = compact ? 33 : 126;
         const destY = dependency.targetY;
         const boxX = mix(x, destX, progress);
         const boxY = mix(y, destY, progress);
-        const boxWidth = mix(width, 388, progress);
+        const boxWidth = mix(width, compact ? 575 : 388, progress);
         const boxHeight = mix(height, 62, progress);
         const center = x + width / 2;
-        const symbolX = mix(center, 152, progress);
+        const symbolX = mix(center, destX + 26, progress);
         const symbolY = mix(y + 48, destY + 49, progress);
 
         return (
@@ -117,6 +127,7 @@ export default function UnhealthySignalProjection({
               width={boxWidth}
               height={boxHeight}
               rx={10}
+              opacity={listHighlightVisibility}
             />
             <text
               className="signal-flow-help-node-title signal-flow-help-projected-title"
@@ -131,7 +142,7 @@ export default function UnhealthySignalProjection({
             </text>
             <text
               className="signal-flow-help-dependency-link-mark"
-              x="279"
+              x={destX + 153}
               y={destY + 24}
               opacity={linkOpacity}
             >
@@ -139,7 +150,7 @@ export default function UnhealthySignalProjection({
             </text>
             <text
               className="signal-flow-help-dependency-tag"
-              x="307"
+              x={destX + 181}
               y={destY + 24}
               opacity={linkOpacity}
             >
@@ -171,7 +182,7 @@ export default function UnhealthySignalProjection({
             </g>
             <text
               className="signal-flow-help-failure-marker"
-              x="152"
+              x={destX + 26}
               y={destY + 50}
               opacity={linkOpacity}
               textAnchor="middle"
@@ -180,7 +191,7 @@ export default function UnhealthySignalProjection({
             </text>
             <text
               className="signal-flow-help-page-link"
-              x="175"
+              x={destX + 49}
               y={destY + 50}
               opacity={linkOpacity}
             >

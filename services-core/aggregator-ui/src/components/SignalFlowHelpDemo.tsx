@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import "./SignalFlowHelpDemo.css";
 import HelpAnimationProgress from "./HelpAnimationProgress";
 import UnhealthySignalProjection, {
@@ -98,12 +98,30 @@ export default function SignalFlowHelpDemo({
   mode: SignalFlowMode;
 }) {
   const [elapsed, setElapsed] = useState(0);
+  const figureRef = useRef<HTMLElement | null>(null);
+  const [compact, setCompact] = useState(false);
   const id = useId().replace(/:/g, "");
   const greenArrow = "signal-flow-green-" + id;
   const redArrow = "signal-flow-red-" + id;
   const unhealthy = mode === "unhealthy";
   const cycleDuration = unhealthy ? unhealthyCycleDuration : healthyCycleDuration;
   const animationProgress = elapsed / cycleDuration;
+
+  useEffect(() => {
+    const figure = figureRef.current;
+    if (!figure) return undefined;
+
+    const updateLayout = () => {
+      const width = figure.getBoundingClientRect().width;
+      if (width > 0) setCompact(width < 560);
+    };
+
+    updateLayout();
+    if (typeof ResizeObserver === "undefined") return undefined;
+    const observer = new ResizeObserver(updateLayout);
+    observer.observe(figure);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
@@ -142,8 +160,14 @@ export default function SignalFlowHelpDemo({
   const healthyTime = unhealthy ? 0 : elapsed;
   const presentationProgress = smooth(progressBetween(healthyTime, 3500, 5600))
     * (1 - smooth(progressBetween(healthyTime, 7700, 9900)));
+  // Temporarily remove selection backgrounds so the plain list is readable.
+  const healthyHighlightVisibility = Math.max(0, Math.min(1,
+    1 - progressBetween(healthyTime, 5800, 6300)
+      + progressBetween(healthyTime, 7050, 7550),
+  ));
   const selectionOpacity = progressBetween(healthyTime, 2100, 2900)
-    * (1 - progressBetween(healthyTime, 10300, 11100));
+    * (1 - progressBetween(healthyTime, 10300, 11100))
+    * healthyHighlightVisibility;
   const diagramOpacity = Math.min(
     1,
     Math.max(
@@ -178,6 +202,7 @@ export default function SignalFlowHelpDemo({
 
   return (
     <figure
+      ref={figureRef}
       className={"signal-flow-help" + (unhealthy ? " is-unhealthy-demo" : " is-healthy-demo")}
       aria-label={unhealthy ? "Unhealthy dependency propagation example" : "Healthy dependency signals example"}
     >
@@ -185,6 +210,7 @@ export default function SignalFlowHelpDemo({
       <svg
         className="signal-flow-help-diagram"
         viewBox="0 0 640 326"
+        data-page-layout={compact ? "compact" : "centered"}
         role="img"
         aria-label={
           unhealthy
@@ -333,6 +359,7 @@ export default function SignalFlowHelpDemo({
             elapsed={elapsed}
             dependencyFailed={affectedDependency}
             nestedFailed={failedLeaf}
+            compact={compact}
           />
         )}
 
@@ -343,24 +370,26 @@ export default function SignalFlowHelpDemo({
               data-healthy-page="true"
               style={{ opacity: pageOpacity }}
             >
-              <rect className="signal-flow-help-page-surface" x="95" y="14" width="450" height="298" rx="12" />
+              <rect className="signal-flow-help-page-surface" x="0" y="0" width="640" height="326" stroke="none" />
+              <g transform={compact ? "translate(-90 0)" : undefined}>
               <text className="signal-flow-help-page-status" x="124" y="51">✓</text>
               <text className="signal-flow-help-page-title" x="150" y="51">Current Item</text>
-              <line className="signal-flow-help-page-divider" x1="121" y1="67" x2="519" y2="67" />
+              <line className="signal-flow-help-page-divider" x1="121" y1="67" x2={compact ? 699 : 519} y2="67" />
               <text className="signal-flow-help-page-muted" x="123" y="91">Primary contact</text>
               <text className="signal-flow-help-page-contact" x="123" y="111">team@example.test</text>
               <text className="signal-flow-help-page-heading" x="123" y="143">⌄ Healthy signals (3)</text>
-              <line className="signal-flow-help-page-divider" x1="121" y1="151" x2="519" y2="151" />
+              <line className="signal-flow-help-page-divider" x1="121" y1="151" x2={compact ? 699 : 519} y2="151" />
+              </g>
             </g>
 
             {ownChecks.map((check, index) => {
               const startX = 320 + check.offset - 12;
               const startY = 53;
-              const targetX = 132;
+              const targetX = compact ? 42 : 132;
               const targetY = 157 + index * 41;
               const rectX = startX + (targetX - startX) * presentationProgress;
               const rectY = startY + (targetY - startY) * presentationProgress;
-              const rectWidth = 24 + (374 - 24) * presentationProgress;
+              const rectWidth = 24 + ((compact ? 570 : 374) - 24) * presentationProgress;
               const rectHeight = 22 + (35 - 22) * presentationProgress;
               const checkX = 320 + check.offset +
                 (targetX + 19 - 320 - check.offset) * presentationProgress;
@@ -399,7 +428,7 @@ export default function SignalFlowHelpDemo({
                   </text>
                   <text
                     className="signal-flow-help-page-link-arrow"
-                    x={targetX + 352}
+                    x={targetX + (compact ? 555 : 352)}
                     y={targetY + 24}
                     opacity={linkOpacity}
                     textAnchor="end"
