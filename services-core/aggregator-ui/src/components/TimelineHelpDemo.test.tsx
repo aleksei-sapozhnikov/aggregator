@@ -20,10 +20,13 @@ describe("Timeline help walkthrough", () => {
     const bar = screen.getByRole("progressbar", { name: "Animation progress" });
     const fill = document.querySelector(".timeline-help-preview .help-animation-progress-fill") as HTMLElement;
     expect(bar.getAttribute("aria-valuenow")).toBe("0");
-    advance(duration / 2);
-    expect(bar.getAttribute("aria-valuenow")).toBe("50");
-    expect(fill.style.transform).toBe("scaleX(0.5)");
-    advance(duration / 2);
+    // The clock advances in 100ms steps, so use a whole tick for odd halves.
+    const midpoint = Math.ceil(duration / 200) * 100;
+    advance(midpoint);
+    const fraction = midpoint / duration;
+    expect(bar.getAttribute("aria-valuenow")).toBe(String(Math.round(fraction * 100)));
+    expect(fill.style.transform).toBe("scaleX(" + fraction + ")");
+    advance(duration - midpoint);
     expect(bar.getAttribute("aria-valuenow")).toBe("0");
     expect(fill.style.transform).toBe("scaleX(0)");
     fireEvent.click(screen.getByRole("button", { name: "Inspect a moment" }));
