@@ -1,52 +1,63 @@
-type SignalEntry = {
-  id: "readiness" | "error-rate";
+type MovingDependency = {
+  id: "dep1" | "nested1";
   title: string;
-  sourceX: number;
+  signal: string;
+  source: { x: number; y: number; width: number; height: number };
   targetY: number;
 };
 
-const signals: SignalEntry[] = [
-  { id: "readiness", title: "Readiness check", sourceX: 174, targetY: 205 },
-  { id: "error-rate", title: "Error rate", sourceX: 210, targetY: 246 },
+const dependencies: MovingDependency[] = [
+  {
+    id: "dep1",
+    title: "Dependency 1",
+    signal: "Error rate",
+    source: { x: 115, y: 131, width: 154, height: 60 },
+    targetY: 157,
+  },
+  {
+    id: "nested1",
+    title: "Nested dep 1",
+    signal: "Readiness check",
+    source: { x: 19, y: 245, width: 164, height: 60 },
+    targetY: 232,
+  },
 ];
 
 const clamp = (value: number): number => Math.max(0, Math.min(1, value));
 const between = (time: number, start: number, end: number): number =>
   clamp((time - start) / (end - start));
 const ease = (value: number): number => value * value * (3 - 2 * value);
-const mix = (start: number, end: number, t: number): number =>
-  start + (end - start) * t;
+const mix = (start: number, end: number, progress: number): number =>
+  start + (end - start) * progress;
 
-export const unhealthyCycleDuration = 20200;
-export const unhealthyResetAt = 19000;
+// Include time for the restored graph and the pause before the next failure.
+export const unhealthyCycleDuration = 21800;
+export const unhealthyResetAt = 20000;
+
+// Graph and page fade in opposite directions over the entire transformation.
+export const getUnhealthyDiagramOpacity = (elapsed: number): number =>
+  clamp(
+    1 - between(elapsed, 9600, 12800)
+      + between(elapsed, 15800, 18600),
+  );
 
 export default function UnhealthySignalProjection({
   elapsed,
-  dependencyAffected,
+  nestedFailed,
+  dependencyFailed,
 }: {
   elapsed: number;
-  dependencyAffected: boolean;
+  nestedFailed: boolean;
+  dependencyFailed: boolean;
 }) {
-  // Keep the dependency and both failing signal symbols mounted during the
-  // complete forward/reverse projection to avoid a teleport between views.
-  const progress = ease(between(elapsed, 9600, 12000))
-    * (1 - ease(between(elapsed, 15000, 17400)));
-  const selectionOpacity = between(elapsed, 8200, 9000)
-    * (1 - between(elapsed, 17800, 18500));
-  const pageOpacity = between(elapsed, 9300, 10500)
-    * (1 - between(elapsed, 14500, 15800));
-  const diagramOpacity = clamp(
-    1 - between(elapsed, 9350, 10500)
-      + between(elapsed, 14600, 15900),
-  );
-  const linksOpacity = between(progress, 0.7, 0.95);
-
-  const depFrameX = mix(115, 130, progress);
-  const depFrameY = mix(131, 158, progress);
-  const depFrameWidth = mix(154, 379, progress);
-  const depFrameHeight = mix(60, 38, progress);
-  const depTextX = mix(144, 152, progress);
-  const depTextY = mix(155, 183, progress);
+  const progress = ease(between(elapsed, 9600, 12800))
+    * (1 - ease(between(elapsed, 15600, 18600)));
+  const pageOpacity = between(elapsed, 9600, 12800)
+    * (1 - between(elapsed, 15800, 18600));
+  const selectionOpacity = between(elapsed, 8300, 9300)
+    * (1 - between(elapsed, 18900, 19600));
+  const linkOpacity = between(progress, 0.48, 0.94);
+  const symbolOpacity = 1 - between(progress, 0.38, 0.88);
 
   return (
     <>
@@ -55,123 +66,126 @@ export default function UnhealthySignalProjection({
         data-unhealthy-page="true"
         style={{ opacity: pageOpacity }}
       >
-        <rect
-          className="signal-flow-help-page-surface"
-          x="95" y="14" width="450" height="298" rx="12"
-        />
+        <rect className="signal-flow-help-page-surface" x="95" y="14" width="450" height="298" rx="12" />
         <text className="signal-flow-help-page-failed-status" x="124" y="51">×</text>
         <text className="signal-flow-help-page-title" x="150" y="51">Current Item</text>
         <line className="signal-flow-help-page-divider" x1="121" y1="67" x2="519" y2="67" />
         <text className="signal-flow-help-page-muted" x="123" y="91">Primary contact</text>
         <text className="signal-flow-help-page-contact" x="123" y="111">team@example.test</text>
-        <text className="signal-flow-help-page-heading" x="123" y="143">
-          ⌄ Unhealthy signals (2)
-        </text>
+        <text className="signal-flow-help-page-heading" x="123" y="143">⌄ Unhealthy signals (2)</text>
         <line className="signal-flow-help-page-divider" x1="121" y1="151" x2="519" y2="151" />
       </g>
 
-      <g
-        data-unhealthy-source="dependency"
-        className="signal-flow-help-moving-dependency"
-      >
-        <rect
-          className="signal-flow-help-selection-frame is-unhealthy-frame"
-          data-unhealthy-frame="dependency"
-          x={depFrameX}
-          y={depFrameY}
-          width={depFrameWidth}
-          height={depFrameHeight}
-          rx={8}
-          opacity={selectionOpacity}
-        />
-        <text
-          className="signal-flow-help-dependency-label"
-          x={depTextX}
-          y={depTextY}
-          style={{ fill: progress >= 0.8 ? "var(--link)" : "var(--text)" }}
-        >
-          Dependency 1
-        </text>
-        <text
-          className="signal-flow-help-dependency-link-mark"
-          x="270"
-          y="183"
-          opacity={linksOpacity}
-        >
-          →
-        </text>
-        <text
-          className="signal-flow-help-dependency-tag"
-          x="312"
-          y="183"
-          opacity={linksOpacity}
-        >
-          Dependency
-        </text>
-      </g>
+      {dependencies.map((dependency) => {
+        const affected = dependency.id === "dep1" ? dependencyFailed : nestedFailed;
+        const { x, y, width, height } = dependency.source;
+        const destX = 126;
+        const destY = dependency.targetY;
+        const boxX = mix(x, destX, progress);
+        const boxY = mix(y, destY, progress);
+        const boxWidth = mix(width, 388, progress);
+        const boxHeight = mix(height, 62, progress);
+        const center = x + width / 2;
+        const symbolX = mix(center, 152, progress);
+        const symbolY = mix(y + 48, destY + 49, progress);
 
-      {dependencyAffected && signals.map((signal) => {
-        const iconX = mix(signal.sourceX, 169, progress);
-        const iconY = mix(176, signal.targetY + 24, progress);
-        const frameX = mix(signal.sourceX - 12, 149, progress);
-        const frameY = mix(161, signal.targetY, progress);
-        const frameWidth = mix(24, 356, progress);
-        const frameHeight = mix(30, 35, progress);
         return (
           <g
-            key={signal.id}
-            className="signal-flow-help-moving-failure"
-            data-unhealthy-source={signal.id}
+            key={dependency.id}
+            data-flow-node={dependency.id}
+            data-health={affected ? "unhealthy" : "healthy"}
+            data-unhealthy-source={dependency.id}
+            className={
+              "signal-flow-help-node signal-flow-help-moving-dependency"
+              + (affected ? " is-affected" : "")
+            }
           >
             <rect
               className="signal-flow-help-selection-frame is-unhealthy-frame"
-              data-unhealthy-frame={signal.id}
-              x={frameX}
-              y={frameY}
-              width={frameWidth}
-              height={frameHeight}
-              rx={6}
+              data-unhealthy-frame={dependency.id}
+              x={boxX - 4}
+              y={boxY - 4}
+              width={boxWidth + 8}
+              height={boxHeight + 8}
+              rx={11}
               opacity={selectionOpacity}
             />
-            <g
-              className="signal-flow-help-alarm"
-              opacity={1 - linksOpacity}
+            <rect
+              className="signal-flow-help-node-frame"
+              x={boxX}
+              y={boxY}
+              width={boxWidth}
+              height={boxHeight}
+              rx={10}
+            />
+            <text
+              className="signal-flow-help-node-title signal-flow-help-projected-title"
+              x={mix(x + 15, destX + 17, progress)}
+              y={mix(y + 24, destY + 24, progress)}
+              style={{
+                fill: "color-mix(in srgb, var(--link) "
+                  + Math.round(progress * 100) + "%, var(--text))",
+              }}
             >
-              <path
-                d={
-                  "M" + (iconX - 9) + " " + (iconY + 8)
-                  + " L" + iconX + " " + (iconY - 10)
-                  + " L" + (iconX + 9) + " " + (iconY + 8) + " Z"
-                }
-              />
-              <text x={iconX} y={iconY + 5} textAnchor="middle">!</text>
+              {dependency.title}
+            </text>
+            <text
+              className="signal-flow-help-dependency-link-mark"
+              x="279"
+              y={destY + 24}
+              opacity={linkOpacity}
+            >
+              →
+            </text>
+            <text
+              className="signal-flow-help-dependency-tag"
+              x="307"
+              y={destY + 24}
+              opacity={linkOpacity}
+            >
+              Dependency
+            </text>
+
+            <g className="signal-flow-help-projected-state" opacity={symbolOpacity}>
+              {affected ? (
+                <g className="signal-flow-help-alarm">
+                  <path
+                    d={
+                      "M" + (symbolX - 9) + " " + (symbolY + 3)
+                      + " L" + symbolX + " " + (symbolY - 15)
+                      + " L" + (symbolX + 9) + " " + (symbolY + 3) + " Z"
+                    }
+                  />
+                  <text x={symbolX} y={symbolY} textAnchor="middle">!</text>
+                </g>
+              ) : (
+                <g className="signal-flow-help-checks" aria-label="Passing checks">
+                  {[-18, 0, 18].map((offset) => (
+                    <text key={offset} x={symbolX + offset} y={symbolY} textAnchor="middle">✓</text>
+                  ))}
+                </g>
+              )}
             </g>
             <text
               className="signal-flow-help-failure-marker"
-              x={iconX}
-              y={iconY + 5}
+              x="152"
+              y={destY + 50}
+              opacity={linkOpacity}
               textAnchor="middle"
-              opacity={linksOpacity}
             >
               ×
             </text>
             <text
               className="signal-flow-help-page-link"
-              x="192"
-              y={signal.targetY + 25}
-              opacity={linksOpacity}
+              x="175"
+              y={destY + 50}
+              opacity={linkOpacity}
             >
-              {signal.title}
+              {dependency.signal}
             </text>
           </g>
         );
       })}
-      <g
-        className="signal-flow-help-projection-metadata"
-        data-unhealthy-morph-progress={Math.round(progress * 100)}
-        data-unhealthy-diagram-opacity={diagramOpacity}
-        aria-hidden="true"
-      />
     </>
   );
 }

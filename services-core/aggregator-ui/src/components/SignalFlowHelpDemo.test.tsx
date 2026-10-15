@@ -148,58 +148,85 @@ describe("Signal flow help demonstrations", () => {
     expect(screen.getByText(/current Item is unhealthy/)).not.toBeNull();
   });
 
-  it("projects a failing dependency and its two own signals into the unhealthy list and back", () => {
+  it("morphs two full dependency nodes, each with one signal, into the unhealthy list and back", () => {
     render(<SignalFlowHelpDemo mode="unhealthy" />);
     const diagram = screen.getByRole("img", {
       name: /A failing check in Nested dependency 1/,
     });
     const page = diagram.querySelector('[data-unhealthy-page="true"]') as SVGElement;
     const graph = diagram.querySelector(".signal-flow-help-graph") as SVGElement;
-    const dependency = diagram.querySelector('[data-unhealthy-source="dependency"]');
-    const depFrame = diagram.querySelector('[data-unhealthy-frame="dependency"]') as Element;
+    const groups = Array.from(
+      diagram.querySelectorAll(".signal-flow-help-moving-dependency"),
+    );
+    const parent = diagram.querySelector('[data-unhealthy-source="dep1"]') as Element;
+    const nested = diagram.querySelector('[data-unhealthy-source="nested1"]') as Element;
+    const parentFrame = parent.querySelector('[data-unhealthy-frame="dep1"]') as Element;
+    const nestedFrame = nested.querySelector('[data-unhealthy-frame="nested1"]') as Element;
+    const parentBox = parent.querySelector(".signal-flow-help-node-frame") as Element;
+    const nestedBox = nested.querySelector(".signal-flow-help-node-frame") as Element;
 
-    expect(dependency).not.toBeNull();
-    expect(diagram.querySelectorAll("[data-unhealthy-source]")).toHaveLength(1);
+    expect(groups).toHaveLength(2);
+    expect(diagram.querySelectorAll("[data-flow-node]")).toHaveLength(6);
     expect(page.style.opacity).toBe("0");
     expect(graph.style.opacity).toBe("1");
+    expect(parentBox.getAttribute("x")).toBe("115");
+    expect(nestedBox.getAttribute("x")).toBe("19");
 
-    advance(9000);
-    const sourceNodes = Array.from(diagram.querySelectorAll("[data-unhealthy-source]"));
-    const frames = Array.from(diagram.querySelectorAll("[data-unhealthy-frame]"));
-    expect(sourceNodes).toHaveLength(3);
-    expect(frames).toHaveLength(3);
-    expect(frames.every((frame) => frame.getAttribute("opacity") === "1")).toBe(true);
-    expect(depFrame.getAttribute("x")).toBe("115");
-    expect(depFrame.getAttribute("width")).toBe("154");
-    expect(getNode("dep2").getAttribute("data-health")).toBe("healthy");
+    advance(9400);
+    expect(parent.getAttribute("data-health")).toBe("unhealthy");
+    expect(nested.getAttribute("data-health")).toBe("unhealthy");
+    expect(parentFrame.getAttribute("opacity")).toBe("1");
+    expect(nestedFrame.getAttribute("opacity")).toBe("1");
+    expect(page.style.opacity).toBe("0");
+    expect(diagram.querySelectorAll(".signal-flow-help-moving-dependency .signal-flow-help-page-link")).toHaveLength(2);
 
-    advance(4000);
+    advance(1800);
+    expect(Number(parentBox.getAttribute("width"))).toBeGreaterThan(154);
+    expect(Number(parentBox.getAttribute("width"))).toBeLessThan(388);
+    expect(Number(page.style.opacity)).toBeGreaterThan(0);
+    expect(Number(page.style.opacity)).toBeLessThan(1);
+    expect(Number(graph.style.opacity)).toBeGreaterThan(0);
+    expect(Number(graph.style.opacity)).toBeLessThan(1);
+    expect(parentFrame.getAttribute("opacity")).toBe("1");
+    expect(nestedFrame.getAttribute("opacity")).toBe("1");
+
+    advance(2200);
     expect(page.style.opacity).toBe("1");
     expect(graph.style.opacity).toBe("0");
-    expect(depFrame.getAttribute("x")).toBe("130");
-    expect(depFrame.getAttribute("width")).toBe("379");
-    expect(diagram.getAttribute("data-unhealthy-morph-progress")).toBeNull();
-    expect(diagram.querySelector("[data-unhealthy-morph-progress='100']")).not.toBeNull();
-    expect(screen.getByText("Readiness check").getAttribute("opacity")).toBe("1");
+    expect(parentBox.getAttribute("x")).toBe("126");
+    expect(parentBox.getAttribute("width")).toBe("388");
+    expect(nestedBox.getAttribute("x")).toBe("126");
+    expect(nestedBox.getAttribute("y")).toBe("232");
     expect(screen.getByText("Error rate").getAttribute("opacity")).toBe("1");
-    expect(diagram.querySelectorAll(".signal-flow-help-moving-failure")).toHaveLength(2);
-    expect(sourceNodes.every((source) => source.isConnected)).toBe(true);
+    expect(screen.getByText("Readiness check").getAttribute("opacity")).toBe("1");
+    expect(parentFrame.getAttribute("opacity")).toBe("1");
+    expect(nestedFrame.getAttribute("opacity")).toBe("1");
+    expect(diagram.querySelectorAll(".signal-flow-help-moving-dependency .signal-flow-help-page-link")).toHaveLength(2);
 
-    advance(4500);
+    advance(3200);
+    expect(Number(page.style.opacity)).toBeGreaterThan(0);
+    expect(Number(page.style.opacity)).toBeLessThan(1);
+    expect(parentFrame.getAttribute("opacity")).toBe("1");
+    expect(nestedFrame.getAttribute("opacity")).toBe("1");
+
+    advance(2400);
     expect(page.style.opacity).toBe("0");
     expect(graph.style.opacity).toBe("1");
-    expect(depFrame.getAttribute("x")).toBe("115");
-    expect(depFrame.getAttribute("width")).toBe("154");
-    expect(sourceNodes.every((source) => source.isConnected)).toBe(true);
+    expect(parentBox.getAttribute("x")).toBe("115");
+    expect(parentBox.getAttribute("width")).toBe("154");
+    expect(nestedBox.getAttribute("x")).toBe("19");
+    expect(groups.every((group) => group.isConnected)).toBe(true);
 
-    advance(1200);
-    expect(depFrame.getAttribute("opacity")).toBe("0");
-    expect(page.style.opacity).toBe("0");
+    advance(1800);
+    expect(parentFrame.getAttribute("opacity")).toBe("0");
+    expect(nestedFrame.getAttribute("opacity")).toBe("0");
+    expect(parent.getAttribute("data-health")).toBe("healthy");
+    expect(nested.getAttribute("data-health")).toBe("healthy");
   });
 
   it("resets and replays after the unhealthy state is shown", () => {
     render(<SignalFlowHelpDemo mode="unhealthy" />);
-    advance(19200);
+    advance(20200);
 
     expect(getNode("nested1").getAttribute("data-health")).toBe("healthy");
     expect(getNode("item").getAttribute("data-health")).toBe("healthy");

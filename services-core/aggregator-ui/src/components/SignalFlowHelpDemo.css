@@ -259,3 +259,19 @@
   font-size: 20px;
   font-weight: 800;
 }
+
+
+/* The two full dependency nodes retain their outlines while morphing into
+   grouped dependency/signal entries on the Item page and back. */
+.signal-flow-help-projected-title {
+  font-size: 15px;
+  text-decoration: none;
+}
+
+.signal-flow-help-moving-dependency .signal-flow-help-node-frame {
+  transition: none;
+}
+
+.signal-flow-help-moving-dependency .signal-flow-help-alarm {
+  pointer-events: none;
+}

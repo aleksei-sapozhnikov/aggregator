@@ -4,6 +4,7 @@ import HelpAnimationProgress from "./HelpAnimationProgress";
 import UnhealthySignalProjection, {
   unhealthyCycleDuration,
   unhealthyResetAt,
+  getUnhealthyDiagramOpacity,
 } from "./UnhealthySignalProjection";
 
 type SignalFlowMode = "healthy" | "unhealthy";
@@ -154,14 +155,7 @@ export default function SignalFlowHelpDemo({
   const pageOpacity = progressBetween(healthyTime, 3400, 4500)
     * (1 - progressBetween(healthyTime, 8200, 9300));
   const linkOpacity = progressBetween(presentationProgress, 0.7, 0.95);
-  const unhealthyDiagramOpacity = Math.min(
-    1,
-    Math.max(
-      0,
-      1 - progressBetween(elapsed, 9350, 10500)
-        + progressBetween(elapsed, 14600, 15900),
-    ),
-  );
+  const unhealthyDiagramOpacity = getUnhealthyDiagramOpacity(elapsed);
   const explanation = !unhealthy
     ? healthyTime < 2200
       ? "All Items have their own checks. Watch which ones appear in this Item's Healthy signals."
@@ -175,11 +169,11 @@ export default function SignalFlowHelpDemo({
         : !affectedItem
           ? "Dependency 1 is affected. The impact now moves toward the current Item."
           : elapsed < 8200
-            ? "The nested failure affects Dependency 1's readiness and error-rate checks."
-            : elapsed < 14700
-              ? "Dependency 1 and its two failing checks appear under Unhealthy signals."
-              : elapsed < 19000
-                ? "The dependency and its failing signals return to the graph."
+            ? "Nested dep 1 fails, and Dependency 1 also has a failing check."
+            : elapsed < 15800
+              ? "Each affected dependency and its one failing check appear under Unhealthy signals."
+              : elapsed < unhealthyResetAt
+                ? "Both dependency entries return to their places in the graph."
                 : "All checks are passing. The example will repeat.";
 
   return (
@@ -266,6 +260,11 @@ export default function SignalFlowHelpDemo({
         })}
 
         {nodes.map((node) => {
+          // These two nodes are rendered by the projection from the beginning
+          // so their entire boxes can move into the list and back.
+          if (unhealthy && (node.id === "dep1" || node.id === "nested1")) {
+            return null;
+          }
           const affected = affectedNodes.has(node.id);
           const failingCheck = failedLeaf && node.id === "nested1";
           const center = node.x + node.width / 2;
@@ -284,16 +283,14 @@ export default function SignalFlowHelpDemo({
                 height={node.height}
                 rx={11}
               />
-              {!(unhealthy && node.id === "dep1") && (
-                <text
-                  className="signal-flow-help-node-title"
-                  x={center}
-                  y={node.y + 24}
-                  textAnchor="middle"
-                >
-                  {node.title}
-                </text>
-              )}
+              <text
+                className="signal-flow-help-node-title"
+                x={center}
+                y={node.y + 24}
+                textAnchor="middle"
+              >
+                {node.title}
+              </text>
               {failingCheck ? (
                 <g className="signal-flow-help-alarm" data-failing-check="true">
                   <path
@@ -303,7 +300,7 @@ export default function SignalFlowHelpDemo({
                   />
                   <text x={center} y={node.y + 50} textAnchor="middle">!</text>
                 </g>
-              ) : affected && !(unhealthy && node.id === "dep1") ? (
+              ) : affected ? (
                 <text
                   className="signal-flow-help-impacted-label"
                   x={center}
@@ -314,10 +311,7 @@ export default function SignalFlowHelpDemo({
                 </text>
               ) : (
                 <g className="signal-flow-help-checks" aria-label="Passing checks">
-                  {(unhealthy
-                    ? (node.id === "dep1" && affected ? [] : [-18, 0, 18])
-                    : node.id !== "item" ? [-18, 0, 18] : []
-                  ).map((offset) => (
+                  {(unhealthy || node.id !== "item" ? [-18, 0, 18] : []).map((offset) => (
                     <text
                       key={offset}
                       x={center + offset}
@@ -337,7 +331,8 @@ export default function SignalFlowHelpDemo({
         {unhealthy && (
           <UnhealthySignalProjection
             elapsed={elapsed}
-            dependencyAffected={affectedDependency}
+            dependencyFailed={affectedDependency}
+            nestedFailed={failedLeaf}
           />
         )}
 
