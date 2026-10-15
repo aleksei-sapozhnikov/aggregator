@@ -1,4 +1,5 @@
-import { useId, useRef, useState } from "react";
+import { createContext, useContext, useId, useMemo, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
 import type { InfoHelpTopic } from "../shared/infoHelpTopics";
 import ModalWindow from "./ModalWindow";
@@ -8,70 +9,19 @@ import SignalFlowHelpDemo from "./SignalFlowHelpDemo";
 type InfoHelpProps = {
   topic: InfoHelpTopic;
 };
+type InfoHelpContextValue = {
+  activeTopic: InfoHelpTopic | null;
+  openTopic: (topic: InfoHelpTopic) => void;
+};
 
-export default function InfoHelp({ topic }: InfoHelpProps) {
-  const tooltipId = useId();
-  const buttonRef = useRef<HTMLButtonElement | null>(null);
-  const [isTooltipVisible, setIsTooltipVisible] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [tooltipPosition, setTooltipPosition] = useState({
-    left: 0,
-    top: 0,
-  });
+const InfoHelpContext = createContext<InfoHelpContextValue | null>(null);
 
-  const showTooltip = () => {
-    if (isModalOpen) {
-      return;
-    }
-
-    const button = buttonRef.current;
-    if (button) {
-      const rect = button.getBoundingClientRect();
-      setTooltipPosition({
-        left: rect.left + rect.width / 2,
-        top: rect.top,
-      });
-    }
-    setIsTooltipVisible(true);
-  };
-
+// The dialog belongs to a stable parent, not the conditional source section.
+function InfoHelpDialog({ topic, onClose }: { topic: InfoHelpTopic; onClose: () => void }) {
   return (
-    <span className="info-help">
-      <button
-        ref={buttonRef}
-        type="button"
-        className="info-help-button"
-        aria-label={`About ${topic.title}`}
-        aria-describedby={isTooltipVisible ? tooltipId : undefined}
-        onClick={(event) => {
-          event.stopPropagation();
-          setIsTooltipVisible(false);
-          setIsModalOpen(true);
-        }}
-        onBlur={() => setIsTooltipVisible(false)}
-        onMouseEnter={showTooltip}
-        onMouseLeave={() => setIsTooltipVisible(false)}
-      >
-        ?
-      </button>
-      {isTooltipVisible &&
-        createPortal(
-          <span
-            id={tooltipId}
-            role="tooltip"
-            className="info-help-tooltip"
-            style={{
-              left: `${tooltipPosition.left}px`,
-              top: `${tooltipPosition.top}px`,
-            }}
-          >
-            {topic.summary}
-          </span>,
-          document.body,
-        )}
       <ModalWindow
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        isOpen={true}
+        onClose={onClose}
         ariaLabel={`About ${topic.title}`}
         closeLabel="Close contextual help"
         header={<h2>{topic.title}</h2>}
@@ -122,6 +72,90 @@ export default function InfoHelp({ topic }: InfoHelpProps) {
           )}
         </div>
       </ModalWindow>
+  );
+}
+
+export function InfoHelpProvider({ children }: { children: ReactNode }) {
+  const [activeTopic, setActiveTopic] = useState<InfoHelpTopic | null>(null);
+  const context = useMemo(() => ({ activeTopic, openTopic: setActiveTopic }), [activeTopic]);
+
+  return (
+    <InfoHelpContext.Provider value={context}>
+      {children}
+      {activeTopic && <InfoHelpDialog topic={activeTopic} onClose={() => setActiveTopic(null)} />}
+    </InfoHelpContext.Provider>
+  );
+}
+
+
+export default function InfoHelp({ topic }: InfoHelpProps) {
+  const sharedHelp = useContext(InfoHelpContext);
+  const tooltipId = useId();
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
+  const [isTooltipVisible, setIsTooltipVisible] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [tooltipPosition, setTooltipPosition] = useState({
+    left: 0,
+    top: 0,
+  });
+
+  const showTooltip = () => {
+    if (sharedHelp ? sharedHelp.activeTopic !== null : isModalOpen) {
+      return;
+    }
+
+    const button = buttonRef.current;
+    if (button) {
+      const rect = button.getBoundingClientRect();
+      setTooltipPosition({
+        left: rect.left + rect.width / 2,
+        top: rect.top,
+      });
+    }
+    setIsTooltipVisible(true);
+  };
+
+  return (
+    <span className="info-help">
+      <button
+        ref={buttonRef}
+        type="button"
+        className="info-help-button"
+        aria-label={`About ${topic.title}`}
+        aria-describedby={isTooltipVisible ? tooltipId : undefined}
+        onClick={(event) => {
+          event.stopPropagation();
+          setIsTooltipVisible(false);
+          if (sharedHelp) {
+            sharedHelp.openTopic(topic);
+          } else {
+            setIsModalOpen(true);
+          }
+        }}
+        onBlur={() => setIsTooltipVisible(false)}
+        onMouseEnter={showTooltip}
+        onMouseLeave={() => setIsTooltipVisible(false)}
+      >
+        ?
+      </button>
+      {isTooltipVisible &&
+        createPortal(
+          <span
+            id={tooltipId}
+            role="tooltip"
+            className="info-help-tooltip"
+            style={{
+              left: `${tooltipPosition.left}px`,
+              top: `${tooltipPosition.top}px`,
+            }}
+          >
+            {topic.summary}
+          </span>,
+          document.body,
+        )}
+      {!sharedHelp && isModalOpen && (
+        <InfoHelpDialog topic={topic} onClose={() => setIsModalOpen(false)} />
+      )}
     </span>
   );
 }

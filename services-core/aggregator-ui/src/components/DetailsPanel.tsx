@@ -5,7 +5,7 @@
 import TopBarActions from "./TopBarActions";
 import AiChatPanel from "./AiChatPanel";
 import CatalogItemInfo from "./CatalogItemInfo";
-import InfoHelp from "./InfoHelp";
+import InfoHelp, { InfoHelpProvider } from "./InfoHelp";
 import HealthSignalModal from "./HealthSignalModal";
 import SecondaryLabel from "./SecondaryLabel";
 import ModalDetailsTrigger from "./ModalDetailsTrigger";
@@ -216,7 +216,7 @@ const handleDisclosureActionKeyDown = (
  * - incident-first signals
  * - Grafana iframe container
  */
-export default function DetailsPanel({
+function DetailsPanelContent({
   contentRef,
   isSidebarOpen,
   iconSpriteHref,
@@ -911,5 +911,13 @@ export default function DetailsPanel({
         />
       </div>
     </main>
+  );
+}
+
+export default function DetailsPanel(props: DetailsPanelProps) {
+  return (
+    <InfoHelpProvider>
+      <DetailsPanelContent {...props} />
+    </InfoHelpProvider>
   );
 }
