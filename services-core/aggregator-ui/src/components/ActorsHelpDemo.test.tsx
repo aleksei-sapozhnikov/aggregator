@@ -14,10 +14,20 @@ afterEach(() => {
 
 describe("Actors contextual help animation", () => {
   it("maps three distinct people to Owner, User and Other rows", () => {
-    const frame = getActorsHelpFrame(5350);
-    expect(frame.travel).toBe(1);
-    expect(frame.pageOpacity).toBe(1);
-    expect(frame.sceneOpacity).toBe(0);
+    const besideRows = getActorsHelpFrame(4600);
+    expect(besideRows.travel).toBe(1);
+    expect(besideRows.pageOpacity).toBe(1);
+    expect(besideRows.actorOpacity).toBe(1);
+    expect(besideRows.machineOpacity).toBe(1);
+
+    const cleanItem = getActorsHelpFrame(7100);
+    expect(cleanItem.pageOpacity).toBe(1);
+    expect(cleanItem.actorOpacity).toBe(0);
+    expect(cleanItem.machineOpacity).toBe(0);
+
+    const restored = getActorsHelpFrame(8600);
+    expect(restored.actorOpacity).toBe(1);
+    expect(restored.travel).toBe(1);
 
     const start = getActorsHelpFrame(0);
     const end = getActorsHelpFrame(actorsHelpDuration);
@@ -32,6 +42,8 @@ describe("Actors contextual help animation", () => {
       name: "Actors become Item ownership and relationship entries",
     });
     expect(figure.querySelectorAll("[data-actor]")).toHaveLength(3);
+    expect(figure.querySelectorAll("[data-service='item']")).toHaveLength(1);
+    expect(figure.querySelector("svg[viewBox='0 0 640 326']")).not.toBeNull();
     expect(figure.textContent).toContain("Order Platform Team");
     expect(figure.textContent).toContain("Fulfillment Operators");
     expect(figure.textContent).toContain("Customer Support");

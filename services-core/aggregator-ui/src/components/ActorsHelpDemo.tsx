@@ -5,8 +5,8 @@ import "./ActorsHelpDemo.css";
 
 // All positions use one SVG coordinate system, including the Item preview.
 // This keeps each actor's destination aligned when the modal is resized.
-export const actorsHelpDuration = 10000;
-const previewTime = 5350;
+export const actorsHelpDuration = 11200;
+const previewTime = 7000;
 const clamp = (value: number) => Math.max(0, Math.min(1, value));
 const between = (time: number, start: number, end: number) =>
   clamp((time - start) / (end - start));
@@ -15,15 +15,20 @@ const lerp = (start: number, end: number, factor: number) =>
   start + (end - start) * factor;
 
 export function getActorsHelpFrame(time: number) {
-  // Travel forward, pause on the readable Item view, then travel home.
-  const travel = smooth(between(time, 2450, 4500)) *
-    (1 - smooth(between(time, 6650, 8600)));
-  const pageOpacity = smooth(between(time, 3150, 4500)) *
-    (1 - smooth(between(time, 6800, 8250)));
-  const sceneOpacity = 1 - smooth(between(time, 2650, 4350)) *
-    (1 - smooth(between(time, 6800, 8500)));
-  const actorOpacity = 1 - smooth(between(travel, 0.72, 1));
-  return { travel, pageOpacity, sceneOpacity, actorOpacity };
+  // Scene, 2s beside rows, 2s clean Item, restore sprites, reverse.
+  const travel = smooth(between(time, 1800, 3600)) *
+    (1 - smooth(between(time, 8600, 10450)));
+  const pageOpacity = smooth(between(time, 2250, 3500)) *
+    (1 - smooth(between(time, 8950, 10450)));
+  const markerOpacity = 1 - smooth(between(time, 5650, 6050)) *
+    (1 - smooth(between(time, 8150, 8600)));
+  return {
+    travel,
+    pageOpacity,
+    sceneOpacity: 1 - pageOpacity,
+    actorOpacity: markerOpacity,
+    machineOpacity: markerOpacity,
+  };
 }
 
 type Role = "owner" | "user" | "other";
@@ -37,11 +42,11 @@ type Actor = {
 };
 
 const actors: Actor[] = [
-  { id: "owner", start: [78, 161], destination: [79, 250],
+  { id: "owner", start: [102, 165], destination: [98, 206],
     name: "Order Platform Team", role: "Owner", color: "#4384c5" },
-  { id: "user", start: [440, 146], destination: [79, 282],
+  { id: "user", start: [539, 137], destination: [98, 240],
     name: "Fulfillment Operators", role: "User", color: "#50b28b" },
-  { id: "other", start: [441, 287], destination: [79, 314],
+  { id: "other", start: [537, 257], destination: [98, 274],
     name: "Customer Support", role: "Other", color: "#a38cdb" },
 ];
 
@@ -95,6 +100,10 @@ function ActorCharacter({ actor }: { actor: Actor }) {
             fill="#304d67" stroke="#243442" strokeWidth="3" />
           <path d="M8 136h74" stroke="#243442" strokeWidth="5" strokeLinecap="round" />
           <circle cx="46" cy="114" r="5" fill="#8bacc8" />
+          <g className="actors-help-typing">
+            <path d="M21 125 29 121M34 126 42 122"
+              stroke="#f6c29b" strokeWidth="5" strokeLinecap="round" />
+          </g>
         </>
       )}
       {actor.id === "user" && (
@@ -132,7 +141,7 @@ function ActorCharacter({ actor }: { actor: Actor }) {
 
 function Machine() {
   return (
-    <g className="actors-help-machine" transform="translate(162 85)">
+    <g className="actors-help-machine">
       <ellipse cx="94" cy="224" rx="105" ry="12" fill="#ccd5de" opacity=".55" />
       <rect x="14" y="21" width="158" height="192" rx="20"
         fill="#81a6bf" stroke="#314d64" strokeWidth="5" />
@@ -191,37 +200,37 @@ function ActorIcon() {
 function ItemPreview({ opacity }: { opacity: number }) {
   return (
     <g className="actors-help-item" style={{ opacity }} aria-hidden="true">
-      <rect x="15" y="12" width="490" height="340" rx="8"
+      <rect x="12" y="9" width="616" height="308" rx="8"
         fill="#f5f6f8" stroke="#d8dadd" />
-      <text x="40" y="65" className="actors-help-check">✓</text>
-      <text x="64" y="65" className="actors-help-title">Order Fulfillment</text>
-      <circle cx="259" cy="57" r="8" fill="none"
+      <text x="34" y="48" className="actors-help-check">✓</text>
+      <text x="86" y="48" className="actors-help-title">Order Fulfillment</text>
+      <circle cx="273" cy="40" r="8" fill="none"
         stroke="#1550b3" strokeWidth="1.8" />
-      <text x="259" y="62" className="actors-help-info" textAnchor="middle">i</text>
-      <text x="281" y="63" className="actors-help-up">UP</text>
-      <path d="M46 104v73" stroke="#2f6feb" strokeWidth="3" />
-      <text x="73" y="122" className="actors-help-heading">Primary contact</text>
-      <circle cx="214" cy="116" r="9" fill="none" stroke="#9da5b2" />
-      <text x="214" y="120" className="actors-help-question" textAnchor="middle">?</text>
-      <g transform="translate(73 148)" fill="none"
+      <text x="273" y="45" className="actors-help-info" textAnchor="middle">i</text>
+      <text x="295" y="46" className="actors-help-up">UP</text>
+      <path d="M39 83v66" stroke="#2f6feb" strokeWidth="3" />
+      <text x="65" y="101" className="actors-help-heading">Primary contact</text>
+      <circle cx="202" cy="95" r="9" fill="none" stroke="#9da5b2" />
+      <text x="202" y="99" className="actors-help-question" textAnchor="middle">?</text>
+      <g transform="translate(65 121)" fill="none"
         stroke="#1f2328" strokeWidth="2" strokeLinejoin="round">
         <rect x="0" y="0" width="19" height="14" rx="2" fill="#fffaf0" />
         <path d="m1 2 8.5 7L18 2" />
       </g>
-      <text x="103" y="160" className="actors-help-link">orders-team@demo.email</text>
-      <text x="31" y="210" className="actors-help-chevron">⌄</text>
-      <g transform="translate(62 205)"><ActorIcon /></g>
-      <text x="81" y="210" className="actors-help-heading">Actors (3)</text>
-      <circle cx="184" cy="205" r="9" fill="none" stroke="#9da5b2" />
-      <text x="184" y="209" className="actors-help-question" textAnchor="middle">?</text>
+      <text x="94" y="135" className="actors-help-link">orders-team@demo.email</text>
+      <text x="30" y="179" className="actors-help-chevron">⌄</text>
+      <g transform="translate(63 174)"><ActorIcon /></g>
+      <text x="84" y="179" className="actors-help-heading">Actors (3)</text>
+      <circle cx="188" cy="174" r="9" fill="none" stroke="#9da5b2" />
+      <text x="188" y="178" className="actors-help-question" textAnchor="middle">?</text>
       {actors.map((actor, index) => (
         <g key={actor.id}>
-          <text x="87" y={252 + index * 32} className="actors-help-link">
+          <text x="121" y={212 + index * 34} className="actors-help-link">
             {actor.name}
           </text>
           <text
-            x={[264, 282, 240][index]}
-            y={251 + index * 32}
+            x={[286, 286, 252][index]}
+            y={211 + index * 34}
             className="actors-help-role"
           >
             {actor.role}
@@ -257,27 +266,38 @@ export default function ActorsHelpDemo() {
 
   const frame = getActorsHelpFrame(elapsed);
   const finished = !reduceMotion && elapsed >= actorsHelpDuration;
+  const illustrating = !reduceMotion && !finished &&
+    (elapsed < 1800 || elapsed >= 10450);
   const moving = frame.travel;
   const figureStyle = { "--actors-help-progress": String(elapsed / actorsHelpDuration) } as CSSProperties;
 
   return (
     <figure
-      className={"actors-help-demo" + (finished || reduceMotion ? " is-still" : "")}
+      className={"actors-help-demo" +
+        (finished || reduceMotion ? " is-still" : "") +
+        (illustrating ? " is-illustrating" : "")}
       aria-label="Actors become Item ownership and relationship entries"
       style={figureStyle}
     >
       <HelpAnimationProgress progress={elapsed / actorsHelpDuration} />
-      <svg viewBox="0 0 520 365" className="actors-help-diagram"
+      <svg viewBox="0 0 640 326" className="actors-help-diagram"
         role="img" aria-label="Three people work with a service, become Owner, User, and Other rows on an Item page, then return"
       >
-        <g style={{ opacity: frame.sceneOpacity }} aria-hidden="true">
-          <Machine />
-        </g>
         <ItemPreview opacity={reduceMotion ? 1 : frame.pageOpacity} />
+        {!reduceMotion && (
+          <g data-service="item" opacity={frame.machineOpacity}
+            transform={"translate(" +
+              lerp(314, 65, moving) + " " +
+              lerp(169, 40, moving) + ") scale(" +
+              lerp(0.84, 0.10, moving) + ") translate(-94 -110)"}
+          >
+            <Machine />
+          </g>
+        )}
         {!reduceMotion && actors.map((actor) => {
           const x = lerp(actor.start[0], actor.destination[0], moving);
           const y = lerp(actor.start[1], actor.destination[1], moving);
-          const scale = lerp(1, 0.12, moving);
+          const scale = lerp(0.87, 0.23, moving);
           return (
             <g key={actor.id} data-actor={actor.id}
               opacity={frame.actorOpacity}

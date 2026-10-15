@@ -1,4 +1,8 @@
 .actors-help-demo {
+  position: relative;
+  align-self: center;
+  width: 100%;
+  max-width: 640px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -118,24 +122,31 @@
   stroke-linejoin: round;
 }
 
-.actors-help-demo:not(.is-still) .actors-help-gear {
-  animation: actors-help-rotate 4.5s linear infinite;
+.actors-help-demo.is-illustrating .actors-help-gear {
+  animation: actors-help-rotate 3s linear infinite;
 }
 
-.actors-help-demo:not(.is-still) .actors-help-light {
-  animation: actors-help-blink 1.4s ease-in-out infinite;
+.actors-help-demo.is-illustrating .actors-help-light {
+  animation: actors-help-blink 1s ease-in-out infinite;
 }
 
-.actors-help-demo:not(.is-still) .actors-help-moving-arm {
-  animation: actors-help-wave 1.2s ease-in-out infinite alternate;
-  transform-origin: 45px 89px;
-  transform-box: view-box;
+/* Use local fill boxes so tools rotate around their hands, not the SVG canvas. */
+.actors-help-demo.is-illustrating .actors-help-person-owner .actors-help-typing {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: actors-help-type .35s ease-in-out infinite alternate;
 }
 
-.actors-help-demo:not(.is-still) .actors-help-wrench {
-  animation: actors-help-wrench-turn 1.7s ease-in-out infinite alternate;
-  transform-origin: 72px 109px;
-  transform-box: view-box;
+.actors-help-demo.is-illustrating .actors-help-person-user .actors-help-moving-arm {
+  transform-box: fill-box;
+  transform-origin: 50% 0%;
+  animation: actors-help-check .75s ease-in-out infinite alternate;
+}
+
+.actors-help-demo.is-illustrating .actors-help-person-other .actors-help-wrench {
+  transform-box: fill-box;
+  transform-origin: 50% 75%;
+  animation: actors-help-wrench-turn .85s ease-in-out infinite alternate;
 }
 
 @keyframes actors-help-rotate {
@@ -143,15 +154,19 @@
 }
 
 @keyframes actors-help-blink {
-  50% { opacity: .35; }
+  50% { opacity: .28; }
 }
 
-@keyframes actors-help-wave {
-  to { transform: rotate(7deg); }
+@keyframes actors-help-type {
+  to { transform: translateY(-5px); }
+}
+
+@keyframes actors-help-check {
+  to { transform: translate(-3px, 5px) rotate(8deg); }
 }
 
 @keyframes actors-help-wrench-turn {
-  to { transform: rotate(12deg); }
+  to { transform: rotate(18deg); }
 }
 
 @media (max-width: 540px) {
