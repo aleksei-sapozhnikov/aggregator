@@ -1,0 +1,164 @@
+.actors-help-demo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+  color: var(--text);
+}
+
+.actors-help-diagram {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.actors-help-item {
+  pointer-events: none;
+}
+
+.actors-help-item text {
+  font-family: Inter, "Segoe UI", system-ui, sans-serif;
+  dominant-baseline: auto;
+}
+
+.actors-help-title {
+  font-size: 21px;
+  font-weight: 600;
+  fill: #1f1f1f;
+}
+
+.actors-help-heading {
+  font-size: 17px;
+  font-weight: 600;
+  fill: #1f1f1f;
+}
+
+.actors-help-link {
+  font-size: 17px;
+  font-weight: 400;
+  fill: #1550b3;
+}
+
+.actors-help-role {
+  font-size: 12px;
+  fill: #5b616f;
+}
+
+.actors-help-check {
+  font-size: 22px;
+  font-weight: 800;
+  fill: #73bf69;
+}
+
+.actors-help-up {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  fill: #73bf69;
+}
+
+.actors-help-info {
+  font-size: 14px;
+  font-weight: 700;
+  fill: #1550b3;
+}
+
+.actors-help-question {
+  font-size: 11px;
+  font-weight: 700;
+  fill: #5b616f;
+}
+
+.actors-help-chevron {
+  font-size: 19px;
+  font-weight: 500;
+  fill: #1f1f1f;
+}
+
+.actors-help-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.actors-help-footer button {
+  flex: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 12px;
+  background: var(--panel-alt);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.actors-help-footer button:hover {
+  background: var(--panel-hover);
+}
+
+.actors-help-footer button:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
+}
+
+.actors-help-machine,
+.actors-help-person {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.actors-help-demo:not(.is-still) .actors-help-gear {
+  animation: actors-help-rotate 4.5s linear infinite;
+}
+
+.actors-help-demo:not(.is-still) .actors-help-light {
+  animation: actors-help-blink 1.4s ease-in-out infinite;
+}
+
+.actors-help-demo:not(.is-still) .actors-help-moving-arm {
+  animation: actors-help-wave 1.2s ease-in-out infinite alternate;
+  transform-origin: 45px 89px;
+  transform-box: view-box;
+}
+
+.actors-help-demo:not(.is-still) .actors-help-wrench {
+  animation: actors-help-wrench-turn 1.7s ease-in-out infinite alternate;
+  transform-origin: 72px 109px;
+  transform-box: view-box;
+}
+
+@keyframes actors-help-rotate {
+  to { transform: translate(88px, 111px) rotate(360deg); }
+}
+
+@keyframes actors-help-blink {
+  50% { opacity: .35; }
+}
+
+@keyframes actors-help-wave {
+  to { transform: rotate(7deg); }
+}
+
+@keyframes actors-help-wrench-turn {
+  to { transform: rotate(12deg); }
+}
+
+@media (max-width: 540px) {
+  .actors-help-demo { padding: 5px; }
+  .actors-help-footer { font-size: 11px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .actors-help-demo * { animation: none !important; }
+}

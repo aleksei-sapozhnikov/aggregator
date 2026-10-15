@@ -37,6 +37,16 @@ describe("InfoHelp signal examples", () => {
   });
 });
 
+describe("InfoHelp Actors example", () => {
+  it("shows the relationship animation in the existing Actors dialog", () => {
+    render(<InfoHelp topic={infoHelpTopics.actors} />);
+    fireEvent.click(screen.getByRole("button", { name: "About Actors" }));
+    const dialog = screen.getByRole("dialog", { name: "About Actors" });
+    expect(dialog.querySelector("figure[aria-label='Actors become Item ownership and relationship entries']")).not.toBeNull();
+    expect(dialog.querySelectorAll("[data-actor]")).toHaveLength(3);
+  });
+});
+
 describe("InfoHelp tooltip lifecycle", () => {
   it.each(["Escape", "Close button", "Backdrop"] as const)(
     "does not reopen the tooltip after closing its modal via %s",

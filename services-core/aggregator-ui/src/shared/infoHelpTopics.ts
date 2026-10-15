@@ -10,7 +10,7 @@ export type InfoHelpTopic = {
       text: string;
     }[];
   }[];
-  demo?: "timeline" | "healthy-signals" | "unhealthy-signals";
+  demo?: "timeline" | "healthy-signals" | "unhealthy-signals" | "actors";
   details?: {
     label: string;
     value: string;
@@ -29,6 +29,7 @@ export const infoHelpTopics = {
     summary: "People or teams associated with this item. Click for details.",
     description:
       "Actors describe the people or teams associated with this item and their relationship to it. An actor can, for example, be an owner, a user, or another involved party. Actors can also provide contacts that help you reach the relevant people.",
+    demo: "actors",
   },
   unhealthySignals: {
     title: "Unhealthy signals",
