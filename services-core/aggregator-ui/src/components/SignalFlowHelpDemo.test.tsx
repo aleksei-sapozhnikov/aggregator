@@ -124,9 +124,58 @@ describe("Signal flow help demonstrations", () => {
     expect(screen.getByText(/current Item is unhealthy/)).not.toBeNull();
   });
 
+  it("projects a failing dependency and its two own signals into the unhealthy list and back", () => {
+    render(<SignalFlowHelpDemo mode="unhealthy" />);
+    const diagram = screen.getByRole("img", {
+      name: /A failing check in Nested dependency 1/,
+    });
+    const page = diagram.querySelector('[data-unhealthy-page="true"]') as SVGElement;
+    const graph = diagram.querySelector(".signal-flow-help-graph") as SVGElement;
+    const dependency = diagram.querySelector('[data-unhealthy-source="dependency"]');
+    const depFrame = diagram.querySelector('[data-unhealthy-frame="dependency"]') as Element;
+
+    expect(dependency).not.toBeNull();
+    expect(diagram.querySelectorAll("[data-unhealthy-source]")).toHaveLength(1);
+    expect(page.style.opacity).toBe("0");
+    expect(graph.style.opacity).toBe("1");
+
+    advance(9000);
+    const sourceNodes = Array.from(diagram.querySelectorAll("[data-unhealthy-source]"));
+    const frames = Array.from(diagram.querySelectorAll("[data-unhealthy-frame]"));
+    expect(sourceNodes).toHaveLength(3);
+    expect(frames).toHaveLength(3);
+    expect(frames.every((frame) => frame.getAttribute("opacity") === "1")).toBe(true);
+    expect(depFrame.getAttribute("x")).toBe("115");
+    expect(depFrame.getAttribute("width")).toBe("154");
+    expect(getNode("dep2").getAttribute("data-health")).toBe("healthy");
+
+    advance(4000);
+    expect(page.style.opacity).toBe("1");
+    expect(graph.style.opacity).toBe("0");
+    expect(depFrame.getAttribute("x")).toBe("130");
+    expect(depFrame.getAttribute("width")).toBe("379");
+    expect(diagram.getAttribute("data-unhealthy-morph-progress")).toBeNull();
+    expect(diagram.querySelector("[data-unhealthy-morph-progress='100']")).not.toBeNull();
+    expect(screen.getByText("Readiness check").getAttribute("opacity")).toBe("1");
+    expect(screen.getByText("Error rate").getAttribute("opacity")).toBe("1");
+    expect(diagram.querySelectorAll(".signal-flow-help-moving-failure")).toHaveLength(2);
+    expect(sourceNodes.every((source) => source.isConnected)).toBe(true);
+
+    advance(4500);
+    expect(page.style.opacity).toBe("0");
+    expect(graph.style.opacity).toBe("1");
+    expect(depFrame.getAttribute("x")).toBe("115");
+    expect(depFrame.getAttribute("width")).toBe("154");
+    expect(sourceNodes.every((source) => source.isConnected)).toBe(true);
+
+    advance(1200);
+    expect(depFrame.getAttribute("opacity")).toBe("0");
+    expect(page.style.opacity).toBe("0");
+  });
+
   it("resets and replays after the unhealthy state is shown", () => {
     render(<SignalFlowHelpDemo mode="unhealthy" />);
-    advance(10200);
+    advance(19200);
 
     expect(getNode("nested1").getAttribute("data-health")).toBe("healthy");
     expect(getNode("item").getAttribute("data-health")).toBe("healthy");

@@ -1,5 +1,9 @@
 import { useEffect, useId, useState } from "react";
 import "./SignalFlowHelpDemo.css";
+import UnhealthySignalProjection, {
+  unhealthyCycleDuration,
+  unhealthyResetAt,
+} from "./UnhealthySignalProjection";
 
 type SignalFlowMode = "healthy" | "unhealthy";
 type FlowNodeId = "item" | "dep1" | "dep2" | "nested1" | "nested2" | "nested3";
@@ -63,7 +67,6 @@ const edges: FlowEdge[] = [
   },
 ];
 
-const cycleDuration = 11200;
 const healthyCycleDuration = 13000;
 
 // The selected Item owns these checks. Dependencies have separate checks
@@ -82,7 +85,7 @@ const dependencyAffectedAt = 4400;
 const secondLinkStart = 4900;
 const secondLinkEnd = 6900;
 const itemAffectedAt = 7100;
-const resetAt = 10100;
+
 
 const progressBetween = (time: number, start: number, end: number): number =>
   Math.max(0, Math.min(1, (time - start) / (end - start)));
@@ -100,11 +103,11 @@ export default function SignalFlowHelpDemo({
 
   useEffect(() => {
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
-      setElapsed(unhealthy ? itemAffectedAt + 100 : 6500);
+      setElapsed(unhealthy ? 13000 : 6500);
       return undefined;
     }
 
-    const duration = unhealthy ? cycleDuration : healthyCycleDuration;
+    const duration = unhealthy ? unhealthyCycleDuration : healthyCycleDuration;
     const interval = window.setInterval(() => {
       setElapsed((current) => (current + 100) % duration);
     }, 100);
@@ -112,7 +115,7 @@ export default function SignalFlowHelpDemo({
   }, [unhealthy]);
 
   // During the final pause the sample resets to green before repeating.
-  const time = unhealthy && elapsed >= resetAt ? 0 : elapsed;
+  const time = unhealthy && elapsed >= unhealthyResetAt ? 0 : elapsed;
   const failedLeaf = unhealthy && time >= failureStart;
   const affectedDependency = unhealthy && time >= dependencyAffectedAt;
   const affectedItem = unhealthy && time >= itemAffectedAt;
@@ -149,6 +152,14 @@ export default function SignalFlowHelpDemo({
   const pageOpacity = progressBetween(healthyTime, 3400, 4500)
     * (1 - progressBetween(healthyTime, 8200, 9300));
   const linkOpacity = progressBetween(presentationProgress, 0.7, 0.95);
+  const unhealthyDiagramOpacity = Math.min(
+    1,
+    Math.max(
+      0,
+      1 - progressBetween(elapsed, 9350, 10500)
+        + progressBetween(elapsed, 14600, 15900),
+    ),
+  );
   const explanation = !unhealthy
     ? healthyTime < 2200
       ? "All Items have their own checks. Watch which ones appear in this Item's Healthy signals."
@@ -161,7 +172,13 @@ export default function SignalFlowHelpDemo({
         ? "A check fails in Nested dep 1. Its impact travels toward Dependency 1."
         : !affectedItem
           ? "Dependency 1 is affected. The impact now moves toward the current Item."
-          : "The current Item is unhealthy because a dependency below it is affected.";
+          : elapsed < 8200
+            ? "The nested failure affects Dependency 1's readiness and error-rate checks."
+            : elapsed < 14700
+              ? "Dependency 1 and its two failing checks appear under Unhealthy signals."
+              : elapsed < 19000
+                ? "The dependency and its failing signals return to the graph."
+                : "All checks are passing. The example will repeat.";
 
   return (
     <figure
@@ -205,7 +222,7 @@ export default function SignalFlowHelpDemo({
 
         <g
           className="signal-flow-help-graph"
-          style={{ opacity: unhealthy ? 1 : diagramOpacity }}
+          style={{ opacity: unhealthy ? unhealthyDiagramOpacity : diagramOpacity }}
         >
         {edges.map((edge, index) => {
           const progress = redProgress[edge.id] ?? 0;
@@ -264,14 +281,16 @@ export default function SignalFlowHelpDemo({
                 height={node.height}
                 rx={11}
               />
-              <text
-                className="signal-flow-help-node-title"
-                x={center}
-                y={node.y + 24}
-                textAnchor="middle"
-              >
-                {node.title}
-              </text>
+              {!(unhealthy && node.id === "dep1") && (
+                <text
+                  className="signal-flow-help-node-title"
+                  x={center}
+                  y={node.y + 24}
+                  textAnchor="middle"
+                >
+                  {node.title}
+                </text>
+              )}
               {failingCheck ? (
                 <g className="signal-flow-help-alarm" data-failing-check="true">
                   <path
@@ -281,7 +300,7 @@ export default function SignalFlowHelpDemo({
                   />
                   <text x={center} y={node.y + 50} textAnchor="middle">!</text>
                 </g>
-              ) : affected ? (
+              ) : affected && !(unhealthy && node.id === "dep1") ? (
                 <text
                   className="signal-flow-help-impacted-label"
                   x={center}
@@ -292,7 +311,10 @@ export default function SignalFlowHelpDemo({
                 </text>
               ) : (
                 <g className="signal-flow-help-checks" aria-label="Passing checks">
-                  {(unhealthy || node.id !== "item" ? [-18, 0, 18] : []).map((offset) => (
+                  {(unhealthy
+                    ? (node.id === "dep1" && affected ? [] : [-18, 0, 18])
+                    : node.id !== "item" ? [-18, 0, 18] : []
+                  ).map((offset) => (
                     <text
                       key={offset}
                       x={center + offset}
@@ -308,6 +330,13 @@ export default function SignalFlowHelpDemo({
           );
         })}
         </g>
+
+        {unhealthy && (
+          <UnhealthySignalProjection
+            elapsed={elapsed}
+            dependencyAffected={affectedDependency}
+          />
+        )}
 
         {!unhealthy && (
           <>

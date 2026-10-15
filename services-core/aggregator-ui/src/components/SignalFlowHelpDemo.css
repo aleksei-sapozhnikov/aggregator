@@ -216,3 +216,45 @@
 .signal-flow-help-owned-signal {
   pointer-events: none;
 }
+
+
+/* Unhealthy signals: keep the dependency and its two failing checks in
+   the same SVG coordinate system while they turn into grouped links. */
+.signal-flow-help-unhealthy-page,
+.signal-flow-help-moving-dependency,
+.signal-flow-help-moving-failure,
+.signal-flow-help-projection-metadata {
+  pointer-events: none;
+}
+
+.signal-flow-help-page-failed-status {
+  fill: var(--status-down);
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.signal-flow-help-selection-frame.is-unhealthy-frame {
+  fill: color-mix(in srgb, var(--status-down) 9%, transparent);
+  stroke: var(--status-down);
+}
+
+.signal-flow-help-dependency-label {
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.signal-flow-help-dependency-link-mark {
+  fill: var(--link);
+  font-size: 16px;
+}
+
+.signal-flow-help-dependency-tag {
+  fill: var(--muted);
+  font-size: 12px;
+}
+
+.signal-flow-help-failure-marker {
+  fill: var(--status-down);
+  font-size: 20px;
+  font-weight: 800;
+}
