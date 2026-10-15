@@ -55,6 +55,11 @@ describe("Signal flow help demonstrations", () => {
     advance(1700);
     expect(getProgress("nested1-dep1")).toBeGreaterThan(0);
     expect(getProgress("nested1-dep1")).toBeLessThan(100);
+    expect(
+      document.querySelector(
+        '[data-flow-edge="nested1-dep1"] .signal-flow-help-current',
+      ),
+    ).toBeNull();
     expect(getNode("dep1").getAttribute("data-health")).toBe("healthy");
 
     advance(1300);

@@ -183,7 +183,7 @@ export default function SignalFlowHelpDemo({
                 d={edge.path}
                 markerEnd={"url(#" + (fullyRed ? redArrow : greenArrow) + ")"}
               />
-              {progress < 1 && (
+              {progress === 0 && (
                 <path
                   className="signal-flow-help-current"
                   d={edge.path}
