@@ -44,6 +44,11 @@ describe("Actors contextual help animation", () => {
     expect(figure.querySelectorAll("[data-actor]")).toHaveLength(3);
     expect(figure.querySelectorAll("[data-service='item']")).toHaveLength(1);
     expect(figure.querySelector("svg[viewBox='0 0 420 310']")).not.toBeNull();
+    // The sample Item uses the surrounding modal theme, not a fixed light background.
+    expect(figure.querySelector(".actors-help-item > rect")).toBeNull();
+    expect(figure.querySelector(".actors-help-contact-icon")).not.toBeNull();
+    expect(figure.querySelector(".actors-help-actor-icon")).not.toBeNull();
+    expect(figure.querySelector(".actors-help-info-outline")).not.toBeNull();
     expect(Array.from(figure.querySelectorAll("[data-scene-label]"),
       (label) => label.getAttribute("data-scene-label")).sort())
       .toEqual(["Owner", "Service", "Support", "User"]);
