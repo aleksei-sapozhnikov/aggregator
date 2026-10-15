@@ -146,10 +146,12 @@ describe("Timeline help walkthrough", () => {
     const cursor = preview.querySelector(".timeline-help-tracks > .timeline-help-cursor") as SVGElement;
     expect(cursor.style.top).toBe("107px");
     expect(within(preview).getAllByText("↳ Payment Gateway · readiness check").length).toBeGreaterThan(0);
+    advance(1700);
     const graphCursor = preview.querySelector(".timeline-help-tracks > .timeline-help-cursor") as SVGElement;
     const originalLeft = graphCursor.style.left;
     const originalTop = graphCursor.style.top;
-    advance(2100);
+    // The graph playhead has stopped; opening details must not move the cursor.
+    advance(400);
     expect(within(preview).queryByLabelText("States at selected time")).toBeNull();
     expect(within(preview).getByLabelText("Dependency signal details")).not.toBeNull();
     const link = within(preview).getByText("Item: Payment Gateway");
