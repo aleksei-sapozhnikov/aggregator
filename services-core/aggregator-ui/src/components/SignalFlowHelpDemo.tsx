@@ -356,7 +356,7 @@ export default function SignalFlowHelpDemo({
               <text className="signal-flow-help-page-title" x="150" y="51">client-service</text>
               <line className="signal-flow-help-page-divider" x1="121" y1="67" x2={compact ? 699 : 519} y2="67" />
               <text className="signal-flow-help-page-muted" x="123" y="91">Primary contact</text>
-              <text className="signal-flow-help-page-contact" x="123" y="111">team@example.test</text>
+              <text className="signal-flow-help-page-contact" x="123" y="111">support@client-service</text>
               <text className="signal-flow-help-page-heading" x="123" y="143">⌄ Healthy signals (3)</text>
               <line className="signal-flow-help-page-divider" x1="121" y1="151" x2={compact ? 699 : 519} y2="151" />
               </g>
