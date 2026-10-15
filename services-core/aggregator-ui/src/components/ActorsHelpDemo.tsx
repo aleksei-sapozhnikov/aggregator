@@ -285,7 +285,7 @@ export default function ActorsHelpDemo() {
             transform={"translate(" +
               lerp(314, 340, moving) + " " +
               lerp(169, 40, moving) + ") scale(" +
-              lerp(0.84, 0.085, moving) + ") translate(-94 -110)"}
+              lerp(0.84, 0.085, moving).toFixed(3) + ") translate(-94 -110)"}
           >
             <Machine />
           </g>
