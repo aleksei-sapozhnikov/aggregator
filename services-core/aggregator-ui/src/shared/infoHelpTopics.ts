@@ -10,7 +10,7 @@ export type InfoHelpTopic = {
       text: string;
     }[];
   }[];
-  demo?: "timeline" | "healthy-signals" | "unhealthy-signals" | "actors";
+  demo?: "timeline" | "healthy-signals" | "unhealthy-signals" | "actors" | "primary-contact";
   details?: {
     label: string;
     value: string;
@@ -23,6 +23,7 @@ export const infoHelpTopics = {
     summary: "The main contact for this item. Click for details.",
     description:
       "The primary contact is the main contact point associated with this item. Use it when you need more information, need to reach the responsible people, or are not sure who to contact about the item.",
+    demo: "primary-contact",
   },
   actors: {
     title: "Actors",

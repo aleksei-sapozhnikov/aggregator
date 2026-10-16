@@ -1,0 +1,111 @@
+.primary-contact-help-demo {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+}
+.primary-contact-help-diagram {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 760px;
+  margin: 0 auto;
+  overflow: hidden;
+}
+.primary-contact-shadow { fill: #cdd7df; opacity: 0.55; }
+.primary-contact-up-light { fill: #70c87c; }
+.primary-contact-down-light { fill: #eb4d46; }
+.primary-contact-up-rays { stroke: #70c87c; }
+.primary-contact-down-rays,
+.primary-contact-alarm-rays,
+.primary-contact-repair-sparks { stroke: #eb4d46; }
+.primary-contact-exclamation {
+  fill: #eb4d46;
+  font-size: 41px;
+  font-weight: 800;
+}
+.primary-contact-laptop-word {
+  fill: #344c63;
+  font-size: 11px;
+  font-weight: 700;
+}
+.primary-contact-phone-screen { fill: var(--panel); }
+.primary-contact-phone-title {
+  fill: var(--text);
+  font-size: 11px;
+  font-weight: 650;
+}
+.primary-contact-call-circle { fill: #45a87b; }
+.primary-contact-phone-waves { stroke: #45a87b; }
+.primary-contact-page-surface {
+  fill: var(--panel);
+  stroke: var(--border);
+  stroke-width: 2;
+}
+.primary-contact-help-diagram text {
+  font-family: Inter, "Segoe UI", system-ui, sans-serif;
+}
+.primary-contact-page-title {
+  fill: var(--text);
+  font-size: 25px;
+  font-weight: 650;
+}
+.primary-contact-page-down {
+  fill: var(--status-down);
+  font-size: 16px;
+  font-weight: 750;
+  letter-spacing: 1px;
+}
+.primary-contact-page-separator {
+  stroke: var(--border);
+  stroke-width: 1.5;
+  fill: none;
+}
+.primary-contact-page-accent {
+  stroke: var(--direct-toggle-accent);
+  stroke-width: 3;
+}
+.primary-contact-page-heading {
+  fill: var(--text);
+  font-size: 19px;
+  font-weight: 650;
+}
+.primary-contact-page-help-circle {
+  stroke: var(--muted);
+  stroke-width: 1.5;
+  fill: none;
+}
+.primary-contact-page-help-text {
+  fill: var(--muted);
+  font-size: 15px;
+}
+.primary-contact-page-highlight {
+  fill: color-mix(in srgb, var(--link) 12%, var(--panel));
+  stroke: var(--link);
+  stroke-width: 2.5;
+}
+.primary-contact-page-icon { stroke: var(--text); }
+.primary-contact-page-link {
+  fill: var(--link);
+  font-size: 18px;
+}
+.primary-contact-page-muted {
+  fill: var(--muted);
+  font-size: 16px;
+}
+@media (max-width: 540px) {
+  .primary-contact-help-demo { padding: 5px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .primary-contact-help-demo *,
+  .primary-contact-help-demo *::before,
+  .primary-contact-help-demo *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

@@ -6,6 +6,7 @@ import ModalWindow from "./ModalWindow";
 import TimelineHelpDemo from "./TimelineHelpDemo";
 import SignalFlowHelpDemo from "./SignalFlowHelpDemo";
 import ActorsHelpDemo from "./ActorsHelpDemo";
+import PrimaryContactHelpDemo from "./PrimaryContactHelpDemo";
 
 type InfoHelpProps = {
   topic: InfoHelpTopic;
@@ -33,6 +34,7 @@ function InfoHelpDialog({ topic, onClose }: { topic: InfoHelpTopic; onClose: () 
           </div>
           {topic.demo === "timeline" && <TimelineHelpDemo />}
           {topic.demo === "actors" && <ActorsHelpDemo />}
+          {topic.demo === "primary-contact" && <PrimaryContactHelpDemo />}
           {topic.demo === "healthy-signals" && <SignalFlowHelpDemo mode="healthy" />}
           {topic.demo === "unhealthy-signals" && <SignalFlowHelpDemo mode="unhealthy" />}
           {topic.sections && topic.sections.length > 0 && (
