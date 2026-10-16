@@ -67,7 +67,7 @@ it("moves animation destinations when shared row geometry changes, accounting fo
   const observed: Element[] = [];
   vi.spyOn(HTMLElement.prototype, "offsetWidth", "get").mockReturnValue(1000);
   vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(
-    function () {
+    function (this: HTMLElement) {
       return (
         this.classList.contains("target-page")
           ? { left: 50, top: 100, width: 500, height: 400 }
