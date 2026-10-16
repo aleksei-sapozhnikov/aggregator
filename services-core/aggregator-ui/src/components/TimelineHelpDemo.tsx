@@ -30,25 +30,10 @@ const exampleRows: TimelineRow[] = [
     item: "Notification Worker", states: ["UP", "DOWN", "UP", "UP", "UP"] },
 ];
 
-const scenarios: { id: Scenario; title: string; description: string }[] = [
-  {
-    id: "inspect",
-    title: "Inspect a moment",
-    description:
-      "Watch the cursor reveal the full names and health states for one moment.",
-  },
-  {
-    id: "filter",
-    title: "Switch signal groups",
-    description:
-      "Watch the signal selector switch between All, Own, and Dependencies. [Overall] remains visible.",
-  },
-  {
-    id: "navigate",
-    title: "Open a dependency",
-    description:
-      "The selected dependency segment has a popup containing an Item link. Watch it open the dependency.",
-  },
+const scenarios: { id: Scenario; title: string }[] = [
+  { id: "inspect", title: "Inspect a moment" },
+  { id: "filter", title: "Switch signal groups" },
+  { id: "navigate", title: "Open a dependency" },
 ];
 
 const cycleDurations: Record<Scenario, number> = {
@@ -326,9 +311,6 @@ export default function TimelineHelpDemo() {
           </button>
         ))}
       </nav>
-      <p className="timeline-help-description">
-        {scenarios.find((entry) => entry.id === scenario)?.description}
-      </p>
       <section className="timeline-help-preview" aria-label="Example Timeline">
         <HelpAnimationProgress progress={elapsed / cycleDurations[scenario]} />
         {openedItem ? (

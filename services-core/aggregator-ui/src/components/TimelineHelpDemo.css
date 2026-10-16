@@ -53,12 +53,6 @@
   border-radius: 50%;
 }
 
-.timeline-help-description {
-  min-height: 36px;
-  margin: 0;
-  line-height: 1.5;
-}
-
 .timeline-help-preview {
   min-width: 0;
   padding: 13px;
@@ -390,10 +384,6 @@
 
   .timeline-help-scenarios button {
     min-height: 34px;
-  }
-
-  .timeline-help-description {
-    min-height: 0;
   }
 
   .timeline-help-chart {

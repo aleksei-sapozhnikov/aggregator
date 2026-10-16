@@ -10,6 +10,22 @@ afterEach(() => { cleanup(); vi.useRealTimers(); });
 const advance = (ms: number) => act(() => vi.advanceTimersByTime(ms));
 
 describe("Timeline help walkthrough", () => {
+  it("shows the animation directly below scenario buttons without redundant descriptions", () => {
+    const { container } = render(<TimelineHelpDemo />);
+    const navigation = screen.getByRole("navigation", { name: "Timeline help scenarios" });
+    const preview = screen.getByLabelText("Example Timeline");
+
+    expect(navigation.nextElementSibling).toBe(preview);
+    expect(container.querySelector(".timeline-help-description")).toBeNull();
+    for (const scenario of ["Inspect a moment", "Switch signal groups", "Open a dependency"]) {
+      fireEvent.click(screen.getByRole("button", { name: scenario }));
+      expect(navigation.nextElementSibling).toBe(preview);
+      expect(container.querySelector(".timeline-help-description")).toBeNull();
+      expect(screen.getByRole("progressbar", { name: "Animation progress" })).not.toBeNull();
+    }
+  });
+
+
   it.each([
     ["inspect", "Inspect a moment", 8500],
     ["filter", "Switch signal groups", 12000],
