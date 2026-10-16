@@ -84,7 +84,7 @@
   .actors-help-person-user
   .actors-help-moving-arm {
   transform-box: fill-box;
-  transform-origin: 50% 0%;
+  transform-origin: 50% 0;
   animation: actors-help-check 0.75s ease-in-out infinite alternate;
 }
 
