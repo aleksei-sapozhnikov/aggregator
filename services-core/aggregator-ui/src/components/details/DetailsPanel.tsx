@@ -2,16 +2,16 @@
  * @file Main details panel UI for the selected catalog item.
  */
 
-import TopBarActions from "./TopBarActions";
-import AiChatPanel from "./AiChatPanel";
-import ItemTitle from "./shared/item/ItemTitle";
-import ItemOwnership, { type ActorSummaryRow } from "./shared/item/ItemOwnership";
-import { HealthySignals, UnhealthySignals, type UnhealthyDependencyRow } from "./shared/item/ItemSignals";
-import ItemTimeline from "./shared/item/ItemTimeline";
-import InfoHelp, { InfoHelpProvider } from "./InfoHelp";
-import HealthSignalModal from "./HealthSignalModal";
-import { isPlainLeftClick } from "../shared/catalogUtils";
-import { infoHelpTopics } from "../shared/infoHelpTopics";
+import TopBarActions from "./top-bar/TopBarActions";
+import AiChatPanel from "./ai-chat/AiChatPanel";
+import ItemTitle from "../shared/item/ItemTitle";
+import ItemOwnership, { type ActorSummaryRow } from "../shared/item/ItemOwnership";
+import { HealthySignals, UnhealthySignals, type UnhealthyDependencyRow } from "../shared/item/ItemSignals";
+import ItemTimeline from "../shared/item/ItemTimeline";
+import InfoHelp, { InfoHelpProvider } from "../InfoHelp";
+import HealthSignalModal from "../HealthSignalModal";
+import { isPlainLeftClick } from "../../shared/catalogUtils";
+import { infoHelpTopics } from "../../shared/infoHelpTopics";
 import type {
   CatalogActor,
   CatalogContact,
@@ -19,7 +19,7 @@ import type {
   FailingDependencyEntry,
   HealthStatus,
   ItemSignal,
-} from "../shared/types";
+} from "../../shared/types";
 import type {
   MouseEvent,
   RefObject,

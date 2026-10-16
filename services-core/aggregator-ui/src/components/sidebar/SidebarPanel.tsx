@@ -2,14 +2,14 @@
  * @file Sidebar UI for catalog navigation and search.
  */
 
-import { buildItemRouteHref, isPlainLeftClick } from "../shared/catalogUtils";
-import { buildStatusText } from "../shared/statusText";
+import { buildItemRouteHref, isPlainLeftClick } from "../../shared/catalogUtils";
+import { buildStatusText } from "../../shared/statusText";
 import type {
   CatalogTreeNode,
   HealthStatus,
   SearchAutocompleteOption,
   SearchResult,
-} from "../shared/types";
+} from "../../shared/types";
 import type { RefObject } from "react";
 
 type CatalogNodeProps = {
