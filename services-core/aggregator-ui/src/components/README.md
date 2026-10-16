@@ -76,3 +76,11 @@ mobile swipe gestures, media query changes, and visual viewport sizing.
 and ResizeObserver behavior isolated from the application orchestrator.
 Both hooks preserve existing breakpoints and layout behavior, and the global
 `styles.css` remains unchanged.
+
+## Catalog loading and Product Health polling
+
+`app/hooks/useCatalogData.ts` owns the initial catalog request, Product Health
+polling at a 10-second interval, error handling, and poll cleanup. The hook
+preserves the service-provided UP/DOWN/UNKNOWN states and exposes catalog and
+health data separately. Choosing the initial Item remains the responsibility
+of `app/App.tsx` and `useItemNavigation.ts`, not the loading hook.
