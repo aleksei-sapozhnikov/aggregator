@@ -19,11 +19,13 @@ when the shared markup changes.
 ## Healthy and unhealthy help
 
 `healthy-signals/` and `unhealthy-signals/` expose separate help topics.
-They currently share the graph/scene mechanics in
-`shared/signal-flow/SignalFlowHelpScene.tsx`, configured by scenario mode.
-The failing-dependency projection lives only in `unhealthy-signals/`.
-The shared graph uses explanatory SVG; the signals and ownership on the
-destination Item use production React components.
+Each has its own animation timing and propagation logic. Both use the shared
+`shared/signal-flow/SignalFlowHelpScene.tsx` layout and
+`shared/signal-flow/SignalFlowGraph.tsx` drawing; only shared display props
+cross that boundary. The failing-dependency projection lives in
+`unhealthy-signals/` and is never imported by a shared component.
+The graph uses explanatory SVG; the signals and ownership on the destination
+Item use production React components.
 
 ## Deliberate illustration boundary
 

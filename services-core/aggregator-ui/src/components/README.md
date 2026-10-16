@@ -5,7 +5,8 @@ Group components by feature, not just by rendering mechanism.
 - `details/`: selected Item panel, header actions, and embedded AI chat.
 - `sidebar/`: catalog and dependency navigation.
 - `entity-details/`: entity detail dialogs (actor, contact, signal). They do
-  not belong to the Details panel, even if that panel opens them.
+  not belong to the Details panel. `signal/useSignalDetails.ts` also owns
+  signal deep-link state, so Grafana and the Item panel can open the same dialog.
 - `about/`: application description, contextual help content, animation scenes,
   and the single contextual-help provider.
 - `shared/ui/`: small reusable buttons, links, labels, and modal framing.
@@ -29,7 +30,9 @@ opened. Static topic text and its illustration are colocated in each
 inside `entity-details/contact/` and passed to the same generic context.
 
 Keep tests next to the relevant source or at a feature integration boundary.
-The architecture lives here; individual folders need README files only when
+A focused dependency test (`ComponentBoundaries.test.ts`) verifies these
+import directions without additional tooling. The architecture lives here;
+individual folders need README files only when
 their behavior or constraints warrant additional explanation.
 
 The `src/shared/` directory outside `components/` contains data types and
