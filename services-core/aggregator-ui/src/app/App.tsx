@@ -13,8 +13,8 @@ import ContactModal from "../components/entity-details/contact/ContactModal";
 import ActorModal from "../components/entity-details/actor/ActorModal";
 import HealthSignalModal from "../components/entity-details/signal/HealthSignalModal";
 import useSignalDetails from "../components/entity-details/signal/useSignalDetails";
-import { buildCatalogTree, collectDescendantIds, collectExpandableIds, findNodeById, findNodeByPath, findNodePath, findNodeUidById } from "../shared/catalog/tree";
-import { buildItemPathname, buildItemRouteHref, buildServicePath, readLocationRouteContext, resolveNodeFromLocation } from "../shared/navigation/itemRoutes";
+import useItemNavigation from "./hooks/useItemNavigation";
+import { buildCatalogTree, collectDescendantIds, collectExpandableIds, findNodeByPath, findNodePath, findNodeUidById } from "../shared/catalog/tree";
 import { buildSearchAutocompleteIndex, buildSearchAutocompleteOptions, filterCatalogTree, normalizeSearchText, rankSearchResults } from "../shared/catalog/search";
 import {
   fetchProductHealth,
@@ -48,11 +48,6 @@ const MOBILE_SWIPE_OPEN_DISTANCE_PX = 96;
 const MOBILE_SWIPE_CLOSE_DISTANCE_PX = 96;
 const MOBILE_SWIPE_MAX_VERTICAL_DRIFT_PX = 48;
 const TEMP_AI_CHAT_STORAGE_KEY = "aggregator-ui-ai-chat-enabled";
-type RouteUpdateOptions = { replace?: boolean };
-type LocationSelectionOptions = {
-  normalize?: boolean;
-  preserveExpansion?: boolean;
-};
 type ItemActorsEntry = {
   owner: CatalogActor | null;
   otherActors: CatalogActor[];
@@ -114,8 +109,6 @@ export default function App() {
   const catalogTitle = resolveCatalogTitle();
   const isAiChatFeatureEnabled = useMemo(isTemporaryAiChatEnabled, []);
   const [catalog, setCatalog] = useState(EMPTY_CATALOG);
-  const [selectedId, setSelectedId] = useState("");
-  const [selectedPath, setSelectedPath] = useState<string[]>([]);
   const [error, setError] = useState("");
   const [theme, setTheme] = useState(getInitialTheme);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(
@@ -164,8 +157,6 @@ export default function App() {
   const contentTitlePrimaryRef = useRef<HTMLElement | null>(null);
   const sidebarSwipeStartXRef = useRef<number | null>(null);
   const sidebarSwipeStartYRef = useRef<number | null>(null);
-  const lastHistoryUrlRef = useRef(window.location.href);
-  const lastHistoryKeyRef = useRef("");
 
   const basePath = useMemo(resolveBasePath, []);
   const effectiveIsAiChatOpen = isAiChatFeatureEnabled && isAiChatOpen;
@@ -202,95 +193,6 @@ export default function App() {
       document.documentElement.style.removeProperty("--app-viewport-height");
     };
   }, []);
-
-  /**
-   * Pushes/replaces browser history for an item route while deduplicating no-op updates.
-   */
-  const updateHistoryForRoute = useCallback(
-    (
-      itemId: string,
-      pathIds: string[],
-      { replace }: RouteUpdateOptions = {},
-    ) => {
-      if (!itemId) {
-        return;
-      }
-      const normalizedPath = Array.isArray(pathIds) ? pathIds : [];
-      const url = new URL(window.location.href);
-      url.pathname = buildItemPathname(basePath, itemId);
-      url.search = "";
-      if (normalizedPath.length > 0) {
-        url.searchParams.set("path", buildServicePath(normalizedPath));
-      }
-      const currentPathKey = Array.isArray(window.history.state?.path)
-        ? window.history.state.path.join("/")
-        : "";
-      const targetPathKey = normalizedPath.join("/");
-      const historyKey = `${itemId}::${targetPathKey}`;
-      const nextUrl = url.toString();
-
-      if (
-        window.history.state?.itemId === itemId &&
-        currentPathKey === targetPathKey
-      ) {
-        return;
-      }
-      if (
-        nextUrl === window.location.href ||
-        nextUrl === lastHistoryUrlRef.current ||
-        historyKey === lastHistoryKeyRef.current
-      ) {
-        return;
-      }
-
-      const nextState = { itemId, path: normalizedPath };
-      if (replace) {
-        window.history.replaceState(nextState, "", url);
-      } else {
-        window.history.pushState(nextState, "", url);
-      }
-      lastHistoryUrlRef.current = nextUrl;
-      lastHistoryKeyRef.current = historyKey;
-    },
-    [basePath],
-  );
-
-  /**
-   * Updates route for an item id without preserving an explicit tree path.
-   */
-  const updateUrlForItemId = useCallback(
-    (itemId: string, { replace }: RouteUpdateOptions = {}) => {
-      updateHistoryForRoute(itemId, [], { replace });
-    },
-    [updateHistoryForRoute],
-  );
-
-  /**
-   * Updates route using the selected tree node and its resolved path.
-   */
-  const updateUrlForNode = useCallback(
-    (node: CatalogTreeNode | null, { replace }: RouteUpdateOptions = {}) => {
-      if (!node) {
-        return;
-      }
-      updateHistoryForRoute(node.item.id, node.path || [], { replace });
-    },
-    [updateHistoryForRoute],
-  );
-
-  /**
-   * Normalizes route state after parsing browser location (same semantics, normalized path).
-   */
-  const normalizeUrlForRoute = useCallback(
-    (
-      itemId: string,
-      pathIds: string[],
-      { replace }: RouteUpdateOptions = {},
-    ) => {
-      updateHistoryForRoute(itemId, pathIds, { replace });
-    },
-    [updateHistoryForRoute],
-  );
 
   useEffect(() => {
     document.body.dataset.theme = theme;
@@ -342,7 +244,7 @@ export default function App() {
           itemActors,
           actorContacts,
         });
-        setSelectedId((prev) => prev || items[0]?.id || "");
+        initializeSelectedId((prev) => prev || items[0]?.id || "");
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : "Failed to load catalog");
       }
@@ -498,6 +400,16 @@ export default function App() {
     });
   }, []);
 
+  const {
+    selectedId, selectedPath, selectedNode, initializeSelectedId,
+    handleSelectItem, handleSelectItemById, handleSelectItemByIdNoPath,
+    handleSelectItemByPath, buildItemLink, handleExternalItemLink,
+  } = useItemNavigation({
+    basePath, tree, itemMap, expandedIdsRef,
+    setPendingScrollId, setIsMobileSidebarOpen,
+    expandPathToItem, ensurePathExpanded,
+  });
+
   /**
    * Expands all nodes currently present in the tree.
    */
@@ -529,18 +441,6 @@ export default function App() {
     });
   }, []);
 
-  const selectedNode = useMemo(() => {
-    if (!selectedId) {
-      return null;
-    }
-    if (selectedPath.length > 0) {
-      const byPath = findNodeByPath(tree, selectedPath);
-      if (byPath?.item?.id === selectedId) {
-        return byPath;
-      }
-    }
-    return findNodeById(tree, selectedId);
-  }, [selectedId, selectedPath, tree]);
   const selectedItem = selectedNode?.item || itemMap.get(selectedId);
   const selectedStatus = selectedItem
     ? itemStatuses[selectedItem.id] || "unknown"
@@ -902,109 +802,6 @@ export default function App() {
   }, []);
 
   /**
-   * Selects a node from the tree and updates route with resolved path information.
-   */
-  const handleSelectItem = useCallback(
-    (node: CatalogTreeNode) => {
-      setSelectedId(node.item.id);
-      setSelectedPath(node.path || [node.item.id]);
-      setPendingScrollId(node.uid);
-      setIsMobileSidebarOpen(false);
-      updateUrlForNode(node);
-    },
-    [updateUrlForNode],
-  );
-
-  /**
-   * Selects an item by id, using a resolved node path when available.
-   */
-  const handleSelectItemById = useCallback(
-    (itemId: string) => {
-      setSelectedId(itemId);
-      const selectedNode = findNodeById(tree, itemId);
-      if (selectedNode) {
-        setSelectedPath(selectedNode.path || [itemId]);
-        setPendingScrollId(selectedNode.uid);
-        updateUrlForNode(selectedNode);
-      } else {
-        setSelectedPath([]);
-        const selectedUid = findNodeUidById(tree, itemId);
-        setPendingScrollId(selectedUid || "");
-        updateUrlForItemId(itemId);
-      }
-      setIsMobileSidebarOpen(false);
-    },
-    [tree, updateUrlForItemId, updateUrlForNode],
-  );
-
-  /**
-   * Selects an item by id and writes a pathless route (used by dependent item links).
-   */
-  const handleSelectItemByIdNoPath = useCallback(
-    (itemId: string) => {
-      const resolvedPath = findNodePath(tree, itemId) || [];
-      setSelectedId(itemId);
-      setSelectedPath(resolvedPath);
-      const selectedUid = findNodeUidById(tree, itemId);
-      setPendingScrollId(selectedUid || "");
-      setIsMobileSidebarOpen(false);
-      expandPathToItem(itemId, { path: resolvedPath });
-      updateUrlForItemId(itemId);
-    },
-    [expandPathToItem, tree, updateUrlForItemId],
-  );
-
-  /**
-   * Selects an item by an exact tree path to preserve duplicate-id branch context.
-   */
-  const handleSelectItemByPath = useCallback(
-    (pathIds: string[]) => {
-      const normalizedPath = Array.isArray(pathIds) ? pathIds : [];
-      const itemId = normalizedPath[normalizedPath.length - 1] || "";
-      if (!itemId) {
-        return;
-      }
-      setSelectedId(itemId);
-      setSelectedPath(normalizedPath);
-      const selectedNode = findNodeByPath(tree, normalizedPath);
-      if (selectedNode) {
-        setPendingScrollId(selectedNode.uid);
-        setIsMobileSidebarOpen(false);
-        ensurePathExpanded(selectedNode.path);
-        updateUrlForNode(selectedNode);
-        return;
-      }
-      const selectedUid = findNodeUidById(tree, itemId);
-      setPendingScrollId(selectedUid || "");
-      setIsMobileSidebarOpen(false);
-      ensurePathExpanded(normalizedPath);
-      normalizeUrlForRoute(itemId, normalizedPath);
-    },
-    [ensurePathExpanded, normalizeUrlForRoute, tree, updateUrlForNode],
-  );
-
-  /**
-   * Builds an item link under the current base path.
-   */
-  const buildItemLink = useCallback(
-    (itemId: string, pathIds: string[] = []) => {
-      return buildItemRouteHref(basePath, itemId, pathIds);
-    },
-    [basePath],
-  );
-
-  const handleExternalItemLink = useCallback(
-    (itemId: string, href: string) => {
-      if (itemMap.has(itemId)) {
-        handleSelectItemByIdNoPath(itemId);
-      } else if (href) {
-        window.location.assign(href);
-      }
-    },
-    [handleSelectItemByIdNoPath, itemMap],
-  );
-
-  /**
    * Clears search text and exits search-results mode.
    */
   const handleClearSearch = useCallback(() => {
@@ -1012,92 +809,6 @@ export default function App() {
     setSearchQuery("");
     setIsSearchActive(false);
   }, []);
-
-  /**
-   * Sync selected item with browser URL and handle browser back/forward navigation.
-   * Also normalizes invalid/missing route states to the closest resolvable node.
-   */
-  useEffect(() => {
-    if (!tree.length) {
-      return undefined;
-    }
-    const applySelectionFromLocation = (
-      options: LocationSelectionOptions = {},
-    ) => {
-      const { normalize = true, preserveExpansion = false } = options;
-      const routeContext = readLocationRouteContext(basePath);
-      const resolved = resolveNodeFromLocation(tree, basePath);
-      if (!resolved) {
-        if (normalize && routeContext.hasRouteId) {
-          normalizeUrlForRoute(routeContext.routeId, routeContext.pathIds, {
-            replace: true,
-          });
-          return;
-        }
-        if (!routeContext.hasPathParam) {
-          const fallbackNode = tree[0] || null;
-          const fallbackId = fallbackNode?.item?.id || "";
-          setSelectedId(fallbackId);
-          setSelectedPath(
-            fallbackNode?.path || (fallbackId ? [fallbackId] : []),
-          );
-          setPendingScrollId(fallbackNode?.uid || "");
-          setIsMobileSidebarOpen(false);
-          if (normalize && fallbackId) {
-            updateUrlForNode(fallbackNode, { replace: true });
-          }
-        }
-        return;
-      }
-      const { node } = resolved;
-      setSelectedId(node.item.id);
-      setSelectedPath(node.path || [node.item.id]);
-      setPendingScrollId(node.uid);
-      if (!preserveExpansion) {
-        setIsMobileSidebarOpen(false);
-        expandPathToItem(node.item.id, { path: node.path });
-      } else {
-        const ancestorIds = node.path?.slice(0, -1) || [];
-        const needsExpand = ancestorIds.some(
-          (id) => !expandedIdsRef.current.has(id),
-        );
-        if (needsExpand) {
-          ensurePathExpanded(node.path);
-        }
-      }
-      if (normalize && (routeContext.hasRouteId || routeContext.hasPathParam)) {
-        updateUrlForNode(node, { replace: true });
-      }
-    };
-
-    applySelectionFromLocation({ normalize: true });
-
-    const handlePopState = () => {
-      lastHistoryUrlRef.current = window.location.href;
-      if (window.history.state?.itemId) {
-        const stateItemId = window.history.state.itemId;
-        const statePath = Array.isArray(window.history.state.path)
-          ? window.history.state.path
-          : [];
-        lastHistoryKeyRef.current = `${stateItemId}::${statePath.join("/")}`;
-      } else {
-        lastHistoryKeyRef.current = "";
-      }
-      applySelectionFromLocation({ normalize: false, preserveExpansion: true });
-    };
-    window.addEventListener("popstate", handlePopState);
-    return () => {
-      window.removeEventListener("popstate", handlePopState);
-    };
-  }, [
-    basePath,
-    ensurePathExpanded,
-    expandPathToItem,
-    normalizeUrlForRoute,
-    tree,
-    updateUrlForItemId,
-    updateUrlForNode,
-  ]);
 
   useEffect(() => {
     if (!selectedId) {
