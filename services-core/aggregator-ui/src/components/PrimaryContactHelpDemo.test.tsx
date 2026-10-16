@@ -5,6 +5,7 @@ import { act, cleanup, fireEvent, render, screen } from "@testing-library/react"
 import { afterEach, describe, expect, it, vi } from "vitest";
 import PrimaryContactHelpDemo, {
   getPrimaryContactHelpFrame,
+  getPrimaryContactHelpLayout,
   primaryContactHelpDuration,
 } from "./PrimaryContactHelpDemo";
 import InfoHelp from "./InfoHelp";
@@ -85,6 +86,57 @@ describe("Primary contact contextual help", () => {
     expect(progress.getAttribute("aria-valuenow")).toBe("50");
     act(() => { vi.advanceTimersByTime(primaryContactHelpDuration / 2); });
     expect(progress.getAttribute("aria-valuenow")).toBe("0");
+  });
+
+  it("maintains roughly the same illustrated pixel scale on desktop and mobile", () => {
+    for (const width of [640, 540, 380, 320]) {
+      const layout = getPrimaryContactHelpLayout(width);
+      const [, , viewWidth, viewHeight] = layout.viewBox.split(" ").map(Number);
+      const serviceWidthInPixels = 137 * 0.66 * Math.min(width, 640) / viewWidth;
+
+      expect(serviceWidthInPixels).toBeGreaterThan(84);
+      expect(serviceWidthInPixels).toBeLessThan(100);
+      expect(viewHeight * Math.min(width, 640) / viewWidth).toBeLessThanOrEqual(340);
+
+      const [left, top] = layout.viewBox.split(" ").map(Number);
+      const actualPageLeft = layout.pageX + 6 * layout.pageScale;
+      const actualPageRight = actualPageLeft + 628 * layout.pageScale;
+      const actualPageTop = layout.pageY + 5 * layout.pageScale;
+      const actualPageBottom = actualPageTop + 330 * layout.pageScale;
+      expect(actualPageLeft).toBeGreaterThanOrEqual(left);
+      expect(actualPageRight).toBeLessThanOrEqual(left + viewWidth);
+      expect(actualPageTop).toBeGreaterThanOrEqual(top);
+      expect(actualPageBottom).toBeLessThanOrEqual(top + viewHeight);
+    }
+    expect(getPrimaryContactHelpLayout(640).viewBox).toBe("0 0 640 340");
+    expect(getPrimaryContactHelpLayout(380).compact).toBe(true);
+  });
+
+  it("adapts the scene and expanded page when its actual card width changes", () => {
+    let measuredWidth = 380;
+    let notifyResize: (() => void) | undefined;
+    vi.spyOn(SVGElement.prototype, "getBoundingClientRect").mockImplementation(
+      () => ({ width: measuredWidth, height: 230, toJSON: () => ({}) }) as DOMRect,
+    );
+    class MockResizeObserver {
+      private readonly callback: ResizeObserverCallback;
+      constructor(callback: ResizeObserverCallback) { this.callback = callback; }
+      observe() { notifyResize = () => this.callback([], this as unknown as ResizeObserver); }
+      disconnect() { notifyResize = undefined; }
+    }
+    vi.stubGlobal("ResizeObserver", MockResizeObserver);
+
+    render(<PrimaryContactHelpDemo />);
+    const svg = screen.getByRole("img", {
+      name: /A service goes down; a person opens Aggregator/,
+    });
+    expect(svg.getAttribute("viewBox")).toBe(getPrimaryContactHelpLayout(380).viewBox);
+
+    measuredWidth = 320;
+    act(() => { notifyResize?.(); });
+    expect(svg.getAttribute("viewBox")).toBe(getPrimaryContactHelpLayout(320).viewBox);
+    expect(svg.querySelector("[data-primary-contact-observer-offset]")
+      ?.getAttribute("transform")).toBe("translate(-24 0)");
   });
 
   it("keeps a readable highlighted Item preview for reduced motion", () => {

@@ -13,10 +13,16 @@
   display: block;
   width: 100%;
   height: auto;
-  max-width: 760px;
+  max-width: 640px;
   margin: 0 auto;
   overflow: hidden;
 }
+/* The primary contact help window follows its content, not the fixed
+   height used by more complex dialogs. Mobile can still scroll if needed. */
+.modal-window:has(.primary-contact-help-demo) {
+  height: auto;
+}
+
 .primary-contact-shadow { fill: #cdd7df; opacity: 0.55; }
 .primary-contact-up-light { fill: #70c87c; }
 .primary-contact-down-light { fill: #eb4d46; }

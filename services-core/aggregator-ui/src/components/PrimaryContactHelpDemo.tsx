@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import HelpAnimationProgress from "./HelpAnimationProgress";
 import "./PrimaryContactHelpDemo.css";
 
@@ -45,7 +45,35 @@ export function getPrimaryContactHelpFrame(time: number) {
   };
 }
 
+// Keep the illustrated service close to its desktop pixel size on narrower cards.
+// The SVG viewport crops unused space rather than shrinking the entire scene.
+export function getPrimaryContactHelpLayout(availableWidth: number) {
+  const compact = availableWidth < 640;
+  const width = compact ? Math.max(300, Math.min(640, availableWidth)) : 640;
+  const height = compact ? Math.max(215, width * 340 / 640) : 340;
+  const left = compact ? 320 - width / 2 : 0;
+  const top = compact ? 195 - height / 2 : 0;
+  const pageScale = compact
+    ? Math.min((width - 20) / 628, (height - 18) / 330)
+    : 1;
+  const pageX = compact ? left + 10 - 6 * pageScale : 0;
+  const pageY = compact
+    ? top + (height - 330 * pageScale) / 2 - 5 * pageScale
+    : 0;
+  const observerShift = compact ? Math.max(0, 360 - width) * 0.6 : 0;
+
+  return {
+    compact,
+    viewBox: [left, top, width, height].join(" "),
+    pageScale,
+    pageX,
+    pageY,
+    observerShift,
+  };
+}
+
 type HelpFrame = ReturnType<typeof getPrimaryContactHelpFrame>;
+type HelpLayout = ReturnType<typeof getPrimaryContactHelpLayout>;
 
 function Service({ frame }: { frame: HelpFrame }) {
   const healthyOpacity = 1 - frame.unhealthy;
@@ -202,11 +230,11 @@ function Technician({ frame }: { frame: HelpFrame }) {
   );
 }
 
-function AggregatorPage({ frame }: { frame: HelpFrame }) {
-  const scale = mix(0.12, 1, frame.pageExpansion);
-  // Expand from the reduced-size laptop rather than from an off-screen point.
-  const x = 390 * (1 - scale);
-  const y = 213 * (1 - scale);
+function AggregatorPage({ frame, layout }: { frame: HelpFrame; layout: HelpLayout }) {
+  // The same Item page expands from the laptop to fit the available viewport.
+  const scale = mix(0.1, layout.pageScale, frame.pageExpansion);
+  const x = mix(392 - 320 * 0.1, layout.pageX, frame.pageExpansion);
+  const y = mix(213 - 170 * 0.1, layout.pageY, frame.pageExpansion);
   return (
     <g data-primary-contact-page="true"
       style={{ opacity: frame.pageOpacity }}
@@ -250,11 +278,12 @@ function AggregatorPage({ frame }: { frame: HelpFrame }) {
   );
 }
 
-function ContactTransfer({ frame }: { frame: HelpFrame }) {
-  // Start on the highlighted Item row and end inside the scaled phone screen.
-  const x = mix(78, 441, frame.contactTravel);
-  const y = mix(125, 220, frame.contactTravel);
-  const scale = mix(1, 0.19, frame.contactTravel);
+function ContactTransfer({ frame, layout }: { frame: HelpFrame; layout: HelpLayout }) {
+  // Keep the highlighted contact aligned with its page row and phone at any width.
+  const x = mix(layout.pageX + 78 * layout.pageScale,
+    441 - layout.observerShift, frame.contactTravel);
+  const y = mix(layout.pageY + 125 * layout.pageScale, 220, frame.contactTravel);
+  const scale = mix(layout.pageScale, 0.19, frame.contactTravel);
   return (
     <g data-primary-contact-transfer="true"
       style={{ opacity: frame.transferOpacity }}
@@ -269,6 +298,8 @@ function ContactTransfer({ frame }: { frame: HelpFrame }) {
 }
 
 export default function PrimaryContactHelpDemo() {
+  const svgRef = useRef<SVGSVGElement | null>(null);
+  const [availableWidth, setAvailableWidth] = useState(640);
   const [reduceMotion] = useState(() =>
     typeof window !== "undefined" &&
     Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)").matches));
@@ -282,22 +313,50 @@ export default function PrimaryContactHelpDemo() {
     return () => window.clearInterval(timer);
   }, [reduceMotion]);
 
+  useEffect(() => {
+    const svg = svgRef.current;
+    if (!svg) return undefined;
+
+    const measure = () => {
+      const width = svg.getBoundingClientRect().width;
+      if (width > 0) {
+        setAvailableWidth((current) => Math.abs(current - width) < 0.5 ? current : width);
+      }
+    };
+    measure();
+
+    // Observing the SVG works even when the modal changes width without a
+    // window resize, e.g. on rotation or a split-screen layout.
+    if (typeof ResizeObserver !== "undefined") {
+      const observer = new ResizeObserver(measure);
+      observer.observe(svg);
+      return () => observer.disconnect();
+    }
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
+
   const frame = getPrimaryContactHelpFrame(elapsed);
+  const layout = getPrimaryContactHelpLayout(availableWidth);
   return (
     <figure className="primary-contact-help-demo"
       aria-label="Find the primary contact in Aggregator to get a failing service repaired">
       <HelpAnimationProgress progress={reduceMotion ? 0 : elapsed / primaryContactHelpDuration} />
-      <svg viewBox="0 0 640 340" className="primary-contact-help-diagram"
+      <svg ref={svgRef} viewBox={layout.viewBox} className="primary-contact-help-diagram"
         role="img" aria-label="A service goes down; a person opens Aggregator on a laptop, finds the primary contact, calls the responsible technician, and the service is restored">
         <g aria-hidden="true">
           <g data-primary-contact-scene="true"
             transform="translate(130 55) scale(0.66)">
             <Service frame={frame} />
-            <g data-primary-contact-observer-scale="true"
-              transform="translate(379 140) scale(0.75) translate(-352 -76)">
-              <Observer frame={frame} />
-              <Laptop frame={frame} />
-              <Phone frame={frame} />
+            <g data-primary-contact-observer-offset="true"
+              transform={layout.observerShift
+                ? "translate(-" + layout.observerShift + " 0)" : undefined}>
+              <g data-primary-contact-observer-scale="true"
+                transform="translate(379 140) scale(0.75) translate(-352 -76)">
+                <Observer frame={frame} />
+                <Laptop frame={frame} />
+                <Phone frame={frame} />
+              </g>
             </g>
             <Technician frame={frame} />
             <g data-primary-contact-repair="true" style={{ opacity: frame.repair }}
@@ -306,8 +365,8 @@ export default function PrimaryContactHelpDemo() {
               <path d="M248 212l16-9M253 225l18 3M249 237l13 11" />
             </g>
           </g>
-          <AggregatorPage frame={frame} />
-          <ContactTransfer frame={frame} />
+          <AggregatorPage frame={frame} layout={layout} />
+          <ContactTransfer frame={frame} layout={layout} />
         </g>
       </svg>
     </figure>
