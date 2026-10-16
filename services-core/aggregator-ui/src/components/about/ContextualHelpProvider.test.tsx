@@ -13,8 +13,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import InfoHelp from "../shared/help/InfoHelp";
 import ContextualHelpProvider from "./ContextualHelpProvider";
 import type { ReactElement } from "react";
-import { healthySignalsHelp } from "./signal-flow/HealthySignalsHelpContent";
-import { unhealthySignalsHelp } from "./signal-flow/UnhealthySignalsHelpContent";
+import { healthySignalsHelp } from "./healthy-signals/HealthySignalsHelpContent";
+import { unhealthySignalsHelp } from "./unhealthy-signals/UnhealthySignalsHelpContent";
 import { actorsHelp } from "./actors/ActorsHelpContent";
 import type { HelpTopic } from "../shared/help/HelpContext";
 

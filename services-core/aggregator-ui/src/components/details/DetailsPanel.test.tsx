@@ -1,8 +1,9 @@
-import type { ReactElement } from "react";
-import ContextualHelpProvider from "../about/ContextualHelpProvider";
 /**
  * @vitest-environment jsdom
  */
+
+import type { ReactElement } from "react";
+import ContextualHelpProvider from "../about/ContextualHelpProvider";
 
 import { createRef } from "react";
 import { cleanup, fireEvent, render as baseRender, screen, within } from "@testing-library/react";
