@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { RefObject } from "react";
-import ItemTitle from "../../ItemTitle";
+import ItemTitle from "../../shared/item/ItemTitle";
 import ItemOwnership from "../../ItemOwnership";
 import HelpScene, { useHelpTargets } from "../shared/HelpScene";
 import DemoHelp from "../shared/DemoHelp";

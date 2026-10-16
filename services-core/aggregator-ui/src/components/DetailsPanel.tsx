@@ -4,7 +4,7 @@
 
 import TopBarActions from "./TopBarActions";
 import AiChatPanel from "./AiChatPanel";
-import ItemTitle from "./ItemTitle";
+import ItemTitle from "./shared/item/ItemTitle";
 import ItemOwnership, { type ActorSummaryRow } from "./ItemOwnership";
 import { HealthySignals, UnhealthySignals, type UnhealthyDependencyRow } from "./ItemSignals";
 import ItemTimeline from "./ItemTimeline";

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import ItemTitle from "../../ItemTitle";
+import ItemTitle from "../../shared/item/ItemTitle";
 import ItemOwnership from "../../ItemOwnership";
 import { HealthySignals } from "../../ItemSignals";
 import ItemTimeline from "../../ItemTimeline";

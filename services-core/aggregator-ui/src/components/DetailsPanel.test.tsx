@@ -16,8 +16,8 @@ vi.mock("./AiChatPanel", () => ({
 
 // A changed shared markup attribute must reach the live panel and every demo.
 // Checking CSS class names alone would also pass for separately copied markup.
-vi.mock("./ItemTitle", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("./ItemTitle")>();
+vi.mock("./shared/item/ItemTitle", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./shared/item/ItemTitle")>();
   const { cloneElement } = await import("react");
   return { ...actual,
     default: (props: Parameters<typeof actual.default>[0]) => cloneElement(actual.default(props), { "data-shared-revision": "title" }),

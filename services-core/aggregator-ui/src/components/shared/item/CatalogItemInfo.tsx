@@ -1,7 +1,7 @@
 import { useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import type { CatalogItem } from "../shared/types";
-import ModalWindow from "./shared/ui/ModalWindow";
+import type { CatalogItem } from "../../../shared/types";
+import ModalWindow from "../ui/ModalWindow";
 
 type CatalogItemInfoProps = {
   item: CatalogItem;

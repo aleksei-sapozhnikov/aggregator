@@ -1,6 +1,6 @@
 import type { RefObject } from "react";
-import type { CatalogItem, HealthStatus } from "../shared/types";
-import { buildStatusText } from "../shared/statusText";
+import type { CatalogItem, HealthStatus } from "../../../shared/types";
+import { buildStatusText } from "../../../shared/statusText";
 import CatalogItemInfo from "./CatalogItemInfo";
 
 export default function ItemTitle({

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import "./SignalFlowHelpDemo.css";
-import ItemTitle from "../../ItemTitle";
+import ItemTitle from "../../shared/item/ItemTitle";
 import ItemOwnership from "../../ItemOwnership";
 import { HealthySignals, UnhealthySignals } from "../../ItemSignals";
 import HelpScene, { useHelpTargets } from "../shared/HelpScene";
