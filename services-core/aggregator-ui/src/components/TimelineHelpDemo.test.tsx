@@ -228,6 +228,35 @@ describe("Timeline help walkthrough", () => {
     expect(within(preview).queryByLabelText("Available signal groups")).toBeNull();
   });
 
+  it("bolds Payment Gateway readiness check while the cursor is on its graph", () => {
+    render(<TimelineHelpDemo />);
+    fireEvent.click(screen.getByRole("button", { name: "Open a dependency" }));
+    const preview = screen.getByLabelText("Example Timeline");
+    const cursor = preview.querySelector(".timeline-help-tracks > .timeline-help-cursor") as SVGElement;
+
+    advance(1600);
+    expect(cursor.style.top).toBe("107px");
+    const hover = within(preview).getByLabelText("States at selected time");
+    const activeHoverRows = hover.querySelectorAll(".timeline-help-popup-row.is-inspected");
+    expect(activeHoverRows).toHaveLength(1);
+    expect(activeHoverRows[0].textContent).toContain("Payment Gateway · readiness check");
+    expect(activeHoverRows[0].querySelector(".timeline-help-popup-name span:last-child")
+      ?.textContent).toBe("↳ Payment Gateway · readiness check");
+
+    advance(2000);
+    const details = within(preview).getByLabelText("Dependency signal details");
+    const detailRow = details.querySelector(".timeline-help-popup-row") as HTMLElement;
+    expect(detailRow.classList.contains("is-inspected")).toBe(true);
+    expect(detailRow.getAttribute("data-inspected")).toBe("true");
+    expect(cursor.style.top).toBe("107px");
+
+    // As the pointer moves to the Item link, the signal is no longer selected.
+    advance(1600);
+    expect(cursor.classList.contains("is-moving-to-link")).toBe(true);
+    expect(detailRow.classList.contains("is-inspected")).toBe(false);
+    expect(detailRow.hasAttribute("data-inspected")).toBe(false);
+  });
+
   it("replaces the hover popup with details then opens a miniature Item", () => {
     render(<TimelineHelpDemo />);
     fireEvent.click(screen.getByRole("button", { name: "Open a dependency" }));

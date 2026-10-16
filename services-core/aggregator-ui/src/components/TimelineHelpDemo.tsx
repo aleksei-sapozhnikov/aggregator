@@ -114,9 +114,11 @@ function TimelineHoverPopup({ x, inspectedRowId }: { x: number; inspectedRowId?:
 function TimelineDependencyPopup({
   x,
   linkPressed,
+  inspected,
 }: {
   x: number;
   linkPressed: boolean;
+  inspected: boolean;
 }) {
   return (
     <div
@@ -127,7 +129,10 @@ function TimelineDependencyPopup({
       <div className="timeline-help-popup-date">
         2026-10-11 19:12:00 – 2026-10-13 04:48:00
       </div>
-      <div className="timeline-help-popup-row">
+      <div
+        className={"timeline-help-popup-row" + (inspected ? " is-inspected" : "")}
+        data-inspected={inspected ? "true" : undefined}
+      >
         <span className="timeline-help-popup-name">
           <TimelineStatusMarker state="DOWN" />
           <span>↳ Payment Gateway · readiness check</span>
@@ -293,14 +298,18 @@ export default function TimelineHelpDemo() {
   const endX = scenario === "inspect" ? 50 : 48;
   const x = lerp(20, endX, (elapsed - 600) / 2200);
   const inspectCursorRow = getInspectCursorRow(elapsed);
-  const inspectedRowId = scenario === "inspect"
-    ? exampleRows[Math.round(inspectCursorRow)].id : undefined;
   const inspectPopup = scenario === "inspect" && elapsed >= 1100 && elapsed < 8150;
   const navigateHover = scenario === "navigate" && elapsed >= 1100 && elapsed < 3400;
   const navigateDetails = scenario === "navigate" && elapsed >= 3400 && elapsed < 7300;
   const openedItem = scenario === "navigate" && elapsed >= 7300;
   const linkPressed = scenario === "navigate" && elapsed >= 6400 && elapsed < 7300;
   const movingToLink = navigateDetails && elapsed >= 5100;
+  // In the navigation demo, the cursor rests on Payment Gateway's graph
+  // before moving to its Item link. Highlight only the row it points at.
+  const inspectingPayment = scenario === "navigate" && !movingToLink;
+  const inspectedRowId = scenario === "inspect"
+    ? exampleRows[Math.round(inspectCursorRow)].id
+    : inspectingPayment ? "payment" : undefined;
 
   // The dependency popup opens beside the chart cursor. Keep the same cursor
   // in the tracks while the popup opens, then animate it toward the Item link
@@ -384,7 +393,7 @@ export default function TimelineHelpDemo() {
                     {(inspectPopup || navigateHover) &&
                       <TimelineHoverPopup x={x} inspectedRowId={inspectedRowId} />}
                     {navigateDetails && (
-                      <TimelineDependencyPopup x={x} linkPressed={linkPressed} />
+                      <TimelineDependencyPopup x={x} linkPressed={linkPressed} inspected={inspectingPayment} />
                     )}
                     <ExampleCursor
                       left={scenario === "navigate" ? navigationCursorLeft : x + "%"}
