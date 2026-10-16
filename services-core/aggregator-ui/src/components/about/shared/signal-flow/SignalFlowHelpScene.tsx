@@ -1,19 +1,19 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
-import "./SignalFlowHelpDemo.css";
-import ItemTitle from "../../shared/item/ItemTitle";
-import ItemOwnership from "../../shared/item/ItemOwnership";
-import { HealthySignals, UnhealthySignals } from "../../shared/item/ItemSignals";
-import HelpScene, { useHelpTargets } from "../shared/HelpScene";
-import DemoHelp from "../shared/DemoHelp";
-import { demoIconSpriteHref, clientItem, clientContact, clientChecks, clientDependencies } from "../shared/demoData";
-import HelpAnimationProgress from "../shared/HelpAnimationProgress";
-import HelpInteractionShield from "../shared/HelpInteractionShield";
+import "./SignalFlowHelpScene.css";
+import ItemTitle from "../../../shared/item/ItemTitle";
+import ItemOwnership from "../../../shared/item/ItemOwnership";
+import { HealthySignals, UnhealthySignals } from "../../../shared/item/ItemSignals";
+import HelpScene, { useHelpTargets } from "../HelpScene";
+import DemoHelp from "../DemoHelp";
+import { demoIconSpriteHref, clientItem, clientContact, clientChecks, clientDependencies } from "../demoData";
+import HelpAnimationProgress from "../HelpAnimationProgress";
+import HelpInteractionShield from "../HelpInteractionShield";
 import UnhealthySignalProjection, {
   unhealthyCycleDuration,
   unhealthyResetAt,
   expandedListHoldMs,
   getUnhealthyDiagramOpacity,
-} from "./UnhealthySignalProjection";
+} from "../../unhealthy-signals/UnhealthySignalProjection";
 
 type SignalFlowMode = "healthy" | "unhealthy";
 type FlowNodeId = "item" | "dep1" | "dep2" | "nested1" | "nested2" | "nested3";

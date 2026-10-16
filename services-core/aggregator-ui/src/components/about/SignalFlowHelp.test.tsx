@@ -1,7 +1,8 @@
 /** @vitest-environment jsdom */
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import SignalFlowHelpDemo from "./SignalFlowHelpDemo";
+import HealthySignalsHelpDemo from "./healthy-signals/HealthySignalsHelpDemo";
+import UnhealthySignalsHelpDemo from "./unhealthy-signals/UnhealthySignalsHelpDemo";
 
 beforeEach(() => vi.useFakeTimers());
 afterEach(() => {
@@ -21,7 +22,7 @@ const getRecoveryProgress = (id: string) => Number(document.querySelector(
 
 describe("Signal flow help demonstrations", () => {
   it.each(["healthy", "unhealthy"] as const)("uses passive production HTML and an illustrative graph in %s mode", (mode) => {
-    const { container } = render(<SignalFlowHelpDemo mode={mode} />);
+    const { container } = render(mode === "healthy" ? <HealthySignalsHelpDemo /> : <UnhealthySignalsHelpDemo />);
     const page = container.querySelector(".help-item-page") as HTMLElement;
     expect(page.closest("svg")).toBeNull();
     expect(page.querySelector(".content-title")?.textContent).toContain("client-service");
@@ -45,7 +46,7 @@ describe("Signal flow help demonstrations", () => {
   });
 
   it.each([["healthy", 15000], ["unhealthy", 27300]] as const)("preserves the %s cycle and progress reset", (mode, duration) => {
-    render(<SignalFlowHelpDemo mode={mode} />);
+    render(mode === "healthy" ? <HealthySignalsHelpDemo /> : <UnhealthySignalsHelpDemo />);
     const bar = screen.getByRole("progressbar", { name: "Animation progress" });
     const midpoint = Math.floor(duration / 200) * 100;
     advance(midpoint);
@@ -60,7 +61,7 @@ describe("Signal flow help demonstrations", () => {
     ["healthy", 6500, '[data-selection-frame="availability"]'],
     ["unhealthy", 13800, '[data-unhealthy-frame="item"]'],
   ] as const)("holds the clean %s list for two seconds while progress continues", (mode, start, selector) => {
-    const { container } = render(<SignalFlowHelpDemo mode={mode} />);
+    const { container } = render(mode === "healthy" ? <HealthySignalsHelpDemo /> : <UnhealthySignalsHelpDemo />);
     const page = container.querySelector(".help-item-page") as HTMLElement;
     const frame = container.querySelector(selector) as Element;
     const progress = screen.getByRole("progressbar", { name: "Animation progress" });
@@ -77,7 +78,7 @@ describe("Signal flow help demonstrations", () => {
   });
 
   it("moves the Item's checks toward the healthy rows and returns them to the graph", () => {
-    const { container } = render(<SignalFlowHelpDemo mode="healthy" />);
+    const { container } = render(<HealthySignalsHelpDemo />);
     const checks = Array.from(container.querySelectorAll("[data-own-signal]"));
     const frame = container.querySelector('[data-selection-frame="availability"]') as Element;
     const glyph = checks[0].querySelector("text") as Element;
@@ -102,7 +103,7 @@ describe("Signal flow help demonstrations", () => {
   });
 
   it("projects dependency nodes into shared grouped signal rows and returns them intact", () => {
-    const { container } = render(<SignalFlowHelpDemo mode="unhealthy" />);
+    const { container } = render(<UnhealthySignalsHelpDemo />);
     const page = container.querySelector(".help-item-page") as HTMLElement;
     const groups = [getNode("item"), getNode("dep1"), getNode("nested1")];
     const box = groups[1].querySelector(".signal-flow-help-node-frame") as Element;
@@ -127,7 +128,7 @@ describe("Signal flow help demonstrations", () => {
     vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(
       () => ({ width: 320, height: 215, left: 0, top: 0, toJSON: () => ({}) }) as DOMRect,
     );
-    const { container } = render(<SignalFlowHelpDemo mode={mode} />);
+    const { container } = render(mode === "healthy" ? <HealthySignalsHelpDemo /> : <UnhealthySignalsHelpDemo />);
     const page = container.querySelector(".help-item-page") as HTMLElement;
     expect(container.querySelector(".signal-flow-help-diagram")?.getAttribute("data-page-layout")).toBe("compact");
     expect(page.style.transform).toBe("scale(1.2)");
@@ -137,7 +138,7 @@ describe("Signal flow help demonstrations", () => {
 
   it.each(["healthy", "unhealthy"] as const)("holds the %s page when reduced motion is requested", (mode) => {
     vi.stubGlobal("matchMedia", () => ({ matches: true }));
-    const { container } = render(<SignalFlowHelpDemo mode={mode} />);
+    const { container } = render(mode === "healthy" ? <HealthySignalsHelpDemo /> : <UnhealthySignalsHelpDemo />);
     expect((container.querySelector(".help-item-page") as HTMLElement).style.opacity).toBe("1");
     const before = container.innerHTML;
     advance(30000);
@@ -145,7 +146,7 @@ describe("Signal flow help demonstrations", () => {
   });
 
   it("propagates the failed nested dependency toward its parent and current Item", () => {
-    render(<SignalFlowHelpDemo mode="unhealthy" />);
+    render(<UnhealthySignalsHelpDemo />);
 
     expect(getNode("nested1").getAttribute("data-health")).toBe("healthy");
     expect(getNode("dep1").getAttribute("data-health")).toBe("healthy");
@@ -188,7 +189,7 @@ describe("Signal flow help demonstrations", () => {
   });
 
   it("restores the leaf, then the parent, then the Item with bottom-up green waves", () => {
-    render(<SignalFlowHelpDemo mode="unhealthy" />);
+    render(<UnhealthySignalsHelpDemo />);
     const graph = document.querySelector(".signal-flow-help-graph") as SVGGElement;
     const first = document.querySelector('[data-flow-edge="nested1-dep1"]') as SVGGElement;
     const second = document.querySelector('[data-flow-edge="dep1-item"]') as SVGGElement;

@@ -51,7 +51,8 @@ vi.mock("../shared/item/ItemTimeline", async (importOriginal) => {
 import DetailsPanel from "./DetailsPanel";
 import ActorsHelpDemo from "../about/actors/ActorsHelpDemo";
 import PrimaryContactHelpDemo from "../about/primary-contact/PrimaryContactHelpDemo";
-import SignalFlowHelpDemo from "../about/signal-flow/SignalFlowHelpDemo";
+import HealthySignalsHelpDemo from "../about/healthy-signals/HealthySignalsHelpDemo";
+import UnhealthySignalsHelpDemo from "../about/unhealthy-signals/UnhealthySignalsHelpDemo";
 import TimelineHelpDemo from "../about/timeline/TimelineHelpDemo";
 
 const render = (ui: ReactElement) => {
@@ -174,8 +175,8 @@ describe("DetailsPanel contextual help", () => {
     const { container: demos } = render(<>
       <div data-demo="actors"><ActorsHelpDemo /></div>
       <div data-demo="contact"><PrimaryContactHelpDemo /></div>
-      <div data-demo="healthy"><SignalFlowHelpDemo mode="healthy" /></div>
-      <div data-demo="unhealthy"><SignalFlowHelpDemo mode="unhealthy" /></div>
+      <div data-demo="healthy"><HealthySignalsHelpDemo /></div>
+      <div data-demo="unhealthy"><UnhealthySignalsHelpDemo /></div>
       <div data-demo="timeline"><TimelineHelpDemo /></div>
     </>);
     for (const scene of ["actors", "contact", "healthy", "unhealthy"]) {

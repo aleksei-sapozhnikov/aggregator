@@ -1,4 +1,4 @@
-import SignalFlowHelpDemo from "./SignalFlowHelpDemo";
+import HealthySignalsHelpDemo from "./HealthySignalsHelpDemo";
 
 export const healthySignalsHelp = {
   title: "Healthy signals",
@@ -11,7 +11,7 @@ export default function HealthySignalsHelpContent() {
       <div className="info-help-description modal-text-flow">
         <p>Healthy signals are the selected item's own health signals that are currently passing. They are kept separate from unhealthy signals so the main view can focus on what is affecting the item while healthy evidence remains available when needed.</p>
       </div>
-      <SignalFlowHelpDemo mode="healthy" />
+      <HealthySignalsHelpDemo />
     </>
   );
 }

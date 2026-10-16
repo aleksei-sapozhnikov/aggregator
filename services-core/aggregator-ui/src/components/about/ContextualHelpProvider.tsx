@@ -4,8 +4,8 @@ import { HelpContext, type HelpTopic } from "../shared/help/HelpContext";
 import ContextualHelpDialog from "./ContextualHelpDialog";
 import PrimaryContactHelpContent, { primaryContactHelp } from "./primary-contact/PrimaryContactHelpContent";
 import ActorsHelpContent, { actorsHelp } from "./actors/ActorsHelpContent";
-import HealthySignalsHelpContent, { healthySignalsHelp } from "./signal-flow/HealthySignalsHelpContent";
-import UnhealthySignalsHelpContent, { unhealthySignalsHelp } from "./signal-flow/UnhealthySignalsHelpContent";
+import HealthySignalsHelpContent, { healthySignalsHelp } from "./healthy-signals/HealthySignalsHelpContent";
+import UnhealthySignalsHelpContent, { unhealthySignalsHelp } from "./unhealthy-signals/UnhealthySignalsHelpContent";
 import TimelineHelpContent, { timelineHelp } from "./timeline/TimelineHelpContent";
 
 const topics: Record<string, HelpTopic> = {
