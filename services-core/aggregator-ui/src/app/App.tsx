@@ -14,48 +14,15 @@ import HealthSignalModal from "../components/entity-details/signal/HealthSignalM
 import useSignalDetails from "../components/entity-details/signal/useSignalDetails";
 import useSelectedItemData from "../components/item-details/useSelectedItemData";
 import useItemNavigation from "./hooks/useItemNavigation";
+import useCatalogData from "./hooks/useCatalogData";
 import useResponsiveLayout from "./hooks/useResponsiveLayout";
 import useTitlePlacement from "./hooks/useTitlePlacement";
 import useCatalogNavigation from "../components/catalog-tree/useCatalogNavigation";
 import useCatalogSelectionSync from "../components/catalog-tree/useCatalogSelectionSync";
-import {
-  fetchProductHealth,
-  getInitialTheme,
-  loadCatalog,
-  resolveBasePath,
-  resolveCatalogTitle,
-} from "../services/aggregatorApi";
-import type {
-  CatalogActor,
-  CatalogActorContact,
-  CatalogContact,
-  CatalogDependency,
-  CatalogItem,
-  CatalogItemActor,
-  CatalogItemContact,
-  HealthStatus,
-  ItemSignal,
-  ProductHealthItem,
-} from "../shared/types";
+import { getInitialTheme, resolveBasePath, resolveCatalogTitle } from "../services/aggregatorApi";
+import type { CatalogContact } from "../shared/types";
 
 const TEMP_AI_CHAT_STORAGE_KEY = "aggregator-ui-ai-chat-enabled";
-const EMPTY_CATALOG: {
-  items: CatalogItem[];
-  dependencies: CatalogDependency[];
-  contacts: CatalogContact[];
-  itemContacts: CatalogItemContact[];
-  actors: CatalogActor[];
-  itemActors: CatalogItemActor[];
-  actorContacts: CatalogActorContact[];
-} = {
-  items: [],
-  dependencies: [],
-  contacts: [],
-  itemContacts: [],
-  actors: [],
-  itemActors: [],
-  actorContacts: [],
-};
 
 /**
  * TODO (2026-10): Temporary per-browser AI chat UX gate for the demo rollout.
@@ -80,20 +47,10 @@ const isTemporaryAiChatEnabled = (): boolean =>
 export default function App() {
   const catalogTitle = resolveCatalogTitle();
   const isAiChatFeatureEnabled = useMemo(isTemporaryAiChatEnabled, []);
-  const [catalog, setCatalog] = useState(EMPTY_CATALOG);
-  const [error, setError] = useState("");
   const [theme, setTheme] = useState(getInitialTheme);
+  const { catalog, error, itemStatuses, itemSignals } = useCatalogData();
 
-  const [itemStatuses, setItemStatuses] = useState<
-    Record<string, HealthStatus>
-  >({});
-  const [itemSignals, setItemSignals] = useState<Record<string, ItemSignal[]>>(
-    {},
-  );
-  const [productHealthByItemId, setProductHealthByItemId] = useState<
-    Record<string, ProductHealthItem>
-  >({});
-  const [lastUpdated, setLastUpdated] = useState("");
+
   const [isTimelineOpen, setIsTimelineOpen] = useState(true);
   const [isAiChatOpen, setIsAiChatOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
@@ -125,71 +82,6 @@ export default function App() {
     document.body.dataset.theme = theme;
     localStorage.setItem("aggregator-ui-theme", theme);
   }, [theme]);
-
-  useEffect(() => {
-    const loadInitialCatalog = async () => {
-      try {
-        const {
-          items,
-          dependencies,
-          contacts,
-          itemContacts,
-          actors,
-          itemActors,
-          actorContacts,
-        } = await loadCatalog();
-        setCatalog({
-          items,
-          dependencies,
-          contacts,
-          itemContacts,
-          actors,
-          itemActors,
-          actorContacts,
-        });
-        initializeSelectedId((prev) => prev || items[0]?.id || "");
-      } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : "Failed to load catalog");
-      }
-    };
-
-    void loadInitialCatalog();
-  }, []);
-
-  useEffect(() => {
-    if (!catalog.items.length) {
-      return undefined;
-    }
-
-    let cancelled = false;
-
-    const fetchStatuses = async () => {
-      try {
-        const next = await fetchProductHealth();
-        if (!cancelled) {
-          setItemStatuses(next.itemStatuses);
-          setItemSignals(next.itemSignals);
-          setProductHealthByItemId(
-            Object.fromEntries(next.items.map((item) => [item.itemId, item])),
-          );
-          setLastUpdated(new Date().toLocaleTimeString());
-        }
-      } catch (err) {
-        if (!cancelled) {
-          console.error(err);
-        }
-      }
-    };
-
-    void fetchStatuses();
-    const interval = window.setInterval(() => {
-      void fetchStatuses();
-    }, 10000);
-    return () => {
-      cancelled = true;
-      window.clearInterval(interval);
-    };
-  }, [catalog.items]);
 
   const catalogNavigation = useCatalogNavigation({
     items: catalog.items,
@@ -241,6 +133,12 @@ export default function App() {
     expandPathToItem,
     ensurePathExpanded,
   });
+
+  useEffect(() => {
+    if (catalog.items.length) {
+      initializeSelectedId((prev) => prev || catalog.items[0]?.id || "");
+    }
+  }, [catalog.items, initializeSelectedId]);
 
   const {
     selectedItem,
