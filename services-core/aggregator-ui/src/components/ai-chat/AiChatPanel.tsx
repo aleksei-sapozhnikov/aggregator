@@ -1,7 +1,7 @@
 import type { FormEvent, KeyboardEvent, MouseEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { askAgent } from "../../services/aggregatorApi";
-import { isPlainLeftClick } from "../shared/ui/pointerUtils";
+import { isPlainLeftClick } from "../../shared/ui/pointerUtils";
 import { isUnhealthyHealthStatus } from "../../shared/health/healthPresentation";
 import { buildStatusText } from "../../shared/health/healthPresentation";
 import CloseButton from "../shared/ui/CloseButton";

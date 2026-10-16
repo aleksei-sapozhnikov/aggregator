@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import DetailsDisclosureHeader from "./DetailsDisclosureHeader";
 
-/** Application-owned framing; the chart itself belongs to Grafana. */
+/** Shared Timeline disclosure; its visualization is supplied by the caller. */
 export default function ItemTimeline({ expanded, onToggle, help, height, children }: {
   expanded: boolean;
   onToggle?: () => void;

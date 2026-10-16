@@ -1,4 +1,4 @@
-import type { CatalogItem, SearchAutocompleteIndex, SearchAutocompleteOption, SearchResult } from "../types";
+import type { CatalogItem, CatalogTreeNode, SearchAutocompleteIndex, SearchAutocompleteOption, SearchResult } from "../types";
 
 export const normalizeSearchText = (value: string): string =>
   value
@@ -12,6 +12,27 @@ const matchSearch = (item: CatalogItem, queryTokens: string[]): boolean => {
   }
   const name = normalizeSearchText(item.title || "");
   return queryTokens.every((token) => name.includes(token));
+};
+
+export const filterCatalogTree = (
+  nodes: CatalogTreeNode[],
+  queryTokens: string[],
+): CatalogTreeNode[] => {
+  if (!queryTokens.length) {
+    return nodes;
+  }
+  const visit = (node: CatalogTreeNode): CatalogTreeNode | null => {
+    const filteredChildren = node.children
+      .map(visit)
+      .filter((child): child is CatalogTreeNode => Boolean(child));
+    if (matchSearch(node.item, queryTokens) || filteredChildren.length > 0) {
+      return { ...node, children: filteredChildren };
+    }
+    return null;
+  };
+  return nodes
+    .map(visit)
+    .filter((node): node is CatalogTreeNode => Boolean(node));
 };
 
 export const rankSearchResults = (

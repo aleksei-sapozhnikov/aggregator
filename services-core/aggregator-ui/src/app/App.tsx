@@ -13,9 +13,9 @@ import ContactModal from "../components/entity-details/contact/ContactModal";
 import ActorModal from "../components/entity-details/actor/ActorModal";
 import HealthSignalModal from "../components/entity-details/signal/HealthSignalModal";
 import useSignalDetails from "../components/entity-details/signal/useSignalDetails";
-import { buildCatalogTree, collectDescendantIds, collectExpandableIds, filterCatalogTree, findNodeById, findNodeByPath, findNodePath, findNodeUidById } from "../shared/catalog/tree";
+import { buildCatalogTree, collectDescendantIds, collectExpandableIds, findNodeById, findNodeByPath, findNodePath, findNodeUidById } from "../shared/catalog/tree";
 import { buildItemPathname, buildItemRouteHref, buildServicePath, readLocationRouteContext, resolveNodeFromLocation } from "../shared/navigation/itemRoutes";
-import { buildSearchAutocompleteIndex, buildSearchAutocompleteOptions, normalizeSearchText, rankSearchResults } from "../shared/catalog/search";
+import { buildSearchAutocompleteIndex, buildSearchAutocompleteOptions, filterCatalogTree, normalizeSearchText, rankSearchResults } from "../shared/catalog/search";
 import {
   compareHealthStatus,
   fetchProductHealth,
@@ -1384,7 +1384,8 @@ export default function App() {
           onToggleTimeline={() => setIsTimelineOpen((prev) => !prev)}
           onNavigateToTimelineItem={handleExternalItemLink}
         />
-      </AppLayout>      <HealthSignalModal
+      </AppLayout>
+      <HealthSignalModal
         isOpen={Boolean(openedSignalId)}
         signalId={openedSignalId}
         fallbackTitle={openedSignalTitle}

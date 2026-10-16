@@ -1,5 +1,4 @@
 import type { CatalogDependency, CatalogItem, CatalogTreeNode } from "../types";
-import { normalizeSearchText } from "./search";
 
 const sortItemsByName = (items: CatalogItem[]): CatalogItem[] =>
   [...items].sort((a, b) => (a.title || a.id).localeCompare(b.title || b.id));
@@ -93,27 +92,6 @@ export const buildCatalogTree = (
     .map((item, index) =>
       toNode(item.id, new Set<string>(), [`${index}:${item.id}`], []),
     )
-    .filter((node): node is CatalogTreeNode => Boolean(node));
-};
-
-export const filterCatalogTree = (
-  nodes: CatalogTreeNode[],
-  queryTokens: string[],
-): CatalogTreeNode[] => {
-  if (!queryTokens.length) {
-    return nodes;
-  }
-  const visit = (node: CatalogTreeNode): CatalogTreeNode | null => {
-    const filteredChildren = node.children
-      .map(visit)
-      .filter((child): child is CatalogTreeNode => Boolean(child));
-    if (matchSearch(node.item, queryTokens) || filteredChildren.length > 0) {
-      return { ...node, children: filteredChildren };
-    }
-    return null;
-  };
-  return nodes
-    .map(visit)
     .filter((node): node is CatalogTreeNode => Boolean(node));
 };
 
