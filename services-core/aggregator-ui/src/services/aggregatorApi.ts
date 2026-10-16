@@ -176,7 +176,7 @@ export const buildGrafanaFrameUrl = ({
   initialTheme,
   grafanaUrl = "",
 }: { initialTheme?: string; grafanaUrl?: string } = {}): string => {
-  const frameUrl = new URL("grafana-frame/index.html", resolveBaseUrl());
+  const frameUrl = new URL("components/item-details/timeline/grafana/frame/index.html", resolveBaseUrl());
   frameUrl.searchParams.set("rev", GRAFANA_FRAME_WRAPPER_REV);
   frameUrl.searchParams.set(
     "theme",

@@ -55,7 +55,7 @@ type Dashboard = {
 
 const dashboardPath = resolve(
   dirname(fileURLToPath(import.meta.url)),
-  "../../../../services-extra/grafana/dashboards/item_health_state.json",
+  "../../../../../../../services-extra/grafana/dashboards/item_health_state.json",
 );
 
 const loadDashboard = (): Dashboard =>
