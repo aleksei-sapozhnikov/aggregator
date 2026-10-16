@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import "./SignalFlowHelpDemo.css";
 import HelpAnimationProgress from "./HelpAnimationProgress";
+import HelpInteractionShield from "./HelpInteractionShield";
 import UnhealthySignalProjection, {
   unhealthyCycleDuration,
   unhealthyResetAt,
@@ -462,6 +463,7 @@ export default function SignalFlowHelpDemo({
           </>
         )}
       </svg>
+      <HelpInteractionShield />
     </figure>
   );
 }

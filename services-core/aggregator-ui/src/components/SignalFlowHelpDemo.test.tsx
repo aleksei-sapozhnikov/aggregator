@@ -33,6 +33,24 @@ const getRecoveryProgress = (id: string) => {
 };
 
 describe("Signal flow help demonstrations", () => {
+  it.each(["healthy", "unhealthy"] as const)(
+    "blocks pointer interactions over the %s signal illustration",
+    (mode) => {
+      render(<SignalFlowHelpDemo mode={mode} />);
+      const figure = screen.getByRole("figure", {
+        name: mode === "healthy"
+          ? "Healthy dependency signals example"
+          : "Unhealthy dependency propagation example",
+      });
+      const shield = figure.querySelector(".help-interaction-shield");
+      expect(shield).not.toBeNull();
+      expect(shield?.getAttribute("aria-hidden")).toBe("true");
+      expect(figure.lastElementChild).toBe(shield);
+      expect(shield?.previousElementSibling?.tagName.toLowerCase()).toBe("svg");
+      expect(figure.querySelector(".help-animation-progress")).not.toBeNull();
+    },
+  );
+
   it("shows the same six connected items with passing checks in Healthy signals", () => {
     render(<SignalFlowHelpDemo mode="healthy" />);
 

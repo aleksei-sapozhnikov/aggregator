@@ -19,6 +19,17 @@ afterEach(() => {
 });
 
 describe("Primary contact contextual help", () => {
+  it("blocks pointer interactions with the decorative animation, not its progress bar", () => {
+    render(<PrimaryContactHelpDemo />);
+    const figure = screen.getByRole("figure", { name: "Find the primary contact in Aggregator to get a failing service repaired" });
+    const shield = figure.querySelector(".help-interaction-shield");
+    expect(shield).not.toBeNull();
+    expect(shield?.getAttribute("aria-hidden")).toBe("true");
+    expect(figure.lastElementChild).toBe(shield);
+    expect(shield?.previousElementSibling?.tagName.toLowerCase()).toBe("svg");
+    expect(figure.querySelector(".help-animation-progress")).not.toBeNull();
+  });
+
   it("follows the failure, laptop, contact, phone, repair and recovery sequence", () => {
     const initial = getPrimaryContactHelpFrame(0);
     expect(initial.unhealthy).toBe(0);

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import HelpAnimationProgress from "./HelpAnimationProgress";
+import HelpInteractionShield from "./HelpInteractionShield";
 import "./ActorsHelpDemo.css";
 
 // All positions use one SVG coordinate system, including the Item preview.
@@ -344,6 +345,7 @@ export default function ActorsHelpDemo() {
           );
         })}
       </svg>
+      <HelpInteractionShield />
     </figure>
   );
 }

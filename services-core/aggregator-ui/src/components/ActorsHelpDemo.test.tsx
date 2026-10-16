@@ -13,6 +13,17 @@ afterEach(() => {
 });
 
 describe("Actors contextual help animation", () => {
+  it("blocks pointer interactions with the decorative animation, not its progress bar", () => {
+    render(<ActorsHelpDemo />);
+    const figure = screen.getByRole("figure", { name: "Actors become Item ownership and relationship entries" });
+    const shield = figure.querySelector(".help-interaction-shield");
+    expect(shield).not.toBeNull();
+    expect(shield?.getAttribute("aria-hidden")).toBe("true");
+    expect(figure.lastElementChild).toBe(shield);
+    expect(shield?.previousElementSibling?.tagName.toLowerCase()).toBe("svg");
+    expect(figure.querySelector(".help-animation-progress")).not.toBeNull();
+  });
+
   it("maps three distinct people to Owner, User and Support rows", () => {
     const besideRows = getActorsHelpFrame(4600);
     expect(besideRows.travel).toBe(1);
