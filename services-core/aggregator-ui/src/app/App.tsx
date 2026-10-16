@@ -2,8 +2,7 @@
  * @file Main React application orchestrator for aggregator-ui.
  */
 
-import type { TouchEvent } from "react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import CatalogTree from "../components/catalog-tree/CatalogTree";
 import AppLayout from "./AppLayout";
 import ItemDetails from "../components/item-details/ItemDetails";
@@ -15,6 +14,8 @@ import HealthSignalModal from "../components/entity-details/signal/HealthSignalM
 import useSignalDetails from "../components/entity-details/signal/useSignalDetails";
 import useSelectedItemData from "../components/item-details/useSelectedItemData";
 import useItemNavigation from "./hooks/useItemNavigation";
+import useResponsiveLayout from "./hooks/useResponsiveLayout";
+import useTitlePlacement from "./hooks/useTitlePlacement";
 import useCatalogNavigation from "../components/catalog-tree/useCatalogNavigation";
 import useCatalogSelectionSync from "../components/catalog-tree/useCatalogSelectionSync";
 import {
@@ -37,10 +38,6 @@ import type {
   ProductHealthItem,
 } from "../shared/types";
 
-const MOBILE_BREAKPOINT = 900;
-const MOBILE_SWIPE_OPEN_DISTANCE_PX = 96;
-const MOBILE_SWIPE_CLOSE_DISTANCE_PX = 96;
-const MOBILE_SWIPE_MAX_VERTICAL_DRIFT_PX = 48;
 const TEMP_AI_CHAT_STORAGE_KEY = "aggregator-ui-ai-chat-enabled";
 const EMPTY_CATALOG: {
   items: CatalogItem[];
@@ -77,7 +74,7 @@ const isTemporaryAiChatEnabled = (): boolean =>
 
 /**
  * Application orchestrator.
- * Owns cross-cutting state (selection, routing, polling, theme, responsive shell state)
+ * Coordinates feature hooks (routing, catalog, presentation, responsive layout)
  * and wires large UI blocks (CatalogTree, AppLayout, ItemDetails, AboutModal).
  */
 export default function App() {
@@ -97,11 +94,6 @@ export default function App() {
     Record<string, ProductHealthItem>
   >({});
   const [lastUpdated, setLastUpdated] = useState("");
-  const [isMobileLayout, setIsMobileLayout] = useState(
-    () => window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT}px)`).matches,
-  );
-  const [isDesktopSidebarOpen, setIsDesktopSidebarOpen] = useState(true);
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isTimelineOpen, setIsTimelineOpen] = useState(true);
   const [isAiChatOpen, setIsAiChatOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
@@ -111,75 +103,28 @@ export default function App() {
     null,
   );
   const [openedActorId, setOpenedActorId] = useState("");
-  const [isTitlePrimaryBelowControls, setIsTitlePrimaryBelowControls] =
-    useState(false);
   const contentRef = useRef<HTMLElement | null>(null);
-  const headerRef = useRef<HTMLElement | null>(null);
-  const headerActionsRef = useRef<HTMLDivElement | null>(null);
-  const contentTitlePrimaryRef = useRef<HTMLElement | null>(null);
-  const sidebarSwipeStartXRef = useRef<number | null>(null);
-  const sidebarSwipeStartYRef = useRef<number | null>(null);
+
+  const {
+    isMobileLayout,
+    isDesktopSidebarOpen,
+    isMobileSidebarOpen,
+    setIsMobileSidebarOpen,
+    isSidebarOpen,
+    shouldOffsetContentHeader,
+    handleToggleSidebar,
+    handleMobileSidebarSwipeStart,
+    handleMobileSidebarSwipeMove,
+    handleMobileSidebarSwipeEnd,
+  } = useResponsiveLayout();
 
   const basePath = useMemo(resolveBasePath, []);
   const effectiveIsAiChatOpen = isAiChatFeatureEnabled && isAiChatOpen;
 
   useEffect(() => {
-    const viewport = window.visualViewport;
-    if (!viewport) {
-      return undefined;
-    }
-
-    let frameId = 0;
-    const updateViewportHeight = () => {
-      if (frameId) {
-        window.cancelAnimationFrame(frameId);
-      }
-      frameId = window.requestAnimationFrame(() => {
-        document.documentElement.style.setProperty(
-          "--app-viewport-height",
-          `${viewport.height}px`,
-        );
-      });
-    };
-
-    updateViewportHeight();
-    viewport.addEventListener("resize", updateViewportHeight);
-    viewport.addEventListener("scroll", updateViewportHeight);
-
-    return () => {
-      if (frameId) {
-        window.cancelAnimationFrame(frameId);
-      }
-      viewport.removeEventListener("resize", updateViewportHeight);
-      viewport.removeEventListener("scroll", updateViewportHeight);
-      document.documentElement.style.removeProperty("--app-viewport-height");
-    };
-  }, []);
-
-  useEffect(() => {
     document.body.dataset.theme = theme;
     localStorage.setItem("aggregator-ui-theme", theme);
   }, [theme]);
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT}px)`);
-    const updateLayout = (event: MediaQueryListEvent) => {
-      setIsMobileLayout(event.matches);
-    };
-
-    setIsMobileLayout(mediaQuery.matches);
-    mediaQuery.addEventListener("change", updateLayout);
-
-    return () => {
-      mediaQuery.removeEventListener("change", updateLayout);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (isMobileLayout) {
-      setIsMobileSidebarOpen(false);
-    }
-  }, [isMobileLayout]);
 
   useEffect(() => {
     const loadInitialCatalog = async () => {
@@ -320,192 +265,23 @@ export default function App() {
     openedActorId,
   });
 
-  useEffect(() => {
-    const measurePrimaryWidth = (element: HTMLElement): number => {
-      const clone = element.cloneNode(true) as HTMLElement;
-      clone.style.position = "fixed";
-      clone.style.left = "-99999px";
-      clone.style.top = "-99999px";
-      clone.style.visibility = "hidden";
-      clone.style.pointerEvents = "none";
-      clone.style.width = "max-content";
-      clone.style.maxWidth = "none";
-      clone.style.whiteSpace = "nowrap";
-      document.body.appendChild(clone);
-      const width = clone.getBoundingClientRect().width;
-      clone.remove();
-      return width;
-    };
-
-    const updateTitlePrimaryPlacement = () => {
-      if (
-        !headerRef.current ||
-        !headerActionsRef.current ||
-        !contentTitlePrimaryRef.current
-      ) {
-        setIsTitlePrimaryBelowControls(false);
-        return;
-      }
-
-      const sidebarOpen = isMobileLayout
-        ? isMobileSidebarOpen
-        : isDesktopSidebarOpen;
-      const shouldOffsetHeaderInline = isMobileLayout || !sidebarOpen;
-      const inlineLeftOffset = shouldOffsetHeaderInline
-        ? isMobileLayout
-          ? 52
-          : 56
-        : 0;
-      const headerStyles = window.getComputedStyle(headerRef.current);
-      const gap =
-        Number.parseFloat(headerStyles.columnGap || headerStyles.gap) || 12;
-      const actionsRectWidth =
-        headerActionsRef.current.getBoundingClientRect().width;
-      const actionsStyles = window.getComputedStyle(headerActionsRef.current);
-      const actionsMarginLeft =
-        Number.parseFloat(actionsStyles.marginLeft) || 0;
-      const actionsMarginRight =
-        Number.parseFloat(actionsStyles.marginRight) || 0;
-      const actionsWidth = Math.ceil(
-        actionsRectWidth + actionsMarginLeft + actionsMarginRight,
-      );
-      const primaryWidth = Math.ceil(
-        measurePrimaryWidth(contentTitlePrimaryRef.current),
-      );
-      const availableInlineWidth = Math.max(
-        0,
-        headerRef.current.clientWidth - actionsWidth - gap - inlineLeftOffset,
-      );
-      const actionsRect = headerActionsRef.current.getBoundingClientRect();
-      const primaryRect =
-        contentTitlePrimaryRef.current.getBoundingClientRect();
-      const primaryAlreadyBelowControls =
-        primaryRect.top >= actionsRect.bottom - 2;
-      const shouldForceBelowByWidth = primaryWidth > availableInlineWidth + 6;
-      const canReturnInlineByWidth = primaryWidth <= availableInlineWidth - 16;
-
-      setIsTitlePrimaryBelowControls((prev) => {
-        if (prev) {
-          return !canReturnInlineByWidth;
-        }
-        return shouldForceBelowByWidth || primaryAlreadyBelowControls;
-      });
-    };
-
-    updateTitlePrimaryPlacement();
-
-    window.addEventListener("resize", updateTitlePrimaryPlacement);
-    let observer: ResizeObserver | undefined;
-    if (window.ResizeObserver) {
-      const nextObserver = new ResizeObserver(updateTitlePrimaryPlacement);
-      [
-        headerRef.current,
-        headerActionsRef.current,
-        contentTitlePrimaryRef.current,
-      ]
-        .filter((element): element is HTMLElement => Boolean(element))
-        .forEach((element) => nextObserver.observe(element));
-      observer = nextObserver;
-    }
-
-    return () => {
-      window.removeEventListener("resize", updateTitlePrimaryPlacement);
-      if (observer) {
-        observer.disconnect();
-      }
-    };
-  }, [
-    isMobileLayout,
-    isMobileSidebarOpen,
-    isDesktopSidebarOpen,
-    selectedId,
-    selectedTitleFirstWord,
-  ]);
-  const isSidebarOpen = isMobileLayout
-    ? isMobileSidebarOpen
-    : isDesktopSidebarOpen;
-  const shouldOffsetContentHeader = isMobileLayout || !isSidebarOpen;
   const homeHref = basePath || "/";
   const homeIconSrc = `${basePath || "/"}logo.svg`;
   const iconSpriteHref = `${basePath || "/"}icons.svg`;
   const searchSuggestionsListId = "item-search-suggestions";
 
-  /**
-   * Toggles sidebar visibility for desktop and mobile layouts.
-   */
-  const handleToggleSidebar = useCallback(() => {
-    if (isMobileLayout) {
-      setIsMobileSidebarOpen((prev) => !prev);
-      return;
-    }
-    setIsDesktopSidebarOpen((prev) => !prev);
-  }, [isMobileLayout]);
-
-  /**
-   * Tracks swipe state for mobile sidebar gestures.
-   */
-  const handleMobileSidebarSwipeStart = useCallback(
-    (event: TouchEvent) => {
-      if (!isMobileLayout) {
-        sidebarSwipeStartXRef.current = null;
-        sidebarSwipeStartYRef.current = null;
-        return;
-      }
-      const touch = event.touches?.[0];
-      if (!touch) {
-        sidebarSwipeStartXRef.current = null;
-        sidebarSwipeStartYRef.current = null;
-        return;
-      }
-      sidebarSwipeStartXRef.current = touch.clientX;
-      sidebarSwipeStartYRef.current = touch.clientY;
-    },
-    [isMobileLayout],
-  );
-
-  /**
-   * Opens or closes the mobile sidebar when a horizontal swipe is detected.
-   */
-  const handleMobileSidebarSwipeMove = useCallback(
-    (event: TouchEvent) => {
-      const startX = sidebarSwipeStartXRef.current;
-      const startY = sidebarSwipeStartYRef.current;
-      if (startX === null || startY === null || !isMobileLayout) {
-        return;
-      }
-      const touch = event.touches?.[0];
-      if (!touch) {
-        return;
-      }
-      const deltaX = touch.clientX - startX;
-      const deltaY = Math.abs(touch.clientY - startY);
-      if (deltaY > MOBILE_SWIPE_MAX_VERTICAL_DRIFT_PX) {
-        sidebarSwipeStartXRef.current = null;
-        sidebarSwipeStartYRef.current = null;
-        return;
-      }
-      if (!isMobileSidebarOpen && deltaX >= MOBILE_SWIPE_OPEN_DISTANCE_PX) {
-        setIsMobileSidebarOpen(true);
-        sidebarSwipeStartXRef.current = null;
-        sidebarSwipeStartYRef.current = null;
-        return;
-      }
-      if (isMobileSidebarOpen && deltaX <= -MOBILE_SWIPE_CLOSE_DISTANCE_PX) {
-        setIsMobileSidebarOpen(false);
-        sidebarSwipeStartXRef.current = null;
-        sidebarSwipeStartYRef.current = null;
-      }
-    },
-    [isMobileLayout, isMobileSidebarOpen],
-  );
-
-  /**
-   * Resets swipe tracking after touch end/cancel.
-   */
-  const handleMobileSidebarSwipeEnd = useCallback(() => {
-    sidebarSwipeStartXRef.current = null;
-    sidebarSwipeStartYRef.current = null;
-  }, []);
+  const {
+    isTitlePrimaryBelowControls,
+    headerRef,
+    headerActionsRef,
+    contentTitlePrimaryRef,
+  } = useTitlePlacement({
+    isMobileLayout,
+    isMobileSidebarOpen,
+    isDesktopSidebarOpen,
+    selectedId,
+    selectedTitleFirstWord,
+  });
 
   useEffect(() => {
     if (!selectedId) {
