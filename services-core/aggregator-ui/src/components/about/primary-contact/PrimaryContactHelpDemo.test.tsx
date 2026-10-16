@@ -174,6 +174,7 @@ describe("Primary contact contextual help", () => {
       () =>
         ({ width: measuredWidth, height: 230, toJSON: () => ({}) }) as DOMRect,
     );
+    // noinspection JSUnusedGlobalSymbols
     class MockResizeObserver {
       private readonly callback: ResizeObserverCallback;
       constructor(callback: ResizeObserverCallback) {
