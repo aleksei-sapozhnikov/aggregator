@@ -74,7 +74,7 @@ class OrchestratorFlowTests(unittest.TestCase):
     def test_redirected_cp1251_stdout_preserves_unicode_test_output(self) -> None:
         """Windows redirected stdout must not crash on Unicode from test tools."""
         process = MagicMock()
-        process.stdout = iter(["Testing catalog: \u2713 passed, \u4e2d\u6587 supported\\n"])
+        process.stdout = iter(["Testing catalog: \u2713 passed, \u4e2d\u6587 supported\n"])
         process.wait.return_value = 0
         process.__enter__.return_value = process
 
