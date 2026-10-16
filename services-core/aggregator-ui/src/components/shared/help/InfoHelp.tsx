@@ -4,7 +4,10 @@ import { HelpContext, type HelpTopic } from "./HelpContext";
 import InfoHelpButton from "./InfoHelpButton";
 
 /** Displays a help trigger without depending on help content or illustrations. */
-export default function InfoHelp({ topicId, topic }: {
+export default function InfoHelp({
+  topicId,
+  topic,
+}: {
   topicId?: string;
   topic?: HelpTopic;
 }) {
@@ -16,7 +19,9 @@ export default function InfoHelp({ topicId, topic }: {
   const resolved = topic ?? (topicId ? help?.resolveTopic(topicId) : null);
 
   if (!help || !resolved) {
-    throw new Error("InfoHelp must be used within ContextualHelpProvider with a known topic.");
+    throw new Error(
+      "InfoHelp must be used within ContextualHelpProvider with a known topic.",
+    );
   }
 
   const showTooltip = () => {
@@ -31,7 +36,9 @@ export default function InfoHelp({ topicId, topic }: {
 
   return (
     <span className="info-help">
-      <InfoHelpButton buttonRef={buttonRef} label={`About ${resolved.title}`}
+      <InfoHelpButton
+        buttonRef={buttonRef}
+        label={`About ${resolved.title}`}
         aria-describedby={isTooltipVisible ? tooltipId : undefined}
         onClick={(event) => {
           event.stopPropagation();
@@ -40,12 +47,23 @@ export default function InfoHelp({ topicId, topic }: {
         }}
         onBlur={() => setIsTooltipVisible(false)}
         onMouseEnter={showTooltip}
-        onMouseLeave={() => setIsTooltipVisible(false)} />
-      {isTooltipVisible && createPortal(
-        <span id={tooltipId} role="tooltip" className="info-help-tooltip"
-          style={{ left: `${tooltipPosition.left}px`, top: `${tooltipPosition.top}px` }}>
-          {resolved.summary}
-        </span>, document.body)}
+        onMouseLeave={() => setIsTooltipVisible(false)}
+      />
+      {isTooltipVisible &&
+        createPortal(
+          <span
+            id={tooltipId}
+            role="tooltip"
+            className="info-help-tooltip"
+            style={{
+              left: `${tooltipPosition.left}px`,
+              top: `${tooltipPosition.top}px`,
+            }}
+          >
+            {resolved.summary}
+          </span>,
+          document.body,
+        )}
     </span>
   );
 }

@@ -6,42 +6,68 @@ import type { ReactElement } from "react";
 import ContextualHelpProvider from "../about/ContextualHelpProvider";
 
 import { createRef } from "react";
-import { cleanup, fireEvent, render as baseRender, screen, within } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render as baseRender,
+  screen,
+  within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ComponentProps } from "react";
 import type { CatalogActor, CatalogContact } from "../../shared/types";
 
-
 // A changed shared markup attribute must reach the live panel and every demo.
 // Checking CSS class names alone would also pass for separately copied markup.
 vi.mock("../shared/item/ItemTitle", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("../shared/item/ItemTitle")>();
+  const actual =
+    await importOriginal<typeof import("../shared/item/ItemTitle")>();
   const { cloneElement } = await import("react");
-  return { ...actual,
-    default: (props: Parameters<typeof actual.default>[0]) => cloneElement(actual.default(props), { "data-shared-revision": "title" }),
+  return {
+    ...actual,
+    default: (props: Parameters<typeof actual.default>[0]) =>
+      cloneElement(actual.default(props), { "data-shared-revision": "title" }),
   };
 });
 vi.mock("../shared/item/ItemOwnership", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("../shared/item/ItemOwnership")>();
+  const actual =
+    await importOriginal<typeof import("../shared/item/ItemOwnership")>();
   const { cloneElement } = await import("react");
-  return { ...actual,
-    default: (props: Parameters<typeof actual.default>[0]) => cloneElement(actual.default(props), { "data-shared-revision": "ownership" }),
+  return {
+    ...actual,
+    default: (props: Parameters<typeof actual.default>[0]) =>
+      cloneElement(actual.default(props), {
+        "data-shared-revision": "ownership",
+      }),
   };
 });
 vi.mock("../shared/item/ItemSignals", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("../shared/item/ItemSignals")>();
+  const actual =
+    await importOriginal<typeof import("../shared/item/ItemSignals")>();
   const { cloneElement } = await import("react");
-  return { ...actual,
-    HealthySignals: (props: Parameters<typeof actual.HealthySignals>[0]) => cloneElement(actual.HealthySignals(props), { "data-shared-revision": "HealthySignals" }),
-    UnhealthySignals: (props: Parameters<typeof actual.UnhealthySignals>[0]) => cloneElement(actual.UnhealthySignals(props), { "data-shared-revision": "UnhealthySignals" }),
+  return {
+    ...actual,
+    HealthySignals: (props: Parameters<typeof actual.HealthySignals>[0]) =>
+      cloneElement(actual.HealthySignals(props), {
+        "data-shared-revision": "HealthySignals",
+      }),
+    UnhealthySignals: (props: Parameters<typeof actual.UnhealthySignals>[0]) =>
+      cloneElement(actual.UnhealthySignals(props), {
+        "data-shared-revision": "UnhealthySignals",
+      }),
   };
 });
 vi.mock("../shared/item/ItemTimeline", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("../shared/item/ItemTimeline")>();
+  const actual =
+    await importOriginal<typeof import("../shared/item/ItemTimeline")>();
   const { cloneElement } = await import("react");
-  return { ...actual,
-    default: (props: Parameters<typeof actual.default>[0]) => cloneElement(actual.default(props), { "data-shared-revision": "timeline" }),
+  return {
+    ...actual,
+    default: (props: Parameters<typeof actual.default>[0]) =>
+      cloneElement(actual.default(props), {
+        "data-shared-revision": "timeline",
+      }),
   };
 });
 
@@ -54,7 +80,9 @@ import UnhealthySignalsHelpDemo from "../about/unhealthy-signals/UnhealthySignal
 import TimelineHelpDemo from "../about/timeline/TimelineHelpDemo";
 
 const render = (ui: ReactElement) => {
-  const view = baseRender(<ContextualHelpProvider>{ui}</ContextualHelpProvider>);
+  const view = baseRender(
+    <ContextualHelpProvider>{ui}</ContextualHelpProvider>,
+  );
   return {
     ...view,
     rerender: (next: ReactElement) =>
@@ -87,7 +115,9 @@ type TestPageProps = ComponentProps<typeof ItemDetails> & {
   lastUpdated: string;
   selectedTitleFirstWord: string;
   selectedTitleRest: string;
-  contentTitlePrimaryRef: ComponentProps<typeof AppLayout>["contentTitlePrimaryRef"];
+  contentTitlePrimaryRef: ComponentProps<
+    typeof AppLayout
+  >["contentTitlePrimaryRef"];
 };
 
 function TestPage(props: TestPageProps) {
@@ -119,9 +149,7 @@ function TestPage(props: TestPageProps) {
   );
 }
 
-const renderDetailsPanel = (
-  overrides: Partial<TestPageProps> = {},
-) => {
+const renderDetailsPanel = (overrides: Partial<TestPageProps> = {}) => {
   const props = {
     contentRef: createRef<HTMLElement>(),
     isSidebarOpen: true,
@@ -198,27 +226,69 @@ describe("ItemDetails contextual help", () => {
   it("reflects shared markup changes in production and every help scene", () => {
     vi.stubGlobal("matchMedia", () => ({ matches: true }));
     const { container: production } = renderDetailsPanel();
-    for (const marker of ["title", "ownership", "HealthySignals", "UnhealthySignals", "timeline"]) {
-      expect(production.querySelector(`[data-shared-revision="${marker}"]`)).not.toBeNull();
+    for (const marker of [
+      "title",
+      "ownership",
+      "HealthySignals",
+      "UnhealthySignals",
+      "timeline",
+    ]) {
+      expect(
+        production.querySelector(`[data-shared-revision="${marker}"]`),
+      ).not.toBeNull();
     }
-    const { container: demos } = render(<>
-      <div data-demo="actors"><ActorsHelpDemo /></div>
-      <div data-demo="contact"><PrimaryContactHelpDemo /></div>
-      <div data-demo="healthy"><HealthySignalsHelpDemo /></div>
-      <div data-demo="unhealthy"><UnhealthySignalsHelpDemo /></div>
-      <div data-demo="timeline"><TimelineHelpDemo /></div>
-    </>);
+    const { container: demos } = render(
+      <>
+        <div data-demo="actors">
+          <ActorsHelpDemo />
+        </div>
+        <div data-demo="contact">
+          <PrimaryContactHelpDemo />
+        </div>
+        <div data-demo="healthy">
+          <HealthySignalsHelpDemo />
+        </div>
+        <div data-demo="unhealthy">
+          <UnhealthySignalsHelpDemo />
+        </div>
+        <div data-demo="timeline">
+          <TimelineHelpDemo />
+        </div>
+      </>,
+    );
     for (const scene of ["actors", "contact", "healthy", "unhealthy"]) {
       for (const marker of ["title", "ownership"]) {
-        expect(demos.querySelector(`[data-demo="${scene}"] [data-shared-revision="${marker}"]`)).not.toBeNull();
+        expect(
+          demos.querySelector(
+            `[data-demo="${scene}"] [data-shared-revision="${marker}"]`,
+          ),
+        ).not.toBeNull();
       }
     }
-    expect(demos.querySelector('[data-demo="healthy"] [data-shared-revision="HealthySignals"]')).not.toBeNull();
-    expect(demos.querySelector('[data-demo="unhealthy"] [data-shared-revision="UnhealthySignals"]')).not.toBeNull();
-    expect(demos.querySelector('[data-demo="timeline"] [data-shared-revision="timeline"]')).not.toBeNull();
-    fireEvent.click(within(demos).getByRole("button", { name: "Open a dependency" }));
+    expect(
+      demos.querySelector(
+        '[data-demo="healthy"] [data-shared-revision="HealthySignals"]',
+      ),
+    ).not.toBeNull();
+    expect(
+      demos.querySelector(
+        '[data-demo="unhealthy"] [data-shared-revision="UnhealthySignals"]',
+      ),
+    ).not.toBeNull();
+    expect(
+      demos.querySelector(
+        '[data-demo="timeline"] [data-shared-revision="timeline"]',
+      ),
+    ).not.toBeNull();
+    fireEvent.click(
+      within(demos).getByRole("button", { name: "Open a dependency" }),
+    );
     for (const marker of ["title", "ownership", "HealthySignals", "timeline"]) {
-      expect(demos.querySelector(`[data-demo="timeline"] [data-shared-revision="${marker}"]`)).not.toBeNull();
+      expect(
+        demos.querySelector(
+          `[data-demo="timeline"] [data-shared-revision="${marker}"]`,
+        ),
+      ).not.toBeNull();
     }
   });
 
@@ -325,10 +395,16 @@ describe("ItemDetails contextual help", () => {
 
       rerender(<TestPage {...props} {...remove} />);
       expect(screen.queryByRole("button", { name: label })).toBeNull();
-      expect(screen.getByRole("dialog", { name: "About " + title })).toBe(dialog);
+      expect(screen.getByRole("dialog", { name: "About " + title })).toBe(
+        dialog,
+      );
 
-      await user.click(screen.getByRole("button", { name: "Close contextual help" }));
-      expect(screen.queryByRole("dialog", { name: "About " + title })).toBeNull();
+      await user.click(
+        screen.getByRole("button", { name: "Close contextual help" }),
+      );
+      expect(
+        screen.queryByRole("dialog", { name: "About " + title }),
+      ).toBeNull();
       expect(screen.queryByRole("button", { name: label })).toBeNull();
     },
   );
@@ -347,7 +423,9 @@ describe("ItemDetails contextual help", () => {
       />,
     );
     expect(screen.getByRole("dialog", { name: "About Timeline" })).toBe(dialog);
-    await user.click(screen.getByRole("button", { name: "Close contextual help" }));
+    await user.click(
+      screen.getByRole("button", { name: "Close contextual help" }),
+    );
     expect(screen.queryByRole("dialog", { name: "About Timeline" })).toBeNull();
   });
 
@@ -485,9 +563,7 @@ describe("ItemDetails contextual help", () => {
     });
 
     await user.hover(infoButton);
-    expect(screen.getByRole("tooltip").textContent).toBe(
-      "Click for details",
-    );
+    expect(screen.getByRole("tooltip").textContent).toBe("Click for details");
 
     await user.click(infoButton);
 
@@ -742,7 +818,9 @@ describe("ItemDetails contextual help", () => {
     const { user, props } = renderDetailsPanel();
     await user.click(screen.getByRole("link", { name: "Latency" }));
     expect(props.onOpenSignal).toHaveBeenCalledWith({
-      id: "latency", title: "Latency", status: "down",
+      id: "latency",
+      title: "Latency",
+      status: "down",
     });
     expect(window.location.hash).toBe("");
   });

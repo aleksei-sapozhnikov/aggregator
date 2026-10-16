@@ -14,8 +14,21 @@ import ActorModal from "../components/entity-details/actor/ActorModal";
 import HealthSignalModal from "../components/entity-details/signal/HealthSignalModal";
 import useSignalDetails from "../components/entity-details/signal/useSignalDetails";
 import useItemNavigation from "./hooks/useItemNavigation";
-import { buildCatalogTree, collectDescendantIds, collectExpandableIds, findNodeByPath, findNodePath, findNodeUidById } from "../shared/catalog/tree";
-import { buildSearchAutocompleteIndex, buildSearchAutocompleteOptions, filterCatalogTree, normalizeSearchText, rankSearchResults } from "../shared/catalog/search";
+import {
+  buildCatalogTree,
+  collectDescendantIds,
+  collectExpandableIds,
+  findNodeByPath,
+  findNodePath,
+  findNodeUidById,
+} from "../shared/catalog/tree";
+import {
+  buildSearchAutocompleteIndex,
+  buildSearchAutocompleteOptions,
+  filterCatalogTree,
+  normalizeSearchText,
+  rankSearchResults,
+} from "../shared/catalog/search";
 import {
   fetchProductHealth,
   getInitialTheme,
@@ -24,7 +37,10 @@ import {
   resolveCatalogTitle,
 } from "../services/aggregatorApi";
 import { sortContactsWithPrimaryFirst } from "../shared/contacts/contactPresentation";
-import { compareHealthStatus, isUnhealthyHealthStatus } from "../shared/health/healthPresentation";
+import {
+  compareHealthStatus,
+  isUnhealthyHealthStatus,
+} from "../shared/health/healthPresentation";
 import type {
   CatalogActor,
   CatalogActorContact,
@@ -141,7 +157,8 @@ export default function App() {
   const [isTimelineOpen, setIsTimelineOpen] = useState(true);
   const [isAiChatOpen, setIsAiChatOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
-  const { openedSignalId, openedSignalTitle, openSignal, closeSignal } = useSignalDetails();
+  const { openedSignalId, openedSignalTitle, openSignal, closeSignal } =
+    useSignalDetails();
   const [openedContact, setOpenedContact] = useState<CatalogContact | null>(
     null,
   );
@@ -401,13 +418,25 @@ export default function App() {
   }, []);
 
   const {
-    selectedId, selectedPath, selectedNode, initializeSelectedId,
-    handleSelectItem, handleSelectItemById, handleSelectItemByIdNoPath,
-    handleSelectItemByPath, buildItemLink, handleExternalItemLink,
+    selectedId,
+    selectedPath,
+    selectedNode,
+    initializeSelectedId,
+    handleSelectItem,
+    handleSelectItemById,
+    handleSelectItemByIdNoPath,
+    handleSelectItemByPath,
+    buildItemLink,
+    handleExternalItemLink,
   } = useItemNavigation({
-    basePath, tree, itemMap, expandedIdsRef,
-    setPendingScrollId, setIsMobileSidebarOpen,
-    expandPathToItem, ensurePathExpanded,
+    basePath,
+    tree,
+    itemMap,
+    expandedIdsRef,
+    setPendingScrollId,
+    setIsMobileSidebarOpen,
+    expandPathToItem,
+    ensurePathExpanded,
   });
 
   /**
@@ -1057,7 +1086,9 @@ export default function App() {
         theme={theme}
         isAiChatOpen={effectiveIsAiChatOpen}
         onToggleAiChat={() => setIsAiChatOpen((prev) => !prev)}
-        onToggleTheme={() => setTheme((prev) => (prev === "dark" ? "light" : "dark"))}
+        onToggleTheme={() =>
+          setTheme((prev) => (prev === "dark" ? "light" : "dark"))
+        }
         onOpenAbout={() => setIsAboutOpen(true)}
         selectedItem={selectedItem}
         selectedStatus={selectedStatus}

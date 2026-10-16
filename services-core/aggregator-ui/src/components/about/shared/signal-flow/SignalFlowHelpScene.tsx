@@ -2,10 +2,19 @@ import { useCallback, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import ItemTitle from "../../../shared/item/ItemTitle";
 import ItemOwnership from "../../../shared/item/ItemOwnership";
-import { HealthySignals, UnhealthySignals } from "../../../shared/item/ItemSignals";
+import {
+  HealthySignals,
+  UnhealthySignals,
+} from "../../../shared/item/ItemSignals";
 import HelpScene, { useHelpTargets, type SceneRect } from "../HelpScene";
 import DemoHelp from "../DemoHelp";
-import { demoIconSpriteHref, clientItem, clientContact, clientChecks, clientDependencies } from "../demoData";
+import {
+  demoIconSpriteHref,
+  clientItem,
+  clientContact,
+  clientChecks,
+  clientDependencies,
+} from "../demoData";
 import HelpAnimationProgress from "../HelpAnimationProgress";
 import HelpInteractionShield from "../HelpInteractionShield";
 import SignalFlowGraph, { type FlowNodeId } from "./SignalFlowGraph";
@@ -32,8 +41,17 @@ const targetFallback = {
 export type SignalFlowTargets = Record<keyof typeof targetFallback, SceneRect>;
 
 export default function SignalFlowHelpScene({
-  unhealthy, elapsed, cycleDuration, pageOpacity, graphOpacity, affectedItem, affectedNodes,
-  failedLeaf, redProgress, greenProgress, renderOverlay,
+  unhealthy,
+  elapsed,
+  cycleDuration,
+  pageOpacity,
+  graphOpacity,
+  affectedItem,
+  affectedNodes,
+  failedLeaf,
+  redProgress,
+  greenProgress,
+  renderOverlay,
 }: {
   unhealthy: boolean;
   elapsed: number;
@@ -48,43 +66,102 @@ export default function SignalFlowHelpScene({
   renderOverlay: (targets: SignalFlowTargets) => ReactNode;
 }) {
   const pageRef = useRef<HTMLDivElement>(null);
-  const measuredTargets = useHelpTargets(pageRef, targetSelectors, targetFallback);
+  const measuredTargets = useHelpTargets(
+    pageRef,
+    targetSelectors,
+    targetFallback,
+  );
   const [compact, setCompact] = useState(false);
-  const updateLayout = useCallback((width: number) => setCompact(width < 560), []);
+  const updateLayout = useCallback(
+    (width: number) => setCompact(width < 560),
+    [],
+  );
   const pageScale = compact ? 1.2 : 0.9;
   const pageLeft = compact ? 20 : 95;
-  const targets = Object.fromEntries(Object.entries(measuredTargets).map(([key, rect]) => [key, {
-    x: pageLeft + rect.x * pageScale,
-    y: rect.y * pageScale,
-    width: rect.width * pageScale,
-    height: rect.height * pageScale,
-  }])) as SignalFlowTargets;
+  const targets = Object.fromEntries(
+    Object.entries(measuredTargets).map(([key, rect]) => [
+      key,
+      {
+        x: pageLeft + rect.x * pageScale,
+        y: rect.y * pageScale,
+        width: rect.width * pageScale,
+        height: rect.height * pageScale,
+      },
+    ]),
+  ) as SignalFlowTargets;
 
   return (
-    <figure className={"signal-flow-help" + (unhealthy ? " is-unhealthy-demo" : " is-healthy-demo")}
-      aria-label={unhealthy ? "Unhealthy dependency propagation example" : "Healthy dependency signals example"}>
+    <figure
+      className={
+        "signal-flow-help" +
+        (unhealthy ? " is-unhealthy-demo" : " is-healthy-demo")
+      }
+      aria-label={
+        unhealthy
+          ? "Unhealthy dependency propagation example"
+          : "Healthy dependency signals example"
+      }
+    >
       <HelpAnimationProgress progress={elapsed / cycleDuration} />
-      <HelpScene width={640} height={compact ? 430 : 326} onResize={updateLayout}>
-        <div ref={pageRef} inert aria-hidden="true" className="help-item-page signal-flow-help-page"
-          data-unhealthy-page={unhealthy || undefined} data-healthy-page={!unhealthy || undefined}
-          style={{ opacity: pageOpacity, left: pageLeft, top: 0, width: 500,
-            transform: `scale(${pageScale})` }}>
-          <ItemTitle item={clientItem} firstWord="client-service"
-            status={affectedItem ? "down" : "up"} interactive={false} />
+      <HelpScene
+        width={640}
+        height={compact ? 430 : 326}
+        onResize={updateLayout}
+      >
+        <div
+          ref={pageRef}
+          inert
+          aria-hidden="true"
+          className="help-item-page signal-flow-help-page"
+          data-unhealthy-page={unhealthy || undefined}
+          data-healthy-page={!unhealthy || undefined}
+          style={{
+            opacity: pageOpacity,
+            left: pageLeft,
+            top: 0,
+            width: 500,
+            transform: `scale(${pageScale})`,
+          }}
+        >
+          <ItemTitle
+            item={clientItem}
+            firstWord="client-service"
+            status={affectedItem ? "down" : "up"}
+            interactive={false}
+          />
           <section className="details-summary-block">
-            <ItemOwnership primaryContact={clientContact} actorRows={[]} expanded={false}
-              iconSpriteHref={demoIconSpriteHref} primaryHelp={<DemoHelp title="Primary contact" />} />
+            <ItemOwnership
+              primaryContact={clientContact}
+              actorRows={[]}
+              expanded={false}
+              iconSpriteHref={demoIconSpriteHref}
+              primaryHelp={<DemoHelp title="Primary contact" />}
+            />
             {unhealthy ? (
-              <UnhealthySignals signals={[]} dependencies={clientDependencies} expanded
-                help={<DemoHelp title="Unhealthy signals" />} />
+              <UnhealthySignals
+                signals={[]}
+                dependencies={clientDependencies}
+                expanded
+                help={<DemoHelp title="Unhealthy signals" />}
+              />
             ) : (
-              <HealthySignals signals={clientChecks} expanded help={<DemoHelp title="Healthy signals" />} />
+              <HealthySignals
+                signals={clientChecks}
+                expanded
+                help={<DemoHelp title="Healthy signals" />}
+              />
             )}
           </section>
         </div>
-        <SignalFlowGraph unhealthy={unhealthy} compact={compact} graphOpacity={graphOpacity}
-          redProgress={redProgress} greenProgress={greenProgress} affectedNodes={affectedNodes}
-          failedLeaf={failedLeaf}>
+        <SignalFlowGraph
+          unhealthy={unhealthy}
+          compact={compact}
+          graphOpacity={graphOpacity}
+          redProgress={redProgress}
+          greenProgress={greenProgress}
+          affectedNodes={affectedNodes}
+          failedLeaf={failedLeaf}
+        >
           {renderOverlay(targets)}
         </SignalFlowGraph>
       </HelpScene>

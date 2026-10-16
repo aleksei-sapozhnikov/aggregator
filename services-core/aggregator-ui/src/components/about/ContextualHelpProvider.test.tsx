@@ -30,7 +30,8 @@ const topic: HelpTopic = {
   description: "Timeline shows product health over time.",
 };
 
-const render = (ui: ReactElement) => baseRender(<ContextualHelpProvider>{ui}</ContextualHelpProvider>);
+const render = (ui: ReactElement) =>
+  baseRender(<ContextualHelpProvider>{ui}</ContextualHelpProvider>);
 
 afterEach(() => {
   cleanup();
@@ -41,13 +42,24 @@ describe("InfoHelp signal examples", () => {
   it.each([
     ["healthySignals", "Healthy dependency signals example"],
     ["unhealthySignals", "Unhealthy dependency propagation example"],
-  ] as const)("renders the %s animation in its existing contextual help dialog", (key, label) => {
-    render(<InfoHelp topicId={infoHelpTopics[key].id} />);
-    fireEvent.click(screen.getByRole("button", { name: "About " + infoHelpTopics[key].title }));
-    const dialog = screen.getByRole("dialog", { name: "About " + infoHelpTopics[key].title });
-    expect(dialog.querySelector("figure[aria-label='" + label + "']")).not.toBeNull();
-    expect(dialog.querySelectorAll("[data-flow-node]")).toHaveLength(6);
-  });
+  ] as const)(
+    "renders the %s animation in its existing contextual help dialog",
+    (key, label) => {
+      render(<InfoHelp topicId={infoHelpTopics[key].id} />);
+      fireEvent.click(
+        screen.getByRole("button", {
+          name: "About " + infoHelpTopics[key].title,
+        }),
+      );
+      const dialog = screen.getByRole("dialog", {
+        name: "About " + infoHelpTopics[key].title,
+      });
+      expect(
+        dialog.querySelector("figure[aria-label='" + label + "']"),
+      ).not.toBeNull();
+      expect(dialog.querySelectorAll("[data-flow-node]")).toHaveLength(6);
+    },
+  );
 });
 
 describe("InfoHelp Actors example", () => {
@@ -55,7 +67,11 @@ describe("InfoHelp Actors example", () => {
     render(<InfoHelp topicId="actors" />);
     fireEvent.click(screen.getByRole("button", { name: "About Actors" }));
     const dialog = screen.getByRole("dialog", { name: "About Actors" });
-    expect(dialog.querySelector("figure[aria-label='Actors become Item ownership and relationship entries']")).not.toBeNull();
+    expect(
+      dialog.querySelector(
+        "figure[aria-label='Actors become Item ownership and relationship entries']",
+      ),
+    ).not.toBeNull();
     expect(dialog.querySelectorAll("[data-actor]")).toHaveLength(3);
   });
 });

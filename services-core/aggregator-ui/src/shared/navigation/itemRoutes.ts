@@ -123,4 +123,3 @@ export const readLocationRouteContext = (
     hasPathParam: pathIds.length > 0,
   };
 };
-

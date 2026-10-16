@@ -39,9 +39,13 @@ const setup = () => {
   const args = {
     basePath: "/",
     tree,
-    itemMap: new Map(tree.flatMap((node) =>
-      [node.item, ...node.children.map((nested) => nested.item)]
-      .map((item) => [item.id, item] as const))),
+    itemMap: new Map(
+      tree.flatMap((node) =>
+        [node.item, ...node.children.map((nested) => nested.item)].map(
+          (item) => [item.id, item] as const,
+        ),
+      ),
+    ),
     expandedIdsRef,
     setPendingScrollId,
     setIsMobileSidebarOpen,
@@ -64,9 +68,9 @@ describe("useItemNavigation", () => {
     expect(result.current.selectedId).toBe("checkout");
     expect(result.current.selectedPath).toEqual(["other", "checkout"]);
     expect(result.current.selectedNode?.uid).toBe("other/checkout");
-    expect(args.expandPathToItem).toHaveBeenCalledWith(
-      "checkout", { path: ["other", "checkout"] },
-    );
+    expect(args.expandPathToItem).toHaveBeenCalledWith("checkout", {
+      path: ["other", "checkout"],
+    });
   });
 
   it("selects the exact dependency path without resolving an ambiguous Item ID", () => {
@@ -74,10 +78,12 @@ describe("useItemNavigation", () => {
     act(() => result.current.handleSelectItemByPath(["other", "checkout"]));
     expect(result.current.selectedPath).toEqual(["other", "checkout"]);
     expect(window.location.pathname).toBe("/item/checkout");
-    expect(new URLSearchParams(window.location.search).get("path"))
-      .toBe("other/checkout");
+    expect(new URLSearchParams(window.location.search).get("path")).toBe(
+      "other/checkout",
+    );
     expect(window.history.state).toEqual({
-      itemId: "checkout", path: ["other", "checkout"],
+      itemId: "checkout",
+      path: ["other", "checkout"],
     });
   });
 
@@ -88,9 +94,9 @@ describe("useItemNavigation", () => {
     expect(result.current.selectedPath).toEqual(["root", "checkout"]);
     expect(window.location.pathname).toBe("/item/checkout");
     expect(window.location.search).toBe("");
-    expect(args.expandPathToItem).toHaveBeenCalledWith(
-      "checkout", { path: ["root", "checkout"] },
-    );
+    expect(args.expandPathToItem).toHaveBeenCalledWith("checkout", {
+      path: ["root", "checkout"],
+    });
   });
 
   it("does not add duplicate history entries when the same node is selected again", () => {
@@ -106,7 +112,8 @@ describe("useItemNavigation", () => {
     const { result, args } = setup();
     window.history.replaceState(
       { itemId: "checkout", path: ["other", "checkout"] },
-      "", "/item/checkout?path=other%2Fcheckout",
+      "",
+      "/item/checkout?path=other%2Fcheckout",
     );
     args.expandPathToItem.mockClear();
     act(() => window.dispatchEvent(new PopStateEvent("popstate")));
@@ -118,10 +125,13 @@ describe("useItemNavigation", () => {
 
   it("keeps external Item links integrated with the in-app router", () => {
     const { result } = setup();
-    act(() => result.current.handleExternalItemLink("checkout", "/item/checkout"));
+    act(() =>
+      result.current.handleExternalItemLink("checkout", "/item/checkout"),
+    );
     expect(result.current.selectedId).toBe("checkout");
     expect(window.location.pathname).toBe("/item/checkout");
-    expect(result.current.buildItemLink("checkout", ["other", "checkout"]))
-      .toBe("/item/checkout?path=other%2Fcheckout");
+    expect(
+      result.current.buildItemLink("checkout", ["other", "checkout"]),
+    ).toBe("/item/checkout?path=other%2Fcheckout");
   });
 });

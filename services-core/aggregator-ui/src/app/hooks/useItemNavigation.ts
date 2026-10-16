@@ -4,8 +4,19 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Dispatch, RefObject, SetStateAction } from "react";
-import { findNodeById, findNodeByPath, findNodePath, findNodeUidById } from "../../shared/catalog/tree";
-import { buildItemPathname, buildItemRouteHref, buildServicePath, readLocationRouteContext, resolveNodeFromLocation } from "../../shared/navigation/itemRoutes";
+import {
+  findNodeById,
+  findNodeByPath,
+  findNodePath,
+  findNodeUidById,
+} from "../../shared/catalog/tree";
+import {
+  buildItemPathname,
+  buildItemRouteHref,
+  buildServicePath,
+  readLocationRouteContext,
+  resolveNodeFromLocation,
+} from "../../shared/navigation/itemRoutes";
 import type { CatalogItem, CatalogTreeNode } from "../../shared/types";
 
 type RouteUpdateOptions = { replace?: boolean };
@@ -26,8 +37,14 @@ type ItemNavigationOptions = {
 };
 
 export default function useItemNavigation({
-  basePath, tree, itemMap, expandedIdsRef, setPendingScrollId,
-  setIsMobileSidebarOpen, expandPathToItem, ensurePathExpanded,
+  basePath,
+  tree,
+  itemMap,
+  expandedIdsRef,
+  setPendingScrollId,
+  setIsMobileSidebarOpen,
+  expandPathToItem,
+  ensurePathExpanded,
 }: ItemNavigationOptions) {
   const [selectedId, setSelectedId] = useState("");
   const [selectedPath, setSelectedPath] = useState<string[]>([]);
@@ -122,7 +139,6 @@ export default function useItemNavigation({
     },
     [updateHistoryForRoute],
   );
-
 
   const selectedNode = useMemo(() => {
     if (!selectedId) {
@@ -240,7 +256,6 @@ export default function useItemNavigation({
     [handleSelectItemByIdNoPath, itemMap],
   );
 
-
   /**
    * Sync selected item with browser URL and handle browser back/forward navigation.
    * Also normalizes invalid/missing route states to the closest resolvable node.
@@ -326,7 +341,6 @@ export default function useItemNavigation({
     updateUrlForItemId,
     updateUrlForNode,
   ]);
-
 
   return {
     selectedId,

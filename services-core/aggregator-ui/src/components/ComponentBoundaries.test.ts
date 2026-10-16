@@ -4,15 +4,25 @@ import { dirname, relative, resolve, sep } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const root = resolve("src/components");
-const features = new Set(["about", "item-details", "catalog-tree", "ai-chat", "entity-details"]);
+const features = new Set([
+  "about",
+  "item-details",
+  "catalog-tree",
+  "ai-chat",
+  "entity-details",
+]);
 const codeExtensions = /\.(?:ts|tsx)$/;
-const importPattern = /\b(?:from\s*|import\s*|import\s*\(\s*)["'](\.[^"']+)["']/g;
+const importPattern =
+  /\b(?:from\s*|import\s*|import\s*\(\s*)["'](\.[^"']+)["']/g;
 
 function sourceFiles(directory: string): string[] {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
     const path = resolve(directory, entry.name);
     if (entry.isDirectory()) return sourceFiles(path);
-    if (!codeExtensions.test(entry.name) || /\.(?:test|spec|d)\.tsx?$/.test(entry.name)) {
+    if (
+      !codeExtensions.test(entry.name) ||
+      /\.(?:test|spec|d)\.tsx?$/.test(entry.name)
+    ) {
       return [];
     }
     return [path];
@@ -38,13 +48,28 @@ describe("Component dependency boundaries", () => {
         const sourceFeature = source[0];
         const targetFeature = target[0];
         if (sourceFeature === "shared" && targetFeature !== "shared") {
-          violations.push(`${relative(root, file)} imports ${match[1]} from outside shared/`);
-        } else if (features.has(sourceFeature) &&
-          targetFeature !== sourceFeature && targetFeature !== "shared") {
-          violations.push(`${relative(root, file)} imports sibling feature ${match[1]}`);
-        } else if (sourceFeature === "about" && source.length >= 3 && targetFeature === "about" &&
-          target.length >= 3 && source[1] !== target[1] && target[1] !== "shared") {
-          violations.push(`${relative(root, file)} imports a sibling help topic ${match[1]}`);
+          violations.push(
+            `${relative(root, file)} imports ${match[1]} from outside shared/`,
+          );
+        } else if (
+          features.has(sourceFeature) &&
+          targetFeature !== sourceFeature &&
+          targetFeature !== "shared"
+        ) {
+          violations.push(
+            `${relative(root, file)} imports sibling feature ${match[1]}`,
+          );
+        } else if (
+          sourceFeature === "about" &&
+          source.length >= 3 &&
+          targetFeature === "about" &&
+          target.length >= 3 &&
+          source[1] !== target[1] &&
+          target[1] !== "shared"
+        ) {
+          violations.push(
+            `${relative(root, file)} imports a sibling help topic ${match[1]}`,
+          );
         }
       }
     }
@@ -52,12 +77,16 @@ describe("Component dependency boundaries", () => {
   });
 
   it("keeps Grafana-specific details behind the Timeline feature boundary", () => {
-    for (const path of ["src/app/App.tsx", "src/components/item-details/ItemDetails.tsx"]) {
+    for (const path of [
+      "src/app/App.tsx",
+      "src/components/item-details/ItemDetails.tsx",
+    ]) {
       const source = readFileSync(resolve(path), "utf8");
       expect(source).not.toMatch(/Grafana|grafana|postMessage|dashboardUrl/);
     }
     const section = readFileSync(
-      resolve("src/components/item-details/timeline/TimelineSection.tsx"), "utf8",
+      resolve("src/components/item-details/timeline/TimelineSection.tsx"),
+      "utf8",
     );
     expect(section).toContain('from "./grafana/GrafanaFrame"');
   });
