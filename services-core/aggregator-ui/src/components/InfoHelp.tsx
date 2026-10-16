@@ -2,7 +2,7 @@ import { createContext, useContext, useId, useMemo, useRef, useState } from "rea
 import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
 import type { InfoHelpTopic } from "../shared/infoHelpTopics";
-import ModalWindow from "./ModalWindow";
+import ModalWindow from "./shared/ui/ModalWindow";
 import InfoHelpButton from "./InfoHelpButton";
 import TimelineHelpDemo from "./about/timeline/TimelineHelpDemo";
 import SignalFlowHelpDemo from "./about/signal-flow/SignalFlowHelpDemo";

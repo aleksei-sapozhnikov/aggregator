@@ -7,7 +7,7 @@ import {
 } from "../shared/contactUtils";
 import type { InfoHelpTopic } from "../shared/infoHelpTopics";
 import InfoHelp from "./InfoHelp";
-import ModalWindow from "./ModalWindow";
+import ModalWindow from "./shared/ui/ModalWindow";
 
 type ContactModalProps = {
   isOpen: boolean;

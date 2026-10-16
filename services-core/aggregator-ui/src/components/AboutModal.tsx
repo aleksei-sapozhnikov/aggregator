@@ -3,7 +3,7 @@
  */
 
 import AboutContent, { AboutHeader } from "../AboutContent";
-import ModalWindow from "./ModalWindow";
+import ModalWindow from "./shared/ui/ModalWindow";
 
 type AboutModalProps = {
   isOpen: boolean;

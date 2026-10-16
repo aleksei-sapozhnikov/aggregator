@@ -4,7 +4,7 @@ import { askAgent } from "../services/aggregatorApi";
 import { isPlainLeftClick } from "../shared/catalogUtils";
 import { isUnhealthyHealthStatus } from "../shared/healthPresentation";
 import { buildStatusText } from "../shared/statusText";
-import CloseButton from "./CloseButton";
+import CloseButton from "./shared/ui/CloseButton";
 import ItemNavigationLink from "./ItemNavigationLink";
 import type {
   AgentHealthDependencyContent,

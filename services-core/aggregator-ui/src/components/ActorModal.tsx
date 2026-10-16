@@ -5,7 +5,7 @@ import {
   resolveContactTypeDisplayName,
 } from "../shared/contactUtils";
 import type { CatalogActor, CatalogContact } from "../shared/types";
-import ModalWindow from "./ModalWindow";
+import ModalWindow from "./shared/ui/ModalWindow";
 import ModalDetailsTrigger from "./ModalDetailsTrigger";
 import SecondaryLabel from "./SecondaryLabel";
 

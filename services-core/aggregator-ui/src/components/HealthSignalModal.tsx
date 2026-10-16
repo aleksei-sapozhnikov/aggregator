@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { CatalogItem } from "../shared/types";
 import { isPlainLeftClick } from "../shared/catalogUtils";
-import ModalWindow from "./ModalWindow";
+import ModalWindow from "./shared/ui/ModalWindow";
 import ItemNavigationLink from "./ItemNavigationLink";
 
 type HealthSignalDetails = Record<string, unknown> & {
