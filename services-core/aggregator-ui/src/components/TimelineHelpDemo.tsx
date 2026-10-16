@@ -53,20 +53,36 @@ const isFilterMenuOpen = (time: number): boolean =>
 const lerp = (start: number, end: number, fraction: number) =>
   start + (end - start) * Math.max(0, Math.min(1, fraction));
 
+// In the inspect scenario, the pointer visits every visible signal row.
+// Match the 26px track height and 7px gap in TimelineHelpDemo.css.
+const inspectCursorStart = 3000;
+const inspectRowDuration = 760;
+const inspectRowPitch = 33;
+export function getInspectCursorRow(time: number): number {
+  const lastRow = exampleRows.length - 1;
+  const progress = Math.max(0, Math.min(lastRow,
+    (time - inspectCursorStart) / inspectRowDuration));
+  const row = Math.min(lastRow - 1, Math.floor(progress));
+  const movement = Math.min(1, (progress - row) / 0.66);
+  const eased = movement * movement * (3 - 2 * movement);
+  return row + eased;
+}
+
 function TimelineStatusMarker({ state }: { state: HealthState }) {
   return <span className={"timeline-help-popup-marker is-" + state.toLowerCase()} aria-hidden="true" />;
 }
 
-const timelineStart = Date.UTC(2026, 9, 14, 23, 50, 0);
+const timelineStart = Date.UTC(2026, 9, 9, 0, 0, 0);
+const timelineWeekMs = 7 * 24 * 60 * 60 * 1000;
 function timestampAt(position: number): string {
-  const date = new Date(timelineStart + Math.round(position * 9000));
+  const date = new Date(timelineStart + Math.round(position / 100 * timelineWeekMs));
   const pad = (value: number) => String(value).padStart(2, "0");
   return date.getUTCFullYear() + "-" + pad(date.getUTCMonth() + 1) + "-" +
     pad(date.getUTCDate()) + " " + pad(date.getUTCHours()) + ":" +
     pad(date.getUTCMinutes()) + ":" + pad(date.getUTCSeconds());
 }
 
-function TimelineHoverPopup({ x }: { x: number }) {
+function TimelineHoverPopup({ x, inspectedRowId }: { x: number; inspectedRowId?: string }) {
   return (
     <div
       className={"timeline-help-popup timeline-help-popup-hover" + (x >= 34 ? " is-flipped" : "")}
@@ -78,7 +94,10 @@ function TimelineHoverPopup({ x }: { x: number }) {
         {exampleRows.map((row) => {
           const state = row.states[Math.min(row.states.length - 1, Math.floor(x / 20))];
           return (
-            <div key={row.id} className="timeline-help-popup-row">
+            <div key={row.id}
+              className={"timeline-help-popup-row" +
+                (row.id === inspectedRowId ? " is-inspected" : "")}
+              data-inspected={row.id === inspectedRowId ? "true" : undefined}>
               <span className="timeline-help-popup-name">
                 <TimelineStatusMarker state={state} />
                 <span>{row.label}</span>
@@ -106,7 +125,7 @@ function TimelineDependencyPopup({
       aria-label="Dependency signal details"
     >
       <div className="timeline-help-popup-date">
-        2026-10-14 23:56:00 – 2026-10-14 23:59:00
+        2026-10-11 19:12:00 – 2026-10-13 04:48:00
       </div>
       <div className="timeline-help-popup-row">
         <span className="timeline-help-popup-name">
@@ -117,7 +136,7 @@ function TimelineDependencyPopup({
       </div>
       <div className="timeline-help-popup-duration">
         <span>Duration</span>
-        <strong>3m</strong>
+        <strong>1d 9h 36m</strong>
       </div>
       <div className={"timeline-help-popup-link" + (linkPressed ? " is-selected" : "")}>
         <span aria-hidden="true">↗</span>
@@ -273,6 +292,9 @@ export default function TimelineHelpDemo() {
   // Stop within a segment showing healthy, unhealthy and unknown signals together.
   const endX = scenario === "inspect" ? 50 : 48;
   const x = lerp(20, endX, (elapsed - 600) / 2200);
+  const inspectCursorRow = getInspectCursorRow(elapsed);
+  const inspectedRowId = scenario === "inspect"
+    ? exampleRows[Math.round(inspectCursorRow)].id : undefined;
   const inspectPopup = scenario === "inspect" && elapsed >= 1100 && elapsed < 8150;
   const navigateHover = scenario === "navigate" && elapsed >= 1100 && elapsed < 3400;
   const navigateDetails = scenario === "navigate" && elapsed >= 3400 && elapsed < 7300;
@@ -319,7 +341,7 @@ export default function TimelineHelpDemo() {
           <>
             <header className="timeline-help-preview-header">
               <strong>Orders Service</strong>
-              <span>Example data · Last 15 minutes</span>
+              <span>Last 1 week</span>
             </header>
             <TimelineSignalSelect
               filter={filter}
@@ -359,13 +381,15 @@ export default function TimelineHelpDemo() {
                       className="timeline-help-crosshair"
                       style={{ left: x + "%" }}
                     />
-                    {(inspectPopup || navigateHover) && <TimelineHoverPopup x={x} />}
+                    {(inspectPopup || navigateHover) &&
+                      <TimelineHoverPopup x={x} inspectedRowId={inspectedRowId} />}
                     {navigateDetails && (
                       <TimelineDependencyPopup x={x} linkPressed={linkPressed} />
                     )}
                     <ExampleCursor
                       left={scenario === "navigate" ? navigationCursorLeft : x + "%"}
-                      top={scenario === "navigate" ? navigationCursorTop : "7px"}
+                      top={scenario === "navigate" ? navigationCursorTop
+                        : (7 + inspectCursorRow * inspectRowPitch) + "px"}
                       pressed={linkPressed}
                       movingToLink={movingToLink}
                     />
@@ -374,7 +398,7 @@ export default function TimelineHelpDemo() {
               </div>
             </div>
             <div className="timeline-help-axis" aria-hidden="true">
-              <span>23:50</span><span>23:55</span><span>00:00</span><span>00:05</span>
+              <span>Oct 09</span><span>Oct 11</span><span>Oct 13</span><span>Oct 16</span>
             </div>
             {scenario === "filter" && (
               <ExampleCursor left={cursorLeft} top={cursorTop} />

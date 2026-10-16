@@ -3,7 +3,7 @@
  */
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import TimelineHelpDemo from "./TimelineHelpDemo";
+import TimelineHelpDemo, { getInspectCursorRow } from "./TimelineHelpDemo";
 
 beforeEach(() => vi.useFakeTimers());
 afterEach(() => { cleanup(); vi.useRealTimers(); });
@@ -47,6 +47,61 @@ describe("Timeline help walkthrough", () => {
     expect(fill.style.transform).toBe("scaleX(0)");
     fireEvent.click(screen.getByRole("button", { name: "Inspect a moment" }));
     expect(bar.getAttribute("aria-valuenow")).toBe("0");
+  });
+
+  it("uses a one-week range rather than the old fifteen-minute sample", () => {
+    render(<TimelineHelpDemo />);
+    const preview = screen.getByLabelText("Example Timeline");
+    expect(within(preview).getByText("Last 1 week")).not.toBeNull();
+    expect(within(preview).queryByText(/Example data|Last 15 minutes/)).toBeNull();
+    expect(within(preview).getByText("Oct 09")).not.toBeNull();
+    expect(within(preview).getByText("Oct 16")).not.toBeNull();
+    advance(1400);
+    expect(within(preview).getByLabelText("States at selected time")
+      .querySelector(".timeline-help-popup-date")?.textContent).toMatch(/^2026-10-/);
+  });
+
+  it("moves the inspect pointer down through all graph rows and emphasizes only the current popup name", () => {
+    render(<TimelineHelpDemo />);
+    const preview = screen.getByLabelText("Example Timeline");
+    const cursor = preview.querySelector(".timeline-help-tracks > .timeline-help-cursor") as SVGElement;
+    const labels = [
+      "[Overall] Orders Service",
+      "● HTTP availability check",
+      "● Request success ratio",
+      "↳ Payment Gateway · readiness check",
+      "↳ Inventory API · synchronization check",
+      "↳ Notification Worker · backlog check",
+    ];
+    const assertActiveRow = (index: number) => {
+      const popup = within(preview).getByLabelText("States at selected time");
+      const active = popup.querySelectorAll(".timeline-help-popup-row.is-inspected");
+      expect(active).toHaveLength(1);
+      expect(active[0].getAttribute("data-inspected")).toBe("true");
+      expect(active[0].querySelector(".timeline-help-popup-name span:last-child")?.textContent)
+        .toBe(labels[index]);
+      expect(cursor.style.top).toBe((7 + index * 33) + "px");
+      const otherRows = Array.from(popup.querySelectorAll(".timeline-help-popup-row"))
+        .filter((row) => row !== active[0]);
+      expect(otherRows.every((row) => !row.classList.contains("is-inspected"))).toBe(true);
+    };
+
+    advance(1500);
+    assertActiveRow(0);
+    advance(1500);
+    expect(cursor.style.left).toBe("50%");
+    assertActiveRow(0);
+
+    // Each transition takes 66% of a 760ms step, then holds the selected row.
+    advance(680);
+    assertActiveRow(1);
+    for (let row = 2; row < labels.length; row++) {
+      advance(760);
+      assertActiveRow(row);
+    }
+    expect(getInspectCursorRow(6800)).toBe(5);
+    advance(700);
+    assertActiveRow(5);
   });
 
   it("moves the popup with the cursor and holds it for three seconds", () => {

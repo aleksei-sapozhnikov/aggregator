@@ -553,6 +553,11 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* Follow the inspected graph row without emphasizing unrelated signals. */
+.timeline-help-popup-row.is-inspected .timeline-help-popup-name span:last-child {
+  font-weight: 700;
+}
 .timeline-help-popup-row strong {
   flex: none;
   font-size: 11px;
