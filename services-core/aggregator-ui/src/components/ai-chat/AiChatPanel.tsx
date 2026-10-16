@@ -1,4 +1,4 @@
-import type { FormEvent, KeyboardEvent, MouseEvent } from "react";
+import type { KeyboardEvent, MouseEvent, SyntheticEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { askAgent } from "../../services/aggregatorApi";
 import { isPlainLeftClick } from "../../shared/ui/pointerUtils";
@@ -93,7 +93,7 @@ export default function AiChatPanel({
     }
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
     void handleSend();
   };

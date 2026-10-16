@@ -12,7 +12,7 @@ const currentDir = dirname(fileURLToPath(import.meta.url));
 export default defineConfig({
   plugins: [react()],
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       input: {
         main: resolve(currentDir, "index.html"),
         grafanaFrame: resolve(
