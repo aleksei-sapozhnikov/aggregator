@@ -204,8 +204,9 @@ function Technician({ frame }: { frame: HelpFrame }) {
 
 function AggregatorPage({ frame }: { frame: HelpFrame }) {
   const scale = mix(0.12, 1, frame.pageExpansion);
-  const x = 432 * (1 - scale);
-  const y = 238 * (1 - scale);
+  // Expand from the reduced-size laptop rather than from an off-screen point.
+  const x = 390 * (1 - scale);
+  const y = 213 * (1 - scale);
   return (
     <g data-primary-contact-page="true"
       style={{ opacity: frame.pageOpacity }}
@@ -218,31 +219,31 @@ function AggregatorPage({ frame }: { frame: HelpFrame }) {
       <circle cx="29" cy="49" r="6" className="primary-contact-down-light" />
       <text x="490" y="58" className="primary-contact-page-down">DOWN</text>
       <path d="M28 77h584" className="primary-contact-page-separator" />
-      <path d="M49 107v123" className="primary-contact-page-accent" />
+      <path d="M49 100v71" className="primary-contact-page-accent" />
       <text x="77" y="116" className="primary-contact-page-heading">
         Primary contact
       </text>
       <circle cx="251" cy="108" r="10" className="primary-contact-page-help-circle" />
       <text x="251" y="113" textAnchor="middle"
         className="primary-contact-page-help-text">?</text>
-      <rect x="78" y="183" width="254" height="42" rx="7"
+      <rect x="78" y="125" width="254" height="39" rx="7"
         className="primary-contact-page-highlight"
         style={{ opacity: frame.selectedContact }} />
-      <g transform="translate(91 197)" className="primary-contact-page-icon"
+      <g transform="translate(91 133)" className="primary-contact-page-icon"
         fill="none" strokeWidth="2.7" strokeLinecap="round">
         <path d="M2 1q-4 13 15 23l7-7-8-6-5 5-5-8 5-4Z" />
       </g>
-      <text x="131" y="211" className="primary-contact-page-link">
+      <text x="131" y="152" className="primary-contact-page-link">
         +1 555 010 2026
       </text>
-      <path d="M49 257h537" className="primary-contact-page-separator" />
-      <text x="78" y="293" className="primary-contact-page-muted">
+      <path d="M49 187h537" className="primary-contact-page-separator" />
+      <text x="78" y="218" className="primary-contact-page-muted">
         Actors (3)
       </text>
-      <text x="78" y="317" className="primary-contact-page-link">
+      <text x="78" y="246" className="primary-contact-page-link">
         Experience Ownership Team
       </text>
-      <text x="429" y="317" className="primary-contact-page-muted">
+      <text x="429" y="246" className="primary-contact-page-muted">
         Owner
       </text>
     </g>
@@ -250,9 +251,10 @@ function AggregatorPage({ frame }: { frame: HelpFrame }) {
 }
 
 function ContactTransfer({ frame }: { frame: HelpFrame }) {
-  const x = mix(77, 474, frame.contactTravel);
-  const y = mix(184, 223, frame.contactTravel);
-  const scale = mix(1, 0.28, frame.contactTravel);
+  // Start on the highlighted Item row and end inside the scaled phone screen.
+  const x = mix(78, 441, frame.contactTravel);
+  const y = mix(125, 220, frame.contactTravel);
+  const scale = mix(1, 0.19, frame.contactTravel);
   return (
     <g data-primary-contact-transfer="true"
       style={{ opacity: frame.transferOpacity }}
@@ -288,15 +290,21 @@ export default function PrimaryContactHelpDemo() {
       <svg viewBox="0 0 640 340" className="primary-contact-help-diagram"
         role="img" aria-label="A service goes down; a person opens Aggregator on a laptop, finds the primary contact, calls the responsible technician, and the service is restored">
         <g aria-hidden="true">
-          <Service frame={frame} />
-          <Observer frame={frame} />
-          <Laptop frame={frame} />
-          <Technician frame={frame} />
-          <Phone frame={frame} />
-          <g data-primary-contact-repair="true" style={{ opacity: frame.repair }}
-            className="primary-contact-repair-sparks" strokeWidth="3"
-            strokeLinecap="round">
-            <path d="M248 212l16-9M253 225l18 3M249 237l13 11" />
+          <g data-primary-contact-scene="true"
+            transform="translate(130 55) scale(0.66)">
+            <Service frame={frame} />
+            <g data-primary-contact-observer-scale="true"
+              transform="translate(379 140) scale(0.75) translate(-352 -76)">
+              <Observer frame={frame} />
+              <Laptop frame={frame} />
+              <Phone frame={frame} />
+            </g>
+            <Technician frame={frame} />
+            <g data-primary-contact-repair="true" style={{ opacity: frame.repair }}
+              className="primary-contact-repair-sparks" strokeWidth="3"
+              strokeLinecap="round">
+              <path d="M248 212l16-9M253 225l18 3M249 237l13 11" />
+            </g>
           </g>
           <AggregatorPage frame={frame} />
           <ContactTransfer frame={frame} />
