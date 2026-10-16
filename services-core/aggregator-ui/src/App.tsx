@@ -4,11 +4,11 @@
 
 import type { TouchEvent } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import SidebarPanel from "../components/sidebar/SidebarPanel";
-import DetailsPanel from "../components/details/DetailsPanel";
-import AboutModal from "../components/about/application/AboutModal";
-import ContactModal from "../components/entity-details/contact/ContactModal";
-import ActorModal from "../components/entity-details/actor/ActorModal";
+import SidebarPanel from "./components/sidebar/SidebarPanel";
+import DetailsPanel from "./components/details/DetailsPanel";
+import AboutModal from "./components/about/application/AboutModal";
+import ContactModal from "./components/entity-details/contact/ContactModal";
+import ActorModal from "./components/entity-details/actor/ActorModal";
 import {
   buildCatalogTree,
   buildItemPathname,
@@ -27,7 +27,7 @@ import {
   rankSearchResults,
   readLocationRouteContext,
   resolveNodeFromLocation,
-} from "../shared/catalogUtils";
+} from "./shared/catalogUtils";
 import {
   buildDashboardUrl,
   buildGrafanaFrameUrl,
@@ -40,9 +40,9 @@ import {
   resolveBaseUrl,
   resolveGrafanaBaseUrl,
   resolveSidebarTitle,
-} from "../services/aggregatorApi";
-import { sortContactsWithPrimaryFirst } from "../shared/contactUtils";
-import { isUnhealthyHealthStatus } from "../shared/healthPresentation";
+} from "./services/aggregatorApi";
+import { sortContactsWithPrimaryFirst } from "./shared/contactUtils";
+import { isUnhealthyHealthStatus } from "./shared/healthPresentation";
 import type {
   CatalogActor,
   CatalogActorContact,
@@ -57,7 +57,7 @@ import type {
   ItemSignal,
   ProductHealthItem,
   SearchAutocompleteIndex,
-} from "../shared/types";
+} from "./shared/types";
 
 const MOBILE_BREAKPOINT = 900;
 const TREE_SCROLL_LONG_DISTANCE_PX = 600;
