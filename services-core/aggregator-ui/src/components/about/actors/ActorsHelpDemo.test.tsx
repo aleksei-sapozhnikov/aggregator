@@ -4,6 +4,7 @@
 
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { expectDecorativeSceneShield } from "../../shared/help/helpTestAssertions";
 import ActorsHelpDemo, {
   actorsHelpDuration,
   getActorsHelpFrame,
@@ -21,14 +22,7 @@ describe("Actors contextual help animation", () => {
     const figure = screen.getByRole("figure", {
       name: "Actors become Item ownership and relationship entries",
     });
-    const shield = figure.querySelector(".help-interaction-shield");
-    expect(shield).not.toBeNull();
-    expect(shield?.getAttribute("aria-hidden")).toBe("true");
-    expect(figure.lastElementChild).toBe(shield);
-    expect(
-      shield?.previousElementSibling?.classList.contains("help-scene"),
-    ).toBe(true);
-    expect(figure.querySelector(".help-animation-progress")).not.toBeNull();
+    expectDecorativeSceneShield(figure);
   });
 
   it("maps three distinct people to Owner, User and Support rows", () => {

@@ -10,6 +10,10 @@ import {
   waitFor,
 } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import {
+  openHelpDialogFromHover,
+  expectTooltipAfterModalClose,
+} from "../shared/help/helpTestAssertions";
 import InfoHelp from "../shared/help/InfoHelp";
 import ContextualHelpProvider from "./ContextualHelpProvider";
 import type { ReactElement } from "react";
@@ -83,14 +87,7 @@ describe("InfoHelp tooltip lifecycle", () => {
       render(<InfoHelp topic={topic} />);
 
       const trigger = screen.getByRole("button", { name: "About Timeline" });
-      trigger.focus();
-      expect(screen.queryByRole("tooltip")).toBeNull();
-
-      fireEvent.mouseEnter(trigger);
-      expect(screen.getByRole("tooltip")).not.toBeNull();
-
-      fireEvent.click(trigger);
-      expect(screen.queryByRole("tooltip")).toBeNull();
+      openHelpDialogFromHover(trigger);
 
       const dialog = screen.getByRole("dialog", { name: "About Timeline" });
       await waitFor(() => expect(document.activeElement).toBe(dialog));
@@ -108,20 +105,7 @@ describe("InfoHelp tooltip lifecycle", () => {
       expect(
         screen.queryByRole("dialog", { name: "About Timeline" }),
       ).toBeNull();
-      await waitFor(() => expect(document.activeElement).toBe(trigger));
-      expect(screen.queryByRole("tooltip")).toBeNull();
-
-      // Focus restoration and subsequent refocusing must not show hover help.
-      trigger.blur();
-      trigger.focus();
-      expect(screen.queryByRole("tooltip")).toBeNull();
-
-      // A new mouse hover must show the tooltip on its first entry.
-      fireEvent.mouseEnter(trigger);
-      expect(screen.getByRole("tooltip")).not.toBeNull();
-
-      fireEvent.mouseLeave(trigger);
-      expect(screen.queryByRole("tooltip")).toBeNull();
+      await expectTooltipAfterModalClose(trigger);
     },
   );
 });

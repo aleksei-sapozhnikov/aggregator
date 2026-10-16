@@ -9,6 +9,7 @@ import {
   screen,
 } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { expectDecorativeSceneShield } from "../../shared/help/helpTestAssertions";
 import PrimaryContactHelpDemo, {
   getPrimaryContactHelpFrame,
   getPrimaryContactHelpLayout,
@@ -30,14 +31,7 @@ describe("Primary contact contextual help", () => {
     const figure = screen.getByRole("figure", {
       name: "Find the primary contact in Aggregator to get a failing service repaired",
     });
-    const shield = figure.querySelector(".help-interaction-shield");
-    expect(shield).not.toBeNull();
-    expect(shield?.getAttribute("aria-hidden")).toBe("true");
-    expect(figure.lastElementChild).toBe(shield);
-    expect(
-      shield?.previousElementSibling?.classList.contains("help-scene"),
-    ).toBe(true);
-    expect(figure.querySelector(".help-animation-progress")).not.toBeNull();
+    expectDecorativeSceneShield(figure);
   });
 
   it("follows the failure, laptop, contact, phone, repair and recovery sequence", () => {
