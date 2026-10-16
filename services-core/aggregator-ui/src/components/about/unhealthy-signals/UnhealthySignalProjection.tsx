@@ -1,4 +1,5 @@
 import type { SceneRect } from "../shared/HelpScene";
+import { expandedListHoldMs } from "../shared/signal-flow/progress";
 
 type MovingDependency = {
   id: "dep1" | "nested1";
@@ -27,7 +28,7 @@ const mix = (start: number, end: number, progress: number): number =>
   start + (end - start) * progress;
 
 // Keep the existing page hold and a half-second green pause after recovery.
-export const expandedListHoldMs = 2000;
+export { expandedListHoldMs } from "../shared/signal-flow/progress";
 export const unhealthyResetAt = 24800;
 export const unhealthyCycleDuration = unhealthyResetAt + 500 + expandedListHoldMs;
 
