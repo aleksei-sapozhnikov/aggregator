@@ -3,8 +3,8 @@ import {
   resolveContactLabel,
   resolveContactTypeClass,
   resolveContactTypeDisplayName,
-} from "../shared/contactUtils";
-import type { CatalogContact } from "../shared/types";
+} from "../../../shared/contactUtils";
+import type { CatalogContact } from "../../../shared/types";
 
 type ContactChipContentProps = {
   contact: CatalogContact;

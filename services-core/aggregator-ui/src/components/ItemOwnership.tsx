@@ -5,8 +5,8 @@ import {
   resolveContactTypeDisplayName,
 } from "../shared/contactUtils";
 import DetailsDisclosureHeader from "./DetailsDisclosureHeader";
-import ModalDetailsTrigger from "./ModalDetailsTrigger";
-import SecondaryLabel from "./SecondaryLabel";
+import ModalDetailsTrigger from "./shared/ui/ModalDetailsTrigger";
+import SecondaryLabel from "./shared/ui/SecondaryLabel";
 
 export type ActorSummaryRow = { key: string; actor: CatalogActor; typeLabel: string };
 

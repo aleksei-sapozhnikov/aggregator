@@ -2,9 +2,9 @@ import type { MouseEvent, ReactNode } from "react";
 import type { ItemSignal } from "../shared/types";
 import { buildStatusText } from "../shared/statusText";
 import DetailsDisclosureHeader from "./DetailsDisclosureHeader";
-import ModalDetailsTrigger from "./ModalDetailsTrigger";
-import ItemNavigationLink from "./ItemNavigationLink";
-import SecondaryLabel from "./SecondaryLabel";
+import ModalDetailsTrigger from "./shared/ui/ModalDetailsTrigger";
+import ItemNavigationLink from "./shared/ui/ItemNavigationLink";
+import SecondaryLabel from "./shared/ui/SecondaryLabel";
 
 export type UnhealthyDependencyRow = {
   id: string;

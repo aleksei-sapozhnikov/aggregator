@@ -6,8 +6,8 @@ import {
 } from "../shared/contactUtils";
 import type { CatalogActor, CatalogContact } from "../shared/types";
 import ModalWindow from "./shared/ui/ModalWindow";
-import ModalDetailsTrigger from "./ModalDetailsTrigger";
-import SecondaryLabel from "./SecondaryLabel";
+import ModalDetailsTrigger from "./shared/ui/ModalDetailsTrigger";
+import SecondaryLabel from "./shared/ui/SecondaryLabel";
 
 const resolveActorLabel = (actor?: CatalogActor | null): string => {
   if (!actor) {

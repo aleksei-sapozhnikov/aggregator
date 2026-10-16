@@ -5,7 +5,7 @@ import { isPlainLeftClick } from "../shared/catalogUtils";
 import { isUnhealthyHealthStatus } from "../shared/healthPresentation";
 import { buildStatusText } from "../shared/statusText";
 import CloseButton from "./shared/ui/CloseButton";
-import ItemNavigationLink from "./ItemNavigationLink";
+import ItemNavigationLink from "./shared/ui/ItemNavigationLink";
 import type {
   AgentHealthDependencyContent,
   AgentHealthItemContent,
