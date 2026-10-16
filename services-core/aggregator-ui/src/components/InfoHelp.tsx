@@ -3,10 +3,10 @@ import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
 import type { InfoHelpTopic } from "../shared/infoHelpTopics";
 import ModalWindow from "./ModalWindow";
-import TimelineHelpDemo from "./TimelineHelpDemo";
-import SignalFlowHelpDemo from "./SignalFlowHelpDemo";
-import ActorsHelpDemo from "./ActorsHelpDemo";
-import PrimaryContactHelpDemo from "./PrimaryContactHelpDemo";
+import TimelineHelpDemo from "./about/timeline/TimelineHelpDemo";
+import SignalFlowHelpDemo from "./about/signal-flow/SignalFlowHelpDemo";
+import ActorsHelpDemo from "./about/actors/ActorsHelpDemo";
+import PrimaryContactHelpDemo from "./about/primary-contact/PrimaryContactHelpDemo";
 
 type InfoHelpProps = {
   topic: InfoHelpTopic;

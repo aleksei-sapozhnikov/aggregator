@@ -8,8 +8,8 @@ import PrimaryContactHelpDemo, {
   getPrimaryContactHelpLayout,
   primaryContactHelpDuration,
 } from "./PrimaryContactHelpDemo";
-import InfoHelp from "./InfoHelp";
-import { infoHelpTopics } from "../shared/infoHelpTopics";
+import InfoHelp from "../../InfoHelp";
+import { infoHelpTopics } from "../../../shared/infoHelpTopics";
 
 afterEach(() => {
   cleanup();

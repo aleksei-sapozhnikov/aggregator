@@ -1,13 +1,13 @@
 import { useEffect, useId, useRef, useState } from "react";
 import "./SignalFlowHelpDemo.css";
-import HelpAnimationProgress from "./HelpAnimationProgress";
-import HelpInteractionShield from "./HelpInteractionShield";
+import HelpAnimationProgress from "../shared/HelpAnimationProgress";
+import HelpInteractionShield from "../shared/HelpInteractionShield";
 import UnhealthySignalProjection, {
   unhealthyCycleDuration,
   unhealthyResetAt,
   expandedListHoldMs,
   getUnhealthyDiagramOpacity,
-} from "./UnhealthySignalProjection";
+} from "../../UnhealthySignalProjection";
 
 type SignalFlowMode = "healthy" | "unhealthy";
 type FlowNodeId = "item" | "dep1" | "dep2" | "nested1" | "nested2" | "nested3";

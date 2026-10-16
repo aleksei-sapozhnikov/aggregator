@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import HelpAnimationProgress from "./HelpAnimationProgress";
-import HelpInteractionShield from "./HelpInteractionShield";
+import HelpAnimationProgress from "../shared/HelpAnimationProgress";
+import HelpInteractionShield from "../shared/HelpInteractionShield";
 import "./PrimaryContactHelpDemo.css";
 
 // All sprites and the expanding Item preview share one responsive SVG coordinate system.

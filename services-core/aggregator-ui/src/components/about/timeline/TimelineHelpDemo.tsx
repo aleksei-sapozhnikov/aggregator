@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import "./TimelineHelpDemo.css";
-import HelpAnimationProgress from "./HelpAnimationProgress";
+import HelpAnimationProgress from "../shared/HelpAnimationProgress";
 
 type Scenario = "inspect" | "filter" | "navigate";
 type SignalFilter = "all" | "own" | "dependencies";
