@@ -257,6 +257,8 @@ def run_test_command(
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 text=True,
+                encoding="utf-8",
+                errors="replace",
                 bufsize=1,
             ) as process:
                 assert process.stdout is not None
