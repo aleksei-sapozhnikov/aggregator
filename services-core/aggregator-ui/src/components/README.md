@@ -2,7 +2,7 @@
 
 Group components by feature, not just by rendering mechanism.
 
-- `item-details/`: selected Item health, ownership, and replaceable Timeline integration.
+- `item-details/`: selected Item health and ownership presentation, including `useSelectedItemData.ts`, and replaceable Timeline integration.
 - `catalog-tree/`: catalog navigation and search, including feature hooks for tree expansion, autocomplete, and scroll synchronization.
 - `ai-chat/`: optional standalone assistant UI.
 - `src/app/`: application orchestration, workspace layout, and toolbar.
@@ -59,3 +59,11 @@ autocomplete lifecycle, branch expansion, and scroll targeting. The shared
 expanded branches after clearing search and to scroll to the requested tree node.
 This integration stays separate to avoid circular dependencies between the two
 stateful hooks. Neither hook computes Product Health.
+
+## Selected Item presentation data
+
+`item-details/useSelectedItemData.ts` prepares the selected Item's signals,
+dependency paths, owner/actor relationships, and primary contacts for rendering.
+It accepts statuses and signals already returned by Product Health services;
+it must not infer or override an Item's health status. The app orchestrator
+only passes catalog data and selection into this hook and consumes its outputs.
