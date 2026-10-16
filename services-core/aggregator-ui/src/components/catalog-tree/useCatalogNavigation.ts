@@ -162,7 +162,7 @@ export default function useCatalogNavigation({ items, dependencies }: CatalogNav
     if (selectedUid) {
       setPendingScrollId(selectedUid);
     }
-  }, [selectedId, selectedPath, tree]);
+  }, [tree]);
 
   /**
    * Collapses the full tree and resets the catalog scroll position to the top.
