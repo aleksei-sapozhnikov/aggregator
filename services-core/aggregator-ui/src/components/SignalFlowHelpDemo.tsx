@@ -89,6 +89,16 @@ const secondLinkStart = 4900;
 const secondLinkEnd = 6900;
 const itemAffectedAt = 7100;
 
+// Once the projection returns to the graph, restore the leaf first.
+// The green recovery travels along the same paths as the original failure.
+const leafRecoveredAt = 20200;
+const firstRecoveryStart = 20800;
+const firstRecoveryEnd = 22300;
+const dependencyRecoveredAt = 22500;
+const secondRecoveryStart = 23100;
+const secondRecoveryEnd = 24600;
+const itemRecoveredAt = 24800;
+
 
 const progressBetween = (time: number, start: number, end: number): number =>
   Math.max(0, Math.min(1, (time - start) / (end - start)));
@@ -144,23 +154,33 @@ export default function SignalFlowHelpDemo({
     return () => window.clearInterval(interval);
   }, [unhealthy, cycleDuration]);
 
-  // During the final pause the sample resets to green before repeating.
+  // The final pause has the same all-green appearance as the initial frame.
   const time = unhealthy && sceneElapsed >= unhealthyResetAt ? 0 : sceneElapsed;
-  const failedLeaf = unhealthy && time >= failureStart;
-  const affectedDependency = unhealthy && time >= dependencyAffectedAt;
-  const affectedItem = unhealthy && time >= itemAffectedAt;
+  const failedLeaf = unhealthy && time >= failureStart && time < leafRecoveredAt;
+  const affectedDependency = unhealthy && time >= dependencyAffectedAt
+    && time < dependencyRecoveredAt;
+  const affectedItem = unhealthy && time >= itemAffectedAt && time < itemRecoveredAt;
 
   const affectedNodes = new Set<FlowNodeId>();
   if (failedLeaf) affectedNodes.add("nested1");
   if (affectedDependency) affectedNodes.add("dep1");
   if (affectedItem) affectedNodes.add("item");
 
+  // Keep the existing red wires visible until a green segment overtakes them.
   const redProgress: Record<string, number> = {
-    "nested1-dep1": unhealthy && failedLeaf
+    "nested1-dep1": unhealthy && time >= failureStart
       ? progressBetween(time, firstLinkStart, firstLinkEnd)
       : 0,
-    "dep1-item": unhealthy && affectedDependency
+    "dep1-item": unhealthy && time >= dependencyAffectedAt
       ? progressBetween(time, secondLinkStart, secondLinkEnd)
+      : 0,
+  };
+  const greenProgress: Record<string, number> = {
+    "nested1-dep1": unhealthy && time >= firstRecoveryStart
+      ? progressBetween(time, firstRecoveryStart, firstRecoveryEnd)
+      : 0,
+    "dep1-item": unhealthy && time >= secondRecoveryStart
+      ? progressBetween(time, secondRecoveryStart, secondRecoveryEnd)
       : 0,
   };
 
@@ -238,7 +258,9 @@ export default function SignalFlowHelpDemo({
         >
         {edges.map((edge, index) => {
           const progress = redProgress[edge.id] ?? 0;
-          const fullyRed = progress >= 1;
+          const recovery = greenProgress[edge.id] ?? 0;
+          const recovered = recovery >= 1;
+          const fullyRed = progress >= 1 && !recovered;
           return (
             <g key={edge.id} data-flow-edge={edge.id}>
               <path
@@ -246,14 +268,14 @@ export default function SignalFlowHelpDemo({
                 d={edge.path}
                 markerEnd={"url(#" + (fullyRed ? redArrow : greenArrow) + ")"}
               />
-              {progress === 0 && (
+              {(progress === 0 || recovered) && (
                 <path
                   className="signal-flow-help-current"
                   d={edge.path}
                   style={{ animationDelay: index * -0.31 + "s" }}
                 />
               )}
-              {progress > 0 && (
+              {progress > 0 && !recovered && (
                 <path
                   className="signal-flow-help-propagation"
                   d={edge.path}
@@ -263,7 +285,17 @@ export default function SignalFlowHelpDemo({
                   data-progress={Math.round(progress * 100)}
                 />
               )}
-              {fullyRed && (
+              {recovery > 0 && !recovered && (
+                <path
+                  className="signal-flow-help-propagation is-recovery"
+                  d={edge.path}
+                  pathLength={100}
+                  strokeDasharray="100 100"
+                  strokeDashoffset={100 * (1 - recovery)}
+                  data-recovery-progress={Math.round(recovery * 100)}
+                />
+              )}
+              {fullyRed && recovery === 0 && (
                 <path
                   className="signal-flow-help-current is-red"
                   d={edge.path}

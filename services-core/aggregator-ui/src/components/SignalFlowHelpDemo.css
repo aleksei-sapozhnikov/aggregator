@@ -50,6 +50,11 @@
   stroke-width: 3.5;
 }
 
+/* Green recovery grows from the repaired leaf along the previously red path. */
+.signal-flow-help-propagation.is-recovery {
+  stroke: var(--status-up);
+}
+
 @keyframes signal-flow-help-current-move {
   to { stroke-dashoffset: -34; }
 }

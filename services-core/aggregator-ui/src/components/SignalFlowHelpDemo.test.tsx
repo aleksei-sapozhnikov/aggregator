@@ -20,9 +20,16 @@ const getNode = (id: string) =>
 
 const getProgress = (id: string) => {
   const path = document.querySelector(
-    '[data-flow-edge="' + id + '"] .signal-flow-help-propagation',
+    '[data-flow-edge="' + id + '"] .signal-flow-help-propagation:not(.is-recovery)',
   );
   return path ? Number(path.getAttribute("data-progress")) : 0;
+};
+
+const getRecoveryProgress = (id: string) => {
+  const path = document.querySelector(
+    '[data-flow-edge="' + id + '"] .signal-flow-help-propagation.is-recovery',
+  );
+  return path ? Number(path.getAttribute("data-recovery-progress")) : 0;
 };
 
 describe("Signal flow help demonstrations", () => {
@@ -50,7 +57,7 @@ describe("Signal flow help demonstrations", () => {
 
   it.each([
     ["healthy", 15000],
-    ["unhealthy", 23800],
+    ["unhealthy", 31000],
   ] as const)("tracks the %s animation cycle at the top", (mode, duration) => {
     const { container } = render(<SignalFlowHelpDemo mode={mode} />);
     const progress = screen.getByRole("progressbar", { name: "Animation progress" });
@@ -74,7 +81,7 @@ describe("Signal flow help demonstrations", () => {
 
   it.each([
     ["healthy", 6500, '[data-selection-frame="availability"]', 15000],
-    ["unhealthy", 13800, '[data-unhealthy-frame="item"]', 23800],
+    ["unhealthy", 13800, '[data-unhealthy-frame="item"]', 31000],
   ] as const)(
     "holds the complete %s page for two additional seconds after highlights disappear",
     (mode, start, frameSelector, duration) => {
@@ -320,8 +327,9 @@ describe("Signal flow help demonstrations", () => {
     expect(itemFrame.getAttribute("opacity")).toBe("0");
     expect(parentFrame.getAttribute("opacity")).toBe("0");
     expect(nestedFrame.getAttribute("opacity")).toBe("0");
-    expect(item.getAttribute("data-health")).toBe("healthy");
-    expect(parent.getAttribute("data-health")).toBe("healthy");
+    // The graph has returned, and the first (leaf) service has recovered.
+    expect(item.getAttribute("data-health")).toBe("unhealthy");
+    expect(parent.getAttribute("data-health")).toBe("unhealthy");
     expect(nested.getAttribute("data-health")).toBe("healthy");
   });
 
@@ -353,13 +361,54 @@ describe("Signal flow help demonstrations", () => {
     },
   );
 
-  it("resets and replays after the unhealthy state is shown", () => {
+  it("restores the leaf, then the parent, then the Item with bottom-up green waves", () => {
     render(<SignalFlowHelpDemo mode="unhealthy" />);
-    advance(22200);
+    const graph = document.querySelector(".signal-flow-help-graph") as SVGGElement;
+    const first = document.querySelector('[data-flow-edge="nested1-dep1"]') as SVGGElement;
+    const second = document.querySelector('[data-flow-edge="dep1-item"]') as SVGGElement;
 
-    expect(getNode("nested1").getAttribute("data-health")).toBe("healthy");
-    expect(getNode("item").getAttribute("data-health")).toBe("healthy");
-    advance(3400);
+    advance(21800);
+    expect(graph.style.opacity).toBe("1");
     expect(getNode("nested1").getAttribute("data-health")).toBe("unhealthy");
+    expect(getNode("dep1").getAttribute("data-health")).toBe("unhealthy");
+    expect(getNode("item").getAttribute("data-health")).toBe("unhealthy");
+
+    advance(400);
+    expect(getNode("nested1").getAttribute("data-health")).toBe("healthy");
+    expect(getNode("dep1").getAttribute("data-health")).toBe("unhealthy");
+    expect(getProgress("nested1-dep1")).toBe(100);
+
+    advance(1200);
+    expect(getRecoveryProgress("nested1-dep1")).toBeGreaterThan(0);
+    expect(getRecoveryProgress("nested1-dep1")).toBeLessThan(100);
+    expect(first.querySelector(".signal-flow-help-propagation.is-recovery")).not.toBeNull();
+    expect(getNode("dep1").getAttribute("data-health")).toBe("unhealthy");
+    expect(getNode("item").getAttribute("data-health")).toBe("unhealthy");
+
+    advance(1100);
+    expect(getNode("dep1").getAttribute("data-health")).toBe("healthy");
+    expect(getNode("item").getAttribute("data-health")).toBe("unhealthy");
+    expect(first.querySelector(".signal-flow-help-propagation")).toBeNull();
+    expect(first.querySelector(".signal-flow-help-current.is-red")).toBeNull();
+
+    advance(900);
+    expect(getRecoveryProgress("dep1-item")).toBeGreaterThan(0);
+    expect(getRecoveryProgress("dep1-item")).toBeLessThan(100);
+    expect(getNode("item").getAttribute("data-health")).toBe("unhealthy");
+
+    advance(1500);
+    expect(getNode("item").getAttribute("data-health")).toBe("healthy");
+    expect(second.querySelector(".signal-flow-help-propagation")).toBeNull();
+    expect(second.querySelector(".signal-flow-help-current.is-red")).toBeNull();
+    expect(document.querySelectorAll('[data-health="unhealthy"]')).toHaveLength(0);
+
+    // No jump back to red at the end of the healthy hold or the loop boundary.
+    advance(4000);
+    expect(document.querySelectorAll('[data-health="unhealthy"]')).toHaveLength(0);
+    advance(100);
+    expect(document.querySelectorAll('[data-health="unhealthy"]')).toHaveLength(0);
+    advance(1600);
+    expect(getNode("nested1").getAttribute("data-health")).toBe("unhealthy");
+    expect(getNode("dep1").getAttribute("data-health")).toBe("healthy");
   });
 });
