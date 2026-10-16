@@ -3,7 +3,7 @@
 Group components by feature, not just by rendering mechanism.
 
 - `item-details/`: selected Item health, ownership, and replaceable Timeline integration.
-- `catalog-tree/`: catalog navigation and search.
+- `catalog-tree/`: catalog navigation and search, including feature hooks for tree expansion, autocomplete, and scroll synchronization.
 - `ai-chat/`: optional standalone assistant UI.
 - `src/app/`: application orchestration, workspace layout, and toolbar.
 - `entity-details/`: entity detail dialogs (actor, contact, signal). They do
@@ -47,3 +47,15 @@ The section owns the adapter under `item-details/timeline/grafana/`.
 
 The legacy CSS selectors and global `src/styles.css` deliberately remain
 unchanged. Extracting feature styles is a separate, visual-regression-sensitive task.
+
+## Catalog tree and Item routing
+
+`catalog-tree/useCatalogNavigation.ts` owns the catalog tree, search query,
+autocomplete lifecycle, branch expansion, and scroll targeting. The shared
+`catalog/tree.ts` and `catalog/search.ts` modules remain pure data helpers.
+
+`app/hooks/useItemNavigation.ts` owns selected Item identity and browser routes.
+`catalog-tree/useCatalogSelectionSync.ts` reacts to Item selection to restore
+expanded branches after clearing search and to scroll to the requested tree node.
+This integration stays separate to avoid circular dependencies between the two
+stateful hooks. Neither hook computes Product Health.
