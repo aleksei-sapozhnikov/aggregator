@@ -16,7 +16,7 @@ jobs:
   quality:
     name: Checks
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
     env:
       PYTHON_VERSION: "3.12"
       JAVA_VERSION: "25"
@@ -40,11 +40,19 @@ jobs:
         with:
           node-version: "22"
 
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: services-core/catalog/go.mod
+          cache-dependency-path: services-core/catalog/go.sum
+
       - name: Cache QA dependencies
         uses: actions/cache@v4
         with:
           path: |
             ~/.cache/pip
+            ~/.m2/repository
+            .temp/qa-runtime/venv
             ~/.npm
             .temp/qa-runtime/google-java-format
             .temp/qa-runtime/node_modules
@@ -57,6 +65,11 @@ jobs:
             ${{ runner.os }}-qa-cache-
 
       - name: Run code quality checks
-        run: |
-          set -eux
-          python tools/code_qa/main.py lint
+        run: python tools/code_qa/main.py lint
+
+      - name: Run module unit tests
+        run: python tools/code_qa/main.py test
+
+      - name: Scan secrets
+        if: always()
+        run: python tools/code_qa/main.py secrets
