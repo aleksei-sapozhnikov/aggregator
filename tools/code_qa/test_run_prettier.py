@@ -60,15 +60,15 @@ class PrettierBatchTests(unittest.TestCase):
         responses = [
             subprocess.CompletedProcess(
                 [], 0,
-                stdout="Checking formatting...\\nAll matched files use Prettier code style!\\n",
+                stdout="Checking formatting...\nAll matched files use Prettier code style!\n",
                 stderr="",
             )
             for _ in batches
         ]
         responses[1] = subprocess.CompletedProcess(
             [], 1,
-            stdout="Checking formatting...\\n",
-            stderr="[warn] src/unformatted.ts\\n[warn] Code style issues found.\\n",
+            stdout="Checking formatting...\n",
+            stderr="[warn] src/unformatted.ts\n[warn] Code style issues found.\n",
         )
         stdout, stderr = StringIO(), StringIO()
         with (
@@ -95,7 +95,7 @@ class PrettierBatchTests(unittest.TestCase):
                 run_prettier.subprocess,
                 "run",
                 return_value=subprocess.CompletedProcess(
-                    [], 0, stdout="Formatting...\\na.ts 10ms\\nb.ts 20ms\\n", stderr="",
+                    [], 0, stdout="Formatting...\na.ts 10ms\nb.ts 20ms\n", stderr="",
                 ),
             ),
             redirect_stdout(stdout),
