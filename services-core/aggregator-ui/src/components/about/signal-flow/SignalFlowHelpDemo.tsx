@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import "./SignalFlowHelpDemo.css";
 import ItemTitle from "../../shared/item/ItemTitle";
-import ItemOwnership from "../../ItemOwnership";
-import { HealthySignals, UnhealthySignals } from "../../ItemSignals";
+import ItemOwnership from "../../shared/item/ItemOwnership";
+import { HealthySignals, UnhealthySignals } from "../../shared/item/ItemSignals";
 import HelpScene, { useHelpTargets } from "../shared/HelpScene";
 import DemoHelp from "../shared/DemoHelp";
 import { demoIconSpriteHref, clientItem, clientContact, clientChecks, clientDependencies } from "../shared/demoData";

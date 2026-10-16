@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { RefObject } from "react";
 import ItemTitle from "../../shared/item/ItemTitle";
-import ItemOwnership from "../../ItemOwnership";
+import ItemOwnership from "../../shared/item/ItemOwnership";
 import HelpScene, { useHelpTargets } from "../shared/HelpScene";
 import DemoHelp from "../shared/DemoHelp";
 import { demoIconSpriteHref, ordersItem, ordersContact, ordersActors } from "../shared/demoData";

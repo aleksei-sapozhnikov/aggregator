@@ -1,12 +1,12 @@
 import type { ReactNode } from "react";
-import type { CatalogActor, CatalogContact } from "../shared/types";
+import type { CatalogActor, CatalogContact } from "../../../shared/types";
 import {
   resolveContactIconId, resolveContactLabel, resolveContactTypeClass,
   resolveContactTypeDisplayName,
-} from "../shared/contactUtils";
+} from "../../../shared/contactUtils";
 import DetailsDisclosureHeader from "./DetailsDisclosureHeader";
-import ModalDetailsTrigger from "./shared/ui/ModalDetailsTrigger";
-import SecondaryLabel from "./shared/ui/SecondaryLabel";
+import ModalDetailsTrigger from "../ui/ModalDetailsTrigger";
+import SecondaryLabel from "../ui/SecondaryLabel";
 
 export type ActorSummaryRow = { key: string; actor: CatalogActor; typeLabel: string };
 

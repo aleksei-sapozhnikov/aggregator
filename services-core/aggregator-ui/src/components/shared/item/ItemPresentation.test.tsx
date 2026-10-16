@@ -2,12 +2,12 @@
 import { createRef } from "react";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import ItemTitle from "./shared/item/ItemTitle";
+import ItemTitle from "./ItemTitle";
 import ItemOwnership from "./ItemOwnership";
 import { HealthySignals, UnhealthySignals } from "./ItemSignals";
 import ItemTimeline from "./ItemTimeline";
-import InfoHelpButton from "./InfoHelpButton";
-import type { CatalogActor, CatalogContact, ItemSignal } from "../shared/types";
+import InfoHelpButton from "../../InfoHelpButton";
+import type { CatalogActor, CatalogContact, ItemSignal } from "../../../shared/types";
 
 afterEach(cleanup);
 

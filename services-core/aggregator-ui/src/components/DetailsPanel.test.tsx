@@ -23,23 +23,23 @@ vi.mock("./shared/item/ItemTitle", async (importOriginal) => {
     default: (props: Parameters<typeof actual.default>[0]) => cloneElement(actual.default(props), { "data-shared-revision": "title" }),
   };
 });
-vi.mock("./ItemOwnership", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("./ItemOwnership")>();
+vi.mock("./shared/item/ItemOwnership", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./shared/item/ItemOwnership")>();
   const { cloneElement } = await import("react");
   return { ...actual,
     default: (props: Parameters<typeof actual.default>[0]) => cloneElement(actual.default(props), { "data-shared-revision": "ownership" }),
   };
 });
-vi.mock("./ItemSignals", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("./ItemSignals")>();
+vi.mock("./shared/item/ItemSignals", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./shared/item/ItemSignals")>();
   const { cloneElement } = await import("react");
   return { ...actual,
     HealthySignals: (props: Parameters<typeof actual.HealthySignals>[0]) => cloneElement(actual.HealthySignals(props), { "data-shared-revision": "HealthySignals" }),
     UnhealthySignals: (props: Parameters<typeof actual.UnhealthySignals>[0]) => cloneElement(actual.UnhealthySignals(props), { "data-shared-revision": "UnhealthySignals" }),
   };
 });
-vi.mock("./ItemTimeline", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("./ItemTimeline")>();
+vi.mock("./shared/item/ItemTimeline", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./shared/item/ItemTimeline")>();
   const { cloneElement } = await import("react");
   return { ...actual,
     default: (props: Parameters<typeof actual.default>[0]) => cloneElement(actual.default(props), { "data-shared-revision": "timeline" }),
