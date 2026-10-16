@@ -21,7 +21,7 @@ Group components by feature, not just by rendering mechanism.
 
 Feature modules may depend on their own child components and on `shared/`.
 They must not import the implementation details of a sibling feature.
-`shared/` must not depend on any feature module. The entrypoint in `src/main.tsx` composes features,
+`shared/` must not depend on any feature module. The entrypoint in `src/main.tsx` initializes the app and help provider,
 including the `about/ContextualHelpProvider`.
 
 The context provider owns registered help content and modal lifecycle.
@@ -44,3 +44,6 @@ non-visual helpers and is deliberately separate from reusable React UI.
 `ItemDetails` only uses `TimelineSection`, not Grafana-specific interfaces.
 The section owns the adapter under `item-details/timeline/grafana/`.
 `src/app/AppLayout.tsx` composes the toolbar and AI chat independently of Item details.
+
+The legacy CSS selectors and global `src/styles.css` deliberately remain
+unchanged. Extracting feature styles is a separate, visual-regression-sensitive task.

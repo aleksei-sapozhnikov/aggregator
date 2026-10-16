@@ -50,4 +50,15 @@ describe("Component dependency boundaries", () => {
     }
     expect(violations).toEqual([]);
   });
+
+  it("keeps Grafana-specific details behind the Timeline feature boundary", () => {
+    for (const path of ["src/app/App.tsx", "src/components/item-details/ItemDetails.tsx"]) {
+      const source = readFileSync(resolve(path), "utf8");
+      expect(source).not.toMatch(/Grafana|grafana|postMessage|dashboardUrl/);
+    }
+    const section = readFileSync(
+      resolve("src/components/item-details/timeline/TimelineSection.tsx"), "utf8",
+    );
+    expect(section).toContain('from "./grafana/GrafanaFrame"');
+  });
 });
