@@ -5,8 +5,8 @@ import {
   resolveContactLabel,
   resolveContactTypeDisplayName,
 } from "../../../shared/contactUtils";
-import type { InfoHelpTopic } from "../../../shared/infoHelpTopics";
-import InfoHelp from "../../InfoHelp";
+import type { HelpTopic } from "../../shared/help/HelpContext";
+import InfoHelp from "../../shared/help/InfoHelp";
 import ModalWindow from "../../shared/ui/ModalWindow";
 
 type ContactModalProps = {
@@ -59,7 +59,7 @@ const buildContactDemoHelpTopic = (
   details: ContactDemoDetails,
   label: string,
   openedByLink: string,
-): InfoHelpTopic => {
+): HelpTopic => {
   const detailRows = [
     { label: "URL defined in catalog now", value: openedByLink },
     { label: "Example real URL for catalog", value: details.realHref },
@@ -317,7 +317,7 @@ const ContactDemoWindowBar = ({
   title,
 }: {
   details: ContactDemoDetails;
-  helpTopic: InfoHelpTopic;
+  helpTopic: HelpTopic;
   title: string;
 }) => (
   <div

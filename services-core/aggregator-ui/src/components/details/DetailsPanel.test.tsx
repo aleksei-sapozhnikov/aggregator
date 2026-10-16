@@ -1,9 +1,11 @@
+import type { ReactElement } from "react";
+import ContextualHelpProvider from "../about/ContextualHelpProvider";
 /**
  * @vitest-environment jsdom
  */
 
 import { createRef } from "react";
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render as baseRender, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ComponentProps } from "react";
@@ -51,6 +53,15 @@ import ActorsHelpDemo from "../about/actors/ActorsHelpDemo";
 import PrimaryContactHelpDemo from "../about/primary-contact/PrimaryContactHelpDemo";
 import SignalFlowHelpDemo from "../about/signal-flow/SignalFlowHelpDemo";
 import TimelineHelpDemo from "../about/timeline/TimelineHelpDemo";
+
+const render = (ui: ReactElement) => {
+  const view = baseRender(<ContextualHelpProvider>{ui}</ContextualHelpProvider>);
+  return {
+    ...view,
+    rerender: (next: ReactElement) =>
+      view.rerender(<ContextualHelpProvider>{next}</ContextualHelpProvider>),
+  };
+};
 
 afterEach(() => {
   cleanup();

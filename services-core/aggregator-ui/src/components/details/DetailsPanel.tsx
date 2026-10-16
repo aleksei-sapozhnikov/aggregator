@@ -8,10 +8,9 @@ import ItemTitle from "../shared/item/ItemTitle";
 import ItemOwnership, { type ActorSummaryRow } from "../shared/item/ItemOwnership";
 import { HealthySignals, UnhealthySignals, type UnhealthyDependencyRow } from "../shared/item/ItemSignals";
 import ItemTimeline from "../shared/item/ItemTimeline";
-import InfoHelp, { InfoHelpProvider } from "../InfoHelp";
+import InfoHelp from "../shared/help/InfoHelp";
 import HealthSignalModal from "../entity-details/signal/HealthSignalModal";
 import { isPlainLeftClick } from "../../shared/catalogUtils";
-import { infoHelpTopics } from "../../shared/infoHelpTopics";
 import type {
   CatalogActor,
   CatalogContact,
@@ -376,24 +375,24 @@ function DetailsPanelContent({
                 <ItemOwnership primaryContact={primaryContact} actorRows={actorRowsForContacts}
                   expanded={itemDisclosureState.isContactsExtraOpen} onToggleActors={toggleContactsExtra}
                   onOpenContact={onOpenContact} onOpenActor={onOpenActor} iconSpriteHref={iconSpriteHref}
-                  primaryHelp={<InfoHelp topic={infoHelpTopics.primaryContact} />}
-                  actorsHelp={<InfoHelp topic={infoHelpTopics.actors} />} />
+                  primaryHelp={<InfoHelp topicId="primary-contact" />}
+                  actorsHelp={<InfoHelp topicId="actors" />} />
                 {hasAffectingSignals && (
                   <UnhealthySignals signals={selectedFailingSignals} dependencies={unhealthyDependencyRows}
                     expanded={itemDisclosureState.isAffectingOpen} onToggle={toggleAffectingSignals}
                     buildSignalLink={buildSignalLink} onSignalClick={handleSignalClick}
-                    help={<InfoHelp topic={infoHelpTopics.unhealthySignals} />} />
+                    help={<InfoHelp topicId="unhealthy-signals" />} />
                 )}
                 {passingSignalsCount > 0 && (
                   <HealthySignals signals={selectedPassingSignals} count={passingSignalsCount}
                     expanded={itemDisclosureState.isHealthyOpen} onToggle={toggleHealthySignals}
                     buildSignalLink={buildSignalLink} onSignalClick={handleSignalClick}
-                    help={<InfoHelp topic={infoHelpTopics.healthySignals} />} />
+                    help={<InfoHelp topicId="healthy-signals" />} />
                 )}
               </section>
 
               <ItemTimeline expanded={isGrafanaOpen} onToggle={onToggleGrafana} height={grafanaHeight}
-                help={<InfoHelp topic={infoHelpTopics.timeline} />}>
+                help={<InfoHelp topicId="timeline" />}>
                 <iframe title="State Timeline" ref={grafanaIframeRef} onLoad={onGrafanaLoad} src={grafanaFrameUrl} />
               </ItemTimeline>
             </>
@@ -420,9 +419,5 @@ function DetailsPanelContent({
 }
 
 export default function DetailsPanel(props: DetailsPanelProps) {
-  return (
-    <InfoHelpProvider>
-      <DetailsPanelContent {...props} />
-    </InfoHelpProvider>
-  );
+  return <DetailsPanelContent {...props} />;
 }

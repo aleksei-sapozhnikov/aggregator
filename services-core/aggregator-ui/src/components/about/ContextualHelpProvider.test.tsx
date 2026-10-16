@@ -5,19 +5,32 @@
 import {
   cleanup,
   fireEvent,
-  render,
+  render as baseRender,
   screen,
   waitFor,
 } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import InfoHelp from "./InfoHelp";
-import { infoHelpTopics, type InfoHelpTopic } from "../shared/infoHelpTopics";
+import InfoHelp from "../shared/help/InfoHelp";
+import ContextualHelpProvider from "./ContextualHelpProvider";
+import type { ReactElement } from "react";
+import { healthySignalsHelp } from "./signal-flow/HealthySignalsHelpContent";
+import { unhealthySignalsHelp } from "./signal-flow/UnhealthySignalsHelpContent";
+import { actorsHelp } from "./actors/ActorsHelpContent";
+import type { HelpTopic } from "../shared/help/HelpContext";
 
-const topic: InfoHelpTopic = {
+const infoHelpTopics = {
+  healthySignals: { ...healthySignalsHelp, id: "healthy-signals" },
+  unhealthySignals: { ...unhealthySignalsHelp, id: "unhealthy-signals" },
+  actors: { ...actorsHelp, id: "actors" },
+};
+
+const topic: HelpTopic = {
   title: "Timeline",
   summary: "Learn how to read the timeline.",
   description: "Timeline shows product health over time.",
 };
+
+const render = (ui: ReactElement) => baseRender(<ContextualHelpProvider>{ui}</ContextualHelpProvider>);
 
 afterEach(() => {
   cleanup();
@@ -29,7 +42,7 @@ describe("InfoHelp signal examples", () => {
     ["healthySignals", "Healthy dependency signals example"],
     ["unhealthySignals", "Unhealthy dependency propagation example"],
   ] as const)("renders the %s animation in its existing contextual help dialog", (key, label) => {
-    render(<InfoHelp topic={infoHelpTopics[key]} />);
+    render(<InfoHelp topicId={infoHelpTopics[key].id} />);
     fireEvent.click(screen.getByRole("button", { name: "About " + infoHelpTopics[key].title }));
     const dialog = screen.getByRole("dialog", { name: "About " + infoHelpTopics[key].title });
     expect(dialog.querySelector("figure[aria-label='" + label + "']")).not.toBeNull();
@@ -39,7 +52,7 @@ describe("InfoHelp signal examples", () => {
 
 describe("InfoHelp Actors example", () => {
   it("shows the relationship animation in the existing Actors dialog", () => {
-    render(<InfoHelp topic={infoHelpTopics.actors} />);
+    render(<InfoHelp topicId="actors" />);
     fireEvent.click(screen.getByRole("button", { name: "About Actors" }));
     const dialog = screen.getByRole("dialog", { name: "About Actors" });
     expect(dialog.querySelector("figure[aria-label='Actors become Item ownership and relationship entries']")).not.toBeNull();
