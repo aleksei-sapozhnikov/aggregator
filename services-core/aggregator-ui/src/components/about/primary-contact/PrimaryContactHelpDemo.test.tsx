@@ -8,8 +8,8 @@ import PrimaryContactHelpDemo, {
   getPrimaryContactHelpLayout,
   primaryContactHelpDuration,
 } from "./PrimaryContactHelpDemo";
-import InfoHelp from "../../InfoHelp";
-import { infoHelpTopics } from "../../../shared/infoHelpTopics";
+import InfoHelp from "../../shared/help/InfoHelp";
+import ContextualHelpProvider from "../ContextualHelpProvider";
 
 afterEach(() => {
   cleanup();
@@ -56,7 +56,7 @@ describe("Primary contact contextual help", () => {
   });
 
   it("shows the animated preview directly beneath the existing description", () => {
-    render(<InfoHelp topic={infoHelpTopics.primaryContact} />);
+    render(<ContextualHelpProvider><InfoHelp topicId="primary-contact" /></ContextualHelpProvider>);
     fireEvent.click(screen.getByRole("button", { name: "About Primary contact" }));
     const dialog = screen.getByRole("dialog", { name: "About Primary contact" });
     const text = dialog.querySelector(".info-help-description");
