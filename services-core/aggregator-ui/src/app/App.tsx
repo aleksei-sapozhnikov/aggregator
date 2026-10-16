@@ -17,15 +17,14 @@ import { buildCatalogTree, collectDescendantIds, collectExpandableIds, findNodeB
 import { buildItemPathname, buildItemRouteHref, buildServicePath, readLocationRouteContext, resolveNodeFromLocation } from "../shared/navigation/itemRoutes";
 import { buildSearchAutocompleteIndex, buildSearchAutocompleteOptions, filterCatalogTree, normalizeSearchText, rankSearchResults } from "../shared/catalog/search";
 import {
-  compareHealthStatus,
   fetchProductHealth,
   getInitialTheme,
   loadCatalog,
   resolveBasePath,
-  resolveSidebarTitle,
+  resolveCatalogTitle,
 } from "../services/aggregatorApi";
 import { sortContactsWithPrimaryFirst } from "../shared/contacts/contactPresentation";
-import { isUnhealthyHealthStatus } from "../shared/health/healthPresentation";
+import { compareHealthStatus, isUnhealthyHealthStatus } from "../shared/health/healthPresentation";
 import type {
   CatalogActor,
   CatalogActorContact,
@@ -112,7 +111,7 @@ const isTemporaryAiChatEnabled = (): boolean =>
  * and wires large UI blocks (CatalogTree, AppLayout, ItemDetails, AboutModal).
  */
 export default function App() {
-  const sidebarTitle = resolveSidebarTitle();
+  const catalogTitle = resolveCatalogTitle();
   const isAiChatFeatureEnabled = useMemo(isTemporaryAiChatEnabled, []);
   const [catalog, setCatalog] = useState(EMPTY_CATALOG);
   const [selectedId, setSelectedId] = useState("");
@@ -1294,7 +1293,7 @@ export default function App() {
         homeIconSrc={homeIconSrc}
         iconSpriteHref={iconSpriteHref}
         onToggleSidebar={handleToggleSidebar}
-        sidebarTitle={sidebarTitle}
+        catalogTitle={catalogTitle}
         error={error}
         tree={tree}
         searchQuery={searchQuery}

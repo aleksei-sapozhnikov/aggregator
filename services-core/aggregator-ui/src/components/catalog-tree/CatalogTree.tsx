@@ -31,7 +31,7 @@ type CatalogTreeProps = {
   homeIconSrc: string;
   iconSpriteHref: string;
   onToggleSidebar: () => void;
-  sidebarTitle: string;
+  catalogTitle: string;
   error: string;
   tree: CatalogTreeNode[];
   searchQuery: string;
@@ -181,7 +181,7 @@ export default function CatalogTree({
   homeIconSrc,
   iconSpriteHref,
   onToggleSidebar,
-  sidebarTitle,
+  catalogTitle,
   error,
   tree,
   searchQuery,
@@ -233,8 +233,8 @@ export default function CatalogTree({
         </>
       )}
       <div className="sidebar-header">
-        <span className="sidebar-header-title" title={sidebarTitle}>
-          {sidebarTitle}
+        <span className="sidebar-header-title" title={catalogTitle}>
+          {catalogTitle}
         </span>
       </div>
       {error && <div className="error">{error}</div>}

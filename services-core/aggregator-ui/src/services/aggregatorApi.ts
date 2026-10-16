@@ -59,7 +59,7 @@ export const resolveBasePath = (): string => {
 export const resolveBaseUrl = (): string =>
   `${window.location.origin}${resolveBasePath()}`;
 
-export const resolveSidebarTitle = (): string =>
+export const resolveCatalogTitle = (): string =>
   (import.meta.env.VITE_APP_TITLE ?? "").trim();
 
 const parseProductHealthStatus = (value: unknown): HealthStatus => {
@@ -70,14 +70,6 @@ const parseProductHealthStatus = (value: unknown): HealthStatus => {
     return normalized;
   }
   return "unknown";
-};
-
-export const compareHealthStatus = (
-  left: HealthStatus,
-  right: HealthStatus,
-): number => {
-  const order: Record<HealthStatus, number> = { down: 0, unknown: 1, up: 2 };
-  return order[left] - order[right];
 };
 
 export const loadCatalog = async (): Promise<{
