@@ -23,84 +23,9 @@
   overflow: visible;
 }
 
-.actors-help-item {
-  pointer-events: none;
-}
-
-.actors-help-item .actors-help-info-outline {
-  stroke: var(--link);
-}
-
-.actors-help-item .actors-help-question-outline {
-  stroke: var(--muted);
-}
-
-.actors-help-item .actors-help-contact-icon,
-.actors-help-item .actors-help-actor-icon {
-  stroke: var(--text);
-}
-
-.actors-help-item .actors-help-primary-marker {
-  stroke: var(--direct-toggle-accent);
-}
-
-.actors-help-item text {
-  font-family: Inter, "Segoe UI", system-ui, sans-serif;
-  dominant-baseline: auto;
-}
-
-.actors-help-title {
-  font-size: 17px;
-  font-weight: 600;
-  fill: var(--text);
-}
-
-.actors-help-heading {
-  font-size: 15px;
-  font-weight: 600;
-  fill: var(--text);
-}
-
-.actors-help-link {
-  font-size: 14px;
-  font-weight: 400;
-  fill: var(--link);
-}
-
-.actors-help-role {
-  font-size: 11px;
-  fill: var(--muted);
-}
-
-.actors-help-check {
-  font-size: 22px;
-  font-weight: 800;
-  fill: var(--status-up);
-}
-
-.actors-help-up {
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  fill: var(--status-up);
-}
-
-.actors-help-info {
-  font-size: 14px;
-  font-weight: 700;
-  fill: var(--link);
-}
-
-.actors-help-question {
-  font-size: 11px;
-  font-weight: 700;
-  fill: var(--muted);
-}
-
-.actors-help-chevron {
-  font-size: 19px;
-  font-weight: 500;
-  fill: var(--text);
+.actors-help-demo .help-scene {
+  max-width: 460px;
+  align-self: center;
 }
 
 .actors-help-machine,

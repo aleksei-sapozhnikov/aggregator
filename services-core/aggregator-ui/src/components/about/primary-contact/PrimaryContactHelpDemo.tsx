@@ -1,9 +1,15 @@
 import { useEffect, useRef, useState } from "react";
+import type { CSSProperties, RefObject } from "react";
+import ItemTitle from "../../ItemTitle";
+import ItemOwnership, { PrimaryContactRow } from "../../ItemOwnership";
+import HelpScene, { useHelpTargets, type SceneRect } from "../shared/HelpScene";
+import DemoHelp from "../shared/DemoHelp";
+import { demoIconSpriteHref, experienceItem, experienceContact, experienceActors } from "../shared/demoData";
 import HelpAnimationProgress from "../shared/HelpAnimationProgress";
 import HelpInteractionShield from "../shared/HelpInteractionShield";
 import "./PrimaryContactHelpDemo.css";
 
-// All sprites and the expanding Item preview share one responsive SVG coordinate system.
+// HTML and SVG share scene coordinates, while the page uses production components.
 export const primaryContactHelpDuration = 15200;
 const clamp = (value: number) => Math.max(0, Math.min(1, value));
 const ease = (value: number) => value * value * (3 - 2 * value);
@@ -54,19 +60,22 @@ export function getPrimaryContactHelpLayout(availableWidth: number) {
   const height = compact ? Math.max(215, width * 340 / 640) : 340;
   const left = compact ? 320 - width / 2 : 0;
   const top = compact ? 195 - height / 2 : 0;
+  // Give the real UI a narrower layout before scaling so text stays readable.
+  const pageWidth = compact ? 480 : 640;
+  const pageHeight = 340;
   const pageScale = compact
-    ? Math.min((width - 20) / 628, (height - 18) / 330)
+    ? Math.min((width - 20) / pageWidth, (height - 18) / pageHeight)
     : 1;
-  const pageX = compact ? left + 10 - 6 * pageScale : 0;
-  const pageY = compact
-    ? top + (height - 330 * pageScale) / 2 - 5 * pageScale
-    : 0;
+  const pageX = compact ? left + (width - pageWidth * pageScale) / 2 : 0;
+  const pageY = compact ? top + (height - pageHeight * pageScale) / 2 : 0;
   const observerShift = compact ? Math.max(0, 360 - width) * 0.6 : 0;
 
   return {
     compact,
     viewBox: [left, top, width, height].join(" "),
     pageScale,
+    pageWidth,
+    pageHeight,
     pageX,
     pageY,
     observerShift,
@@ -231,77 +240,48 @@ function Technician({ frame }: { frame: HelpFrame }) {
   );
 }
 
-function AggregatorPage({ frame, layout }: { frame: HelpFrame; layout: HelpLayout }) {
-  // The same Item page expands from the laptop to fit the available viewport.
+const contactSelectors = { contact: ".primary-contact-row" };
+const contactFallback = { contact: { x: 49, y: 90, width: 220, height: 34 } };
+
+function AggregatorPage({ frame, layout, pageRef }: {
+  frame: HelpFrame; layout: HelpLayout; pageRef: RefObject<HTMLDivElement | null>;
+}) {
   const scale = mix(0.1, layout.pageScale, frame.pageExpansion);
   const x = mix(392 - 320 * 0.1, layout.pageX, frame.pageExpansion);
   const y = mix(213 - 170 * 0.1, layout.pageY, frame.pageExpansion);
   return (
-    <g data-primary-contact-page="true"
-      style={{ opacity: frame.pageOpacity }}
-      transform={"translate(" + x + " " + y + ") scale(" + scale + ")"}>
-      {/* The figure already provides the border; this full-bleed surface
-          hides the underlying characters without adding another card. */}
-      <rect x="0" y="0" width="640" height="340"
-        className="primary-contact-page-surface" />
-      <text x="45" y="59" className="primary-contact-page-title">
-        Customer Experience
-      </text>
-      <circle cx="29" cy="49" r="6" className="primary-contact-down-light" />
-      <text x="490" y="58" className="primary-contact-page-down">DOWN</text>
-      <path d="M28 77h584" className="primary-contact-page-separator" />
-      <path d="M49 100v71" className="primary-contact-page-accent" />
-      <text x="77" y="116" className="primary-contact-page-heading">
-        Primary contact
-      </text>
-      <circle cx="251" cy="108" r="10" className="primary-contact-page-help-circle" />
-      <text x="251" y="113" textAnchor="middle"
-        className="primary-contact-page-help-text">?</text>
-      <rect x="78" y="125" width="254" height="39" rx="7"
-        className="primary-contact-page-highlight"
-        style={{ opacity: frame.selectedContact }} />
-      <g transform="translate(91 133)" className="primary-contact-page-icon"
-        fill="none" strokeWidth="2.7" strokeLinecap="round">
-        <path d="M2 1q-4 13 15 23l7-7-8-6-5 5-5-8 5-4Z" />
-      </g>
-      <text x="131" y="152" className="primary-contact-page-link">
-        +1 555 010 2026
-      </text>
-      <path d="M49 187h537" className="primary-contact-page-separator" />
-      <text x="78" y="218" className="primary-contact-page-muted">
-        Actors (3)
-      </text>
-      <text x="78" y="246" className="primary-contact-page-link">
-        Experience Ownership Team
-      </text>
-      <text x="429" y="246" className="primary-contact-page-muted">
-        Owner
-      </text>
-    </g>
+    <div ref={pageRef} data-primary-contact-page="true" inert aria-hidden="true"
+      className="help-item-page primary-contact-page"
+      style={{ opacity: frame.pageOpacity, width: layout.pageWidth, minHeight: layout.pageHeight,
+        transform: `translate(${x}px, ${y}px) scale(${scale})`,
+        "--contact-selection": frame.selectedContact } as CSSProperties}>
+      <ItemTitle item={experienceItem} firstWord="Customer" rest=" Experience" status="down" interactive={false} />
+      <section className="details-summary-block">
+        <ItemOwnership primaryContact={experienceContact} actorRows={experienceActors}
+          expanded iconSpriteHref={demoIconSpriteHref}
+          primaryHelp={<DemoHelp title="Primary contact" />} actorsHelp={<DemoHelp title="Actors" />} />
+      </section>
+    </div>
   );
 }
 
-function ContactTransfer({ frame, layout }: { frame: HelpFrame; layout: HelpLayout }) {
-  // Keep the highlighted contact aligned with its page row and phone at any width.
-  const x = mix(layout.pageX + 78 * layout.pageScale,
+function ContactTransfer({ frame, layout, source }: { frame: HelpFrame; layout: HelpLayout; source: SceneRect }) {
+  const x = mix(layout.pageX + source.x * layout.pageScale,
     441 - layout.observerShift, frame.contactTravel);
-  const y = mix(layout.pageY + 125 * layout.pageScale, 220, frame.contactTravel);
+  const y = mix(layout.pageY + source.y * layout.pageScale, 220, frame.contactTravel);
   const scale = mix(layout.pageScale, 0.19, frame.contactTravel);
   return (
-    <g data-primary-contact-transfer="true"
-      style={{ opacity: frame.transferOpacity }}
-      transform={"translate(" + x + " " + y + ") scale(" + scale + ")"}>
-      <rect width="250" height="42" rx="7"
-        className="primary-contact-page-highlight" />
-      <text x="17" y="27" className="primary-contact-page-link">
-        +1 555 010 2026
-      </text>
-    </g>
+    <div data-primary-contact-transfer="true" className="primary-contact-transfer" inert aria-hidden="true"
+      style={{ opacity: frame.transferOpacity,
+        transform: `translate(${x}px, ${y}px) scale(${scale})` }}>
+      <PrimaryContactRow contact={experienceContact} iconSpriteHref={demoIconSpriteHref} />
+    </div>
   );
 }
 
 export default function PrimaryContactHelpDemo() {
-  const svgRef = useRef<SVGSVGElement | null>(null);
+  const pageRef = useRef<HTMLDivElement>(null);
+  const targets = useHelpTargets(pageRef, contactSelectors, contactFallback);
   const [availableWidth, setAvailableWidth] = useState(640);
   const [reduceMotion] = useState(() =>
     typeof window !== "undefined" &&
@@ -316,36 +296,14 @@ export default function PrimaryContactHelpDemo() {
     return () => window.clearInterval(timer);
   }, [reduceMotion]);
 
-  useEffect(() => {
-    const svg = svgRef.current;
-    if (!svg) return undefined;
-
-    const measure = () => {
-      const width = svg.getBoundingClientRect().width;
-      if (width > 0) {
-        setAvailableWidth((current) => Math.abs(current - width) < 0.5 ? current : width);
-      }
-    };
-    measure();
-
-    // Observing the SVG works even when the modal changes width without a
-    // window resize, e.g. on rotation or a split-screen layout.
-    if (typeof ResizeObserver !== "undefined") {
-      const observer = new ResizeObserver(measure);
-      observer.observe(svg);
-      return () => observer.disconnect();
-    }
-    window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
-  }, []);
-
   const frame = getPrimaryContactHelpFrame(elapsed);
   const layout = getPrimaryContactHelpLayout(availableWidth);
   return (
     <figure className="primary-contact-help-demo"
       aria-label="Find the primary contact in Aggregator to get a failing service repaired">
       <HelpAnimationProgress progress={reduceMotion ? 0 : elapsed / primaryContactHelpDuration} />
-      <svg ref={svgRef} viewBox={layout.viewBox} className="primary-contact-help-diagram"
+      <HelpScene width={640} height={340} viewBox={layout.viewBox} onResize={setAvailableWidth}>
+      <svg viewBox="0 0 640 340" className="primary-contact-help-diagram"
         role="img" aria-label="A service goes down; a person opens Aggregator on a laptop, finds the primary contact, calls the responsible technician, and the service is restored">
         <g aria-hidden="true">
           <g data-primary-contact-scene="true"
@@ -368,10 +326,11 @@ export default function PrimaryContactHelpDemo() {
               <path d="M248 212l16-9M253 225l18 3M249 237l13 11" />
             </g>
           </g>
-          <AggregatorPage frame={frame} layout={layout} />
-          <ContactTransfer frame={frame} layout={layout} />
         </g>
       </svg>
+      <AggregatorPage frame={frame} layout={layout} pageRef={pageRef} />
+      <ContactTransfer frame={frame} layout={layout} source={targets.contact} />
+      </HelpScene>
       <HelpInteractionShield />
     </figure>
   );

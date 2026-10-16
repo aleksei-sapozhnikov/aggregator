@@ -6,10 +6,32 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import TimelineHelpDemo, { getInspectCursorRow } from "./TimelineHelpDemo";
 
 beforeEach(() => vi.useFakeTimers());
-afterEach(() => { cleanup(); vi.useRealTimers(); });
+afterEach(() => { cleanup(); vi.useRealTimers(); vi.unstubAllGlobals(); });
 const advance = (ms: number) => act(() => vi.advanceTimersByTime(ms));
 
 describe("Timeline help walkthrough", () => {
+  it("uses the production timeline wrapper and an isolated Grafana illustration without an iframe", () => {
+    const { container } = render(<TimelineHelpDemo />);
+    expect(container.querySelector(".details-timeline-body .grafana-grid .grafana-panel .grafana-timeline-illustration")).not.toBeNull();
+    expect(container.querySelector("iframe")).toBeNull();
+    const preview = screen.getByLabelText("Example Timeline");
+    expect(preview.querySelector(".timeline-help-content")?.hasAttribute("inert")).toBe(true);
+    expect(preview.querySelector("a[href], button:not(:disabled), [tabindex='0']")).toBeNull();
+  });
+
+  it("holds a useful static frame in every scenario when reduced motion is requested", () => {
+    vi.stubGlobal("matchMedia", () => ({ matches: true }));
+    render(<TimelineHelpDemo />);
+    const preview = screen.getByLabelText("Example Timeline");
+    expect(within(preview).getByLabelText("States at selected time")).not.toBeNull();
+    for (const name of ["Inspect a moment", "Switch signal groups", "Open a dependency"]) {
+      fireEvent.click(screen.getByRole("button", { name }));
+      const before = preview.innerHTML;
+      advance(30000);
+      expect(preview.innerHTML).toBe(before);
+    }
+    expect(preview.querySelector(".help-item-page")).not.toBeNull();
+  });
   it("shows the animation directly below scenario buttons without redundant descriptions", () => {
     const { container } = render(<TimelineHelpDemo />);
     const navigation = screen.getByRole("navigation", { name: "Timeline help scenarios" });
@@ -106,7 +128,7 @@ describe("Timeline help walkthrough", () => {
 
   it("moves the popup with the cursor and holds it for three seconds", () => {
     render(<TimelineHelpDemo />);
-    advance(2700);
+    advance(2900);
     const preview = screen.getByLabelText("Example Timeline");
     const popup = within(preview).getByLabelText("States at selected time");
     expect(within(popup).getByText("↳ Payment Gateway · readiness check")).not.toBeNull();
@@ -292,7 +314,7 @@ describe("Timeline help walkthrough", () => {
     expect(sameCursor.classList.contains("is-pressed")).toBe(true);
     advance(800);
     const item = within(preview).getByLabelText("Opened Payment Gateway Item");
-    expect(within(item).getByText("Payment Gateway")).not.toBeNull();
+    expect(item.querySelector(".content-title")?.textContent).toContain("Payment Gateway");
     expect(within(item).getByText(/Primary contact/)).not.toBeNull();
     expect(within(item).getByText("Actors (2)")).not.toBeNull();
     expect(within(item).getByText("Healthy signals (5)")).not.toBeNull();

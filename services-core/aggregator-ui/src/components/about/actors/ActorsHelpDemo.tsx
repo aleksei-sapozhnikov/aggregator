@@ -1,10 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { RefObject } from "react";
+import ItemTitle from "../../ItemTitle";
+import ItemOwnership from "../../ItemOwnership";
+import HelpScene, { useHelpTargets } from "../shared/HelpScene";
+import DemoHelp from "../shared/DemoHelp";
+import { demoIconSpriteHref, ordersItem, ordersContact, ordersActors } from "../shared/demoData";
 import HelpAnimationProgress from "../shared/HelpAnimationProgress";
 import HelpInteractionShield from "../shared/HelpInteractionShield";
 import "./ActorsHelpDemo.css";
 
-// All positions use one SVG coordinate system, including the Item preview.
-// This keeps each actor's destination aligned when the modal is resized.
+// The HTML page and illustrated sprites scale together; destinations follow its DOM rows.
 export const actorsHelpDuration = 11200;
 const previewTime = 7000;
 const clamp = (value: number) => Math.max(0, Math.min(1, value));
@@ -35,20 +40,18 @@ type Role = "owner" | "user" | "support";
 type Actor = {
   id: Role;
   start: [number, number];
-  destination: [number, number];
   sceneScale: number;
-  name: string;
   role: string;
   color: string;
 };
 
 const actors: Actor[] = [
-  { id: "owner", start: [98, 191], destination: [314, 201], sceneScale: 0.65,
-    name: "Order Platform Team", role: "Owner", color: "#4384c5" },
-  { id: "user", start: [322, 191], destination: [283, 231], sceneScale: 0.65,
-    name: "Fulfillment Team", role: "User", color: "#50b28b" },
-  { id: "support", start: [210, 56], destination: [272, 261], sceneScale: 0.55,
-    name: "Service Desk", role: "Support", color: "#a38cdb" },
+  { id: "owner", start: [98, 191], sceneScale: 0.65,
+    role: "Owner", color: "#4384c5" },
+  { id: "user", start: [322, 191], sceneScale: 0.65,
+    role: "User", color: "#50b28b" },
+  { id: "support", start: [210, 56], sceneScale: 0.55,
+    role: "Support", color: "#a38cdb" },
 ];
 
 function ActorCharacter({ actor }: { actor: Actor }) {
@@ -190,18 +193,6 @@ function Machine() {
   );
 }
 
-function ActorIcon() {
-  return (
-    <g className="actors-help-actor-icon" fill="none" strokeWidth="2.3"
-      strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="0" cy="-4" r="3" />
-      <path d="M-6 7q0-7 6-7t6 7" />
-      <circle cx="10" cy="-3" r="2.5" />
-      <path d="M8 2q6-1 7 5" />
-    </g>
-  );
-}
-
 function ScenePlate({
   x, y, width, label,
 }: {
@@ -218,52 +209,39 @@ function ScenePlate({
   );
 }
 
-function ItemPreview({ opacity }: { opacity: number }) {
+const pageX = 15;
+const pageScale = 0.78;
+const actorSelectors = {
+  owner: ".ownership-extra-list li:nth-child(1) .actor-summary-row",
+  user: ".ownership-extra-list li:nth-child(2) .actor-summary-row",
+  support: ".ownership-extra-list li:nth-child(3) .actor-summary-row",
+  item: ".content-title",
+};
+const actorFallback = {
+  owner: { x: 72, y: 178, width: 210, height: 34 },
+  user: { x: 72, y: 214, width: 190, height: 34 },
+  support: { x: 72, y: 250, width: 150, height: 34 },
+  item: { x: 20, y: 20, width: 260, height: 27 },
+};
+
+function ItemPreview({ opacity, pageRef }: { opacity: number; pageRef: RefObject<HTMLDivElement | null> }) {
   return (
-    <g className="actors-help-item" style={{ opacity }} aria-hidden="true">
-      <text x="51" y="42" className="actors-help-check">✓</text>
-      <text x="76" y="42" className="actors-help-title">Order Fulfillment</text>
-      <circle className="actors-help-info-outline"
-        cx="242" cy="34" r="8" fill="none" strokeWidth="1.8" />
-      <text x="242" y="39" className="actors-help-info" textAnchor="middle">i</text>
-      <text x="263" y="40" className="actors-help-up">UP</text>
-      <path className="actors-help-primary-marker" d="M65 73v65" strokeWidth="3" />
-      <text x="88" y="91" className="actors-help-heading">Primary contact</text>
-      <circle className="actors-help-question-outline"
-        cx="217" cy="86" r="8" fill="none" />
-      <text x="217" y="90" className="actors-help-question" textAnchor="middle">?</text>
-      <g className="actors-help-contact-icon" transform="translate(88 110)" fill="none"
-        strokeWidth="2" strokeLinejoin="round">
-        <rect x="0" y="0" width="18" height="13" rx="2" />
-        <path d="m1 2 8 6 8-6" />
-      </g>
-      <text x="113" y="121" className="actors-help-link">orders-team@demo.email</text>
-      <text x="62" y="166" className="actors-help-chevron">⌄</text>
-      <g transform="translate(87 161)"><ActorIcon /></g>
-      <text x="110" y="166" className="actors-help-heading">Actors (3)</text>
-      <circle className="actors-help-question-outline"
-        cx="205" cy="160" r="8" fill="none" />
-      <text x="205" y="164" className="actors-help-question" textAnchor="middle">?</text>
-      {actors.map((actor, index) => (
-        <g key={actor.id}>
-          <text x="112" y={206 + index * 30} className="actors-help-link">
-            {actor.name}
-          </text>
-          <text
-            x={[263, 239, 207][index]}
-            y={205 + index * 30}
-            className="actors-help-role"
-          >
-            {actor.role}
-          </text>
-        </g>
-      ))}
-    </g>
+    <div ref={pageRef} className="help-item-page actors-help-item" inert aria-hidden="true"
+      style={{ opacity, left: pageX, top: 0, width: 500, transform: `scale(${pageScale})` }}>
+      <ItemTitle item={ordersItem} firstWord="Order" rest=" Fulfillment" status="up" interactive={false} />
+      <section className="details-summary-block">
+        <ItemOwnership primaryContact={ordersContact} actorRows={ordersActors} expanded
+          iconSpriteHref={demoIconSpriteHref} primaryHelp={<DemoHelp title="Primary contact" />}
+          actorsHelp={<DemoHelp title="Actors" />} />
+      </section>
+    </div>
   );
 }
 
 export default function ActorsHelpDemo() {
   const [elapsed, setElapsed] = useState(0);
+  const pageRef = useRef<HTMLDivElement>(null);
+  const targets = useHelpTargets(pageRef, actorSelectors, actorFallback);
   const [reduceMotion] = useState(() =>
     typeof window !== "undefined" &&
     Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)").matches),
@@ -294,15 +272,16 @@ export default function ActorsHelpDemo() {
       aria-label="Actors become Item ownership and relationship entries"
     >
       <HelpAnimationProgress progress={elapsed / actorsHelpDuration} />
+      <HelpScene width={420} height={310}>
+      <ItemPreview pageRef={pageRef} opacity={reduceMotion ? 1 : frame.pageOpacity} />
       <svg viewBox="0 0 420 310" className="actors-help-diagram"
         role="img" aria-label="Three people work with a service, become Owner, User, and Support rows on an Item page, then return"
       >
-        <ItemPreview opacity={reduceMotion ? 1 : frame.pageOpacity} />
         {!reduceMotion && (
           <g data-service="item" opacity={frame.machineOpacity}
             transform={"translate(" +
-              lerp(210, 310, moving) + " " +
-              lerp(197, 36, moving) + ")"}
+              lerp(210, pageX + (targets.item.x + targets.item.width + 16) * pageScale, moving) + " " +
+              lerp(197, (targets.item.y + targets.item.height / 2) * pageScale, moving) + ")"}
           >
             <g data-service-sprite="true"
               transform={"scale(" +
@@ -318,8 +297,9 @@ export default function ActorsHelpDemo() {
           </g>
         )}
         {!reduceMotion && actors.map((actor) => {
-          const x = lerp(actor.start[0], actor.destination[0], moving);
-          const y = lerp(actor.start[1], actor.destination[1], moving);
+          const target = targets[actor.id];
+          const x = lerp(actor.start[0], pageX + (target.x + target.width + 20) * pageScale, moving);
+          const y = lerp(actor.start[1], (target.y + target.height / 2) * pageScale, moving);
           const scale = lerp(actor.sceneScale, 0.20, moving);
           return (
             <g key={actor.id} data-actor={actor.id}
@@ -345,6 +325,7 @@ export default function ActorsHelpDemo() {
           );
         })}
       </svg>
+      </HelpScene>
       <HelpInteractionShield />
     </figure>
   );

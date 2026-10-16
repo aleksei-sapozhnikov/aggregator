@@ -20,7 +20,7 @@ describe("Actors contextual help animation", () => {
     expect(shield).not.toBeNull();
     expect(shield?.getAttribute("aria-hidden")).toBe("true");
     expect(figure.lastElementChild).toBe(shield);
-    expect(shield?.previousElementSibling?.tagName.toLowerCase()).toBe("svg");
+    expect(shield?.previousElementSibling?.classList.contains("help-scene")).toBe(true);
     expect(figure.querySelector(".help-animation-progress")).not.toBeNull();
   });
 
@@ -57,9 +57,9 @@ describe("Actors contextual help animation", () => {
     expect(figure.querySelector("svg[viewBox='0 0 420 310']")).not.toBeNull();
     // The sample Item uses the surrounding modal theme, not a fixed light background.
     expect(figure.querySelector(".actors-help-item > rect")).toBeNull();
-    expect(figure.querySelector(".actors-help-contact-icon")).not.toBeNull();
-    expect(figure.querySelector(".actors-help-actor-icon")).not.toBeNull();
-    expect(figure.querySelector(".actors-help-info-outline")).not.toBeNull();
+    expect(figure.querySelector(".contact-type-icon")).not.toBeNull();
+    expect(figure.querySelector(".actor-team-icon")).not.toBeNull();
+    expect(figure.querySelector(".catalog-item-info-button")).not.toBeNull();
     expect(Array.from(figure.querySelectorAll("[data-scene-label]"),
       (label) => label.getAttribute("data-scene-label")).sort())
       .toEqual(["Owner", "Service", "Support", "User"]);
@@ -89,10 +89,15 @@ describe("Actors contextual help animation", () => {
     const machine = document.querySelector('[data-service="item"]');
 
     act(() => { vi.advanceTimersByTime(4600); });
-    expect(owner?.getAttribute("transform")).toContain("translate(314 201)");
-    expect(user?.getAttribute("transform")).toContain("translate(283 231)");
-    expect(other?.getAttribute("transform")).toContain("translate(272 261)");
-    expect(machine?.getAttribute("transform")).toContain("translate(310 36)");
+    const positions = [owner, user, other].map((node) => {
+      const values = node?.getAttribute("transform")?.match(/[\d.]+/g)?.map(Number) || [];
+      expect(values[0]).toBeGreaterThan(190);
+      expect(values[0]).toBeLessThan(400);
+      return values[1];
+    });
+    expect(positions[0]).toBeLessThan(positions[1]);
+    expect(positions[1]).toBeLessThan(positions[2]);
+    expect(document.querySelectorAll(".actor-summary-row")).toHaveLength(3);
     expect(machine?.querySelector("[data-service-sprite]")?.getAttribute("transform"))
       .toContain("scale(0.078)");
     expect(owner?.querySelector("[data-scene-label='Owner']")).not.toBeNull();

@@ -26,7 +26,7 @@ describe("Primary contact contextual help", () => {
     expect(shield).not.toBeNull();
     expect(shield?.getAttribute("aria-hidden")).toBe("true");
     expect(figure.lastElementChild).toBe(shield);
-    expect(shield?.previousElementSibling?.tagName.toLowerCase()).toBe("svg");
+    expect(shield?.previousElementSibling?.classList.contains("help-scene")).toBe(true);
     expect(figure.querySelector(".help-animation-progress")).not.toBeNull();
   });
 
@@ -69,41 +69,23 @@ describe("Primary contact contextual help", () => {
     expect(figure?.querySelectorAll("img")).toHaveLength(0);
   });
 
-  it("shows the expanded Aggregator page without a nested card frame", () => {
+  it("renders the page and moving contact as production HTML beside the illustrative SVG", () => {
     render(<PrimaryContactHelpDemo />);
-    const figure = screen.getByRole("figure", {
-      name: "Find the primary contact in Aggregator to get a failing service repaired",
-    });
-    const surface = figure.querySelector(
-      "[data-primary-contact-page] .primary-contact-page-surface",
-    );
-    expect(surface?.getAttribute("x")).toBe("0");
-    expect(surface?.getAttribute("y")).toBe("0");
-    expect(surface?.getAttribute("width")).toBe("640");
-    expect(surface?.getAttribute("height")).toBe("340");
-    expect(surface?.hasAttribute("rx")).toBe(false);
-    expect(figure.querySelectorAll(".primary-contact-page-surface")).toHaveLength(1);
-    expect(figure.querySelector(".primary-contact-page-highlight")).not.toBeNull();
-  });
-
-  it("keeps sprites at Actors scale and contact directly beneath its heading", () => {
-    render(<PrimaryContactHelpDemo />);
-    const illustration = screen.getByRole("figure", {
-      name: "Find the primary contact in Aggregator to get a failing service repaired",
-    });
-    expect(illustration.querySelector("[data-primary-contact-scene]")?.getAttribute("transform"))
+    const page = document.querySelector("[data-primary-contact-page]") as HTMLElement;
+    expect(page.tagName).toBe("DIV");
+    expect(page.closest("svg")).toBeNull();
+    expect(page.querySelector(".content-title")?.textContent).toContain("Customer Experience");
+    expect(page.querySelector(".content-status-label")?.textContent).toBe("DOWN");
+    expect(page.querySelectorAll(".actor-summary-row")).toHaveLength(3);
+    const heading = page.querySelector(".primary-contact-heading-row");
+    expect(heading?.nextElementSibling?.classList.contains("primary-contact-row")).toBe(true);
+    const transfer = document.querySelector("[data-primary-contact-transfer]");
+    expect(transfer?.querySelector(".primary-contact-row")?.innerHTML)
+      .toBe(page.querySelector(".primary-contact-row")?.innerHTML);
+    expect(page.hasAttribute("inert")).toBe(true);
+    expect(page.querySelector("a[href], button:not(:disabled), [tabindex='0']")).toBeNull();
+    expect(document.querySelector("[data-primary-contact-scene]")?.getAttribute("transform"))
       .toBe("translate(130 55) scale(0.66)");
-    expect(illustration.querySelector("[data-primary-contact-observer-scale]")?.getAttribute("transform"))
-      .toContain("scale(0.75)");
-
-    const heading = illustration.querySelector(".primary-contact-page-heading") as SVGTextElement;
-    const phone = illustration.querySelector(".primary-contact-page-link") as SVGTextElement;
-    const highlight = illustration.querySelector(".primary-contact-page-highlight") as SVGRectElement;
-    const gap = Number(phone.getAttribute("y")) - Number(heading.getAttribute("y"));
-    expect(gap).toBeGreaterThan(25);
-    expect(gap).toBeLessThan(45);
-    expect(highlight.getAttribute("y")).toBe("125");
-    expect(illustration.querySelector("[data-primary-contact-transfer]")).not.toBeNull();
   });
 
   it("loops and resets its progress indicator", () => {
@@ -127,10 +109,10 @@ describe("Primary contact contextual help", () => {
       expect(viewHeight * Math.min(width, 640) / viewWidth).toBeLessThanOrEqual(340);
 
       const [left, top] = layout.viewBox.split(" ").map(Number);
-      const actualPageLeft = layout.pageX + 6 * layout.pageScale;
-      const actualPageRight = actualPageLeft + 628 * layout.pageScale;
-      const actualPageTop = layout.pageY + 5 * layout.pageScale;
-      const actualPageBottom = actualPageTop + 330 * layout.pageScale;
+      const actualPageLeft = layout.pageX;
+      const actualPageRight = actualPageLeft + layout.pageWidth * layout.pageScale;
+      const actualPageTop = layout.pageY;
+      const actualPageBottom = actualPageTop + layout.pageHeight * layout.pageScale;
       expect(actualPageLeft).toBeGreaterThanOrEqual(left);
       expect(actualPageRight).toBeLessThanOrEqual(left + viewWidth);
       expect(actualPageTop).toBeGreaterThanOrEqual(top);
@@ -143,13 +125,13 @@ describe("Primary contact contextual help", () => {
   it("adapts the scene and expanded page when its actual card width changes", () => {
     let measuredWidth = 380;
     let notifyResize: (() => void) | undefined;
-    vi.spyOn(SVGElement.prototype, "getBoundingClientRect").mockImplementation(
+    vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(
       () => ({ width: measuredWidth, height: 230, toJSON: () => ({}) }) as DOMRect,
     );
     class MockResizeObserver {
       private readonly callback: ResizeObserverCallback;
       constructor(callback: ResizeObserverCallback) { this.callback = callback; }
-      observe() { notifyResize = () => this.callback([], this as unknown as ResizeObserver); }
+      observe(element: Element) { if (element.classList.contains("help-scene")) notifyResize = () => this.callback([], this as unknown as ResizeObserver); }
       disconnect() { notifyResize = undefined; }
     }
     vi.stubGlobal("ResizeObserver", MockResizeObserver);
@@ -158,11 +140,15 @@ describe("Primary contact contextual help", () => {
     const svg = screen.getByRole("img", {
       name: /A service goes down; a person opens Aggregator/,
     });
-    expect(svg.getAttribute("viewBox")).toBe(getPrimaryContactHelpLayout(380).viewBox);
+    const scene = document.querySelector(".help-scene") as HTMLElement;
+    const canvas = scene.querySelector(".help-scene-canvas") as HTMLElement;
+    expect(scene.style.aspectRatio).toContain("380");
+    expect(canvas.style.transform).toContain("scale(1)");
 
     measuredWidth = 320;
     act(() => { notifyResize?.(); });
-    expect(svg.getAttribute("viewBox")).toBe(getPrimaryContactHelpLayout(320).viewBox);
+    expect(scene.style.aspectRatio).toContain("320");
+    expect(canvas.style.transform).toContain("scale(1)");
     expect(svg.querySelector("[data-primary-contact-observer-offset]")
       ?.getAttribute("transform")).toBe("translate(-24 0)");
   });

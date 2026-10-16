@@ -1,0 +1,251 @@
+/* Grafana renders these controls inside its iframe. Styles below belong only
+   to the isolated chart illustration, never to the application Item UI. */
+.grafana-timeline-illustration {
+  position: relative;
+  min-width: 0;
+  height: 316px;
+  padding: 13px;
+  color: var(--text);
+  font-size: 13px;
+  overflow: hidden;
+}
+.timeline-help-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.timeline-help-preview-header span {
+  color: var(--muted);
+  font-size: 11px;
+}
+.timeline-help-toolbar-demo {
+  position: relative;
+  z-index: 16;
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  font-size: 12px;
+}
+.timeline-help-toolbar-caption,
+.timeline-help-selector-value {
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+}
+.timeline-help-toolbar-caption {
+  border-radius: 7px 0 0 7px;
+  border-right: none;
+  font-weight: 600;
+}
+.timeline-help-selector {
+  position: relative;
+  display: inline-block;
+  min-width: 130px;
+}
+.timeline-help-selector-value {
+  display: flex;
+  justify-content: space-between;
+  min-width: 128px;
+  border-radius: 0 7px 7px 0;
+}
+.timeline-help-selector-value > span {
+  margin-left: 10px;
+  color: var(--muted);
+}
+.timeline-help-selector-value.is-open {
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--link) 65%, transparent);
+}
+.timeline-help-options {
+  display: block;
+  position: absolute;
+  z-index: 19;
+  top: 41px;
+  left: 0;
+  width: max-content;
+  min-width: 200px;
+  overflow: hidden;
+  padding: 5px 0;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--panel-alt);
+  box-shadow: var(--shadow-strong);
+  pointer-events: none;
+}
+.timeline-help-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 37px;
+  padding: 0 12px;
+  border-left: 3px solid transparent;
+  white-space: nowrap;
+}
+.timeline-help-option.is-selected {
+  background: color-mix(in srgb, var(--text) 7%, var(--panel-alt));
+  border-left-color: var(--danger);
+  font-weight: 600;
+}
+.timeline-help-option.is-targeted {
+  background: color-mix(in srgb, var(--text) 11%, var(--panel-alt));
+}
+.timeline-help-chart {
+  display: grid;
+  grid-template-columns: minmax(100px, 30%) minmax(0, 1fr);
+  gap: 8px;
+  min-width: 0;
+  font-size: 11px;
+}
+.timeline-help-labels,
+.timeline-help-tracks {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 7px;
+}
+.timeline-help-label,
+.timeline-help-track {
+  height: 26px;
+  flex: 0 0 26px;
+}
+.timeline-help-label {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+.timeline-help-label:first-child { font-weight: 700; }
+.timeline-help-label span {
+  display: block;
+  overflow: hidden;
+  min-width: 0;
+  max-width: 100%;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.timeline-help-track {
+  display: flex;
+  overflow: hidden;
+  border-radius: 2px;
+  min-width: 0;
+}
+.timeline-help-state {
+  display: block;
+  height: 100%;
+  box-shadow: inset -1px 0 color-mix(in srgb, var(--panel) 55%, transparent);
+}
+.timeline-help-state.is-up { background: var(--status-up); }
+.timeline-help-state.is-down { background: var(--status-down); }
+.timeline-help-state.is-unknown { background: var(--status-unknown); }
+.timeline-help-label.is-highlighted,
+.timeline-help-track.is-highlighted { animation: timeline-help-highlight 1.4s ease-out; }
+.timeline-help-track.is-highlighted {
+  outline: 2px solid var(--status-unknown);
+  outline-offset: 2px;
+}
+@keyframes timeline-help-highlight {
+  0%, 100% { background: transparent; }
+  35%, 70% { background: color-mix(in srgb, var(--status-unknown) 22%, transparent); }
+}
+.timeline-help-crosshair {
+  position: absolute;
+  z-index: 11;
+  top: -2px;
+  bottom: -2px;
+  border-left: 1px dashed var(--text);
+  opacity: 0.55;
+  pointer-events: none;
+}
+.timeline-help-cursor {
+  position: absolute;
+  z-index: 24;
+  width: 19px;
+  height: 24px;
+  pointer-events: none;
+  filter: drop-shadow(1px 1px 1px var(--bg));
+}
+.grafana-timeline-illustration > .timeline-help-cursor {
+  transition: top 480ms ease-in-out, left 350ms ease-in-out;
+}
+.timeline-help-cursor.is-pressed { transform: scale(0.85); }
+.timeline-help-tracks { --timeline-help-dependency-popup-width: min(310px, 70vw); --timeline-help-link-cursor-top: 122px; }
+.timeline-help-tracks > .timeline-help-cursor { z-index: 23; }
+.timeline-help-tracks > .timeline-help-cursor.is-moving-to-link {
+  transition: left 1.1s ease-in-out, top 1.1s ease-in-out;
+}
+.timeline-help-axis {
+  display: flex;
+  justify-content: space-between;
+  padding-left: calc(30% + 8px);
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+.timeline-help-popup {
+  position: absolute;
+  z-index: 20;
+  top: 17px;
+  transform: translateX(12px);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: var(--shadow-strong);
+  font-size: 11px;
+  pointer-events: none;
+}
+.timeline-help-popup.is-flipped { transform: translateX(calc(-100% - 12px)); }
+.timeline-help-popup-hover { width: min(340px, 75vw); }
+.timeline-help-popup-dependency { width: var(--timeline-help-dependency-popup-width); }
+.timeline-help-popup-date { padding: 7px 10px; border-bottom: 1px solid var(--border); font-weight: 600; }
+.timeline-help-popup-rows { padding: 5px 10px; }
+.timeline-help-popup-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  min-height: 20px;
+  gap: 10px;
+  padding: 2px 0;
+}
+.timeline-help-popup-name { display: inline-flex; align-items: center; min-width: 0; gap: 7px; }
+.timeline-help-popup-name span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: normal; line-height: 1.25; }
+.timeline-help-popup-row.is-inspected .timeline-help-popup-name span:last-child { font-weight: 700; }
+.timeline-help-popup-row strong { flex: none; font-size: 11px; }
+.timeline-help-popup-marker { display: inline-block; flex: none; width: 15px; height: 4px; border-radius: 4px; }
+.timeline-help-popup-marker.is-up { background: var(--status-up); }
+.timeline-help-popup-marker.is-down { background: var(--status-down); }
+.timeline-help-popup-marker.is-unknown { background: var(--status-unknown); }
+.timeline-help-popup-dependency .timeline-help-popup-row,
+.timeline-help-popup-duration { margin: 8px 11px; }
+.timeline-help-popup-duration { display: flex; justify-content: space-between; color: var(--muted); }
+.timeline-help-popup-duration strong { color: var(--text); }
+.timeline-help-popup-link {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border-top: 1px solid var(--border);
+  padding: 12px;
+  color: var(--link);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.timeline-help-popup-link.is-selected { background: color-mix(in srgb, var(--link) 17%, var(--panel)); }
+@media (max-width: 540px) {
+  .grafana-timeline-illustration { height: 390px; }
+  .timeline-help-chart { grid-template-columns: minmax(90px, 35%) minmax(0, 1fr); }
+  .timeline-help-axis { padding-left: calc(35% + 8px); }
+  .timeline-help-tracks { --timeline-help-dependency-popup-width: min(210px, 63vw); --timeline-help-link-cursor-top: 142px; }
+  .timeline-help-popup-hover { width: min(190px, 59vw); }
+  .timeline-help-popup-row { gap: 5px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .grafana-timeline-illustration .timeline-help-cursor { display: none; }
+  .grafana-timeline-illustration * { animation: none !important; transition: none !important; }
+}

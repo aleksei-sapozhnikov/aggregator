@@ -1,6 +1,4 @@
-/**
- * @vitest-environment jsdom
- */
+/** @vitest-environment jsdom */
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import SignalFlowHelpDemo from "./SignalFlowHelpDemo";
@@ -10,179 +8,140 @@ afterEach(() => {
   cleanup();
   vi.useRealTimers();
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
 });
-
-const advance = (milliseconds: number) =>
-  act(() => vi.advanceTimersByTime(milliseconds));
-
-const getNode = (id: string) =>
-  document.querySelector('[data-flow-node="' + id + '"]') as Element;
-
-const getProgress = (id: string) => {
-  const path = document.querySelector(
-    '[data-flow-edge="' + id + '"] .signal-flow-help-propagation:not(.is-recovery)',
-  );
-  return path ? Number(path.getAttribute("data-progress")) : 0;
-};
-
-const getRecoveryProgress = (id: string) => {
-  const path = document.querySelector(
-    '[data-flow-edge="' + id + '"] .signal-flow-help-propagation.is-recovery',
-  );
-  return path ? Number(path.getAttribute("data-recovery-progress")) : 0;
-};
+const advance = (milliseconds: number) => act(() => vi.advanceTimersByTime(milliseconds));
+const getNode = (id: string) => document.querySelector(`[data-flow-node="${id}"]`) as Element;
+const getProgress = (id: string) => Number(document.querySelector(
+  `[data-flow-edge="${id}"] .signal-flow-help-propagation:not(.is-recovery)`,
+)?.getAttribute("data-progress") || 0);
+const getRecoveryProgress = (id: string) => Number(document.querySelector(
+  `[data-flow-edge="${id}"] .signal-flow-help-propagation.is-recovery`,
+)?.getAttribute("data-recovery-progress") || 0);
 
 describe("Signal flow help demonstrations", () => {
-  it.each(["healthy", "unhealthy"] as const)(
-    "blocks pointer interactions over the %s signal illustration",
-    (mode) => {
-      render(<SignalFlowHelpDemo mode={mode} />);
-      const figure = screen.getByRole("figure", {
-        name: mode === "healthy"
-          ? "Healthy dependency signals example"
-          : "Unhealthy dependency propagation example",
-      });
-      const shield = figure.querySelector(".help-interaction-shield");
-      expect(shield).not.toBeNull();
-      expect(shield?.getAttribute("aria-hidden")).toBe("true");
-      expect(figure.lastElementChild).toBe(shield);
-      expect(shield?.previousElementSibling?.tagName.toLowerCase()).toBe("svg");
-      expect(figure.querySelector(".help-animation-progress")).not.toBeNull();
-    },
-  );
-
-  it("shows the same six connected items with passing checks in Healthy signals", () => {
-    render(<SignalFlowHelpDemo mode="healthy" />);
-
-    expect(document.querySelectorAll("[data-flow-node]")).toHaveLength(6);
-    expect(document.querySelectorAll("[data-flow-edge]")).toHaveLength(5);
-    expect(document.querySelectorAll(".signal-flow-help-checks")).toHaveLength(6);
-    expect(document.querySelectorAll("[data-own-signal]")).toHaveLength(3);
-    expect(document.querySelector("[data-failing-check]")).toBeNull();
-    expect(document.querySelectorAll('[data-health="unhealthy"]')).toHaveLength(0);
-    expect(screen.queryByText(/All Items have their own checks/)).toBeNull();
-    expect(document.querySelector("figcaption")).toBeNull();
-    expect(getNode("item").textContent).toContain("client-service");
-    expect(screen.getByText("client-ux")).not.toBeNull();
-    expect(screen.getByText("client-backend")).not.toBeNull();
-    expect(screen.getByText("frontend-enabler")).not.toBeNull();
-    expect(screen.getByText("auth-service")).not.toBeNull();
-    expect(screen.getByText("postgres-db")).not.toBeNull();
-
-    advance(9000);
-    expect(document.querySelectorAll('[data-health="unhealthy"]')).toHaveLength(0);
+  it.each(["healthy", "unhealthy"] as const)("uses passive production HTML and an illustrative graph in %s mode", (mode) => {
+    const { container } = render(<SignalFlowHelpDemo mode={mode} />);
+    const page = container.querySelector(".help-item-page") as HTMLElement;
+    expect(page.closest("svg")).toBeNull();
+    expect(page.querySelector(".content-title")?.textContent).toContain("client-service");
+    expect(page.querySelector(".primary-contact-link")?.textContent).toBe("support@client-service");
+    expect(page.hasAttribute("inert")).toBe(true);
+    expect(page.querySelector("a[href], button:not(:disabled), [tabindex='0']")).toBeNull();
+    expect(container.querySelectorAll("[data-flow-node]")).toHaveLength(6);
+    expect(container.querySelectorAll("[data-flow-edge]")).toHaveLength(5);
+    expect(container.querySelector(".help-interaction-shield")).not.toBeNull();
+    expect(container.querySelector("foreignObject")).toBeNull();
+    if (mode === "healthy") {
+      expect(page.querySelectorAll(".signals-healthy-row")).toHaveLength(3);
+      expect(page.querySelector(".signals-healthy-list")?.textContent).toBe("AvailabilitySuccess ratioLatency");
+      expect(container.querySelectorAll("[data-own-signal]")).toHaveLength(3);
+    } else {
+      expect(page.querySelectorAll(".signals-incident-row")).toHaveLength(2);
+      expect(page.querySelectorAll(".signals-incident-signal")).toHaveLength(2);
+      expect(page.querySelector(".details-unhealthy-list")?.textContent)
+        .toContain("client-ux→DependencyError rate");
+    }
   });
 
-  it.each([
-    ["healthy", 15000],
-    ["unhealthy", 27300],
-  ] as const)("tracks the %s animation cycle at the top", (mode, duration) => {
-    const { container } = render(<SignalFlowHelpDemo mode={mode} />);
-    const progress = screen.getByRole("progressbar", { name: "Animation progress" });
-    const fill = container.querySelector(".help-animation-progress-fill") as HTMLElement;
-
-    expect(progress.getAttribute("aria-valuenow")).toBe("0");
-    expect(fill.style.transform).toBe("scaleX(0)");
-
-    // The 100 ms animation tick need not divide the cycle at its midpoint.
+  it.each([["healthy", 15000], ["unhealthy", 27300]] as const)("preserves the %s cycle and progress reset", (mode, duration) => {
+    render(<SignalFlowHelpDemo mode={mode} />);
+    const bar = screen.getByRole("progressbar", { name: "Animation progress" });
     const midpoint = Math.floor(duration / 200) * 100;
     advance(midpoint);
-    expect(progress.getAttribute("aria-valuenow")).toBe("50");
-    expect(fill.style.transform).toBe("scaleX(" + midpoint / duration + ")");
-
+    expect(bar.getAttribute("aria-valuenow")).toBe("50");
     advance(duration - midpoint);
-    expect(progress.getAttribute("aria-valuenow")).toBe("0");
-    expect(fill.style.transform).toBe("scaleX(0)");
-    expect(fill.style.transition).toBe("none");
-
-    advance(100);
-    expect(Number(progress.getAttribute("aria-valuenow"))).toBeGreaterThan(0);
+    expect(bar.getAttribute("aria-valuenow")).toBe("0");
+    advance(300);
+    expect(Number(bar.getAttribute("aria-valuenow"))).toBeGreaterThan(0);
   });
 
   it.each([
-    ["healthy", 6500, '[data-selection-frame="availability"]', 15000],
-    ["unhealthy", 13800, '[data-unhealthy-frame="item"]', 27300],
-  ] as const)(
-    "holds the complete %s page for two additional seconds after highlights disappear",
-    (mode, start, frameSelector, duration) => {
-      const { container } = render(<SignalFlowHelpDemo mode={mode} />);
-      const diagram = container.querySelector(".signal-flow-help-diagram") as SVGElement;
-      const page = diagram.querySelector(".signal-flow-help-page") as SVGElement;
-      const frame = diagram.querySelector(frameSelector) as Element;
-      const progress = screen.getByRole("progressbar", { name: "Animation progress" });
+    ["healthy", 6500, '[data-selection-frame="availability"]'],
+    ["unhealthy", 13800, '[data-unhealthy-frame="item"]'],
+  ] as const)("holds the clean %s list for two seconds while progress continues", (mode, start, selector) => {
+    const { container } = render(<SignalFlowHelpDemo mode={mode} />);
+    const page = container.querySelector(".help-item-page") as HTMLElement;
+    const frame = container.querySelector(selector) as Element;
+    const progress = screen.getByRole("progressbar", { name: "Animation progress" });
+    advance(start);
+    expect(page.style.opacity).toBe("1");
+    expect(frame.getAttribute("opacity")).toBe("0");
+    const before = Number(progress.getAttribute("aria-valuenow"));
+    advance(2000);
+    expect(page.style.opacity).toBe("1");
+    expect(frame.getAttribute("opacity")).toBe("0");
+    expect(Number(progress.getAttribute("aria-valuenow"))).toBeGreaterThan(before);
+    advance(mode === "healthy" ? 1100 : 1700);
+    expect(frame.getAttribute("opacity")).toBe("1");
+  });
 
-      advance(start);
-      expect(page.style.opacity).toBe("1");
-      expect(frame.getAttribute("opacity")).toBe("0");
-      const firstProgress = Number(progress.getAttribute("aria-valuenow"));
-
-      advance(2000);
-      expect(page.style.opacity).toBe("1");
-      expect(frame.getAttribute("opacity")).toBe("0");
-      expect(Number(progress.getAttribute("aria-valuenow"))).toBeGreaterThan(firstProgress);
-      expect(Number(progress.getAttribute("aria-valuenow"))).toBe(
-        Math.round(((start + 2000) / duration) * 100),
-      );
-
-      advance(mode === "healthy" ? 1100 : 1700);
-      expect(frame.getAttribute("opacity")).toBe("1");
-    },
-  );
-
-  it("highlights only the current Item checks and morphs them into the page's links", () => {
-    render(<SignalFlowHelpDemo mode="healthy" />);
-    const diagram = screen.getByRole("img", {
-      name: /Passing checks in six connected services/,
-    });
-    const selected = Array.from(diagram.querySelectorAll("[data-own-signal]"));
-    const frames = Array.from(diagram.querySelectorAll("[data-selection-frame]"));
-    const page = diagram.querySelector('[data-healthy-page="true"]') as SVGElement;
-    const graph = diagram.querySelector(".signal-flow-help-graph") as SVGElement;
-
-    expect(selected).toHaveLength(3);
-    expect(frames).toHaveLength(3);
-    expect(page.style.opacity).toBe("0");
-    expect(graph.style.opacity).toBe("1");
-
+  it("moves the Item's checks toward the healthy rows and returns them to the graph", () => {
+    const { container } = render(<SignalFlowHelpDemo mode="healthy" />);
+    const checks = Array.from(container.querySelectorAll("[data-own-signal]"));
+    const frame = container.querySelector('[data-selection-frame="availability"]') as Element;
+    const glyph = checks[0].querySelector("text") as Element;
+    const page = container.querySelector(".help-item-page") as HTMLElement;
+    const graph = container.querySelector(".signal-flow-help-graph") as SVGElement;
+    const startX = frame.getAttribute("x");
     advance(2900);
-    expect(frames.every((frame) => Number(frame.getAttribute("opacity")) === 1)).toBe(true);
-    expect(frames[0].getAttribute("x")).toBe("280");
-    expect(page.style.opacity).toBe("0");
-
+    expect(frame.getAttribute("opacity")).toBe("1");
     advance(3600);
+    expect(frame.getAttribute("x")).not.toBe(startX);
     expect(page.style.opacity).toBe("1");
     expect(graph.style.opacity).toBe("0");
-    expect(frames[0].getAttribute("x")).toBe("132");
-    expect(frames[0].getAttribute("width")).toBe("374");
-    expect(diagram.querySelectorAll(".signal-flow-help-page-link")).toHaveLength(3);
-    const surface = diagram.querySelector(".signal-flow-help-page-surface") as Element;
-    expect(surface.getAttribute("x")).toBe("0");
-    expect(surface.getAttribute("width")).toBe("640");
-    expect(surface.getAttribute("stroke")).toBe("none");
-    expect(screen.getByText("Availability").getAttribute("opacity")).toBe("1");
-    expect(screen.getByText("Success ratio").getAttribute("opacity")).toBe("1");
-    expect(screen.getByText("Latency").getAttribute("opacity")).toBe("1");
-    expect(
-      diagram.querySelector('[data-healthy-page="true"] .signal-flow-help-page-title')?.textContent,
-    ).toBe("client-service");
-
-    advance(100);
-    expect(frames.every((frame) => frame.getAttribute("opacity") === "0")).toBe(true);
-    advance(1000);
-    expect(frames.every((frame) => frame.getAttribute("opacity") === "0")).toBe(true);
-    advance(2000);
-    expect(frames.every((frame) => frame.getAttribute("opacity") === "1")).toBe(true);
-    advance(2400);
+    expect(glyph.getAttribute("opacity")).toBe("0");
+    // The page has real signal controls, without an SVG replica of their names.
+    expect(container.querySelectorAll("svg .signal-flow-help-page-link")).toHaveLength(0);
+    advance(5900);
     expect(page.style.opacity).toBe("0");
     expect(graph.style.opacity).toBe("1");
-    expect(frames[0].getAttribute("x")).toBe("280");
-    expect(frames[0].getAttribute("width")).toBe("24");
-    expect(diagram.querySelectorAll("[data-own-signal]")[0]).toBe(selected[0]);
+    expect(frame.getAttribute("x")).toBe(startX);
+    expect(glyph.getAttribute("opacity")).toBe("1");
+    expect(checks.every((check) => check.isConnected)).toBe(true);
+  });
 
-    advance(3200);
-    expect(frames[0].getAttribute("opacity")).toBe("0");
+  it("projects dependency nodes into shared grouped signal rows and returns them intact", () => {
+    const { container } = render(<SignalFlowHelpDemo mode="unhealthy" />);
+    const page = container.querySelector(".help-item-page") as HTMLElement;
+    const groups = [getNode("item"), getNode("dep1"), getNode("nested1")];
+    const box = groups[1].querySelector(".signal-flow-help-node-frame") as Element;
+    const startX = box.getAttribute("x");
+    advance(11200);
+    expect(Number(page.style.opacity)).toBeGreaterThan(0);
+    expect(Number(page.style.opacity)).toBeLessThan(1);
+    expect(box.getAttribute("x")).not.toBe(startX);
+    advance(2600);
+    expect(page.style.opacity).toBe("1");
+    expect(box.getAttribute("opacity")).toBe("0");
+    expect(page.querySelectorAll(".item-navigation-link")).toHaveLength(2);
+    expect(page.querySelectorAll(".signal-name")).toHaveLength(2);
+    expect(page.querySelector(".content-status-label")?.textContent).toBe("DOWN");
+    advance(7200);
     expect(page.style.opacity).toBe("0");
-    expect(graph.style.opacity).toBe("1");
+    expect(box.getAttribute("x")).toBe(startX);
+    expect(groups.every((group) => group.isConnected)).toBe(true);
+  });
+
+  it.each(["healthy", "unhealthy"] as const)("enlarges the %s page within a narrow scene", (mode) => {
+    vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(
+      () => ({ width: 320, height: 215, left: 0, top: 0, toJSON: () => ({}) }) as DOMRect,
+    );
+    const { container } = render(<SignalFlowHelpDemo mode={mode} />);
+    const page = container.querySelector(".help-item-page") as HTMLElement;
+    expect(container.querySelector(".signal-flow-help-diagram")?.getAttribute("data-page-layout")).toBe("compact");
+    expect(page.style.transform).toBe("scale(1.2)");
+    expect((container.querySelector(".help-scene-canvas") as HTMLElement).style.transform).toContain("scale(0.5)");
+    expect(container.innerHTML).not.toContain("NaN");
+  });
+
+  it.each(["healthy", "unhealthy"] as const)("holds the %s page when reduced motion is requested", (mode) => {
+    vi.stubGlobal("matchMedia", () => ({ matches: true }));
+    const { container } = render(<SignalFlowHelpDemo mode={mode} />);
+    expect((container.querySelector(".help-item-page") as HTMLElement).style.opacity).toBe("1");
+    const before = container.innerHTML;
+    advance(30000);
+    expect(container.innerHTML).toBe(before);
   });
 
   it("propagates the failed nested dependency toward its parent and current Item", () => {
@@ -227,159 +186,6 @@ describe("Signal flow help demonstrations", () => {
     expect(getNode("item").textContent).toContain("client-service");
     expect(getNode("dep2").textContent).toContain("client-backend");
   });
-
-  it("morphs two full dependency nodes, each with one signal, into the unhealthy list and back", () => {
-    render(<SignalFlowHelpDemo mode="unhealthy" />);
-    const diagram = screen.getByRole("img", {
-      name: /A failing check in frontend-enabler/,
-    });
-    const page = diagram.querySelector('[data-unhealthy-page="true"]') as SVGElement;
-    const graph = diagram.querySelector(".signal-flow-help-graph") as SVGElement;
-    const groups = Array.from(
-      diagram.querySelectorAll(".signal-flow-help-moving-dependency"),
-    );
-    const item = diagram.querySelector('[data-unhealthy-source="item"]') as Element;
-    const itemFrame = item.querySelector('[data-unhealthy-frame="item"]') as Element;
-    const itemBox = item.querySelector('[data-moving-item-box="true"]') as Element;
-    const itemTitle = item.querySelector('[data-moving-item-title="true"]') as Element;
-    const itemStatus = item.querySelector('[data-moving-item-status="true"]') as Element;
-    const parent = diagram.querySelector('[data-unhealthy-source="dep1"]') as Element;
-    const nested = diagram.querySelector('[data-unhealthy-source="nested1"]') as Element;
-    const parentFrame = parent.querySelector('[data-unhealthy-frame="dep1"]') as Element;
-    const nestedFrame = nested.querySelector('[data-unhealthy-frame="nested1"]') as Element;
-    const parentBox = parent.querySelector(".signal-flow-help-node-frame") as Element;
-    const nestedBox = nested.querySelector(".signal-flow-help-node-frame") as Element;
-
-    expect(groups).toHaveLength(3);
-    expect(item.textContent).toContain("client-service");
-    expect(parent.textContent).toContain("client-ux");
-    expect(nested.textContent).toContain("frontend-enabler");
-    expect(diagram.querySelectorAll("[data-flow-node]")).toHaveLength(6);
-    expect(page.style.opacity).toBe("0");
-    expect(graph.style.opacity).toBe("1");
-    expect(parentBox.getAttribute("x")).toBe("115");
-    expect(nestedBox.getAttribute("x")).toBe("19");
-    expect(itemBox.getAttribute("x")).toBe("244");
-    expect(itemTitle.getAttribute("x")).toBe("274");
-    expect(item.getAttribute("data-health")).toBe("healthy");
-
-    advance(9400);
-    expect(parent.getAttribute("data-health")).toBe("unhealthy");
-    expect(nested.getAttribute("data-health")).toBe("unhealthy");
-    expect(item.getAttribute("data-health")).toBe("unhealthy");
-    expect(itemFrame.getAttribute("opacity")).toBe("1");
-    expect(parentFrame.getAttribute("opacity")).toBe("1");
-    expect(nestedFrame.getAttribute("opacity")).toBe("1");
-    expect(page.style.opacity).toBe("0");
-    expect(diagram.querySelectorAll(".signal-flow-help-moving-dependency .signal-flow-help-page-link")).toHaveLength(2);
-
-    advance(1800);
-    expect(Number(itemBox.getAttribute("width"))).toBeGreaterThan(152);
-    expect(Number(itemBox.getAttribute("width"))).toBeLessThan(389);
-    expect(Number(itemTitle.getAttribute("x"))).toBeLessThan(274);
-    expect(itemFrame.getAttribute("opacity")).toBe("1");
-    expect(Number(parentBox.getAttribute("width"))).toBeGreaterThan(154);
-    expect(Number(parentBox.getAttribute("width"))).toBeLessThan(388);
-    expect(Number(page.style.opacity)).toBeGreaterThan(0);
-    expect(Number(page.style.opacity)).toBeLessThan(1);
-    expect(Number(graph.style.opacity)).toBeGreaterThan(0);
-    expect(Number(graph.style.opacity)).toBeLessThan(1);
-    expect(parentFrame.getAttribute("opacity")).toBe("1");
-    expect(nestedFrame.getAttribute("opacity")).toBe("1");
-
-    advance(2200);
-    expect(page.style.opacity).toBe("1");
-    expect(graph.style.opacity).toBe("0");
-    const surface = diagram.querySelector(".signal-flow-help-page-surface") as Element;
-    expect(surface.getAttribute("x")).toBe("0");
-    expect(surface.getAttribute("width")).toBe("640");
-    expect(surface.getAttribute("stroke")).toBe("none");
-    expect(itemBox.getAttribute("x")).toBe("113");
-    expect(itemBox.getAttribute("width")).toBe("389");
-    expect(itemTitle.getAttribute("x")).toBe("150");
-    expect(itemTitle.getAttribute("y")).toBe("51");
-    expect(itemStatus.getAttribute("opacity")).toBe("1");
-    expect(page.querySelector(".signal-flow-help-page-title")).toBeNull();
-    expect(parentBox.getAttribute("x")).toBe("126");
-    expect(parentBox.getAttribute("width")).toBe("388");
-    expect(nestedBox.getAttribute("x")).toBe("126");
-    expect(nestedBox.getAttribute("y")).toBe("232");
-    expect(screen.getByText("Error rate").getAttribute("opacity")).toBe("1");
-    expect(screen.getByText("Readiness check").getAttribute("opacity")).toBe("1");
-    expect(Number(parentFrame.getAttribute("opacity"))).toBeLessThan(1);
-    expect(Number(parentFrame.getAttribute("opacity"))).toBeGreaterThan(0);
-    expect(Number(nestedFrame.getAttribute("opacity"))).toBeLessThan(1);
-    expect(diagram.querySelectorAll(".signal-flow-help-moving-dependency .signal-flow-help-page-link")).toHaveLength(2);
-
-    advance(600);
-    expect(itemFrame.getAttribute("opacity")).toBe("0");
-    expect(itemBox.getAttribute("opacity")).toBe("0");
-    expect(itemTitle.textContent).toBe("client-service");
-    expect(itemStatus.getAttribute("opacity")).toBe("1");
-    expect(parentFrame.getAttribute("opacity")).toBe("0");
-    expect(nestedFrame.getAttribute("opacity")).toBe("0");
-    expect(parentBox.getAttribute("opacity")).toBe("0");
-    advance(1400);
-    expect(itemFrame.getAttribute("opacity")).toBe("0");
-    expect(parentFrame.getAttribute("opacity")).toBe("0");
-    advance(2000);
-    expect(itemFrame.getAttribute("opacity")).toBe("1");
-    expect(parentFrame.getAttribute("opacity")).toBe("1");
-    expect(nestedFrame.getAttribute("opacity")).toBe("1");
-    advance(1200);
-    expect(Number(page.style.opacity)).toBeGreaterThan(0);
-    expect(Number(page.style.opacity)).toBeLessThan(1);
-    expect(parentFrame.getAttribute("opacity")).toBe("1");
-    expect(nestedFrame.getAttribute("opacity")).toBe("1");
-
-    advance(2400);
-    expect(page.style.opacity).toBe("0");
-    expect(graph.style.opacity).toBe("1");
-    expect(itemBox.getAttribute("x")).toBe("244");
-    expect(itemBox.getAttribute("width")).toBe("152");
-    expect(itemTitle.getAttribute("x")).toBe("274");
-    expect(parentBox.getAttribute("x")).toBe("115");
-    expect(parentBox.getAttribute("width")).toBe("154");
-    expect(nestedBox.getAttribute("x")).toBe("19");
-    expect(groups.every((group) => group.isConnected)).toBe(true);
-
-    advance(1800);
-    expect(itemFrame.getAttribute("opacity")).toBe("0");
-    expect(parentFrame.getAttribute("opacity")).toBe("0");
-    expect(nestedFrame.getAttribute("opacity")).toBe("0");
-    // The graph has returned, and the first (leaf) service has recovered.
-    expect(item.getAttribute("data-health")).toBe("unhealthy");
-    expect(parent.getAttribute("data-health")).toBe("unhealthy");
-    expect(nested.getAttribute("data-health")).toBe("healthy");
-  });
-
-  it.each(["healthy", "unhealthy"] as const)(
-    "fills the card with the %s list on narrow containers",
-    (mode) => {
-      vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(
-        () => ({ width: 420, height: 420, toJSON: () => ({}) }) as DOMRect,
-      );
-      const { container } = render(<SignalFlowHelpDemo mode={mode} />);
-      const diagram = container.querySelector(".signal-flow-help-diagram") as SVGElement;
-      expect(diagram.getAttribute("data-page-layout")).toBe("compact");
-      const page = diagram.querySelector(".signal-flow-help-page") as SVGElement;
-      expect(page.querySelector('g[transform="translate(-90 0)"]')).not.toBeNull();
-      advance(mode === "healthy" ? 6500 : 14000);
-      if (mode === "healthy") {
-        const frame = diagram.querySelector('[data-selection-frame="availability"]') as Element;
-        expect(frame.getAttribute("x")).toBe("42");
-        expect(frame.getAttribute("width")).toBe("570");
-      } else {
-        const frame = diagram.querySelector('[data-unhealthy-source="dep1"] .signal-flow-help-node-frame') as Element;
-        const itemBox = diagram.querySelector('[data-moving-item-box="true"]') as Element;
-        const itemTitle = diagram.querySelector('[data-moving-item-title="true"]') as Element;
-        expect(frame.getAttribute("x")).toBe("33");
-        expect(frame.getAttribute("width")).toBe("575");
-        expect(itemBox.getAttribute("x")).toBe("21");
-        expect(itemTitle.getAttribute("x")).toBe("60");
-      }
-    },
-  );
 
   it("restores the leaf, then the parent, then the Item with bottom-up green waves", () => {
     render(<SignalFlowHelpDemo mode="unhealthy" />);
