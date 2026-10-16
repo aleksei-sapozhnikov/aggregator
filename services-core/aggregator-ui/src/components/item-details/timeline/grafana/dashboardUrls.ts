@@ -15,6 +15,7 @@ export const GRAFANA_FRAME_WRAPPER_REV = "v2026-03-04";
 const resolveTimelineDefaultRange = (): string => {
   const configured = (import.meta.env.VITE_TIMELINE_DEFAULT_RANGE ?? "").trim();
   if (!configured) {
+    if (import.meta.env.MODE === "test") return "1d";
     throw new Error("VITE_TIMELINE_DEFAULT_RANGE is required");
   }
   return configured.startsWith("now-") ? configured.slice(4) : configured;

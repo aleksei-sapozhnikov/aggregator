@@ -147,12 +147,9 @@ const renderDetailsPanel = (
       { id: "availability", title: "Availability", status: "up" as const },
     ],
     onOpenContact: vi.fn(),
-    isGrafanaOpen: false,
-    onToggleGrafana: vi.fn(),
-    grafanaHeight: 0,
-    grafanaIframeRef: createRef<HTMLIFrameElement>(),
-    onGrafanaLoad: vi.fn(),
-    grafanaFrameUrl: "about:blank",
+    isTimelineOpen: false,
+    onToggleTimeline: vi.fn(),
+    onNavigateToTimelineItem: vi.fn(),
     ...overrides,
   };
 
@@ -500,8 +497,8 @@ describe("DetailsPanel contextual help", () => {
   });
 
   it("renders Timeline as a standard disclosure with contextual help", async () => {
-    const onToggleGrafana = vi.fn();
-    const { user } = renderDetailsPanel({ onToggleGrafana });
+    const onToggleTimeline = vi.fn();
+    const { user } = renderDetailsPanel({ onToggleTimeline });
     const timelineToggle = screen.getByRole("button", {
       name: "Toggle Timeline",
     });
@@ -514,7 +511,7 @@ describe("DetailsPanel contextual help", () => {
 
     await user.click(screen.getByRole("button", { name: "About Timeline" }));
 
-    expect(onToggleGrafana).not.toHaveBeenCalled();
+    expect(onToggleTimeline).not.toHaveBeenCalled();
     expect(timelineToggle.getAttribute("aria-expanded")).toBe("false");
     const dialog = screen.getByRole("dialog", { name: "About Timeline" });
     expect(dialog.textContent).toContain(
@@ -531,7 +528,7 @@ describe("DetailsPanel contextual help", () => {
   });
 
   it("keeps the expanded Timeline chart under the disclosure heading", () => {
-    renderDetailsPanel({ isGrafanaOpen: true });
+    renderDetailsPanel({ isTimelineOpen: true });
 
     const timelineToggle = screen.getByRole("button", {
       name: "Toggle Timeline",
@@ -731,12 +728,12 @@ describe("DetailsPanel contextual help", () => {
   });
 
   it("toggles Timeline from its visible label text", async () => {
-    const onToggleGrafana = vi.fn();
-    const { user } = renderDetailsPanel({ onToggleGrafana });
+    const onToggleTimeline = vi.fn();
+    const { user } = renderDetailsPanel({ onToggleTimeline });
 
     await user.click(screen.getByText("Timeline"));
 
-    expect(onToggleGrafana).toHaveBeenCalledTimes(1);
+    expect(onToggleTimeline).toHaveBeenCalledTimes(1);
   });
 
   it("does not let old text selection block the next disclosure click", () => {
@@ -748,8 +745,8 @@ describe("DetailsPanel contextual help", () => {
           toString: () => selectedText,
         }) as Selection,
     );
-    const onToggleGrafana = vi.fn();
-    renderDetailsPanel({ onToggleGrafana });
+    const onToggleTimeline = vi.fn();
+    renderDetailsPanel({ onToggleTimeline });
     const timelineToggle = screen.getByRole("button", {
       name: "Toggle Timeline",
     });
@@ -759,7 +756,7 @@ describe("DetailsPanel contextual help", () => {
     fireEvent.pointerUp(timelineToggle, { clientX: 10, clientY: 10 });
     fireEvent.click(timelineToggle);
 
-    expect(onToggleGrafana).toHaveBeenCalledTimes(1);
+    expect(onToggleTimeline).toHaveBeenCalledTimes(1);
   });
 
   it("does not toggle a disclosure when the pointer gesture creates text selection", () => {
@@ -771,8 +768,8 @@ describe("DetailsPanel contextual help", () => {
           toString: () => selectedText,
         }) as Selection,
     );
-    const onToggleGrafana = vi.fn();
-    renderDetailsPanel({ onToggleGrafana });
+    const onToggleTimeline = vi.fn();
+    renderDetailsPanel({ onToggleTimeline });
     const timelineToggle = screen.getByRole("button", {
       name: "Toggle Timeline",
     });
@@ -782,12 +779,12 @@ describe("DetailsPanel contextual help", () => {
     fireEvent.pointerUp(timelineToggle, { clientX: 10, clientY: 10 });
     fireEvent.click(timelineToggle);
 
-    expect(onToggleGrafana).not.toHaveBeenCalled();
+    expect(onToggleTimeline).not.toHaveBeenCalled();
   });
 
   it("does not toggle a disclosure after dragging across its label", () => {
-    const onToggleGrafana = vi.fn();
-    renderDetailsPanel({ onToggleGrafana });
+    const onToggleTimeline = vi.fn();
+    renderDetailsPanel({ onToggleTimeline });
     const timelineToggle = screen.getByRole("button", {
       name: "Toggle Timeline",
     });
@@ -818,6 +815,6 @@ describe("DetailsPanel contextual help", () => {
     );
     fireEvent.click(timelineToggle);
 
-    expect(onToggleGrafana).not.toHaveBeenCalled();
+    expect(onToggleTimeline).not.toHaveBeenCalled();
   });
 });

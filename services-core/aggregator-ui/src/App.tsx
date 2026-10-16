@@ -15,16 +15,11 @@ import { buildCatalogTree, collectDescendantIds, collectExpandableIds, filterCat
 import { buildItemPathname, buildItemRouteHref, buildServicePath, readLocationRouteContext, resolveNodeFromLocation } from "./shared/navigation/itemRoutes";
 import { buildSearchAutocompleteIndex, buildSearchAutocompleteOptions, normalizeSearchText, rankSearchResults } from "./shared/catalog/search";
 import {
-  buildDashboardUrl,
-  buildGrafanaFrameUrl,
   compareHealthStatus,
-  DASHBOARDS,
   fetchProductHealth,
   getInitialTheme,
   loadCatalog,
   resolveBasePath,
-  resolveBaseUrl,
-  resolveGrafanaBaseUrl,
   resolveSidebarTitle,
 } from "./services/aggregatorApi";
 import { sortContactsWithPrimaryFirst } from "./shared/contacts/contactPresentation";
@@ -122,7 +117,6 @@ export default function App() {
   const [selectedPath, setSelectedPath] = useState<string[]>([]);
   const [error, setError] = useState("");
   const [theme, setTheme] = useState(getInitialTheme);
-  const initialFrameThemeRef = useRef(theme);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(
     () => new Set<string>(),
   );
@@ -150,7 +144,7 @@ export default function App() {
   const [isSearchAutocompleteReady, setIsSearchAutocompleteReady] =
     useState(false);
   const [pendingScrollId, setPendingScrollId] = useState("");
-  const [isGrafanaOpen, setIsGrafanaOpen] = useState(true);
+  const [isTimelineOpen, setIsTimelineOpen] = useState(true);
   const [isAiChatOpen, setIsAiChatOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const { openedSignalId, openedSignalTitle, openSignal, closeSignal } = useSignalDetails();
@@ -160,11 +154,9 @@ export default function App() {
   const [openedActorId, setOpenedActorId] = useState("");
   const [isTitlePrimaryBelowControls, setIsTitlePrimaryBelowControls] =
     useState(false);
-  const [grafanaHeight, setGrafanaHeight] = useState(0);
   const prevSearchTokensRef = useRef(0);
   const clearSearchRequestedRef = useRef(false);
   const catalogTreeRef = useRef<HTMLDivElement | null>(null);
-  const grafanaIframeRef = useRef<HTMLIFrameElement | null>(null);
   const contentRef = useRef<HTMLElement | null>(null);
   const headerRef = useRef<HTMLElement | null>(null);
   const headerActionsRef = useRef<HTMLDivElement | null>(null);
@@ -173,12 +165,8 @@ export default function App() {
   const sidebarSwipeStartYRef = useRef<number | null>(null);
   const lastHistoryUrlRef = useRef(window.location.href);
   const lastHistoryKeyRef = useRef("");
-  const pendingGrafanaSrcRef = useRef("");
-  const grafanaFrameReadyRef = useRef(false);
 
-  const grafanaBaseUrl = useMemo(resolveGrafanaBaseUrl, []);
   const basePath = useMemo(resolveBasePath, []);
-  const appBaseUrl = useMemo(() => resolveBaseUrl().replace(/\/$/, ""), []);
   const effectiveIsAiChatOpen = isAiChatFeatureEnabled && isAiChatOpen;
 
   useEffect(() => {
@@ -303,84 +291,10 @@ export default function App() {
     [updateHistoryForRoute],
   );
 
-  /**
-   * Marks the Grafana wrapper iframe as ready and flushes pending theme/src messages.
-   */
-  const handleGrafanaLoad = useCallback(() => {
-    const iframe = grafanaIframeRef.current;
-    if (!iframe?.contentWindow) {
-      return;
-    }
-    try {
-      grafanaFrameReadyRef.current = true;
-      iframe.contentWindow.postMessage(
-        { type: "set-frame-theme", theme },
-        window.location.origin,
-      );
-      if (pendingGrafanaSrcRef.current) {
-        iframe.contentWindow.postMessage(
-          { type: "set-grafana-src", src: pendingGrafanaSrcRef.current },
-          window.location.origin,
-        );
-      }
-    } catch (error) {
-      // Ignore cross-origin access issues when Grafana is hosted elsewhere.
-    }
-  }, [theme]);
-
   useEffect(() => {
     document.body.dataset.theme = theme;
     localStorage.setItem("aggregator-ui-theme", theme);
   }, [theme]);
-
-  /**
-   * Keep the Grafana wrapper iframe in sync with the current app theme
-   * after the wrapper page reports it is ready.
-   */
-  useEffect(() => {
-    const iframe = grafanaIframeRef.current;
-    if (!iframe?.contentWindow || !grafanaFrameReadyRef.current) {
-      return;
-    }
-    iframe.contentWindow.postMessage(
-      { type: "set-frame-theme", theme },
-      window.location.origin,
-    );
-  }, [theme]);
-
-  useEffect(() => {
-    const updateHeight = () => {
-      if (!contentRef.current || !headerRef.current) {
-        return;
-      }
-      const styles = window.getComputedStyle(contentRef.current);
-      const paddingTop = Number.parseFloat(styles.paddingTop) || 0;
-      const paddingBottom = Number.parseFloat(styles.paddingBottom) || 0;
-      const gap = Number.parseFloat(styles.rowGap || styles.gap) || 0;
-      const headerHeight = headerRef.current.getBoundingClientRect().height;
-      const nextHeight = Math.max(
-        320,
-        Math.floor(
-          window.innerHeight - paddingTop - paddingBottom - headerHeight - gap,
-        ),
-      );
-      setGrafanaHeight(nextHeight);
-    };
-
-    updateHeight();
-    window.addEventListener("resize", updateHeight);
-    let headerObserver: ResizeObserver | undefined;
-    if (window.ResizeObserver && headerRef.current) {
-      headerObserver = new ResizeObserver(updateHeight);
-      headerObserver.observe(headerRef.current);
-    }
-    return () => {
-      window.removeEventListener("resize", updateHeight);
-      if (headerObserver) {
-        headerObserver.disconnect();
-      }
-    };
-  }, []);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT}px)`);
@@ -1078,9 +992,15 @@ export default function App() {
     [basePath],
   );
 
-  const grafanaFrameUrl = useMemo(
-    () => buildGrafanaFrameUrl({ initialTheme: initialFrameThemeRef.current }),
-    [],
+  const handleExternalItemLink = useCallback(
+    (itemId: string, href: string) => {
+      if (itemMap.has(itemId)) {
+        handleSelectItemByIdNoPath(itemId);
+      } else if (href) {
+        window.location.assign(href);
+      }
+    },
+    [handleSelectItemByIdNoPath, itemMap],
   );
 
   /**
@@ -1091,35 +1011,6 @@ export default function App() {
     setSearchQuery("");
     setIsSearchActive(false);
   }, []);
-
-  useEffect(() => {
-    const handleGrafanaItemLinkClick = (event: MessageEvent) => {
-      if (event.origin !== window.location.origin) {
-        return;
-      }
-      if (event.data?.type !== "grafana-item-link-click") {
-        return;
-      }
-      const itemId =
-        typeof event.data.itemId === "string" ? event.data.itemId : "";
-      if (!itemId) {
-        return;
-      }
-      if (itemMap.has(itemId)) {
-        handleSelectItemByIdNoPath(itemId);
-        return;
-      }
-      const href = typeof event.data.href === "string" ? event.data.href : "";
-      if (href) {
-        window.location.assign(href);
-      }
-    };
-
-    window.addEventListener("message", handleGrafanaItemLinkClick);
-    return () => {
-      window.removeEventListener("message", handleGrafanaItemLinkClick);
-    };
-  }, [handleSelectItemByIdNoPath, itemMap]);
 
   /**
    * Sync selected item with browser URL and handle browser back/forward navigation.
@@ -1216,12 +1107,6 @@ export default function App() {
       behavior: "auto",
     });
   }, [selectedId]);
-
-  useEffect(() => {
-    if (!isGrafanaOpen) {
-      grafanaFrameReadyRef.current = false;
-    }
-  }, [isGrafanaOpen]);
 
   useEffect(() => {
     if (!isSearchActive) {
@@ -1387,29 +1272,6 @@ export default function App() {
     searchTokens.length,
   ]);
 
-  useEffect(() => {
-    if (!selectedItem) {
-      return;
-    }
-    const dashboardUrl = buildDashboardUrl(
-      grafanaBaseUrl,
-      DASHBOARDS.timeline.uid,
-      DASHBOARDS.timeline.slug,
-      selectedItem.id,
-      theme,
-      DASHBOARDS.timeline.panelId,
-      appBaseUrl,
-    );
-    pendingGrafanaSrcRef.current = dashboardUrl;
-    const iframe = grafanaIframeRef.current;
-    if (iframe?.contentWindow && grafanaFrameReadyRef.current) {
-      iframe.contentWindow.postMessage(
-        { type: "set-grafana-src", src: dashboardUrl },
-        window.location.origin,
-      );
-    }
-  }, [appBaseUrl, grafanaBaseUrl, selectedItem, theme]);
-
   return (
     <div
       className={`app ${isMobileLayout ? "is-mobile" : "is-desktop"} ${
@@ -1505,12 +1367,9 @@ export default function App() {
         passingSignalsCount={passingSignalsCount}
         selectedPassingSignals={selectedPassingSignals}
         onOpenContact={(contact) => setOpenedContact(contact)}
-        isGrafanaOpen={isGrafanaOpen}
-        onToggleGrafana={() => setIsGrafanaOpen((prev) => !prev)}
-        grafanaHeight={grafanaHeight}
-        grafanaIframeRef={grafanaIframeRef}
-        onGrafanaLoad={handleGrafanaLoad}
-        grafanaFrameUrl={grafanaFrameUrl}
+        isTimelineOpen={isTimelineOpen}
+        onToggleTimeline={() => setIsTimelineOpen((prev) => !prev)}
+        onNavigateToTimelineItem={handleExternalItemLink}
       />
       <HealthSignalModal
         isOpen={Boolean(openedSignalId)}

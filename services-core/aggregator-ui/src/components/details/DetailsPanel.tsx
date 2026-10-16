@@ -7,7 +7,7 @@ import AiChatPanel from "./ai-chat/AiChatPanel";
 import ItemTitle from "../shared/item/ItemTitle";
 import ItemOwnership, { type ActorSummaryRow } from "../shared/item/ItemOwnership";
 import { HealthySignals, UnhealthySignals, type UnhealthyDependencyRow } from "../shared/item/ItemSignals";
-import ItemTimeline from "../shared/item/ItemTimeline";
+import TimelineSection from "../item-details/timeline/TimelineSection";
 import InfoHelp from "../shared/help/InfoHelp";
 import { isPlainLeftClick } from "../../shared/ui/pointerUtils";
 import type {
@@ -63,12 +63,9 @@ type DetailsPanelProps = {
   passingSignalsCount: number;
   selectedPassingSignals: ItemSignal[];
   onOpenContact: (contact: CatalogContact) => void;
-  isGrafanaOpen: boolean;
-  onToggleGrafana: () => void;
-  grafanaHeight: number;
-  grafanaIframeRef: RefObject<HTMLIFrameElement | null>;
-  onGrafanaLoad: () => void;
-  grafanaFrameUrl: string;
+  isTimelineOpen: boolean;
+  onToggleTimeline: () => void;
+  onNavigateToTimelineItem: (itemId: string, href: string) => void;
 };
 
 const buildSignalLink = (id: string): string =>
@@ -150,12 +147,9 @@ function DetailsPanelContent({
   passingSignalsCount,
   selectedPassingSignals,
   onOpenContact,
-  isGrafanaOpen,
-  onToggleGrafana,
-  grafanaHeight,
-  grafanaIframeRef,
-  onGrafanaLoad,
-  grafanaFrameUrl,
+  isTimelineOpen,
+  onToggleTimeline,
+  onNavigateToTimelineItem,
 }: DetailsPanelProps) {
   const selectedItemId = selectedItem?.id || "";
   const [disclosureByItemId, setDisclosureByItemId] = useState<
@@ -344,10 +338,15 @@ function DetailsPanelContent({
                 )}
               </section>
 
-              <ItemTimeline expanded={isGrafanaOpen} onToggle={onToggleGrafana} height={grafanaHeight}
-                help={<InfoHelp topicId="timeline" />}>
-                <iframe title="State Timeline" ref={grafanaIframeRef} onLoad={onGrafanaLoad} src={grafanaFrameUrl} />
-              </ItemTimeline>
+              <TimelineSection
+                itemId={selectedItem.id}
+                theme={theme}
+                expanded={isTimelineOpen}
+                onToggle={onToggleTimeline}
+                onNavigateToItem={onNavigateToTimelineItem}
+                contentRef={contentRef}
+                headerRef={headerRef}
+              />
             </>
           )}
         </div>
