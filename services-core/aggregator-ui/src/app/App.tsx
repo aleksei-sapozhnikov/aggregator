@@ -4,16 +4,18 @@
 
 import type { TouchEvent } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import SidebarPanel from "./components/sidebar/SidebarPanel";
-import DetailsPanel from "./components/details/DetailsPanel";
-import AboutModal from "./components/about/application/AboutModal";
-import ContactModal from "./components/entity-details/contact/ContactModal";
-import ActorModal from "./components/entity-details/actor/ActorModal";
-import HealthSignalModal from "./components/entity-details/signal/HealthSignalModal";
-import useSignalDetails from "./components/entity-details/signal/useSignalDetails";
-import { buildCatalogTree, collectDescendantIds, collectExpandableIds, filterCatalogTree, findNodeById, findNodeByPath, findNodePath, findNodeUidById } from "./shared/catalog/tree";
-import { buildItemPathname, buildItemRouteHref, buildServicePath, readLocationRouteContext, resolveNodeFromLocation } from "./shared/navigation/itemRoutes";
-import { buildSearchAutocompleteIndex, buildSearchAutocompleteOptions, normalizeSearchText, rankSearchResults } from "./shared/catalog/search";
+import CatalogTree from "../components/catalog-tree/CatalogTree";
+import AppLayout from "./AppLayout";
+import ItemDetails from "../components/item-details/ItemDetails";
+import AiChatPanel from "../components/ai-chat/AiChatPanel";
+import AboutModal from "../components/about/application/AboutModal";
+import ContactModal from "../components/entity-details/contact/ContactModal";
+import ActorModal from "../components/entity-details/actor/ActorModal";
+import HealthSignalModal from "../components/entity-details/signal/HealthSignalModal";
+import useSignalDetails from "../components/entity-details/signal/useSignalDetails";
+import { buildCatalogTree, collectDescendantIds, collectExpandableIds, filterCatalogTree, findNodeById, findNodeByPath, findNodePath, findNodeUidById } from "../shared/catalog/tree";
+import { buildItemPathname, buildItemRouteHref, buildServicePath, readLocationRouteContext, resolveNodeFromLocation } from "../shared/navigation/itemRoutes";
+import { buildSearchAutocompleteIndex, buildSearchAutocompleteOptions, normalizeSearchText, rankSearchResults } from "../shared/catalog/search";
 import {
   compareHealthStatus,
   fetchProductHealth,
@@ -21,9 +23,9 @@ import {
   loadCatalog,
   resolveBasePath,
   resolveSidebarTitle,
-} from "./services/aggregatorApi";
-import { sortContactsWithPrimaryFirst } from "./shared/contacts/contactPresentation";
-import { isUnhealthyHealthStatus } from "./shared/health/healthPresentation";
+} from "../services/aggregatorApi";
+import { sortContactsWithPrimaryFirst } from "../shared/contacts/contactPresentation";
+import { isUnhealthyHealthStatus } from "../shared/health/healthPresentation";
 import type {
   CatalogActor,
   CatalogActorContact,
@@ -38,7 +40,7 @@ import type {
   ItemSignal,
   ProductHealthItem,
   SearchAutocompleteIndex,
-} from "./shared/types";
+} from "../shared/types";
 
 const MOBILE_BREAKPOINT = 900;
 const TREE_SCROLL_LONG_DISTANCE_PX = 600;
@@ -107,7 +109,7 @@ const isTemporaryAiChatEnabled = (): boolean =>
 /**
  * Application orchestrator.
  * Owns cross-cutting state (selection, routing, polling, theme, responsive shell state)
- * and wires large UI blocks (SidebarPanel, DetailsPanel, AboutModal).
+ * and wires large UI blocks (CatalogTree, AppLayout, ItemDetails, AboutModal).
  */
 export default function App() {
   const sidebarTitle = resolveSidebarTitle();
@@ -1286,7 +1288,7 @@ export default function App() {
       onTouchEnd={handleMobileSidebarSwipeEnd}
       onTouchCancel={handleMobileSidebarSwipeEnd}
     >
-      <SidebarPanel
+      <CatalogTree
         isSidebarOpen={isSidebarOpen}
         homeHref={homeHref}
         homeIconSrc={homeIconSrc}
@@ -1332,46 +1334,57 @@ export default function App() {
           <span className="sidebar-swipe-hint-edge" />
         </div>
       )}
-      <DetailsPanel
+      <AppLayout
         contentRef={contentRef}
-        isSidebarOpen={isSidebarOpen}
-        iconSpriteHref={iconSpriteHref}
-        onToggleSidebar={handleToggleSidebar}
-        shouldOffsetContentHeader={shouldOffsetContentHeader}
-        isTitlePrimaryBelowControls={isTitlePrimaryBelowControls}
         headerRef={headerRef}
         headerActionsRef={headerActionsRef}
+        contentTitlePrimaryRef={contentTitlePrimaryRef}
+        isCatalogOpen={isSidebarOpen}
+        iconSpriteHref={iconSpriteHref}
+        onToggleCatalog={handleToggleSidebar}
+        shouldOffsetContentHeader={shouldOffsetContentHeader}
+        isTitlePrimaryBelowControls={isTitlePrimaryBelowControls}
         theme={theme}
         isAiChatOpen={effectiveIsAiChatOpen}
-        onCloseAiChat={() => setIsAiChatOpen(false)}
         onToggleAiChat={() => setIsAiChatOpen((prev) => !prev)}
-        onToggleTheme={() =>
-          setTheme((prev) => (prev === "dark" ? "light" : "dark"))
-        }
+        onToggleTheme={() => setTheme((prev) => (prev === "dark" ? "light" : "dark"))}
         onOpenAbout={() => setIsAboutOpen(true)}
         selectedItem={selectedItem}
         selectedStatus={selectedStatus}
         lastUpdated={lastUpdated}
         selectedTitleFirstWord={selectedTitleFirstWord}
         selectedTitleRest={selectedTitleRest}
-        contentTitlePrimaryRef={contentTitlePrimaryRef}
-        selectedFailingSignals={selectedFailingSignals}
-        failingDependencies={failingDependencies}
-        selectedItemActors={selectedItemActors}
-        actorContactsByActorId={actorContactsByActorId}
-        buildItemLink={buildItemLink}
-        onSelectItemById={handleSelectItemByIdNoPath}
-        onOpenSignal={openSignal}
-        onSelectItemByPath={handleSelectItemByPath}
-        onOpenActor={(actor) => setOpenedActorId(actor.id)}
-        passingSignalsCount={passingSignalsCount}
-        selectedPassingSignals={selectedPassingSignals}
-        onOpenContact={(contact) => setOpenedContact(contact)}
-        isTimelineOpen={isTimelineOpen}
-        onToggleTimeline={() => setIsTimelineOpen((prev) => !prev)}
-        onNavigateToTimelineItem={handleExternalItemLink}
-      />
-      <HealthSignalModal
+        chat={
+          <AiChatPanel
+            isOpen={effectiveIsAiChatOpen}
+            buildItemLink={buildItemLink}
+            onClose={() => setIsAiChatOpen(false)}
+            onSelectItem={handleSelectItemByIdNoPath}
+          />
+        }
+      >
+        <ItemDetails
+          contentRef={contentRef}
+          headerRef={headerRef}
+          iconSpriteHref={iconSpriteHref}
+          theme={theme}
+          selectedItem={selectedItem}
+          selectedFailingSignals={selectedFailingSignals}
+          failingDependencies={failingDependencies}
+          selectedItemActors={selectedItemActors}
+          actorContactsByActorId={actorContactsByActorId}
+          buildItemLink={buildItemLink}
+          onOpenSignal={openSignal}
+          onSelectItemByPath={handleSelectItemByPath}
+          onOpenActor={(actor) => setOpenedActorId(actor.id)}
+          passingSignalsCount={passingSignalsCount}
+          selectedPassingSignals={selectedPassingSignals}
+          onOpenContact={(contact) => setOpenedContact(contact)}
+          isTimelineOpen={isTimelineOpen}
+          onToggleTimeline={() => setIsTimelineOpen((prev) => !prev)}
+          onNavigateToTimelineItem={handleExternalItemLink}
+        />
+      </AppLayout>      <HealthSignalModal
         isOpen={Boolean(openedSignalId)}
         signalId={openedSignalId}
         fallbackTitle={openedSignalTitle}

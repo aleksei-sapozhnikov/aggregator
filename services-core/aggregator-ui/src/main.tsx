@@ -3,7 +3,7 @@
  */
 
 import { createRoot } from "react-dom/client";
-import App from "./App";
+import App from "./app/App";
 import ContextualHelpProvider from "./components/about/ContextualHelpProvider";
 import "./styles.css";
 

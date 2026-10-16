@@ -12,10 +12,6 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ComponentProps } from "react";
 import type { CatalogActor, CatalogContact } from "../../shared/types";
 
-vi.mock("./ai-chat/AiChatPanel", () => ({
-  default: () => null,
-}));
-
 
 // A changed shared markup attribute must reach the live panel and every demo.
 // Checking CSS class names alone would also pass for separately copied markup.
@@ -49,7 +45,8 @@ vi.mock("../shared/item/ItemTimeline", async (importOriginal) => {
   };
 });
 
-import DetailsPanel from "./DetailsPanel";
+import ItemDetails from "./ItemDetails";
+import AppLayout from "../../app/AppLayout";
 import ActorsHelpDemo from "../about/actors/ActorsHelpDemo";
 import PrimaryContactHelpDemo from "../about/primary-contact/PrimaryContactHelpDemo";
 import HealthySignalsHelpDemo from "../about/healthy-signals/HealthySignalsHelpDemo";
@@ -85,8 +82,45 @@ const primaryContact: CatalogContact = {
   href: "https://example.test/chat",
 };
 
+type TestPageProps = ComponentProps<typeof ItemDetails> & {
+  selectedStatus: ComponentProps<typeof AppLayout>["selectedStatus"];
+  lastUpdated: string;
+  selectedTitleFirstWord: string;
+  selectedTitleRest: string;
+  contentTitlePrimaryRef: ComponentProps<typeof AppLayout>["contentTitlePrimaryRef"];
+};
+
+function TestPage(props: TestPageProps) {
+  return (
+    <AppLayout
+      contentRef={props.contentRef}
+      headerRef={props.headerRef}
+      headerActionsRef={createRef<HTMLDivElement>()}
+      contentTitlePrimaryRef={props.contentTitlePrimaryRef}
+      isCatalogOpen={true}
+      iconSpriteHref={props.iconSpriteHref}
+      onToggleCatalog={() => {}}
+      shouldOffsetContentHeader={false}
+      isTitlePrimaryBelowControls={false}
+      theme={props.theme}
+      isAiChatOpen={false}
+      onToggleAiChat={() => {}}
+      onToggleTheme={() => {}}
+      onOpenAbout={() => {}}
+      selectedItem={props.selectedItem}
+      selectedStatus={props.selectedStatus}
+      lastUpdated={props.lastUpdated}
+      selectedTitleFirstWord={props.selectedTitleFirstWord}
+      selectedTitleRest={props.selectedTitleRest}
+      chat={null}
+    >
+      <ItemDetails {...props} />
+    </AppLayout>
+  );
+}
+
 const renderDetailsPanel = (
-  overrides: Partial<ComponentProps<typeof DetailsPanel>> = {},
+  overrides: Partial<TestPageProps> = {},
 ) => {
   const props = {
     contentRef: createRef<HTMLElement>(),
@@ -156,11 +190,11 @@ const renderDetailsPanel = (
   return {
     user: userEvent.setup(),
     props,
-    ...render(<DetailsPanel {...props} />),
+    ...render(<TestPage {...props} />),
   };
 };
 
-describe("DetailsPanel contextual help", () => {
+describe("ItemDetails contextual help", () => {
   it("reflects shared markup changes in production and every help scene", () => {
     vi.stubGlobal("matchMedia", () => ({ matches: true }));
     const { container: production } = renderDetailsPanel();
@@ -289,7 +323,7 @@ describe("DetailsPanel contextual help", () => {
       const dialog = screen.getByRole("dialog", { name: "About " + title });
       expect(dialog.textContent).toContain(title);
 
-      rerender(<DetailsPanel {...props} {...remove} />);
+      rerender(<TestPage {...props} {...remove} />);
       expect(screen.queryByRole("button", { name: label })).toBeNull();
       expect(screen.getByRole("dialog", { name: "About " + title })).toBe(dialog);
 
@@ -305,7 +339,7 @@ describe("DetailsPanel contextual help", () => {
     await user.click(screen.getByRole("button", { name: "About Timeline" }));
     const dialog = screen.getByRole("dialog", { name: "About Timeline" });
     rerender(
-      <DetailsPanel
+      <TestPage
         {...props}
         selectedItem={{ id: "payments", title: "Payments Service" }}
         selectedTitleFirstWord="Payments"

@@ -4,7 +4,7 @@ import { dirname, relative, resolve, sep } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const root = resolve("src/components");
-const features = new Set(["about", "details", "sidebar", "entity-details"]);
+const features = new Set(["about", "item-details", "catalog-tree", "ai-chat", "entity-details"]);
 const codeExtensions = /\.(?:ts|tsx)$/;
 const importPattern = /\b(?:from\s*|import\s*|import\s*\(\s*)["'](\.[^"']+)["']/g;
 

@@ -2,8 +2,10 @@
 
 Group components by feature, not just by rendering mechanism.
 
-- `details/`: selected Item panel, header actions, and embedded AI chat.
-- `sidebar/`: catalog and dependency navigation.
+- `item-details/`: selected Item health, ownership, and replaceable Timeline integration.
+- `catalog-tree/`: catalog navigation and search.
+- `ai-chat/`: optional standalone assistant UI.
+- `src/app/`: application orchestration, workspace layout, and toolbar.
 - `entity-details/`: entity detail dialogs (actor, contact, signal). They do
   not belong to the Details panel. `signal/useSignalDetails.ts` also owns
   signal deep-link state, so Grafana and the Item panel can open the same dialog.
@@ -19,8 +21,7 @@ Group components by feature, not just by rendering mechanism.
 
 Feature modules may depend on their own child components and on `shared/`.
 They must not import the implementation details of a sibling feature.
-`shared/` must not depend on `about/`, `details/`, `sidebar/`,
-or `entity-details/`. The entrypoint in `src/main.tsx` composes features,
+`shared/` must not depend on any feature module. The entrypoint in `src/main.tsx` composes features,
 including the `about/ContextualHelpProvider`.
 
 The context provider owns registered help content and modal lifecycle.
@@ -37,3 +38,9 @@ their behavior or constraints warrant additional explanation.
 
 The `src/shared/` directory outside `components/` contains data types and
 non-visual helpers and is deliberately separate from reusable React UI.
+
+## Timeline boundary
+
+`ItemDetails` only uses `TimelineSection`, not Grafana-specific interfaces.
+The section owns the adapter under `item-details/timeline/grafana/`.
+`src/app/AppLayout.tsx` composes the toolbar and AI chat independently of Item details.
