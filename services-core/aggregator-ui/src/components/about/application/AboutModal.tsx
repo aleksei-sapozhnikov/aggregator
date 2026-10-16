@@ -2,8 +2,8 @@
  * @file About dialog wrapper for static application description content.
  */
 
-import AboutContent, { AboutHeader } from "../AboutContent";
-import ModalWindow from "./shared/ui/ModalWindow";
+import AboutContent, { AboutHeader } from "./AboutContent";
+import ModalWindow from "../../shared/ui/ModalWindow";
 
 type AboutModalProps = {
   isOpen: boolean;

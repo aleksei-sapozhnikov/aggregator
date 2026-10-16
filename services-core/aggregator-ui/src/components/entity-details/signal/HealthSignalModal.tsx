@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import type { CatalogItem } from "../shared/types";
-import { isPlainLeftClick } from "../shared/catalogUtils";
-import ModalWindow from "./shared/ui/ModalWindow";
-import ItemNavigationLink from "./shared/ui/ItemNavigationLink";
+import type { CatalogItem } from "../../../shared/types";
+import { isPlainLeftClick } from "../../../shared/catalogUtils";
+import ModalWindow from "../../shared/ui/ModalWindow";
+import ItemNavigationLink from "../../shared/ui/ItemNavigationLink";
 
 type HealthSignalDetails = Record<string, unknown> & {
   id: string;

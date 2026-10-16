@@ -6,9 +6,9 @@ import type { TouchEvent } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import SidebarPanel from "../components/sidebar/SidebarPanel";
 import DetailsPanel from "../components/details/DetailsPanel";
-import AboutModal from "../components/AboutModal";
-import ContactModal from "../components/ContactModal";
-import ActorModal from "../components/ActorModal";
+import AboutModal from "../components/about/application/AboutModal";
+import ContactModal from "../components/entity-details/contact/ContactModal";
+import ActorModal from "../components/entity-details/actor/ActorModal";
 import {
   buildCatalogTree,
   buildItemPathname,

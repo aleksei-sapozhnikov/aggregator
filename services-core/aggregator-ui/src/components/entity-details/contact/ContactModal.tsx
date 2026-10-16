@@ -1,13 +1,13 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { RefObject } from "react";
-import type { CatalogContact } from "../shared/types";
+import type { CatalogContact } from "../../../shared/types";
 import {
   resolveContactLabel,
   resolveContactTypeDisplayName,
-} from "../shared/contactUtils";
-import type { InfoHelpTopic } from "../shared/infoHelpTopics";
-import InfoHelp from "./InfoHelp";
-import ModalWindow from "./shared/ui/ModalWindow";
+} from "../../../shared/contactUtils";
+import type { InfoHelpTopic } from "../../../shared/infoHelpTopics";
+import InfoHelp from "../../InfoHelp";
+import ModalWindow from "../../shared/ui/ModalWindow";
 
 type ContactModalProps = {
   isOpen: boolean;
