@@ -17,6 +17,7 @@ it("keeps HTML and SVG in the same coordinate system after a container resize", 
   vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(
     () => ({ width }) as DOMRect,
   );
+  // noinspection JSUnusedGlobalSymbols
   vi.stubGlobal(
     "ResizeObserver",
     class {
@@ -74,6 +75,7 @@ it("moves animation destinations when shared row geometry changes, accounting fo
       ) as DOMRect;
     },
   );
+  // noinspection JSUnusedGlobalSymbols
   vi.stubGlobal(
     "ResizeObserver",
     class {
