@@ -32,29 +32,51 @@ class TestRunnerTests(unittest.TestCase):
     def test_ui_uses_verbose_vitest_and_locked_dependencies(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            with patch.object(run_tests, "ensure_ui_test_dependencies", return_value=True) as setup:
+            with patch.object(
+                run_tests, "ensure_ui_test_dependencies", return_value=True
+            ) as setup:
                 module = run_tests.build_module(root, "aggregator-ui")
             self.assertIsNotNone(module)
-            self.assertEqual(module.command, [
-                run_tests.platform_command("npm"), "test", "--", "--reporter=verbose"
-            ])
+            self.assertEqual(
+                module.command,
+                [run_tests.platform_command("npm"), "test", "--", "--reporter=verbose"],
+            )
             setup.assert_called_once_with(root / "services-core" / "aggregator-ui")
 
     def test_ai_agent_uses_python_from_resolver(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            with patch.object(run_tests, "resolve_ai_agent_python", return_value="python-for-tests"):
+            with patch.object(
+                run_tests, "resolve_ai_agent_python", return_value="python-for-tests"
+            ):
                 module = run_tests.build_module(root, "ai-agent")
-            self.assertEqual(module.command, [
-                "python-for-tests", "-m", "pytest", "-v", "tests",
-            ])
+            self.assertEqual(
+                module.command,
+                [
+                    "python-for-tests",
+                    "-m",
+                    "pytest",
+                    "-v",
+                    "tests",
+                ],
+            )
 
     def test_qa_runner_discovers_its_own_unit_tests(self) -> None:
         module = run_tests.build_module(Path("/repo"), "code-qa")
-        self.assertEqual(module.command, [
-            sys.executable, "-m", "unittest", "discover",
-            "-s", "tools/code_qa", "-p", "test_*.py", "-v",
-        ])
+        self.assertEqual(
+            module.command,
+            [
+                sys.executable,
+                "-m",
+                "unittest",
+                "discover",
+                "-s",
+                "tools/code_qa",
+                "-p",
+                "test_*.py",
+                "-v",
+            ],
+        )
 
     def test_all_modules_run_even_when_one_fails(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -89,25 +111,28 @@ class TestRunnerTests(unittest.TestCase):
                 patch.object(run_tests, "execute_module", return_value=0) as execute,
                 redirect_stdout(output),
             ):
-                self.assertEqual(
-                    run_tests.run_modules(["catalog", "code-qa"], root), 1
-                )
+                self.assertEqual(run_tests.run_modules(["catalog", "code-qa"], root), 1)
             execute.assert_called_once()
             self.assertIn("Missing module directory", output.getvalue())
 
     def test_missing_test_executable_is_a_failure(self) -> None:
         module = run_tests.TestModule("catalog", Path("/repo"), ["go", "test", "./..."])
         with (
-            patch.object(run_tests.subprocess, "run", side_effect=FileNotFoundError("go")),
+            patch.object(
+                run_tests.subprocess, "run", side_effect=FileNotFoundError("go")
+            ),
             redirect_stdout(StringIO()),
         ):
             self.assertEqual(run_tests.execute_module(module), 1)
 
     def test_execute_module_preserves_subprocess_status(self) -> None:
-        module = run_tests.TestModule("aggregator", Path("/repo"), ["mvn", "-B", "test"])
+        module = run_tests.TestModule(
+            "aggregator", Path("/repo"), ["mvn", "-B", "test"]
+        )
         with (
             patch.object(
-                run_tests.subprocess, "run",
+                run_tests.subprocess,
+                "run",
                 return_value=subprocess.CompletedProcess([], 2),
             ) as execute,
             redirect_stdout(StringIO()),

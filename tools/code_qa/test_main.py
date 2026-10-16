@@ -17,8 +17,16 @@ class OrchestratorFlowTests(unittest.TestCase):
     def test_code_qa_formats_then_runs_tests_without_secrets(self) -> None:
         calls: list[str] = []
         with (
-            patch.object(main, "run_format_command", side_effect=lambda **_: calls.append("format") or 0),
-            patch.object(main, "run_test_command", side_effect=lambda **_: calls.append("test") or 0),
+            patch.object(
+                main,
+                "run_format_command",
+                side_effect=lambda **_: calls.append("format") or 0,
+            ),
+            patch.object(
+                main,
+                "run_test_command",
+                side_effect=lambda **_: calls.append("test") or 0,
+            ),
             patch.object(main, "run_secrets_command") as secrets,
         ):
             self.assertEqual(main.run_code_qa_command(suppress_final_summary=True), 0)
@@ -29,17 +37,29 @@ class OrchestratorFlowTests(unittest.TestCase):
         with (
             patch.object(main, "run_format_command", return_value=1),
             patch.object(main, "run_test_command") as tests,
+            redirect_stdout(StringIO()),
         ):
-            with redirect_stdout(StringIO()):
-                self.assertEqual(main.run_code_qa_command(), 1)
+            self.assertEqual(main.run_code_qa_command(), 1)
         tests.assert_not_called()
 
     def test_full_qa_scans_secrets_only_after_formatting_and_tests(self) -> None:
         calls: list[str] = []
         with (
-            patch.object(main, "run_format_command", side_effect=lambda **_: calls.append("format") or 0),
-            patch.object(main, "run_test_command", side_effect=lambda **_: calls.append("test") or 0),
-            patch.object(main, "run_secrets_command", side_effect=lambda **_: calls.append("secrets") or 0),
+            patch.object(
+                main,
+                "run_format_command",
+                side_effect=lambda **_: calls.append("format") or 0,
+            ),
+            patch.object(
+                main,
+                "run_test_command",
+                side_effect=lambda **_: calls.append("test") or 0,
+            ),
+            patch.object(
+                main,
+                "run_secrets_command",
+                side_effect=lambda **_: calls.append("secrets") or 0,
+            ),
             redirect_stdout(StringIO()),
         ):
             self.assertEqual(main.run_qa_command(), 0)
@@ -74,7 +94,9 @@ class OrchestratorFlowTests(unittest.TestCase):
     def test_redirected_cp1251_stdout_preserves_unicode_test_output(self) -> None:
         """Windows redirected stdout must not crash on Unicode from test tools."""
         process = MagicMock()
-        process.stdout = iter(["Testing catalog: \u2713 passed, \u4e2d\u6587 supported\n"])
+        process.stdout = iter(
+            ["Testing catalog: \u2713 passed, \u4e2d\u6587 supported\n"]
+        )
         process.wait.return_value = 0
         process.__enter__.return_value = process
 
@@ -98,7 +120,9 @@ class OrchestratorFlowTests(unittest.TestCase):
 
     def test_missing_test_process_reports_failure(self) -> None:
         with (
-            patch.object(main.subprocess, "Popen", side_effect=FileNotFoundError("python")),
+            patch.object(
+                main.subprocess, "Popen", side_effect=FileNotFoundError("python")
+            ),
             redirect_stdout(StringIO()) as output,
         ):
             self.assertEqual(main.run_test_command(), 1)

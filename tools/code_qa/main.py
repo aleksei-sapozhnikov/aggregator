@@ -375,7 +375,9 @@ def build_parser() -> argparse.ArgumentParser:
     )
     test_cmd.add_argument("--out-file", default="")
 
-    secrets_cmd = sub.add_parser("secrets", help="Run only the TruffleHog secrets scan.")
+    secrets_cmd = sub.add_parser(
+        "secrets", help="Run only the TruffleHog secrets scan."
+    )
     secrets_cmd.add_argument("--scan-root", default=".")
     secrets_cmd.add_argument("--output-file", default="")
     secrets_cmd.add_argument("--gitignored-output-file", default="")

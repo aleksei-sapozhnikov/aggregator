@@ -49,10 +49,21 @@ def resolve_ai_agent_python(root: Path) -> str | None:
 
     if not python_test_dependencies_available(python):
         requirements = root / "services-core" / "ai-agent" / "src" / "requirements.txt"
-        print("Installing ai-agent test dependencies into the QA virtualenv...", flush=True)
+        print(
+            "Installing ai-agent test dependencies into the QA virtualenv...",
+            flush=True,
+        )
         try:
             result = subprocess.run(
-                [str(python), "-m", "pip", "install", "-r", str(requirements), "pytest"],
+                [
+                    str(python),
+                    "-m",
+                    "pip",
+                    "install",
+                    "-r",
+                    str(requirements),
+                    "pytest",
+                ],
                 cwd=root,
                 check=False,
             )
@@ -68,8 +79,11 @@ def resolve_ai_agent_python(root: Path) -> str | None:
 
 def ensure_ui_test_dependencies(directory: Path) -> bool:
     """Install locked npm dependencies if the Vitest executable is absent."""
-    vitest = directory / "node_modules" / ".bin" / (
-        "vitest.cmd" if sys.platform == "win32" else "vitest"
+    vitest = (
+        directory
+        / "node_modules"
+        / ".bin"
+        / ("vitest.cmd" if sys.platform == "win32" else "vitest")
     )
     if vitest.exists():
         return True
@@ -95,9 +109,19 @@ def build_module(root: Path, name: str) -> TestModule | None:
     """Build a module command; return None if prerequisites cannot be prepared."""
     if name == "code-qa":
         return TestModule(
-            name, root,
-            [sys.executable, "-m", "unittest", "discover", "-s", "tools/code_qa",
-             "-p", "test_*.py", "-v"],
+            name,
+            root,
+            [
+                sys.executable,
+                "-m",
+                "unittest",
+                "discover",
+                "-s",
+                "tools/code_qa",
+                "-p",
+                "test_*.py",
+                "-v",
+            ],
         )
 
     directory = root / "services-core" / name
@@ -168,7 +192,9 @@ def build_parser() -> argparse.ArgumentParser:
     """Parse module selections; without --module, run the entire test matrix."""
     parser = argparse.ArgumentParser(description="Run module unit tests.")
     parser.add_argument(
-        "--module", action="append", choices=MODULE_NAMES,
+        "--module",
+        action="append",
+        choices=MODULE_NAMES,
         help="Run only a selected module (may be repeated).",
     )
     return parser

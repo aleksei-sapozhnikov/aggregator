@@ -2,15 +2,15 @@
 
 The QA runners are invoked from the repository root through the Makefile.
 
-| Command | Behavior |
-| --- | --- |
-| `make code-format` | Check formatting and apply supported fixes, then recheck. |
-| `make code-lint` | Check code quality without changing files or scanning secrets. |
-| `make test` | Run all unit tests, reporting output and status for each module. |
+| Command                         | Behavior                                                                               |
+| ------------------------------- | -------------------------------------------------------------------------------------- |
+| `make code-format`              | Check formatting and apply supported fixes, then recheck.                              |
+| `make code-lint`                | Check code quality without changing files or scanning secrets.                         |
+| `make test`                     | Run all unit tests, reporting output and status for each module.                       |
 | `make test TEST_MODULE=catalog` | Run one module (also accepts `aggregator`, `aggregator-ui`, `ai-agent`, or `code-qa`). |
-| `make code-qa` | Run formatting, then module tests, with no secrets scan. |
-| `make code-secrets` | Run only the TruffleHog secrets scanner. |
-| `make qa` | Run formatting, tests, and TruffleHog. |
+| `make code-qa`                  | Run formatting, then module tests, with no secrets scan.                               |
+| `make code-secrets`             | Run only the TruffleHog secrets scanner.                                               |
+| `make qa`                       | Run formatting, tests, and TruffleHog.                                                 |
 
 ## Test modules
 
