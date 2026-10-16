@@ -48,7 +48,13 @@ export default function App() {
   const catalogTitle = resolveCatalogTitle();
   const isAiChatFeatureEnabled = useMemo(isTemporaryAiChatEnabled, []);
   const [theme, setTheme] = useState(getInitialTheme);
-  const { catalog, error, itemStatuses, itemSignals } = useCatalogData();
+  const {
+    catalog,
+    error,
+    itemStatuses,
+    itemSignals,
+    lastUpdated: lastHealthFetchTime,
+  } = useCatalogData();
 
 
   const [isTimelineOpen, setIsTimelineOpen] = useState(true);
@@ -237,7 +243,7 @@ export default function App() {
         onSelectItemById={handleSelectItemById}
         onExpandPathToItem={expandPathToItem}
         itemStatuses={itemStatuses}
-        lastUpdated={lastUpdated}
+        lastUpdated={lastHealthFetchTime}
         catalogTreeRef={catalogTreeRef}
         filteredTree={filteredTree}
         expandedIds={expandedIds}
@@ -276,7 +282,7 @@ export default function App() {
         onOpenAbout={() => setIsAboutOpen(true)}
         selectedItem={selectedItem}
         selectedStatus={selectedStatus}
-        lastUpdated={lastUpdated}
+        lastUpdated={lastHealthFetchTime}
         selectedTitleFirstWord={selectedTitleFirstWord}
         selectedTitleRest={selectedTitleRest}
         chat={
