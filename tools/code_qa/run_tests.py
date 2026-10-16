@@ -3,21 +3,19 @@
 from __future__ import annotations
 
 import argparse
-import shutil
 import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
 
 from utils import (
-    build_emitter,
     ensure_venv,
     python_has_module,
     repo_root,
 )
 
 MODULE_NAMES = ("aggregator", "aggregator-ui", "catalog", "ai-agent", "code-qa")
-PYTHON_TEST_IMPORTS = ("pytest", "fastapi", "httpx", "boto3", "lingua", "requests", "yaml")
+PYTHON_TEST_IMPORTS = ("pytest", "fastapi", "httpx", "boto3", "lingua", "requests")
 
 
 @dataclass(frozen=True)
