@@ -14,7 +14,7 @@ describe("GrafanaFrame", () => {
     render(<GrafanaFrame itemId="checkout" theme="dark" onNavigateToItem={onNavigateToItem} />);
     const iframe = screen.getByTitle("State Timeline") as HTMLIFrameElement;
     expect(iframe.getAttribute("src")).toContain(
-      "components/item-details/timeline/grafana/frame/index.html",
+      "src/components/item-details/timeline/grafana/frame/index.html",
     );
     const send = vi.spyOn(iframe.contentWindow!, "postMessage");
     fireEvent.load(iframe);
