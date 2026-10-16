@@ -58,6 +58,23 @@ describe("Primary contact contextual help", () => {
     expect(figure?.querySelectorAll("img")).toHaveLength(0);
   });
 
+  it("shows the expanded Aggregator page without a nested card frame", () => {
+    render(<PrimaryContactHelpDemo />);
+    const figure = screen.getByRole("figure", {
+      name: "Find the primary contact in Aggregator to get a failing service repaired",
+    });
+    const surface = figure.querySelector(
+      "[data-primary-contact-page] .primary-contact-page-surface",
+    );
+    expect(surface?.getAttribute("x")).toBe("0");
+    expect(surface?.getAttribute("y")).toBe("0");
+    expect(surface?.getAttribute("width")).toBe("640");
+    expect(surface?.getAttribute("height")).toBe("340");
+    expect(surface?.hasAttribute("rx")).toBe(false);
+    expect(figure.querySelectorAll(".primary-contact-page-surface")).toHaveLength(1);
+    expect(figure.querySelector(".primary-contact-page-highlight")).not.toBeNull();
+  });
+
   it("keeps sprites at Actors scale and contact directly beneath its heading", () => {
     render(<PrimaryContactHelpDemo />);
     const illustration = screen.getByRole("figure", {

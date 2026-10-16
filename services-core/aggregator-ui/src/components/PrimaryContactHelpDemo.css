@@ -50,8 +50,7 @@
 .primary-contact-phone-waves { stroke: #45a87b; }
 .primary-contact-page-surface {
   fill: var(--panel);
-  stroke: var(--border);
-  stroke-width: 2;
+  stroke: none;
 }
 .primary-contact-help-diagram text {
   font-family: Inter, "Segoe UI", system-ui, sans-serif;

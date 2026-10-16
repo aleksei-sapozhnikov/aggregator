@@ -239,7 +239,9 @@ function AggregatorPage({ frame, layout }: { frame: HelpFrame; layout: HelpLayou
     <g data-primary-contact-page="true"
       style={{ opacity: frame.pageOpacity }}
       transform={"translate(" + x + " " + y + ") scale(" + scale + ")"}>
-      <rect x="6" y="5" width="628" height="330" rx="12"
+      {/* The figure already provides the border; this full-bleed surface
+          hides the underlying characters without adding another card. */}
+      <rect x="0" y="0" width="640" height="340"
         className="primary-contact-page-surface" />
       <text x="45" y="59" className="primary-contact-page-title">
         Customer Experience
