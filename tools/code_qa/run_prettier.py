@@ -4,8 +4,13 @@ from __future__ import annotations
 
 import argparse
 import subprocess
+from collections.abc import Iterator
 
 from utils import ensure_prettier_cmd, iter_repo_files, repo_root
+
+# Stay below Windows cmd.exe's 8191-character command-line limit.
+# Leave room for the command shim, quoting, and other shell overhead.
+MAX_COMMAND_LENGTH = 4_000
 
 PRETTIER_SUFFIXES = {
     ".js",
@@ -36,6 +41,39 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def batched_file_args(command: list[str], files: list[str]) -> Iterator[list[str]]:
+    """Split files into argument batches that fit Windows command-line limits."""
+    # Account conservatively for argument separation and quotes.
+    base_length = sum(len(arg) + 3 for arg in command)
+    if base_length >= MAX_COMMAND_LENGTH:
+        raise ValueError("Prettier command itself exceeds the safe argument limit.")
+
+    batch: list[str] = []
+    current_length = base_length
+    for file in files:
+        arg_length = len(file) + 3
+        if current_length + arg_length > MAX_COMMAND_LENGTH and batch:
+            yield batch
+            batch = []
+            current_length = base_length
+        if current_length + arg_length > MAX_COMMAND_LENGTH:
+            raise ValueError(f"File path is too long for Prettier: {file}")
+        batch.append(file)
+        current_length += arg_length
+    if batch:
+        yield batch
+
+
+def run_prettier(command: list[str], files: list[str]) -> int:
+    """Process every file and report failure if any Prettier batch fails."""
+    return_code = 0
+    for batch in batched_file_args(command, files):
+        result = subprocess.run([*command, *batch], cwd=repo_root(), check=False)
+        if result.returncode != 0:
+            return_code = result.returncode
+    return return_code
+
+
 def main() -> int:
     """Run Prettier check or write mode for supported files."""
     args = build_parser().parse_args()
@@ -51,13 +89,8 @@ def main() -> int:
     ]
     if not files:
         return 0
-    if args.check_only:
-        return subprocess.run(
-            [*prettier_cmd, "--check", *files], cwd=root, check=False
-        ).returncode
-    return subprocess.run(
-        [*prettier_cmd, "--write", *files], cwd=root, check=False
-    ).returncode
+    action = "--check" if args.check_only else "--write"
+    return run_prettier([*prettier_cmd, action], files)
 
 
 if __name__ == "__main__":
