@@ -67,3 +67,12 @@ dependency paths, owner/actor relationships, and primary contacts for rendering.
 It accepts statuses and signals already returned by Product Health services;
 it must not infer or override an Item's health status. The app orchestrator
 only passes catalog data and selection into this hook and consumes its outputs.
+
+## Responsive application layout
+
+`app/hooks/useResponsiveLayout.ts` owns desktop/mobile catalog visibility,
+mobile swipe gestures, media query changes, and visual viewport sizing.
+`app/hooks/useTitlePlacement.ts` keeps the current Item title positioning
+and ResizeObserver behavior isolated from the application orchestrator.
+Both hooks preserve existing breakpoints and layout behavior, and the global
+`styles.css` remains unchanged.
