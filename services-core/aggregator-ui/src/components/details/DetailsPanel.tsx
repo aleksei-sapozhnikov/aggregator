@@ -9,7 +9,6 @@ import ItemOwnership, { type ActorSummaryRow } from "../shared/item/ItemOwnershi
 import { HealthySignals, UnhealthySignals, type UnhealthyDependencyRow } from "../shared/item/ItemSignals";
 import ItemTimeline from "../shared/item/ItemTimeline";
 import InfoHelp from "../shared/help/InfoHelp";
-import HealthSignalModal from "../entity-details/signal/HealthSignalModal";
 import { isPlainLeftClick } from "../../shared/catalogUtils";
 import type {
   CatalogActor,
@@ -41,7 +40,6 @@ type DetailsPanelProps = {
   onToggleTheme: () => void;
   onOpenAbout: () => void;
   selectedItem: CatalogItem | undefined;
-  catalogItems: CatalogItem[];
   selectedStatus: HealthStatus;
   lastUpdated: string;
   selectedTitleFirstWord: string;
@@ -59,6 +57,7 @@ type DetailsPanelProps = {
   >;
   buildItemLink: (itemId: string, pathIds?: string[]) => string;
   onSelectItemById: (itemId: string) => void;
+  onOpenSignal: (signal: ItemSignal) => void;
   onSelectItemByPath: (pathIds: string[]) => void;
   onOpenActor: (actor: CatalogActor) => void;
   passingSignalsCount: number;
@@ -70,19 +69,6 @@ type DetailsPanelProps = {
   grafanaIframeRef: RefObject<HTMLIFrameElement | null>;
   onGrafanaLoad: () => void;
   grafanaFrameUrl: string;
-};
-
-// Signal deep links use a URL fragment so the selected item route stays intact.
-const signalIdFromHash = (): string => {
-  const match = /^#signal\/([^/]+)$/.exec(window.location.hash);
-  if (!match) {
-    return "";
-  }
-  try {
-    return decodeURIComponent(match[1]);
-  } catch {
-    return "";
-  }
 };
 
 const buildSignalLink = (id: string): string =>
@@ -147,7 +133,6 @@ function DetailsPanelContent({
   onToggleTheme,
   onOpenAbout,
   selectedItem,
-  catalogItems,
   selectedStatus,
   lastUpdated,
   selectedTitleFirstWord,
@@ -159,6 +144,7 @@ function DetailsPanelContent({
   actorContactsByActorId,
   buildItemLink,
   onSelectItemById,
+  onOpenSignal,
   onSelectItemByPath,
   onOpenActor,
   passingSignalsCount,
@@ -172,42 +158,9 @@ function DetailsPanelContent({
   grafanaFrameUrl,
 }: DetailsPanelProps) {
   const selectedItemId = selectedItem?.id || "";
-  const [openedSignalId, setOpenedSignalId] = useState(signalIdFromHash);
-  const [openedSignalTitle, setOpenedSignalTitle] = useState("");
   const [disclosureByItemId, setDisclosureByItemId] = useState<
     Record<string, DetailsDisclosureState>
   >({});
-
-  useEffect(() => {
-    const syncSignalWithLocation = () => {
-      setOpenedSignalId(signalIdFromHash());
-      setOpenedSignalTitle("");
-    };
-    window.addEventListener("hashchange", syncSignalWithLocation);
-    window.addEventListener("popstate", syncSignalWithLocation);
-    return () => {
-      window.removeEventListener("hashchange", syncSignalWithLocation);
-      window.removeEventListener("popstate", syncSignalWithLocation);
-    };
-  }, []);
-
-  const openSignal = (signal: ItemSignal) => {
-    const url = new URL(window.location.href);
-    url.hash = `signal/${encodeURIComponent(signal.id)}`;
-    window.history.pushState(window.history.state, "", url);
-    setOpenedSignalId(signal.id);
-    setOpenedSignalTitle(signal.title || signal.id);
-  };
-
-  const closeSignal = () => {
-    setOpenedSignalId("");
-    setOpenedSignalTitle("");
-    if (signalIdFromHash()) {
-      const url = new URL(window.location.href);
-      url.hash = "";
-      window.history.replaceState(window.history.state, "", url);
-    }
-  };
 
   const handleSignalClick = (
     event: MouseEvent<HTMLAnchorElement>,
@@ -217,7 +170,7 @@ function DetailsPanelContent({
       return;
     }
     event.preventDefault();
-    openSignal(signal);
+    onOpenSignal(signal);
   };
 
   const ownerActorForContacts =
@@ -398,15 +351,6 @@ function DetailsPanelContent({
             </>
           )}
         </div>
-        <HealthSignalModal
-          isOpen={Boolean(openedSignalId)}
-          signalId={openedSignalId}
-          fallbackTitle={openedSignalTitle}
-          items={catalogItems}
-          buildItemLink={buildItemLink}
-          onSelectItemById={onSelectItemById}
-          onClose={closeSignal}
-        />
         <AiChatPanel
           isOpen={isAiChatOpen}
           buildItemLink={buildItemLink}

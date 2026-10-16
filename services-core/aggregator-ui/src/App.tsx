@@ -9,6 +9,8 @@ import DetailsPanel from "./components/details/DetailsPanel";
 import AboutModal from "./components/about/application/AboutModal";
 import ContactModal from "./components/entity-details/contact/ContactModal";
 import ActorModal from "./components/entity-details/actor/ActorModal";
+import HealthSignalModal from "./components/entity-details/signal/HealthSignalModal";
+import useSignalDetails from "./components/entity-details/signal/useSignalDetails";
 import {
   buildCatalogTree,
   buildItemPathname,
@@ -167,6 +169,7 @@ export default function App() {
   const [isGrafanaOpen, setIsGrafanaOpen] = useState(true);
   const [isAiChatOpen, setIsAiChatOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
+  const { openedSignalId, openedSignalTitle, openSignal, closeSignal } = useSignalDetails();
   const [openedContact, setOpenedContact] = useState<CatalogContact | null>(
     null,
   );
@@ -1501,7 +1504,6 @@ export default function App() {
         }
         onOpenAbout={() => setIsAboutOpen(true)}
         selectedItem={selectedItem}
-        catalogItems={catalog.items}
         selectedStatus={selectedStatus}
         lastUpdated={lastUpdated}
         selectedTitleFirstWord={selectedTitleFirstWord}
@@ -1513,6 +1515,7 @@ export default function App() {
         actorContactsByActorId={actorContactsByActorId}
         buildItemLink={buildItemLink}
         onSelectItemById={handleSelectItemByIdNoPath}
+        onOpenSignal={openSignal}
         onSelectItemByPath={handleSelectItemByPath}
         onOpenActor={(actor) => setOpenedActorId(actor.id)}
         passingSignalsCount={passingSignalsCount}
@@ -1524,6 +1527,15 @@ export default function App() {
         grafanaIframeRef={grafanaIframeRef}
         onGrafanaLoad={handleGrafanaLoad}
         grafanaFrameUrl={grafanaFrameUrl}
+      />
+      <HealthSignalModal
+        isOpen={Boolean(openedSignalId)}
+        signalId={openedSignalId}
+        fallbackTitle={openedSignalTitle}
+        items={catalog.items}
+        buildItemLink={buildItemLink}
+        onSelectItemById={handleSelectItemByIdNoPath}
+        onClose={closeSignal}
       />
       <AboutModal isOpen={isAboutOpen} onClose={() => setIsAboutOpen(false)} />
       <ContactModal

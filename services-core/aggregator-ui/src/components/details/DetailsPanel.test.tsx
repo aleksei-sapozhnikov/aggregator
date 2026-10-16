@@ -104,10 +104,6 @@ const renderDetailsPanel = (
     onToggleTheme: vi.fn(),
     onOpenAbout: vi.fn(),
     selectedItem: { id: "checkout", title: "Checkout" },
-    catalogItems: [
-      { id: "checkout", title: "Checkout" },
-      { id: "payments", title: "Payments Service" },
-    ],
     selectedStatus: "down" as const,
     lastUpdated: "2026-10-08T12:00:00Z",
     selectedTitleFirstWord: "Checkout",
@@ -143,6 +139,7 @@ const renderDetailsPanel = (
     ]),
     buildItemLink: (itemId: string) => `/items/${itemId}`,
     onSelectItemById: vi.fn(),
+    onOpenSignal: vi.fn(),
     onSelectItemByPath: vi.fn(),
     onOpenActor: vi.fn(),
     passingSignalsCount: 1,
@@ -710,63 +707,13 @@ describe("DetailsPanel contextual help", () => {
     expect(props.onOpenContact).toHaveBeenCalledWith(primaryContact);
   });
 
-  it("opens signal details on click and keeps the current item route", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue({
-        ok: true,
-        status: 200,
-        json: async () => ({
-          id: "latency",
-          title: "Latency",
-          type: "http-poll",
-          itemId: "checkout",
-          url: "http://demo/health/latency",
-        }),
-      }),
-    );
-    const { user } = renderDetailsPanel();
+  it("forwards a signal selection to the application without navigating", async () => {
+    const { user, props } = renderDetailsPanel();
     await user.click(screen.getByRole("link", { name: "Latency" }));
-
-    const dialog = screen.getByRole("dialog", {
-      name: "Health signal details",
+    expect(props.onOpenSignal).toHaveBeenCalledWith({
+      id: "latency", title: "Latency", status: "down",
     });
-    expect(dialog.querySelector(".modal-header h2")?.textContent).toBe(
-      "Health signal",
-    );
-    expect(window.location.hash).toBe("#signal/latency");
-    await screen.findByText("http://demo/health/latency");
-
-    await user.click(
-      screen.getByRole("button", { name: "Close health signal details" }),
-    );
-    expect(
-      screen.queryByRole("dialog", { name: "Health signal details" }),
-    ).toBeNull();
     expect(window.location.hash).toBe("");
-  });
-
-  it("restores a signal modal from a direct signal ID link", async () => {
-    window.history.replaceState({}, "", "/item/checkout#signal/errors");
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => ({
-        id: "errors",
-        title: "Error rate",
-        itemId: "payments",
-        type: "http-poll",
-        url: "http://demo/health/errors",
-      }),
-    });
-    vi.stubGlobal("fetch", fetchMock);
-
-    renderDetailsPanel();
-    expect(
-      screen.getByRole("dialog", { name: "Health signal details" }),
-    ).not.toBeNull();
-    await screen.findByRole("link", { name: "Payments Service" });
-    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it("keeps unknown unhealthy states explicitly visible", () => {
