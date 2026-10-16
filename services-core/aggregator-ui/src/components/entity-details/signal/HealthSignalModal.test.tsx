@@ -113,8 +113,6 @@ describe("HealthSignalModal", () => {
     expect(onSelectItemById).toHaveBeenCalledExactlyOnceWith("payments");
   });
 
-
-
   it("displays generic errors for other HTTP failures", async () => {
     setup(null, 500);
     await waitFor(() => {
@@ -138,9 +136,7 @@ describe("HealthSignalModal", () => {
   it("keeps network errors in the exception handler", async () => {
     setup(undefined, 200, new Error("Network unavailable"));
     await waitFor(() => {
-      expect(screen.getByRole("alert").textContent).toBe(
-        "Network unavailable",
-      );
+      expect(screen.getByRole("alert").textContent).toBe("Network unavailable");
     });
     expect(screen.queryByRole("table")).toBeNull();
   });

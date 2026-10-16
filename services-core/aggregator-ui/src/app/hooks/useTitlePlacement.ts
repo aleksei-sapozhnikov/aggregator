@@ -19,7 +19,8 @@ export default function useTitlePlacement({
   selectedId,
   selectedTitleFirstWord,
 }: TitlePlacementOptions) {
-  const [isTitlePrimaryBelowControls, setIsTitlePrimaryBelowControls] = useState(false);
+  const [isTitlePrimaryBelowControls, setIsTitlePrimaryBelowControls] =
+    useState(false);
   const headerRef = useRef<HTMLElement | null>(null);
   const headerActionsRef = useRef<HTMLDivElement | null>(null);
   const contentTitlePrimaryRef = useRef<HTMLElement | null>(null);

@@ -37,14 +37,18 @@ const EMPTY_CATALOG: {
   actorContacts: [],
 };
 
-
 export default function useCatalogData() {
   const [catalog, setCatalog] = useState(EMPTY_CATALOG);
   const [error, setError] = useState("");
-  const [itemStatuses, setItemStatuses] = useState<Record<string, HealthStatus>>({});
-  const [itemSignals, setItemSignals] = useState<Record<string, ItemSignal[]>>({});
-  const [productHealthByItemId, setProductHealthByItemId] =
-    useState<Record<string, ProductHealthItem>>({});
+  const [itemStatuses, setItemStatuses] = useState<
+    Record<string, HealthStatus>
+  >({});
+  const [itemSignals, setItemSignals] = useState<Record<string, ItemSignal[]>>(
+    {},
+  );
+  const [productHealthByItemId, setProductHealthByItemId] = useState<
+    Record<string, ProductHealthItem>
+  >({});
   const [lastUpdated, setLastUpdated] = useState("");
 
   useEffect(() => {
@@ -58,7 +62,9 @@ export default function useCatalogData() {
         }
       } catch (err: unknown) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : "Failed to load catalog");
+          setError(
+            err instanceof Error ? err.message : "Failed to load catalog",
+          );
         }
       }
     };
@@ -104,5 +110,12 @@ export default function useCatalogData() {
     };
   }, [catalog.items]);
 
-  return { catalog, error, itemStatuses, itemSignals, productHealthByItemId, lastUpdated };
+  return {
+    catalog,
+    error,
+    itemStatuses,
+    itemSignals,
+    productHealthByItemId,
+    lastUpdated,
+  };
 }

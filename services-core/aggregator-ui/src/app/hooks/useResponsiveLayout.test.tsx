@@ -11,14 +11,21 @@ function mockMatchMedia(initialMobile: boolean) {
     get matches() {
       return matches;
     },
-    addEventListener: vi.fn((event: string, listener: (value: MediaQueryListEvent) => void) => {
-      if (event === "change") listeners.add(listener);
-    }),
-    removeEventListener: vi.fn((event: string, listener: (value: MediaQueryListEvent) => void) => {
-      if (event === "change") listeners.delete(listener);
-    }),
+    addEventListener: vi.fn(
+      (event: string, listener: (value: MediaQueryListEvent) => void) => {
+        if (event === "change") listeners.add(listener);
+      },
+    ),
+    removeEventListener: vi.fn(
+      (event: string, listener: (value: MediaQueryListEvent) => void) => {
+        if (event === "change") listeners.delete(listener);
+      },
+    ),
   } as unknown as MediaQueryList;
-  vi.stubGlobal("matchMedia", vi.fn(() => mediaQuery));
+  vi.stubGlobal(
+    "matchMedia",
+    vi.fn(() => mediaQuery),
+  );
   return {
     mediaQuery,
     switchTo(mobile: boolean) {
@@ -115,7 +122,9 @@ describe("useResponsiveLayout", () => {
     const listeners = new Map<string, () => void>();
     const viewport = {
       height: 700,
-      addEventListener: vi.fn((event: string, callback: () => void) => listeners.set(event, callback)),
+      addEventListener: vi.fn((event: string, callback: () => void) =>
+        listeners.set(event, callback),
+      ),
       removeEventListener: vi.fn((event: string) => listeners.delete(event)),
     };
     const cancelAnimationFrame = vi.fn();
@@ -127,13 +136,19 @@ describe("useResponsiveLayout", () => {
     vi.stubGlobal("cancelAnimationFrame", cancelAnimationFrame);
 
     const { unmount } = renderHook(() => useResponsiveLayout());
-    expect(document.documentElement.style.getPropertyValue("--app-viewport-height")).toBe("700px");
+    expect(
+      document.documentElement.style.getPropertyValue("--app-viewport-height"),
+    ).toBe("700px");
     viewport.height = 560;
     act(() => listeners.get("resize")?.());
-    expect(document.documentElement.style.getPropertyValue("--app-viewport-height")).toBe("560px");
+    expect(
+      document.documentElement.style.getPropertyValue("--app-viewport-height"),
+    ).toBe("560px");
     unmount();
     expect(listeners.size).toBe(0);
     expect(cancelAnimationFrame).toHaveBeenCalled();
-    expect(document.documentElement.style.getPropertyValue("--app-viewport-height")).toBe("");
+    expect(
+      document.documentElement.style.getPropertyValue("--app-viewport-height"),
+    ).toBe("");
   });
 });

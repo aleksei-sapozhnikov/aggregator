@@ -65,7 +65,9 @@ describe("useCatalogData", () => {
     expect(result.current.error).toBe("");
     expect(result.current.itemStatuses).toEqual({ checkout: "down" });
     expect(result.current.itemSignals).toEqual(health.itemSignals);
-    expect(result.current.productHealthByItemId.checkout).toEqual(health.items[0]);
+    expect(result.current.productHealthByItemId.checkout).toEqual(
+      health.items[0],
+    );
     expect(result.current.lastUpdated).not.toBe("");
   });
 
@@ -73,13 +75,18 @@ describe("useCatalogData", () => {
     vi.useFakeTimers();
     let resolveCatalog!: (value: typeof catalog) => void;
     vi.mocked(loadCatalog).mockImplementation(
-      () => new Promise((resolve) => { resolveCatalog = resolve; }),
+      () =>
+        new Promise((resolve) => {
+          resolveCatalog = resolve;
+        }),
     );
 
     const { result } = renderHook(() => useCatalogData());
     expect(fetchProductHealth).not.toHaveBeenCalled();
 
-    await act(async () => { resolveCatalog(catalog); });
+    await act(async () => {
+      resolveCatalog(catalog);
+    });
     expect(fetchProductHealth).toHaveBeenCalledTimes(1);
 
     vi.mocked(fetchProductHealth).mockResolvedValueOnce({
@@ -88,9 +95,13 @@ describe("useCatalogData", () => {
       itemSignals: { checkout: [] },
     });
 
-    await act(async () => { await vi.advanceTimersByTimeAsync(9_999); });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(9_999);
+    });
     expect(fetchProductHealth).toHaveBeenCalledTimes(1);
-    await act(async () => { await vi.advanceTimersByTimeAsync(1); });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1);
+    });
 
     expect(fetchProductHealth).toHaveBeenCalledTimes(2);
     expect(result.current.itemStatuses).toEqual({ checkout: "up" });
@@ -104,12 +115,16 @@ describe("useCatalogData", () => {
     await flushMicrotasks();
 
     expect(result.current.catalog.items).toEqual([]);
-    await act(async () => { await vi.advanceTimersByTimeAsync(30_000); });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(30_000);
+    });
     expect(fetchProductHealth).not.toHaveBeenCalled();
   });
 
   it("exposes catalog loading errors without starting the health poll", async () => {
-    vi.mocked(loadCatalog).mockRejectedValue(new Error("Catalog is unavailable"));
+    vi.mocked(loadCatalog).mockRejectedValue(
+      new Error("Catalog is unavailable"),
+    );
     const { result } = renderHook(() => useCatalogData());
     await flushMicrotasks();
 
@@ -124,12 +139,18 @@ describe("useCatalogData", () => {
     const { result } = renderHook(() => useCatalogData());
     await flushMicrotasks();
 
-    vi.mocked(fetchProductHealth).mockRejectedValueOnce(new Error("Health is unavailable"));
-    await act(async () => { await vi.advanceTimersByTimeAsync(10_000); });
+    vi.mocked(fetchProductHealth).mockRejectedValueOnce(
+      new Error("Health is unavailable"),
+    );
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10_000);
+    });
     expect(result.current.itemStatuses).toEqual({ checkout: "down" });
     expect(log).toHaveBeenCalledTimes(1);
 
-    await act(async () => { await vi.advanceTimersByTimeAsync(10_000); });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10_000);
+    });
     expect(fetchProductHealth).toHaveBeenCalledTimes(3);
     expect(result.current.error).toBe("");
   });
@@ -138,7 +159,10 @@ describe("useCatalogData", () => {
     vi.useFakeTimers();
     let resolveHealth!: (value: typeof health) => void;
     vi.mocked(fetchProductHealth).mockImplementation(
-      () => new Promise((resolve) => { resolveHealth = resolve; }),
+      () =>
+        new Promise((resolve) => {
+          resolveHealth = resolve;
+        }),
     );
     const clearInterval = vi.spyOn(window, "clearInterval");
     const { unmount } = renderHook(() => useCatalogData());
@@ -147,8 +171,12 @@ describe("useCatalogData", () => {
 
     unmount();
     expect(clearInterval).toHaveBeenCalledTimes(1);
-    await act(async () => { resolveHealth(health); });
-    await act(async () => { await vi.advanceTimersByTimeAsync(20_000); });
+    await act(async () => {
+      resolveHealth(health);
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(20_000);
+    });
     expect(fetchProductHealth).toHaveBeenCalledTimes(1);
   });
 });

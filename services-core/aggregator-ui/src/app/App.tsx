@@ -19,7 +19,11 @@ import useResponsiveLayout from "./hooks/useResponsiveLayout";
 import useTitlePlacement from "./hooks/useTitlePlacement";
 import useCatalogNavigation from "../components/catalog-tree/useCatalogNavigation";
 import useCatalogSelectionSync from "../components/catalog-tree/useCatalogSelectionSync";
-import { getInitialTheme, resolveBasePath, resolveCatalogTitle } from "../services/aggregatorApi";
+import {
+  getInitialTheme,
+  resolveBasePath,
+  resolveCatalogTitle,
+} from "../services/aggregatorApi";
 import type { CatalogContact } from "../shared/types";
 
 const TEMP_AI_CHAT_STORAGE_KEY = "aggregator-ui-ai-chat-enabled";
@@ -55,7 +59,6 @@ export default function App() {
     itemSignals,
     lastUpdated: lastHealthFetchTime,
   } = useCatalogData();
-
 
   const [isTimelineOpen, setIsTimelineOpen] = useState(true);
   const [isAiChatOpen, setIsAiChatOpen] = useState(false);

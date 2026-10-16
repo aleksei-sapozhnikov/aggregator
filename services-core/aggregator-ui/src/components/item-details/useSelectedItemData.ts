@@ -4,7 +4,10 @@
  */
 import { useMemo } from "react";
 import { sortContactsWithPrimaryFirst } from "../../shared/contacts/contactPresentation";
-import { compareHealthStatus, isUnhealthyHealthStatus } from "../../shared/health/healthPresentation";
+import {
+  compareHealthStatus,
+  isUnhealthyHealthStatus,
+} from "../../shared/health/healthPresentation";
 import type {
   CatalogActor,
   CatalogActorContact,

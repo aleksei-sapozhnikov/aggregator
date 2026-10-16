@@ -22,22 +22,28 @@ describe("useTitlePlacement", () => {
     const primary = document.createElement("span");
     header.append(actions, primary);
     document.body.appendChild(header);
-    Object.defineProperty(header, "clientWidth", { value: 400, configurable: true });
-    vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function (this: HTMLElement) {
-      if (this === actions) return rect(120, 0, 20);
-      if (this === primary) return rect(300, 0, 12);
-      if (this.style.position === "fixed") return rect(300);
-      return rect(400);
+    Object.defineProperty(header, "clientWidth", {
+      value: 400,
+      configurable: true,
     });
+    vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(
+      function (this: HTMLElement) {
+        if (this === actions) return rect(120, 0, 20);
+        if (this === primary) return rect(300, 0, 12);
+        if (this.style.position === "fixed") return rect(300);
+        return rect(400);
+      },
+    );
 
     const { result, rerender, unmount } = renderHook(
-      ({ selectedId }) => useTitlePlacement({
-        isMobileLayout: false,
-        isMobileSidebarOpen: false,
-        isDesktopSidebarOpen: true,
-        selectedId,
-        selectedTitleFirstWord: "Checkout",
-      }),
+      ({ selectedId }) =>
+        useTitlePlacement({
+          isMobileLayout: false,
+          isMobileSidebarOpen: false,
+          isDesktopSidebarOpen: true,
+          selectedId,
+          selectedTitleFirstWord: "Checkout",
+        }),
       { initialProps: { selectedId: "" } },
     );
     result.current.headerRef.current = header;
@@ -46,7 +52,10 @@ describe("useTitlePlacement", () => {
     rerender({ selectedId: "checkout" });
     expect(result.current.isTitlePrimaryBelowControls).toBe(true);
 
-    Object.defineProperty(header, "clientWidth", { value: 800, configurable: true });
+    Object.defineProperty(header, "clientWidth", {
+      value: 800,
+      configurable: true,
+    });
     act(() => window.dispatchEvent(new Event("resize")));
     expect(result.current.isTitlePrimaryBelowControls).toBe(false);
     unmount();
@@ -58,18 +67,22 @@ describe("useTitlePlacement", () => {
     const primary = document.createElement("span");
     const observe = vi.fn();
     const disconnect = vi.fn();
-    vi.stubGlobal("ResizeObserver", class {
-      observe = observe;
-      disconnect = disconnect;
-    });
+    vi.stubGlobal(
+      "ResizeObserver",
+      class {
+        observe = observe;
+        disconnect = disconnect;
+      },
+    );
     const { result, rerender, unmount } = renderHook(
-      ({ selectedId }) => useTitlePlacement({
-        isMobileLayout: false,
-        isMobileSidebarOpen: false,
-        isDesktopSidebarOpen: true,
-        selectedId,
-        selectedTitleFirstWord: "Operations",
-      }),
+      ({ selectedId }) =>
+        useTitlePlacement({
+          isMobileLayout: false,
+          isMobileSidebarOpen: false,
+          isDesktopSidebarOpen: true,
+          selectedId,
+          selectedTitleFirstWord: "Operations",
+        }),
       { initialProps: { selectedId: "" } },
     );
     result.current.headerRef.current = header;

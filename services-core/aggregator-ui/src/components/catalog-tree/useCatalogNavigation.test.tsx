@@ -27,15 +27,22 @@ afterEach(() => {
 
 describe("useCatalogNavigation", () => {
   it("filters the tree and ranks results without losing duplicate dependency paths", () => {
-    const { result } = renderHook(() => useCatalogNavigation({ items, dependencies }));
+    const { result } = renderHook(() =>
+      useCatalogNavigation({ items, dependencies }),
+    );
 
     act(() => result.current.setSearchQuery("CHECKOUT"));
     expect(result.current.searchTokens).toEqual(["checkout"]);
-    expect(result.current.searchResults.map((resultItem) => resultItem.item.id))
-      .toEqual(["child"]);
+    expect(
+      result.current.searchResults.map((resultItem) => resultItem.item.id),
+    ).toEqual(["child"]);
     expect(result.current.filteredTree).toHaveLength(2);
-    expect(findNodeByPath(result.current.filteredTree, ["root", "child"])).not.toBeNull();
-    expect(findNodeByPath(result.current.filteredTree, ["alt", "child"])).not.toBeNull();
+    expect(
+      findNodeByPath(result.current.filteredTree, ["root", "child"]),
+    ).not.toBeNull();
+    expect(
+      findNodeByPath(result.current.filteredTree, ["alt", "child"]),
+    ).not.toBeNull();
     expect(result.current.tree).toHaveLength(3);
   });
 
@@ -45,9 +52,12 @@ describe("useCatalogNavigation", () => {
       { initialProps: { list: items } },
     );
     act(() => result.current.setSearchQuery("chec"));
-    await waitFor(() => expect(result.current.isSearchAutocompleteReady).toBe(true));
-    expect(result.current.searchAutocompleteOptions.map((option) => option.word))
-      .toContain("checkout");
+    await waitFor(() =>
+      expect(result.current.isSearchAutocompleteReady).toBe(true),
+    );
+    expect(
+      result.current.searchAutocompleteOptions.map((option) => option.word),
+    ).toContain("checkout");
 
     rerender({ list: [] });
     expect(result.current.isSearchAutocompleteReady).toBe(false);
@@ -57,7 +67,9 @@ describe("useCatalogNavigation", () => {
   it("toggles branches and preserves the exact selected path on expand all", () => {
     const requestAnimationFrame = vi.fn(() => 1);
     vi.stubGlobal("requestAnimationFrame", requestAnimationFrame);
-    const { result } = renderHook(() => useCatalogNavigation({ items, dependencies }));
+    const { result } = renderHook(() =>
+      useCatalogNavigation({ items, dependencies }),
+    );
     const rootNode = findNodeByPath(result.current.tree, ["root"]);
     const selectedNode = findNodeByPath(result.current.tree, ["alt", "child"]);
     expect(rootNode).not.toBeNull();
@@ -80,12 +92,18 @@ describe("useCatalogNavigation", () => {
   });
 
   it("closes active search on Escape", () => {
-    const { result } = renderHook(() => useCatalogNavigation({ items, dependencies }));
+    const { result } = renderHook(() =>
+      useCatalogNavigation({ items, dependencies }),
+    );
     act(() => {
       result.current.setSearchQuery("checkout");
       result.current.setIsSearchActive(true);
     });
-    act(() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", cancelable: true })));
+    act(() =>
+      window.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "Escape", cancelable: true }),
+      ),
+    );
     expect(result.current.searchQuery).toBe("");
     expect(result.current.isSearchActive).toBe(false);
   });
@@ -130,6 +148,8 @@ describe("catalog selection synchronization", () => {
     expect(result.current.catalog.pendingScrollId).toBe(
       findNodeByPath(result.current.catalog.tree, ["alt", "child"])?.uid,
     );
-    expect(new URLSearchParams(window.location.search).get("path")).toBe("alt/child");
+    expect(new URLSearchParams(window.location.search).get("path")).toBe(
+      "alt/child",
+    );
   });
 });

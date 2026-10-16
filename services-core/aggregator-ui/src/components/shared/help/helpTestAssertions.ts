@@ -10,9 +10,9 @@ export function expectDecorativeSceneShield(figure: HTMLElement): void {
   expect(shield).not.toBeNull();
   expect(shield?.getAttribute("aria-hidden")).toBe("true");
   expect(figure.lastElementChild).toBe(shield);
-  expect(
-    shield?.previousElementSibling?.classList.contains("help-scene"),
-  ).toBe(true);
+  expect(shield?.previousElementSibling?.classList.contains("help-scene")).toBe(
+    true,
+  );
   expect(figure.querySelector(".help-animation-progress")).not.toBeNull();
 }
 

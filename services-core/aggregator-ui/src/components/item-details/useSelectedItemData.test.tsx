@@ -64,7 +64,9 @@ const itemSignals: Record<string, ItemSignal[]> = {
   ],
 };
 
-const setup = (overrides: Partial<Parameters<typeof useSelectedItemData>[0]> = {}) => ({
+const setup = (
+  overrides: Partial<Parameters<typeof useSelectedItemData>[0]> = {},
+) => ({
   selectedId: "suite",
   selectedNode: suiteNode,
   itemMap,
@@ -84,21 +86,20 @@ describe("useSelectedItemData", () => {
     expect(result.current.selectedItem?.id).toBe("suite");
     expect(result.current.selectedTitleFirstWord).toBe("Operations");
     expect(result.current.selectedTitleRest).toBe(" Suite");
-    expect(result.current.selectedFailingSignals.map((signal) => signal.id)).toEqual([
-      "errors",
-      "slow",
-      "unknown",
-    ]);
-    expect(result.current.selectedPassingSignals.map((signal) => signal.id)).toEqual([
-      "healthy",
-    ]);
+    expect(
+      result.current.selectedFailingSignals.map((signal) => signal.id),
+    ).toEqual(["errors", "slow", "unknown"]);
+    expect(
+      result.current.selectedPassingSignals.map((signal) => signal.id),
+    ).toEqual(["healthy"]);
     expect(result.current.passingSignalsCount).toBe(1);
   });
 
   it("lists unhealthy dependency signals once per Item, preserving the first tree path", () => {
     const { result } = renderHook(() => useSelectedItemData(setup()));
-    expect(result.current.failingDependencies.map((dependency) => dependency.id))
-      .toEqual(["alpha", "db"]);
+    expect(
+      result.current.failingDependencies.map((dependency) => dependency.id),
+    ).toEqual(["alpha", "db"]);
     expect(result.current.failingDependencies[0]).toMatchObject({
       path: ["suite", "alpha"],
       status: "unknown",
@@ -117,24 +118,31 @@ describe("useSelectedItemData", () => {
       useSelectedItemData(setup({ openedActorId: "owner" })),
     );
     expect(result.current.selectedItemActors?.owner?.id).toBe("owner");
-    expect(result.current.selectedItemActors?.otherActors.map((actor) => actor.id))
-      .toEqual(["viewer"]);
-    expect(result.current.actorContactsByActorId.get("owner")?.primaryContact?.id)
-      .toBe("phone");
+    expect(
+      result.current.selectedItemActors?.otherActors.map((actor) => actor.id),
+    ).toEqual(["viewer"]);
+    expect(
+      result.current.actorContactsByActorId.get("owner")?.primaryContact?.id,
+    ).toBe("phone");
     expect(result.current.openedActor?.id).toBe("owner");
-    expect(result.current.openedActorContacts.map((contact) => contact.id))
-      .toEqual(["phone", "email"]);
+    expect(
+      result.current.openedActorContacts.map((contact) => contact.id),
+    ).toEqual(["phone", "email"]);
   });
 
   it("falls back to the primary actor relation when no typed owner exists", () => {
     const relations = {
       ...catalog,
       actors: actors.filter((actor) => actor.id === "viewer"),
-      itemActors: itemActors.filter((relation) => relation.actorId === "viewer"),
+      itemActors: itemActors.filter(
+        (relation) => relation.actorId === "viewer",
+      ),
       actorContacts: [] as CatalogActorContact[],
     };
     const { result } = renderHook(() =>
-      useSelectedItemData(setup({ catalog: relations, openedActorId: "missing" })),
+      useSelectedItemData(
+        setup({ catalog: relations, openedActorId: "missing" }),
+      ),
     );
     expect(result.current.selectedItemActors?.owner?.id).toBe("viewer");
     expect(result.current.selectedItemActors?.otherActors).toEqual([]);
@@ -158,7 +166,9 @@ describe("useSelectedItemData", () => {
   it("updates the displayed status and signals when fresh Product Health data arrives", () => {
     const { result, rerender } = renderHook(
       ({ statuses, signals }) =>
-        useSelectedItemData(setup({ itemStatuses: statuses, itemSignals: signals })),
+        useSelectedItemData(
+          setup({ itemStatuses: statuses, itemSignals: signals }),
+        ),
       { initialProps: { statuses: itemStatuses, signals: itemSignals } },
     );
     rerender({
@@ -167,8 +177,9 @@ describe("useSelectedItemData", () => {
     });
     expect(result.current.selectedStatus).toBe("down");
     expect(result.current.selectedFailingSignals).toEqual([]);
-    expect(result.current.selectedPassingSignals.map((signal) => signal.id))
-      .toEqual(["ok"]);
+    expect(
+      result.current.selectedPassingSignals.map((signal) => signal.id),
+    ).toEqual(["ok"]);
     expect(result.current.passingSignalsCount).toBe(1);
   });
 });

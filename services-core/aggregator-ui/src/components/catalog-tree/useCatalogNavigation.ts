@@ -3,9 +3,27 @@
  * Selected Item routes are owned separately by useItemNavigation.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { buildCatalogTree, collectDescendantIds, collectExpandableIds, findNodeByPath, findNodePath, findNodeUidById } from "../../shared/catalog/tree";
-import { buildSearchAutocompleteIndex, buildSearchAutocompleteOptions, filterCatalogTree, normalizeSearchText, rankSearchResults } from "../../shared/catalog/search";
-import type { CatalogDependency, CatalogItem, CatalogTreeNode, SearchAutocompleteIndex } from "../../shared/types";
+import {
+  buildCatalogTree,
+  collectDescendantIds,
+  collectExpandableIds,
+  findNodeByPath,
+  findNodePath,
+  findNodeUidById,
+} from "../../shared/catalog/tree";
+import {
+  buildSearchAutocompleteIndex,
+  buildSearchAutocompleteOptions,
+  filterCatalogTree,
+  normalizeSearchText,
+  rankSearchResults,
+} from "../../shared/catalog/search";
+import type {
+  CatalogDependency,
+  CatalogItem,
+  CatalogTreeNode,
+  SearchAutocompleteIndex,
+} from "../../shared/types";
 
 const TREE_SCROLL_LONG_DISTANCE_PX = 600;
 const TREE_SCROLL_SMOOTH_SEGMENT_PX = 360;
@@ -15,13 +33,20 @@ type CatalogNavigationOptions = {
   dependencies: CatalogDependency[];
 };
 
-export default function useCatalogNavigation({ items, dependencies }: CatalogNavigationOptions) {
-  const [expandedIds, setExpandedIds] = useState<Set<string>>(() => new Set<string>());
+export default function useCatalogNavigation({
+  items,
+  dependencies,
+}: CatalogNavigationOptions) {
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(
+    () => new Set<string>(),
+  );
   const expandedIdsRef = useRef(expandedIds);
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchAutocompleteIndex, setSearchAutocompleteIndex] = useState<SearchAutocompleteIndex | null>(null);
-  const [isSearchAutocompleteReady, setIsSearchAutocompleteReady] = useState(false);
+  const [searchAutocompleteIndex, setSearchAutocompleteIndex] =
+    useState<SearchAutocompleteIndex | null>(null);
+  const [isSearchAutocompleteReady, setIsSearchAutocompleteReady] =
+    useState(false);
   const [pendingScrollId, setPendingScrollId] = useState("");
   const previousSearchTokensRef = useRef(0);
   const clearSearchRequestedRef = useRef(false);
@@ -146,19 +171,22 @@ export default function useCatalogNavigation({ items, dependencies }: CatalogNav
   /**
    * Expands all nodes currently present in the tree.
    */
-  const handleExpandAll = useCallback((selectedId: string, selectedPath: string[]) => {
-    setExpandedIds(new Set(collectExpandableIds(tree)));
-    if (!selectedId) {
-      return;
-    }
-    const selectedUid =
-      selectedPath.length > 0
-        ? findNodeByPath(tree, selectedPath)?.uid || ""
-        : findNodeUidById(tree, selectedId) || "";
-    if (selectedUid) {
-      setPendingScrollId(selectedUid);
-    }
-  }, [tree]);
+  const handleExpandAll = useCallback(
+    (selectedId: string, selectedPath: string[]) => {
+      setExpandedIds(new Set(collectExpandableIds(tree)));
+      if (!selectedId) {
+        return;
+      }
+      const selectedUid =
+        selectedPath.length > 0
+          ? findNodeByPath(tree, selectedPath)?.uid || ""
+          : findNodeUidById(tree, selectedId) || "";
+      if (selectedUid) {
+        setPendingScrollId(selectedUid);
+      }
+    },
+    [tree],
+  );
 
   /**
    * Collapses the full tree and resets the catalog scroll position to the top.

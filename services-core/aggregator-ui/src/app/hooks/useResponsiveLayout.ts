@@ -153,7 +153,6 @@ export default function useResponsiveLayout() {
     sidebarSwipeStartYRef.current = null;
   }, []);
 
-
   return {
     isMobileLayout,
     isDesktopSidebarOpen,

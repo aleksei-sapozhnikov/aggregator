@@ -83,5 +83,4 @@ export default function useCatalogSelectionSync({
     scrollToNodeId,
     searchTokens.length,
   ]);
-
 }
