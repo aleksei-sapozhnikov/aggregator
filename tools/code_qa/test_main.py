@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+import sys
 import unittest
 from contextlib import redirect_stdout
-from io import StringIO
+from io import BytesIO, StringIO, TextIOWrapper
 from unittest.mock import MagicMock, patch
 
 import main
@@ -69,6 +70,31 @@ class OrchestratorFlowTests(unittest.TestCase):
         self.assertIn("two passed", output.getvalue())
         self.assertIn("=== QA: PASSED ===", output.getvalue())
         self.assertEqual(popen.call_args.args[0][-2:], ["--module", "catalog"])
+
+    def test_redirected_cp1251_stdout_preserves_unicode_test_output(self) -> None:
+        """Windows redirected stdout must not crash on Unicode from test tools."""
+        process = MagicMock()
+        process.stdout = iter(["Testing catalog: \u2713 passed, \u4e2d\u6587 supported\\n"])
+        process.wait.return_value = 0
+        process.__enter__.return_value = process
+
+        buffer = BytesIO()
+        redirected_stdout = TextIOWrapper(buffer, encoding="cp1251")
+        try:
+            with (
+                patch.object(sys, "stdout", redirected_stdout),
+                patch.object(sys, "argv", ["main.py", "test", "--module", "catalog"]),
+                patch.object(main.subprocess, "Popen", return_value=process),
+            ):
+                self.assertEqual(main.main(), 0)
+                redirected_stdout.flush()
+                self.assertEqual(redirected_stdout.encoding, "utf-8")
+        finally:
+            redirected_stdout.detach()
+
+        output = buffer.getvalue().decode("utf-8")
+        self.assertIn("\u2713 passed, \u4e2d\u6587 supported", output)
+        self.assertIn("=== QA: PASSED ===", output)
 
     def test_missing_test_process_reports_failure(self) -> None:
         with (

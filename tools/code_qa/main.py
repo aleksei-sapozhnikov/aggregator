@@ -399,8 +399,20 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def configure_redirected_stdout() -> None:
+    """Use UTF-8 for redirected logs instead of a Windows ANSI code page."""
+    stdout = sys.stdout
+    if stdout is None or stdout.isatty():
+        return
+
+    reconfigure = getattr(stdout, "reconfigure", None)
+    if callable(reconfigure):
+        reconfigure(encoding="utf-8", errors="backslashreplace")
+
+
 def main() -> int:
     """Dispatch CLI command to the matching QA workflow."""
+    configure_redirected_stdout()
     args = build_parser().parse_args()
 
     if args.command == "qa":
