@@ -21,6 +21,7 @@ const dependencies: CatalogDependency[] = [
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
   window.history.replaceState({}, "", "/");
 });
 
@@ -54,8 +55,8 @@ describe("useCatalogNavigation", () => {
   });
 
   it("toggles branches and preserves the exact selected path on expand all", () => {
-    const requestAnimationFrame = vi.spyOn(window, "requestAnimationFrame")
-      .mockImplementation(() => 1);
+    const requestAnimationFrame = vi.fn(() => 1);
+    vi.stubGlobal("requestAnimationFrame", requestAnimationFrame);
     const { result } = renderHook(() => useCatalogNavigation({ items, dependencies }));
     const rootNode = findNodeByPath(result.current.tree, ["root"]);
     const selectedNode = findNodeByPath(result.current.tree, ["alt", "child"]);

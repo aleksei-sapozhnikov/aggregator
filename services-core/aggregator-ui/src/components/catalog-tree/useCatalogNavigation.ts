@@ -31,7 +31,6 @@ export default function useCatalogNavigation({ items, dependencies }: CatalogNav
     expandedIdsRef.current = expandedIds;
   }, [expandedIds]);
 
-
   useEffect(() => {
     if (!items.length) {
       setSearchAutocompleteIndex(null);
@@ -72,7 +71,6 @@ export default function useCatalogNavigation({ items, dependencies }: CatalogNav
     };
   }, [items]);
 
-
   const tree = useMemo(
     () => buildCatalogTree(items, dependencies),
     [items, dependencies],
@@ -97,7 +95,6 @@ export default function useCatalogNavigation({ items, dependencies }: CatalogNav
     () => buildSearchAutocompleteOptions(searchQuery, searchAutocompleteIndex),
     [searchQuery, searchAutocompleteIndex],
   );
-
 
   const handleToggleNode = useCallback((node: CatalogTreeNode) => {
     setExpandedIds((prev) => {
@@ -146,7 +143,6 @@ export default function useCatalogNavigation({ items, dependencies }: CatalogNav
     });
   }, []);
 
-
   /**
    * Expands all nodes currently present in the tree.
    */
@@ -178,7 +174,6 @@ export default function useCatalogNavigation({ items, dependencies }: CatalogNav
     });
   }, []);
 
-
   /**
    * Clears search text and exits search-results mode.
    */
@@ -187,7 +182,6 @@ export default function useCatalogNavigation({ items, dependencies }: CatalogNav
     setSearchQuery("");
     setIsSearchActive(false);
   }, []);
-
 
   useEffect(() => {
     if (!isSearchActive) {
@@ -204,7 +198,6 @@ export default function useCatalogNavigation({ items, dependencies }: CatalogNav
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [handleClearSearch, isSearchActive]);
-
 
   /**
    * Scrolls the tree container to a node once it is rendered and measurable.
@@ -304,7 +297,6 @@ export default function useCatalogNavigation({ items, dependencies }: CatalogNav
     },
     [],
   );
-
 
   return {
     tree,
