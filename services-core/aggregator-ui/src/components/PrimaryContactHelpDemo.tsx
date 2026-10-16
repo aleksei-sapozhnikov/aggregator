@@ -185,19 +185,19 @@ function Technician({ frame }: { frame: HelpFrame }) {
       <circle cx="31" cy="28" r="2" fill="#304455" />
       <circle cx="48" cy="28" r="2" fill="#304455" />
       <path d="M32 41q8 7 14-1" fill="none" stroke="#304455" strokeWidth="2" />
-      <path d="M5 77 -15 93 0 112" fill="none" stroke="#54b792"
+      <path d="M6 77 -3 94 20 103" fill="none" stroke="#54b792"
         strokeWidth="12" />
-      <circle cx="0" cy="112" r="6" fill="#f5bc91" />
+      <circle cx="20" cy="103" r="6" fill="#f5bc91" />
       <path d="M66 75 79 107" stroke="#54b792" strokeWidth="12" />
       <g data-primary-contact-wrench="true"
-        transform={"rotate(" + frame.wrenchAngle * frame.repair + " 78 106)"}>
-        <path d="M80 105 52 128" stroke="#64798b" strokeWidth="8" />
-        <path d="M45 118q-10 3-6 15l10 4q11-2 10-12l-7 5-6-5Z"
+        transform={"rotate(" + frame.wrenchAngle * frame.repair + " 20 103)"}>
+        <path d="M20 103 -13 75" stroke="#64798b" strokeWidth="8" />
+        <path d="M-22 58q-10 3-6 15l10 4q11-2 10-12l-7 5-6-5Z"
           fill="#a8b9c7" stroke="#41596b" strokeWidth="2" />
-        <circle cx="80" cy="105" r="5" fill="#a8b9c7" stroke="#41596b"
+        <circle cx="20" cy="103" r="5" fill="#a8b9c7" stroke="#41596b"
           strokeWidth="2" />
       </g>
-      <circle cx="78" cy="105" r="5.5" fill="#f5bc91" />
+      <circle cx="20" cy="103" r="5.5" fill="#f5bc91" />
     </g>
   );
 }
