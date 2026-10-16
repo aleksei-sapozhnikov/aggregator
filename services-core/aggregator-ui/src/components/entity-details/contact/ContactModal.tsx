@@ -4,7 +4,7 @@ import type { CatalogContact } from "../../../shared/types";
 import {
   resolveContactLabel,
   resolveContactTypeDisplayName,
-} from "../../../shared/contactUtils";
+} from "../../../shared/contacts/contactPresentation";
 import type { HelpTopic } from "../../shared/help/HelpContext";
 import InfoHelp from "../../shared/help/InfoHelp";
 import ModalWindow from "../../shared/ui/ModalWindow";

@@ -3,7 +3,7 @@ import {
   resolveContactLabel,
   resolveContactTypeClass,
   resolveContactTypeDisplayName,
-} from "../../../shared/contactUtils";
+} from "../../../shared/contacts/contactPresentation";
 import type { CatalogActor, CatalogContact } from "../../../shared/types";
 import ModalWindow from "../../shared/ui/ModalWindow";
 import ModalDetailsTrigger from "../../shared/ui/ModalDetailsTrigger";

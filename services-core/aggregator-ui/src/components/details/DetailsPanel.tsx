@@ -9,7 +9,7 @@ import ItemOwnership, { type ActorSummaryRow } from "../shared/item/ItemOwnershi
 import { HealthySignals, UnhealthySignals, type UnhealthyDependencyRow } from "../shared/item/ItemSignals";
 import ItemTimeline from "../shared/item/ItemTimeline";
 import InfoHelp from "../shared/help/InfoHelp";
-import { isPlainLeftClick } from "../../shared/catalogUtils";
+import { isPlainLeftClick } from "../../shared/ui/pointerUtils";
 import type {
   CatalogActor,
   CatalogContact,

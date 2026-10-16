@@ -11,25 +11,9 @@ import ContactModal from "./components/entity-details/contact/ContactModal";
 import ActorModal from "./components/entity-details/actor/ActorModal";
 import HealthSignalModal from "./components/entity-details/signal/HealthSignalModal";
 import useSignalDetails from "./components/entity-details/signal/useSignalDetails";
-import {
-  buildCatalogTree,
-  buildItemPathname,
-  buildItemRouteHref,
-  buildSearchAutocompleteIndex,
-  buildSearchAutocompleteOptions,
-  buildServicePath,
-  collectDescendantIds,
-  collectExpandableIds,
-  filterCatalogTree,
-  findNodeById,
-  findNodeByPath,
-  findNodePath,
-  findNodeUidById,
-  normalizeSearchText,
-  rankSearchResults,
-  readLocationRouteContext,
-  resolveNodeFromLocation,
-} from "./shared/catalogUtils";
+import { buildCatalogTree, collectDescendantIds, collectExpandableIds, filterCatalogTree, findNodeById, findNodeByPath, findNodePath, findNodeUidById } from "./shared/catalog/tree";
+import { buildItemPathname, buildItemRouteHref, buildServicePath, readLocationRouteContext, resolveNodeFromLocation } from "./shared/navigation/itemRoutes";
+import { buildSearchAutocompleteIndex, buildSearchAutocompleteOptions, normalizeSearchText, rankSearchResults } from "./shared/catalog/search";
 import {
   buildDashboardUrl,
   buildGrafanaFrameUrl,
@@ -43,8 +27,8 @@ import {
   resolveGrafanaBaseUrl,
   resolveSidebarTitle,
 } from "./services/aggregatorApi";
-import { sortContactsWithPrimaryFirst } from "./shared/contactUtils";
-import { isUnhealthyHealthStatus } from "./shared/healthPresentation";
+import { sortContactsWithPrimaryFirst } from "./shared/contacts/contactPresentation";
+import { isUnhealthyHealthStatus } from "./shared/health/healthPresentation";
 import type {
   CatalogActor,
   CatalogActorContact,

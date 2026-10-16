@@ -2,8 +2,9 @@
  * @file Sidebar UI for catalog navigation and search.
  */
 
-import { buildItemRouteHref, isPlainLeftClick } from "../../shared/catalogUtils";
-import { buildStatusText } from "../../shared/statusText";
+import { buildItemRouteHref } from "../../shared/navigation/itemRoutes";
+import { isPlainLeftClick } from "../../shared/ui/pointerUtils";
+import { buildStatusText } from "../../shared/health/healthPresentation";
 import type {
   CatalogTreeNode,
   HealthStatus,

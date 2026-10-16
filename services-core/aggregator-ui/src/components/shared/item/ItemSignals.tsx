@@ -1,6 +1,6 @@
 import type { MouseEvent, ReactNode } from "react";
 import type { ItemSignal } from "../../../shared/types";
-import { buildStatusText } from "../../../shared/statusText";
+import { buildStatusText } from "../../../shared/health/healthPresentation";
 import DetailsDisclosureHeader from "./DetailsDisclosureHeader";
 import ModalDetailsTrigger from "../ui/ModalDetailsTrigger";
 import ItemNavigationLink from "../ui/ItemNavigationLink";

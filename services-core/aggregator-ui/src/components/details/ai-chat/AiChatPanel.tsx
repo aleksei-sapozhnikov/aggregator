@@ -1,9 +1,9 @@
 import type { FormEvent, KeyboardEvent, MouseEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { askAgent } from "../../../services/aggregatorApi";
-import { isPlainLeftClick } from "../../../shared/catalogUtils";
-import { isUnhealthyHealthStatus } from "../../../shared/healthPresentation";
-import { buildStatusText } from "../../../shared/statusText";
+import { isPlainLeftClick } from "../../../shared/ui/pointerUtils";
+import { isUnhealthyHealthStatus } from "../../../shared/health/healthPresentation";
+import { buildStatusText } from "../../../shared/health/healthPresentation";
 import CloseButton from "../../shared/ui/CloseButton";
 import ItemNavigationLink from "../../shared/ui/ItemNavigationLink";
 import type {
