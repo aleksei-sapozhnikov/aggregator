@@ -57,7 +57,7 @@ describe("Signal flow help demonstrations", () => {
 
   it.each([
     ["healthy", 15000],
-    ["unhealthy", 31000],
+    ["unhealthy", 27300],
   ] as const)("tracks the %s animation cycle at the top", (mode, duration) => {
     const { container } = render(<SignalFlowHelpDemo mode={mode} />);
     const progress = screen.getByRole("progressbar", { name: "Animation progress" });
@@ -66,11 +66,13 @@ describe("Signal flow help demonstrations", () => {
     expect(progress.getAttribute("aria-valuenow")).toBe("0");
     expect(fill.style.transform).toBe("scaleX(0)");
 
-    advance(duration / 2);
+    // The 100 ms animation tick need not divide the cycle at its midpoint.
+    const midpoint = Math.floor(duration / 200) * 100;
+    advance(midpoint);
     expect(progress.getAttribute("aria-valuenow")).toBe("50");
-    expect(fill.style.transform).toBe("scaleX(0.5)");
+    expect(fill.style.transform).toBe("scaleX(" + midpoint / duration + ")");
 
-    advance(duration / 2);
+    advance(duration - midpoint);
     expect(progress.getAttribute("aria-valuenow")).toBe("0");
     expect(fill.style.transform).toBe("scaleX(0)");
     expect(fill.style.transition).toBe("none");
@@ -81,7 +83,7 @@ describe("Signal flow help demonstrations", () => {
 
   it.each([
     ["healthy", 6500, '[data-selection-frame="availability"]', 15000],
-    ["unhealthy", 13800, '[data-unhealthy-frame="item"]', 31000],
+    ["unhealthy", 13800, '[data-unhealthy-frame="item"]', 27300],
   ] as const)(
     "holds the complete %s page for two additional seconds after highlights disappear",
     (mode, start, frameSelector, duration) => {
@@ -402,11 +404,16 @@ describe("Signal flow help demonstrations", () => {
     expect(second.querySelector(".signal-flow-help-current.is-red")).toBeNull();
     expect(document.querySelectorAll('[data-health="unhealthy"]')).toHaveLength(0);
 
-    // No jump back to red at the end of the healthy hold or the loop boundary.
-    advance(4000);
+    // All-green recovery ends at 26800 ms (including the page hold).
+    // The remaining 500 ms stay green, then the opening pause starts again.
+    advance(300);
     expect(document.querySelectorAll('[data-health="unhealthy"]')).toHaveLength(0);
     advance(100);
     expect(document.querySelectorAll('[data-health="unhealthy"]')).toHaveLength(0);
+    advance(100);
+    expect(document.querySelectorAll('[data-health="unhealthy"]')).toHaveLength(0);
+    expect(screen.getByRole("progressbar", { name: "Animation progress" })
+      .getAttribute("aria-valuenow")).toBe("0");
     advance(1600);
     expect(getNode("nested1").getAttribute("data-health")).toBe("unhealthy");
     expect(getNode("dep1").getAttribute("data-health")).toBe("healthy");
