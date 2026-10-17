@@ -126,11 +126,18 @@ describe("InfoHelp shared tooltip", () => {
       screen.getByRole("button", { name: "About " + title }),
     );
     const tooltip = screen.getByRole("tooltip");
+    const summary = tooltip.querySelector("span")?.textContent;
     const hints = tooltip.textContent?.match(/Click for details/g) ?? [];
     expect(hints).toHaveLength(1);
     expect(tooltip.querySelector(".help-tooltip-action")?.textContent).toBe(
       "Click for details",
     );
+    fireEvent.click(screen.getByRole("button", { name: "About " + title }));
+    const dialog = screen.getByRole("dialog", { name: "About " + title });
+    expect(
+      dialog.querySelector(".info-help-description p:first-child strong")
+        ?.textContent,
+    ).toBe(summary);
   });
 
   it("shows the summary and secondary click hint", () => {
@@ -140,7 +147,7 @@ describe("InfoHelp shared tooltip", () => {
     );
     const tooltip = screen.getByRole("tooltip");
     expect(tooltip.textContent).toBe(
-      "Who owns, uses, or supports this item.Click for details",
+      actorsHelp.summary + "Click for details",
     );
     expect(
       tooltip.querySelectorAll(".help-tooltip-action"),
