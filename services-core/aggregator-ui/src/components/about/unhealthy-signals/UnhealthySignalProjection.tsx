@@ -128,16 +128,7 @@ export default function UnhealthySignalProjection({
           client-service
         </text>
         <g opacity={symbolOpacity}>
-          {itemAffected ? (
-            <text
-              className="signal-flow-help-impacted-label"
-              x={mix(320, targets.item.x + 70, progress)}
-              y={mix(67, targets.item.y + 24, progress)}
-              textAnchor="middle"
-            >
-              Affected by dependency
-            </text>
-          ) : (
+          {!itemAffected && (
             <g className="signal-flow-help-checks" aria-label="Passing checks">
               {[-18, 0, 18].map((offset) => (
                 <text
