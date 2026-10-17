@@ -89,7 +89,11 @@ export default function UnhealthySignalProjection({
         timing.selectionFadeEnd,
       ));
   const symbolOpacity = 1 - smooth(progressBetween(progress, 0.38, 0.88));
-  const itemHighlight = getSignalHighlightBounds(targets.item, 4);
+  const itemHighlight = {
+    ...getSignalHighlightBounds(targets.item),
+    y: targets.item.y - 5,
+    height: targets.item.height + 10,
+  };
 
   return (
     <>

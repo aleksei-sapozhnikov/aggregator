@@ -294,6 +294,35 @@ describe("Signal flow help demonstrations", () => {
     );
   });
 
+  it("uses the same Item title highlight geometry in both signal demonstrations", () => {
+    const { container: healthyContainer } = render(<HealthySignalsHelpDemo />);
+    advance(6500);
+    const healthyFrame = healthyContainer.querySelector(
+      '[data-healthy-frame="item"]',
+    ) as SVGRectElement;
+    const healthyBounds = ["x", "y", "width", "height"].map((attribute) =>
+      Number(healthyFrame.getAttribute(attribute)),
+    );
+    expect(healthyFrame.getAttribute("opacity")).toBe("1");
+
+    cleanup();
+
+    const { container: unhealthyContainer } = render(
+      <UnhealthySignalsHelpDemo />,
+    );
+    advance(unhealthyTiming.pageHoldAt + 10);
+    const unhealthyFrame = unhealthyContainer.querySelector(
+      '[data-unhealthy-frame="item"]',
+    ) as SVGRectElement;
+
+    expect(unhealthyFrame.getAttribute("opacity")).toBe("1");
+    ["x", "y", "width", "height"].forEach((attribute, index) => {
+      expect(Number(unhealthyFrame.getAttribute(attribute))).toBeCloseTo(
+        healthyBounds[index],
+      );
+    });
+  });
+
   it("moves the Item's checks toward the healthy rows and returns them to the graph", () => {
     const { container } = render(<HealthySignalsHelpDemo />);
     const checks = Array.from(container.querySelectorAll("[data-own-signal]"));
