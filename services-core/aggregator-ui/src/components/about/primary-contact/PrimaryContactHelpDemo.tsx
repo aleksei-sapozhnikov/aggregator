@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties, RefObject } from "react";
-import ItemTitle from "../../ItemTitle";
-import ItemOwnership, { PrimaryContactRow } from "../../ItemOwnership";
+import ItemTitle from "../../shared/item/ItemTitle";
+import ItemOwnership, { PrimaryContactRow } from "../../shared/item/ItemOwnership";
 import HelpScene, { useHelpTargets, type SceneRect } from "../shared/HelpScene";
 import DemoHelp from "../shared/DemoHelp";
 import { demoIconSpriteHref, experienceItem, experienceContact, experienceActors } from "../shared/demoData";

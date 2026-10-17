@@ -1,41 +1,42 @@
-# Contextual help scenes
+# Contextual help
 
-The Item UI in these scenes is the production UI, rendered with deterministic
-fixtures from `shared/demoData.ts`:
+`ContextualHelpProvider.tsx` registers each topic's title, short hover summary,
+and full React content. `ContextualHelpDialog.tsx` displays the selected
+content in the common modal. Each static topic keeps its explanatory text and
+animation together inside its own `*HelpContent.tsx` next to the demo.
 
-- `ItemTitle` renders the item name, catalog information and health status.
-- `ItemOwnership` renders the primary contact and actor rows.
-- `HealthySignals` and `UnhealthySignals` render signal disclosures and rows.
-- `ItemTimeline` renders the application's disclosure and Grafana container.
-- `DetailsDisclosureHeader`, `InfoHelpButton`, `ModalDetailsTrigger`,
-  `ItemNavigationLink` and `SecondaryLabel` supply the shared controls and labels.
+The live Item UI and help animations share presentation components from
+`components/shared/item/`; they use independent, deterministic demo records
+from `about/shared/demoData.ts`. Help scenes omit actionable callbacks,
+disable catalog information, and render the UI in an inert layer.
 
-`DetailsPanel` supplies real callbacks and help dialogs. Scenes omit action
-callbacks and destinations, disable catalog information, and put the UI inside
-an inert layer. The figure/image labels describe each walkthrough. Timeline
-scenario buttons remain available outside the passive preview. Demo components
-never mount `DetailsPanel`, fetch catalog data, or open application dialogs.
+`about/shared/HelpScene.tsx` scales HTML and SVG into a common coordinate
+space without `foreignObject`. The `useHelpTargets` hook measures rendered
+Item rows to align highlights and illustrated characters with the real UI.
+CSS selectors and animation geometry still require visual regression review
+when the shared markup changes.
 
-`HelpScene` scales HTML and SVG in the same coordinate space without
-`foreignObject`. `useHelpTargets` measures actual DOM rows for sprite and
-selection-frame destinations; layout changes in shared UI should not require
-new hard-coded text coordinates. Animation CSS controls layout and effects;
-application UI styling comes from `styles.css`.
+## Healthy and unhealthy help
+
+`healthy-signals/` and `unhealthy-signals/` expose separate help topics.
+Each has its own animation timing and propagation logic. Both use the shared
+`shared/signal-flow/SignalFlowHelpScene.tsx` layout and
+`shared/signal-flow/SignalFlowGraph.tsx` drawing; only shared display props
+cross that boundary. The failing-dependency projection lives in
+`unhealthy-signals/` and is never imported by a shared component.
+The graph uses explanatory SVG; the signals and ownership on the destination
+Item use production React components.
 
 ## Deliberate illustration boundary
 
-Grafana renders its chart, range display, signal selector and popups inside an
-iframe. Those are not React components owned by this application. The existing
-mock is isolated in `timeline/GrafanaTimelineIllustration.tsx` and its stylesheet;
-the surrounding `ItemTimeline` and destination Item use production components.
-No Grafana iframe or live requests are used in help.
+Grafana owns the chart, time range, signal filter, and hover popups inside an
+iframe. Therefore `timeline/GrafanaTimelineIllustration.tsx` is a static
+demonstration, while its surrounding `ItemTimeline` wrapper and Item details
+are the production components.
 
-Characters, machines, phones, dependency graphs, moving checkmarks, selection
-frames and the simulated cursor are explanatory drawings and remain SVG/CSS.
-They are not substitutes for application UI. The laptop/phone screens illustrate
-devices rather than an additional Aggregator page.
+Characters, machines, phones, dependency diagrams, moving checkmarks,
+selection frames, and simulated cursors are explanatory SVG/CSS illustrations
+and do not replace the application UI.
 
-Tests cover production interactions, shared markup reaching both contexts,
-passive previews, animation phases and looping, resize measurements and static
-frames for reduced motion. Run the UI service's `npm run typecheck`, `npm test`
-and `npm run build` directly.
+Use the UI service's `npm run typecheck`, `npm test`, and `npm run build`
+for validation, plus browser checks at desktop and mobile widths.

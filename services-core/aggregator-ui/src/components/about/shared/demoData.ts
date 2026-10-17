@@ -1,6 +1,6 @@
 import type { CatalogContact, CatalogItem, ItemSignal } from "../../../shared/types";
-import type { ActorSummaryRow } from "../../ItemOwnership";
-import type { UnhealthyDependencyRow } from "../../ItemSignals";
+import type { ActorSummaryRow } from "../../shared/item/ItemOwnership";
+import type { UnhealthyDependencyRow } from "../../shared/item/ItemSignals";
 
 // Local, deterministic fixtures. Nothing here is read from the catalog or APIs.
 export const demoIconSpriteHref = `${import.meta.env.BASE_URL}icons.svg`;
