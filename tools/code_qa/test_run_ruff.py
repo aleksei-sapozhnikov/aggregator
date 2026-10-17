@@ -66,10 +66,21 @@ class RuffRunnerTests(unittest.TestCase):
             ],
         )
 
-    def test_format_mode_stops_if_lint_fixes_fail(self) -> None:
-        result, commands = self.run_ruff_mode("--format", [1])
+    def test_format_mode_still_formats_when_lint_fixes_fail(self) -> None:
+        result, commands = self.run_ruff_mode("--format", [1, 0])
         self.assertEqual(result, 1)
-        self.assertEqual(commands, [["ruff", "check", "--fix", "module.py"]])
+        self.assertEqual(
+            commands,
+            [
+                ["ruff", "check", "--fix", "module.py"],
+                ["ruff", "format", "module.py"],
+            ],
+        )
+
+    def test_format_mode_reports_formatter_failure(self) -> None:
+        result, commands = self.run_ruff_mode("--format", [0, 2])
+        self.assertEqual(result, 2)
+        self.assertEqual(len(commands), 2)
 
 
 if __name__ == "__main__":

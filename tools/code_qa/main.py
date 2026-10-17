@@ -161,6 +161,7 @@ def run_format_command(
             return 0
 
         by_id: dict[str, CheckSpec] = {check.check_id: check for check in CHECKS}
+        format_failed = False
         for check_id in failed_ids:
             spec = by_id.get(check_id)
             if spec is None or not spec.format_args:
@@ -171,14 +172,13 @@ def run_format_command(
             for line in details:
                 emit(f"  {line}")
             if not ok:
-                if not suppress_final_summary:
-                    emit_final_summary(emit, False)
-                return 1
+                format_failed = True
 
         ok_after, _ = _run_checks(emit)
+        passed = ok_after and not format_failed
         if not suppress_final_summary:
-            emit_final_summary(emit, ok_after)
-        return 0 if ok_after else 1
+            emit_final_summary(emit, passed)
+        return 0 if passed else 1
     finally:
         close()
 

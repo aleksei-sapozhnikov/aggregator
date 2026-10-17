@@ -53,12 +53,13 @@ def main() -> int:
             [*cmd, "format", "--check", *files], cwd=root, check=False
         ).returncode
         return 0 if lint_rc == 0 and format_rc == 0 else 1
-    rc = subprocess.run(
+    lint_rc = subprocess.run(
         [*cmd, "check", "--fix", *files], cwd=root, check=False
     ).returncode
-    if rc != 0:
-        return rc
-    return subprocess.run([*cmd, "format", *files], cwd=root, check=False).returncode
+    format_rc = subprocess.run(
+        [*cmd, "format", *files], cwd=root, check=False
+    ).returncode
+    return lint_rc or format_rc
 
 
 if __name__ == "__main__":

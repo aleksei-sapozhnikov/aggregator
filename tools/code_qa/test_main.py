@@ -128,6 +128,39 @@ class OrchestratorFlowTests(unittest.TestCase):
             self.assertEqual(main.run_format_command(), 0)
         fix.assert_called_once_with("run_ruff.py", ["--format"])
 
+    def test_code_format_tries_remaining_fixers_after_failure(self) -> None:
+        with (
+            patch.object(
+                main,
+                "_run_checks",
+                side_effect=[
+                    (False, ["ruff", "trailing-whitespace"]),
+                    (False, ["ruff"]),
+                ],
+            ) as checks,
+            patch.object(
+                main,
+                "run_script",
+                side_effect=[
+                    (False, ["Manual Ruff fix required"]),
+                    (True, []),
+                ],
+            ) as fix,
+            redirect_stdout(StringIO()) as output,
+        ):
+            self.assertEqual(main.run_format_command(), 1)
+
+        self.assertEqual(checks.call_count, 2)
+        self.assertEqual(
+            [call.args for call in fix.call_args_list],
+            [
+                ("run_ruff.py", ["--format"]),
+                ("run_trailing_whitespace.py", ["--format"]),
+            ],
+        )
+        self.assertIn("Manual Ruff fix required", output.getvalue())
+        self.assertIn("=== QA: FAILED ===", output.getvalue())
+
     def test_run_script_keeps_every_failure_line(self) -> None:
         violations = [f"Ruff violation {index}" for index in range(25)]
         result = MagicMock(

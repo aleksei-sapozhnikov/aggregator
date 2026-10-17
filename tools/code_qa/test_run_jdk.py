@@ -128,8 +128,10 @@ class JDKBootstrapTests(unittest.TestCase):
                     run_jdk, "platform_details", return_value=("windows", "x64")
                 ),
                 patch.object(run_jdk, "adoptium_package", return_value=(
-                    "https://github.com/adoptium/temurin25-binaries/"
-                    "releases/download/anything",
+                    (
+                        "https://github.com/adoptium/temurin25-binaries/"
+                        "releases/download/anything"
+                    ),
                     hashlib.sha256(data.getvalue()).hexdigest(),
                 )),
                 patch.object(
@@ -157,8 +159,10 @@ class JDKBootstrapTests(unittest.TestCase):
                     run_jdk, "platform_details", return_value=("windows", "x64")
                 ),
                 patch.object(run_jdk, "adoptium_package", return_value=(
-                    "https://github.com/adoptium/temurin25-binaries/"
-                    "releases/download/anything",
+                    (
+                        "https://github.com/adoptium/temurin25-binaries/"
+                        "releases/download/anything"
+                    ),
                     "0" * 64,
                 )),
                 patch.object(
