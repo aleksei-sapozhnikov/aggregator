@@ -49,7 +49,11 @@ export function getPrimaryContactHelpFrame(time: number) {
     contactTravel,
     transferOpacity:
       transition(t, 5900, 6200) * (1 - transition(t, 7350, 7800)),
-    phone: transition(t, 6250, 6900) * (1 - transition(t, 12100, 12800)),
+    phone: transition(t, 6250, 6900) * (1 - transition(t, 9200, 9600)),
+    // The user puts the handset away when Owner arrives, and gradually
+    // returns to the opening pose ahead of the next animation loop.
+    userPhoneVisible:
+      1 - transition(t, 9200, 9600) * (1 - transition(t, 14200, 15100)),
     calling: transition(t, 7450, 7950) * (1 - transition(t, 8750, 9200)),
     technicianX: mix(
       mix(665, 238, technicianArrival),
@@ -251,7 +255,10 @@ function Observer({ frame }: { frame: HelpFrame }) {
   return (
     <g data-primary-contact-observer="true" transform="translate(352 76)">
       <g transform="translate(9 -7) scale(1.32)">
-        <UserCharacter />
+        <UserCharacter
+          unhappy={frame.unhealthy}
+          phoneVisible={frame.userPhoneVisible}
+        />
       </g>
       <g transform="translate(75 182) scale(2)">
         <DemoWoodLabel x={0} y={0} width={62} label="User" />
