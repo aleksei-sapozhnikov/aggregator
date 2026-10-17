@@ -40,6 +40,9 @@
   --status-unknown: #f2c94c;
   --status-disconnected: #64748b;
   --status-down: #e24d42;
+  --health-connection-banner-bg: #fff1f0;
+  --health-connection-banner-border: #efc1bd;
+  --health-connection-banner-accent: #a83229;
   --sidebar-selected-accent: #2f6feb;
   --sidebar-selected-bg: #eef4ff;
   --sidebar-selected-hover: #e4edff;
@@ -106,6 +109,9 @@ body[data-theme="dark"] {
   --status-unknown: #f2c94c;
   --status-disconnected: #a6b2c1;
   --status-down: #e24d42;
+  --health-connection-banner-bg: #321e22;
+  --health-connection-banner-border: #754249;
+  --health-connection-banner-accent: #ff948b;
   --sidebar-selected-accent: #3b82f6;
   --sidebar-selected-bg: #141c2b;
   --sidebar-selected-hover: #1a2334;
@@ -877,10 +883,10 @@ body {
   flex: 0 0 auto;
   min-width: 0;
   padding: 11px 14px;
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--status-disconnected);
+  border: 1px solid var(--health-connection-banner-border);
+  border-left: 3px solid var(--health-connection-banner-accent);
   border-radius: 8px;
-  background: var(--panel);
+  background: var(--health-connection-banner-bg);
   color: var(--text);
   font-size: 13px;
   line-height: 1.45;
@@ -888,7 +894,7 @@ body {
 
 .health-connection-icon {
   flex: 0 0 auto;
-  color: var(--status-disconnected);
+  color: var(--health-connection-banner-accent);
   font-size: 22px;
   font-weight: 700;
   line-height: 1;
@@ -902,6 +908,7 @@ body {
 }
 
 .health-connection-message strong {
+  color: var(--health-connection-banner-accent);
   font-size: 13px;
 }
 
