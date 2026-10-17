@@ -16,7 +16,7 @@ import PrimaryContactHelpDemo, {
   primaryContactHelpDuration,
 } from "./PrimaryContactHelpDemo";
 import InfoHelp from "../../shared/help/InfoHelp";
-import ContextualHelpProvider from "../ContextualHelpProvider";
+import ContextualHelpProvider from "../core/ContextualHelpProvider";
 
 afterEach(() => {
   cleanup();

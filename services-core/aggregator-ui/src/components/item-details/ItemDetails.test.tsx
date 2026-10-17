@@ -3,7 +3,7 @@
  */
 
 import type { ReactElement } from "react";
-import ContextualHelpProvider from "../about/ContextualHelpProvider";
+import ContextualHelpProvider from "../about/core/ContextualHelpProvider";
 import ThemeProvider from "../../shared/theme/ThemeProvider";
 
 import { createRef } from "react";

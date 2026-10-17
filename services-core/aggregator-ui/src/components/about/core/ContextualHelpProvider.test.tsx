@@ -13,14 +13,14 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   openHelpDialogFromHover,
   expectTooltipAfterModalClose,
-} from "../shared/help/helpTestAssertions";
-import InfoHelp from "../shared/help/InfoHelp";
+} from "../../shared/help/helpTestAssertions";
+import InfoHelp from "../../shared/help/InfoHelp";
 import ContextualHelpProvider from "./ContextualHelpProvider";
 import type { ReactElement } from "react";
-import { healthySignalsHelp } from "./healthy-signals/HealthySignalsHelpContent";
-import { unhealthySignalsHelp } from "./unhealthy-signals/UnhealthySignalsHelpContent";
-import { actorsHelp } from "./actors/ActorsHelpContent";
-import type { HelpTopic } from "../shared/help/HelpContext";
+import { healthySignalsHelp } from "../healthy-signals/HealthySignalsHelpContent";
+import { unhealthySignalsHelp } from "../unhealthy-signals/UnhealthySignalsHelpContent";
+import { actorsHelp } from "../actors/ActorsHelpContent";
+import type { HelpTopic } from "../../shared/help/HelpContext";
 
 const infoHelpTopics = {
   healthySignals: { ...healthySignalsHelp, id: "healthy-signals" },

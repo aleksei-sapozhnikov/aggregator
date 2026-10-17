@@ -1,11 +1,11 @@
 /** @vitest-environment jsdom */
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import HealthySignalsHelpDemo from "./healthy-signals/HealthySignalsHelpDemo";
-import UnhealthySignalsHelpDemo from "./unhealthy-signals/UnhealthySignalsHelpDemo";
-import { unhealthyTiming } from "./unhealthy-signals/UnhealthySignalTiming";
-import { expandedListHoldMs } from "./shared/signal-flow/progress";
-import { unhealthyCycleDuration } from "./unhealthy-signals/UnhealthySignalProjection";
+import HealthySignalsHelpDemo from "../../healthy-signals/HealthySignalsHelpDemo";
+import UnhealthySignalsHelpDemo from "../../unhealthy-signals/UnhealthySignalsHelpDemo";
+import { unhealthyTiming } from "../../unhealthy-signals/UnhealthySignalTiming";
+import { expandedListHoldMs } from "./progress";
+import { unhealthyCycleDuration } from "../../unhealthy-signals/UnhealthySignalProjection";
 
 beforeEach(() => vi.useFakeTimers());
 afterEach(() => {
