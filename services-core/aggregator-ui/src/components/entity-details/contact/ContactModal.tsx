@@ -72,42 +72,42 @@ const buildContactDemoHelpTopic = (
     case "email":
       return {
         title: `${details.appName} preview`,
-        summary: "Demo email workflow. Click for details.",
+        summary: "Demo email workflow.",
         description: `This is a demo preview. It simulates opening ${details.appName}, addressing ${label}, sending a service-problem request to the relevant team, and receiving a reply.`,
         details: detailRows,
       };
     case "phone":
       return {
         title: `${details.appName} preview`,
-        summary: "Demo phone workflow. Click for details.",
+        summary: "Demo phone workflow.",
         description: `This is a demo preview. It simulates opening ${details.appName}, calling ${label}, explaining that a service is unhealthy, and receiving acknowledgement from the contact.`,
         details: detailRows,
       };
     case "sms":
       return {
         title: `${details.appName} preview`,
-        summary: "Demo text message workflow. Click for details.",
+        summary: "Demo text message workflow.",
         description: `This is a demo preview. It simulates opening ${details.appName}, sending ${label} a service-problem request, and receiving a response.`,
         details: detailRows,
       };
     case "oncall":
       return {
         title: `${details.appName} preview`,
-        summary: "Demo on-call workflow. Click for details.",
+        summary: "Demo on-call workflow.",
         description: `This is a demo preview. It simulates opening ${details.appName}, creating a service-problem incident for ${label}, notifying the on-call responder, and receiving acknowledgement.`,
         details: detailRows,
       };
     case "chat":
       return {
         title: `${details.appName} preview`,
-        summary: "Demo team chat workflow. Click for details.",
+        summary: "Demo team chat workflow.",
         description: `This is a demo preview. It simulates opening ${details.appName}, sending ${label} a service-problem request, and receiving a response from the relevant team.`,
         details: detailRows,
       };
     default:
       return {
         title: `${details.appName} preview`,
-        summary: "Demo contact destination. Click for details.",
+        summary: "Demo contact destination.",
         description: `This is a demo preview. It simulates opening the contact destination that Aggregator would use for ${label}.`,
         details: detailRows,
       };

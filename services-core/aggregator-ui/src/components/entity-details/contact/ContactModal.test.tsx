@@ -268,9 +268,14 @@ describe("ContactModal demo help", () => {
       screen.getByRole("button", { name: "About Mail preview" }),
     );
 
-    expect(screen.getByRole("tooltip").textContent).toBe(
-      "Demo email workflow. Click for details.",
+    const tooltip = screen.getByRole("tooltip");
+    expect(tooltip.querySelector("span")?.textContent).toBe(
+      "Demo email workflow.",
     );
+    expect(tooltip.querySelector(".help-tooltip-action")?.textContent).toBe(
+      "Click for details",
+    );
+    expect(tooltip.textContent?.match(/Click for details/g)).toHaveLength(1);
 
     await user.click(
       screen.getByRole("button", { name: "About Mail preview" }),
