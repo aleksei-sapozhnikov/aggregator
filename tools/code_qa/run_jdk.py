@@ -100,16 +100,16 @@ def adoptium_package() -> tuple[str, str]:
         raise ValueError("Adoptium did not return a JDK 25 release")
     release = releases[0]
     if not isinstance(release, dict):
-        raise ValueError("Invalid Adoptium release metadata")
+        raise TypeError("Invalid Adoptium release metadata")
     binary = release.get("binary")
     if not isinstance(binary, dict):
-        raise ValueError("Invalid Adoptium binary metadata")
+        raise TypeError("Invalid Adoptium binary metadata")
     package = binary.get("package")
     if not isinstance(package, dict):
-        raise ValueError("Invalid Adoptium package metadata")
+        raise TypeError("Invalid Adoptium package metadata")
     url, sha256 = package.get("link"), package.get("checksum")
     if not isinstance(url, str) or not isinstance(sha256, str):
-        raise ValueError("Adoptium release lacks download link or SHA-256")
+        raise TypeError("Adoptium release lacks download link or SHA-256")
     parsed = urllib.parse.urlsplit(url)
     if (
         parsed.scheme != "https"

@@ -293,14 +293,14 @@ def run_code_qa_command(
     out_file: str = "",
     suppress_final_summary: bool = False,
 ) -> int:
-    """Run code formatting and module tests, without scanning secrets."""
-    format_rc = run_format_command(
-        raw=raw,
+    """Check code and run module tests without modifying source files."""
+    _ = raw
+    check_rc = run_check_command(
         out_file=out_file,
         append_out_file=False,
         suppress_final_summary=True,
     )
-    if format_rc != 0:
+    if check_rc != 0:
         emit, _, close = build_emitter(out_file, append=True)
         try:
             if not suppress_final_summary:
@@ -325,7 +325,7 @@ def run_qa_command(
     raw: bool = False,
     out_file: str = "",
 ) -> int:
-    """Run formatting, module tests, and then a secrets scan."""
+    """Check code without fixes, run tests, and then scan secrets."""
     code_qa_rc = run_code_qa_command(
         raw=raw,
         out_file=out_file,
@@ -357,7 +357,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     qa_cmd = sub.add_parser(
         "qa",
-        help="Run formatting, module tests, and a TruffleHog secrets scan.",
+        help="Check code, run tests, and scan secrets without modifying files.",
     )
     qa_cmd.add_argument("--scan-root", default=".")
     qa_cmd.add_argument("--output-file", default="")
@@ -367,7 +367,7 @@ def build_parser() -> argparse.ArgumentParser:
     qa_cmd.add_argument("--out-file", default="")
 
     code_qa_cmd = sub.add_parser(
-        "code-qa", help="Run formatting and module tests without secrets scanning."
+        "code-qa", help="Check code and run module tests without fixes or secrets scanning."
     )
     code_qa_cmd.add_argument("--raw", action="store_true")
     code_qa_cmd.add_argument("--out-file", default="")

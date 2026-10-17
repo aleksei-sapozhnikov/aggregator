@@ -91,6 +91,31 @@ class JDKBootstrapTests(unittest.TestCase):
             ):
                 run_jdk.adoptium_package()
 
+    def test_adoptium_rejects_incorrect_metadata_types(self) -> None:
+        invalid_metadata = [
+            ([None], "Invalid Adoptium release metadata"),
+            ([{"binary": None}], "Invalid Adoptium binary metadata"),
+            ([{"binary": {"package": None}}], "Invalid Adoptium package metadata"),
+            (
+                [{"binary": {"package": {"link": 123, "checksum": "a" * 64}}}],
+                "Adoptium release lacks download link or SHA-256",
+            ),
+        ]
+        for payload, message in invalid_metadata:
+            with (
+                self.subTest(payload=payload),
+                patch.object(
+                    run_jdk, "platform_details", return_value=("windows", "x64")
+                ),
+                patch.object(
+                    run_jdk.urllib.request,
+                    "urlopen",
+                    return_value=io.BytesIO(json.dumps(payload).encode("utf-8")),
+                ),
+                self.assertRaisesRegex(TypeError, message),
+            ):
+                run_jdk.adoptium_package()
+
     def test_verified_archive_is_cached_and_reused(self) -> None:
         data = io.BytesIO()
         with zipfile.ZipFile(data, "w") as archive:

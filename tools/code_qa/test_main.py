@@ -14,13 +14,13 @@ import main
 class OrchestratorFlowTests(unittest.TestCase):
     """Check flow ordering and avoid invoking real formatters or test suites."""
 
-    def test_code_qa_formats_then_runs_tests_without_secrets(self) -> None:
+    def test_code_qa_checks_then_runs_tests_without_secrets(self) -> None:
         calls: list[str] = []
         with (
             patch.object(
                 main,
-                "run_format_command",
-                side_effect=lambda **_: calls.append("format") or 0,
+                "run_check_command",
+                side_effect=lambda **_: calls.append("check") or 0,
             ),
             patch.object(
                 main,
@@ -30,25 +30,27 @@ class OrchestratorFlowTests(unittest.TestCase):
             patch.object(main, "run_secrets_command") as secrets,
         ):
             self.assertEqual(main.run_code_qa_command(suppress_final_summary=True), 0)
-        self.assertEqual(calls, ["format", "test"])
+        self.assertEqual(calls, ["check", "test"])
         secrets.assert_not_called()
 
-    def test_code_qa_stops_when_formatting_fails(self) -> None:
+    def test_code_qa_stops_when_checks_fail_without_formatting(self) -> None:
         with (
-            patch.object(main, "run_format_command", return_value=1),
+            patch.object(main, "run_check_command", return_value=1),
+            patch.object(main, "run_format_command") as formatter,
             patch.object(main, "run_test_command") as tests,
             redirect_stdout(StringIO()),
         ):
             self.assertEqual(main.run_code_qa_command(), 1)
+        formatter.assert_not_called()
         tests.assert_not_called()
 
-    def test_full_qa_scans_secrets_only_after_formatting_and_tests(self) -> None:
+    def test_full_qa_scans_secrets_only_after_checks_and_tests(self) -> None:
         calls: list[str] = []
         with (
             patch.object(
                 main,
-                "run_format_command",
-                side_effect=lambda **_: calls.append("format") or 0,
+                "run_check_command",
+                side_effect=lambda **_: calls.append("check") or 0,
             ),
             patch.object(
                 main,
@@ -63,11 +65,11 @@ class OrchestratorFlowTests(unittest.TestCase):
             redirect_stdout(StringIO()),
         ):
             self.assertEqual(main.run_qa_command(), 0)
-        self.assertEqual(calls, ["format", "test", "secrets"])
+        self.assertEqual(calls, ["check", "test", "secrets"])
 
     def test_full_qa_scans_secrets_after_test_failure(self) -> None:
         with (
-            patch.object(main, "run_format_command", return_value=0),
+            patch.object(main, "run_check_command", return_value=0),
             patch.object(main, "run_test_command", return_value=1),
             patch.object(main, "run_secrets_command", return_value=0) as secrets,
             redirect_stdout(StringIO()),
@@ -75,9 +77,9 @@ class OrchestratorFlowTests(unittest.TestCase):
             self.assertEqual(main.run_qa_command(), 1)
         secrets.assert_called_once()
 
-    def test_full_qa_scans_secrets_after_format_failure(self) -> None:
+    def test_full_qa_scans_secrets_after_check_failure(self) -> None:
         with (
-            patch.object(main, "run_format_command", return_value=1),
+            patch.object(main, "run_check_command", return_value=1),
             patch.object(main, "run_test_command") as tests,
             patch.object(main, "run_secrets_command", return_value=0) as secrets,
             redirect_stdout(StringIO()),
@@ -88,12 +90,38 @@ class OrchestratorFlowTests(unittest.TestCase):
 
     def test_full_qa_fails_when_only_secret_scan_fails(self) -> None:
         with (
-            patch.object(main, "run_format_command", return_value=0),
+            patch.object(main, "run_check_command", return_value=0),
             patch.object(main, "run_test_command", return_value=0),
             patch.object(main, "run_secrets_command", return_value=1),
             redirect_stdout(StringIO()),
         ):
             self.assertEqual(main.run_qa_command(), 1)
+
+    def test_qa_never_formats_even_when_all_checks_pass(self) -> None:
+        with (
+            patch.object(main, "run_check_command", return_value=0) as check,
+            patch.object(main, "run_format_command") as formatter,
+            patch.object(main, "run_test_command", return_value=0) as tests,
+            patch.object(main, "run_secrets_command", return_value=0) as secrets,
+            redirect_stdout(StringIO()),
+        ):
+            self.assertEqual(main.run_qa_command(), 0)
+        check.assert_called_once()
+        formatter.assert_not_called()
+        tests.assert_called_once()
+        secrets.assert_called_once()
+
+    def test_code_format_still_applies_fixes(self) -> None:
+        with (
+            patch.object(
+                main, "_run_checks",
+                side_effect=[(False, ["ruff"]), (True, [])],
+            ),
+            patch.object(main, "run_script", return_value=(True, [])) as fix,
+            redirect_stdout(StringIO()),
+        ):
+            self.assertEqual(main.run_format_command(), 0)
+        fix.assert_called_once_with("run_ruff.py", ["--format"])
 
     def test_test_output_is_streamed_without_truncation(self) -> None:
         process = MagicMock()
@@ -172,7 +200,6 @@ class OrchestratorFlowTests(unittest.TestCase):
         ):
             self.assertEqual(main.run_test_command(), 1)
         self.assertIn("Unable to start module tests", output.getvalue())
-
 
     def test_verbose_test_flag_is_passed_to_module_runner(self) -> None:
         process = MagicMock()
