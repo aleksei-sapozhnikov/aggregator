@@ -63,8 +63,8 @@ export function getPrimaryContactHelpFrame(time: number) {
   };
 }
 
-// Keep the illustrated service close to its desktop pixel size on narrower cards.
-// The SVG viewport crops unused space rather than shrinking the entire scene.
+// Center the complete cast in its viewport, scaling on narrow devices so no
+// service, character, or phone signal gets cropped.
 export function getPrimaryContactHelpLayout(availableWidth: number) {
   const compact = availableWidth < 640;
   const width = compact ? Math.max(300, Math.min(640, availableWidth)) : 640;
@@ -77,11 +77,21 @@ export function getPrimaryContactHelpLayout(availableWidth: number) {
   const pageScale = compact
     ? Math.min((width - 20) / pageWidth, (height - 18) / pageHeight)
     : 1;
-  // Keep the expanded Item near the canvas edge instead of leaving a large
-  // empty gutter to its left in compact modal layouts.
-  const pageX = compact ? left + 12 : 0;
+  // The expanded Aggregator page overlays the scene, independently centered.
+  const pageX = compact ? left + (width - pageWidth * pageScale) / 2 : 0;
   const pageY = compact ? top + (height - pageHeight * pageScale) / 2 : 0;
-  const observerShift = compact ? Math.max(0, 360 - width) * 0.6 : 0;
+
+  // The cast occupies scene-space x=65..640 and y=90..325. Reserve a 16px
+  // gutter on narrow devices, including the User's phone signal waves.
+  const sceneLeft = 65;
+  const sceneTop = 90;
+  const sceneWidth = 575;
+  const sceneHeight = 235;
+  const sceneScale = Math.min(0.9, (width - 32) / sceneWidth);
+  const sceneX =
+    left + (width - sceneWidth * sceneScale) / 2 - sceneLeft * sceneScale;
+  const sceneY =
+    top + (height - sceneHeight * sceneScale) / 2 - sceneTop * sceneScale;
 
   return {
     compact,
@@ -91,7 +101,9 @@ export function getPrimaryContactHelpLayout(availableWidth: number) {
     pageHeight,
     pageX,
     pageY,
-    observerShift,
+    sceneX,
+    sceneY,
+    sceneScale,
   };
 }
 
@@ -329,12 +341,12 @@ function ContactTransfer({
 }) {
   const x = mix(
     layout.pageX + source.x * layout.pageScale,
-    441 - layout.observerShift,
+    layout.sceneX + layout.sceneScale * 540,
     frame.contactTravel,
   );
   const y = mix(
     layout.pageY + source.y * layout.pageScale,
-    220,
+    layout.sceneY + layout.sceneScale * 210,
     frame.contactTravel,
   );
   const scale = mix(layout.pageScale, 0.19, frame.contactTravel);
@@ -393,7 +405,15 @@ export default function PrimaryContactHelpDemo() {
           <g aria-hidden="true">
             <g
               data-primary-contact-scene="true"
-              transform="translate(130 55) scale(0.66)"
+              transform={
+                "translate(" +
+                layout.sceneX +
+                " " +
+                layout.sceneY +
+                ") scale(" +
+                layout.sceneScale +
+                ")"
+              }
             >
               <g
                 data-primary-contact-service="true"
@@ -402,21 +422,12 @@ export default function PrimaryContactHelpDemo() {
                 <ServiceMachine unhealthy={frame.unhealthy} />
               </g>
               <g
-                data-primary-contact-observer-offset="true"
-                transform={
-                  layout.observerShift
-                    ? "translate(-" + layout.observerShift + " 0)"
-                    : undefined
-                }
+                data-primary-contact-observer-scale="true"
+                transform="translate(454 140) scale(0.75) translate(-352 -76)"
               >
-                <g
-                  data-primary-contact-observer-scale="true"
-                  transform="translate(379 140) scale(0.75) translate(-352 -76)"
-                >
-                  <Observer frame={frame} />
-                  <Laptop frame={frame} />
-                  <Phone frame={frame} />
-                </g>
+                <Observer frame={frame} />
+                <Laptop frame={frame} />
+                <Phone frame={frame} />
               </g>
               <Technician frame={frame} />
               <g
