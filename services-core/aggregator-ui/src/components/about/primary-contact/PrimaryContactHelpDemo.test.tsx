@@ -34,7 +34,7 @@ describe("Primary contact contextual help", () => {
     expectDecorativeSceneShield(figure);
   });
 
-  it("has matching user, owner and service assets with separate wooden captions", () => {
+  it("has matching user, primary technician and service assets with separate captions", () => {
     const { container } = render(<PrimaryContactHelpDemo />);
     const caller = container.querySelector("[data-primary-contact-observer]");
     const technician = container.querySelector(
@@ -51,7 +51,7 @@ describe("Primary contact contextual help", () => {
     expect(service?.querySelector("[data-demo-service-machine]")).not.toBeNull();
     expect(caller?.querySelector('[data-scene-label="User"]')).not.toBeNull();
     expect(
-      technician?.querySelector('[data-scene-label="Owner"]'),
+      technician?.querySelector('[data-scene-label="Primary"]'),
     ).not.toBeNull();
     expect(
       container.querySelector('[data-scene-label="Service"]'),
@@ -159,8 +159,9 @@ describe("Primary contact contextual help", () => {
     const transfer = getPrimaryContactHelpFrame(6750);
     expect(transfer.contactTravel).toBeGreaterThan(0);
     expect(transfer.contactTravel).toBeLessThan(1);
-    expect(transfer.pageOpacity).toBeGreaterThan(0);
-    expect(transfer.pageOpacity).toBeLessThan(1);
+    expect(transfer.pageOpacity).toBe(1);
+    expect(transfer.pageExpansion).toBeGreaterThan(0);
+    expect(transfer.pageExpansion).toBeLessThan(1);
 
     expect(getPrimaryContactHelpFrame(8000).calling).toBe(1);
     expect(getPrimaryContactHelpFrame(9950).repair).toBe(1);
@@ -210,7 +211,21 @@ describe("Primary contact contextual help", () => {
     expect(figure?.querySelectorAll("img")).toHaveLength(0);
   });
 
-  it("briefly overlays the full cast without leaving characters peeking out", () => {
+  it("lets the page grow over the scene and shrink to reveal it again", () => {
+    const emerging = getPrimaryContactHelpFrame(3500);
+    const full = getPrimaryContactHelpFrame(5350);
+    const shrinking = getPrimaryContactHelpFrame(6500);
+    const gone = getPrimaryContactHelpFrame(7100);
+    expect(emerging.pageExpansion).toBeGreaterThan(0);
+    expect(emerging.pageExpansion).toBeLessThan(1);
+    expect(full.pageExpansion).toBe(1);
+    expect(full.pageOpacity).toBe(1);
+    expect(shrinking.pageExpansion).toBeGreaterThan(0);
+    expect(shrinking.pageExpansion).toBeLessThan(1);
+    expect(shrinking.pageOpacity).toBe(1);
+    expect(gone.pageExpansion).toBe(0);
+    expect(gone.pageOpacity).toBe(0);
+
     vi.useFakeTimers();
     const { container } = render(<PrimaryContactHelpDemo />);
     const illustration = container.querySelector(
@@ -219,16 +234,38 @@ describe("Primary contact contextual help", () => {
     const page = container.querySelector(
       "[data-primary-contact-page]",
     ) as HTMLElement;
-    expect(illustration.style.opacity).toBe("1");
+    const backdrop = page.querySelector(
+      "[data-primary-contact-backdrop]",
+    ) as HTMLElement;
+
+    expect(illustration.style.opacity).toBe("");
     expect(page.style.opacity).toBe("0");
+    expect(backdrop).not.toBeNull();
+    const layout = getPrimaryContactHelpLayout(540);
+    expect(backdrop.style.left).toBe(`-${layout.backdropInsetX}px`);
+    expect(backdrop.style.right).toBe(`-${layout.backdropInsetX}px`);
+
+    // The opaque backing covers the entire viewport when fully expanded.
+    const [, , width, height] = layout.viewBox.split(" ").map(Number);
+    expect(
+      layout.pageWidth * layout.pageScale +
+        2 * layout.backdropInsetX * layout.pageScale,
+    ).toBeGreaterThan(width);
+    expect(
+      layout.pageHeight * layout.pageScale +
+        2 * layout.backdropInsetY * layout.pageScale,
+    ).toBeGreaterThan(height);
 
     act(() => vi.advanceTimersByTime(5350));
-    expect(illustration.style.opacity).toBe("0");
     expect(page.style.opacity).toBe("1");
-
-    act(() => vi.advanceTimersByTime(2350));
-    expect(illustration.style.opacity).toBe("1");
+    expect(illustration.style.opacity).toBe("");
+    act(() => vi.advanceTimersByTime(1150));
+    expect(page.style.opacity).toBe("1");
+    expect(illustration.style.opacity).toBe("");
+    expect(page.style.transform).not.toContain("scale(0.1)");
+    act(() => vi.advanceTimersByTime(600));
     expect(page.style.opacity).toBe("0");
+    expect(illustration.style.opacity).toBe("");
   });
 
   it("renders the page and moving contact as production HTML beside the illustrative SVG", () => {
@@ -270,7 +307,7 @@ describe("Primary contact contextual help", () => {
     );
     expect(
       technician
-        ?.querySelector('[data-scene-label="Owner"]')
+        ?.querySelector('[data-scene-label="Primary"]')
         ?.classList.contains("demo-wood-label"),
     ).toBe(true);
   });

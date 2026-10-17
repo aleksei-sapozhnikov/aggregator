@@ -42,8 +42,12 @@ export function getPrimaryContactHelpFrame(time: number) {
     unhealthy: transition(t, 1450, 1800) * (1 - transition(t, 11100, 11600)),
     alarm: transition(t, 1550, 1850) * (1 - transition(t, 2650, 3050)),
     laptop: transition(t, 2200, 3050) * (1 - transition(t, 12300, 13200)),
-    pageExpansion: transition(t, 2950, 4250),
-    pageOpacity: transition(t, 2850, 3250) * (1 - transition(t, 5900, 7050)),
+    // The opaque page grows over the scene and then shrinks away; the
+    // characters underneath never fade out on their own.
+    pageExpansion:
+      transition(t, 2950, 4250) * (1 - transition(t, 5900, 7050)),
+    pageOpacity:
+      transition(t, 2850, 3250) * (1 - transition(t, 6800, 7050)),
     selectedContact:
       transition(t, 4650, 5200) * (1 - transition(t, 5950, 6400)),
     contactTravel,
@@ -105,6 +109,11 @@ export function getPrimaryContactHelpLayout(availableWidth: number) {
     pageHeight,
     pageX,
     pageY,
+    // Extend the opaque preview past the viewport's edges when expanded.
+    backdropInsetX:
+      Math.max(0, (width / pageScale - pageWidth) / 2) + 12,
+    backdropInsetY:
+      Math.max(0, (height / pageScale - pageHeight) / 2) + 12,
     sceneX,
     sceneY,
     sceneScale,
@@ -245,7 +254,7 @@ function Technician({ frame }: { frame: HelpFrame }) {
         <OwnerCharacter repairProgress={frame.wrenchAngle * frame.repair} />
       </g>
       <g transform="translate(31 146) scale(1.5)">
-        <DemoWoodLabel x={0} y={0} width={70} label="Owner" />
+        <DemoWoodLabel x={0} y={0} width={70} label="Primary" />
       </g>
     </g>
   );
@@ -306,6 +315,17 @@ function AggregatorPage({
         transform: `translate(${x}px, ${y}px) scale(${scale})`,
       }}
     >
+      <div
+        aria-hidden="true"
+        data-primary-contact-backdrop="true"
+        className="primary-contact-page-backdrop"
+        style={{
+          left: -layout.backdropInsetX,
+          right: -layout.backdropInsetX,
+          top: -layout.backdropInsetY,
+          bottom: -layout.backdropInsetY,
+        }}
+      />
       <ItemTitle
         item={experienceItem}
         firstWord="Customer"
@@ -409,7 +429,7 @@ export default function PrimaryContactHelpDemo() {
           role="img"
           aria-label="A service goes down; a person opens Aggregator on a laptop, finds the primary contact, calls the responsible technician, and the service is restored"
         >
-          <g aria-hidden="true" style={{ opacity: 1 - frame.pageOpacity }}>
+          <g aria-hidden="true">
             <g
               data-primary-contact-scene="true"
               transform={
