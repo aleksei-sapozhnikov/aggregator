@@ -68,15 +68,25 @@ export default function AboutContent() {
       <div aria-hidden="true" className="about-divider" />
 
       <p>Health states:</p>
-      <ul>
-        <li>{"\u{1F7E2}"} <strong>UP</strong> - Working normally.</li>
+      <ul className="about-status-list">
         <li>
-          {"\u{1F534}"} <strong>DOWN</strong> - This item or a service it needs
-          has a problem.
+          <span className="status-indicator status-up" aria-hidden="true" />
+          <span>
+            <strong>UP</strong> - Working normally.
+          </span>
         </li>
         <li>
-          {"\u{1F7E1}"} <strong>UNKNOWN</strong> - There isn't enough
-          information to tell.
+          <span className="status-indicator status-down" aria-hidden="true" />
+          <span>
+            <strong>DOWN</strong> - This item or a service it needs has a
+            problem.
+          </span>
+        </li>
+        <li>
+          <span className="status-indicator status-unknown" aria-hidden="true" />
+          <span>
+            <strong>UNKNOWN</strong> - There isn't enough information to tell.
+          </span>
         </li>
       </ul>
       <p>
