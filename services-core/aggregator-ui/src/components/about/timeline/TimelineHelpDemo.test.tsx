@@ -11,6 +11,7 @@ import {
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import TimelineHelpDemo, { getInspectCursorRow } from "./TimelineHelpDemo";
+import { getTimelineCursorTravel } from "./GrafanaTimelineIllustration";
 
 beforeEach(() => vi.useFakeTimers());
 afterEach(() => {
@@ -123,6 +124,41 @@ describe("Timeline help walkthrough", () => {
       expect(fill.style.transform).toBe("scaleX(0)");
       fireEvent.click(screen.getByRole("button", { name: "Inspect a moment" }));
       expect(bar.getAttribute("aria-valuenow")).toBe("0");
+    },
+  );
+
+  it.each([
+    ["Inspect a moment", "inspect", 8500],
+    ["Switch signal groups", "filter", 12000],
+    ["Open a dependency", "navigate", 13000],
+  ] as const)(
+    "starts and ends the %s cursor above the interaction area",
+    (button, scenario, duration) => {
+      render(<TimelineHelpDemo />);
+      fireEvent.click(screen.getByRole("button", { name: button }));
+      const preview = screen.getByLabelText("Example Timeline");
+      const cursor = () =>
+        preview.querySelector(".timeline-help-cursor") as SVGElement;
+      expect(getTimelineCursorTravel(scenario, 0)).toBe(0);
+      expect(cursor().style.top).toBe(
+        scenario === "filter" ? "14px" : "-98px",
+      );
+
+      advance(900);
+      expect(getTimelineCursorTravel(scenario, 900)).toBe(1);
+      expect(cursor().style.top).not.toBe(
+        scenario === "filter" ? "14px" : "-98px",
+      );
+
+      advance(duration - 960);
+      expect(getTimelineCursorTravel(scenario, duration - 60)).toBe(0);
+      expect(cursor().style.top).toBe(
+        scenario === "filter" ? "14px" : "-98px",
+      );
+      advance(60);
+      expect(cursor().style.top).toBe(
+        scenario === "filter" ? "14px" : "-98px",
+      );
     },
   );
 

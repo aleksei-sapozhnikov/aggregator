@@ -46,6 +46,32 @@ describe("Actors contextual help animation", () => {
     expect(start.pageOpacity).toBe(0);
   });
 
+  it("uses labeled reusable SVG characters and a reusable service", () => {
+    const { container } = render(<ActorsHelpDemo />);
+    for (const role of ["owner", "user", "support"]) {
+      const sprite = container.querySelector(
+        `[data-actor="${role}"] [data-demo-character="${role}"]`,
+      );
+      expect(sprite).not.toBeNull();
+      // Wooden labels are separate scene elements, not part of the assets.
+      expect(sprite?.querySelector("[data-scene-label]")).toBeNull();
+      expect(
+        container.querySelector(
+          `[data-actor="${role}"] [data-scene-label]`,
+        ),
+      ).not.toBeNull();
+    }
+    expect(
+      container.querySelector('[data-service="item"] [data-demo-service-machine]'),
+    ).not.toBeNull();
+    expect(
+      container.querySelector('[data-actor="owner"] .actors-help-wrench'),
+    ).not.toBeNull();
+    expect(
+      container.querySelector('[data-actor="support"] .actors-help-wrench'),
+    ).toBeNull();
+  });
+
   it("renders the self-contained scene and the three sample relationship rows", () => {
     render(<ActorsHelpDemo />);
     const figure = screen.getByRole("figure", {
