@@ -98,16 +98,16 @@ describe("ActorModal contact list", () => {
   });
 
   it("uses the shared modal paragraph style for actor descriptions", () => {
-    const description = "Owns dispatch orchestration.\nLeads operational response.";
+    const description =
+      "Owns dispatch orchestration.\nLeads operational response.";
     const { container } = renderActorModal({
       actor: { ...actor, description },
     });
     const block = container.querySelector(".actor-modal-description");
     expect(block?.classList.contains("modal-text-flow")).toBe(true);
-    expect(Array.from(block?.querySelectorAll("p") || [], (p) => p.textContent)).toEqual([
-      "Owns dispatch orchestration.",
-      "Leads operational response.",
-    ]);
+    expect(
+      Array.from(block?.querySelectorAll("p") || [], (p) => p.textContent),
+    ).toEqual(["Owns dispatch orchestration.", "Leads operational response."]);
   });
 
   it("labels the designated primary contact rather than assuming the first item", () => {
