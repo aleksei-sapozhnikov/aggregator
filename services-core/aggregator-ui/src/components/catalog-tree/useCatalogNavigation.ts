@@ -1,3 +1,5 @@
+/** @file Owns catalog search, tree expansion, autocomplete, and scroll targeting. */
+
 /**
  * Owns the catalog tree, search state, autocomplete, expansion, and tree scrolling.
  * Selected Item routes are owned separately by useItemNavigation.
@@ -33,6 +35,7 @@ type CatalogNavigationOptions = {
   dependencies: CatalogDependency[];
 };
 
+/** Maintains catalog expansion, filtering, autocomplete, and scroll position. */
 export default function useCatalogNavigation({
   items,
   dependencies,

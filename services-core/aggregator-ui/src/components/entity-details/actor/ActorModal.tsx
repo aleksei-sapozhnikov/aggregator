@@ -1,3 +1,5 @@
+/** @file Displays actor relationships, descriptions, and contact channels. */
+
 import {
   resolveContactIconId,
   resolveContactLabel,
@@ -9,6 +11,7 @@ import ModalWindow from "../../shared/ui/ModalWindow";
 import ModalDetailsTrigger from "../../shared/ui/ModalDetailsTrigger";
 import SecondaryLabel from "../../shared/ui/SecondaryLabel";
 
+/** Chooses a readable actor display label from its metadata. */
 const resolveActorLabel = (actor?: CatalogActor | null): string => {
   if (!actor) {
     return "Unknown actor";
@@ -30,6 +33,7 @@ type ActorModalProps = {
   onOpenContact: (contact: CatalogContact) => void;
 };
 
+/** Shows a selected person's or team's description, role, and contact options. */
 export default function ActorModal({
   isOpen,
   actor,

@@ -1,3 +1,5 @@
+/** @file Hosts the Grafana Timeline iframe and its messaging protocol. */
+
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import {
   buildDashboardUrl,

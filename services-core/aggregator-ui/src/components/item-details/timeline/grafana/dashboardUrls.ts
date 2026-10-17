@@ -1,3 +1,5 @@
+/** @file Creates Grafana dashboard and frame URLs using deployment configuration. */
+
 /** Grafana-specific dashboard configuration and wrapper URLs. */
 import type { AggregatorUiRuntimeConfig } from "../../../../shared/types";
 import { resolveBaseUrl } from "../../../../services/aggregatorApi";
@@ -13,6 +15,7 @@ export const DASHBOARDS = {
 
 export const GRAFANA_FRAME_WRAPPER_REV = "v2026-03-04";
 
+/** Reads the configured default time range for the chart. */
 const resolveTimelineDefaultRange = (): string => {
   const configured = (import.meta.env.VITE_TIMELINE_DEFAULT_RANGE ?? "").trim();
   if (!configured) {
@@ -24,6 +27,7 @@ const resolveTimelineDefaultRange = (): string => {
 
 const TIMELINE_DEFAULT_RANGE = resolveTimelineDefaultRange();
 
+/** Resolves the Grafana host from runtime and build configuration. */
 export const resolveGrafanaBaseUrl = (): string => {
   const runtimeConfig = window.__AGGREGATOR_UI__ as
     | AggregatorUiRuntimeConfig
@@ -38,6 +42,7 @@ export const resolveGrafanaBaseUrl = (): string => {
   return `${resolveBaseUrl()}grafana`;
 };
 
+/** Normalizes different Grafana URL forms to a dashboard base URL. */
 const normalizeDashboardBaseUrl = (
   baseUrl: string,
   dashboardUid: string,
@@ -67,6 +72,7 @@ const normalizeDashboardBaseUrl = (
   return url.toString().replace(/\/$/, "");
 };
 
+/** Constructs the Item-specific history dashboard URL and query parameters. */
 export const buildDashboardUrl = (
   baseUrl: string,
   dashboardUid: string,
@@ -95,6 +101,7 @@ export const buildDashboardUrl = (
   return `${normalizedBaseUrl}?${params.toString()}&kiosk`;
 };
 
+/** Creates the iframe wrapper URL with its initial theme. */
 export const buildGrafanaFrameUrl = ({
   initialTheme,
   grafanaUrl = "",

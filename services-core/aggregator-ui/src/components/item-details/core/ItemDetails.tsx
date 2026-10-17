@@ -1,3 +1,5 @@
+/** @file Composes selected Item ownership, signal disclosures, and Timeline. */
+
 /** Renders the selected Item independently of the application shell. */
 import ItemOwnership, {
   type ActorSummaryRow,
@@ -47,6 +49,7 @@ export type ItemDetailsProps = {
   onNavigateToTimelineItem: (itemId: string, href: string) => void;
 };
 
+/** Constructs a signal deep link without altering Item navigation. */
 const buildSignalLink = (id: string): string =>
   `#signal/${encodeURIComponent(id)}`;
 
@@ -62,6 +65,7 @@ const emptyDisclosureState: DetailsDisclosureState = {
   isAffectingOpen: true,
 };
 
+/** Prepares actor summaries in a stable role-based display order. */
 const buildExtraActorRows = (actors: CatalogActor[]): ActorSummaryRow[] =>
   [...actors]
     .sort((left, right) => {
@@ -83,6 +87,7 @@ const buildExtraActorRows = (actors: CatalogActor[]): ActorSummaryRow[] =>
         .replace(/^./, (firstLetter) => firstLetter.toUpperCase()),
     }));
 
+/** Displays the current Item's ownership and reported signal/dependency facts. */
 export default function ItemDetails({
   contentRef,
   headerRef,

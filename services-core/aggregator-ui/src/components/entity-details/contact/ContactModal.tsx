@@ -1,3 +1,5 @@
+/** @file Displays contact details and simulated channel interactions. */
+
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { RefObject } from "react";
 import type { CatalogContact } from "../../../shared/types";
@@ -55,6 +57,7 @@ type ContactDemoCopy = {
   phoneResponse: string;
 };
 
+/** Builds contextual help content for a contact-channel demonstration. */
 const buildContactDemoHelpTopic = (
   details: ContactDemoDetails,
   label: string,
@@ -120,12 +123,15 @@ const onCallActivityByClient: OnCallActivity = {
   opsgenie: ["Incident created", "Notification sent", "On-call acknowledged"],
 };
 
+/** Normalizes a demo contact handle for consistent display. */
 const normalizeContactHandle = (label: string): string =>
   label.replace(/^#+/, "").replace(/^@+/, "").trim() || "team";
 
+/** Builds the simulated message sent through a contact channel. */
 const buildOutgoingText = (label: string): string =>
   `Hey ${normalizeContactHandle(label)}, I have a problem with a service.`;
 
+/** Prepares channel-specific outgoing and reply text for the contact demo. */
 const buildContactDemoCopy = (
   contact: CatalogContact,
   label: string,
@@ -210,6 +216,7 @@ const buildContactDemoCopy = (
 const onCallIncidentTitle = "Service problem";
 const onCallIncidentDescription = "A service is experiencing a health problem.";
 
+/** Resolves an actionable contact link when a channel supports one. */
 const buildRealContactHref = (
   contact: CatalogContact,
   label: string,
@@ -311,6 +318,7 @@ const buildRealContactHref = (
   }
 };
 
+/** Renders the visual window chrome for a simulated contact application. */
 const ContactDemoWindowBar = ({
   details,
   helpTopic,
@@ -332,6 +340,7 @@ const ContactDemoWindowBar = ({
   </div>
 );
 
+/** Renders the email illustration used in the contact preview. */
 const MailEnvelopeIcon = () => (
   <svg
     className="contact-email-envelope-icon"
@@ -734,6 +743,7 @@ const renderContactDemo = (
   );
 };
 
+/** Shows real contact details alongside non-interactive channel previews. */
 export default function ContactModal({
   isOpen,
   contact,

@@ -1,3 +1,5 @@
+/** @file Adapts the replaceable Timeline view to an Item details section. */
+
 import { useEffect, useState } from "react";
 import type { RefObject } from "react";
 import ItemTimeline from "../../shared/item/ItemTimeline";

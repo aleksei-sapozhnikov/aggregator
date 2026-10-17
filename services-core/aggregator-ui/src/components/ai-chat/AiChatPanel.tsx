@@ -1,3 +1,5 @@
+/** @file Renders optional AI chat, tool results, and Item navigation links. */
+
 import type { KeyboardEvent, MouseEvent, SyntheticEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { askAgent } from "../../services/aggregatorApi";
@@ -27,6 +29,7 @@ type AiChatPanelProps = {
   onSelectItem: (itemId: string) => void;
 };
 
+/** Manages the optional assistant conversation and structured health responses. */
 export default function AiChatPanel({
   isOpen,
   buildItemLink,
@@ -194,6 +197,7 @@ type ProductHealthResponseProps = {
   onSelectItem: (itemId: string) => void;
 };
 
+/** Renders deterministic health response facts returned by the agent. */
 function ProductHealthResponse({
   intro,
   content,
@@ -226,6 +230,7 @@ type ProductHealthItemProps = {
   onSelectItem: (itemId: string) => void;
 };
 
+/** Displays one reported Item with its own signals and affected dependencies. */
 function ProductHealthItem({
   item,
   buildItemLink,
@@ -275,6 +280,7 @@ function ProductHealthItem({
   );
 }
 
+/** Displays a signal fact without recomputing its health. */
 function SignalFact({ signal }: { signal: AgentHealthSignalContent }) {
   const statusText = buildStatusText(signal.state);
   return (
@@ -295,6 +301,7 @@ type DependencyFactProps = {
   onSelectItem: (itemId: string) => void;
 };
 
+/** Displays the reported unhealthy signals of one dependency. */
 function DependencyFact({
   dependency,
   buildItemLink,
@@ -335,6 +342,7 @@ type HealthItemLinkProps = {
   onSelectItem: (itemId: string) => void;
 };
 
+/** Links structured assistant results to catalog Item navigation. */
 function HealthItemLink({
   itemId,
   title,

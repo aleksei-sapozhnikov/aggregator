@@ -1,3 +1,5 @@
+/** @file Loads and displays individual health signal definitions and details. */
+
 import { useEffect, useState } from "react";
 import type { CatalogItem } from "../../../shared/types";
 import { isPlainLeftClick } from "../../../shared/ui/pointerUtils";
@@ -21,6 +23,7 @@ type HealthSignalModalProps = {
   onClose: () => void;
 };
 
+/** Formats unknown signal metadata values for display. */
 const formatFieldValue = (value: unknown): string => {
   if (typeof value === "string") {
     return value;
@@ -28,6 +31,7 @@ const formatFieldValue = (value: unknown): string => {
   return JSON.stringify(value, null, 2) ?? String(value);
 };
 
+/** Validates whether a response has the required signal detail fields. */
 const isHealthSignalDetails = (
   value: unknown,
   signalId: string,
@@ -42,6 +46,7 @@ const isHealthSignalDetails = (
   "type" in value &&
   typeof value.type === "string";
 
+/** Fetches detailed information for the selected signal and renders its modal. */
 export default function HealthSignalModal({
   isOpen,
   signalId,
