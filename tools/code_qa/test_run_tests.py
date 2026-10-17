@@ -31,7 +31,9 @@ class TestRunnerTests(unittest.TestCase):
             self.assertEqual(module.command, ["mvn.cmd", "-q", "-B", "test"])
             with (
                 patch.object(run_tests, "resolve_java_home", return_value=home),
-                patch.object(run_tests, "resolve_maven_command", return_value="mvn.cmd"),
+                patch.object(
+                    run_tests, "resolve_maven_command", return_value="mvn.cmd"
+                ),
             ):
                 verbose_module = run_tests.build_module(
                     root, "aggregator", verbose=True
@@ -69,11 +71,14 @@ class TestRunnerTests(unittest.TestCase):
 
     def test_java_test_subprocess_receives_jdk_environment(self) -> None:
         module = run_tests.TestModule(
-            "aggregator", Path("/repo"), ["mvn", "-B", "test"],
+            "aggregator",
+            Path("/repo"),
+            ["mvn", "-B", "test"],
             {"JAVA_HOME": "/qa-jdk", "PATH": "/qa-jdk/bin"},
         )
         with patch.object(
-            run_tests.subprocess, "run",
+            run_tests.subprocess,
+            "run",
             return_value=subprocess.CompletedProcess([], 0),
         ) as execute:
             self.assertEqual(run_tests.execute_module(module), (0, ""))
@@ -113,7 +118,9 @@ class TestRunnerTests(unittest.TestCase):
             root = Path(directory)
             with (
                 patch.dict(run_tests.os.environ, {"FORCE_COLOR": "3"}),
-                patch.object(run_tests, "ensure_ui_test_dependencies", return_value=True),
+                patch.object(
+                    run_tests, "ensure_ui_test_dependencies", return_value=True
+                ),
             ):
                 module = run_tests.build_module(root, "aggregator-ui")
             self.assertEqual(module.env["NO_COLOR"], "1")
@@ -126,9 +133,7 @@ class TestRunnerTests(unittest.TestCase):
                 run_tests, "resolve_ai_agent_python", return_value="python-for-tests"
             ):
                 module = run_tests.build_module(root, "ai-agent")
-                verbose_module = run_tests.build_module(
-                    root, "ai-agent", verbose=True
-                )
+                verbose_module = run_tests.build_module(root, "ai-agent", verbose=True)
             self.assertEqual(
                 module.command,
                 [
@@ -191,9 +196,7 @@ class TestRunnerTests(unittest.TestCase):
                 rc = run_tests.run_modules(names, root)
 
             self.assertEqual(rc, 1)
-            self.assertEqual(
-                [call.args[1] for call in prepare.call_args_list], names
-            )
+            self.assertEqual([call.args[1] for call in prepare.call_args_list], names)
             self.assertEqual(calls, names)
             self.assertIn("Testing aggregator.. OK", output.getvalue())
             self.assertIn("Testing catalog.. FAILED", output.getvalue())
@@ -205,7 +208,9 @@ class TestRunnerTests(unittest.TestCase):
             root = Path(directory)
             output = StringIO()
             with (
-                patch.object(run_tests, "execute_module", return_value=(0, "")) as execute,
+                patch.object(
+                    run_tests, "execute_module", return_value=(0, "")
+                ) as execute,
                 redirect_stdout(output),
             ):
                 self.assertEqual(run_tests.run_modules(["catalog", "code-qa"], root), 1)
@@ -221,7 +226,8 @@ class TestRunnerTests(unittest.TestCase):
             redirect_stdout(StringIO()),
         ):
             self.assertEqual(
-                run_tests.execute_module(module), (1, "Could not start catalog tests: go")
+                run_tests.execute_module(module),
+                (1, "Could not start catalog tests: go"),
             )
 
     def test_execute_module_preserves_subprocess_status(self) -> None:
@@ -243,13 +249,14 @@ class TestRunnerTests(unittest.TestCase):
         self.assertEqual(execute.call_args.args[0], module.command)
         self.assertEqual(execute.call_args.kwargs["cwd"], module.directory)
 
-
     def test_success_output_is_suppressed_by_default(self) -> None:
         module = run_tests.TestModule("catalog", Path("/repo"), ["go", "test", "./..."])
         with patch.object(
             run_tests.subprocess,
             "run",
-            return_value=subprocess.CompletedProcess([], 0, stdout="all tests passed\n"),
+            return_value=subprocess.CompletedProcess(
+                [], 0, stdout="all tests passed\n"
+            ),
         ) as execute:
             self.assertEqual(run_tests.execute_module(module), (0, ""))
         self.assertEqual(execute.call_args.kwargs["stdout"], subprocess.PIPE)
@@ -262,14 +269,18 @@ class TestRunnerTests(unittest.TestCase):
         with patch.object(
             run_tests.subprocess,
             "run",
-            return_value=subprocess.CompletedProcess([], 1, stdout="FAIL: TestBadInput\n"),
+            return_value=subprocess.CompletedProcess(
+                [], 1, stdout="FAIL: TestBadInput\n"
+            ),
         ):
             self.assertEqual(
                 run_tests.execute_module(module), (1, "FAIL: TestBadInput\n")
             )
 
     def test_verbose_mode_forwards_runner_output(self) -> None:
-        module = run_tests.TestModule("catalog", Path("/repo"), ["go", "test", "-v", "./..."])
+        module = run_tests.TestModule(
+            "catalog", Path("/repo"), ["go", "test", "-v", "./..."]
+        )
         with (
             patch.object(
                 run_tests.subprocess,
@@ -289,7 +300,8 @@ class TestRunnerTests(unittest.TestCase):
             output = StringIO()
             with (
                 patch.object(
-                    run_tests, "build_module",
+                    run_tests,
+                    "build_module",
                     side_effect=lambda root, name, verbose=False: run_tests.TestModule(
                         name, root, ["mock-test-command"]
                     ),

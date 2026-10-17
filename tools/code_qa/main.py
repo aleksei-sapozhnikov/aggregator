@@ -375,7 +375,8 @@ def build_parser() -> argparse.ArgumentParser:
     qa_cmd.add_argument("--out-file", default="")
 
     code_qa_cmd = sub.add_parser(
-        "code-qa", help="Check code and run module tests without fixes or secrets scanning."
+        "code-qa",
+        help="Check code and run module tests without fixes or secrets scanning.",
     )
     code_qa_cmd.add_argument("--raw", action="store_true")
     code_qa_cmd.add_argument("--out-file", default="")

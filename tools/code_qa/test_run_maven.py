@@ -39,7 +39,10 @@ class MavenBootstrapTests(unittest.TestCase):
             patch.object(run_maven.shutil, "which", return_value="mvn") as which,
             patch.object(run_maven, "ensure_cached_maven") as bootstrap,
         ):
-            self.assertEqual(run_maven.resolve_maven_command(Path("/repo")), ("mvn.cmd" if run_maven.sys.platform == "win32" else "mvn"))
+            self.assertEqual(
+                run_maven.resolve_maven_command(Path("/repo")),
+                ("mvn.cmd" if run_maven.sys.platform == "win32" else "mvn"),
+            )
         which.assert_called_once()
         bootstrap.assert_not_called()
 
@@ -48,8 +51,14 @@ class MavenBootstrapTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             with (
-                patch.object(run_maven, "MAVEN_ZIP_SHA512", hashlib.sha512(payload).hexdigest()),
-                patch.object(run_maven.urllib.request, "urlopen", return_value=io.BytesIO(payload)) as download,
+                patch.object(
+                    run_maven, "MAVEN_ZIP_SHA512", hashlib.sha512(payload).hexdigest()
+                ),
+                patch.object(
+                    run_maven.urllib.request,
+                    "urlopen",
+                    return_value=io.BytesIO(payload),
+                ) as download,
                 redirect_stdout(StringIO()),
             ):
                 command = run_maven.ensure_cached_maven(root)
@@ -64,7 +73,11 @@ class MavenBootstrapTests(unittest.TestCase):
             root = Path(directory)
             with (
                 patch.object(run_maven, "MAVEN_ZIP_SHA512", "0" * 128),
-                patch.object(run_maven.urllib.request, "urlopen", return_value=io.BytesIO(payload)),
+                patch.object(
+                    run_maven.urllib.request,
+                    "urlopen",
+                    return_value=io.BytesIO(payload),
+                ),
                 redirect_stdout(StringIO()) as output,
             ):
                 self.assertIsNone(run_maven.ensure_cached_maven(root))

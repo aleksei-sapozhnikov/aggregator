@@ -119,7 +119,8 @@ class OrchestratorFlowTests(unittest.TestCase):
     def test_code_format_still_applies_fixes(self) -> None:
         with (
             patch.object(
-                main, "_run_checks",
+                main,
+                "_run_checks",
                 side_effect=[(False, ["ruff"]), (True, [])],
             ),
             patch.object(main, "run_script", return_value=(True, [])) as fix,
@@ -219,11 +220,13 @@ class OrchestratorFlowTests(unittest.TestCase):
 
     def test_test_output_replaces_unicode_status_symbols(self) -> None:
         process = MagicMock()
-        process.stdout = iter([
-            "✓ sample.test.tsx > passes\n",
-            "✗ sample.test.tsx > fails\n",
-            "❯ sample.test.tsx > nested case\n",
-        ])
+        process.stdout = iter(
+            [
+                "✓ sample.test.tsx > passes\n",
+                "✗ sample.test.tsx > fails\n",
+                "❯ sample.test.tsx > nested case\n",
+            ]
+        )
         process.wait.return_value = 1
         process.__enter__.return_value = process
         output = StringIO()
@@ -238,9 +241,7 @@ class OrchestratorFlowTests(unittest.TestCase):
         self.assertNotIn("✓", output.getvalue())
         self.assertNotIn("✗", output.getvalue())
         self.assertIn("=== QA: FAILED ===", output.getvalue())
-        self.assertEqual(
-            popen.call_args.kwargs["env"]["PYTHONIOENCODING"], "utf-8"
-        )
+        self.assertEqual(popen.call_args.kwargs["env"]["PYTHONIOENCODING"], "utf-8")
 
     def test_redirected_cp1251_stdout_preserves_unicode_test_output(self) -> None:
         """Windows redirected stdout must not crash on Unicode from test tools."""

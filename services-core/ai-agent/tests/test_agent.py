@@ -74,9 +74,10 @@ def test_agent_exposes_local_capability_action_to_model() -> None:
         definition.name: definition for definition in model.tool_requests[0]
     }[RESPOND_WITH_CAPABILITIES_TOOL_NAME]
     assert capability_tool.input_schema["required"] == ["message"]
-    assert "XML/HTML-style tags" in capability_tool.input_schema["properties"][
-        "message"
-    ]["description"]
+    assert (
+        "XML/HTML-style tags"
+        in capability_tool.input_schema["properties"]["message"]["description"]
+    )
 
 
 def test_agent_executes_tool_before_answering_plain_specific_followup() -> None:
@@ -149,9 +150,9 @@ def test_agent_returns_structured_unhealthy_items_with_model_intro() -> None:
     }
     assert len(model.requests) == 2
     assert model.tool_choices == [ToolChoice.REQUIRED, ToolChoice.REQUIRED]
-    intro_tool = {
-        definition.name: definition for definition in model.tool_requests[1]
-    }[RESPOND_WITH_PRODUCT_HEALTH_INTRO_TOOL_NAME]
+    intro_tool = {definition.name: definition for definition in model.tool_requests[1]}[
+        RESPOND_WITH_PRODUCT_HEALTH_INTRO_TOOL_NAME
+    ]
     assert intro_tool.input_schema["required"] == ["introduction"]
     assert "Commerce Core" not in answer.answer
     assert "dependencies" not in answer.answer.lower()
@@ -243,7 +244,7 @@ def test_agent_returns_structured_specific_item_with_same_template() -> None:
                                 "state": "UNKNOWN",
                             }
                         ],
-                    }
+                    },
                 ],
             }
         ],
@@ -315,7 +316,9 @@ def test_specific_item_scope_wins_when_global_tool_is_also_called() -> None:
             ),
             ModelResponse(
                 text="",
-                tool_calls=[_intro_call("Here is the current health for Operations Suite.")],
+                tool_calls=[
+                    _intro_call("Here is the current health for Operations Suite.")
+                ],
             ),
         ]
     )
@@ -392,9 +395,7 @@ def test_structured_dependencies_preserve_only_own_unhealthy_signal_facts() -> N
     answer, _ = _answer_list_unhealthy_items(_nested_unhealthy_items_result())
 
     dependencies = answer.structured_content["items"][0]["affecting_dependencies"]
-    assert [
-        dependency["item_id"] for dependency in dependencies
-    ] == [
+    assert [dependency["item_id"] for dependency in dependencies] == [
         "product:experience-foundation",
         "product:experience-line",
         "product:engagement-suite",
@@ -458,9 +459,7 @@ def test_agent_uses_deterministic_fallback_for_invalid_capability_message(
         ]
     )
 
-    answer = ProductHealthAgent(
-        model, [_tool("list_unhealthy_items", {})]
-    ).answer("Hi")
+    answer = ProductHealthAgent(model, [_tool("list_unhealthy_items", {})]).answer("Hi")
 
     assert answer.answer == CAPABILITY_FALLBACK_RESPONSE
     assert "<thinking>" not in answer.answer
@@ -473,9 +472,9 @@ def test_agent_rejects_unknown_tool() -> None:
     )
 
     with pytest.raises(ValueError, match="Unsupported tool"):
-        ProductHealthAgent(
-            model, [_tool("list_unhealthy_items", {})]
-        ).answer("What is broken?")
+        ProductHealthAgent(model, [_tool("list_unhealthy_items", {})]).answer(
+            "What is broken?"
+        )
 
 
 def _tool(name: str, result: dict[str, Any]) -> FakeTool:
@@ -499,7 +498,9 @@ def _answer_list_unhealthy_items(
         [
             ModelResponse(
                 text="Ignored by structured renderer.",
-                tool_calls=[ToolCall(id="tool-1", name="list_unhealthy_items", arguments={})],
+                tool_calls=[
+                    ToolCall(id="tool-1", name="list_unhealthy_items", arguments={})
+                ],
             ),
             ModelResponse(text="", tool_calls=[_intro_call(intro)]),
         ]

@@ -193,7 +193,10 @@ def execute_module(module: TestModule, *, verbose: bool = False) -> tuple[int, s
     if result.returncode == 0 or verbose:
         return result.returncode, ""
     output = result.stdout if isinstance(result.stdout, str) else ""
-    return result.returncode, output or f"Test command exited with status {result.returncode}."
+    return (
+        result.returncode,
+        output or f"Test command exited with status {result.returncode}.",
+    )
 
 
 def run_modules(

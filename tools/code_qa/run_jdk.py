@@ -25,9 +25,7 @@ ADOPTIUM_API = f"https://api.adoptium.net/v3/assets/latest/{JAVA_MAJOR}/hotspot"
 
 def platform_details() -> tuple[str, str]:
     """Map this host to the platform identifiers used by the Adoptium API."""
-    os_name = {"win32": "windows", "linux": "linux", "darwin": "mac"}.get(
-        sys.platform
-    )
+    os_name = {"win32": "windows", "linux": "linux", "darwin": "mac"}.get(sys.platform)
     machine = platform.machine().lower()
     arch = {
         "amd64": "x64",
@@ -76,8 +74,7 @@ def cached_jdk_root(root: Path) -> Path:
     """Return the persistent cache location for this OS and architecture."""
     os_name, arch = platform_details()
     return (
-        root / ".temp" / "qa-runtime" / "jdk"
-        / f"temurin-{JAVA_MAJOR}-{os_name}-{arch}"
+        root / ".temp" / "qa-runtime" / "jdk" / f"temurin-{JAVA_MAJOR}-{os_name}-{arch}"
     )
 
 

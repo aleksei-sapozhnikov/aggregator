@@ -32,9 +32,7 @@ def maven_environment(java_home: Path) -> dict[str, str]:
     env = java_environment(java_home)
     existing_options = env.get("MAVEN_OPTS", "").strip()
     if MAVEN_UNSAFE_ACCESS_OPTION not in existing_options.split():
-        env["MAVEN_OPTS"] = (
-            f"{existing_options} {MAVEN_UNSAFE_ACCESS_OPTION}".strip()
-        )
+        env["MAVEN_OPTS"] = f"{existing_options} {MAVEN_UNSAFE_ACCESS_OPTION}".strip()
     return env
 
 
@@ -81,7 +79,9 @@ def ensure_cached_maven(root: Path) -> Path | None:
             archive.extractall(cache)
 
         if not command.is_file():
-            raise FileNotFoundError("Apache Maven executable missing from downloaded archive")
+            raise FileNotFoundError(
+                "Apache Maven executable missing from downloaded archive"
+            )
 
         if sys.platform != "win32":
             command.chmod(command.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP)
