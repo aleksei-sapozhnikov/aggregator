@@ -192,7 +192,7 @@ describe("useCatalogData", () => {
     expect(fetchProductHealth).not.toHaveBeenCalled();
   });
 
-  it("keeps the previous health response when one poll fails and retries at the next interval", async () => {
+  it("clears stale health after an unsuccessful poll and retries at the next interval", async () => {
     vi.useFakeTimers();
     const log = vi.spyOn(console, "error").mockImplementation(() => {});
     const { result } = renderHook(() => useCatalogData());
@@ -204,13 +204,14 @@ describe("useCatalogData", () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(10_000);
     });
-    expect(result.current.itemStatuses).toEqual({ checkout: "down" });
+    expect(result.current.itemStatuses).toEqual({});
     expect(log).toHaveBeenCalledTimes(1);
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(10_000);
     });
     expect(fetchProductHealth).toHaveBeenCalledTimes(3);
+    expect(result.current.itemStatuses).toEqual({ checkout: "down" });
     expect(result.current.error).toBe("");
   });
 
