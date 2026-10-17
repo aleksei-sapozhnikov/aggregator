@@ -71,7 +71,9 @@ const parseProductHealthStatus = (value: unknown): HealthStatus => {
 const OPTIONAL_CATALOG_TIMEOUT_MS = 3_000;
 
 /** Fetches required catalog data and optional ownership and contact relationships. */
-export const loadCatalog = async (signal?: AbortSignal): Promise<{
+export const loadCatalog = async (
+  signal?: AbortSignal,
+): Promise<{
   items: CatalogItem[];
   dependencies: CatalogDependency[];
   contacts: CatalogContact[];
@@ -396,7 +398,9 @@ const loadOptionalJson = async (
 };
 
 /** Retrieves current server-computed Item statuses and signal/dependency facts. */
-export const fetchProductHealth = async (signal?: AbortSignal): Promise<{
+export const fetchProductHealth = async (
+  signal?: AbortSignal,
+): Promise<{
   items: ProductHealthItem[];
   itemStatuses: Record<string, HealthStatus>;
   itemSignals: Record<string, ItemSignal[]>;
@@ -412,8 +416,7 @@ export const fetchProductHealth = async (signal?: AbortSignal): Promise<{
   if (!Array.isArray(payload)) {
     throw new Error("Invalid Product Health response");
   }
-  const rawItems = payload;
-  const items = rawItems
+  const items = payload
     .map(normalizeProductHealthItem)
     .filter((item): item is ProductHealthItem => Boolean(item));
   const itemStatuses: Record<string, HealthStatus> = {};

@@ -22,13 +22,13 @@ The catalog tree and item headers use these health indicators:
 - ![Green check mark](docs/assets/status-up.svg) **UP** - Working normally.
 - ![Red cross](docs/assets/status-down.svg) **DOWN** - This item or a service it needs has a problem.
 - ![Yellow question mark](docs/assets/status-unknown.svg) **UNKNOWN** - Aggregator is reachable, but it does not have enough information to determine health.
-Product Health states above are computed by Aggregator, not by the browser.
-When the UI loses its connection to Aggregator, it shows a gray
-**⊘ DISCONNECTED** banner with the last successful update and the detected
-connection-loss time. Previous Product Health states and signals remain
-visible as **Last known** rather than being changed to UNKNOWN or DOWN.
-If the UI has never received a successful health response, no Item health
-states are displayed until one arrives.
+  Product Health states above are computed by Aggregator, not by the browser.
+  When the UI loses its connection to Aggregator, it shows a gray
+  **⊘ DISCONNECTED** banner with the last successful update and the detected
+  connection-loss time. Previous Product Health states and signals remain
+  visible as **Last known** rather than being changed to UNKNOWN or DOWN.
+  If the UI has never received a successful health response, no Item health
+  states are displayed until one arrives.
 
 What to look at:
 

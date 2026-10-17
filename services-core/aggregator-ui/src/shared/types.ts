@@ -5,7 +5,10 @@
 export type HealthStatus = "up" | "down" | "unknown";
 
 /** The UI transport state never changes Product Health facts. */
-export type HealthConnectionStatus = "connecting" | "connected" | "disconnected";
+export type HealthConnectionStatus =
+  | "connecting"
+  | "connected"
+  | "disconnected";
 
 export interface CatalogItem {
   id: string;

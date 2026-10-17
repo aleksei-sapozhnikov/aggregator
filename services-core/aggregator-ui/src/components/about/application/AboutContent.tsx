@@ -89,8 +89,8 @@ export default function AboutContent() {
             aria-hidden="true"
           />
           <span>
-            <strong>UNKNOWN</strong> - Aggregator is reachable but doesn't
-            have enough information to tell.
+            <strong>UNKNOWN</strong> - Aggregator is reachable but doesn't have
+            enough information to tell.
           </span>
         </li>
       </ul>

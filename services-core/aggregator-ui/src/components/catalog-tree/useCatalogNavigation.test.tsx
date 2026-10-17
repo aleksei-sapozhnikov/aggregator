@@ -127,10 +127,7 @@ describe("catalog tree cycles", () => {
       { sourceId: "beta", targetId: "alpha" },
     ];
     const tree = buildCatalogTree(cycleItems, cycleDependencies);
-    expect(tree.map((node) => node.item.id)).toEqual([
-      "independent",
-      "alpha",
-    ]);
+    expect(tree.map((node) => node.item.id)).toEqual(["independent", "alpha"]);
     expect(new Set(collectNodeIds(tree))).toEqual(
       new Set(["independent", "alpha", "beta"]),
     );
