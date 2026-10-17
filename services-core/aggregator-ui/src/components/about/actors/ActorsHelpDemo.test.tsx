@@ -70,6 +70,19 @@ describe("Actors contextual help animation", () => {
     expect(
       container.querySelector('[data-actor="support"] .actors-help-wrench'),
     ).toBeNull();
+    expect(
+      container.querySelector('[data-actor="user"] [data-demo-gesture="phone"]'),
+    ).not.toBeNull();
+    expect(
+      container.querySelector(
+        '[data-actor="support"] [data-demo-gesture="headset"]',
+      ),
+    ).not.toBeNull();
+    expect(
+      container.querySelector(
+        '[data-actor="support"] .demo-character-support-hand',
+      ),
+    ).not.toBeNull();
   });
 
   it("renders the self-contained scene and the three sample relationship rows", () => {
