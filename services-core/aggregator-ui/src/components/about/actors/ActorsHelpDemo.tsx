@@ -15,8 +15,8 @@ import HelpInteractionShield from "../shared/HelpInteractionShield";
 import "./ActorsHelpDemo.css";
 
 // The HTML page and illustrated sprites scale together; destinations follow its DOM rows.
-export const actorsHelpDuration = 11200;
-const previewTime = 7000;
+export const actorsHelpDuration = 8000;
+const previewTime = 4600;
 const clamp = (value: number) => Math.max(0, Math.min(1, value));
 const between = (time: number, start: number, end: number) =>
   clamp((time - start) / (end - start));
@@ -25,23 +25,14 @@ const lerp = (start: number, end: number, factor: number) =>
   start + (end - start) * factor;
 
 export function getActorsHelpFrame(time: number) {
-  // Scene, 2s beside rows, 2s clean Item, restore sprites, reverse.
+  // Move into the Item rows, hold the sprites for two seconds, then return.
   const travel =
     smooth(between(time, 1800, 3600)) *
-    (1 - smooth(between(time, 8600, 10450)));
+    (1 - smooth(between(time, 5600, 7400)));
   const pageOpacity =
     smooth(between(time, 2250, 3500)) *
-    (1 - smooth(between(time, 8950, 10450)));
-  const markerOpacity =
-    1 -
-    smooth(between(time, 5650, 6050)) * (1 - smooth(between(time, 8150, 8600)));
-  return {
-    travel,
-    pageOpacity,
-    sceneOpacity: 1 - pageOpacity,
-    actorOpacity: markerOpacity,
-    machineOpacity: markerOpacity,
-  };
+    (1 - smooth(between(time, 5750, 7350)));
+  return { travel, pageOpacity };
 }
 
 type Role = "owner" | "user" | "support";
@@ -458,13 +449,13 @@ const actorSelectors = {
   owner: ".ownership-extra-list li:nth-child(1) .actor-summary-row",
   user: ".ownership-extra-list li:nth-child(2) .actor-summary-row",
   support: ".ownership-extra-list li:nth-child(3) .actor-summary-row",
-  item: ".content-title",
+  item: ".content-title .catalog-item-info",
 };
 const actorFallback = {
   owner: { x: 72, y: 178, width: 210, height: 34 },
   user: { x: 72, y: 214, width: 190, height: 34 },
   support: { x: 72, y: 250, width: 150, height: 34 },
-  item: { x: 20, y: 20, width: 260, height: 27 },
+  item: { x: 242, y: 20, width: 26, height: 26 },
 };
 
 function ItemPreview({
@@ -533,7 +524,7 @@ export default function ActorsHelpDemo() {
   }, [reduceMotion]);
 
   const frame = getActorsHelpFrame(elapsed);
-  const illustrating = !reduceMotion && (elapsed < 1800 || elapsed >= 10450);
+  const illustrating = !reduceMotion && (elapsed < 1800 || elapsed >= 7400);
   const moving = frame.travel;
 
   return (
@@ -560,13 +551,12 @@ export default function ActorsHelpDemo() {
           {!reduceMotion && (
             <g
               data-service="item"
-              opacity={frame.machineOpacity}
               transform={
                 "translate(" +
                 lerp(
                   210,
                   pageX +
-                    (targets.item.x + targets.item.width + 16) * pageScale,
+                    (targets.item.x + targets.item.width + 20) * pageScale,
                   moving,
                 ) +
                 " " +
@@ -614,7 +604,6 @@ export default function ActorsHelpDemo() {
                 <g
                   key={actor.id}
                   data-actor={actor.id}
-                  opacity={frame.actorOpacity}
                   transform={"translate(" + x + " " + y + ")"}
                 >
                   <g
