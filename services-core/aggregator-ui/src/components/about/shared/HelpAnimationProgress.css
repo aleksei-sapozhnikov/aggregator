@@ -7,7 +7,11 @@
   height: 3px;
   overflow: hidden;
   border-radius: 9px 9px 0 0;
-  background: color-mix(in srgb, var(--sidebar-selected-accent) 12%, transparent);
+  background: color-mix(
+    in srgb,
+    var(--sidebar-selected-accent) 12%,
+    transparent
+  );
   pointer-events: none;
 }
 

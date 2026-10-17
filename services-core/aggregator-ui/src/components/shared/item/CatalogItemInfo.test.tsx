@@ -10,6 +10,10 @@ import {
   waitFor,
 } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import {
+  openHelpDialogFromHover,
+  expectTooltipAfterModalClose,
+} from "../help/helpTestAssertions";
 import CatalogItemInfo from "./CatalogItemInfo";
 
 const makeRect = (
@@ -212,14 +216,7 @@ describe("CatalogItemInfo modal tooltip lifecycle", () => {
       name: "Catalog information for Stock",
     });
 
-    trigger.focus();
-    expect(screen.queryByRole("tooltip")).toBeNull();
-
-    fireEvent.mouseEnter(trigger);
-    expect(screen.getByRole("tooltip")).not.toBeNull();
-
-    fireEvent.click(trigger);
-    expect(screen.queryByRole("tooltip")).toBeNull();
+    openHelpDialogFromHover(trigger);
 
     const dialog = screen.getByRole("dialog", {
       name: "Catalog information for Stock",
@@ -229,19 +226,6 @@ describe("CatalogItemInfo modal tooltip lifecycle", () => {
     fireEvent.keyDown(window, { key: "Escape" });
 
     expect(screen.queryByRole("dialog")).toBeNull();
-    await waitFor(() => expect(document.activeElement).toBe(trigger));
-    expect(screen.queryByRole("tooltip")).toBeNull();
-
-    // Automatic focus restoration and subsequent focus do not show the tooltip.
-    trigger.blur();
-    trigger.focus();
-    expect(screen.queryByRole("tooltip")).toBeNull();
-
-    // The first new hover does show it without an extra leave/enter cycle.
-    fireEvent.mouseEnter(trigger);
-    expect(screen.getByRole("tooltip")).not.toBeNull();
-
-    fireEvent.mouseLeave(trigger);
-    expect(screen.queryByRole("tooltip")).toBeNull();
+    await expectTooltipAfterModalClose(trigger);
   });
 });

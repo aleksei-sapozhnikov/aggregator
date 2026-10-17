@@ -10,6 +10,10 @@ import {
   waitFor,
 } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import {
+  openHelpDialogFromHover,
+  expectTooltipAfterModalClose,
+} from "../shared/help/helpTestAssertions";
 import InfoHelp from "../shared/help/InfoHelp";
 import ContextualHelpProvider from "./ContextualHelpProvider";
 import type { ReactElement } from "react";
@@ -30,7 +34,8 @@ const topic: HelpTopic = {
   description: "Timeline shows product health over time.",
 };
 
-const render = (ui: ReactElement) => baseRender(<ContextualHelpProvider>{ui}</ContextualHelpProvider>);
+const render = (ui: ReactElement) =>
+  baseRender(<ContextualHelpProvider>{ui}</ContextualHelpProvider>);
 
 afterEach(() => {
   cleanup();
@@ -41,13 +46,24 @@ describe("InfoHelp signal examples", () => {
   it.each([
     ["healthySignals", "Healthy dependency signals example"],
     ["unhealthySignals", "Unhealthy dependency propagation example"],
-  ] as const)("renders the %s animation in its existing contextual help dialog", (key, label) => {
-    render(<InfoHelp topicId={infoHelpTopics[key].id} />);
-    fireEvent.click(screen.getByRole("button", { name: "About " + infoHelpTopics[key].title }));
-    const dialog = screen.getByRole("dialog", { name: "About " + infoHelpTopics[key].title });
-    expect(dialog.querySelector("figure[aria-label='" + label + "']")).not.toBeNull();
-    expect(dialog.querySelectorAll("[data-flow-node]")).toHaveLength(6);
-  });
+  ] as const)(
+    "renders the %s animation in its existing contextual help dialog",
+    (key, label) => {
+      render(<InfoHelp topicId={infoHelpTopics[key].id} />);
+      fireEvent.click(
+        screen.getByRole("button", {
+          name: "About " + infoHelpTopics[key].title,
+        }),
+      );
+      const dialog = screen.getByRole("dialog", {
+        name: "About " + infoHelpTopics[key].title,
+      });
+      expect(
+        dialog.querySelector("figure[aria-label='" + label + "']"),
+      ).not.toBeNull();
+      expect(dialog.querySelectorAll("[data-flow-node]")).toHaveLength(6);
+    },
+  );
 });
 
 describe("InfoHelp Actors example", () => {
@@ -55,7 +71,11 @@ describe("InfoHelp Actors example", () => {
     render(<InfoHelp topicId="actors" />);
     fireEvent.click(screen.getByRole("button", { name: "About Actors" }));
     const dialog = screen.getByRole("dialog", { name: "About Actors" });
-    expect(dialog.querySelector("figure[aria-label='Actors become Item ownership and relationship entries']")).not.toBeNull();
+    expect(
+      dialog.querySelector(
+        "figure[aria-label='Actors become Item ownership and relationship entries']",
+      ),
+    ).not.toBeNull();
     expect(dialog.querySelectorAll("[data-actor]")).toHaveLength(3);
   });
 });
@@ -67,14 +87,7 @@ describe("InfoHelp tooltip lifecycle", () => {
       render(<InfoHelp topic={topic} />);
 
       const trigger = screen.getByRole("button", { name: "About Timeline" });
-      trigger.focus();
-      expect(screen.queryByRole("tooltip")).toBeNull();
-
-      fireEvent.mouseEnter(trigger);
-      expect(screen.getByRole("tooltip")).not.toBeNull();
-
-      fireEvent.click(trigger);
-      expect(screen.queryByRole("tooltip")).toBeNull();
+      openHelpDialogFromHover(trigger);
 
       const dialog = screen.getByRole("dialog", { name: "About Timeline" });
       await waitFor(() => expect(document.activeElement).toBe(dialog));
@@ -92,20 +105,7 @@ describe("InfoHelp tooltip lifecycle", () => {
       expect(
         screen.queryByRole("dialog", { name: "About Timeline" }),
       ).toBeNull();
-      await waitFor(() => expect(document.activeElement).toBe(trigger));
-      expect(screen.queryByRole("tooltip")).toBeNull();
-
-      // Focus restoration and subsequent refocusing must not show hover help.
-      trigger.blur();
-      trigger.focus();
-      expect(screen.queryByRole("tooltip")).toBeNull();
-
-      // A new mouse hover must show the tooltip on its first entry.
-      fireEvent.mouseEnter(trigger);
-      expect(screen.getByRole("tooltip")).not.toBeNull();
-
-      fireEvent.mouseLeave(trigger);
-      expect(screen.queryByRole("tooltip")).toBeNull();
+      await expectTooltipAfterModalClose(trigger);
     },
   );
 });

@@ -59,7 +59,13 @@
   pointer-events: none;
 }
 @media (max-width: 540px) {
-  .timeline-help-scenarios { grid-template-columns: 1fr; }
-  .timeline-help-scenarios button { min-height: 34px; }
-  .timeline-help-content { min-height: 440px; }
+  .timeline-help-scenarios {
+    grid-template-columns: 1fr;
+  }
+  .timeline-help-scenarios button {
+    min-height: 34px;
+  }
+  .timeline-help-content {
+    min-height: 440px;
+  }
 }

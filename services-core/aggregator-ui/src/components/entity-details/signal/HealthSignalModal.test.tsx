@@ -23,12 +23,14 @@ const details = {
   extraConfiguration: { threshold: 2, enabled: true },
 };
 
-const setup = (payload: unknown = details, status = 200) => {
-  const fetchMock = vi.fn().mockResolvedValue({
-    ok: status === 200,
-    status,
-    json: async () => payload,
-  });
+const setup = (payload: unknown = details, status = 200, rejection?: Error) => {
+  const fetchMock = rejection
+    ? vi.fn().mockRejectedValue(rejection)
+    : vi.fn().mockResolvedValue({
+        ok: status === 200,
+        status,
+        json: async () => payload,
+      });
   vi.stubGlobal("fetch", fetchMock);
   const onSelectItemById = vi.fn();
   const onClose = vi.fn();
@@ -109,6 +111,34 @@ describe("HealthSignalModal", () => {
 
     expect(onClose).toHaveBeenCalledTimes(1);
     expect(onSelectItemById).toHaveBeenCalledExactlyOnceWith("payments");
+  });
+
+  it("displays generic errors for other HTTP failures", async () => {
+    setup(null, 500);
+    await waitFor(() => {
+      expect(screen.getByRole("alert").textContent).toBe(
+        "Unable to load signal details from the catalog.",
+      );
+    });
+    expect(screen.queryByRole("table")).toBeNull();
+  });
+
+  it("rejects malformed catalog responses without rendering partial details", async () => {
+    setup({ id: "sg_check", itemId: 42, type: "http-poll" });
+    await waitFor(() => {
+      expect(screen.getByRole("alert").textContent).toBe(
+        "Invalid signal details returned by the catalog.",
+      );
+    });
+    expect(screen.queryByRole("table")).toBeNull();
+  });
+
+  it("keeps network errors in the exception handler", async () => {
+    setup(undefined, 200, new Error("Network unavailable"));
+    await waitFor(() => {
+      expect(screen.getByRole("alert").textContent).toBe("Network unavailable");
+    });
+    expect(screen.queryByRole("table")).toBeNull();
   });
 
   it("displays a catalog lookup failure instead of stale signal data", async () => {

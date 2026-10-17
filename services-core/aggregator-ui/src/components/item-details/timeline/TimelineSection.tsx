@@ -16,7 +16,13 @@ type TimelineSectionProps = {
 
 /** Provider-independent timeline boundary. Its implementation may replace Grafana. */
 export default function TimelineSection({
-  itemId, theme, expanded, onToggle, onNavigateToItem, contentRef, headerRef,
+  itemId,
+  theme,
+  expanded,
+  onToggle,
+  onNavigateToItem,
+  contentRef,
+  headerRef,
 }: TimelineSectionProps) {
   const [height, setHeight] = useState(0);
   useEffect(() => {
@@ -27,9 +33,18 @@ export default function TimelineSection({
       const paddingBottom = Number.parseFloat(styles.paddingBottom) || 0;
       const gap = Number.parseFloat(styles.rowGap || styles.gap) || 0;
       const headerHeight = headerRef.current.getBoundingClientRect().height;
-      setHeight(Math.max(320, Math.floor(
-        window.innerHeight - paddingTop - paddingBottom - headerHeight - gap,
-      )));
+      setHeight(
+        Math.max(
+          320,
+          Math.floor(
+            window.innerHeight -
+              paddingTop -
+              paddingBottom -
+              headerHeight -
+              gap,
+          ),
+        ),
+      );
     };
     updateHeight();
     window.addEventListener("resize", updateHeight);
@@ -45,9 +60,17 @@ export default function TimelineSection({
   }, [contentRef, headerRef]);
 
   return (
-    <ItemTimeline expanded={expanded} onToggle={onToggle} height={height}
-      help={<InfoHelp topicId="timeline" />}>
-      <GrafanaFrame itemId={itemId} theme={theme} onNavigateToItem={onNavigateToItem} />
+    <ItemTimeline
+      expanded={expanded}
+      onToggle={onToggle}
+      height={height}
+      help={<InfoHelp topicId="timeline" />}
+    >
+      <GrafanaFrame
+        itemId={itemId}
+        theme={theme}
+        onNavigateToItem={onNavigateToItem}
+      />
     </ItemTimeline>
   );
 }

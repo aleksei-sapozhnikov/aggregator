@@ -4204,13 +4204,12 @@ body[data-theme="dark"] .about-social-icon-linkedin {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0;
+  padding: 1px 0 0;
   cursor: pointer;
   font: inherit;
   font-size: 11px;
   font-weight: 700;
   line-height: 1;
-  padding-top: 1px;
 }
 
 .info-help-button::before {

@@ -1,8 +1,15 @@
 /**
  * @vitest-environment jsdom
  */
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { expectDecorativeSceneShield } from "../../shared/help/helpTestAssertions";
 import PrimaryContactHelpDemo, {
   getPrimaryContactHelpFrame,
   getPrimaryContactHelpLayout,
@@ -21,13 +28,10 @@ afterEach(() => {
 describe("Primary contact contextual help", () => {
   it("blocks pointer interactions with the decorative animation, not its progress bar", () => {
     render(<PrimaryContactHelpDemo />);
-    const figure = screen.getByRole("figure", { name: "Find the primary contact in Aggregator to get a failing service repaired" });
-    const shield = figure.querySelector(".help-interaction-shield");
-    expect(shield).not.toBeNull();
-    expect(shield?.getAttribute("aria-hidden")).toBe("true");
-    expect(figure.lastElementChild).toBe(shield);
-    expect(shield?.previousElementSibling?.classList.contains("help-scene")).toBe(true);
-    expect(figure.querySelector(".help-animation-progress")).not.toBeNull();
+    const figure = screen.getByRole("figure", {
+      name: "Find the primary contact in Aggregator to get a failing service repaired",
+    });
+    expectDecorativeSceneShield(figure);
   });
 
   it("follows the failure, laptop, contact, phone, repair and recovery sequence", () => {
@@ -52,49 +56,85 @@ describe("Primary contact contextual help", () => {
     expect(getPrimaryContactHelpFrame(8000).calling).toBe(1);
     expect(getPrimaryContactHelpFrame(9950).repair).toBe(1);
     expect(getPrimaryContactHelpFrame(11800).unhealthy).toBe(0);
-    expect(getPrimaryContactHelpFrame(primaryContactHelpDuration)).toEqual(initial);
+    expect(getPrimaryContactHelpFrame(primaryContactHelpDuration)).toEqual(
+      initial,
+    );
   });
 
   it("shows the animated preview directly beneath the existing description", () => {
-    render(<ContextualHelpProvider><InfoHelp topicId="primary-contact" /></ContextualHelpProvider>);
-    fireEvent.click(screen.getByRole("button", { name: "About Primary contact" }));
-    const dialog = screen.getByRole("dialog", { name: "About Primary contact" });
+    render(
+      <ContextualHelpProvider>
+        <InfoHelp topicId="primary-contact" />
+      </ContextualHelpProvider>,
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: "About Primary contact" }),
+    );
+    const dialog = screen.getByRole("dialog", {
+      name: "About Primary contact",
+    });
     const text = dialog.querySelector(".info-help-description");
     const figure = dialog.querySelector("figure.primary-contact-help-demo");
-    expect(text?.textContent).toContain("The primary contact is the main contact point");
+    expect(text?.textContent).toContain(
+      "The primary contact is the main contact point",
+    );
     expect(text?.nextElementSibling).toBe(figure);
     expect(figure?.querySelector("[data-primary-contact-page]")).not.toBeNull();
-    expect(figure?.querySelector("[data-primary-contact-transfer]")).not.toBeNull();
-    expect(figure?.querySelector("[data-primary-contact-phone]")).not.toBeNull();
+    expect(
+      figure?.querySelector("[data-primary-contact-transfer]"),
+    ).not.toBeNull();
+    expect(
+      figure?.querySelector("[data-primary-contact-phone]"),
+    ).not.toBeNull();
     expect(figure?.querySelectorAll("img")).toHaveLength(0);
   });
 
   it("renders the page and moving contact as production HTML beside the illustrative SVG", () => {
     render(<PrimaryContactHelpDemo />);
-    const page = document.querySelector("[data-primary-contact-page]") as HTMLElement;
+    const page = document.querySelector(
+      "[data-primary-contact-page]",
+    ) as HTMLElement;
     expect(page.tagName).toBe("DIV");
     expect(page.closest("svg")).toBeNull();
-    expect(page.querySelector(".content-title")?.textContent).toContain("Customer Experience");
-    expect(page.querySelector(".content-status-label")?.textContent).toBe("DOWN");
+    expect(page.querySelector(".content-title")?.textContent).toContain(
+      "Customer Experience",
+    );
+    expect(page.querySelector(".content-status-label")?.textContent).toBe(
+      "DOWN",
+    );
     expect(page.querySelectorAll(".actor-summary-row")).toHaveLength(3);
     const heading = page.querySelector(".primary-contact-heading-row");
-    expect(heading?.nextElementSibling?.classList.contains("primary-contact-row")).toBe(true);
+    expect(
+      heading?.nextElementSibling?.classList.contains("primary-contact-row"),
+    ).toBe(true);
     const transfer = document.querySelector("[data-primary-contact-transfer]");
-    expect(transfer?.querySelector(".primary-contact-row")?.innerHTML)
-      .toBe(page.querySelector(".primary-contact-row")?.innerHTML);
+    expect(transfer?.querySelector(".primary-contact-row")?.innerHTML).toBe(
+      page.querySelector(".primary-contact-row")?.innerHTML,
+    );
     expect(page.hasAttribute("inert")).toBe(true);
-    expect(page.querySelector("a[href], button:not(:disabled), [tabindex='0']")).toBeNull();
-    expect(document.querySelector("[data-primary-contact-scene]")?.getAttribute("transform"))
-      .toBe("translate(130 55) scale(0.66)");
+    expect(
+      page.querySelector("a[href], button:not(:disabled), [tabindex='0']"),
+    ).toBeNull();
+    expect(
+      document
+        .querySelector("[data-primary-contact-scene]")
+        ?.getAttribute("transform"),
+    ).toBe("translate(130 55) scale(0.66)");
   });
 
   it("loops and resets its progress indicator", () => {
     vi.useFakeTimers();
     render(<PrimaryContactHelpDemo />);
-    const progress = screen.getByRole("progressbar", { name: "Animation progress" });
-    act(() => { vi.advanceTimersByTime(primaryContactHelpDuration / 2); });
+    const progress = screen.getByRole("progressbar", {
+      name: "Animation progress",
+    });
+    act(() => {
+      vi.advanceTimersByTime(primaryContactHelpDuration / 2);
+    });
     expect(progress.getAttribute("aria-valuenow")).toBe("50");
-    act(() => { vi.advanceTimersByTime(primaryContactHelpDuration / 2); });
+    act(() => {
+      vi.advanceTimersByTime(primaryContactHelpDuration / 2);
+    });
     expect(progress.getAttribute("aria-valuenow")).toBe("0");
   });
 
@@ -102,17 +142,22 @@ describe("Primary contact contextual help", () => {
     for (const width of [640, 540, 380, 320]) {
       const layout = getPrimaryContactHelpLayout(width);
       const [, , viewWidth, viewHeight] = layout.viewBox.split(" ").map(Number);
-      const serviceWidthInPixels = 137 * 0.66 * Math.min(width, 640) / viewWidth;
+      const serviceWidthInPixels =
+        (137 * 0.66 * Math.min(width, 640)) / viewWidth;
 
       expect(serviceWidthInPixels).toBeGreaterThan(84);
       expect(serviceWidthInPixels).toBeLessThan(100);
-      expect(viewHeight * Math.min(width, 640) / viewWidth).toBeLessThanOrEqual(340);
+      expect(
+        (viewHeight * Math.min(width, 640)) / viewWidth,
+      ).toBeLessThanOrEqual(340);
 
       const [left, top] = layout.viewBox.split(" ").map(Number);
       const actualPageLeft = layout.pageX;
-      const actualPageRight = actualPageLeft + layout.pageWidth * layout.pageScale;
+      const actualPageRight =
+        actualPageLeft + layout.pageWidth * layout.pageScale;
       const actualPageTop = layout.pageY;
-      const actualPageBottom = actualPageTop + layout.pageHeight * layout.pageScale;
+      const actualPageBottom =
+        actualPageTop + layout.pageHeight * layout.pageScale;
       expect(actualPageLeft).toBeGreaterThanOrEqual(left);
       expect(actualPageRight).toBeLessThanOrEqual(left + viewWidth);
       expect(actualPageTop).toBeGreaterThanOrEqual(top);
@@ -126,13 +171,23 @@ describe("Primary contact contextual help", () => {
     let measuredWidth = 380;
     let notifyResize: (() => void) | undefined;
     vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(
-      () => ({ width: measuredWidth, height: 230, toJSON: () => ({}) }) as DOMRect,
+      () =>
+        ({ width: measuredWidth, height: 230, toJSON: () => ({}) }) as DOMRect,
     );
+    // noinspection JSUnusedGlobalSymbols
     class MockResizeObserver {
       private readonly callback: ResizeObserverCallback;
-      constructor(callback: ResizeObserverCallback) { this.callback = callback; }
-      observe(element: Element) { if (element.classList.contains("help-scene")) notifyResize = () => this.callback([], this as unknown as ResizeObserver); }
-      disconnect() { notifyResize = undefined; }
+      constructor(callback: ResizeObserverCallback) {
+        this.callback = callback;
+      }
+      observe(element: Element) {
+        if (element.classList.contains("help-scene"))
+          notifyResize = () =>
+            this.callback([], this as unknown as ResizeObserver);
+      }
+      disconnect() {
+        notifyResize = undefined;
+      }
     }
     vi.stubGlobal("ResizeObserver", MockResizeObserver);
 
@@ -146,17 +201,24 @@ describe("Primary contact contextual help", () => {
     expect(canvas.style.transform).toContain("scale(1)");
 
     measuredWidth = 320;
-    act(() => { notifyResize?.(); });
+    act(() => {
+      notifyResize?.();
+    });
     expect(scene.style.aspectRatio).toContain("320");
     expect(canvas.style.transform).toContain("scale(1)");
-    expect(svg.querySelector("[data-primary-contact-observer-offset]")
-      ?.getAttribute("transform")).toBe("translate(-24 0)");
+    expect(
+      svg
+        .querySelector("[data-primary-contact-observer-offset]")
+        ?.getAttribute("transform"),
+    ).toBe("translate(-24 0)");
   });
 
   it("keeps a readable highlighted Item preview for reduced motion", () => {
     vi.stubGlobal("matchMedia", () => ({ matches: true }));
     render(<PrimaryContactHelpDemo />);
-    const preview = document.querySelector("[data-primary-contact-page]") as SVGGElement;
+    const preview = document.querySelector(
+      "[data-primary-contact-page]",
+    ) as SVGGElement;
     expect(preview.style.opacity).toBe("1");
     expect(preview.textContent).toContain("Primary contact");
     expect(preview.textContent).toContain("+1 555 010 2026");

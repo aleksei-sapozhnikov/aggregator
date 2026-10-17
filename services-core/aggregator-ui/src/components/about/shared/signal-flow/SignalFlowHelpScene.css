@@ -56,14 +56,18 @@
 }
 
 @keyframes signal-flow-help-current-move {
-  to { stroke-dashoffset: -34; }
+  to {
+    stroke-dashoffset: -34;
+  }
 }
 
 .signal-flow-help-node-frame {
   fill: var(--panel);
   stroke: var(--status-up);
   stroke-width: 2.4;
-  transition: stroke 220ms ease, fill 220ms ease;
+  transition:
+    stroke 220ms ease,
+    fill 220ms ease;
 }
 
 .signal-flow-help-node.is-affected .signal-flow-help-node-frame {
@@ -117,7 +121,6 @@
     transition: none;
   }
 }
-
 
 /* Only the explanatory graph and moving selection frames use SVG styles. */
 .signal-flow-help-graph,
