@@ -149,8 +149,25 @@ class JDKBootstrapTests(unittest.TestCase):
             self.assertFalse(run_jdk.cached_jdk_root(root).exists())
 
     def test_archive_path_traversal_is_rejected(self) -> None:
-        for path in ("../evil", "/tmp/evil", "a/../../evil", "C:/evil"):
+        for path in (
+            "../evil",
+            "/tmp/evil",
+            "a/../../evil",
+            "C:/evil",
+            r"C:\Windows\evil",
+            r"..\evil",
+            r"\\server\share\evil",
+        ):
             with self.subTest(path=path), self.assertRaises(ValueError):
+                run_jdk.validate_archive_path(path)
+
+    def test_safe_archive_paths_are_accepted(self) -> None:
+        for path in (
+            "jdk-25/bin/java",
+            "jdk-25/lib/modules",
+            "jdk-25/Contents/Home/bin/java",
+        ):
+            with self.subTest(path=path):
                 run_jdk.validate_archive_path(path)
 
     def test_java_formatter_uses_resolved_jdk_executable(self) -> None:

@@ -15,7 +15,7 @@ import tempfile
 import urllib.parse
 import urllib.request
 import zipfile
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 
 from utils import repo_root
 
@@ -129,12 +129,13 @@ def adoptium_package() -> tuple[str, str]:
 
 def validate_archive_path(name: str) -> None:
     """Reject absolute and parent-traversal paths before extraction."""
-    path = Path(name.replace("\\", "/"))
+    # Interpret archive paths the same way on Linux, macOS, and Windows.
+    path = PurePosixPath(name.replace("\\", "/"))
     if (
         not path.parts
         or path.is_absolute()
         or ".." in path.parts
-        or ":" in path.parts[0]
+        or bool(PureWindowsPath(name).drive)
     ):
         raise ValueError(f"Unsafe path in Temurin archive: {name}")
 
