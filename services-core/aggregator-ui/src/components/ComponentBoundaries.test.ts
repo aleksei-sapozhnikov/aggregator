@@ -1,4 +1,6 @@
 /** @vitest-environment node */
+/** @file Checks feature-to-shared import boundaries in the UI architecture. */
+
 import { readdirSync, readFileSync } from "node:fs";
 import { dirname, relative, resolve, sep } from "node:path";
 import { describe, expect, it } from "vitest";

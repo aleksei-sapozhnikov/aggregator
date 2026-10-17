@@ -1,6 +1,8 @@
 /**
  * @vitest-environment jsdom
  */
+/** @file Tests primary-contact repair animation timing and scene presentation. */
+
 import {
   act,
   cleanup,

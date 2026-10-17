@@ -2,6 +2,8 @@
  * @vitest-environment jsdom
  */
 
+/** @file Tests reusable help character SVG layers and scene assets. */
+
 import { cleanup, render } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import OwnerCharacter from "./owner/OwnerCharacter";

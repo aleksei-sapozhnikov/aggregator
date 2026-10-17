@@ -1,4 +1,6 @@
 /** @vitest-environment jsdom */
+/** @file Tests health signal propagation examples and shared scene presentation. */
+
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import HealthySignalsHelpDemo from "../../healthy-signals/HealthySignalsHelpDemo";

@@ -1,4 +1,6 @@
 /** @vitest-environment jsdom */
+/** @file Tests catalog loading and periodic Product Health refresh behavior. */
+
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fetchProductHealth, loadCatalog } from "../../services/aggregatorApi";

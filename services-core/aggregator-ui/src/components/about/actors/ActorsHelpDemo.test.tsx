@@ -2,6 +2,8 @@
  * @vitest-environment jsdom
  */
 
+/** @file Verifies the Actors help illustration and interaction safety. */
+
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { expectDecorativeSceneShield } from "../../shared/help/helpTestAssertions";

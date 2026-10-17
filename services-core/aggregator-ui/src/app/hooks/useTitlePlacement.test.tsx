@@ -1,4 +1,6 @@
 /** @vitest-environment jsdom */
+/** @file Tests measurement-based Item title placement relative to toolbar controls. */
+
 // noinspection JSUnusedGlobalSymbols
 
 import { act, cleanup, renderHook } from "@testing-library/react";

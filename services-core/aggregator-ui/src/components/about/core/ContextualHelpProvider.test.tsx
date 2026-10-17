@@ -2,6 +2,8 @@
  * @vitest-environment jsdom
  */
 
+/** @file Tests topic resolution, tooltip summaries, and contextual-help dialog lifecycle. */
+
 import {
   cleanup,
   fireEvent,
