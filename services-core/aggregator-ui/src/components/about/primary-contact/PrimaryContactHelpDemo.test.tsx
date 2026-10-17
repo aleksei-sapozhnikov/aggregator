@@ -206,10 +206,10 @@ describe("Primary contact contextual help", () => {
       const layout = getPrimaryContactHelpLayout(width);
       const [, , viewWidth, viewHeight] = layout.viewBox.split(" ").map(Number);
       const serviceWidthInPixels =
-        (137 * 0.66 * Math.min(width, 640)) / viewWidth;
+        (200 * 0.75 * 0.66 * Math.min(width, 640)) / viewWidth;
 
-      expect(serviceWidthInPixels).toBeGreaterThan(84);
-      expect(serviceWidthInPixels).toBeLessThan(100);
+      expect(serviceWidthInPixels).toBeGreaterThan(98);
+      expect(serviceWidthInPixels).toBeLessThan(102);
       expect(
         (viewHeight * Math.min(width, 640)) / viewWidth,
       ).toBeLessThanOrEqual(340);

@@ -395,11 +395,11 @@ export default function PrimaryContactHelpDemo() {
             >
               <g
                 data-primary-contact-service="true"
-                transform="translate(75 113) scale(0.82)"
+                transform="translate(75 113) scale(0.75)"
               >
                 <ServiceMachine unhealthy={frame.unhealthy} />
               </g>
-              <g transform="translate(152 308) scale(1.5)">
+              <g transform="translate(146 294) scale(1.5)">
                 <DemoWoodLabel x={0} y={0} width={74} label="Service" />
               </g>
               <g
