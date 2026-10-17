@@ -400,11 +400,11 @@ export default function CatalogTree({
                               {hasHealthSnapshot &&
                                 itemStatuses[item.id] !== undefined && (
                                   <span
-                                  className={`status-indicator status-${searchItemStatus}`}
-                                  aria-label={searchItemStatusText}
-                                  title={searchItemStatusText}
-                                />
-                              )}
+                                    className={`status-indicator status-${searchItemStatus}`}
+                                    aria-label={searchItemStatusText}
+                                    title={searchItemStatusText}
+                                  />
+                                )}
                               {item.title && (
                                 <span className="node-name">{item.title}</span>
                               )}
