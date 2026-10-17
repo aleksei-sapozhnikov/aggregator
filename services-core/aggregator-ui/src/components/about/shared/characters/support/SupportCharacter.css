@@ -1,0 +1,37 @@
+/* Headset and hand animate without rotating the hairstyle. */
+.actors-help-demo.is-illustrating .demo-character-support-headset {
+  transform-box: fill-box;
+  transform-origin: 50% 65%;
+  animation: demo-character-wave-headset 0.95s ease-in-out infinite alternate;
+}
+
+.actors-help-demo.is-illustrating .demo-character-support-hand {
+  transform-box: fill-box;
+  transform-origin: 50% 90%;
+  animation: demo-character-touch-headset 0.95s ease-in-out infinite alternate;
+}
+
+@keyframes demo-character-wave-headset {
+  from {
+    transform: rotate(-15deg) translate(-4px, 1px);
+  }
+  to {
+    transform: rotate(21deg) translate(5px, -4px);
+  }
+}
+
+@keyframes demo-character-touch-headset {
+  from {
+    transform: rotate(-19deg) translate(-5px, 4px);
+  }
+  to {
+    transform: rotate(28deg) translate(2px, -5px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .demo-character-support-headset,
+  .demo-character-support-hand {
+    animation: none !important;
+  }
+}

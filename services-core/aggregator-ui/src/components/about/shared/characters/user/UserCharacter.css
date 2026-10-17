@@ -1,0 +1,22 @@
+/* The phone and right arm move together; the illustration stays still. */
+.actors-help-demo.is-illustrating .demo-character-phone-gesture,
+.primary-contact-help-demo .demo-character-phone-gesture {
+  transform-box: fill-box;
+  transform-origin: 50% 85%;
+  animation: demo-character-wave-phone 0.85s ease-in-out infinite alternate;
+}
+
+@keyframes demo-character-wave-phone {
+  from {
+    transform: rotate(-22deg) translate(-4px, 2px);
+  }
+  to {
+    transform: rotate(38deg) translate(7px, -9px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .demo-character-phone-gesture {
+    animation: none !important;
+  }
+}
