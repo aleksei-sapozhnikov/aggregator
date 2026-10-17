@@ -237,6 +237,11 @@ def run_secrets_command(
     return result.returncode
 
 
+def readable_test_line(line: str) -> str:
+    """Render test status symbols as plain ASCII in redirected Windows logs."""
+    return line.replace("✓", "PASS").replace("✗", "FAIL").replace("❯", ">")
+
+
 def run_test_command(
     *,
     modules: list[str] | None = None,
@@ -267,7 +272,7 @@ def run_test_command(
             ) as process:
                 assert process.stdout is not None
                 for line in process.stdout:
-                    emit(line.rstrip("\r\n"))
+                    emit(readable_test_line(line.rstrip("\r\n")))
                 result_code = process.wait()
         except OSError as error:
             emit(f"Unable to start module tests: {error}")
