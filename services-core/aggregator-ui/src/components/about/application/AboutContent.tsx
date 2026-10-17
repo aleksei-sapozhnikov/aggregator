@@ -40,6 +40,7 @@ export function AboutHeader() {
   );
 }
 
+/** Explains the demo's purpose, navigation, health states, and implementation at a high level. */
 export default function AboutContent() {
   return (
     <div className="about-content modal-text-flow">

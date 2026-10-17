@@ -1,3 +1,5 @@
+/** @file Animates detection, contact, repair, and recovery for an Item. */
+
 import { useRef, useState } from "react";
 import type { RefObject } from "react";
 import ItemTitle from "../../shared/item/ItemTitle";
@@ -26,11 +28,14 @@ import "./PrimaryContactHelpDemo.css";
 
 // HTML and SVG share scene coordinates, while the page uses production components.
 export const primaryContactHelpDuration = 15200;
+/** Renders transition for the contextual help scene. */
 const transition = (time: number, start: number, end: number) =>
   smooth(progressBetween(time, start, end));
+/** Renders mix for the contextual help scene. */
 const mix = (start: number, end: number, amount: number) =>
   start + (end - start) * amount;
 
+/** Computes deterministic incident, call, technician, and recovery animation stages. */
 export function getPrimaryContactHelpFrame(time: number) {
   const t =
     ((time % primaryContactHelpDuration) + primaryContactHelpDuration) %
@@ -125,6 +130,7 @@ export function getPrimaryContactHelpLayout(availableWidth: number) {
 type HelpFrame = ReturnType<typeof getPrimaryContactHelpFrame>;
 type HelpLayout = ReturnType<typeof getPrimaryContactHelpLayout>;
 
+/** Draws the service-side interaction in the primary-contact illustration. */
 function Laptop({ frame }: { frame: HelpFrame }) {
   return (
     <g
@@ -175,6 +181,7 @@ function Laptop({ frame }: { frame: HelpFrame }) {
   );
 }
 
+/** Draws the phone and outgoing call illustration. */
 function Phone({ frame }: { frame: HelpFrame }) {
   return (
     <g data-primary-contact-phone="true" style={{ opacity: frame.phone }}>
@@ -246,6 +253,7 @@ function Phone({ frame }: { frame: HelpFrame }) {
   );
 }
 
+/** Renders the owner performing the simulated repair. */
 function Technician({ frame }: { frame: HelpFrame }) {
   return (
     <g data-primary-contact-technician="true"
@@ -262,6 +270,7 @@ function Technician({ frame }: { frame: HelpFrame }) {
   );
 }
 
+/** Renders the user noticing a service problem and initiating contact. */
 function Observer({ frame }: { frame: HelpFrame }) {
   return (
     <g data-primary-contact-observer="true" transform="translate(352 76)">
@@ -289,6 +298,7 @@ function Observer({ frame }: { frame: HelpFrame }) {
 const contactSelectors = { contact: ".primary-contact-row" };
 const contactFallback = { contact: { x: 49, y: 90, width: 220, height: 34 } };
 
+/** Displays a passive Item page within the primary-contact scene. */
 function AggregatorPage({
   frame,
   layout,
@@ -359,6 +369,7 @@ function AggregatorPage({
   );
 }
 
+/** Animates the contact card moving from the Item view to the user's phone. */
 function ContactTransfer({
   frame,
   layout,
@@ -398,6 +409,7 @@ function ContactTransfer({
   );
 }
 
+/** Shows a failure, discovery of the primary contact, repair, and recovery loop. */
 export default function PrimaryContactHelpDemo() {
   const pageRef = useRef<HTMLDivElement>(null);
   const targets = useHelpTargets(pageRef, contactSelectors, contactFallback);
