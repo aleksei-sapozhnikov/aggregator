@@ -110,6 +110,63 @@ describe("useCatalogData", () => {
     expect(result.current.itemSignals.checkout).toEqual([]);
   });
 
+  it("clears stale facts on a failed poll and restores them after recovery", async () => {
+    vi.useFakeTimers();
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    const { result } = renderHook(() => useCatalogData());
+    await flushMicrotasks();
+
+    expect(result.current.itemStatuses.checkout).toBe("down");
+    vi.mocked(fetchProductHealth).mockRejectedValueOnce(
+      new Error("Product Health is unreachable"),
+    );
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10_000);
+    });
+
+    expect(log).toHaveBeenCalledOnce();
+    expect(result.current.itemStatuses).toEqual({});
+    expect(result.current.itemSignals).toEqual({});
+    expect(result.current.productHealthByItemId).toEqual({});
+    expect(result.current.lastUpdated).toBe("");
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10_000);
+    });
+    expect(result.current.itemStatuses.checkout).toBe("down");
+    expect(result.current.itemSignals).toEqual(health.itemSignals);
+    expect(result.current.lastUpdated).not.toBe("");
+  });
+
+  it("aborts a stalled poll rather than keeping a previous UP/DOWN status", async () => {
+    vi.useFakeTimers();
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { result } = renderHook(() => useCatalogData());
+    await flushMicrotasks();
+    expect(result.current.itemStatuses.checkout).toBe("down");
+
+    vi.mocked(fetchProductHealth).mockImplementationOnce(
+      (signal?: AbortSignal) =>
+        new Promise((_, reject) => {
+          signal?.addEventListener("abort", () =>
+            reject(new DOMException("Aborted", "AbortError")),
+          );
+        }),
+    );
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(18_000);
+    });
+    expect(fetchProductHealth).toHaveBeenCalledTimes(2);
+    expect(result.current.itemStatuses).toEqual({});
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(2_000);
+    });
+    expect(fetchProductHealth).toHaveBeenCalledTimes(3);
+    expect(result.current.itemStatuses).toEqual({ checkout: "down" });
+  });
+
   it("does not poll for an empty catalog", async () => {
     vi.useFakeTimers();
     vi.mocked(loadCatalog).mockResolvedValue({ ...catalog, items: [] });

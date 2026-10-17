@@ -118,6 +118,53 @@ describe("ModalWindow", () => {
     expect(onClose).toHaveBeenCalledOnce();
   });
 
+  it("traps forward and backward keyboard focus inside the dialog", () => {
+    render(
+      <>
+        <button type="button">Background action</button>
+        <ModalWindow isOpen={true} onClose={vi.fn()} ariaLabel="Focus trap">
+          <button type="button">First action</button>
+          <a href="/details">Last action</a>
+        </ModalWindow>
+      </>,
+    );
+
+    const dialog = screen.getByRole("dialog", { name: "Focus trap" });
+    const first = screen.getByRole("button", { name: "Close dialog" });
+    const last = screen.getByRole("link", { name: "Last action" });
+    const background = screen.getByRole("button", { name: "Background action" });
+
+    first.focus();
+    fireEvent.keyDown(window, { key: "Tab", shiftKey: true });
+    expect(document.activeElement).toBe(last);
+
+    last.focus();
+    fireEvent.keyDown(window, { key: "Tab" });
+    expect(document.activeElement).toBe(first);
+
+    background.focus();
+    expect(dialog.contains(document.activeElement)).toBe(true);
+    expect(document.activeElement).toBe(first);
+  });
+
+  it("traps focus in the topmost modal and restores it to the parent", () => {
+    render(<NestedModalHarness />);
+    const opener = screen.getByRole("button", { name: "Open child" });
+    opener.focus();
+    fireEvent.click(opener);
+
+    const child = screen.getByRole("dialog", { name: "Child" });
+    const childClose = child.querySelector(".about-close") as HTMLButtonElement;
+    childClose.focus();
+
+    fireEvent.keyDown(window, { key: "Tab" });
+    expect(document.activeElement).toBe(childClose);
+
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(screen.queryByRole("dialog", { name: "Child" })).toBeNull();
+    expect(document.activeElement).toBe(opener);
+  });
+
   it("only closes the topmost modal on Escape and backdrop clicks", () => {
     const onParentClose = vi.fn();
     const onChildClose = vi.fn();
