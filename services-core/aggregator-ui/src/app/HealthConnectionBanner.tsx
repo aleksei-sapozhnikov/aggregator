@@ -21,20 +21,28 @@ export default function HealthConnectionBanner({
     return null;
   }
 
+  const connectionMessage =
+    disconnectedDetectedAt === null
+      ? "Unable to retrieve current Product Health."
+      : `Connection loss detected at ${formatTime(disconnectedDetectedAt)}.`;
+  const snapshotMessage =
+    lastSuccessfulFetchAt === null
+      ? "No Product Health data has been received yet."
+      : `Showing last known health from ${formatTime(lastSuccessfulFetchAt)}. Current health may have changed.`;
+
   return (
-    <section className="health-connection-banner" role="status" aria-live="polite">
+    <section
+      className="health-connection-banner"
+      role="status"
+      aria-live="polite"
+    >
       <span className="health-connection-icon" aria-hidden="true">
         ⊘
       </span>
       <div className="health-connection-message">
         <strong>DISCONNECTED — Connection to Aggregator lost</strong>
         <span>
-          {disconnectedDetectedAt === null
-            ? "Unable to retrieve current Product Health."
-            : `Connection loss detected at ${formatTime(disconnectedDetectedAt)}.`}{" "}
-          {lastSuccessfulFetchAt === null
-            ? "No Product Health data has been received yet."
-            : `Showing last known health from ${formatTime(lastSuccessfulFetchAt)}. Current health may have changed.`}
+          {connectionMessage} {snapshotMessage}
         </span>
       </div>
     </section>

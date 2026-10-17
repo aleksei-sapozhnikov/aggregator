@@ -214,7 +214,9 @@ export default function App() {
         isAiChatFeatureEnabled
           ? "ai-chat-feature-enabled"
           : "ai-chat-feature-disabled"
-      } ${effectiveIsAiChatOpen ? "ai-chat-open" : ""} ${isLastKnownHealth ? "is-health-disconnected" : ""}`}
+      } ${effectiveIsAiChatOpen ? "ai-chat-open" : ""} ${
+        isLastKnownHealth ? "is-health-disconnected" : ""
+      }`}
       onTouchStart={handleMobileSidebarSwipeStart}
       onTouchMove={handleMobileSidebarSwipeMove}
       onTouchEnd={handleMobileSidebarSwipeEnd}

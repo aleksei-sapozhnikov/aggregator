@@ -159,7 +159,9 @@ describe("useCatalogData", () => {
     expect(result.current.connectionStatus).toBe("disconnected");
     expect(result.current.itemStatuses).toEqual(health.itemStatuses);
     expect(result.current.itemSignals).toEqual(health.itemSignals);
-    expect(result.current.productHealthByItemId.checkout).toEqual(health.items[0]);
+    expect(result.current.productHealthByItemId.checkout).toEqual(
+      health.items[0],
+    );
     expect(result.current.lastSuccessfulFetchAt).toBe(receivedAt);
     expect(result.current.lastUpdated).toBe(updatedLabel);
     const detectedAt = result.current.disconnectedDetectedAt;

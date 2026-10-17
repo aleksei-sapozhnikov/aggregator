@@ -56,7 +56,9 @@ export default function useCatalogData() {
   const [productHealthByItemId, setProductHealthByItemId] = useState<
     Record<string, ProductHealthItem>
   >({});
-  const [lastSuccessfulFetchAt, setLastSuccessfulFetchAt] = useState<number | null>(null);
+  const [lastSuccessfulFetchAt, setLastSuccessfulFetchAt] = useState<
+    number | null
+  >(null);
   const [disconnectedDetectedAt, setDisconnectedDetectedAt] = useState<
     number | null
   >(null);
