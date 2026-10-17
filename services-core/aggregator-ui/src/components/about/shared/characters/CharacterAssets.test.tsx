@@ -21,11 +21,9 @@ describe("Independent character SVG assets", () => {
     ["owner", ownerArtwork, ["owner-base", "owner-wrench"]],
     ["user", userArtwork, ["user-base", "user-phone"]],
     ["support", supportArtwork, ["support-base", "support-headset", "support-hand"]],
-  ] as const)("provides a valid standalone %s illustration with separately addressable layers", (
-    role,
-    markup,
-    layers,
-  ) => {
+  ] as const)(
+    "provides a valid standalone %s illustration with separately addressable layers",
+    (role, markup, layers) => {
     const document = new DOMParser().parseFromString(markup, "image/svg+xml");
     expect(document.querySelector("parsererror")).toBeNull();
     expect(document.documentElement.localName).toBe("svg");
@@ -38,7 +36,8 @@ describe("Independent character SVG assets", () => {
     expect(markup).not.toContain("DemoCharacter");
     expect(document.documentElement.getAttribute("aria-label")).toBeNull();
     expect(role.length).toBeGreaterThan(0);
-  });
+    },
+  );
 
   it("emits external SVG files instead of inlining fragment assets", () => {
     for (const url of [ownerAssetUrl, userAssetUrl, supportAssetUrl]) {
