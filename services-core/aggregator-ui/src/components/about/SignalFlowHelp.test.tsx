@@ -4,6 +4,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import HealthySignalsHelpDemo from "./healthy-signals/HealthySignalsHelpDemo";
 import UnhealthySignalsHelpDemo from "./unhealthy-signals/UnhealthySignalsHelpDemo";
 import { unhealthyTiming } from "./unhealthy-signals/UnhealthySignalTiming";
+import {
+  expandedListHoldMs,
+} from "./shared/signal-flow/progress";
+import {
+  unhealthyCycleDuration,
+} from "./unhealthy-signals/UnhealthySignalProjection";
 
 beforeEach(() => vi.useFakeTimers());
 afterEach(() => {
@@ -85,7 +91,7 @@ describe("Signal flow help demonstrations", () => {
 
   it.each([
     ["healthy", 15000],
-    ["unhealthy", 24620],
+    ["unhealthy", unhealthyCycleDuration],
   ] as const)("preserves the %s cycle and progress reset", (mode, duration) => {
     render(
       mode === "healthy" ? (
@@ -95,7 +101,7 @@ describe("Signal flow help demonstrations", () => {
       ),
     );
     const bar = screen.getByRole("progressbar", { name: "Animation progress" });
-    const midpoint = Math.floor(duration / 200) * 100;
+    const midpoint = Math.round(duration / 40) * 20;
     advance(midpoint);
     expect(bar.getAttribute("aria-valuenow")).toBe("50");
     advance(duration - midpoint);
@@ -106,7 +112,7 @@ describe("Signal flow help demonstrations", () => {
 
   it.each([
     ["healthy", 6500, '[data-selection-frame="availability"]'],
-    ["unhealthy", 11120, '[data-unhealthy-frame="item"]'],
+    ["unhealthy", unhealthyTiming.pageHoldAt, '[data-unhealthy-frame="item"]'],
   ] as const)(
     "keeps %s selection frames visible during the two-second hold",
     (mode, start, selector) => {
@@ -165,8 +171,8 @@ describe("Signal flow help demonstrations", () => {
 
   it.each([
     ["healthy", '[data-selection-frame="availability"]', 6500],
-    ["unhealthy", '[data-unhealthy-frame="dep1"]', 11120],
-    ["unhealthy", '[data-unhealthy-frame="nested1"]', 11120],
+    ["unhealthy", '[data-unhealthy-frame="dep1"]', unhealthyTiming.pageHoldAt],
+    ["unhealthy", '[data-unhealthy-frame="nested1"]', unhealthyTiming.pageHoldAt],
   ] as const)(
     "adds left and right text gutters around %s signal rows",
     (mode, selector, holdAt) => {
@@ -199,7 +205,7 @@ describe("Signal flow help demonstrations", () => {
       '[data-unhealthy-frame="nested1"]',
     ) as SVGRectElement;
     let previousTime = 0;
-    for (const time of [8200, 11120, 13120, 14200]) {
+    for (const time of [6200, 6370, 8370, 9000]) {
       advance(time - previousTime);
       previousTime = time;
       const upperBottom =
@@ -252,11 +258,11 @@ describe("Signal flow help demonstrations", () => {
       ".signal-flow-help-node-frame",
     ) as Element;
     const startX = box.getAttribute("x");
-    advance(7700);
+    advance(5520);
     expect(Number(page.style.opacity)).toBeGreaterThan(0);
     expect(Number(page.style.opacity)).toBeLessThan(1);
     expect(box.getAttribute("x")).not.toBe(startX);
-    advance(3420);
+    advance(860);
     expect(page.style.opacity).toBe("1");
     expect(box.getAttribute("opacity")).toBe("0");
     expect(page.querySelectorAll(".item-navigation-link")).toHaveLength(2);
@@ -264,7 +270,9 @@ describe("Signal flow help demonstrations", () => {
     expect(page.querySelector(".content-status-label")?.textContent).toBe(
       "DOWN",
     );
-    advance(6620);
+    advance(expandedListHoldMs - 20);
+    expect(page.style.opacity).toBe("1");
+    advance(unhealthyTiming.reverseEnd - unhealthyTiming.reverseStart + 40);
     expect(page.style.opacity).toBe("0");
     expect(box.getAttribute("x")).toBe(startX);
     expect(groups.every((group) => group.isConnected)).toBe(true);
@@ -410,50 +418,82 @@ describe("Signal flow help demonstrations", () => {
     }
   });
 
-  it("restores the leaf, then the parent, then the Item with bottom-up green waves", () => {
-    render(<UnhealthySignalsHelpDemo />);
-    const graph = document.querySelector(
+  it("holds the complete red graph for 250 ms and the Item for 2 seconds", () => {
+    const { container } = render(<UnhealthySignalsHelpDemo />);
+    const graph = container.querySelector(".signal-flow-help-graph") as HTMLElement;
+    const page = container.querySelector(".help-item-page") as HTMLElement;
+
+    expect(
+      unhealthyTiming.presentationStart - unhealthyTiming.itemAffectedAt,
+    ).toBe(250);
+    advance(unhealthyTiming.itemAffectedAt);
+    expect(getNode("item").getAttribute("data-health")).toBe("unhealthy");
+    expect(page.style.opacity).toBe("0");
+    advance(240);
+    expect(page.style.opacity).toBe("0");
+
+    advance(unhealthyTiming.pageHoldAt - unhealthyTiming.itemAffectedAt - 240 + 20);
+    expect(page.style.opacity).toBe("1");
+    expect(graph.style.opacity).toBe("0");
+    advance(expandedListHoldMs - 20);
+    expect(page.style.opacity).toBe("1");
+    expect(graph.style.opacity).toBe("0");
+    advance(40);
+    expect(Number(page.style.opacity)).toBeLessThan(1);
+    expect(Number(graph.style.opacity)).toBeGreaterThan(0);
+  });
+
+  it("restores nodes when equally fast green waves arrive, then resets", () => {
+    const { container } = render(<UnhealthySignalsHelpDemo />);
+    const graph = container.querySelector(
       ".signal-flow-help-graph",
     ) as SVGGElement;
-    const first = document.querySelector(
+    const first = container.querySelector(
       '[data-flow-edge="nested1-dep1"]',
     ) as SVGGElement;
-    const second = document.querySelector(
+    const second = container.querySelector(
       '[data-flow-edge="dep1-item"]',
     ) as SVGGElement;
+    const t = unhealthyTiming;
+    const actualTime = (sceneTime: number) =>
+      sceneTime + expandedListHoldMs;
 
-    advance(19120);
+    expect(t.firstRecoveryEnd - t.firstRecoveryStart).toBe(
+      t.firstLinkEnd - t.firstLinkStart,
+    );
+    expect(t.secondRecoveryEnd - t.secondRecoveryStart).toBe(
+      t.secondLinkEnd - t.secondLinkStart,
+    );
+
+    advance(actualTime(t.leafRecoveredAt) - 20);
     expect(graph.style.opacity).toBe("1");
     expect(getNode("nested1").getAttribute("data-health")).toBe("unhealthy");
     expect(getNode("dep1").getAttribute("data-health")).toBe("unhealthy");
-    expect(getNode("item").getAttribute("data-health")).toBe("unhealthy");
-
-    advance(400);
+    advance(20);
     expect(getNode("nested1").getAttribute("data-health")).toBe("healthy");
     expect(getNode("dep1").getAttribute("data-health")).toBe("unhealthy");
-    expect(getProgress("nested1-dep1")).toBe(100);
 
-    advance(1200);
+    advance(t.firstRecoveryStart - t.leafRecoveredAt + 360);
     expect(getRecoveryProgress("nested1-dep1")).toBeGreaterThan(0);
     expect(getRecoveryProgress("nested1-dep1")).toBeLessThan(100);
     expect(
       first.querySelector(".signal-flow-help-propagation.is-recovery"),
     ).not.toBeNull();
     expect(getNode("dep1").getAttribute("data-health")).toBe("unhealthy");
-    expect(getNode("item").getAttribute("data-health")).toBe("unhealthy");
 
-    advance(1100);
+    advance(t.dependencyRecoveredAt - t.firstRecoveryStart - 360 - 20);
+    expect(getNode("dep1").getAttribute("data-health")).toBe("unhealthy");
+    advance(20);
     expect(getNode("dep1").getAttribute("data-health")).toBe("healthy");
     expect(getNode("item").getAttribute("data-health")).toBe("unhealthy");
-    expect(first.querySelector(".signal-flow-help-propagation")).toBeNull();
     expect(first.querySelector(".signal-flow-help-current.is-red")).toBeNull();
 
-    advance(900);
+    advance(t.secondRecoveryStart - t.dependencyRecoveredAt + 400);
     expect(getRecoveryProgress("dep1-item")).toBeGreaterThan(0);
     expect(getRecoveryProgress("dep1-item")).toBeLessThan(100);
     expect(getNode("item").getAttribute("data-health")).toBe("unhealthy");
 
-    advance(1500);
+    advance(t.itemRecoveredAt - t.secondRecoveryStart - 400);
     expect(getNode("item").getAttribute("data-health")).toBe("healthy");
     expect(second.querySelector(".signal-flow-help-propagation")).toBeNull();
     expect(second.querySelector(".signal-flow-help-current.is-red")).toBeNull();
@@ -461,21 +501,13 @@ describe("Signal flow help demonstrations", () => {
       0,
     );
 
-    // Recovery still ends 500 ms before the shorter cycle resets.
-    advance(300);
-    expect(document.querySelectorAll('[data-health="unhealthy"]')).toHaveLength(
-      0,
-    );
-    advance(100);
+    advance(unhealthyCycleDuration - actualTime(t.itemRecoveredAt));
     expect(
       screen
         .getByRole("progressbar", { name: "Animation progress" })
         .getAttribute("aria-valuenow"),
     ).toBe("0");
-    expect(document.querySelectorAll('[data-health="unhealthy"]')).toHaveLength(
-      0,
-    );
-    advance(1600);
+    advance(t.failureStart);
     expect(getNode("nested1").getAttribute("data-health")).toBe("unhealthy");
     expect(getNode("dep1").getAttribute("data-health")).toBe("healthy");
   });
