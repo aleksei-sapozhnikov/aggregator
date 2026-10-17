@@ -1,14 +1,3 @@
-.primary-contact-help-demo {
-  position: relative;
-  width: 100%;
-  min-width: 0;
-  margin: 0;
-  padding: 10px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: transparent;
-  color: var(--text);
-}
 .primary-contact-help-diagram {
   display: block;
   width: 100%;
@@ -72,18 +61,6 @@
   max-width: 640px;
   margin: 0 auto;
 }
-.primary-contact-page .primary-contact-row {
-  position: relative;
-}
-.primary-contact-page .primary-contact-row::after {
-  content: "";
-  position: absolute;
-  inset: -4px;
-  border: 2px solid var(--link);
-  border-radius: 7px;
-  background: color-mix(in srgb, var(--link) 12%, transparent);
-  opacity: var(--contact-selection, 0);
-}
 .primary-contact-transfer {
   position: absolute;
   top: 0;
@@ -93,11 +70,6 @@
   outline: 2px solid var(--link);
   background: var(--panel);
   pointer-events: none;
-}
-@media (max-width: 540px) {
-  .primary-contact-help-demo {
-    padding: 5px;
-  }
 }
 @media (prefers-reduced-motion: reduce) {
   .primary-contact-help-demo *,

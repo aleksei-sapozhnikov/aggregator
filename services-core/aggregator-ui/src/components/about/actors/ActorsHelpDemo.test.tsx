@@ -25,27 +25,64 @@ describe("Actors contextual help animation", () => {
     expectDecorativeSceneShield(figure);
   });
 
-  it("maps three distinct people to Owner, User and Support rows", () => {
-    const besideRows = getActorsHelpFrame(4600);
-    expect(besideRows.travel).toBe(1);
-    expect(besideRows.pageOpacity).toBe(1);
-    expect(besideRows.actorOpacity).toBe(1);
-    expect(besideRows.machineOpacity).toBe(1);
+  it("holds all sprites by their rows for two seconds before reversing", () => {
+    for (const time of [3600, 4600, 5600]) {
+      const frame = getActorsHelpFrame(time);
+      expect(frame.travel).toBe(1);
+      expect(frame.pageOpacity).toBe(1);
+    }
 
-    const cleanItem = getActorsHelpFrame(7100);
-    expect(cleanItem.pageOpacity).toBe(1);
-    expect(cleanItem.actorOpacity).toBe(0);
-    expect(cleanItem.machineOpacity).toBe(0);
+    const returning = getActorsHelpFrame(6500);
+    expect(returning.travel).toBeGreaterThan(0);
+    expect(returning.travel).toBeLessThan(1);
+    expect(returning.pageOpacity).toBeGreaterThan(0);
 
-    const restored = getActorsHelpFrame(8600);
-    expect(restored.actorOpacity).toBe(1);
-    expect(restored.travel).toBe(1);
+    const restored = getActorsHelpFrame(7400);
+    expect(restored.travel).toBe(0);
+    expect(restored.pageOpacity).toBe(0);
 
     const start = getActorsHelpFrame(0);
-    const end = getActorsHelpFrame(actorsHelpDuration);
-    expect(start).toEqual(end);
+    expect(start).toEqual(getActorsHelpFrame(actorsHelpDuration));
     expect(start.pageOpacity).toBe(0);
-    expect(start.actorOpacity).toBe(1);
+  });
+
+  it("uses labeled reusable SVG characters and a reusable service", () => {
+    const { container } = render(<ActorsHelpDemo />);
+    for (const role of ["owner", "user", "support"]) {
+      const sprite = container.querySelector(
+        `[data-actor="${role}"] [data-demo-character="${role}"]`,
+      );
+      expect(sprite).not.toBeNull();
+      // Wooden labels are separate scene elements, not part of the assets.
+      expect(sprite?.querySelector("[data-scene-label]")).toBeNull();
+      expect(
+        container.querySelector(
+          `[data-actor="${role}"] [data-scene-label]`,
+        ),
+      ).not.toBeNull();
+    }
+    expect(
+      container.querySelector('[data-service="item"] [data-demo-service-machine]'),
+    ).not.toBeNull();
+    expect(
+      container.querySelector('[data-actor="owner"] .actors-help-wrench'),
+    ).not.toBeNull();
+    expect(
+      container.querySelector('[data-actor="support"] .actors-help-wrench'),
+    ).toBeNull();
+    expect(
+      container.querySelector('[data-actor="user"] [data-demo-gesture="phone"]'),
+    ).not.toBeNull();
+    expect(
+      container.querySelector(
+        '[data-actor="support"] [data-demo-gesture="headset"]',
+      ),
+    ).not.toBeNull();
+    expect(
+      container.querySelector(
+        '[data-actor="support"] .demo-character-support-hand',
+      ),
+    ).not.toBeNull();
   });
 
   it("renders the self-contained scene and the three sample relationship rows", () => {
@@ -53,6 +90,8 @@ describe("Actors contextual help animation", () => {
     const figure = screen.getByRole("figure", {
       name: "Actors become Item ownership and relationship entries",
     });
+    expect(figure.classList.contains("help-animation-canvas")).toBe(true);
+    expect(figure.getAttribute("style")).toContain("452px");
     expect(figure.querySelectorAll("[data-actor]")).toHaveLength(3);
     expect(figure.querySelectorAll("[data-service='item']")).toHaveLength(1);
     expect(figure.querySelector("svg[viewBox='0 0 420 310']")).not.toBeNull();
@@ -62,15 +101,19 @@ describe("Actors contextual help animation", () => {
     expect(figure.querySelector(".actor-team-icon")).not.toBeNull();
     expect(figure.querySelector(".catalog-item-info-button")).not.toBeNull();
     expect(
+      figure.querySelector(".content-title .catalog-item-info"),
+    ).not.toBeNull();
+    expect(
       Array.from(figure.querySelectorAll("[data-scene-label]"), (label) =>
         label.getAttribute("data-scene-label"),
       ).sort(),
-    ).toEqual(["Owner", "Service", "Support", "User"]);
+    ).toEqual(["Owner", "Support", "User"]);
     expect(
       figure.querySelector(
-        "[data-service='item'] [data-scene-label='Service']",
+        "[data-service='item'] [data-scene-label]",
       ),
-    ).not.toBeNull();
+    ).toBeNull();
+    expect(figure.querySelectorAll(".demo-wood-label")).toHaveLength(3);
     for (const [id, role] of [
       ["owner", "Owner"],
       ["user", "User"],
@@ -122,12 +165,33 @@ describe("Actors contextual help animation", () => {
         ?.querySelector("[data-service-sprite]")
         ?.getAttribute("transform"),
     ).toContain("scale(0.078)");
+    const serviceX = Number(
+      machine?.getAttribute("transform")?.match(/translate\(([-\d.]+)/)?.[1],
+    );
+    expect(serviceX).toBeGreaterThan(180);
+    expect(serviceX).toBeLessThan(280);
+    for (const sprite of [owner, user, other, machine]) {
+      expect(sprite?.hasAttribute("opacity")).toBe(false);
+    }
+
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+    expect(machine?.getAttribute("transform")).toContain(
+      `translate(${serviceX} `,
+    );
+    act(() => {
+      vi.advanceTimersByTime(900);
+    });
+    expect(machine?.hasAttribute("opacity")).toBe(false);
+    expect(owner?.hasAttribute("opacity")).toBe(false);
+
     expect(owner?.querySelector("[data-scene-label='Owner']")).not.toBeNull();
     expect(user?.querySelector("[data-scene-label='User']")).not.toBeNull();
     expect(other?.querySelector("[data-scene-label='Support']")).not.toBeNull();
 
     act(() => {
-      vi.advanceTimersByTime(actorsHelpDuration - 4600);
+      vi.advanceTimersByTime(actorsHelpDuration - 6500);
     });
     expect(
       screen
@@ -142,6 +206,53 @@ describe("Actors contextual help animation", () => {
         .getByRole("progressbar", { name: "Animation progress" })
         .getAttribute("aria-valuenow"),
     ).not.toBe("0");
+  });
+
+  it("anchors the service to the title info icon", () => {
+    const bounds = (left: number, top: number, width: number, height: number) =>
+      ({
+        left,
+        top,
+        right: left + width,
+        bottom: top + height,
+        x: left,
+        y: top,
+        width,
+        height,
+        toJSON: () => ({}),
+      }) as DOMRect;
+    vi.spyOn(HTMLElement.prototype, "offsetWidth", "get").mockImplementation(
+      function (this: HTMLElement) {
+        return this.classList.contains("actors-help-item") ? 500 : 0;
+      },
+    );
+    vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(
+      function (this: HTMLElement) {
+        if (this.classList.contains("actors-help-item")) {
+          return bounds(100, 100, 390, 242);
+        }
+        if (this.classList.contains("catalog-item-info")) {
+          return bounds(210, 116, 24, 20);
+        }
+        if (this.classList.contains("content-title")) {
+          return bounds(116, 116, 390, 32);
+        }
+        return bounds(0, 0, 0, 0);
+      },
+    );
+
+    vi.useFakeTimers();
+    render(<ActorsHelpDemo />);
+    act(() => {
+      vi.advanceTimersByTime(4600);
+    });
+
+    const service = document.querySelector('[data-service="item"]');
+    const x = Number(
+      service?.getAttribute("transform")?.match(/translate\(([-\d.]+)/)?.[1],
+    );
+    // Measured info icon ends at x=234, not at the title container's x=506.
+    expect(x).toBeCloseTo(164.6, 1);
   });
 
   it("shows a static Item preview when reduced motion is requested", () => {

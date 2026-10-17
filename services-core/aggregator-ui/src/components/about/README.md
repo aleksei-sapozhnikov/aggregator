@@ -16,6 +16,11 @@ Item rows to align highlights and illustrated characters with the real UI.
 CSS selectors and animation geometry still require visual regression review
 when the shared markup changes.
 
+The Unhealthy walkthrough uses a compact sequence: the fully red diagram is
+held for 250 ms, the expanded Item is held for 2 seconds, and green recovery
+waves propagate upward as fast as the preceding red failure waves. Arrival
+times determine when dependent nodes change state.
+
 ## Healthy and unhealthy help
 
 `healthy-signals/` and `unhealthy-signals/` expose separate help topics.
@@ -31,12 +36,27 @@ Item use production React components.
 
 Grafana owns the chart, time range, signal filter, and hover popups inside an
 iframe. Therefore `timeline/GrafanaTimelineIllustration.tsx` is a static
-demonstration, while its surrounding `ItemTimeline` wrapper and Item details
-are the production components.
+demonstration, while Item details on the simulated destination page use production
+components. The chart itself is displayed without an extra Timeline
+disclosure header.
 
 Characters, machines, phones, dependency diagrams, moving checkmarks,
 selection frames, and simulated cursors are explanatory SVG/CSS illustrations
 and do not replace the application UI.
+
+Reusable character assets live in `about/shared/characters/`: User calls
+and waves a phone, Owner carries the repair wrench, and Support adjusts a
+call-center headset. Their gestures are animated when the actors are visible.
+The same role uses the same SVG in Actors and Primary contact. The service
+machine has one SVG with an `unhealthy` parameter that switches its lamp
+between green and red. Wooden captions are used for people only and remain
+separate `DemoWoodLabel` elements, rather than becoming part of the SVG
+assets. The service illustration needs no caption.
+
+Primary Contact centers the expanded Aggregator page independently from the
+SVG scene. Its Service, User with phone, and incoming Owner are distributed
+across the canvas, and the scene scales down as a unit on narrow screens so
+the figures and the outgoing phone waves remain inside the frame.
 
 Use the UI service's `npm run typecheck`, `npm test`, and `npm run build`
 for validation, plus browser checks at desktop and mobile widths.

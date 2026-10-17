@@ -1,7 +1,7 @@
-import { useId, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { useId, useMemo, useRef, useState } from "react";
 import type { CatalogItem } from "../../../shared/types";
 import ModalWindow from "../ui/ModalWindow";
+import HelpTooltip from "../help/HelpTooltip";
 
 type CatalogItemInfoProps = {
   item: CatalogItem;
@@ -10,8 +10,6 @@ type CatalogItemInfoProps = {
 
 const missingTooltip = "No description in catalog";
 const missingDetailNotice = "No detailed description in catalog.";
-const tooltipGap = 6;
-const viewportPadding = 8;
 
 const normalizeDescription = (value: string | undefined): string =>
   typeof value === "string" ? value.trim() : "";
@@ -28,13 +26,8 @@ export default function CatalogItemInfo({
 }: CatalogItemInfoProps) {
   const tooltipId = useId();
   const buttonRef = useRef<HTMLButtonElement | null>(null);
-  const tooltipRef = useRef<HTMLSpanElement | null>(null);
   const [isTooltipVisible, setIsTooltipVisible] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [tooltipPosition, setTooltipPosition] = useState<{
-    left: number;
-    top: number;
-  } | null>(null);
 
   const shortDescription = normalizeDescription(item.shortDescription);
   const fullDescription = normalizeDescription(item.fullDescription);
@@ -56,66 +49,8 @@ export default function CatalogItemInfo({
       return;
     }
 
-    if (!isTooltipVisible) {
-      setTooltipPosition(null);
-    }
     setIsTooltipVisible(true);
   };
-
-  useLayoutEffect(() => {
-    if (!isTooltipVisible) {
-      return undefined;
-    }
-
-    const updateTooltipPosition = () => {
-      const button = buttonRef.current;
-      const tooltipElement = tooltipRef.current;
-      if (!button || !tooltipElement) {
-        return;
-      }
-
-      const anchor = button.getBoundingClientRect();
-      const tooltipRect = tooltipElement.getBoundingClientRect();
-      const spaceAbove = anchor.top - tooltipGap - viewportPadding;
-      const spaceBelow =
-        window.innerHeight - anchor.bottom - tooltipGap - viewportPadding;
-      const placeBelow =
-        tooltipRect.height > spaceAbove && spaceBelow > spaceAbove;
-
-      const preferredTop = placeBelow
-        ? anchor.bottom + tooltipGap
-        : anchor.top - tooltipRect.height - tooltipGap;
-      const preferredLeft =
-        anchor.left + anchor.width / 2 - tooltipRect.width / 2;
-
-      const top = Math.max(
-        viewportPadding,
-        Math.min(
-          preferredTop,
-          window.innerHeight - tooltipRect.height - viewportPadding,
-        ),
-      );
-      const left = Math.max(
-        viewportPadding,
-        Math.min(
-          preferredLeft,
-          window.innerWidth - tooltipRect.width - viewportPadding,
-        ),
-      );
-
-      setTooltipPosition((current) =>
-        current?.left === left && current.top === top ? current : { left, top },
-      );
-    };
-
-    updateTooltipPosition();
-    window.addEventListener("resize", updateTooltipPosition);
-    window.addEventListener("scroll", updateTooltipPosition, true);
-    return () => {
-      window.removeEventListener("resize", updateTooltipPosition);
-      window.removeEventListener("scroll", updateTooltipPosition, true);
-    };
-  }, [isTooltipVisible, tooltip]);
 
   return (
     <span className="catalog-item-info">
@@ -141,29 +76,13 @@ export default function CatalogItemInfo({
       >
         ⓘ
       </button>
-      {isTooltipVisible &&
-        createPortal(
-          <span
-            ref={tooltipRef}
-            id={tooltipId}
-            role="tooltip"
-            className="info-help-tooltip"
-            style={{
-              left: `${tooltipPosition?.left ?? 0}px`,
-              top: `${tooltipPosition?.top ?? 0}px`,
-              transform: "none",
-              visibility: tooltipPosition ? "visible" : "hidden",
-            }}
-          >
-            <span>{tooltip}</span>
-            {hasShortDescription && (
-              <span className="catalog-item-info-tooltip-action">
-                Click for details
-              </span>
-            )}
-          </span>,
-          document.body,
-        )}
+      <HelpTooltip
+        id={tooltipId}
+        anchorRef={buttonRef}
+        visible={isTooltipVisible}
+        content={tooltip}
+        action={hasShortDescription ? "Click for details" : undefined}
+      />
       {isEnabled && (
         <ModalWindow
           isOpen={isModalOpen}

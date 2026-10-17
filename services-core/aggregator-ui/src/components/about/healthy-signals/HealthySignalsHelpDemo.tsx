@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import useHelpAnimationClock from "../shared/useHelpAnimationClock";
 import SignalFlowHelpScene, {
   type SignalFlowTargets,
 } from "../shared/signal-flow/SignalFlowHelpScene";
@@ -8,6 +8,8 @@ import {
   smooth,
 } from "../shared/signal-flow/progress";
 import { clientChecks } from "../shared/demoData";
+import DemoHighlightFrame from "../shared/DemoHighlightFrame";
+import { getSignalHighlightBounds } from "../shared/signal-flow/signalHighlightBounds";
 
 const cycleDuration = 13000 + expandedListHoldMs;
 const ownChecks = clientChecks.map((signal, index) => ({
@@ -34,10 +36,11 @@ function HealthySignalHighlights({
         const target = targets[check.id as keyof typeof targets];
         const targetX = target.x;
         const targetY = target.y;
-        const rectX = startX + (targetX - startX) * presentationProgress;
-        const rectY = startY + (targetY - startY) * presentationProgress;
-        const rectWidth = 24 + (target.width - 24) * presentationProgress;
-        const rectHeight = 22 + (target.height - 22) * presentationProgress;
+        const highlight = getSignalHighlightBounds(target);
+        const rectX = startX + (highlight.x - startX) * presentationProgress;
+        const rectY = startY + (highlight.y - startY) * presentationProgress;
+        const rectWidth = 24 + (highlight.width - 24) * presentationProgress;
+        const rectHeight = 22 + (highlight.height - 22) * presentationProgress;
         const checkX =
           320 +
           check.offset +
@@ -49,14 +52,13 @@ function HealthySignalHighlights({
             className="signal-flow-help-owned-signal"
             data-own-signal={check.id}
           >
-            <rect
-              className="signal-flow-help-selection-frame"
+            <DemoHighlightFrame
               data-selection-frame={check.id}
               x={rectX}
               y={rectY}
               width={rectWidth}
               height={rectHeight}
-              rx={6}
+              color="var(--link)"
               opacity={selectionOpacity}
             />
             <text
@@ -76,49 +78,20 @@ function HealthySignalHighlights({
 }
 
 export default function HealthySignalsHelpDemo() {
-  const [elapsed, setElapsed] = useState(0);
-  useEffect(() => {
-    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
-      setElapsed(7500);
-      return undefined;
-    }
-    const interval = window.setInterval(() => {
-      setElapsed((current) => (current + 100) % cycleDuration);
-    }, 100);
-    return () => window.clearInterval(interval);
-  }, []);
+  const { elapsed } = useHelpAnimationClock(cycleDuration, 7500);
 
   const sceneElapsed =
     elapsed - Math.min(expandedListHoldMs, Math.max(0, elapsed - 6500));
   const presentationProgress =
-    smooth(progressBetween(sceneElapsed, 3500, 5600)) *
-    (1 - smooth(progressBetween(sceneElapsed, 7700, 9900)));
-  const highlightVisibility = Math.max(
-    0,
-    Math.min(
-      1,
-      1 -
-        progressBetween(sceneElapsed, 5800, 6300) +
-        progressBetween(sceneElapsed, 7050, 7550),
-    ),
-  );
+    smooth(progressBetween(sceneElapsed, 3500, 5000)) *
+    (1 - smooth(progressBetween(sceneElapsed, 7700, 9300)));
   const selectionOpacity =
-    progressBetween(sceneElapsed, 2100, 2900) *
-    (1 - progressBetween(sceneElapsed, 10300, 11100)) *
-    highlightVisibility;
-  const graphOpacity = Math.min(
-    1,
-    Math.max(
-      0,
-      1 -
-        progressBetween(sceneElapsed, 3450, 4450) +
-        progressBetween(sceneElapsed, 8250, 9500),
-    ),
-  );
-  const pageOpacity =
-    progressBetween(sceneElapsed, 3400, 4500) *
-    (1 - progressBetween(sceneElapsed, 8200, 9300));
-  const linkOpacity = progressBetween(presentationProgress, 0.7, 0.95);
+    smooth(progressBetween(sceneElapsed, 2100, 2900)) *
+    (1 - smooth(progressBetween(sceneElapsed, 10300, 11100)));
+  // One eased transition for the projected checks, graph and real Item page.
+  const graphOpacity = 1 - presentationProgress;
+  const pageOpacity = presentationProgress;
+  const linkOpacity = smooth(progressBetween(presentationProgress, 0.7, 0.95));
 
   return (
     <SignalFlowHelpScene

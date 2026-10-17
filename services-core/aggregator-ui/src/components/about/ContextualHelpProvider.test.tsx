@@ -66,6 +66,36 @@ describe("InfoHelp signal examples", () => {
   );
 });
 
+describe("Contextual help content layout", () => {
+  it.each([
+    ["primary-contact", "Primary contact"],
+    ["actors", "Actors"],
+    ["healthy-signals", "Healthy signals"],
+    ["unhealthy-signals", "Unhealthy signals"],
+    ["timeline", "Timeline"],
+  ] as const)(
+    "keeps text and illustration as reorderable sibling blocks for %s",
+    (topicId, title) => {
+      render(<InfoHelp topicId={topicId} />);
+      fireEvent.click(screen.getByRole("button", { name: "About " + title }));
+      const dialog = screen.getByRole("dialog", { name: "About " + title });
+      const layout = dialog.querySelector(".info-help-modal");
+      const description = layout?.querySelector(".info-help-description");
+      const canvas = layout?.querySelector(".help-animation-canvas");
+      expect(description?.parentElement).toBe(layout);
+      if (topicId === "timeline") {
+        expect(canvas?.parentElement?.parentElement).toBe(layout);
+      } else {
+        expect(canvas?.parentElement).toBe(layout);
+        expect(description?.nextElementSibling).toBe(canvas);
+      }
+      expect(canvas?.getAttribute("style")).toContain(
+        "--help-animation-max-width",
+      );
+    },
+  );
+});
+
 describe("InfoHelp Actors example", () => {
   it("shows the relationship animation in the existing Actors dialog", () => {
     render(<InfoHelp topicId="actors" />);
@@ -77,6 +107,20 @@ describe("InfoHelp Actors example", () => {
       ),
     ).not.toBeNull();
     expect(dialog.querySelectorAll("[data-actor]")).toHaveLength(3);
+  });
+});
+
+describe("InfoHelp shared tooltip", () => {
+  it("shows the summary and secondary click hint", () => {
+    render(<InfoHelp topicId="actors" />);
+    fireEvent.mouseEnter(
+      screen.getByRole("button", { name: "About Actors" }),
+    );
+    const tooltip = screen.getByRole("tooltip");
+    expect(tooltip.textContent).toContain("Click for details");
+    expect(tooltip.querySelector(".help-tooltip-action")?.textContent).toBe(
+      "Click for details",
+    );
   });
 });
 

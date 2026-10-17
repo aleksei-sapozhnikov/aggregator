@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import type { CSSProperties, RefObject } from "react";
+import { useRef, useState } from "react";
+import type { RefObject } from "react";
 import ItemTitle from "../../shared/item/ItemTitle";
 import ItemOwnership, {
   PrimaryContactRow,
@@ -14,14 +14,20 @@ import {
 } from "../shared/demoData";
 import HelpAnimationProgress from "../shared/HelpAnimationProgress";
 import HelpInteractionShield from "../shared/HelpInteractionShield";
+import DemoHighlightFrame from "../shared/DemoHighlightFrame";
+import DemoWoodLabel from "../shared/DemoWoodLabel";
+import HelpAnimationCanvas from "../shared/HelpAnimationCanvas";
+import useHelpAnimationClock from "../shared/useHelpAnimationClock";
+import OwnerCharacter from "../shared/characters/OwnerCharacter";
+import UserCharacter from "../shared/characters/UserCharacter";
+import ServiceMachine from "../shared/characters/ServiceMachine";
+import { progressBetween, smooth } from "../shared/signal-flow/progress";
 import "./PrimaryContactHelpDemo.css";
 
 // HTML and SVG share scene coordinates, while the page uses production components.
 export const primaryContactHelpDuration = 15200;
-const clamp = (value: number) => Math.max(0, Math.min(1, value));
-const ease = (value: number) => value * value * (3 - 2 * value);
 const transition = (time: number, start: number, end: number) =>
-  ease(clamp((time - start) / (end - start)));
+  smooth(progressBetween(time, start, end));
 const mix = (start: number, end: number, amount: number) =>
   start + (end - start) * amount;
 
@@ -57,8 +63,8 @@ export function getPrimaryContactHelpFrame(time: number) {
   };
 }
 
-// Keep the illustrated service close to its desktop pixel size on narrower cards.
-// The SVG viewport crops unused space rather than shrinking the entire scene.
+// Center the complete cast in its viewport, scaling on narrow devices so no
+// service, character, or phone signal gets cropped.
 export function getPrimaryContactHelpLayout(availableWidth: number) {
   const compact = availableWidth < 640;
   const width = compact ? Math.max(300, Math.min(640, availableWidth)) : 640;
@@ -71,9 +77,21 @@ export function getPrimaryContactHelpLayout(availableWidth: number) {
   const pageScale = compact
     ? Math.min((width - 20) / pageWidth, (height - 18) / pageHeight)
     : 1;
+  // The expanded Aggregator page overlays the scene, independently centered.
   const pageX = compact ? left + (width - pageWidth * pageScale) / 2 : 0;
   const pageY = compact ? top + (height - pageHeight * pageScale) / 2 : 0;
-  const observerShift = compact ? Math.max(0, 360 - width) * 0.6 : 0;
+
+  // The cast occupies scene-space x=65..640 and y=90..325. Reserve a 16px
+  // gutter on narrow devices, including the User's phone signal waves.
+  const sceneLeft = 65;
+  const sceneTop = 90;
+  const sceneWidth = 575;
+  const sceneHeight = 235;
+  const sceneScale = Math.min(0.9, (width - 32) / sceneWidth);
+  const sceneX =
+    left + (width - sceneWidth * sceneScale) / 2 - sceneLeft * sceneScale;
+  const sceneY =
+    top + (height - sceneHeight * sceneScale) / 2 - sceneTop * sceneScale;
 
   return {
     compact,
@@ -83,198 +101,14 @@ export function getPrimaryContactHelpLayout(availableWidth: number) {
     pageHeight,
     pageX,
     pageY,
-    observerShift,
+    sceneX,
+    sceneY,
+    sceneScale,
   };
 }
 
 type HelpFrame = ReturnType<typeof getPrimaryContactHelpFrame>;
 type HelpLayout = ReturnType<typeof getPrimaryContactHelpLayout>;
-
-function Service({ frame }: { frame: HelpFrame }) {
-  const healthyOpacity = 1 - frame.unhealthy;
-  return (
-    <g data-primary-contact-service="true" transform="translate(75 123)">
-      <ellipse
-        cx="89"
-        cy="181"
-        rx="89"
-        ry="8"
-        className="primary-contact-shadow"
-      />
-      <path
-        d="M140 37l16-10q9-4 9 9v130l-20 11Z"
-        fill="#587d98"
-        stroke="#354e63"
-        strokeWidth="3"
-      />
-      <rect
-        x="14"
-        y="28"
-        width="137"
-        height="149"
-        rx="15"
-        fill="#87a9c1"
-        stroke="#354e63"
-        strokeWidth="4"
-      />
-      <rect
-        x="31"
-        y="61"
-        width="102"
-        height="87"
-        rx="11"
-        fill="#334d64"
-        stroke="#31485b"
-        strokeWidth="3"
-      />
-      <g
-        transform="translate(82 104)"
-        fill="#98bace"
-        stroke="#31485b"
-        strokeWidth="2.7"
-      >
-        {Array.from({ length: 8 }, (_, index) => (
-          <rect
-            key={index}
-            x="-5"
-            y="-34"
-            width="10"
-            height="16"
-            rx="2"
-            transform={"rotate(" + index * 45 + ")"}
-          />
-        ))}
-        <circle r="24" />
-        <circle r="10" fill="#516f86" />
-      </g>
-      <circle cx="22" cy="77" r="4.5" className="primary-contact-up-light" />
-      <circle cx="22" cy="96" r="4.5" fill="#f6ca69" />
-      <circle cx="22" cy="115" r="3.5" fill="#edaa79" />
-      <rect x="50" y="159" width="61" height="7" rx="3.5" fill="#52758f" />
-      <rect
-        x="60"
-        y="5"
-        width="65"
-        height="26"
-        rx="5"
-        fill="#52758f"
-        stroke="#354e63"
-        strokeWidth="3"
-      />
-      <rect
-        x="82"
-        y="-7"
-        width="23"
-        height="17"
-        rx="5"
-        stroke="#354e63"
-        strokeWidth="3"
-        className="primary-contact-up-light"
-        style={{ opacity: healthyOpacity }}
-      />
-      <rect
-        x="82"
-        y="-7"
-        width="23"
-        height="17"
-        rx="5"
-        stroke="#9c3733"
-        strokeWidth="3"
-        className="primary-contact-down-light"
-        style={{ opacity: frame.unhealthy }}
-      />
-      <g
-        opacity={healthyOpacity}
-        className="primary-contact-up-rays"
-        strokeWidth="3"
-        strokeLinecap="round"
-      >
-        <path d="M87-15l-6-8M104-15l6-8M94-18v-9" />
-      </g>
-      <g
-        opacity={frame.unhealthy}
-        className="primary-contact-down-rays"
-        strokeWidth="3"
-        strokeLinecap="round"
-      >
-        <path d="M87-15l-6-8M104-15l6-8M94-18v-9" />
-      </g>
-    </g>
-  );
-}
-
-function Observer({ frame }: { frame: HelpFrame }) {
-  return (
-    <g
-      data-primary-contact-observer="true"
-      transform="translate(352 76)"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <ellipse
-        cx="73"
-        cy="230"
-        rx="55"
-        ry="7"
-        className="primary-contact-shadow"
-      />
-      <path
-        d="M42 168 33 228h28l13-50 11 50h27l-8-68Z"
-        fill="#35495e"
-        stroke="#283b4d"
-        strokeWidth="3"
-      />
-      <path
-        d="M28 101q2-20 29-21h35q25 4 28 23l-7 74H33Z"
-        fill="#4286c5"
-        stroke="#2b455b"
-        strokeWidth="3"
-      />
-      <path
-        d="M32 110 20 148 44 164M113 107l15 37-19 23"
-        fill="none"
-        stroke="#4286c5"
-        strokeWidth="15"
-      />
-      <circle cx="44" cy="164" r="7" fill="#f6c49d" />
-      <circle cx="109" cy="167" r="7" fill="#f6c49d" />
-      <rect x="66" y="70" width="17" height="16" rx="4" fill="#f6c49d" />
-      <ellipse
-        cx="75"
-        cy="48"
-        rx="32"
-        ry="35"
-        fill="#f6c49d"
-        stroke="#293e4f"
-        strokeWidth="3"
-      />
-      <path
-        d="M43 48q-9-33 22-38Q109 4 107 38l-16-10Q65 22 43 48Z"
-        fill="#323a46"
-        stroke="#293e4f"
-        strokeWidth="3"
-      />
-      <circle cx="64" cy="49" r="2.5" fill="#263745" />
-      <circle cx="88" cy="49" r="2.5" fill="#263745" />
-      <path
-        d={frame.unhealthy > 0.5 ? "M65 68Q76 61 87 68" : "M64 64Q76 73 88 63"}
-        fill="none"
-        stroke="#263745"
-        strokeWidth="2.5"
-      />
-      <g data-primary-contact-alarm="true" opacity={frame.alarm}>
-        <text x="118" y="2" className="primary-contact-exclamation">
-          !
-        </text>
-        <path
-          d="M116-7l-5-8M130-8l7-8"
-          className="primary-contact-alarm-rays"
-          strokeWidth="3"
-        />
-      </g>
-    </g>
-  );
-}
 
 function Laptop({ frame }: { frame: HelpFrame }) {
   return (
@@ -399,78 +233,37 @@ function Phone({ frame }: { frame: HelpFrame }) {
 
 function Technician({ frame }: { frame: HelpFrame }) {
   return (
-    <g
-      data-primary-contact-technician="true"
+    <g data-primary-contact-technician="true"
       style={{ opacity: frame.technicianOpacity }}
       transform={"translate(" + frame.technicianX + " 143)"}
-      strokeLinecap="round"
-      strokeLinejoin="round"
     >
-      <ellipse
-        cx="36"
-        cy="159"
-        rx="42"
-        ry="6"
-        className="primary-contact-shadow"
-      />
-      <path
-        d="M15 106 9 155h19l14-43 10 43h20l-6-55Z"
-        fill="#324e61"
-        stroke="#284354"
-        strokeWidth="2.5"
-      />
-      <path
-        d="M3 68q9-14 25-14h27q20 4 23 20l-7 44H5Z"
-        fill="#54b792"
-        stroke="#286751"
-        strokeWidth="3"
-      />
-      <circle
-        cx="39"
-        cy="27"
-        r="25"
-        fill="#f5bc91"
-        stroke="#304455"
-        strokeWidth="2.5"
-      />
-      <path
-        d="M16 29Q12 0 41 0Q66 0 64 29L55 16Q39 7 16 29Z"
-        fill="#a46b4d"
-        stroke="#304455"
-        strokeWidth="2"
-      />
-      <circle cx="31" cy="28" r="2" fill="#304455" />
-      <circle cx="48" cy="28" r="2" fill="#304455" />
-      <path d="M32 41q8 7 14-1" fill="none" stroke="#304455" strokeWidth="2" />
-      <path
-        d="M6 77 -3 94 20 103"
-        fill="none"
-        stroke="#54b792"
-        strokeWidth="12"
-      />
-      <circle cx="20" cy="103" r="6" fill="#f5bc91" />
-      <path d="M66 75 79 107" stroke="#54b792" strokeWidth="12" />
-      <g
-        data-primary-contact-wrench="true"
-        transform={"rotate(" + frame.wrenchAngle * frame.repair + " 20 103)"}
-      >
-        <path d="M20 103 -13 75" stroke="#64798b" strokeWidth="8" />
+      <g transform="translate(-19 0)">
+        <OwnerCharacter repairProgress={frame.wrenchAngle * frame.repair} />
+      </g>
+      <g transform="translate(31 146) scale(1.5)">
+        <DemoWoodLabel x={0} y={0} width={70} label="Owner" />
+      </g>
+    </g>
+  );
+}
+
+function Observer({ frame }: { frame: HelpFrame }) {
+  return (
+    <g data-primary-contact-observer="true" transform="translate(352 76)">
+      <g transform="translate(9 -7) scale(1.32)">
+        <UserCharacter />
+      </g>
+      <g transform="translate(75 182) scale(2)">
+        <DemoWoodLabel x={0} y={0} width={62} label="User" />
+      </g>
+      <g data-primary-contact-alarm="true" opacity={frame.alarm}>
+        <text x="117" y="2" className="primary-contact-exclamation">!</text>
         <path
-          d="M-22 58q-10 3-6 15l10 4q11-2 10-12l-7 5-6-5Z"
-          fill="#a8b9c7"
-          stroke="#41596b"
-          strokeWidth="2"
-        />
-        <circle
-          cx="20"
-          cy="103"
-          r="5"
-          fill="#a8b9c7"
-          stroke="#41596b"
-          strokeWidth="2"
+          d="M116-7l-5-8M130-8l7-8"
+          className="primary-contact-alarm-rays"
+          strokeWidth="3"
         />
       </g>
-      <circle cx="20" cy="103" r="5.5" fill="#f5bc91" />
     </g>
   );
 }
@@ -482,10 +275,12 @@ function AggregatorPage({
   frame,
   layout,
   pageRef,
+  contactTarget,
 }: {
   frame: HelpFrame;
   layout: HelpLayout;
   pageRef: RefObject<HTMLDivElement | null>;
+  contactTarget: SceneRect;
 }) {
   const scale = mix(0.1, layout.pageScale, frame.pageExpansion);
   const x = mix(392 - 320 * 0.1, layout.pageX, frame.pageExpansion);
@@ -497,15 +292,12 @@ function AggregatorPage({
       inert
       aria-hidden="true"
       className="help-item-page primary-contact-page"
-      style={
-        {
-          opacity: frame.pageOpacity,
-          width: layout.pageWidth,
-          minHeight: layout.pageHeight,
-          transform: `translate(${x}px, ${y}px) scale(${scale})`,
-          "--contact-selection": frame.selectedContact,
-        } as CSSProperties
-      }
+      style={{
+        opacity: frame.pageOpacity,
+        width: layout.pageWidth,
+        minHeight: layout.pageHeight,
+        transform: `translate(${x}px, ${y}px) scale(${scale})`,
+      }}
     >
       <ItemTitle
         item={experienceItem}
@@ -524,6 +316,16 @@ function AggregatorPage({
           actorsHelp={<DemoHelp title="Actors" />}
         />
       </section>
+      <DemoHighlightFrame
+        mode="html"
+        data-primary-contact-highlight="true"
+        x={contactTarget.x - 4}
+        y={contactTarget.y - 4}
+        width={contactTarget.width + 8}
+        height={contactTarget.height + 8}
+        color="var(--link)"
+        opacity={frame.selectedContact}
+      />
     </div>
   );
 }
@@ -539,12 +341,12 @@ function ContactTransfer({
 }) {
   const x = mix(
     layout.pageX + source.x * layout.pageScale,
-    441 - layout.observerShift,
+    layout.sceneX + layout.sceneScale * 540,
     frame.contactTravel,
   );
   const y = mix(
     layout.pageY + source.y * layout.pageScale,
-    220,
+    layout.sceneY + layout.sceneScale * 210,
     frame.contactTravel,
   );
   const scale = mix(layout.pageScale, 0.19, frame.contactTravel);
@@ -570,28 +372,20 @@ function ContactTransfer({
 export default function PrimaryContactHelpDemo() {
   const pageRef = useRef<HTMLDivElement>(null);
   const targets = useHelpTargets(pageRef, contactSelectors, contactFallback);
-  const [availableWidth, setAvailableWidth] = useState(640);
-  const [reduceMotion] = useState(
-    () =>
-      typeof window !== "undefined" &&
-      Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)").matches),
+  // Match the compact canvas at first paint; resize measurements take over.
+  const [availableWidth, setAvailableWidth] = useState(540);
+  const { elapsed, reduceMotion } = useHelpAnimationClock(
+    primaryContactHelpDuration,
+    5350,
   );
-  const [elapsed, setElapsed] = useState(reduceMotion ? 5350 : 0);
-
-  useEffect(() => {
-    if (reduceMotion) return undefined;
-    const timer = window.setInterval(() => {
-      setElapsed((current) => (current + 50) % primaryContactHelpDuration);
-    }, 50);
-    return () => window.clearInterval(timer);
-  }, [reduceMotion]);
 
   const frame = getPrimaryContactHelpFrame(elapsed);
   const layout = getPrimaryContactHelpLayout(availableWidth);
   return (
-    <figure
+    <HelpAnimationCanvas
       className="primary-contact-help-demo"
-      aria-label="Find the primary contact in Aggregator to get a failing service repaired"
+      ariaLabel="Find the primary contact in Aggregator to get a failing service repaired"
+      maxWidth={560}
     >
       <HelpAnimationProgress
         progress={reduceMotion ? 0 : elapsed / primaryContactHelpDuration}
@@ -608,28 +402,32 @@ export default function PrimaryContactHelpDemo() {
           role="img"
           aria-label="A service goes down; a person opens Aggregator on a laptop, finds the primary contact, calls the responsible technician, and the service is restored"
         >
-          <g aria-hidden="true">
+          <g aria-hidden="true" style={{ opacity: 1 - frame.pageOpacity }}>
             <g
               data-primary-contact-scene="true"
-              transform="translate(130 55) scale(0.66)"
+              transform={
+                "translate(" +
+                layout.sceneX +
+                " " +
+                layout.sceneY +
+                ") scale(" +
+                layout.sceneScale +
+                ")"
+              }
             >
-              <Service frame={frame} />
               <g
-                data-primary-contact-observer-offset="true"
-                transform={
-                  layout.observerShift
-                    ? "translate(-" + layout.observerShift + " 0)"
-                    : undefined
-                }
+                data-primary-contact-service="true"
+                transform="translate(75 113) scale(0.75)"
               >
-                <g
-                  data-primary-contact-observer-scale="true"
-                  transform="translate(379 140) scale(0.75) translate(-352 -76)"
-                >
-                  <Observer frame={frame} />
-                  <Laptop frame={frame} />
-                  <Phone frame={frame} />
-                </g>
+                <ServiceMachine unhealthy={frame.unhealthy} />
+              </g>
+              <g
+                data-primary-contact-observer-scale="true"
+                transform="translate(454 140) scale(0.75) translate(-352 -76)"
+              >
+                <Observer frame={frame} />
+                <Laptop frame={frame} />
+                <Phone frame={frame} />
               </g>
               <Technician frame={frame} />
               <g
@@ -644,7 +442,12 @@ export default function PrimaryContactHelpDemo() {
             </g>
           </g>
         </svg>
-        <AggregatorPage frame={frame} layout={layout} pageRef={pageRef} />
+        <AggregatorPage
+          frame={frame}
+          layout={layout}
+          pageRef={pageRef}
+          contactTarget={targets.contact}
+        />
         <ContactTransfer
           frame={frame}
           layout={layout}
@@ -652,6 +455,6 @@ export default function PrimaryContactHelpDemo() {
         />
       </HelpScene>
       <HelpInteractionShield />
-    </figure>
+    </HelpAnimationCanvas>
   );
 }

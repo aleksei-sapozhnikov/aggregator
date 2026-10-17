@@ -1,5 +1,12 @@
 import type { SceneRect } from "../shared/HelpScene";
-import { expandedListHoldMs } from "../shared/signal-flow/progress";
+import {
+  expandedListHoldMs,
+  progressBetween,
+  smooth,
+} from "../shared/signal-flow/progress";
+import DemoHighlightFrame from "../shared/DemoHighlightFrame";
+import { unhealthyTiming as timing } from "./UnhealthySignalTiming";
+import { getSignalHighlightBounds } from "../shared/signal-flow/signalHighlightBounds";
 
 type MovingDependency = {
   id: "dep1" | "nested1";
@@ -21,21 +28,28 @@ const dependencies: MovingDependency[] = [
 ];
 
 const clamp = (value: number): number => Math.max(0, Math.min(1, value));
-const between = (time: number, start: number, end: number): number =>
-  clamp((time - start) / (end - start));
-const ease = (value: number): number => value * value * (3 - 2 * value);
 const mix = (start: number, end: number, progress: number): number =>
   start + (end - start) * progress;
 
 // Keep the existing page hold and a half-second green pause after recovery.
 export { expandedListHoldMs } from "../shared/signal-flow/progress";
-export const unhealthyResetAt = 24800;
+export const unhealthyResetAt = timing.resetAt;
 export const unhealthyCycleDuration =
   unhealthyResetAt + 500 + expandedListHoldMs;
 
 // Graph and page fade in opposite directions over the entire transformation.
 export const getUnhealthyDiagramOpacity = (elapsed: number): number =>
-  clamp(1 - between(elapsed, 9600, 12800) + between(elapsed, 15800, 18600));
+  clamp(
+    1 -
+      smooth(
+        progressBetween(
+          elapsed,
+          timing.presentationStart,
+          timing.presentationEnd,
+        ),
+      ) +
+      smooth(progressBetween(elapsed, timing.reverseStart, timing.reverseEnd)),
+  );
 
 export default function UnhealthySignalProjection({
   elapsed,
@@ -51,17 +65,26 @@ export default function UnhealthySignalProjection({
   targets: Record<"item" | "dep1" | "nested1", SceneRect>;
 }) {
   const progress =
-    ease(between(elapsed, 9600, 12800)) *
-    (1 - ease(between(elapsed, 15600, 18600)));
-  // Keep the grouped list visible without colored boxes during its pause.
-  const listHighlightVisibility = clamp(
-    1 - between(elapsed, 12900, 13600) + between(elapsed, 14800, 15400),
-  );
+    smooth(
+      progressBetween(
+        elapsed,
+        timing.presentationStart,
+        timing.presentationEnd,
+      ),
+    ) *
+    (1 -
+      smooth(progressBetween(elapsed, timing.reverseStart, timing.reverseEnd)));
+  // Keep highlighting visible during the expanded-list pause.
   const selectionOpacity =
-    between(elapsed, 8300, 9300) *
-    (1 - between(elapsed, 18900, 19600)) *
-    listHighlightVisibility;
-  const symbolOpacity = 1 - between(progress, 0.38, 0.88);
+    progressBetween(elapsed, timing.selectionStart, timing.selectionFull) *
+    (1 -
+      progressBetween(
+        elapsed,
+        timing.selectionFadeStart,
+        timing.selectionFadeEnd,
+      ));
+  const symbolOpacity = 1 - smooth(progressBetween(progress, 0.38, 0.88));
+  const itemHighlight = getSignalHighlightBounds(targets.item, 4);
 
   return (
     <>
@@ -75,14 +98,13 @@ export default function UnhealthySignalProjection({
           (itemAffected ? " is-affected" : "")
         }
       >
-        <rect
-          className="signal-flow-help-selection-frame is-unhealthy-frame"
+        <DemoHighlightFrame
           data-unhealthy-frame="item"
-          x={mix(240, targets.item.x - 4, progress)}
-          y={mix(16, targets.item.y - 4, progress)}
-          width={mix(160, targets.item.width + 8, progress)}
-          height={mix(68, targets.item.height + 8, progress)}
-          rx={10}
+          x={mix(248, itemHighlight.x, progress)}
+          y={mix(24, itemHighlight.y, progress)}
+          width={mix(144, itemHighlight.width, progress)}
+          height={mix(52, itemHighlight.height, progress)}
+          color="var(--status-down)"
           opacity={selectionOpacity}
         />
         <rect
@@ -106,16 +128,7 @@ export default function UnhealthySignalProjection({
           client-service
         </text>
         <g opacity={symbolOpacity}>
-          {itemAffected ? (
-            <text
-              className="signal-flow-help-impacted-label"
-              x={mix(320, targets.item.x + 70, progress)}
-              y={mix(67, targets.item.y + 24, progress)}
-              textAnchor="middle"
-            >
-              Affected by dependency
-            </text>
-          ) : (
+          {!itemAffected && (
             <g className="signal-flow-help-checks" aria-label="Passing checks">
               {[-18, 0, 18].map((offset) => (
                 <text
@@ -146,6 +159,7 @@ export default function UnhealthySignalProjection({
         const center = x + width / 2;
         const symbolX = mix(center, destX + 26, progress);
         const symbolY = mix(y + 48, destY + 49, progress);
+        const highlight = getSignalHighlightBounds(target, 4);
 
         return (
           <g
@@ -158,14 +172,13 @@ export default function UnhealthySignalProjection({
               (affected ? " is-affected" : "")
             }
           >
-            <rect
-              className="signal-flow-help-selection-frame is-unhealthy-frame"
+            <DemoHighlightFrame
               data-unhealthy-frame={dependency.id}
-              x={boxX - 4}
-              y={boxY - 4}
-              width={boxWidth + 8}
-              height={boxHeight + 8}
-              rx={11}
+              x={mix(x + 4, highlight.x, progress)}
+              y={mix(y + 4, highlight.y, progress)}
+              width={mix(width - 8, highlight.width, progress)}
+              height={mix(height - 8, highlight.height, progress)}
+              color="var(--status-down)"
               opacity={selectionOpacity}
             />
             <rect

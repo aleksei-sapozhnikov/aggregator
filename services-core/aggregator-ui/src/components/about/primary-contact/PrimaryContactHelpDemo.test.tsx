@@ -34,6 +34,55 @@ describe("Primary contact contextual help", () => {
     expectDecorativeSceneShield(figure);
   });
 
+  it("has matching user, owner and service assets with separate wooden captions", () => {
+    const { container } = render(<PrimaryContactHelpDemo />);
+    const caller = container.querySelector("[data-primary-contact-observer]");
+    const technician = container.querySelector(
+      "[data-primary-contact-technician]",
+    );
+    const service = container.querySelector("[data-primary-contact-service]");
+    expect(caller?.querySelector('[data-demo-character="user"]')).not.toBeNull();
+    expect(
+      caller?.querySelector('[data-demo-gesture="phone"]'),
+    ).not.toBeNull();
+    expect(
+      technician?.querySelector('[data-demo-character="owner"]'),
+    ).not.toBeNull();
+    expect(service?.querySelector("[data-demo-service-machine]")).not.toBeNull();
+    expect(caller?.querySelector('[data-scene-label="User"]')).not.toBeNull();
+    expect(
+      technician?.querySelector('[data-scene-label="Owner"]'),
+    ).not.toBeNull();
+    expect(
+      container.querySelector('[data-scene-label="Service"]'),
+    ).toBeNull();
+    expect(container.querySelectorAll(".demo-wood-label")).toHaveLength(2);
+    expect(
+      caller?.querySelector('[data-demo-character="user"] [data-scene-label]'),
+    ).toBeNull();
+    expect(
+      technician?.querySelector(
+        '[data-demo-character="owner"] [data-scene-label]',
+      ),
+    ).toBeNull();
+  });
+
+  it("switches the shared service lamp to red during the failure and back on recovery", () => {
+    vi.useFakeTimers();
+    const { container } = render(<PrimaryContactHelpDemo />);
+    const service = container.querySelector("[data-primary-contact-service]");
+    const red = service?.querySelector('rect[fill="#eb4d46"]');
+    const green = service?.querySelector('rect[fill="#70c87c"]');
+    expect(red?.getAttribute("opacity")).toBe("0");
+    expect(green?.getAttribute("opacity")).toBe("1");
+    act(() => vi.advanceTimersByTime(2000));
+    expect(Number(red?.getAttribute("opacity"))).toBe(1);
+    expect(Number(green?.getAttribute("opacity"))).toBe(0);
+    act(() => vi.advanceTimersByTime(10000));
+    expect(red?.getAttribute("opacity")).toBe("0");
+    expect(green?.getAttribute("opacity")).toBe("1");
+  });
+
   it("follows the failure, laptop, contact, phone, repair and recovery sequence", () => {
     const initial = getPrimaryContactHelpFrame(0);
     expect(initial.unhealthy).toBe(0);
@@ -79,6 +128,18 @@ describe("Primary contact contextual help", () => {
       "The primary contact is the main contact point",
     );
     expect(text?.nextElementSibling).toBe(figure);
+    expect(figure?.classList.contains("help-animation-canvas")).toBe(true);
+    expect(figure?.getAttribute("style")).toContain("560px");
+    const compactLayout = getPrimaryContactHelpLayout(540);
+    expect(compactLayout.compact).toBe(true);
+    const [, , width, height] = compactLayout.viewBox.split(" ").map(Number);
+    expect(width).toBe(540);
+    expect(height).toBeLessThan(340);
+    const [left] = compactLayout.viewBox.split(" ").map(Number);
+    expect(compactLayout.pageX).toBe(
+      left +
+        (width - compactLayout.pageWidth * compactLayout.pageScale) / 2,
+    );
     expect(figure?.querySelector("[data-primary-contact-page]")).not.toBeNull();
     expect(
       figure?.querySelector("[data-primary-contact-transfer]"),
@@ -87,6 +148,27 @@ describe("Primary contact contextual help", () => {
       figure?.querySelector("[data-primary-contact-phone]"),
     ).not.toBeNull();
     expect(figure?.querySelectorAll("img")).toHaveLength(0);
+  });
+
+  it("briefly overlays the full cast without leaving characters peeking out", () => {
+    vi.useFakeTimers();
+    const { container } = render(<PrimaryContactHelpDemo />);
+    const illustration = container.querySelector(
+      '[data-primary-contact-scene="true"]',
+    )?.parentElement as SVGElement;
+    const page = container.querySelector(
+      "[data-primary-contact-page]",
+    ) as HTMLElement;
+    expect(illustration.style.opacity).toBe("1");
+    expect(page.style.opacity).toBe("0");
+
+    act(() => vi.advanceTimersByTime(5350));
+    expect(illustration.style.opacity).toBe("0");
+    expect(page.style.opacity).toBe("1");
+
+    act(() => vi.advanceTimersByTime(2350));
+    expect(illustration.style.opacity).toBe("1");
+    expect(page.style.opacity).toBe("0");
   });
 
   it("renders the page and moving contact as production HTML beside the illustrative SVG", () => {
@@ -103,6 +185,9 @@ describe("Primary contact contextual help", () => {
       "DOWN",
     );
     expect(page.querySelectorAll(".actor-summary-row")).toHaveLength(3);
+    expect(
+      page.querySelector('[data-primary-contact-highlight="true"]')?.className,
+    ).toContain("demo-highlight-frame--html");
     const heading = page.querySelector(".primary-contact-heading-row");
     expect(
       heading?.nextElementSibling?.classList.contains("primary-contact-row"),
@@ -115,11 +200,19 @@ describe("Primary contact contextual help", () => {
     expect(
       page.querySelector("a[href], button:not(:disabled), [tabindex='0']"),
     ).toBeNull();
+    const scene = document.querySelector("[data-primary-contact-scene]");
+    const layout = getPrimaryContactHelpLayout(540);
+    expect(scene?.getAttribute("transform")).toBe(
+      `translate(${layout.sceneX} ${layout.sceneY}) scale(${layout.sceneScale})`,
+    );
+    const technician = document.querySelector(
+      '[data-primary-contact-technician="true"]',
+    );
     expect(
-      document
-        .querySelector("[data-primary-contact-scene]")
-        ?.getAttribute("transform"),
-    ).toBe("translate(130 55) scale(0.66)");
+      technician
+        ?.querySelector('[data-scene-label="Owner"]')
+        ?.classList.contains("demo-wood-label"),
+    ).toBe(true);
   });
 
   it("loops and resets its progress indicator", () => {
@@ -138,30 +231,44 @@ describe("Primary contact contextual help", () => {
     expect(progress.getAttribute("aria-valuenow")).toBe("0");
   });
 
-  it("maintains roughly the same illustrated pixel scale on desktop and mobile", () => {
+  it("keeps the service, caller and incoming owner inside a centered scene", () => {
     for (const width of [640, 540, 380, 320]) {
       const layout = getPrimaryContactHelpLayout(width);
-      const [, , viewWidth, viewHeight] = layout.viewBox.split(" ").map(Number);
-      const serviceWidthInPixels =
-        (137 * 0.66 * Math.min(width, 640)) / viewWidth;
+      const [left, top, viewWidth, viewHeight] = layout.viewBox
+        .split(" ")
+        .map(Number);
+      const gutterLeft = layout.sceneX + layout.sceneScale * 65 - left;
+      const gutterRight =
+        left + viewWidth - (layout.sceneX + layout.sceneScale * 640);
+      expect(gutterLeft).toBeGreaterThanOrEqual(15);
+      expect(gutterRight).toBeGreaterThanOrEqual(15);
 
-      expect(serviceWidthInPixels).toBeGreaterThan(84);
-      expect(serviceWidthInPixels).toBeLessThan(100);
-      expect(
-        (viewHeight * Math.min(width, 640)) / viewWidth,
-      ).toBeLessThanOrEqual(340);
+      // The same illustration is centered at every viewport width.
+      expect(gutterLeft).toBeCloseTo(gutterRight);
+      expect(layout.sceneScale).toBeLessThanOrEqual(0.9);
+      const serviceCenter =
+        layout.sceneX + layout.sceneScale * (75 + 94 * 0.75);
+      const ownerCenter =
+        layout.sceneX +
+        layout.sceneScale * (getPrimaryContactHelpFrame(10000).technicianX + 31);
+      const userCenter =
+        layout.sceneX + layout.sceneScale * (454 + (9 + 51 * 1.32) * 0.75);
+      expect(serviceCenter).toBeLessThan(ownerCenter);
+      expect(ownerCenter).toBeLessThan(userCenter);
 
-      const [left, top] = layout.viewBox.split(" ").map(Number);
       const actualPageLeft = layout.pageX;
       const actualPageRight =
-        actualPageLeft + layout.pageWidth * layout.pageScale;
+        layout.pageX + layout.pageWidth * layout.pageScale;
       const actualPageTop = layout.pageY;
       const actualPageBottom =
-        actualPageTop + layout.pageHeight * layout.pageScale;
+        layout.pageY + layout.pageHeight * layout.pageScale;
       expect(actualPageLeft).toBeGreaterThanOrEqual(left);
       expect(actualPageRight).toBeLessThanOrEqual(left + viewWidth);
       expect(actualPageTop).toBeGreaterThanOrEqual(top);
       expect(actualPageBottom).toBeLessThanOrEqual(top + viewHeight);
+      expect(actualPageLeft - left).toBeCloseTo(
+        left + viewWidth - actualPageRight,
+      );
     }
     expect(getPrimaryContactHelpLayout(640).viewBox).toBe("0 0 640 340");
     expect(getPrimaryContactHelpLayout(380).compact).toBe(true);
@@ -208,9 +315,15 @@ describe("Primary contact contextual help", () => {
     expect(canvas.style.transform).toContain("scale(1)");
     expect(
       svg
-        .querySelector("[data-primary-contact-observer-offset]")
+        .querySelector("[data-primary-contact-observer-scale]")
         ?.getAttribute("transform"),
-    ).toBe("translate(-24 0)");
+    ).toBe("translate(454 140) scale(0.75) translate(-352 -76)");
+    const layout = getPrimaryContactHelpLayout(320);
+    expect(
+      svg.querySelector("[data-primary-contact-scene]")?.getAttribute("transform"),
+    ).toBe(
+      `translate(${layout.sceneX} ${layout.sceneY}) scale(${layout.sceneScale})`,
+    );
   });
 
   it("keeps a readable highlighted Item preview for reduced motion", () => {
