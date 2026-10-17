@@ -20,6 +20,7 @@ import type {
 } from "../../shared/types";
 
 const HEALTH_POLL_INTERVAL_MS = 10_000;
+const HEALTH_REQUEST_TIMEOUT_MS = 8_000;
 
 const EMPTY_CATALOG: {
   items: CatalogItem[];
@@ -85,11 +86,23 @@ export default function useCatalogData() {
     }
 
     let cancelled = false;
+    let inFlight = false;
+    let activeController: AbortController | null = null;
 
-    /** Refreshes authoritative Item health facts on the polling interval. */
+    /** Polls without overlapping requests or retaining stale health facts. */
     const fetchStatuses = async () => {
+      if (inFlight) {
+        return;
+      }
+      inFlight = true;
+      const controller = new AbortController();
+      activeController = controller;
+      const timeoutId = window.setTimeout(
+        () => controller.abort(),
+        HEALTH_REQUEST_TIMEOUT_MS,
+      );
       try {
-        const next = await fetchProductHealth();
+        const next = await fetchProductHealth(controller.signal);
         if (!cancelled) {
           setItemStatuses(next.itemStatuses);
           setItemSignals(next.itemSignals);
@@ -101,7 +114,18 @@ export default function useCatalogData() {
       } catch (err) {
         if (!cancelled) {
           console.error(err);
+          // Without fresh backend facts, all Item statuses render as UNKNOWN.
+          setItemStatuses({});
+          setItemSignals({});
+          setProductHealthByItemId({});
+          setLastUpdated("");
         }
+      } finally {
+        window.clearTimeout(timeoutId);
+        if (activeController === controller) {
+          activeController = null;
+        }
+        inFlight = false;
       }
     };
 
@@ -112,6 +136,7 @@ export default function useCatalogData() {
     return () => {
       cancelled = true;
       window.clearInterval(interval);
+      activeController?.abort();
     };
   }, [catalog.items]);
 

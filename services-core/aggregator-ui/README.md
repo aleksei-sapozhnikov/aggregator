@@ -2,7 +2,10 @@
 
 React and TypeScript frontend for Catalog Health Aggregator. The UI presents
 catalog relationships, service-provided health, available contacts, and history.
-It never calculates product health: UP, DOWN, and UNKNOWN are backend facts.
+It never calculates product health: UP and DOWN are backend facts, and UNKNOWN
+is displayed when the backend reports UNKNOWN or current health facts cannot
+be retrieved. A failed or timed-out health poll clears stale statuses and
+signals; the next successful poll restores backend-reported facts.
 
 ## Reading the code
 
