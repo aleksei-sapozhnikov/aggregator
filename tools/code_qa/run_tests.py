@@ -166,30 +166,47 @@ def build_module(root: Path, name: str) -> TestModule | None:
     return TestModule(name, directory, command, environment)
 
 
-def execute_module(module: TestModule) -> int:
-    """Stream full unit-test results and preserve the underlying exit code."""
-    print(f"  command: {' '.join(module.command)}", flush=True)
+def execute_module(module: TestModule, *, verbose: bool = False) -> tuple[int, str]:
+    """Capture test output and return diagnostics only for failed modules."""
+    if verbose:
+        print(f"  command: {' '.join(module.command)}", flush=True)
     try:
         result = subprocess.run(
             module.command,
             cwd=module.directory,
             check=False,
             **({"env": module.env} if module.env is not None else {}),
+            **(
+                {}
+                if verbose
+                else {
+                    "stdout": subprocess.PIPE,
+                    "stderr": subprocess.STDOUT,
+                    "text": True,
+                    "encoding": "utf-8",
+                    "errors": "replace",
+                }
+            ),
         )
     except OSError as error:
-        print(f"  Could not start {module.name} tests: {error}", flush=True)
-        return 1
-    return result.returncode
+        return 1, f"Could not start {module.name} tests: {error}"
+
+    if result.returncode == 0 or verbose:
+        return result.returncode, ""
+    output = result.stdout if isinstance(result.stdout, str) else ""
+    return result.returncode, output or f"Test command exited with status {result.returncode}."
 
 
-def run_modules(names: list[str], root: Path | None = None) -> int:
-    """Run every selected module even if an earlier test suite fails."""
+def run_modules(
+    names: list[str], root: Path | None = None, *, verbose: bool = False
+) -> int:
+    """Run all modules, hiding successful output unless verbose was requested."""
     root = root or repo_root()
     failures: list[str] = []
     for name in names:
-        print(f"\nTesting {name}...", flush=True)
         directory = root if name == "code-qa" else root / "services-core" / name
         if not directory.is_dir():
+            print(f"Testing {name}.. FAILED", flush=True)
             print(f"  Missing module directory: {directory}", flush=True)
             failures.append(name)
             continue
@@ -200,16 +217,28 @@ def run_modules(names: list[str], root: Path | None = None) -> int:
             failures.append(name)
             continue
 
-        status = execute_module(module)
-        print(f"Testing {name}.. {'OK' if status == 0 else 'FAILED'}", flush=True)
+        if verbose:
+            print(f"Testing {name}...", flush=True)
+        else:
+            print(f"Testing {name}.. ", end="", flush=True)
+
+        status, details = execute_module(module, verbose=verbose)
+        if verbose:
+            print(f"Testing {name}.. {'OK' if status == 0 else 'FAILED'}", flush=True)
+        else:
+            print("OK" if status == 0 else "FAILED", flush=True)
+
         if status != 0:
+            if not verbose:
+                print(f"  command: {' '.join(module.command)}", flush=True)
+            if details:
+                print(details.rstrip("\r\n"), flush=True)
             failures.append(name)
 
     print(f"\n=== TESTS: {'FAILED' if failures else 'PASSED'} ===", flush=True)
     if failures:
         print(f"Failed modules: {', '.join(failures)}", flush=True)
     return 1 if failures else 0
-
 
 def build_parser() -> argparse.ArgumentParser:
     """Parse module selections; without --module, run the entire test matrix."""
@@ -220,13 +249,18 @@ def build_parser() -> argparse.ArgumentParser:
         choices=MODULE_NAMES,
         help="Run only a selected module (may be repeated).",
     )
+    parser.add_argument(
+        "--verbose", action="store_true", help="Show output from every test module."
+    )
     return parser
 
 
 def main() -> int:
     """Run the selected module suites."""
     args = build_parser().parse_args()
-    return run_modules(list(dict.fromkeys(args.module or MODULE_NAMES)))
+    return run_modules(
+        list(dict.fromkeys(args.module or MODULE_NAMES)), verbose=args.verbose
+    )
 
 
 if __name__ == "__main__":

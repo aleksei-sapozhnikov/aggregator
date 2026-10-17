@@ -68,7 +68,7 @@ class TestRunnerTests(unittest.TestCase):
             run_tests.subprocess, "run",
             return_value=subprocess.CompletedProcess([], 0),
         ) as execute:
-            self.assertEqual(run_tests.execute_module(module), 0)
+            self.assertEqual(run_tests.execute_module(module), (0, ""))
         self.assertEqual(execute.call_args.kwargs["env"], module.env)
 
     def test_ui_uses_verbose_vitest_and_locked_dependencies(self) -> None:
@@ -147,9 +147,11 @@ class TestRunnerTests(unittest.TestCase):
                 (root / "services-core" / name).mkdir(parents=True)
             calls = []
 
-            def execute(module: run_tests.TestModule) -> int:
+            def execute(
+                module: run_tests.TestModule, *, verbose: bool = False
+            ) -> tuple[int, str]:
                 calls.append(module.name)
-                return 1 if module.name == "catalog" else 0
+                return (1, "catalog failed") if module.name == "catalog" else (0, "")
 
             def prepared_module(root_dir: Path, name: str) -> run_tests.TestModule:
                 return run_tests.TestModule(name, root_dir, ["mock-test-command"])
@@ -172,13 +174,14 @@ class TestRunnerTests(unittest.TestCase):
             self.assertIn("Testing aggregator.. OK", output.getvalue())
             self.assertIn("Testing catalog.. FAILED", output.getvalue())
             self.assertIn("Failed modules: catalog", output.getvalue())
+            self.assertIn("catalog failed", output.getvalue())
 
     def test_missing_module_does_not_hide_remaining_modules(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             output = StringIO()
             with (
-                patch.object(run_tests, "execute_module", return_value=0) as execute,
+                patch.object(run_tests, "execute_module", return_value=(0, "")) as execute,
                 redirect_stdout(output),
             ):
                 self.assertEqual(run_tests.run_modules(["catalog", "code-qa"], root), 1)
@@ -193,7 +196,9 @@ class TestRunnerTests(unittest.TestCase):
             ),
             redirect_stdout(StringIO()),
         ):
-            self.assertEqual(run_tests.execute_module(module), 1)
+            self.assertEqual(
+                run_tests.execute_module(module), (1, "Could not start catalog tests: go")
+            )
 
     def test_execute_module_preserves_subprocess_status(self) -> None:
         module = run_tests.TestModule(
@@ -207,10 +212,85 @@ class TestRunnerTests(unittest.TestCase):
             ) as execute,
             redirect_stdout(StringIO()),
         ):
-            self.assertEqual(run_tests.execute_module(module), 2)
+            self.assertEqual(
+                run_tests.execute_module(module),
+                (2, "Test command exited with status 2."),
+            )
         self.assertEqual(execute.call_args.args[0], module.command)
         self.assertEqual(execute.call_args.kwargs["cwd"], module.directory)
 
+
+    def test_success_output_is_suppressed_by_default(self) -> None:
+        module = run_tests.TestModule("catalog", Path("/repo"), ["go", "test", "./..."])
+        with patch.object(
+            run_tests.subprocess,
+            "run",
+            return_value=subprocess.CompletedProcess([], 0, stdout="all tests passed\n"),
+        ) as execute:
+            self.assertEqual(run_tests.execute_module(module), (0, ""))
+        self.assertEqual(execute.call_args.kwargs["stdout"], subprocess.PIPE)
+        self.assertEqual(execute.call_args.kwargs["stderr"], subprocess.STDOUT)
+        self.assertEqual(execute.call_args.kwargs["encoding"], "utf-8")
+        self.assertEqual(execute.call_args.kwargs["errors"], "replace")
+
+    def test_failure_output_is_retained(self) -> None:
+        module = run_tests.TestModule("catalog", Path("/repo"), ["go", "test", "./..."])
+        with patch.object(
+            run_tests.subprocess,
+            "run",
+            return_value=subprocess.CompletedProcess([], 1, stdout="FAIL: TestBadInput\n"),
+        ):
+            self.assertEqual(
+                run_tests.execute_module(module), (1, "FAIL: TestBadInput\n")
+            )
+
+    def test_verbose_mode_forwards_runner_output(self) -> None:
+        module = run_tests.TestModule("catalog", Path("/repo"), ["go", "test", "-v", "./..."])
+        with (
+            patch.object(
+                run_tests.subprocess,
+                "run",
+                return_value=subprocess.CompletedProcess([], 0),
+            ) as execute,
+            redirect_stdout(StringIO()) as output,
+        ):
+            self.assertEqual(run_tests.execute_module(module, verbose=True), (0, ""))
+        self.assertIn("command: go test -v ./...", output.getvalue())
+        self.assertNotIn("stdout", execute.call_args.kwargs)
+        self.assertNotIn("stderr", execute.call_args.kwargs)
+
+    def test_compact_reporting_prints_failure_details_only(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            output = StringIO()
+            with (
+                patch.object(
+                    run_tests, "build_module",
+                    side_effect=lambda root, name: run_tests.TestModule(
+                        name, root, ["mock-test-command"]
+                    ),
+                ),
+                patch.object(
+                    run_tests,
+                    "execute_module",
+                    side_effect=[(0, ""), (1, "failure traceback\n")],
+                ),
+                redirect_stdout(output),
+            ):
+                rc = run_tests.run_modules(["code-qa", "code-qa"], root)
+            self.assertEqual(rc, 1)
+            self.assertIn("Testing code-qa.. OK", output.getvalue())
+            self.assertIn("Testing code-qa.. FAILED", output.getvalue())
+            self.assertIn("failure traceback", output.getvalue())
+            self.assertEqual(output.getvalue().count("command: mock-test-command"), 1)
+
+    def test_cli_accepts_verbose_flag(self) -> None:
+        with (
+            patch.object(sys, "argv", ["run_tests.py", "--module", "catalog", "--verbose"]),
+            patch.object(run_tests, "run_modules", return_value=0) as run,
+        ):
+            self.assertEqual(run_tests.main(), 0)
+        run.assert_called_once_with(["catalog"], verbose=True)
 
 if __name__ == "__main__":
     unittest.main()

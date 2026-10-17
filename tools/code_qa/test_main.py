@@ -174,5 +174,21 @@ class OrchestratorFlowTests(unittest.TestCase):
         self.assertIn("Unable to start module tests", output.getvalue())
 
 
+    def test_verbose_test_flag_is_passed_to_module_runner(self) -> None:
+        process = MagicMock()
+        process.stdout = iter([])
+        process.wait.return_value = 0
+        process.__enter__.return_value = process
+        with (
+            patch.object(main.subprocess, "Popen", return_value=process) as popen,
+            redirect_stdout(StringIO()),
+        ):
+            self.assertEqual(
+                main.run_test_command(modules=["catalog"], verbose=True), 0
+            )
+        self.assertEqual(
+            popen.call_args.args[0][-3:], ["--module", "catalog", "--verbose"]
+        )
+
 if __name__ == "__main__":
     unittest.main()

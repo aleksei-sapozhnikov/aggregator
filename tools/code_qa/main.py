@@ -248,11 +248,14 @@ def run_test_command(
     out_file: str = "",
     append_out_file: bool = False,
     suppress_final_summary: bool = False,
+    verbose: bool = False,
 ) -> int:
-    """Run all requested module tests and stream their full output to console/log."""
+    """Run module tests with compact output unless verbose is requested."""
     cmd = [sys.executable, "-u", str(script_dir() / "run_tests.py")]
     for module in modules or []:
         cmd.extend(["--module", module])
+    if verbose:
+        cmd.append("--verbose")
 
     emit, _, close = build_emitter(out_file, append=append_out_file)
     try:
@@ -376,6 +379,9 @@ def build_parser() -> argparse.ArgumentParser:
         choices=("aggregator", "aggregator-ui", "catalog", "ai-agent", "code-qa"),
     )
     test_cmd.add_argument("--out-file", default="")
+    test_cmd.add_argument(
+        "--verbose", action="store_true", help="Show output from every test module."
+    )
 
     secrets_cmd = sub.add_parser(
         "secrets", help="Run only the TruffleHog secrets scan."
@@ -433,7 +439,9 @@ def main() -> int:
         return run_code_qa_command(raw=args.raw, out_file=args.out_file)
 
     if args.command == "test":
-        return run_test_command(modules=args.module, out_file=args.out_file)
+        return run_test_command(
+            modules=args.module, out_file=args.out_file, verbose=args.verbose
+        )
 
     if args.command == "secrets":
         return run_secrets_command(
