@@ -19,12 +19,14 @@ export default function UnhealthySignalsHelpDemo() {
   );
 
   const sceneElapsed =
-    elapsed - Math.min(expandedListHoldMs, Math.max(0, elapsed - timing.pageHoldAt));
+    elapsed -
+    Math.min(expandedListHoldMs, Math.max(0, elapsed - timing.pageHoldAt));
   const time = sceneElapsed >= unhealthyResetAt ? 0 : sceneElapsed;
   const failedLeaf = time >= timing.failureStart && time < timing.leafRecoveredAt;
   const affectedDependency =
     time >= timing.dependencyAffectedAt && time < timing.dependencyRecoveredAt;
-  const affectedItem = time >= timing.itemAffectedAt && time < timing.itemRecoveredAt;
+  const affectedItem =
+    time >= timing.itemAffectedAt && time < timing.itemRecoveredAt;
   const affectedNodes = new Set<FlowNodeId>();
   if (failedLeaf) affectedNodes.add("nested1");
   if (affectedDependency) affectedNodes.add("dep1");
@@ -42,11 +44,19 @@ export default function UnhealthySignalsHelpDemo() {
   const greenProgress: Record<string, number> = {
     "nested1-dep1":
       time >= timing.firstRecoveryStart
-        ? progressBetween(time, timing.firstRecoveryStart, timing.firstRecoveryEnd)
+        ? progressBetween(
+            time,
+            timing.firstRecoveryStart,
+            timing.firstRecoveryEnd,
+          )
         : 0,
     "dep1-item":
       time >= timing.secondRecoveryStart
-        ? progressBetween(time, timing.secondRecoveryStart, timing.secondRecoveryEnd)
+        ? progressBetween(
+            time,
+            timing.secondRecoveryStart,
+            timing.secondRecoveryEnd,
+          )
         : 0,
   };
   const graphOpacity = getUnhealthyDiagramOpacity(sceneElapsed);

@@ -1,8 +1,11 @@
 import type { SceneRect } from "../shared/HelpScene";
-import { expandedListHoldMs } from "../shared/signal-flow/progress";
+import {
+  expandedListHoldMs,
+  progressBetween,
+  smooth,
+} from "../shared/signal-flow/progress";
 import DemoHighlightFrame from "../shared/DemoHighlightFrame";
 import { unhealthyTiming as timing } from "./UnhealthySignalTiming";
-import { progressBetween, smooth } from "../shared/signal-flow/progress";
 
 type MovingDependency = {
   id: "dep1" | "nested1";
@@ -38,7 +41,11 @@ export const getUnhealthyDiagramOpacity = (elapsed: number): number =>
   clamp(
     1 -
       smooth(
-        progressBetween(elapsed, timing.presentationStart, timing.presentationEnd),
+        progressBetween(
+          elapsed,
+          timing.presentationStart,
+          timing.presentationEnd,
+        ),
       ) +
       smooth(progressBetween(elapsed, timing.reverseStart, timing.reverseEnd)),
   );
