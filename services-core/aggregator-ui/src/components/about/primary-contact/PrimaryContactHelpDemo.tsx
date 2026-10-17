@@ -18,9 +18,9 @@ import DemoHighlightFrame from "../shared/DemoHighlightFrame";
 import DemoWoodLabel from "../shared/DemoWoodLabel";
 import HelpAnimationCanvas from "../shared/HelpAnimationCanvas";
 import useHelpAnimationClock from "../shared/useHelpAnimationClock";
-import OwnerCharacter from "../shared/characters/OwnerCharacter";
-import UserCharacter from "../shared/characters/UserCharacter";
-import ServiceMachine from "../shared/characters/ServiceMachine";
+import OwnerCharacter from "../shared/characters/owner/OwnerCharacter";
+import UserCharacter from "../shared/characters/user/UserCharacter";
+import ServiceMachine from "../shared/characters/service/ServiceMachine";
 import { progressBetween, smooth } from "../shared/signal-flow/progress";
 import "./PrimaryContactHelpDemo.css";
 

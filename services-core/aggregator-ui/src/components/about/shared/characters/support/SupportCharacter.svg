@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 110 145"
+  width="110" height="145" stroke-linecap="round" stroke-linejoin="round">
+  <g id="support-base">
+      <ellipse cx="50" cy="136" rx="33" ry="6" fill="#d2d9e1" opacity=".65" />
+      <path
+        d="M28 115 21 136h20l9-28 12 28h20l-9-37Z"
+        fill="#33495e"
+        stroke="#243442"
+        stroke-width="2.5"
+        stroke-linejoin="round"
+      />
+      <path
+        d="M17 88Q18 69 37 66H65Q83 69 87 88L82 114H19Z"
+        fill="#a38cdb"
+        stroke="#273b4c"
+        stroke-width="2.8"
+        stroke-linejoin="round"
+      />
+      <path
+        d="M35 69Q33 82 51 84Q67 82 65 69"
+        fill="none"
+        stroke="#273b4c"
+        stroke-width="2.5"
+      />
+      <rect x="44" y="58" width="13" height="13" rx="5" fill="#f5b98d" />
+      <ellipse
+        cx="51"
+        cy="42"
+        rx="26"
+        ry="29"
+        fill="#f6c29b"
+        stroke="#243442"
+        stroke-width="2.5"
+      />
+
+    <path d="M25 39Q16 7 49 9Q81 10 76 43L67 33Q53 18 38 31Z"
+      fill="#483b46" stroke="#243442" stroke-width="2" />
+      <circle cx="42" cy="43" r="2" fill="#263440" />
+      <circle cx="62" cy="43" r="2" fill="#263440" />
+      <path
+        d="M44 57Q51 62 59 55"
+        fill="none"
+        stroke="#263440"
+        stroke-width="2"
+        stroke-linecap="round"
+      />
+
+    <path d="M22 85 16 111 38 119" fill="none"
+      stroke="#a38cdb" stroke-width="14" stroke-linecap="round" />
+    <circle cx="38" cy="119" r="7" fill="#f6c29b" />
+  </g>
+  <g id="support-headset">
+    <path d="M23 48Q17 21 32 15M79 48Q84 22 69 15"
+      fill="none" stroke="#273b4c" stroke-width="4" stroke-linecap="round" />
+    <rect x="17" y="42" width="9" height="19" rx="4"
+      fill="#f5c15b" stroke="#273b4c" stroke-width="2" />
+    <rect x="76" y="42" width="9" height="19" rx="4"
+      fill="#f5c15b" stroke="#273b4c" stroke-width="2" />
+    <path d="M80 56Q83 68 69 65L63 62" fill="none"
+      stroke="#273b4c" stroke-width="3" stroke-linecap="round" />
+    <circle cx="62" cy="62" r="3.5" fill="#273b4c" />
+  </g>
+  <g id="support-hand">
+    <path d="M79 85 79 65 77 50" fill="none"
+      stroke="#a38cdb" stroke-width="14" stroke-linecap="round" />
+    <circle cx="77" cy="50" r="7" fill="#f6c29b" />
+  </g>
+</svg>
