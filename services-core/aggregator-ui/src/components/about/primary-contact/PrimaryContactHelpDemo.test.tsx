@@ -103,6 +103,9 @@ describe("Primary contact contextual help", () => {
       "DOWN",
     );
     expect(page.querySelectorAll(".actor-summary-row")).toHaveLength(3);
+    expect(
+      page.querySelector('[data-primary-contact-highlight="true"]')?.className,
+    ).toContain("demo-highlight-frame--html");
     const heading = page.querySelector(".primary-contact-heading-row");
     expect(
       heading?.nextElementSibling?.classList.contains("primary-contact-row"),
@@ -120,6 +123,12 @@ describe("Primary contact contextual help", () => {
         .querySelector("[data-primary-contact-scene]")
         ?.getAttribute("transform"),
     ).toBe("translate(130 55) scale(0.66)");
+    const technician = document.querySelector(
+      '[data-primary-contact-technician="true"]',
+    );
+    expect(
+      technician?.querySelector('[data-scene-label="Owner"]')?.classList,
+    ).toContain("demo-wood-label");
   });
 
   it("loops and resets its progress indicator", () => {

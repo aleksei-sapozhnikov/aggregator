@@ -104,7 +104,7 @@ describe("Signal flow help demonstrations", () => {
     ["healthy", 6500, '[data-selection-frame="availability"]'],
     ["unhealthy", 13800, '[data-unhealthy-frame="item"]'],
   ] as const)(
-    "holds the clean %s list for two seconds while progress continues",
+    "keeps %s selection frames visible during the two-second hold",
     (mode, start, selector) => {
       const { container } = render(
         mode === "healthy" ? (
@@ -115,23 +115,44 @@ describe("Signal flow help demonstrations", () => {
       );
       const page = container.querySelector(".help-item-page") as HTMLElement;
       const frame = container.querySelector(selector) as Element;
+      expect(frame.classList.contains("demo-highlight-frame")).toBe(true);
       const progress = screen.getByRole("progressbar", {
         name: "Animation progress",
       });
       advance(start);
       expect(page.style.opacity).toBe("1");
-      expect(frame.getAttribute("opacity")).toBe("0");
+      expect(frame.getAttribute("opacity")).toBe("1");
       const before = Number(progress.getAttribute("aria-valuenow"));
-      advance(2000);
+      advance(1000);
       expect(page.style.opacity).toBe("1");
-      expect(frame.getAttribute("opacity")).toBe("0");
+      expect(frame.getAttribute("opacity")).toBe("1");
+      advance(1000);
+      expect(page.style.opacity).toBe("1");
+      expect(frame.getAttribute("opacity")).toBe("1");
       expect(Number(progress.getAttribute("aria-valuenow"))).toBeGreaterThan(
         before,
       );
-      advance(mode === "healthy" ? 1100 : 1700);
-      expect(frame.getAttribute("opacity")).toBe("1");
     },
   );
+
+  it("keeps neighboring unhealthy dependency highlights separated", () => {
+    const { container } = render(<UnhealthySignalsHelpDemo />);
+    advance(13800);
+    const upper = container.querySelector(
+      '[data-unhealthy-frame="dep1"]',
+    ) as SVGRectElement;
+    const lower = container.querySelector(
+      '[data-unhealthy-frame="nested1"]',
+    ) as SVGRectElement;
+    const upperBottom =
+      Number(upper.getAttribute("y")) + Number(upper.getAttribute("height"));
+    const lowerTop = Number(lower.getAttribute("y"));
+    expect(lowerTop - upperBottom).toBeGreaterThanOrEqual(6);
+    expect(upper.getAttribute("opacity")).toBe("1");
+    expect(lower.getAttribute("opacity")).toBe("1");
+    expect(upper.classList.contains("demo-highlight-frame")).toBe(true);
+    expect(lower.classList.contains("demo-highlight-frame")).toBe(true);
+  });
 
   it("moves the Item's checks toward the healthy rows and returns them to the graph", () => {
     const { container } = render(<HealthySignalsHelpDemo />);

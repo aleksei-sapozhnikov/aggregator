@@ -72,18 +72,6 @@
   max-width: 640px;
   margin: 0 auto;
 }
-.primary-contact-page .primary-contact-row {
-  position: relative;
-}
-.primary-contact-page .primary-contact-row::after {
-  content: "";
-  position: absolute;
-  inset: -4px;
-  border: 2px solid var(--link);
-  border-radius: 7px;
-  background: color-mix(in srgb, var(--link) 12%, transparent);
-  opacity: var(--contact-selection, 0);
-}
 .primary-contact-transfer {
   position: absolute;
   top: 0;

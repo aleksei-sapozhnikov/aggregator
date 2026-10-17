@@ -72,6 +72,7 @@ describe("Actors contextual help animation", () => {
         "[data-service='item'] [data-scene-label='Service']",
       ),
     ).not.toBeNull();
+    expect(figure.querySelectorAll(".demo-wood-label")).toHaveLength(4);
     for (const [id, role] of [
       ["owner", "Owner"],
       ["user", "User"],

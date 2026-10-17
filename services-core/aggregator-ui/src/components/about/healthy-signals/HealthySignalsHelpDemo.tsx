@@ -8,6 +8,7 @@ import {
   smooth,
 } from "../shared/signal-flow/progress";
 import { clientChecks } from "../shared/demoData";
+import DemoHighlightFrame from "../shared/DemoHighlightFrame";
 
 const cycleDuration = 13000 + expandedListHoldMs;
 const ownChecks = clientChecks.map((signal, index) => ({
@@ -49,14 +50,13 @@ function HealthySignalHighlights({
             className="signal-flow-help-owned-signal"
             data-own-signal={check.id}
           >
-            <rect
-              className="signal-flow-help-selection-frame"
+            <DemoHighlightFrame
               data-selection-frame={check.id}
               x={rectX}
               y={rectY}
               width={rectWidth}
               height={rectHeight}
-              rx={6}
+              color="var(--link)"
               opacity={selectionOpacity}
             />
             <text
@@ -93,19 +93,9 @@ export default function HealthySignalsHelpDemo() {
   const presentationProgress =
     smooth(progressBetween(sceneElapsed, 3500, 5600)) *
     (1 - smooth(progressBetween(sceneElapsed, 7700, 9900)));
-  const highlightVisibility = Math.max(
-    0,
-    Math.min(
-      1,
-      1 -
-        progressBetween(sceneElapsed, 5800, 6300) +
-        progressBetween(sceneElapsed, 7050, 7550),
-    ),
-  );
   const selectionOpacity =
     progressBetween(sceneElapsed, 2100, 2900) *
-    (1 - progressBetween(sceneElapsed, 10300, 11100)) *
-    highlightVisibility;
+    (1 - progressBetween(sceneElapsed, 10300, 11100));
   const graphOpacity = Math.min(
     1,
     Math.max(

@@ -34,20 +34,6 @@
   stroke-linejoin: round;
 }
 
-.actors-help-scene-plate rect {
-  fill: #e2bf93;
-  stroke: #93683d;
-  stroke-width: 1.5;
-  filter: drop-shadow(0 1px 1px rgb(73 45 19 / 22%));
-}
-
-.actors-help-scene-plate text {
-  fill: #432b1a;
-  font-family: Inter, "Segoe UI", system-ui, sans-serif;
-  font-size: 14px;
-  font-weight: 700;
-}
-
 .actors-help-demo.is-illustrating .actors-help-gear {
   animation: actors-help-rotate 3s linear infinite;
 }

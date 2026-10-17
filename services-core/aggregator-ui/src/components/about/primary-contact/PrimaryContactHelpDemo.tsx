@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { CSSProperties, RefObject } from "react";
+import type { RefObject } from "react";
 import ItemTitle from "../../shared/item/ItemTitle";
 import ItemOwnership, {
   PrimaryContactRow,
@@ -14,6 +14,8 @@ import {
 } from "../shared/demoData";
 import HelpAnimationProgress from "../shared/HelpAnimationProgress";
 import HelpInteractionShield from "../shared/HelpInteractionShield";
+import DemoHighlightFrame from "../shared/DemoHighlightFrame";
+import DemoWoodLabel from "../shared/DemoWoodLabel";
 import "./PrimaryContactHelpDemo.css";
 
 // HTML and SVG share scene coordinates, while the page uses production components.
@@ -471,6 +473,7 @@ function Technician({ frame }: { frame: HelpFrame }) {
         />
       </g>
       <circle cx="20" cy="103" r="5.5" fill="#f5bc91" />
+      <DemoWoodLabel x={39} y={170} width={70} label="Owner" />
     </g>
   );
 }
@@ -482,10 +485,12 @@ function AggregatorPage({
   frame,
   layout,
   pageRef,
+  contactTarget,
 }: {
   frame: HelpFrame;
   layout: HelpLayout;
   pageRef: RefObject<HTMLDivElement | null>;
+  contactTarget: SceneRect;
 }) {
   const scale = mix(0.1, layout.pageScale, frame.pageExpansion);
   const x = mix(392 - 320 * 0.1, layout.pageX, frame.pageExpansion);
@@ -497,15 +502,12 @@ function AggregatorPage({
       inert
       aria-hidden="true"
       className="help-item-page primary-contact-page"
-      style={
-        {
-          opacity: frame.pageOpacity,
-          width: layout.pageWidth,
-          minHeight: layout.pageHeight,
-          transform: `translate(${x}px, ${y}px) scale(${scale})`,
-          "--contact-selection": frame.selectedContact,
-        } as CSSProperties
-      }
+      style={{
+        opacity: frame.pageOpacity,
+        width: layout.pageWidth,
+        minHeight: layout.pageHeight,
+        transform: `translate(${x}px, ${y}px) scale(${scale})`,
+      }}
     >
       <ItemTitle
         item={experienceItem}
@@ -524,6 +526,16 @@ function AggregatorPage({
           actorsHelp={<DemoHelp title="Actors" />}
         />
       </section>
+      <DemoHighlightFrame
+        mode="html"
+        data-primary-contact-highlight="true"
+        x={contactTarget.x - 4}
+        y={contactTarget.y - 4}
+        width={contactTarget.width + 8}
+        height={contactTarget.height + 8}
+        color="var(--link)"
+        opacity={frame.selectedContact}
+      />
     </div>
   );
 }
@@ -644,7 +656,12 @@ export default function PrimaryContactHelpDemo() {
             </g>
           </g>
         </svg>
-        <AggregatorPage frame={frame} layout={layout} pageRef={pageRef} />
+        <AggregatorPage
+          frame={frame}
+          layout={layout}
+          pageRef={pageRef}
+          contactTarget={targets.contact}
+        />
         <ContactTransfer
           frame={frame}
           layout={layout}

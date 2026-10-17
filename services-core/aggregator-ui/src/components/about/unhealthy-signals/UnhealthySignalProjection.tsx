@@ -1,5 +1,6 @@
 import type { SceneRect } from "../shared/HelpScene";
 import { expandedListHoldMs } from "../shared/signal-flow/progress";
+import DemoHighlightFrame from "../shared/DemoHighlightFrame";
 
 type MovingDependency = {
   id: "dep1" | "nested1";
@@ -53,14 +54,10 @@ export default function UnhealthySignalProjection({
   const progress =
     ease(between(elapsed, 9600, 12800)) *
     (1 - ease(between(elapsed, 15600, 18600)));
-  // Keep the grouped list visible without colored boxes during its pause.
-  const listHighlightVisibility = clamp(
-    1 - between(elapsed, 12900, 13600) + between(elapsed, 14800, 15400),
-  );
+  // Preserve the selection while the expanded list is held on screen.
   const selectionOpacity =
     between(elapsed, 8300, 9300) *
-    (1 - between(elapsed, 18900, 19600)) *
-    listHighlightVisibility;
+    (1 - between(elapsed, 18900, 19600));
   const symbolOpacity = 1 - between(progress, 0.38, 0.88);
 
   return (
@@ -75,14 +72,13 @@ export default function UnhealthySignalProjection({
           (itemAffected ? " is-affected" : "")
         }
       >
-        <rect
-          className="signal-flow-help-selection-frame is-unhealthy-frame"
+        <DemoHighlightFrame
           data-unhealthy-frame="item"
           x={mix(240, targets.item.x - 4, progress)}
           y={mix(16, targets.item.y - 4, progress)}
           width={mix(160, targets.item.width + 8, progress)}
           height={mix(68, targets.item.height + 8, progress)}
-          rx={10}
+          color="var(--status-down)"
           opacity={selectionOpacity}
         />
         <rect
@@ -158,14 +154,13 @@ export default function UnhealthySignalProjection({
               (affected ? " is-affected" : "")
             }
           >
-            <rect
-              className="signal-flow-help-selection-frame is-unhealthy-frame"
+            <DemoHighlightFrame
               data-unhealthy-frame={dependency.id}
-              x={boxX - 4}
-              y={boxY - 4}
-              width={boxWidth + 8}
-              height={boxHeight + 8}
-              rx={11}
+              x={mix(x - 4, destX + 4, progress)}
+              y={mix(y - 4, destY + 4, progress)}
+              width={mix(width + 8, Math.max(0, target.width - 8), progress)}
+              height={mix(height + 8, Math.max(0, target.height - 8), progress)}
+              color="var(--status-down)"
               opacity={selectionOpacity}
             />
             <rect

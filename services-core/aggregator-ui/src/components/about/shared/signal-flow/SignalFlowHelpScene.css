@@ -128,15 +128,6 @@
 .signal-flow-help-moving-dependency {
   pointer-events: none;
 }
-.signal-flow-help-selection-frame {
-  fill: color-mix(in srgb, var(--link) 10%, transparent);
-  stroke: var(--link);
-  stroke-width: 2;
-}
-.signal-flow-help-selection-frame.is-unhealthy-frame {
-  fill: color-mix(in srgb, var(--status-down) 9%, transparent);
-  stroke: var(--status-down);
-}
 .signal-flow-help-owned-check {
   fill: var(--status-up);
   font-size: 19px;

@@ -12,6 +12,7 @@ import {
 } from "../shared/demoData";
 import HelpAnimationProgress from "../shared/HelpAnimationProgress";
 import HelpInteractionShield from "../shared/HelpInteractionShield";
+import DemoWoodLabel from "../shared/DemoWoodLabel";
 import "./ActorsHelpDemo.css";
 
 // The HTML page and illustrated sprites scale together; destinations follow its DOM rows.
@@ -422,27 +423,6 @@ function Machine() {
   );
 }
 
-function ScenePlate({
-  x,
-  y,
-  width,
-  label,
-}: {
-  x: number;
-  y: number;
-  width: number;
-  label: string;
-}) {
-  return (
-    <g className="actors-help-scene-plate" data-scene-label={label}>
-      <rect x={x - width / 2} y={y} width={width} height="22" rx="6" />
-      <text x={x} y={y + 15} textAnchor="middle">
-        {label}
-      </text>
-    </g>
-  );
-}
-
 const pageX = 15;
 const pageScale = 0.78;
 const actorSelectors = {
@@ -582,7 +562,7 @@ export default function ActorsHelpDemo() {
                 aria-hidden="true"
                 style={{ opacity: 1 - smooth(between(moving, 0.12, 0.7)) }}
               >
-                <ScenePlate x={0} y={83} width={74} label="Service" />
+                <DemoWoodLabel x={0} y={83} width={74} label="Service" />
               </g>
             </g>
           )}
@@ -616,7 +596,7 @@ export default function ActorsHelpDemo() {
                     aria-hidden="true"
                     style={{ opacity: 1 - smooth(between(moving, 0.12, 0.7)) }}
                   >
-                    <ScenePlate
+                    <DemoWoodLabel
                       x={0}
                       y={actor.id === "support" ? 45 : 52}
                       width={

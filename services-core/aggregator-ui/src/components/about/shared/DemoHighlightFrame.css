@@ -1,0 +1,20 @@
+/* Match the contact selection: a 2px border and subtle 12% color fill. */
+.demo-highlight-frame {
+  fill: color-mix(in srgb, var(--demo-highlight-color) 12%, transparent);
+  stroke: var(--demo-highlight-color);
+  stroke-width: 2;
+  pointer-events: none;
+}
+
+.demo-highlight-frame--html {
+  position: absolute;
+  z-index: 1;
+  box-sizing: border-box;
+  border: 2px solid var(--demo-highlight-color);
+  border-radius: 7px;
+  background: color-mix(
+    in srgb,
+    var(--demo-highlight-color) 12%,
+    transparent
+  );
+}
