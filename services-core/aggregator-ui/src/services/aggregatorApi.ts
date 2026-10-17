@@ -68,8 +68,10 @@ const parseProductHealthStatus = (value: unknown): HealthStatus => {
   return "unknown";
 };
 
+const OPTIONAL_CATALOG_TIMEOUT_MS = 3_000;
+
 /** Fetches required catalog data and optional ownership and contact relationships. */
-export const loadCatalog = async (): Promise<{
+export const loadCatalog = async (signal?: AbortSignal): Promise<{
   items: CatalogItem[];
   dependencies: CatalogDependency[];
   contacts: CatalogContact[];
@@ -87,13 +89,13 @@ export const loadCatalog = async (): Promise<{
     itemActorsData,
     actorContactsData,
   ] = await Promise.all([
-    loadRequiredJson("catalog/api/catalog/items"),
-    loadRequiredJson("catalog/api/catalog/dependencies"),
-    loadOptionalJson("catalog/api/catalog/contacts"),
-    loadOptionalJson("catalog/api/catalog/item-contacts"),
-    loadOptionalJson("catalog/api/catalog/actors"),
-    loadOptionalJson("catalog/api/catalog/item-actors"),
-    loadOptionalJson("catalog/api/catalog/actor-contacts"),
+    loadRequiredJson("catalog/api/catalog/items", signal),
+    loadRequiredJson("catalog/api/catalog/dependencies", signal),
+    loadOptionalJson("catalog/api/catalog/contacts", signal),
+    loadOptionalJson("catalog/api/catalog/item-contacts", signal),
+    loadOptionalJson("catalog/api/catalog/actors", signal),
+    loadOptionalJson("catalog/api/catalog/item-actors", signal),
+    loadOptionalJson("catalog/api/catalog/actor-contacts", signal),
   ]);
 
   const itemsPayload = itemsData as { items?: unknown };
@@ -340,33 +342,51 @@ const isSupportedActorType = (value: string): value is CatalogActor["type"] =>
   value === "owner" || value === "user" || value === "other";
 
 /** Fetches a required catalog endpoint and fails on non-successful responses. */
-const loadRequiredJson = async (path: string): Promise<unknown> => {
-  const response = await fetch(new URL(path, resolveBaseUrl()));
+const loadRequiredJson = async (
+  path: string,
+  signal?: AbortSignal,
+): Promise<unknown> => {
+  const response = await fetch(new URL(path, resolveBaseUrl()), { signal });
   if (!response.ok) {
     throw new Error(`Failed to load catalog data: ${response.status}`);
   }
   return (await response.json()) as unknown;
 };
 
-/** Fetches optional catalog data without blocking the required catalog. */
-const loadOptionalJson = async (path: string): Promise<unknown> => {
+/** Limits optional catalog calls while honoring cancellation of the whole load. */
+const loadOptionalJson = async (
+  path: string,
+  signal?: AbortSignal,
+): Promise<unknown> => {
+  const controller = new AbortController();
+  const abort = () => controller.abort();
+  signal?.addEventListener("abort", abort, { once: true });
+  if (signal?.aborted) {
+    controller.abort();
+  }
+  const timeoutId = window.setTimeout(
+    () => controller.abort(),
+    OPTIONAL_CATALOG_TIMEOUT_MS,
+  );
   try {
-    const response = await fetch(new URL(path, resolveBaseUrl()));
+    const response = await fetch(new URL(path, resolveBaseUrl()), {
+      signal: controller.signal,
+    });
     if (!response.ok) {
       return {};
     }
     const payload = (await response.json()) as unknown;
-    if (
-      payload !== null &&
-      typeof payload === "object" &&
-      !Array.isArray(payload)
-    ) {
-      return payload;
+    return payload !== null && typeof payload === "object" && !Array.isArray(payload)
+      ? payload
+      : {};
+  } catch (error) {
+    if (!signal?.aborted) {
+      console.warn(`Optional catalog data unavailable: ${path}`, error);
     }
     return {};
-  } catch (error) {
-    console.warn(`Optional catalog data unavailable: ${path}`, error);
-    return {};
+  } finally {
+    window.clearTimeout(timeoutId);
+    signal?.removeEventListener("abort", abort);
   }
 };
 

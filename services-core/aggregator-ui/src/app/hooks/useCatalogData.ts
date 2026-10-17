@@ -14,6 +14,7 @@ import type {
   CatalogItem,
   CatalogItemActor,
   CatalogItemContact,
+  DisplayHealthStatus,
   HealthStatus,
   ItemSignal,
   ProductHealthItem,
@@ -21,6 +22,8 @@ import type {
 
 const HEALTH_POLL_INTERVAL_MS = 10_000;
 const HEALTH_REQUEST_TIMEOUT_MS = 8_000;
+const CATALOG_RETRY_INTERVAL_MS = 10_000;
+const CATALOG_REQUEST_TIMEOUT_MS = 8_000;
 
 const EMPTY_CATALOG: {
   items: CatalogItem[];
@@ -45,7 +48,7 @@ export default function useCatalogData() {
   const [catalog, setCatalog] = useState(EMPTY_CATALOG);
   const [error, setError] = useState("");
   const [itemStatuses, setItemStatuses] = useState<
-    Record<string, HealthStatus>
+    Record<string, DisplayHealthStatus>
   >({});
   const [itemSignals, setItemSignals] = useState<Record<string, ItemSignal[]>>(
     {},
@@ -57,13 +60,28 @@ export default function useCatalogData() {
 
   useEffect(() => {
     let cancelled = false;
+    let loaded = false;
+    let inFlight = false;
+    let activeController: AbortController | null = null;
 
-    /** Loads required catalog data once and exposes any startup error. */
+    /** Retries failed catalog initialization without restarting successful loads. */
     const loadInitialCatalog = async () => {
+      if (cancelled || loaded || inFlight) {
+        return;
+      }
+      inFlight = true;
+      const controller = new AbortController();
+      activeController = controller;
+      const timeoutId = window.setTimeout(
+        () => controller.abort(),
+        CATALOG_REQUEST_TIMEOUT_MS,
+      );
       try {
-        const nextCatalog = await loadCatalog();
+        const nextCatalog = await loadCatalog(controller.signal);
         if (!cancelled) {
+          loaded = true;
           setCatalog(nextCatalog);
+          setError("");
         }
       } catch (err: unknown) {
         if (!cancelled) {
@@ -71,12 +89,23 @@ export default function useCatalogData() {
             err instanceof Error ? err.message : "Failed to load catalog",
           );
         }
+      } finally {
+        window.clearTimeout(timeoutId);
+        inFlight = false;
+        if (activeController === controller) {
+          activeController = null;
+        }
       }
     };
 
     void loadInitialCatalog();
+    const retryInterval = window.setInterval(() => {
+      void loadInitialCatalog();
+    }, CATALOG_RETRY_INTERVAL_MS);
     return () => {
       cancelled = true;
+      window.clearInterval(retryInterval);
+      activeController?.abort();
     };
   }, []);
 
@@ -114,8 +143,10 @@ export default function useCatalogData() {
       } catch (err) {
         if (!cancelled) {
           console.error(err);
-          // Without fresh backend facts, all Item statuses render as UNKNOWN.
-          setItemStatuses({});
+          // DISCONNECTED is a UI transport state, never a backend health fact.
+          setItemStatuses(
+            Object.fromEntries(catalog.items.map((item) => [item.id, "disconnected"])),
+          );
           setItemSignals({});
           setProductHealthByItemId({});
           setLastUpdated("");

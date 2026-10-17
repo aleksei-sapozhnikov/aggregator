@@ -98,11 +98,28 @@ export const buildCatalogTree = (
     return { item, children, uid, path };
   };
 
-  return rootItems
+  const roots = rootItems
     .map((item, index) =>
       toNode(item.id, new Set<string>(), [`${index}:${item.id}`], []),
     )
     .filter((node): node is CatalogTreeNode => Boolean(node));
+
+  // A cycle can have no root. Represent otherwise unreachable items once as
+  // additional roots, while toNode prevents infinite recursion along a path.
+  const reachable = new Set(collectNodeIds(roots));
+  const remaining = sortItemsByName(items.filter((item) => !reachable.has(item.id)));
+  const extraRoots: CatalogTreeNode[] = [];
+  remaining.forEach((item, index) => {
+    if (reachable.has(item.id)) {
+      return;
+    }
+    const node = toNode(item.id, new Set<string>(), [`cycle-${index}:${item.id}`], []);
+    if (node) {
+      extraRoots.push(node);
+      collectNodeIds([node]).forEach((id) => reachable.add(id));
+    }
+  });
+  return [...roots, ...extraRoots];
 };
 
 /** Finds a dependency path leading to a requested Item. */
