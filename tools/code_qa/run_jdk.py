@@ -130,7 +130,12 @@ def adoptium_package() -> tuple[str, str]:
 def validate_archive_path(name: str) -> None:
     """Reject absolute and parent-traversal paths before extraction."""
     path = Path(name.replace("\\", "/"))
-    if not path.parts or path.is_absolute() or ".." in path.parts or ":" in path.parts[0]:
+    if (
+        not path.parts
+        or path.is_absolute()
+        or ".." in path.parts
+        or ":" in path.parts[0]
+    ):
         raise ValueError(f"Unsafe path in Temurin archive: {name}")
 
 
