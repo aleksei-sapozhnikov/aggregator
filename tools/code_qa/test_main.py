@@ -9,6 +9,7 @@ from io import BytesIO, StringIO, TextIOWrapper
 from unittest.mock import MagicMock, patch
 
 import main
+import utils
 
 
 class OrchestratorFlowTests(unittest.TestCase):
@@ -122,6 +123,46 @@ class OrchestratorFlowTests(unittest.TestCase):
         ):
             self.assertEqual(main.run_format_command(), 0)
         fix.assert_called_once_with("run_ruff.py", ["--format"])
+
+    def test_run_script_keeps_every_failure_line(self) -> None:
+        violations = [f"Ruff violation {index}" for index in range(25)]
+        result = MagicMock(
+            returncode=1,
+            stdout="\\n".join(violations),
+            stderr="Additional diagnostics",
+        )
+        with patch.object(utils.subprocess, "run", return_value=result) as run:
+            ok, details = utils.run_script("run_ruff.py", ["--check-only"])
+
+        self.assertFalse(ok)
+        self.assertEqual(details, [*violations, "Additional diagnostics"])
+        self.assertTrue(run.call_args.kwargs["capture_output"])
+
+    def test_checks_continue_and_print_all_failure_diagnostics(self) -> None:
+        checks = [
+            main.CheckSpec("ruff", "ruff", "run_ruff.py", ["--check-only"], None),
+            main.CheckSpec(
+                "prettier", "prettier", "run_prettier.py", ["--check-only"], None
+            ),
+        ]
+        violations = [f"Ruff violation {index}" for index in range(25)]
+        output = StringIO()
+        with (
+            patch.object(main, "CHECKS", checks),
+            patch.object(
+                main,
+                "run_script",
+                side_effect=[(False, violations), (False, ["Prettier violation"])],
+            ) as run,
+            redirect_stdout(output),
+        ):
+            ok, failed = main._run_checks(print)
+
+        self.assertFalse(ok)
+        self.assertEqual(failed, ["ruff", "prettier"])
+        self.assertEqual(run.call_count, 2)
+        self.assertIn("Ruff violation 24", output.getvalue())
+        self.assertIn("Prettier violation", output.getvalue())
 
     def test_test_output_is_streamed_without_truncation(self) -> None:
         process = MagicMock()
