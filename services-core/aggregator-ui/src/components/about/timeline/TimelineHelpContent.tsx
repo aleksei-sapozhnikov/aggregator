@@ -15,8 +15,15 @@ export default function TimelineHelpContent() {
         <p>
           <strong>{timelineHelp.summary}</strong>
         </p>
-        <p>The first row shows overall health, including problems in services this item depends on. The other rows show checks that had problems or lacked data during the selected period.</p>
-        <p>Hover to inspect a moment. Change the time range or filter the checks to explore what happened.</p>
+        <p>
+          The first row shows overall health, including problems in services
+          this item depends on. The other rows show checks that had problems or
+          lacked data during the selected period.
+        </p>
+        <p>
+          Hover to inspect a moment. Change the time range or filter the checks
+          to explore what happened.
+        </p>
       </div>
       <TimelineHelpDemo />
     </>

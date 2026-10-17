@@ -15,7 +15,10 @@ export default function ActorsHelpContent() {
         <p>
           <strong>{actorsHelp.summary}</strong>
         </p>
-        <p>Some own it, some use it, and others support it. Open an actor to see their role and any available contact details.</p>
+        <p>
+          Some own it, some use it, and others support it. Open an actor to see
+          their role and any available contact details.
+        </p>
       </div>
       <ActorsHelpDemo />
     </>

@@ -15,7 +15,11 @@ export default function UnhealthySignalsHelpContent() {
         <p>
           <strong>{unhealthySignalsHelp.summary}</strong>
         </p>
-        <p>The issue may be in this item or in a service it depends on. Affected services appear next to their checks, so you can open them for more details.</p>
+        <p>
+          The issue may be in this item or in a service it depends on. Affected
+          services appear next to their checks, so you can open them for more
+          details.
+        </p>
       </div>
       <UnhealthySignalsHelpDemo />
     </>

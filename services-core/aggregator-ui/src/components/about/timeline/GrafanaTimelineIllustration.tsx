@@ -540,10 +540,7 @@ export default function GrafanaTimelineIllustration({
         <span>Oct 16</span>
       </div>
       {scenario === "filter" && (
-        <ExampleCursor
-          left={selectorPointer.left}
-          top={selectorPointer.top}
-        />
+        <ExampleCursor left={selectorPointer.left} top={selectorPointer.top} />
       )}
     </div>
   );

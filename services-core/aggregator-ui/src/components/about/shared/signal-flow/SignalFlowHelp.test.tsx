@@ -110,7 +110,11 @@ describe("Signal flow help demonstrations", () => {
 
   it.each([
     ["healthy", 6500, '[data-selection-frame="availability"]'],
-    ["unhealthy", unhealthyTiming.pageHoldAt + 10, '[data-unhealthy-frame="item"]'],
+    [
+      "unhealthy",
+      unhealthyTiming.pageHoldAt + 10,
+      '[data-unhealthy-frame="item"]',
+    ],
   ] as const)(
     "keeps %s selection frames visible during the two-second hold",
     (mode, start, selector) => {
@@ -169,7 +173,11 @@ describe("Signal flow help demonstrations", () => {
 
   it.each([
     ["healthy", '[data-selection-frame="availability"]', 6500],
-    ["unhealthy", '[data-unhealthy-frame="dep1"]', unhealthyTiming.pageHoldAt + 10],
+    [
+      "unhealthy",
+      '[data-unhealthy-frame="dep1"]',
+      unhealthyTiming.pageHoldAt + 10,
+    ],
     [
       "unhealthy",
       '[data-unhealthy-frame="nested1"]',
@@ -281,7 +289,9 @@ describe("Signal flow help demonstrations", () => {
 
     advance(1800);
     expect(item.getAttribute("opacity")).toBe("0");
-    expect(container.querySelectorAll("[data-selection-frame]")).toHaveLength(3);
+    expect(container.querySelectorAll("[data-selection-frame]")).toHaveLength(
+      3,
+    );
   });
 
   it("moves the Item's checks toward the healthy rows and returns them to the graph", () => {
@@ -485,7 +495,9 @@ describe("Signal flow help demonstrations", () => {
 
   it("holds the complete red graph for 250 ms and the Item for 2 seconds", () => {
     const { container } = render(<UnhealthySignalsHelpDemo />);
-    const graph = container.querySelector(".signal-flow-help-graph") as HTMLElement;
+    const graph = container.querySelector(
+      ".signal-flow-help-graph",
+    ) as HTMLElement;
     const page = container.querySelector(".help-item-page") as HTMLElement;
 
     expect(
@@ -522,8 +534,7 @@ describe("Signal flow help demonstrations", () => {
       '[data-flow-edge="dep1-item"]',
     ) as SVGGElement;
     const t = unhealthyTiming;
-    const actualTime = (sceneTime: number) =>
-      sceneTime + expandedListHoldMs;
+    const actualTime = (sceneTime: number) => sceneTime + expandedListHoldMs;
 
     expect(t.firstRecoveryEnd - t.firstRecoveryStart).toBe(
       t.firstLinkEnd - t.firstLinkStart,

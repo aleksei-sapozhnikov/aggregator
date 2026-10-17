@@ -284,7 +284,9 @@ describe("ItemDetails contextual help", () => {
       ),
     ).not.toBeNull();
     expect(
-      demos.querySelector('[data-demo="timeline"] .grafana-timeline-illustration'),
+      demos.querySelector(
+        '[data-demo="timeline"] .grafana-timeline-illustration',
+      ),
     ).not.toBeNull();
     fireEvent.click(
       within(demos).getByRole("button", { name: "Open a dependency" }),

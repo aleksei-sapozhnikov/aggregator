@@ -93,7 +93,11 @@ function useDependencyHighlightBounds(
       const labelRect = label.getBoundingClientRect();
       const trackRect = track.getBoundingClientRect();
       const titleRect = title.getBoundingClientRect();
-      if (labelRect.width <= 0 || trackRect.width <= 0 || titleRect.width <= 0) {
+      if (
+        labelRect.width <= 0 ||
+        trackRect.width <= 0 ||
+        titleRect.width <= 0
+      ) {
         return;
       }
       const next = {
@@ -117,7 +121,9 @@ function useDependencyHighlightBounds(
 
     measure();
     const observer =
-      typeof ResizeObserver !== "undefined" ? new ResizeObserver(measure) : null;
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(measure)
+        : null;
     if (observer) {
       observer.observe(root);
       const title = root.querySelector(

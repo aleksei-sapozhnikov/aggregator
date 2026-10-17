@@ -51,10 +51,8 @@ export function getPrimaryContactHelpFrame(time: number) {
     laptop: transition(t, 2200, 3050) * (1 - phonePutAway),
     // The opaque page grows over the scene and then shrinks away; the
     // characters underneath never fade out on their own.
-    pageExpansion:
-      transition(t, 2950, 4250) * (1 - transition(t, 5900, 7050)),
-    pageOpacity:
-      transition(t, 2850, 3250) * (1 - transition(t, 6800, 7050)),
+    pageExpansion: transition(t, 2950, 4250) * (1 - transition(t, 5900, 7050)),
+    pageOpacity: transition(t, 2850, 3250) * (1 - transition(t, 6800, 7050)),
     selectedContact:
       transition(t, 4650, 5200) * (1 - transition(t, 5950, 6400)),
     contactTravel,
@@ -63,8 +61,7 @@ export function getPrimaryContactHelpFrame(time: number) {
     phone: transition(t, 6250, 6900) * (1 - phonePutAway),
     // The user puts the handset away when Owner arrives, and gradually
     // returns to the opening pose ahead of the next animation loop.
-    userPhoneVisible:
-      1 - phonePutAway * (1 - transition(t, 14200, 15100)),
+    userPhoneVisible: 1 - phonePutAway * (1 - transition(t, 14200, 15100)),
     calling: transition(t, 7450, 7950) * (1 - transition(t, 8750, 9200)),
     technicianX: mix(
       mix(665, 238, technicianArrival),
@@ -118,10 +115,8 @@ export function getPrimaryContactHelpLayout(availableWidth: number) {
     pageX,
     pageY,
     // Extend the opaque preview past the viewport's edges when expanded.
-    backdropInsetX:
-      Math.max(0, (width / pageScale - pageWidth) / 2) + 12,
-    backdropInsetY:
-      Math.max(0, (height / pageScale - pageHeight) / 2) + 12,
+    backdropInsetX: Math.max(0, (width / pageScale - pageWidth) / 2) + 12,
+    backdropInsetY: Math.max(0, (height / pageScale - pageHeight) / 2) + 12,
     sceneX,
     sceneY,
     sceneScale,
@@ -257,7 +252,8 @@ function Phone({ frame }: { frame: HelpFrame }) {
 /** Renders the owner performing the simulated repair. */
 function Technician({ frame }: { frame: HelpFrame }) {
   return (
-    <g data-primary-contact-technician="true"
+    <g
+      data-primary-contact-technician="true"
       style={{ opacity: frame.technicianOpacity }}
       transform={"translate(" + frame.technicianX + " 143)"}
     >
@@ -285,7 +281,9 @@ function Observer({ frame }: { frame: HelpFrame }) {
         <DemoWoodLabel x={0} y={0} width={62} label="User" />
       </g>
       <g data-primary-contact-alarm="true" opacity={frame.alarm}>
-        <text x="117" y="2" className="primary-contact-exclamation">!</text>
+        <text x="117" y="2" className="primary-contact-exclamation">
+          !
+        </text>
         <path
           d="M116-7l-5-8M130-8l7-8"
           className="primary-contact-alarm-rays"

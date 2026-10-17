@@ -25,7 +25,8 @@ export default function UnhealthySignalsHelpDemo() {
     elapsed -
     Math.min(expandedListHoldMs, Math.max(0, elapsed - timing.pageHoldAt));
   const time = sceneElapsed >= unhealthyResetAt ? 0 : sceneElapsed;
-  const failedLeaf = time >= timing.failureStart && time < timing.leafRecoveredAt;
+  const failedLeaf =
+    time >= timing.failureStart && time < timing.leafRecoveredAt;
   const affectedDependency =
     time >= timing.dependencyAffectedAt && time < timing.dependencyRecoveredAt;
   const affectedItem =

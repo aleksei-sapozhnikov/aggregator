@@ -15,7 +15,10 @@ export default function HealthySignalsHelpContent() {
         <p>
           <strong>{healthySignalsHelp.summary}</strong>
         </p>
-        <p>They belong to this item, not its dependencies. They're kept out of the way so problems are easier to spot.</p>
+        <p>
+          They belong to this item, not its dependencies. They're kept out of
+          the way so problems are easier to spot.
+        </p>
       </div>
       <HealthySignalsHelpDemo />
     </>

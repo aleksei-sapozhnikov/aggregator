@@ -84,7 +84,10 @@ export default function AboutContent() {
           </span>
         </li>
         <li>
-          <span className="status-indicator status-unknown" aria-hidden="true" />
+          <span
+            className="status-indicator status-unknown"
+            aria-hidden="true"
+          />
           <span>
             <strong>UNKNOWN</strong> - There isn't enough information to tell.
           </span>

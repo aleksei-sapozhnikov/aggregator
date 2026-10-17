@@ -143,7 +143,9 @@ class PrettierBatchTests(unittest.TestCase):
             self.assertEqual(run_prettier.run_prettier(command, ["a.ts", "b.ts"]), 0)
 
         self.assertEqual(stdout.getvalue().splitlines(), ["b.ts 20ms"])
-        self.assertEqual(stderr.getvalue().splitlines(), ["[warn] Some configuration warning"])
+        self.assertEqual(
+            stderr.getvalue().splitlines(), ["[warn] Some configuration warning"]
+        )
 
     def test_overlong_single_file_reports_a_clear_error(self) -> None:
         with self.assertRaisesRegex(ValueError, "File path is too long"):

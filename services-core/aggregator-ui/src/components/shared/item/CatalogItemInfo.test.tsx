@@ -133,9 +133,7 @@ describe("CatalogItemInfo description presentation", () => {
 
     expect(tooltip.textContent).toContain("Coordinates customer ordering.");
     expect(
-      tooltip
-        .querySelector(".help-tooltip-action")
-        ?.textContent?.trim(),
+      tooltip.querySelector(".help-tooltip-action")?.textContent?.trim(),
     ).toBe("Click for details");
 
     fireEvent.click(button);
@@ -171,9 +169,7 @@ describe("CatalogItemInfo description presentation", () => {
     fireEvent.mouseEnter(button);
     const tooltip = screen.getByRole("tooltip");
     expect(tooltip.textContent).toBe("Click for details");
-    expect(
-      tooltip.querySelector(".help-tooltip-action"),
-    ).toBeNull();
+    expect(tooltip.querySelector(".help-tooltip-action")).toBeNull();
 
     fireEvent.click(button);
     expect(

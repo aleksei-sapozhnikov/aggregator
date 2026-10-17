@@ -85,7 +85,9 @@ describe("Contextual help content layout", () => {
       const description = layout?.querySelector(".info-help-description");
       const paragraphs = description?.querySelectorAll("p");
       expect(paragraphs?.length).toBeGreaterThanOrEqual(2);
-      expect(paragraphs?.[0]?.querySelector("strong")?.textContent).toBeTruthy();
+      expect(
+        paragraphs?.[0]?.querySelector("strong")?.textContent,
+      ).toBeTruthy();
       const canvas = layout?.querySelector(".help-animation-canvas");
       expect(description?.parentElement).toBe(layout);
       if (topicId === "timeline") {
@@ -144,16 +146,10 @@ describe("InfoHelp shared tooltip", () => {
 
   it("shows the summary and secondary click hint", () => {
     render(<InfoHelp topicId="actors" />);
-    fireEvent.mouseEnter(
-      screen.getByRole("button", { name: "About Actors" }),
-    );
+    fireEvent.mouseEnter(screen.getByRole("button", { name: "About Actors" }));
     const tooltip = screen.getByRole("tooltip");
-    expect(tooltip.textContent).toBe(
-      actorsHelp.summary + "Click for details",
-    );
-    expect(
-      tooltip.querySelectorAll(".help-tooltip-action"),
-    ).toHaveLength(1);
+    expect(tooltip.textContent).toBe(actorsHelp.summary + "Click for details");
+    expect(tooltip.querySelectorAll(".help-tooltip-action")).toHaveLength(1);
     expect(tooltip.querySelector(".help-tooltip-action")?.textContent).toBe(
       "Click for details",
     );

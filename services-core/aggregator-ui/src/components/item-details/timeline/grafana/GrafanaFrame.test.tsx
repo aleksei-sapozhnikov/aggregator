@@ -4,7 +4,9 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import GrafanaFrame from "./GrafanaFrame";
-import ThemeProvider, { useTheme } from "../../../../shared/theme/ThemeProvider";
+import ThemeProvider, {
+  useTheme,
+} from "../../../../shared/theme/ThemeProvider";
 
 afterEach(() => {
   cleanup();
@@ -16,7 +18,6 @@ function ThemeSwitch() {
   const { toggleTheme } = useTheme();
   return <button onClick={toggleTheme}>Switch theme</button>;
 }
-
 
 describe("GrafanaFrame", () => {
   it("loads only its wrapper and sends the selected Item dashboard on load", () => {

@@ -67,10 +67,7 @@ export default function TimelineSection({
       height={height}
       help={<InfoHelp topicId="timeline" />}
     >
-      <GrafanaFrame
-        itemId={itemId}
-        onNavigateToItem={onNavigateToItem}
-      />
+      <GrafanaFrame itemId={itemId} onNavigateToItem={onNavigateToItem} />
     </ItemTimeline>
   );
 }

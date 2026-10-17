@@ -15,7 +15,10 @@ export default function PrimaryContactHelpContent() {
         <p>
           <strong>{primaryContactHelp.summary}</strong>
         </p>
-        <p>Use the contact details to ask a question or report a problem. You don't need to know which team handles it.</p>
+        <p>
+          Use the contact details to ask a question or report a problem. You
+          don't need to know which team handles it.
+        </p>
       </div>
       <PrimaryContactHelpDemo />
     </>

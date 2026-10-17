@@ -27,24 +27,36 @@ describe("Independent character SVG assets", () => {
     [
       "user",
       userArtwork,
-      ["user-base", "user-happy", "user-unhappy", "user-idle-arm", "user-phone"],
+      [
+        "user-base",
+        "user-happy",
+        "user-unhappy",
+        "user-idle-arm",
+        "user-phone",
+      ],
     ],
-    ["support", supportArtwork, ["support-base", "support-headset", "support-hand"]],
+    [
+      "support",
+      supportArtwork,
+      ["support-base", "support-headset", "support-hand"],
+    ],
   ] as const)(
     "provides a valid standalone %s illustration with separately addressable layers",
     (role, markup, layers) => {
-    const document = new DOMParser().parseFromString(markup, "image/svg+xml");
-    expect(document.querySelector("parsererror")).toBeNull();
-    expect(document.documentElement.localName).toBe("svg");
-    expect(document.documentElement.getAttribute("viewBox")).toBe("0 0 110 145");
-    for (const id of layers) {
-      expect(document.getElementById(id)?.tagName).toBe("g");
-    }
-    expect(document.querySelectorAll("g[id]")).toHaveLength(layers.length);
-    expect(markup).not.toContain("role ===");
-    expect(markup).not.toContain("DemoCharacter");
-    expect(document.documentElement.getAttribute("aria-label")).toBeNull();
-    expect(role.length).toBeGreaterThan(0);
+      const document = new DOMParser().parseFromString(markup, "image/svg+xml");
+      expect(document.querySelector("parsererror")).toBeNull();
+      expect(document.documentElement.localName).toBe("svg");
+      expect(document.documentElement.getAttribute("viewBox")).toBe(
+        "0 0 110 145",
+      );
+      for (const id of layers) {
+        expect(document.getElementById(id)?.tagName).toBe("g");
+      }
+      expect(document.querySelectorAll("g[id]")).toHaveLength(layers.length);
+      expect(markup).not.toContain("role ===");
+      expect(markup).not.toContain("DemoCharacter");
+      expect(document.documentElement.getAttribute("aria-label")).toBeNull();
+      expect(role.length).toBeGreaterThan(0);
     },
   );
 
@@ -71,9 +83,9 @@ describe("Independent character SVG assets", () => {
     expect(owner?.querySelector("use")?.getAttribute("href")).toContain(
       `${ownerAssetUrl}#owner-base`,
     );
-    expect(owner?.querySelector(".actors-help-wrench")?.getAttribute("transform")).toBe(
-      "rotate(20 78 88)",
-    );
+    expect(
+      owner?.querySelector(".actors-help-wrench")?.getAttribute("transform"),
+    ).toBe("rotate(20 78 88)");
     expect(
       owner?.querySelector(".actors-help-wrench use")?.getAttribute("href"),
     ).toContain(`${ownerAssetUrl}#owner-wrench`);
@@ -91,7 +103,9 @@ describe("Independent character SVG assets", () => {
     expect(user?.querySelectorAll("use")).toHaveLength(5);
     expect(support?.querySelectorAll("use")).toHaveLength(3);
     expect(
-      user?.querySelector('[data-demo-gesture="phone"] use')?.getAttribute("href"),
+      user
+        ?.querySelector('[data-demo-gesture="phone"] use')
+        ?.getAttribute("href"),
     ).toContain(`${userAssetUrl}#user-phone`);
     expect(
       support
@@ -99,7 +113,9 @@ describe("Independent character SVG assets", () => {
         ?.getAttribute("href"),
     ).toContain(`${supportAssetUrl}#support-headset`);
     expect(
-      support?.querySelector(".demo-character-support-hand use")?.getAttribute("href"),
+      support
+        ?.querySelector(".demo-character-support-hand use")
+        ?.getAttribute("href"),
     ).toContain(`${supportAssetUrl}#support-hand`);
     expect(support?.querySelector(".actors-help-wrench")).toBeNull();
   });
@@ -128,12 +144,12 @@ describe("Independent character SVG assets", () => {
     expect(unhappy?.getAttribute("opacity")).toBe("1");
     expect(phone?.getAttribute("opacity")).toBe("0");
     expect(idle?.getAttribute("opacity")).toBe("1");
-    expect(
-      unhappy?.querySelector("use")?.getAttribute("href"),
-    ).toContain(`${userAssetUrl}#user-unhappy`);
-    expect(
-      idle?.querySelector("use")?.getAttribute("href"),
-    ).toContain(`${userAssetUrl}#user-idle-arm`);
+    expect(unhappy?.querySelector("use")?.getAttribute("href")).toContain(
+      `${userAssetUrl}#user-unhappy`,
+    );
+    expect(idle?.querySelector("use")?.getAttribute("href")).toContain(
+      `${userAssetUrl}#user-idle-arm`,
+    );
   });
 
   it("provides a standalone service illustration with four independent layers", () => {
@@ -192,5 +208,4 @@ describe("Independent character SVG assets", () => {
     expect(green?.getAttribute("opacity")).toBe("0");
     expect(red?.getAttribute("opacity")).toBe("1");
   });
-
 });

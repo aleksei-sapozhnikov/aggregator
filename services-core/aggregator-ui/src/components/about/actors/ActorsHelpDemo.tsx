@@ -36,11 +36,9 @@ const lerp = (start: number, end: number, factor: number) =>
 export function getActorsHelpFrame(time: number) {
   // Move into the Item rows, hold the sprites for two seconds, then return.
   const travel =
-    smooth(between(time, 1800, 3600)) *
-    (1 - smooth(between(time, 5600, 7400)));
+    smooth(between(time, 1800, 3600)) * (1 - smooth(between(time, 5600, 7400)));
   const pageOpacity =
-    smooth(between(time, 2250, 3500)) *
-    (1 - smooth(between(time, 5750, 7350)));
+    smooth(between(time, 2250, 3500)) * (1 - smooth(between(time, 5750, 7350)));
   return { travel, pageOpacity };
 }
 

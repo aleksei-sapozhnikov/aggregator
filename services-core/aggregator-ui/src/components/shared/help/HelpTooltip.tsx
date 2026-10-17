@@ -22,9 +22,10 @@ export default function HelpTooltip({
   action?: ReactNode;
 }) {
   const tipRef = useRef<HTMLSpanElement | null>(null);
-  const [position, setPosition] = useState<{ left: number; top: number } | null>(
-    null,
-  );
+  const [position, setPosition] = useState<{
+    left: number;
+    top: number;
+  } | null>(null);
 
   useLayoutEffect(() => {
     if (!visible) return undefined;
@@ -40,14 +41,18 @@ export default function HelpTooltip({
       const x = anchor.left + anchor.width / 2 - tip.width / 2;
       const next = {
         left: Math.max(
-          padding, Math.min(x, window.innerWidth - tip.width - padding),
+          padding,
+          Math.min(x, window.innerWidth - tip.width - padding),
         ),
         top: Math.max(
-          padding, Math.min(y, window.innerHeight - tip.height - padding),
+          padding,
+          Math.min(y, window.innerHeight - tip.height - padding),
         ),
       };
       setPosition((current) =>
-        current?.left === next.left && current.top === next.top ? current : next,
+        current?.left === next.left && current.top === next.top
+          ? current
+          : next,
       );
     };
     update();
