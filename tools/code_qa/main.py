@@ -244,11 +244,7 @@ ANSI_ESCAPE_SEQUENCE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
 def readable_test_line(line: str) -> str:
     """Strip terminal styling and render common test status glyphs as text."""
     clean = ANSI_ESCAPE_SEQUENCE.sub("", line)
-    return (
-        clean.replace("✓", "PASS")
-        .replace("✗", "FAIL")
-        .replace("❯", ">")
-    )
+    return clean.replace("✓", "PASS").replace("✗", "FAIL").replace("❯", ">")
 
 
 def run_test_command(
