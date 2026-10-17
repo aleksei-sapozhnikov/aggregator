@@ -219,6 +219,69 @@ describe("Signal flow help demonstrations", () => {
     expect(lower.classList.contains("demo-highlight-frame")).toBe(true);
   });
 
+  it("selects the entire healthy Item and moves that frame to its Aggregator title", () => {
+    const { container } = render(<HealthySignalsHelpDemo />);
+    const item = container.querySelector(
+      '[data-healthy-frame="item"]',
+    ) as SVGRectElement;
+    const source = container.querySelector(
+      '[data-flow-node="item"] .signal-flow-help-node-frame',
+    ) as SVGRectElement;
+    const signals = container.querySelectorAll("[data-selection-frame]");
+    const page = container.querySelector(".help-item-page") as HTMLElement;
+    expect(item).not.toBeNull();
+    expect(signals).toHaveLength(3);
+
+    advance(2900);
+    expect(item.getAttribute("opacity")).toBe("1");
+    const sourceX = Number(item.getAttribute("x"));
+    const sourceY = Number(item.getAttribute("y"));
+    const sourceWidth = Number(item.getAttribute("width"));
+    const sourceHeight = Number(item.getAttribute("height"));
+    expect(sourceX).toBeLessThan(Number(source.getAttribute("x")));
+    expect(sourceY).toBeLessThan(Number(source.getAttribute("y")));
+    expect(sourceX + sourceWidth).toBeGreaterThan(
+      Number(source.getAttribute("x")) + Number(source.getAttribute("width")),
+    );
+    expect(sourceY + sourceHeight).toBeGreaterThan(
+      Number(source.getAttribute("y")) + Number(source.getAttribute("height")),
+    );
+
+    advance(1350);
+    expect(Number(item.getAttribute("x"))).toBeGreaterThan(95);
+    expect(Number(item.getAttribute("x"))).toBeLessThan(sourceX);
+    expect(Number(item.getAttribute("width"))).toBeGreaterThan(sourceWidth);
+    expect(Number(page.style.opacity)).toBeGreaterThan(0);
+    expect(Number(page.style.opacity)).toBeLessThan(1);
+
+    advance(2250);
+    expect(page.style.opacity).toBe("1");
+    // In jsdom, target measuring falls back to the production preview layout.
+    const titleLeft = 95 + 20 * 0.9;
+    const titleTop = 20 * 0.9;
+    const titleWidth = 460 * 0.9;
+    const titleHeight = 27 * 0.9;
+    expect(Number(item.getAttribute("x"))).toBeCloseTo(titleLeft - 16);
+    expect(Number(item.getAttribute("y"))).toBeCloseTo(titleTop - 5);
+    expect(Number(item.getAttribute("width"))).toBeCloseTo(titleWidth + 28);
+    expect(Number(item.getAttribute("height"))).toBeCloseTo(titleHeight + 10);
+    expect(item.getAttribute("opacity")).toBe("1");
+
+    advance(expandedListHoldMs);
+    expect(page.style.opacity).toBe("1");
+    expect(item.getAttribute("opacity")).toBe("1");
+
+    advance(2800);
+    expect(page.style.opacity).toBe("0");
+    expect(Number(item.getAttribute("x"))).toBeCloseTo(sourceX);
+    expect(Number(item.getAttribute("width"))).toBeCloseTo(sourceWidth);
+    expect(item.getAttribute("opacity")).toBe("1");
+
+    advance(1800);
+    expect(item.getAttribute("opacity")).toBe("0");
+    expect(container.querySelectorAll("[data-selection-frame]")).toHaveLength(3);
+  });
+
   it("moves the Item's checks toward the healthy rows and returns them to the graph", () => {
     const { container } = render(<HealthySignalsHelpDemo />);
     const checks = Array.from(container.querySelectorAll("[data-own-signal]"));
