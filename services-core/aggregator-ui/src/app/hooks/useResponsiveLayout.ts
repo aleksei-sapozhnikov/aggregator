@@ -1,3 +1,5 @@
+/** @file Controls mobile and desktop sidebar behavior, gestures, and viewport sizing. */
+
 /**
  * Owns responsive catalog visibility, mobile swipe gestures and visual viewport height.
  * Routing, catalog search and Item data remain outside this hook.
@@ -10,6 +12,7 @@ const MOBILE_SWIPE_OPEN_DISTANCE_PX = 96;
 const MOBILE_SWIPE_CLOSE_DISTANCE_PX = 96;
 const MOBILE_SWIPE_MAX_VERTICAL_DRIFT_PX = 48;
 
+/** Maintains sidebar and viewport state across desktop and mobile layouts. */
 export default function useResponsiveLayout() {
   const [isMobileLayout, setIsMobileLayout] = useState(
     () => window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT}px)`).matches,
