@@ -37,11 +37,13 @@ export function getPrimaryContactHelpFrame(time: number) {
     primaryContactHelpDuration;
   const contactTravel = transition(t, 6000, 7500);
   const technicianArrival = transition(t, 8350, 9600);
+  const phonePutAway = transition(t, 9200, 9600);
   const technicianDeparture = transition(t, 11600, 12700);
   return {
     unhealthy: transition(t, 1450, 1800) * (1 - transition(t, 11100, 11600)),
     alarm: transition(t, 1550, 1850) * (1 - transition(t, 2650, 3050)),
-    laptop: transition(t, 2200, 3050) * (1 - transition(t, 12300, 13200)),
+    // Close the Aggregator laptop at the same time the User puts away the phone.
+    laptop: transition(t, 2200, 3050) * (1 - phonePutAway),
     // The opaque page grows over the scene and then shrinks away; the
     // characters underneath never fade out on their own.
     pageExpansion:
@@ -53,11 +55,11 @@ export function getPrimaryContactHelpFrame(time: number) {
     contactTravel,
     transferOpacity:
       transition(t, 5900, 6200) * (1 - transition(t, 7350, 7800)),
-    phone: transition(t, 6250, 6900) * (1 - transition(t, 9200, 9600)),
+    phone: transition(t, 6250, 6900) * (1 - phonePutAway),
     // The user puts the handset away when Owner arrives, and gradually
     // returns to the opening pose ahead of the next animation loop.
     userPhoneVisible:
-      1 - transition(t, 9200, 9600) * (1 - transition(t, 14200, 15100)),
+      1 - phonePutAway * (1 - transition(t, 14200, 15100)),
     calling: transition(t, 7450, 7950) * (1 - transition(t, 8750, 9200)),
     technicianX: mix(
       mix(665, 238, technicianArrival),
