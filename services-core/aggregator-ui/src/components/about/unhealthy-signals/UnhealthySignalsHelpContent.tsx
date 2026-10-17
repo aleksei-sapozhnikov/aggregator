@@ -3,7 +3,7 @@ import UnhealthySignalsHelpDemo from "./UnhealthySignalsHelpDemo";
 export const unhealthySignalsHelp = {
   title: "Unhealthy signals",
   summary:
-    "Signals currently contributing to this item's unhealthy state. Click for details.",
+    "Signals currently contributing to this item's unhealthy state.",
 };
 
 export default function UnhealthySignalsHelpContent() {

@@ -6,7 +6,6 @@ import GrafanaFrame from "./grafana/GrafanaFrame";
 
 type TimelineSectionProps = {
   itemId: string;
-  theme: "dark" | "light";
   expanded: boolean;
   onToggle: () => void;
   onNavigateToItem: (itemId: string, href: string) => void;
@@ -17,7 +16,6 @@ type TimelineSectionProps = {
 /** Provider-independent timeline boundary. Its implementation may replace Grafana. */
 export default function TimelineSection({
   itemId,
-  theme,
   expanded,
   onToggle,
   onNavigateToItem,
@@ -68,7 +66,6 @@ export default function TimelineSection({
     >
       <GrafanaFrame
         itemId={itemId}
-        theme={theme}
         onNavigateToItem={onNavigateToItem}
       />
     </ItemTimeline>

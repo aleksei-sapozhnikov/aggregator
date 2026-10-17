@@ -3,7 +3,7 @@ import TimelineHelpDemo from "./TimelineHelpDemo";
 export const timelineHelp = {
   title: "Timeline",
   summary:
-    "See historical health states and how to use the chart. Click for examples.",
+    "See historical health states and how to use the chart.",
 };
 
 export default function TimelineHelpContent() {

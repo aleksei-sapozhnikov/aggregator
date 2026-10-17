@@ -3,7 +3,7 @@ import HealthySignalsHelpDemo from "./HealthySignalsHelpDemo";
 export const healthySignalsHelp = {
   title: "Healthy signals",
   summary:
-    "Signals on this item that are currently healthy. Click for details.",
+    "Signals on this item that are currently healthy.",
 };
 
 export default function HealthySignalsHelpContent() {

@@ -6,19 +6,19 @@ import {
   resolveGrafanaBaseUrl,
 } from "./dashboardUrls";
 import { resolveBaseUrl } from "../../../../services/aggregatorApi";
+import { useTheme } from "../../../../shared/theme/ThemeProvider";
 
 type GrafanaFrameProps = {
   itemId: string;
-  theme: "dark" | "light";
   onNavigateToItem: (itemId: string, href: string) => void;
 };
 
 /** Owns the Grafana iframe lifecycle and all communication with its wrapper. */
 export default function GrafanaFrame({
   itemId,
-  theme,
   onNavigateToItem,
 }: GrafanaFrameProps) {
+  const { theme } = useTheme();
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const isReadyRef = useRef(false);
   const initialThemeRef = useRef(theme);

@@ -2,11 +2,11 @@
  * @file Application-level toolbar actions.
  */
 
+import { useTheme } from "../shared/theme/ThemeProvider";
+
 type AppToolbarProps = {
-  theme: "dark" | "light";
   isAiChatOpen: boolean;
   onToggleAiChat: () => void;
-  onToggleTheme: () => void;
   onOpenAbout: () => void;
 };
 
@@ -15,18 +15,18 @@ type AppToolbarProps = {
  *
  */
 export default function AppToolbar({
-  theme,
   isAiChatOpen,
   onToggleAiChat,
-  onToggleTheme,
   onOpenAbout,
 }: AppToolbarProps) {
+  const { theme, toggleTheme } = useTheme();
+
   return (
     <>
       <button
         type="button"
         className="theme-toggle top-control top-control-button top-control-pill top-control-surface"
-        onClick={onToggleTheme}
+        onClick={toggleTheme}
       >
         <span className="theme-toggle-icon" aria-hidden="true">
           <svg
