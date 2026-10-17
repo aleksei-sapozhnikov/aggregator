@@ -89,6 +89,60 @@ describe("Primary contact contextual help", () => {
     expect(green?.getAttribute("opacity")).toBe("1");
   });
 
+  it("makes User worried until repair and puts the phone down when Owner arrives", () => {
+    const start = getPrimaryContactHelpFrame(0);
+    const failed = getPrimaryContactHelpFrame(1900);
+    const calling = getPrimaryContactHelpFrame(8000);
+    const arrived = getPrimaryContactHelpFrame(9600);
+    const repaired = getPrimaryContactHelpFrame(11800);
+    const restarting = getPrimaryContactHelpFrame(15100);
+
+    expect(start.unhealthy).toBe(0);
+    expect(start.userPhoneVisible).toBe(1);
+    expect(failed.unhealthy).toBe(1);
+    expect(calling.unhealthy).toBe(1);
+    expect(calling.userPhoneVisible).toBe(1);
+    expect(arrived.unhealthy).toBe(1);
+    expect(arrived.technicianX).toBe(238);
+    expect(arrived.userPhoneVisible).toBe(0);
+    expect(arrived.phone).toBe(0);
+    expect(repaired.unhealthy).toBe(0);
+    expect(repaired.userPhoneVisible).toBe(0);
+    expect(restarting.userPhoneVisible).toBe(1);
+  });
+
+  it("renders the matching facial expression and lowers User's phone during repair", () => {
+    vi.useFakeTimers();
+    const { container } = render(<PrimaryContactHelpDemo />);
+    const user = container.querySelector('[data-demo-character="user"]');
+    const happy = user?.querySelector('[data-user-expression="happy"]');
+    const unhappy = user?.querySelector('[data-user-expression="unhappy"]');
+    const phone = user?.querySelector('[data-demo-gesture="phone"]');
+    const idleArm = user?.querySelector('[data-user-arm="idle"]');
+
+    expect(happy?.getAttribute("opacity")).toBe("1");
+    expect(unhappy?.getAttribute("opacity")).toBe("0");
+    expect(phone?.getAttribute("opacity")).toBe("1");
+
+    act(() => vi.advanceTimersByTime(1900));
+    expect(happy?.getAttribute("opacity")).toBe("0");
+    expect(unhappy?.getAttribute("opacity")).toBe("1");
+
+    act(() => vi.advanceTimersByTime(7700));
+    expect(unhappy?.getAttribute("opacity")).toBe("1");
+    expect(phone?.getAttribute("opacity")).toBe("0");
+    expect(idleArm?.getAttribute("opacity")).toBe("1");
+    const contactPhone = container.querySelector(
+      "[data-primary-contact-phone]",
+    ) as SVGGElement;
+    expect(contactPhone.style.opacity).toBe("0");
+
+    act(() => vi.advanceTimersByTime(2200));
+    expect(happy?.getAttribute("opacity")).toBe("1");
+    expect(unhappy?.getAttribute("opacity")).toBe("0");
+    expect(phone?.getAttribute("opacity")).toBe("0");
+  });
+
   it("follows the failure, laptop, contact, phone, repair and recovery sequence", () => {
     const initial = getPrimaryContactHelpFrame(0);
     expect(initial.unhealthy).toBe(0);
