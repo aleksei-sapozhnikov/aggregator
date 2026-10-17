@@ -65,6 +65,24 @@ describe("Reusable Item presentation", () => {
     expect((info as HTMLButtonElement).disabled).toBe(true);
   });
 
+  it("labels connection loss without confusing it with backend UNKNOWN", () => {
+    render(
+      <ItemTitle
+        item={{ id: "orders", title: "Orders API" }}
+        status="disconnected"
+        firstWord="Orders"
+        interactive={false}
+      />,
+    );
+    expect(
+      screen.getByText("DISCONNECTED").classList.contains("status-disconnected"),
+    ).toBe(true);
+    expect(
+      screen.getByLabelText("Status: DISCONNECTED (cannot reach Aggregator)")
+        .classList.contains("status-disconnected"),
+    ).toBe(true);
+  });
+
   it("passes ownership actions through with their original records", () => {
     const onOpenActor = vi.fn();
     const onOpenContact = vi.fn();

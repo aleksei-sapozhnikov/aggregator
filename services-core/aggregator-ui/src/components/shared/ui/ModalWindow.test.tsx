@@ -118,6 +118,44 @@ describe("ModalWindow", () => {
     expect(onClose).toHaveBeenCalledOnce();
   });
 
+  it("makes background content inert and restores existing attributes on close", () => {
+    const { container, rerender } = render(
+      <>
+        <button type="button">Background action</button>
+        <ModalWindow isOpen={true} onClose={vi.fn()} ariaLabel="Isolation">
+          <p>Foreground</p>
+        </ModalWindow>
+      </>,
+    );
+    expect(container.hasAttribute("inert")).toBe(true);
+    expect(container.getAttribute("aria-hidden")).toBe("true");
+    expect(screen.getByRole("dialog", { name: "Isolation" })).not.toBeNull();
+
+    rerender(<button type="button">Background action</button>);
+    expect(container.hasAttribute("inert")).toBe(false);
+    expect(container.hasAttribute("aria-hidden")).toBe(false);
+    expect(
+      screen.getByRole("button", { name: "Background action" }),
+    ).not.toBeNull();
+  });
+
+  it("preserves preexisting background accessibility attributes", () => {
+    const background = document.createElement("section");
+    background.setAttribute("aria-hidden", "false");
+    background.setAttribute("inert", "");
+    document.body.appendChild(background);
+    const { unmount } = render(
+      <ModalWindow isOpen={true} onClose={vi.fn()} ariaLabel="Restore">
+        <p>Foreground</p>
+      </ModalWindow>,
+    );
+    expect(background.getAttribute("aria-hidden")).toBe("true");
+    unmount();
+    expect(background.getAttribute("aria-hidden")).toBe("false");
+    expect(background.hasAttribute("inert")).toBe(true);
+    background.remove();
+  });
+
   it("traps forward and backward keyboard focus inside the dialog", () => {
     render(
       <>
@@ -134,6 +172,7 @@ describe("ModalWindow", () => {
     const last = screen.getByRole("link", { name: "Last action" });
     const background = screen.getByRole("button", {
       name: "Background action",
+      hidden: true,
     });
 
     first.focus();
@@ -156,6 +195,10 @@ describe("ModalWindow", () => {
     fireEvent.click(opener);
 
     const child = screen.getByRole("dialog", { name: "Child" });
+    const overlays = document.querySelectorAll(".modal-overlay");
+    expect(overlays[0].getAttribute("aria-hidden")).toBe("true");
+    expect(overlays[0].hasAttribute("inert")).toBe(true);
+    expect(overlays[1].hasAttribute("inert")).toBe(false);
     const childClose = child.querySelector(".about-close") as HTMLButtonElement;
     childClose.focus();
 
@@ -165,6 +208,8 @@ describe("ModalWindow", () => {
     fireEvent.keyDown(window, { key: "Escape" });
     expect(screen.queryByRole("dialog", { name: "Child" })).toBeNull();
     expect(document.activeElement).toBe(opener);
+    expect(overlays[0].hasAttribute("inert")).toBe(false);
+    expect(overlays[0].hasAttribute("aria-hidden")).toBe(false);
   });
 
   it("only closes the topmost modal on Escape and backdrop clicks", () => {
@@ -207,6 +252,7 @@ describe("ModalWindow", () => {
     expect(onChildClose).toHaveBeenCalledOnce();
     expect(onParentClose).not.toHaveBeenCalled();
   });
+
   it("closes the parent immediately after its child without another rerender", () => {
     render(<NestedModalHarness />);
 

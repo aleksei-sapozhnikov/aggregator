@@ -3,7 +3,11 @@
 
 import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { findNodeByPath } from "../../shared/catalog/tree";
+import {
+  buildCatalogTree,
+  collectNodeIds,
+  findNodeByPath,
+} from "../../shared/catalog/tree";
 import type { CatalogDependency, CatalogItem } from "../../shared/types";
 import useItemNavigation from "../../app/hooks/useItemNavigation";
 import useCatalogNavigation from "./useCatalogNavigation";
@@ -108,6 +112,29 @@ describe("useCatalogNavigation", () => {
     );
     expect(result.current.searchQuery).toBe("");
     expect(result.current.isSearchActive).toBe(false);
+  });
+});
+
+describe("catalog tree cycles", () => {
+  it("keeps rootless cyclic groups visible without recursive loops", () => {
+    const cycleItems: CatalogItem[] = [
+      { id: "alpha", title: "Alpha" },
+      { id: "beta", title: "Beta" },
+      { id: "independent", title: "Independent" },
+    ];
+    const cycleDependencies: CatalogDependency[] = [
+      { sourceId: "alpha", targetId: "beta" },
+      { sourceId: "beta", targetId: "alpha" },
+    ];
+    const tree = buildCatalogTree(cycleItems, cycleDependencies);
+    expect(tree.map((node) => node.item.id)).toEqual([
+      "independent",
+      "alpha",
+    ]);
+    expect(new Set(collectNodeIds(tree))).toEqual(
+      new Set(["independent", "alpha", "beta"]),
+    );
+    expect(findNodeByPath(tree, ["alpha", "beta"])).not.toBeNull();
   });
 });
 
