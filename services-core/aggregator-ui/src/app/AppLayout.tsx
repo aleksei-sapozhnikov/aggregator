@@ -2,8 +2,13 @@
 
 import type { ReactNode, RefObject } from "react";
 import AppToolbar from "./AppToolbar";
+import HealthConnectionBanner from "./HealthConnectionBanner";
 import ItemTitle from "../components/shared/item/ItemTitle";
-import type { CatalogItem, DisplayHealthStatus } from "../shared/types";
+import type {
+  CatalogItem,
+  DisplayHealthStatus,
+  HealthConnectionStatus,
+} from "../shared/types";
 
 type AppLayoutProps = {
   children: ReactNode;
@@ -23,6 +28,11 @@ type AppLayoutProps = {
   selectedItem: CatalogItem | undefined;
   selectedStatus: DisplayHealthStatus;
   lastUpdated: string;
+  hasHealthSnapshot?: boolean;
+  isLastKnownHealth?: boolean;
+  connectionStatus?: HealthConnectionStatus;
+  lastSuccessfulFetchAt?: number | null;
+  disconnectedDetectedAt?: number | null;
   selectedTitleFirstWord: string;
   selectedTitleRest: string;
 };
@@ -46,6 +56,11 @@ export default function AppLayout({
   selectedItem,
   selectedStatus,
   lastUpdated,
+  hasHealthSnapshot = true,
+  isLastKnownHealth = false,
+  connectionStatus = "connecting",
+  lastSuccessfulFetchAt = null,
+  disconnectedDetectedAt = null,
   selectedTitleFirstWord,
   selectedTitleRest,
 }: AppLayoutProps) {
@@ -88,12 +103,19 @@ export default function AppLayout({
             item={selectedItem}
             status={selectedStatus}
             lastUpdated={lastUpdated}
+            showHealthStatus={hasHealthSnapshot}
+            isLastKnownHealth={isLastKnownHealth}
             firstWord={selectedTitleFirstWord}
             rest={selectedTitleRest}
             primaryRef={contentTitlePrimaryRef}
           />
         </div>
       </header>
+      <HealthConnectionBanner
+        connectionStatus={connectionStatus}
+        lastSuccessfulFetchAt={lastSuccessfulFetchAt}
+        disconnectedDetectedAt={disconnectedDetectedAt}
+      />
       <div
         className={`content-workspace ${isAiChatOpen ? "ai-chat-open" : ""}`}
       >

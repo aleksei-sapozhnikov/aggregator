@@ -56,7 +56,14 @@ export default function App() {
     itemStatuses,
     itemSignals,
     lastUpdated: lastHealthFetchTime,
+    connectionStatus,
+    lastSuccessfulFetchAt,
+    disconnectedDetectedAt,
   } = useCatalogData();
+
+  const hasHealthSnapshot = lastSuccessfulFetchAt !== null;
+  const isLastKnownHealth =
+    connectionStatus === "disconnected" && hasHealthSnapshot;
 
   const [isTimelineOpen, setIsTimelineOpen] = useState(true);
   const [isAiChatOpen, setIsAiChatOpen] = useState(false);
@@ -207,7 +214,7 @@ export default function App() {
         isAiChatFeatureEnabled
           ? "ai-chat-feature-enabled"
           : "ai-chat-feature-disabled"
-      } ${effectiveIsAiChatOpen ? "ai-chat-open" : ""}`}
+      } ${effectiveIsAiChatOpen ? "ai-chat-open" : ""} ${isLastKnownHealth ? "is-health-disconnected" : ""}`}
       onTouchStart={handleMobileSidebarSwipeStart}
       onTouchMove={handleMobileSidebarSwipeMove}
       onTouchEnd={handleMobileSidebarSwipeEnd}
@@ -240,6 +247,8 @@ export default function App() {
         onExpandPathToItem={expandPathToItem}
         itemStatuses={itemStatuses}
         lastUpdated={lastHealthFetchTime}
+        hasHealthSnapshot={hasHealthSnapshot}
+        isLastKnownHealth={isLastKnownHealth}
         catalogTreeRef={catalogTreeRef}
         filteredTree={filteredTree}
         expandedIds={expandedIds}
@@ -275,6 +284,11 @@ export default function App() {
         selectedItem={selectedItem}
         selectedStatus={selectedStatus}
         lastUpdated={lastHealthFetchTime}
+        hasHealthSnapshot={hasHealthSnapshot}
+        isLastKnownHealth={isLastKnownHealth}
+        connectionStatus={connectionStatus}
+        lastSuccessfulFetchAt={lastSuccessfulFetchAt}
+        disconnectedDetectedAt={disconnectedDetectedAt}
         selectedTitleFirstWord={selectedTitleFirstWord}
         selectedTitleRest={selectedTitleRest}
         chat={
@@ -291,6 +305,7 @@ export default function App() {
           headerRef={headerRef}
           iconSpriteHref={iconSpriteHref}
           selectedItem={selectedItem}
+          isLastKnownHealth={isLastKnownHealth}
           selectedFailingSignals={selectedFailingSignals}
           failingDependencies={failingDependencies}
           selectedItemActors={selectedItemActors}

@@ -10,6 +10,8 @@ export default function ItemTitle({
   item,
   status,
   lastUpdated,
+  showHealthStatus = true,
+  isLastKnownHealth = false,
   firstWord,
   rest = "",
   primaryRef,
@@ -18,16 +20,21 @@ export default function ItemTitle({
   item?: CatalogItem;
   status: DisplayHealthStatus;
   lastUpdated?: string;
+  showHealthStatus?: boolean;
+  isLastKnownHealth?: boolean;
   firstWord: string;
   rest?: string;
   primaryRef?: RefObject<HTMLElement | null>;
   interactive?: boolean;
 }) {
-  const statusText = buildStatusText(status, { lastUpdated });
+  const statusText = buildStatusText(status, {
+    lastUpdated,
+    lastKnown: isLastKnownHealth,
+  });
   return (
     <div className="content-title">
       <span className="content-title-primary" ref={primaryRef}>
-        {item && (
+        {item && showHealthStatus && (
           <span
             className={`status-indicator status-${status}`}
             aria-label={statusText}
@@ -44,10 +51,13 @@ export default function ItemTitle({
         </span>
       )}
       {item && <CatalogItemInfo item={item} interactive={interactive} />}
-      {item && status !== "up" && (
+      {item && showHealthStatus && status !== "up" && (
         <span className={`content-status-label status-${status}`}>
           {status.toUpperCase()}
         </span>
+      )}
+      {item && isLastKnownHealth && (
+        <span className="health-last-known-label">Last known</span>
       )}
     </div>
   );
