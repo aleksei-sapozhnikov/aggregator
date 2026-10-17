@@ -926,13 +926,6 @@ body {
   text-transform: uppercase;
 }
 
-.health-snapshot-note {
-  margin: 8px 0;
-  color: var(--status-disconnected);
-  font-size: 12px;
-  font-weight: 600;
-}
-
 .app.is-health-disconnected .status-indicator {
   opacity: 0.75;
 }

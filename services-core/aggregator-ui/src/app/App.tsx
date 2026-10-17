@@ -302,7 +302,6 @@ export default function App() {
           headerRef={headerRef}
           iconSpriteHref={iconSpriteHref}
           selectedItem={selectedItem}
-          isLastKnownHealth={isLastKnownHealth && hasSelectedHealthStatus}
           selectedFailingSignals={selectedFailingSignals}
           failingDependencies={failingDependencies}
           selectedItemActors={selectedItemActors}

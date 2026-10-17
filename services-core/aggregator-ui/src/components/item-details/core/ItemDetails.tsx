@@ -29,7 +29,6 @@ export type ItemDetailsProps = {
   headerRef: RefObject<HTMLElement | null>;
   iconSpriteHref: string;
   selectedItem: CatalogItem | undefined;
-  isLastKnownHealth?: boolean;
   selectedFailingSignals: ItemSignal[];
   failingDependencies: FailingDependencyEntry[];
   selectedItemActors: {
@@ -93,7 +92,6 @@ export default function ItemDetails({
   headerRef,
   iconSpriteHref,
   selectedItem,
-  isLastKnownHealth = false,
   selectedFailingSignals,
   failingDependencies,
   selectedItemActors,
@@ -242,11 +240,6 @@ export default function ItemDetails({
               primaryHelp={<InfoHelp topicId="primary-contact" />}
               actorsHelp={<InfoHelp topicId="actors" />}
             />
-            {isLastKnownHealth && (
-              <p className="health-snapshot-note">
-                Last known signals. Current health is unavailable.
-              </p>
-            )}
             {hasAffectingSignals && (
               <UnhealthySignals
                 signals={selectedFailingSignals}
