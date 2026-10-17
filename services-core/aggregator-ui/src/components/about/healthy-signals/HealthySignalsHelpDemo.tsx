@@ -37,13 +37,10 @@ function HealthySignalHighlights({
         const targetX = target.x;
         const targetY = target.y;
         const highlight = getSignalHighlightBounds(target);
-        const rectX =
-          startX + (highlight.x - startX) * presentationProgress;
+        const rectX = startX + (highlight.x - startX) * presentationProgress;
         const rectY = startY + (highlight.y - startY) * presentationProgress;
-        const rectWidth =
-          24 + (highlight.width - 24) * presentationProgress;
-        const rectHeight =
-          22 + (highlight.height - 22) * presentationProgress;
+        const rectWidth = 24 + (highlight.width - 24) * presentationProgress;
+        const rectHeight = 22 + (highlight.height - 22) * presentationProgress;
         const checkX =
           320 +
           check.offset +
