@@ -869,6 +869,67 @@ body {
   color: var(--status-up);
 }
 
+/* Connection freshness is application-wide, not another Product Health state. */
+.health-connection-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex: 0 0 auto;
+  min-width: 0;
+  padding: 11px 14px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--status-disconnected);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.health-connection-icon {
+  flex: 0 0 auto;
+  color: var(--status-disconnected);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.health-connection-message {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.health-connection-message strong {
+  font-size: 13px;
+}
+
+.health-connection-message > span {
+  color: var(--muted);
+}
+
+.health-last-known-label {
+  display: inline-block;
+  margin-left: 8px;
+  color: var(--status-disconnected);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.health-snapshot-note {
+  margin: 8px 0;
+  color: var(--status-disconnected);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.app.is-health-disconnected .status-indicator {
+  opacity: 0.75;
+}
+
 .catalog-item-info {
   display: inline-flex;
   align-items: center;

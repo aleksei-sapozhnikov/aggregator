@@ -93,17 +93,19 @@ export default function AboutContent() {
             have enough information to tell.
           </span>
         </li>
-        <li>
-          <span
-            className="status-indicator status-disconnected"
-            aria-hidden="true"
-          />
-          <span>
-            <strong>DISCONNECTED</strong> - The interface cannot reach
-            Aggregator. Current health is unavailable, not necessarily DOWN.
-          </span>
-        </li>
       </ul>
+      <p>Connection to Aggregator (separate from product health):</p>
+      <p className="about-connection-help">
+        <span
+          className="status-indicator status-disconnected"
+          aria-hidden="true"
+        />{" "}
+        <strong>DISCONNECTED</strong> - The interface cannot retrieve current
+        Product Health. Previously received statuses and signals remain visible
+        as <strong>Last known</strong>, along with the last successful update
+        and the time connection loss was detected. It does not mean the
+        underlying services are DOWN.
+      </p>
       <p>
         Demo services fail and recover automatically, so you can watch the
         health change. There are three product lines and chains of connected

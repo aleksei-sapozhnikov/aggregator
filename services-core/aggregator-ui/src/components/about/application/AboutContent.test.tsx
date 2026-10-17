@@ -12,7 +12,7 @@ describe("About health state legend", () => {
   it("uses the same status indicators as the catalog and item title", () => {
     const { container } = render(<AboutContent />);
     const rows = container.querySelectorAll(".about-status-list > li");
-    const statuses = ["up", "down", "unknown", "disconnected"];
+    const statuses = ["up", "down", "unknown"];
 
     expect(rows).toHaveLength(statuses.length);
 
@@ -25,5 +25,8 @@ describe("About health state legend", () => {
         status.toUpperCase(),
       );
     });
+    const connection = container.querySelector(".about-connection-help");
+    expect(connection?.textContent).toContain("DISCONNECTED");
+    expect(connection?.textContent).toContain("Last known");
   });
 });
