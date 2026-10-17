@@ -230,6 +230,20 @@ const renderDetailsPanel = (overrides: Partial<TestPageProps> = {}) => {
   };
 };
 
+describe("ItemDetails health freshness", () => {
+  it("keeps real unhealthy signals and labels them last known during an outage", () => {
+    renderDetailsPanel({ isLastKnownHealth: true });
+
+    expect(screen.getByText("Unhealthy signals (2)")).not.toBeNull();
+    expect(
+      screen.getByText("Last known signals. Current health is unavailable."),
+    ).not.toBeNull();
+    expect(screen.getByText("Latency")).not.toBeNull();
+    expect(screen.getByText("Errors")).not.toBeNull();
+    expect(screen.queryByText("Disconnected signals")).toBeNull();
+  });
+});
+
 describe("ItemDetails contextual help", () => {
   it("reflects shared markup changes in production and every help scene", () => {
     vi.stubGlobal("matchMedia", () => ({ matches: true }));
