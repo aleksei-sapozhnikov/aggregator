@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import subprocess
 import sys
 from collections.abc import Callable
@@ -160,6 +161,7 @@ def run_format_command(
             return 0
 
         by_id: dict[str, CheckSpec] = {check.check_id: check for check in CHECKS}
+        format_failed = False
         for check_id in failed_ids:
             spec = by_id.get(check_id)
             if spec is None or not spec.format_args:
@@ -170,14 +172,13 @@ def run_format_command(
             for line in details:
                 emit(f"  {line}")
             if not ok:
-                if not suppress_final_summary:
-                    emit_final_summary(emit, False)
-                return 1
+                format_failed = True
 
         ok_after, _ = _run_checks(emit)
+        passed = ok_after and not format_failed
         if not suppress_final_summary:
-            emit_final_summary(emit, ok_after)
-        return 0 if ok_after else 1
+            emit_final_summary(emit, passed)
+        return 0 if passed else 1
     finally:
         close()
 
@@ -236,37 +237,83 @@ def run_secrets_command(
     return result.returncode
 
 
-def run_check_all_command(
+def readable_test_line(line: str) -> str:
+    """Render test status symbols as plain ASCII in redirected Windows logs."""
+    return line.replace("✓", "PASS").replace("✗", "FAIL").replace("❯", ">")
+
+
+def run_test_command(
     *,
-    scan_root: str = ".",
-    output_file: str | None = "",
-    gitignored_output_file: str | None = "",
-    binary: str | None = None,
+    modules: list[str] | None = None,
+    out_file: str = "",
+    append_out_file: bool = False,
+    suppress_final_summary: bool = False,
+    verbose: bool = False,
+) -> int:
+    """Run module tests with compact output unless verbose is requested."""
+    cmd = [sys.executable, "-u", str(script_dir() / "run_tests.py")]
+    for module in modules or []:
+        cmd.extend(["--module", module])
+    if verbose:
+        cmd.append("--verbose")
+
+    emit, _, close = build_emitter(out_file, append=append_out_file)
+    try:
+        try:
+            child_env = os.environ.copy()
+            child_env["PYTHONIOENCODING"] = "utf-8"
+            with subprocess.Popen(
+                cmd,
+                cwd=repo_root(),
+                env=child_env,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                bufsize=1,
+            ) as process:
+                assert process.stdout is not None
+                for line in process.stdout:
+                    emit(readable_test_line(line.rstrip("\r\n")))
+                result_code = process.wait()
+        except OSError as error:
+            emit(f"Unable to start module tests: {error}")
+            result_code = 1
+        if not suppress_final_summary:
+            emit_final_summary(emit, result_code == 0)
+        return result_code
+    finally:
+        close()
+
+
+def run_code_qa_command(
+    *,
     raw: bool = False,
     out_file: str = "",
+    suppress_final_summary: bool = False,
 ) -> int:
-    """Run lint checks plus secrets scan as one combined command."""
+    """Check code and run module tests without modifying source files."""
+    _ = raw
     check_rc = run_check_command(
         out_file=out_file,
         append_out_file=False,
         suppress_final_summary=True,
     )
-    secrets_rc = run_secrets_command(
-        scan_root=scan_root,
-        output_file=output_file,
-        gitignored_output_file=gitignored_output_file,
-        binary=binary,
-        raw=raw,
+    if check_rc != 0:
+        emit, _, close = build_emitter(out_file, append=True)
+        try:
+            if not suppress_final_summary:
+                emit_final_summary(emit, False)
+        finally:
+            close()
+        return 1
+
+    return run_test_command(
         out_file=out_file,
         append_out_file=True,
-        suppress_final_summary=True,
+        suppress_final_summary=suppress_final_summary,
     )
-    emit, _, close = build_emitter(out_file, append=True)
-    try:
-        emit_final_summary(emit, check_rc == 0 and secrets_rc == 0)
-    finally:
-        close()
-    return 0 if check_rc == 0 and secrets_rc == 0 else 1
 
 
 def run_qa_command(
@@ -278,16 +325,16 @@ def run_qa_command(
     raw: bool = False,
     out_file: str = "",
 ) -> int:
-    """Run format flow followed by secrets scan as one combined command."""
-    format_rc = run_format_command(
+    """Check code without fixes, run tests, and then scan secrets."""
+    code_qa_rc = run_code_qa_command(
         raw=raw,
         out_file=out_file,
-        append_out_file=False,
         suppress_final_summary=True,
     )
-    if format_rc != 0:
+    if code_qa_rc != 0:
         emit, _, close = build_emitter(out_file, append=True)
         try:
+            emit("Skipping secrets scan: code checks or tests failed.")
             emit_final_summary(emit, False)
         finally:
             close()
@@ -305,10 +352,10 @@ def run_qa_command(
     )
     emit, _, close = build_emitter(out_file, append=True)
     try:
-        emit_final_summary(emit, format_rc == 0 and secrets_rc == 0)
+        emit_final_summary(emit, secrets_rc == 0)
     finally:
         close()
-    return 0 if format_rc == 0 and secrets_rc == 0 else 1
+    return 0 if secrets_rc == 0 else 1
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -318,7 +365,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     qa_cmd = sub.add_parser(
         "qa",
-        help="Run format flow, then lint flow (without repeated code checks).",
+        help="Check code, run tests, and scan secrets without modifying files.",
     )
     qa_cmd.add_argument("--scan-root", default=".")
     qa_cmd.add_argument("--output-file", default="")
@@ -326,6 +373,34 @@ def build_parser() -> argparse.ArgumentParser:
     qa_cmd.add_argument("--binary")
     qa_cmd.add_argument("--raw", action="store_true")
     qa_cmd.add_argument("--out-file", default="")
+
+    code_qa_cmd = sub.add_parser(
+        "code-qa",
+        help="Check code and run module tests without fixes or secrets scanning.",
+    )
+    code_qa_cmd.add_argument("--raw", action="store_true")
+    code_qa_cmd.add_argument("--out-file", default="")
+
+    test_cmd = sub.add_parser("test", help="Run unit tests by module.")
+    test_cmd.add_argument(
+        "--module",
+        action="append",
+        choices=("aggregator", "aggregator-ui", "catalog", "ai-agent", "code-qa"),
+    )
+    test_cmd.add_argument("--out-file", default="")
+    test_cmd.add_argument(
+        "--verbose", action="store_true", help="Show output from every test module."
+    )
+
+    secrets_cmd = sub.add_parser(
+        "secrets", help="Run only the TruffleHog secrets scan."
+    )
+    secrets_cmd.add_argument("--scan-root", default=".")
+    secrets_cmd.add_argument("--output-file", default="")
+    secrets_cmd.add_argument("--gitignored-output-file", default="")
+    secrets_cmd.add_argument("--binary")
+    secrets_cmd.add_argument("--raw", action="store_true")
+    secrets_cmd.add_argument("--out-file", default="")
 
     format_cmd = sub.add_parser("format", help="Run code format flow.")
     format_cmd.add_argument("--raw", action="store_true")
@@ -337,23 +412,48 @@ def build_parser() -> argparse.ArgumentParser:
     )
     format_check_only_cmd.add_argument("--out-file", default="")
 
-    lint_cmd = sub.add_parser("lint", help="Run lint flow.")
-    lint_cmd.add_argument("--scan-root", default=".")
-    lint_cmd.add_argument("--output-file", default="")
-    lint_cmd.add_argument("--gitignored-output-file", default="")
-    lint_cmd.add_argument("--binary")
-    lint_cmd.add_argument("--raw", action="store_true")
+    lint_cmd = sub.add_parser("lint", help="Run code checks without secrets scanning.")
     lint_cmd.add_argument("--out-file", default="")
 
     return parser
 
 
+def configure_redirected_stdout() -> None:
+    """Use UTF-8 for redirected logs instead of a Windows ANSI code page."""
+    stdout = sys.stdout
+    if stdout is None or stdout.isatty():
+        return
+
+    reconfigure = getattr(stdout, "reconfigure", None)
+    if callable(reconfigure):
+        reconfigure(encoding="utf-8", errors="backslashreplace")
+
+
 def main() -> int:
     """Dispatch CLI command to the matching QA workflow."""
+    configure_redirected_stdout()
     args = build_parser().parse_args()
 
     if args.command == "qa":
         return run_qa_command(
+            scan_root=args.scan_root,
+            output_file=args.output_file,
+            gitignored_output_file=args.gitignored_output_file,
+            binary=args.binary,
+            raw=args.raw,
+            out_file=args.out_file,
+        )
+
+    if args.command == "code-qa":
+        return run_code_qa_command(raw=args.raw, out_file=args.out_file)
+
+    if args.command == "test":
+        return run_test_command(
+            modules=args.module, out_file=args.out_file, verbose=args.verbose
+        )
+
+    if args.command == "secrets":
+        return run_secrets_command(
             scan_root=args.scan_root,
             output_file=args.output_file,
             gitignored_output_file=args.gitignored_output_file,
@@ -369,14 +469,7 @@ def main() -> int:
         return run_check_command(out_file=args.out_file)
 
     if args.command == "lint":
-        return run_check_all_command(
-            scan_root=args.scan_root,
-            output_file=args.output_file,
-            gitignored_output_file=args.gitignored_output_file,
-            binary=args.binary,
-            raw=args.raw,
-            out_file=args.out_file,
-        )
+        return run_check_command(out_file=args.out_file)
 
     return run_qa_command()
 

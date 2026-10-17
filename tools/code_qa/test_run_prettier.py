@@ -16,8 +16,14 @@ class PrettierBatchTests(unittest.TestCase):
     """Exercise command splitting without requiring Node.js or Prettier."""
 
     def test_batches_fit_the_command_limit_and_preserve_file_order(self) -> None:
-        command = [r"C:\repo\.temp\qa-runtime\node_modules\.bin\prettier.cmd", "--check"]
-        files = [f"services-core/example/src/subdirectory/filename-{i:04d}.tsx" for i in range(500)]
+        command = [
+            r"C:\repo\.temp\qa-runtime\node_modules\.bin\prettier.cmd",
+            "--check",
+        ]
+        files = [
+            f"services-core/example/src/subdirectory/filename-{i:04d}.tsx"
+            for i in range(500)
+        ]
         batches = list(run_prettier.batched_file_args(command, files))
         self.assertGreater(len(batches), 1)
         self.assertEqual([item for batch in batches for item in batch], files)
@@ -27,7 +33,11 @@ class PrettierBatchTests(unittest.TestCase):
 
     def test_short_commands_run_as_a_single_batch(self) -> None:
         self.assertEqual(
-            list(run_prettier.batched_file_args(["prettier", "--write"], ["a.ts", "b.ts"])),
+            list(
+                run_prettier.batched_file_args(
+                    ["prettier", "--write"], ["a.ts", "b.ts"]
+                )
+            ),
             [["a.ts", "b.ts"]],
         )
 
@@ -41,7 +51,9 @@ class PrettierBatchTests(unittest.TestCase):
 
         with (
             patch.object(run_prettier, "repo_root", return_value=Path("/repo")),
-            patch.object(run_prettier.subprocess, "run", side_effect=results) as execute,
+            patch.object(
+                run_prettier.subprocess, "run", side_effect=results
+            ) as execute,
         ):
             self.assertEqual(run_prettier.run_prettier(command, files), 2)
 
@@ -59,14 +71,16 @@ class PrettierBatchTests(unittest.TestCase):
         batches = list(run_prettier.batched_file_args(command, files))
         responses = [
             subprocess.CompletedProcess(
-                [], 0,
+                [],
+                0,
                 stdout="Checking formatting...\nAll matched files use Prettier code style!\n",
                 stderr="",
             )
             for _ in batches
         ]
         responses[1] = subprocess.CompletedProcess(
-            [], 1,
+            [],
+            1,
             stdout="Checking formatting...\n",
             stderr="[warn] src/unformatted.ts\n[warn] Code style issues found.\n",
         )
@@ -95,7 +109,10 @@ class PrettierBatchTests(unittest.TestCase):
                 run_prettier.subprocess,
                 "run",
                 return_value=subprocess.CompletedProcess(
-                    [], 0, stdout="Formatting...\na.ts 10ms\nb.ts 20ms\n", stderr="",
+                    [],
+                    0,
+                    stdout="Formatting...\na.ts 10ms\nb.ts 20ms\n",
+                    stderr="",
                 ),
             ),
             redirect_stdout(stdout),
