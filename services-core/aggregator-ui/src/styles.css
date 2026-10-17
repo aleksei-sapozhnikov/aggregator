@@ -38,6 +38,7 @@
   --status-inner: rgba(255, 255, 255, 0.35);
   --status-up: #73bf69;
   --status-unknown: #f2c94c;
+  --status-disconnected: #64748b;
   --status-down: #e24d42;
   --sidebar-selected-accent: #2f6feb;
   --sidebar-selected-bg: #eef4ff;
@@ -103,6 +104,7 @@ body[data-theme="dark"] {
   --status-inner: rgba(255, 255, 255, 0.28);
   --status-up: #73bf69;
   --status-unknown: #f2c94c;
+  --status-disconnected: #a6b2c1;
   --status-down: #e24d42;
   --sidebar-selected-accent: #3b82f6;
   --sidebar-selected-bg: #141c2b;
@@ -745,6 +747,10 @@ body {
   background: var(--status-down);
 }
 
+.status-indicator.status-disconnected {
+  background: var(--status-disconnected);
+}
+
 .node-label:focus-visible,
 .node-content:focus-visible,
 .node-toggle-column:focus-visible,
@@ -853,6 +859,10 @@ body {
 
 .content-status-label.status-unknown {
   color: var(--status-unknown);
+}
+
+.content-status-label.status-disconnected {
+  color: var(--status-disconnected);
 }
 
 .content-status-label.status-up {
@@ -4043,6 +4053,15 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 
 .status-indicator.status-unknown::before {
   content: "?";
+}
+
+.status-indicator.status-disconnected {
+  background: transparent;
+  color: var(--status-disconnected);
+}
+
+.status-indicator.status-disconnected::before {
+  content: "⊘";
 }
 
 .ai-health-response .status-indicator {

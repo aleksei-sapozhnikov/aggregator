@@ -10,3 +10,8 @@ server responses.
 
 Health states are authoritative backend facts. The adapter may validate or
 normalize wire values but must never infer or recalculate product health.
+
+Optional catalog endpoints are best-effort and have a 3-second timeout each.
+Required requests honor catalog loading cancellation; the UI retries failed
+initial catalog loads every 10 seconds. A missing Product Health response is
+presented as UI-only DISCONNECTED, distinct from backend UNKNOWN.

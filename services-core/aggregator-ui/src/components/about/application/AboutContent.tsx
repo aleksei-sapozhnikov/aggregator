@@ -89,7 +89,18 @@ export default function AboutContent() {
             aria-hidden="true"
           />
           <span>
-            <strong>UNKNOWN</strong> - There isn't enough information to tell.
+            <strong>UNKNOWN</strong> - Aggregator is reachable but doesn't
+            have enough information to tell.
+          </span>
+        </li>
+        <li>
+          <span
+            className="status-indicator status-disconnected"
+            aria-hidden="true"
+          />
+          <span>
+            <strong>DISCONNECTED</strong> - The interface cannot reach
+            Aggregator. Current health is unavailable, not necessarily DOWN.
           </span>
         </li>
       </ul>
