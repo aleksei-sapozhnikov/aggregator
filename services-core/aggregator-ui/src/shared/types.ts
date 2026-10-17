@@ -1,8 +1,12 @@
-/**
- * @file Shared TypeScript type definitions for aggregator-ui.
- */
+/** @file Defines catalog, health, and view-data contracts shared by UI features and HTTP adapters. */
 
 export type HealthStatus = "up" | "down" | "unknown";
+
+/** The UI transport state never changes Product Health facts. */
+export type HealthConnectionStatus =
+  | "connecting"
+  | "connected"
+  | "disconnected";
 
 export interface CatalogItem {
   id: string;

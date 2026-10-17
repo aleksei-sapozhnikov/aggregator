@@ -7,7 +7,6 @@ export const primaryContactHelp = {
   summary: "This is who to contact first about this item.",
 };
 
-/** Renders the shared summary and animated primary-contact explanation. */
 export default function PrimaryContactHelpContent() {
   return (
     <>

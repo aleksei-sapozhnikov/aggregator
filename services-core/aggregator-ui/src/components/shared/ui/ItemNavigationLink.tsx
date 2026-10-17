@@ -1,4 +1,4 @@
-/** @file Renders Item deep links with the dependency navigation affordance. */
+/** @file Gives Item navigation links a consistent trailing-arrow affordance. */
 
 import type { MouseEvent, ReactNode } from "react";
 
@@ -11,7 +11,6 @@ type ItemNavigationLinkProps = {
   ariaLabel?: string;
 };
 
-/** A catalog item navigation link, distinguished by a trailing arrow. */
 export default function ItemNavigationLink({
   href,
   children,

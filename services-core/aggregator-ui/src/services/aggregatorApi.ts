@@ -43,21 +43,18 @@ interface ProductHealthItemPayload {
   affectingDependencies?: ProductHealthDependencyPayload[];
 }
 
-/** Returns the deployment-relative path prefix for static UI resources. */
 export const resolveBasePath = (): string => {
   const baseUrl = import.meta.env.BASE_URL || "/";
   return new URL(baseUrl, window.location.origin).pathname;
 };
 
-/** Resolves the backend API base URL. */
 export const resolveBaseUrl = (): string =>
   `${window.location.origin}${resolveBasePath()}`;
 
-/** Returns the configured name of the catalog. */
 export const resolveCatalogTitle = (): string =>
   (import.meta.env.VITE_APP_TITLE ?? "").trim();
 
-/** Normalizes a server-provided health state into the supported UI union. */
+/** Unrecognized wire values become UNKNOWN; request failures are tracked separately. */
 const parseProductHealthStatus = (value: unknown): HealthStatus => {
   const normalized = String(value || "")
     .trim()
@@ -68,8 +65,11 @@ const parseProductHealthStatus = (value: unknown): HealthStatus => {
   return "unknown";
 };
 
-/** Fetches required catalog data and optional ownership and contact relationships. */
-export const loadCatalog = async (): Promise<{
+const OPTIONAL_CATALOG_TIMEOUT_MS = 3_000;
+
+export const loadCatalog = async (
+  signal?: AbortSignal,
+): Promise<{
   items: CatalogItem[];
   dependencies: CatalogDependency[];
   contacts: CatalogContact[];
@@ -87,13 +87,13 @@ export const loadCatalog = async (): Promise<{
     itemActorsData,
     actorContactsData,
   ] = await Promise.all([
-    loadRequiredJson("catalog/api/catalog/items"),
-    loadRequiredJson("catalog/api/catalog/dependencies"),
-    loadOptionalJson("catalog/api/catalog/contacts"),
-    loadOptionalJson("catalog/api/catalog/item-contacts"),
-    loadOptionalJson("catalog/api/catalog/actors"),
-    loadOptionalJson("catalog/api/catalog/item-actors"),
-    loadOptionalJson("catalog/api/catalog/actor-contacts"),
+    loadRequiredJson("catalog/api/catalog/items", signal),
+    loadRequiredJson("catalog/api/catalog/dependencies", signal),
+    loadOptionalJson("catalog/api/catalog/contacts", signal),
+    loadOptionalJson("catalog/api/catalog/item-contacts", signal),
+    loadOptionalJson("catalog/api/catalog/actors", signal),
+    loadOptionalJson("catalog/api/catalog/item-actors", signal),
+    loadOptionalJson("catalog/api/catalog/actor-contacts", signal),
   ]);
 
   const itemsPayload = itemsData as { items?: unknown };
@@ -119,7 +119,6 @@ export const loadCatalog = async (): Promise<{
   };
 };
 
-/** Converts raw catalog entries into typed Item records. */
 const normalizeItems = (rawItems: unknown): CatalogItem[] => {
   if (!Array.isArray(rawItems)) {
     return [];
@@ -144,13 +143,11 @@ const normalizeItems = (rawItems: unknown): CatalogItem[] => {
     .filter((item) => Boolean(item.id));
 };
 
-/** Trims optional description fields and omits empty values. */
 const normalizeOptionalText = (value: unknown): string | undefined => {
   const text = typeof value === "string" ? value.trim() : "";
   return text || undefined;
 };
 
-/** Validates and normalizes dependency edges from the catalog. */
 const normalizeDependencies = (
   rawDependencies: unknown,
 ): CatalogDependency[] => {
@@ -171,7 +168,6 @@ const normalizeDependencies = (
     );
 };
 
-/** Converts raw contact records into typed contact entries. */
 const normalizeContacts = (rawContacts: unknown): CatalogContact[] => {
   if (!Array.isArray(rawContacts)) {
     return [];
@@ -196,7 +192,6 @@ const normalizeContacts = (rawContacts: unknown): CatalogContact[] => {
     .filter((contact) => Boolean(contact.id) && Boolean(contact.type));
 };
 
-/** Validates direct Item-to-contact relationships. */
 const normalizeItemContacts = (
   rawItemContacts: unknown,
 ): CatalogItemContact[] => {
@@ -217,7 +212,6 @@ const normalizeItemContacts = (
     );
 };
 
-/** Converts raw people and team records into typed actors. */
 const normalizeActors = (rawActors: unknown): CatalogActor[] => {
   if (!Array.isArray(rawActors)) {
     return [];
@@ -251,7 +245,6 @@ const normalizeActors = (rawActors: unknown): CatalogActor[] => {
     }));
 };
 
-/** Normalizes Item-to-actor relationships and ownership flags. */
 const normalizeItemActors = (rawItemActors: unknown): CatalogItemActor[] => {
   if (!Array.isArray(rawItemActors)) {
     return [];
@@ -285,7 +278,6 @@ const normalizeItemActors = (rawItemActors: unknown): CatalogItemActor[] => {
     );
 };
 
-/** Normalizes relationships between actors and their available contacts. */
 const normalizeActorContacts = (
   rawActorContacts: unknown,
 ): CatalogActorContact[] => {
@@ -315,7 +307,6 @@ const normalizeActorContacts = (
     );
 };
 
-/** Interprets supported boolean-like values from catalog fields. */
 const toBoolean = (value: unknown): boolean => {
   if (typeof value === "boolean") {
     return value;
@@ -335,43 +326,81 @@ const toBoolean = (value: unknown): boolean => {
   return false;
 };
 
-/** Checks whether a catalog actor role is supported by the UI. */
 const isSupportedActorType = (value: string): value is CatalogActor["type"] =>
   value === "owner" || value === "user" || value === "other";
 
-/** Fetches a required catalog endpoint and fails on non-successful responses. */
-const loadRequiredJson = async (path: string): Promise<unknown> => {
-  const response = await fetch(new URL(path, resolveBaseUrl()));
+const loadRequiredJson = async (
+  path: string,
+  signal?: AbortSignal,
+): Promise<unknown> => {
+  const response = await fetch(new URL(path, resolveBaseUrl()), { signal });
   if (!response.ok) {
     throw new Error(`Failed to load catalog data: ${response.status}`);
   }
   return (await response.json()) as unknown;
 };
 
-/** Fetches optional catalog data without blocking the required catalog. */
-const loadOptionalJson = async (path: string): Promise<unknown> => {
-  const response = await fetch(new URL(path, resolveBaseUrl()));
-  if (!response.ok) {
-    return {};
+/** Optional metadata must not hold catalog initialization open indefinitely. */
+const loadOptionalJson = async (
+  path: string,
+  signal?: AbortSignal,
+): Promise<unknown> => {
+  const controller = new AbortController();
+  const abort = () => controller.abort();
+  signal?.addEventListener("abort", abort, { once: true });
+  if (signal?.aborted) {
+    controller.abort();
   }
-  return (await response.json()) as unknown;
+  const timeoutId = window.setTimeout(
+    () => controller.abort(),
+    OPTIONAL_CATALOG_TIMEOUT_MS,
+  );
+  try {
+    const response = await fetch(new URL(path, resolveBaseUrl()), {
+      signal: controller.signal,
+    });
+    if (!response.ok) {
+      return {};
+    }
+    const payload = (await response.json()) as unknown;
+    if (
+      payload !== null &&
+      typeof payload === "object" &&
+      !Array.isArray(payload)
+    ) {
+      return payload;
+    }
+    return {};
+  } catch (error) {
+    if (!signal?.aborted) {
+      console.warn(`Optional catalog data unavailable: ${path}`, error);
+    }
+    return {};
+  } finally {
+    window.clearTimeout(timeoutId);
+    signal?.removeEventListener("abort", abort);
+  }
 };
 
-/** Retrieves current server-computed Item statuses and signal/dependency facts. */
-export const fetchProductHealth = async (): Promise<{
+export const fetchProductHealth = async (
+  signal?: AbortSignal,
+): Promise<{
   items: ProductHealthItem[];
   itemStatuses: Record<string, HealthStatus>;
   itemSignals: Record<string, ItemSignal[]>;
 }> => {
   const response = await fetch(
     new URL("api/product-health/items", resolveBaseUrl()),
+    { signal },
   );
   if (!response.ok) {
     throw new Error(`Failed to load product health: ${response.status}`);
   }
   const payload = (await response.json()) as unknown;
-  const rawItems = Array.isArray(payload) ? payload : [];
-  const items = rawItems
+  if (!Array.isArray(payload)) {
+    throw new Error("Invalid Product Health response");
+  }
+  const items = payload
     .map(normalizeProductHealthItem)
     .filter((item): item is ProductHealthItem => Boolean(item));
   const itemStatuses: Record<string, HealthStatus> = {};
@@ -383,7 +412,6 @@ export const fetchProductHealth = async (): Promise<{
   return { items, itemStatuses, itemSignals };
 };
 
-/** Maps one Product Health response Item to the UI data contract. */
 const normalizeProductHealthItem = (
   rawItem: unknown,
 ): ProductHealthItem | null => {
@@ -407,7 +435,6 @@ const normalizeProductHealthItem = (
   };
 };
 
-/** Maps health signals while preserving their reported states. */
 const normalizeProductHealthSignals = (rawSignals: unknown): ItemSignal[] => {
   if (!Array.isArray(rawSignals)) {
     return [];
@@ -422,7 +449,6 @@ const normalizeProductHealthSignals = (rawSignals: unknown): ItemSignal[] => {
     .filter((signal) => Boolean(signal.id));
 };
 
-/** Maps dependency health information returned for an Item. */
 const normalizeProductHealthDependencies = (
   rawDependencies: unknown,
 ): ProductHealthItem["dependencies"] => {
@@ -440,7 +466,6 @@ const normalizeProductHealthDependencies = (
     .filter((dependency) => Boolean(dependency.itemId));
 };
 
-/** Submits a question to the optional AI agent and interprets its response. */
 export const askAgent = async (question: string): Promise<AgentAskResponse> => {
   const response = await fetch("/api/agent/ask", {
     method: "POST",
@@ -473,7 +498,7 @@ export const askAgent = async (question: string): Promise<AgentAskResponse> => {
   };
 };
 
-/** Removes unsupported model formatting before showing assistant text. */
+/** Strip model reasoning tags and their contents from the displayed answer. */
 const sanitizeAgentAnswer = (value: unknown): string => {
   const text = String(value || "").trim();
   if (!text) {
@@ -489,7 +514,6 @@ const sanitizeAgentAnswer = (value: unknown): string => {
     .trim();
 };
 
-/** Normalizes structured agent results for deterministic UI rendering. */
 const normalizeAgentStructuredContent = (
   rawContent: unknown,
 ): AgentStructuredContent | null => {
@@ -511,7 +535,6 @@ const normalizeAgentStructuredContent = (
   };
 };
 
-/** Converts the collection of Item health facts in an agent result. */
 const normalizeAgentHealthItems = (
   rawItems: unknown,
 ): AgentHealthItemContent[] => {
@@ -523,7 +546,6 @@ const normalizeAgentHealthItems = (
     .filter((item): item is AgentHealthItemContent => Boolean(item));
 };
 
-/** Converts one agent-provided health Item to its UI representation. */
 const normalizeAgentHealthItem = (
   rawItem: unknown,
 ): AgentHealthItemContent | null => {
@@ -549,7 +571,6 @@ const normalizeAgentHealthItem = (
   };
 };
 
-/** Maps agent-provided signals to typed facts without recalculating their health. */
 const normalizeAgentHealthSignals = (
   rawSignals: unknown,
 ): AgentHealthSignalContent[] => {
@@ -572,7 +593,6 @@ const normalizeAgentHealthSignals = (
     .filter((signal) => Boolean(signal.id));
 };
 
-/** Maps reported affected dependencies and their signals into typed facts. */
 const normalizeAgentHealthDependencies = (
   rawDependencies: unknown,
 ): AgentHealthDependencyContent[] => {

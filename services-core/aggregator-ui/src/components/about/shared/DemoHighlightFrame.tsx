@@ -1,4 +1,4 @@
-/** @file Draws selection highlights over animated SVG or HTML previews. */
+/** @file Provides matching selection highlights for SVG illustrations and HTML Item previews. */
 
 import type { CSSProperties } from "react";
 import "./DemoHighlightFrame.css";
@@ -18,7 +18,6 @@ type DemoHighlightFrameProps = {
   "data-timeline-dependency-highlight"?: string;
 };
 
-/** One selection treatment for SVG projections and HTML Item previews. */
 export default function DemoHighlightFrame({
   mode = "svg",
   x,

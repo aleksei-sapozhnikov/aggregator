@@ -1,13 +1,18 @@
 # Catalog navigation
 
-`CatalogTree.tsx` presents a dependency tree and search results. It renders
-service-reported statuses without computing health.
+The catalog combines a dependency tree with search and autocomplete.
+`useCatalogNavigation` owns search, branch expansion, and scroll targets;
+`CatalogTree` presents that state and the reported health indicators.
 
-`useCatalogNavigation.ts` owns filtering, autocomplete, branch expansion,
-and scroll targets. `useCatalogSelectionSync.ts` responds to Item selection
-from elsewhere in the app; it restores the correct branch after search and
-scrolls to the selected node.
+An Item can occur in several branches. Selection and links need the occurrence's
+path, not just its Item ID. Browser routes belong to
+[`useItemNavigation`](../../app/README.md#item-routing).
 
-The same Item can occur under different dependency paths. Keep path-aware
-navigation and browser history in `src/app/hooks/useItemNavigation.ts`; the
-tree must not invent new Item health states.
+`useCatalogSelectionSync` connects selection to tree effects after navigation
+or clearing search. Keeping this integration separate lets the routing and
+catalog hooks share state through the app without importing each other.
+Scrolling waits for the selected row to be rendered and measurable.
+
+Tree construction in `src/shared/catalog/tree.ts` stops cycles along each
+path and adds fallback roots for otherwise unreachable Items, keeping cyclic
+catalog groups visible.

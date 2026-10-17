@@ -1,4 +1,4 @@
-/** @file Adapts the replaceable Timeline view to an Item details section. */
+/** @file Fits the Timeline into Item details and keeps Grafana integration behind a provider-independent interface. */
 
 import { useEffect, useState } from "react";
 import type { RefObject } from "react";
@@ -15,7 +15,6 @@ type TimelineSectionProps = {
   headerRef: RefObject<HTMLElement | null>;
 };
 
-/** Provider-independent timeline boundary. Its implementation may replace Grafana. */
 export default function TimelineSection({
   itemId,
   expanded,
@@ -26,7 +25,6 @@ export default function TimelineSection({
 }: TimelineSectionProps) {
   const [height, setHeight] = useState(0);
   useEffect(() => {
-    /** Fits the Timeline to the available viewport below the fixed header. */
     const updateHeight = () => {
       if (!contentRef.current || !headerRef.current) return;
       const styles = window.getComputedStyle(contentRef.current);

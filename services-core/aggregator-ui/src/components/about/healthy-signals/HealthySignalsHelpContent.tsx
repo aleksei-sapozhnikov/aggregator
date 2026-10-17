@@ -7,7 +7,6 @@ export const healthySignalsHelp = {
   summary: "These checks are working as expected.",
 };
 
-/** Renders the shared summary, explanation, and healthy-signal illustration. */
 export default function HealthySignalsHelpContent() {
   return (
     <>

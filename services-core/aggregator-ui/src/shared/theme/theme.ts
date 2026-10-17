@@ -1,11 +1,9 @@
-/** @file Defines supported UI themes and persistence keys. */
+/** @file Defines supported themes, saved preferences, and the initial system-theme fallback. */
 
-/** The application's single theme type and persistence policy. */
 export type Theme = "dark" | "light";
 
 export const THEME_STORAGE_KEY = "aggregator-ui-theme";
 
-/** Loads the stored theme or falls back to the preferred system appearance. */
 export function getInitialTheme(): Theme {
   const stored = localStorage.getItem(THEME_STORAGE_KEY);
   if (stored === "dark" || stored === "light") return stored;
@@ -14,6 +12,5 @@ export function getInitialTheme(): Theme {
     : "light";
 }
 
-/** Returns the alternative light/dark theme. */
 export const nextTheme = (theme: Theme): Theme =>
   theme === "dark" ? "light" : "dark";

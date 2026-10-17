@@ -1,8 +1,7 @@
-/** @file Renders the shared help icon trigger. */
+/** @file Provides the help button shared by live topics and passive demonstrations. */
 
 import type { ButtonHTMLAttributes, Ref } from "react";
 
-/** The same help affordance can be displayed without mounting a help dialog. */
 export default function InfoHelpButton({
   label,
   buttonRef,

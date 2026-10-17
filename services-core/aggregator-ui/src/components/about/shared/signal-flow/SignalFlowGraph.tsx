@@ -105,7 +105,6 @@ const edges: FlowEdge[] = [
   },
 ];
 
-/** Renders the illustrative dependency graph, including failure and recovery waves. */
 export default function SignalFlowGraph({
   unhealthy,
   compact,
@@ -217,7 +216,7 @@ export default function SignalFlowGraph({
         })}
 
         {nodes.map((node) => {
-          // Keep the Item and its affected dependencies mounted through the morph.
+          // The moving overlay owns these nodes throughout the morph.
           if (
             unhealthy &&
             (node.id === "item" || node.id === "dep1" || node.id === "nested1")

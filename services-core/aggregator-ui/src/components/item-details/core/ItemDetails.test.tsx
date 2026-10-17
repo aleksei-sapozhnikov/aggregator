@@ -130,6 +130,9 @@ type TestPageProps = ComponentProps<typeof ItemDetails> & {
   contentTitlePrimaryRef: ComponentProps<
     typeof AppLayout
   >["contentTitlePrimaryRef"];
+  connectionStatus?: ComponentProps<typeof AppLayout>["connectionStatus"];
+  lastSuccessfulFetchAt?: number | null;
+  disconnectedDetectedAt?: number | null;
 };
 
 function TestPage(props: TestPageProps) {
@@ -149,6 +152,9 @@ function TestPage(props: TestPageProps) {
       onOpenAbout={() => {}}
       selectedItem={props.selectedItem}
       selectedStatus={props.selectedStatus}
+      connectionStatus={props.connectionStatus}
+      lastSuccessfulFetchAt={props.lastSuccessfulFetchAt}
+      disconnectedDetectedAt={props.disconnectedDetectedAt}
       lastUpdated={props.lastUpdated}
       selectedTitleFirstWord={props.selectedTitleFirstWord}
       selectedTitleRest={props.selectedTitleRest}
@@ -229,6 +235,25 @@ const renderDetailsPanel = (overrides: Partial<TestPageProps> = {}) => {
     ...render(<TestPage {...props} />),
   };
 };
+
+describe("ItemDetails health freshness", () => {
+  it("keeps reported signals visible during an outage without a duplicate warning", () => {
+    renderDetailsPanel({
+      connectionStatus: "disconnected",
+      lastSuccessfulFetchAt: Date.parse("2026-10-17T15:42:10Z"),
+      disconnectedDetectedAt: Date.parse("2026-10-17T15:42:20Z"),
+    });
+
+    expect(screen.getByRole("status").textContent).toContain("DISCONNECTED");
+    expect(screen.getByText("Unhealthy signals (2)")).not.toBeNull();
+    expect(screen.getByText("Latency")).not.toBeNull();
+    expect(screen.getByText("Errors")).not.toBeNull();
+    expect(
+      screen.queryByText("Last known signals. Current health is unavailable."),
+    ).toBeNull();
+    expect(screen.queryByText("Disconnected signals")).toBeNull();
+  });
+});
 
 describe("ItemDetails contextual help", () => {
   it("reflects shared markup changes in production and every help scene", () => {
