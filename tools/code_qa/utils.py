@@ -48,7 +48,7 @@ def build_emitter(
         handle = out_path.open(mode, encoding="utf-8")
 
     def emit(message: str) -> None:
-        print(message)
+        print(message, flush=True)
         if handle:
             handle.write(message + "\n")
 

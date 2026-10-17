@@ -202,6 +202,19 @@ class OrchestratorFlowTests(unittest.TestCase):
         self.assertIn("Ruff violation 24", output.getvalue())
         self.assertIn("Prettier violation", output.getvalue())
 
+    def test_emitter_flushes_console_messages(self) -> None:
+        with patch("builtins.print") as print_message:
+            emit, _, close = utils.build_emitter("")
+            try:
+                emit("Testing aggregator.. OK")
+                emit("Testing catalog.. OK")
+            finally:
+                close()
+
+        self.assertEqual(print_message.call_count, 2)
+        print_message.assert_any_call("Testing aggregator.. OK", flush=True)
+        print_message.assert_any_call("Testing catalog.. OK", flush=True)
+
     def test_test_output_is_streamed_without_truncation(self) -> None:
         process = MagicMock()
         process.stdout = iter(["Starting tests\n", "one passed\n", "two passed\n"])
