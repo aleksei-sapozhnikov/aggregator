@@ -398,7 +398,7 @@ describe("Timeline help walkthrough", () => {
     expect(screen.queryByLabelText("Timeline status colors")).toBeNull();
   });
 
-  it("moves the filter cursor smoothly from the selector to each option and back", () => {
+  it("moves the filter cursor smoothly to each option and back", () => {
     const visits = [
       { opensAt: 950, selectedAt: 1800, targetY: 134 },
       { opensAt: 4550, selectedAt: 5400, targetY: 172 },
@@ -409,7 +409,8 @@ describe("Timeline help walkthrough", () => {
       expect(getFilterCursorTop(opensAt - 20)).toBe(65);
       expect(getFilterCursorTop(opensAt)).toBe(65);
       expect(getFilterCursorTop(opensAt + 100)).toBe(65);
-      const midpoint = Math.round((opensAt + 100 + selectedAt - 250) / 40) * 20;
+      const midpoint =
+        Math.round((opensAt + 100 + selectedAt - 250) / 40) * 20;
       const between = getFilterCursorTop(midpoint);
       expect(between).toBeGreaterThan(Math.min(65, targetY));
       expect(between).toBeLessThan(Math.max(65, targetY));
@@ -431,7 +432,9 @@ describe("Timeline help walkthrough", () => {
     expect(cursor.style.top).toBe("14px");
     advance(960);
     expect(cursor.style.top).toBe("65px");
-    expect(within(preview).getByLabelText("Available signal groups")).not.toBeNull();
+    expect(
+      within(preview).getByLabelText("Available signal groups"),
+    ).not.toBeNull();
     advance(380);
     const moving = Number.parseFloat(cursor.style.top);
     expect(moving).toBeGreaterThan(65);
