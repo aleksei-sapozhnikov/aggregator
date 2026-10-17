@@ -1,3 +1,5 @@
+/** @file Renders a disclosure heading while guarding against accidental drag toggles. */
+
 import { useRef } from "react";
 import type { PointerEvent, ReactNode } from "react";
 
@@ -9,6 +11,7 @@ type PointerState = {
   suppressClick: boolean;
 };
 
+/** Presents selected text for the shared UI. */
 const selectedText = () => window.getSelection?.()?.toString() || "";
 
 /** Selection and dragging must not accidentally toggle a disclosure. */

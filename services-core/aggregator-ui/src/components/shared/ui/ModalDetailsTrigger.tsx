@@ -1,3 +1,5 @@
+/** @file Renders a consistent detail link/button for entity dialogs. */
+
 import type { MouseEvent, ReactNode } from "react";
 
 type TriggerBaseProps = {
