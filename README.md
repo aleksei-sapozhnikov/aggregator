@@ -17,19 +17,26 @@ Open the live demo: https://aggregator.alivion.cc
 The demo changes automatically: sample services periodically fail and recover,
 making their impact visible across products and dependencies.
 
+The catalog tree and item headers use these health indicators:
+
+- **✓ UP** (green) - Working normally.
+- **× DOWN** (red) - This item or a service it needs has a problem.
+- **? UNKNOWN** (yellow) - There is not enough information to determine its health.
+
 What to look at:
 
 - The dependency tree on the left shows the current health of products,
   services, and shared components.
 - Select any item to inspect its health signals and dependencies, see who owns
   it, and find the available contact channels.
-- On a `DOWN` item, the `Affecting now` section shows the signals currently
-  responsible for its state and separates its own failed checks from failures
-  inherited from dependencies.
+- The `Unhealthy signals` section shows affected checks on the item and its
+  dependencies, helping you trace where a problem comes from.
 - Select an affected dependency to jump directly to its details, even when it
   is several levels below the product in the dependency tree.
-- The timeline and dashboards show recent state changes, Prometheus metrics,
-  and Grafana panels.
+- The `Timeline` shows health history, including dependency impact. Change the
+  time range or filter checks to explore what happened.
+- Use the help buttons beside section titles for short explanations and
+  animated examples.
 
 ---
 
