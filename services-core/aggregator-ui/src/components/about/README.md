@@ -48,6 +48,8 @@ Illustrations are organized by role in `about/shared/characters/{owner,user,supp
 Each role owns a standalone SVG with named base and animated layers, its own
 React renderer and gesture CSS. The generic `characters/shared/CharacterLayer`
 composes SVG layers without choosing a role or inheriting character drawings.
+Sprite imports use Vite's `?no-inline` option because SVG `<use>` fragment
+references require a separately emitted file, not a small inlined data URL.
 User waves a phone, Owner carries the repair wrench, and Support adjusts a
 call-center headset. The same assets are reused in Actors and Primary contact. The service
 machine has one SVG with an `unhealthy` parameter that switches its lamp

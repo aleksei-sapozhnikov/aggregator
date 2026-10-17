@@ -1,5 +1,5 @@
 import CharacterLayer from "../shared/CharacterLayer";
-import asset from "./SupportCharacter.svg";
+import asset from "./SupportCharacter.svg?no-inline";
 import "./SupportCharacter.css";
 
 export default function SupportCharacter() {

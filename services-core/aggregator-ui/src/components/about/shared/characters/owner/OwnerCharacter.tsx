@@ -1,5 +1,5 @@
 import CharacterLayer from "../shared/CharacterLayer";
-import asset from "./OwnerCharacter.svg";
+import asset from "./OwnerCharacter.svg?no-inline";
 import "./OwnerCharacter.css";
 
 export default function OwnerCharacter({

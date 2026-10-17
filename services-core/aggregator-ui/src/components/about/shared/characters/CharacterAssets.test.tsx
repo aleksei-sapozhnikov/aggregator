@@ -6,10 +6,13 @@ import { cleanup, render } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import OwnerCharacter from "./owner/OwnerCharacter";
 import ownerArtwork from "./owner/OwnerCharacter.svg?raw";
+import ownerAssetUrl from "./owner/OwnerCharacter.svg?no-inline";
 import UserCharacter from "./user/UserCharacter";
 import userArtwork from "./user/UserCharacter.svg?raw";
+import userAssetUrl from "./user/UserCharacter.svg?no-inline";
 import SupportCharacter from "./support/SupportCharacter";
 import supportArtwork from "./support/SupportCharacter.svg?raw";
+import supportAssetUrl from "./support/SupportCharacter.svg?no-inline";
 
 afterEach(cleanup);
 
@@ -35,6 +38,13 @@ describe("Independent character SVG assets", () => {
     expect(markup).not.toContain("DemoCharacter");
     expect(document.documentElement.getAttribute("aria-label")).toBeNull();
     expect(role.length).toBeGreaterThan(0);
+  });
+
+  it("emits external SVG files instead of inlining fragment assets", () => {
+    for (const url of [ownerAssetUrl, userAssetUrl, supportAssetUrl]) {
+      expect(url).not.toMatch(/^data:/);
+      expect(url).toContain(".svg");
+    }
   });
 
   it("composes Owner's own image with an independently animated wrench", () => {
