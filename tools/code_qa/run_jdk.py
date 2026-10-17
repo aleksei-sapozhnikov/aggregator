@@ -177,11 +177,13 @@ def bootstrap_temurin(root: Path) -> Path | None:
                 "jdk.zip" if sys.platform == "win32" else "jdk.tar.gz"
             )
             digest = hashlib.sha256()
-            with urllib.request.urlopen(url, timeout=120) as response:
-                with archive_path.open("wb") as output:
-                    while chunk := response.read(1024 * 1024):
-                        digest.update(chunk)
-                        output.write(chunk)
+            with (
+                urllib.request.urlopen(url, timeout=120) as response,
+                archive_path.open("wb") as output,
+            ):
+                while chunk := response.read(1024 * 1024):
+                    digest.update(chunk)
+                    output.write(chunk)
             if digest.hexdigest() != checksum:
                 raise ValueError("Temurin SHA-256 checksum verification failed")
 
