@@ -402,7 +402,7 @@ export default function PrimaryContactHelpDemo() {
           role="img"
           aria-label="A service goes down; a person opens Aggregator on a laptop, finds the primary contact, calls the responsible technician, and the service is restored"
         >
-          <g aria-hidden="true">
+          <g aria-hidden="true" style={{ opacity: 1 - frame.pageOpacity }}>
             <g
               data-primary-contact-scene="true"
               transform={

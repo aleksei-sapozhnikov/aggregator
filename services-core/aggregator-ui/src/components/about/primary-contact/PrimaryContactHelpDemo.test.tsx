@@ -150,6 +150,27 @@ describe("Primary contact contextual help", () => {
     expect(figure?.querySelectorAll("img")).toHaveLength(0);
   });
 
+  it("briefly overlays the full cast without leaving characters peeking out", () => {
+    vi.useFakeTimers();
+    const { container } = render(<PrimaryContactHelpDemo />);
+    const illustration = container.querySelector(
+      '[data-primary-contact-scene="true"]',
+    )?.parentElement as SVGElement;
+    const page = container.querySelector(
+      "[data-primary-contact-page]",
+    ) as HTMLElement;
+    expect(illustration.style.opacity).toBe("1");
+    expect(page.style.opacity).toBe("0");
+
+    act(() => vi.advanceTimersByTime(5350));
+    expect(illustration.style.opacity).toBe("0");
+    expect(page.style.opacity).toBe("1");
+
+    act(() => vi.advanceTimersByTime(2350));
+    expect(illustration.style.opacity).toBe("1");
+    expect(page.style.opacity).toBe("0");
+  });
+
   it("renders the page and moving contact as production HTML beside the illustrative SVG", () => {
     render(<PrimaryContactHelpDemo />);
     const page = document.querySelector(
