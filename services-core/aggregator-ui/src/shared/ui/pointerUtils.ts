@@ -1,3 +1,5 @@
+/** @file Identifies plain pointer navigation clicks without modifier keys. */
+
 type PlainLeftClickEvent = {
   button: number;
   defaultPrevented: boolean;
@@ -7,6 +9,7 @@ type PlainLeftClickEvent = {
   altKey: boolean;
 };
 
+/** Checks whether an interaction should navigate within the SPA. */
 export const isPlainLeftClick = (event: PlainLeftClickEvent): boolean =>
   event.button === 0 &&
   !event.defaultPrevented &&

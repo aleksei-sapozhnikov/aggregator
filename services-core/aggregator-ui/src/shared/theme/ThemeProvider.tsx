@@ -1,3 +1,5 @@
+/** @file Provides persistent global theme state to React consumers. */
+
 import {
   createContext,
   useCallback,
@@ -33,6 +35,7 @@ export default function ThemeProvider({ children }: { children: ReactNode }) {
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 
+/** Returns the current theme context and its update function. */
 export function useTheme(): ThemeContextValue {
   const value = useContext(ThemeContext);
   if (!value) {

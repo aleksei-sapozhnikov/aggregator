@@ -1,3 +1,5 @@
+/** @file Shares tooltip and modal lifecycle assertions across UI tests. */
+
 /**
  * Shared assertions for the reusable help UI behavior.
  * Test-only utilities; application components must not import this module.
@@ -5,6 +7,7 @@
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { expect } from "vitest";
 
+/** Provides expect decorative scene shield for UI consumers. */
 export function expectDecorativeSceneShield(figure: HTMLElement): void {
   const shield = figure.querySelector(".help-interaction-shield");
   expect(shield).not.toBeNull();
@@ -16,6 +19,7 @@ export function expectDecorativeSceneShield(figure: HTMLElement): void {
   expect(figure.querySelector(".help-animation-progress")).not.toBeNull();
 }
 
+/** Provides open help dialog from hover for UI consumers. */
 export function openHelpDialogFromHover(trigger: HTMLElement): void {
   trigger.focus();
   expect(screen.queryByRole("tooltip")).toBeNull();
@@ -27,6 +31,7 @@ export function openHelpDialogFromHover(trigger: HTMLElement): void {
   expect(screen.queryByRole("tooltip")).toBeNull();
 }
 
+/** Provides expect tooltip after modal close for UI consumers. */
 export async function expectTooltipAfterModalClose(
   trigger: HTMLElement,
 ): Promise<void> {

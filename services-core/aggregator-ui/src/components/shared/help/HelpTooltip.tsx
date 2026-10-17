@@ -1,3 +1,5 @@
+/** @file Positions accessible help text beside a trigger within viewport bounds. */
+
 import { useLayoutEffect, useRef, useState } from "react";
 import type { ReactNode, RefObject } from "react";
 import { createPortal } from "react-dom";

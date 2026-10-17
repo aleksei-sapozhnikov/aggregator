@@ -1,3 +1,5 @@
+/** @file Resolves help topics and opens their dialogs from item/section help buttons. */
+
 import { useContext, useId, useRef, useState } from "react";
 import { HelpContext, type HelpTopic } from "./HelpContext";
 import InfoHelpButton from "./InfoHelpButton";
