@@ -34,7 +34,11 @@ function HealthySignalHighlights({
   selectionOpacity: number;
   linkOpacity: number;
 }) {
-  const itemTarget = getSignalHighlightBounds(targets.item, 4);
+  const itemTarget = {
+    ...getSignalHighlightBounds(targets.item),
+    y: targets.item.y - 5,
+    height: targets.item.height + 10,
+  };
 
   return (
     <>
