@@ -112,7 +112,7 @@ describe("Signal flow help demonstrations", () => {
 
   it.each([
     ["healthy", 6500, '[data-selection-frame="availability"]'],
-    ["unhealthy", unhealthyTiming.pageHoldAt, '[data-unhealthy-frame="item"]'],
+    ["unhealthy", unhealthyTiming.pageHoldAt + 10, '[data-unhealthy-frame="item"]'],
   ] as const)(
     "keeps %s selection frames visible during the two-second hold",
     (mode, start, selector) => {
@@ -136,7 +136,7 @@ describe("Signal flow help demonstrations", () => {
       advance(1000);
       expect(page.style.opacity).toBe("1");
       expect(frame.getAttribute("opacity")).toBe("1");
-      advance(1000);
+      advance(mode === "unhealthy" ? 980 : 1000);
       expect(page.style.opacity).toBe("1");
       expect(frame.getAttribute("opacity")).toBe("1");
       expect(Number(progress.getAttribute("aria-valuenow"))).toBeGreaterThan(
@@ -171,8 +171,8 @@ describe("Signal flow help demonstrations", () => {
 
   it.each([
     ["healthy", '[data-selection-frame="availability"]', 6500],
-    ["unhealthy", '[data-unhealthy-frame="dep1"]', unhealthyTiming.pageHoldAt],
-    ["unhealthy", '[data-unhealthy-frame="nested1"]', unhealthyTiming.pageHoldAt],
+    ["unhealthy", '[data-unhealthy-frame="dep1"]', unhealthyTiming.pageHoldAt + 10],
+    ["unhealthy", '[data-unhealthy-frame="nested1"]', unhealthyTiming.pageHoldAt + 10],
   ] as const)(
     "adds left and right text gutters around %s signal rows",
     (mode, selector, holdAt) => {

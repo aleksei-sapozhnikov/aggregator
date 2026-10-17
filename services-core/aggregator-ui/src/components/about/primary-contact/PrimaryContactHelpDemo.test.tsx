@@ -52,7 +52,8 @@ describe("Primary contact contextual help", () => {
     ).not.toBeNull();
     expect(
       container.querySelector('[data-scene-label="Service"]'),
-    ).not.toBeNull();
+    ).toBeNull();
+    expect(container.querySelectorAll(".demo-wood-label")).toHaveLength(2);
     expect(
       caller?.querySelector('[data-demo-character="user"] [data-scene-label]'),
     ).toBeNull();
@@ -131,6 +132,8 @@ describe("Primary contact contextual help", () => {
     const [, , width, height] = compactLayout.viewBox.split(" ").map(Number);
     expect(width).toBe(540);
     expect(height).toBeLessThan(340);
+    const [left] = compactLayout.viewBox.split(" ").map(Number);
+    expect(compactLayout.pageX).toBe(left + 12);
     expect(figure?.querySelector("[data-primary-contact-page]")).not.toBeNull();
     expect(
       figure?.querySelector("[data-primary-contact-transfer]"),

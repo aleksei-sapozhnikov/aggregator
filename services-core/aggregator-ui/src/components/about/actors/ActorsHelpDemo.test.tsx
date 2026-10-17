@@ -94,13 +94,13 @@ describe("Actors contextual help animation", () => {
       Array.from(figure.querySelectorAll("[data-scene-label]"), (label) =>
         label.getAttribute("data-scene-label"),
       ).sort(),
-    ).toEqual(["Owner", "Service", "Support", "User"]);
+    ).toEqual(["Owner", "Support", "User"]);
     expect(
       figure.querySelector(
-        "[data-service='item'] [data-scene-label='Service']",
+        "[data-service='item'] [data-scene-label]",
       ),
-    ).not.toBeNull();
-    expect(figure.querySelectorAll(".demo-wood-label")).toHaveLength(4);
+    ).toBeNull();
+    expect(figure.querySelectorAll(".demo-wood-label")).toHaveLength(3);
     for (const [id, role] of [
       ["owner", "Owner"],
       ["user", "User"],
