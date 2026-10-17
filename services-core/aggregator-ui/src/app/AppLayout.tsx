@@ -6,7 +6,7 @@ import HealthConnectionBanner from "./HealthConnectionBanner";
 import ItemTitle from "../components/shared/item/ItemTitle";
 import type {
   CatalogItem,
-  DisplayHealthStatus,
+  HealthStatus,
   HealthConnectionStatus,
 } from "../shared/types";
 
@@ -26,7 +26,7 @@ type AppLayoutProps = {
   onToggleAiChat: () => void;
   onOpenAbout: () => void;
   selectedItem: CatalogItem | undefined;
-  selectedStatus: DisplayHealthStatus;
+  selectedStatus: HealthStatus;
   lastUpdated: string;
   hasHealthSnapshot?: boolean;
   isLastKnownHealth?: boolean;

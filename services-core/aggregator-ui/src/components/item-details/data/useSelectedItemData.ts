@@ -18,7 +18,7 @@ import type {
   CatalogItemActor,
   CatalogTreeNode,
   FailingDependencyEntry,
-  DisplayHealthStatus,
+  HealthStatus,
   ItemSignal,
 } from "../../../shared/types";
 
@@ -53,7 +53,7 @@ type SelectedItemDataOptions = {
   selectedId: string;
   selectedNode: CatalogTreeNode | null;
   itemMap: Map<string, CatalogItem>;
-  itemStatuses: Record<string, DisplayHealthStatus>;
+  itemStatuses: Record<string, HealthStatus>;
   itemSignals: Record<string, ItemSignal[]>;
   catalog: ItemCatalogRelations;
   openedActorId: string;

@@ -7,7 +7,7 @@ import { isPlainLeftClick } from "../../shared/ui/pointerUtils";
 import { buildStatusText } from "../../shared/health/healthPresentation";
 import type {
   CatalogTreeNode,
-  DisplayHealthStatus,
+  HealthStatus,
   SearchAutocompleteOption,
   SearchResult,
 } from "../../shared/types";
@@ -20,8 +20,8 @@ type CatalogNodeProps = {
   basePath: string;
   expandedIds: Set<string>;
   onToggleNode: (node: CatalogTreeNode) => void;
-  status: DisplayHealthStatus;
-  statuses: Record<string, DisplayHealthStatus>;
+  status: HealthStatus;
+  statuses: Record<string, HealthStatus>;
   lastUpdated: string;
   hasHealthSnapshot: boolean;
   isLastKnownHealth: boolean;
@@ -52,7 +52,7 @@ type CatalogTreeProps = {
   basePath: string;
   onSelectItemById: (itemId: string) => void;
   onExpandPathToItem: (itemId: string) => void;
-  itemStatuses: Record<string, DisplayHealthStatus>;
+  itemStatuses: Record<string, HealthStatus>;
   lastUpdated: string;
   hasHealthSnapshot?: boolean;
   isLastKnownHealth?: boolean;
