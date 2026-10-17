@@ -62,7 +62,7 @@ export default function ActorModal({
       <div className="actor-modal">
         <div className="actor-modal-body">
           {descriptionParagraphs.length > 0 && (
-            <div className="actor-modal-description">
+            <div className="actor-modal-description modal-text-flow">
               {descriptionParagraphs.map((paragraph, index) => (
                 <p key={`${actor.id}-desc-${index}`}>{paragraph}</p>
               ))}
