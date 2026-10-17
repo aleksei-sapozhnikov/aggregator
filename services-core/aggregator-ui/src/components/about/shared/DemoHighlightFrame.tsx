@@ -12,6 +12,7 @@ type DemoHighlightFrameProps = {
   "data-selection-frame"?: string;
   "data-unhealthy-frame"?: string;
   "data-primary-contact-highlight"?: string;
+  "data-timeline-dependency-highlight"?: string;
 };
 
 /** One selection treatment for SVG projections and HTML Item previews. */

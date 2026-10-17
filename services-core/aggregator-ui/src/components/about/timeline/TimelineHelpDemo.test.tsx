@@ -26,7 +26,7 @@ describe("Timeline help walkthrough", () => {
     const { container } = render(<TimelineHelpDemo />);
     expect(
       container.querySelector(
-        ".timeline-help-content > .grafana-timeline-illustration",
+        ".timeline-help-chart-layer > .grafana-timeline-illustration",
       ),
     ).not.toBeNull();
     expect(container.querySelector(".details-timeline-body")).toBeNull();
@@ -330,6 +330,44 @@ describe("Timeline help walkthrough", () => {
     ).toBe("50%");
   });
 
+  it("moves the blue frame to the Item for two seconds, then returns", () => {
+    render(<TimelineHelpDemo />);
+    fireEvent.click(screen.getByRole("button", { name: "Open a dependency" }));
+    const preview = screen.getByLabelText("Example Timeline");
+    const frame = preview.querySelector(
+      "[data-timeline-dependency-highlight]",
+    ) as HTMLElement;
+    const chart = preview.querySelector(".timeline-help-chart-layer") as HTMLElement;
+    const item = preview.querySelector(".timeline-help-opened-item") as HTMLElement;
+    expect(frame.style.opacity).toBe("0");
+
+    advance(6600);
+    expect(frame.style.opacity).toBe("1");
+    expect(chart.style.opacity).toBe("1");
+    expect(item.style.opacity).toBe("0");
+    expect(within(preview).getByLabelText("Dependency signal details")).not.toBeNull();
+
+    advance(1200);
+    expect(Number(item.style.opacity)).toBeGreaterThan(0);
+    expect(Number(item.style.opacity)).toBeLessThan(1);
+    advance(400);
+    expect(item.style.opacity).toBe("1");
+    expect(chart.style.opacity).toBe("0");
+    const destinationX = frame.style.left;
+    advance(2000);
+    expect(item.style.opacity).toBe("1");
+    expect(frame.style.left).toBe(destinationX);
+
+    advance(450);
+    expect(Number(item.style.opacity)).toBeGreaterThan(0);
+    expect(Number(item.style.opacity)).toBeLessThan(1);
+    advance(450);
+    expect(item.style.opacity).toBe("0");
+    expect(chart.style.opacity).toBe("1");
+    advance(1500);
+    expect(frame.style.opacity).toBe("0");
+  });
+
   it("renders the destination Item with Timeline collapsed", () => {
     render(<TimelineHelpDemo />);
     fireEvent.click(screen.getByRole("button", { name: "Open a dependency" }));
@@ -378,18 +416,16 @@ describe("Timeline help walkthrough", () => {
       within(preview).queryByLabelText("Available signal groups"),
     ).toBeNull();
     expect(rowCount()).toBe(3);
-    expect(
-      preview.querySelectorAll(".timeline-help-track.is-highlighted"),
-    ).toHaveLength(2);
+    expect(preview.querySelectorAll(".timeline-help-track")).toHaveLength(3);
+    expect(preview.querySelector(".timeline-help-track.is-highlighted")).toBeNull();
     advance(2900);
     expect(
       within(preview).getByLabelText("Available signal groups"),
     ).not.toBeNull();
     advance(700);
     expect(rowCount()).toBe(4);
-    expect(
-      preview.querySelectorAll(".timeline-help-track.is-highlighted"),
-    ).toHaveLength(3);
+    expect(preview.querySelectorAll(".timeline-help-track")).toHaveLength(4);
+    expect(preview.querySelector(".timeline-help-track.is-highlighted")).toBeNull();
     expect(
       within(preview).getByText("[Overall] Orders Service"),
     ).not.toBeNull();

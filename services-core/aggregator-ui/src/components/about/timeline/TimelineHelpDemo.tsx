@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef, useState } from "react";
+import type { RefObject } from "react";
 import ItemTitle from "../../shared/item/ItemTitle";
 import ItemOwnership from "../../shared/item/ItemOwnership";
 import { HealthySignals } from "../../shared/item/ItemSignals";
@@ -62,7 +63,7 @@ export function getDependencyHighlightFrame(elapsed: number) {
 }
 
 function useDependencyHighlightBounds(
-  rootRef: React.RefObject<HTMLDivElement | null>,
+  rootRef: RefObject<HTMLDivElement | null>,
   scenario: Scenario,
 ) {
   const [bounds, setBounds] = useState(fallbackBounds);
@@ -78,7 +79,9 @@ function useDependencyHighlightBounds(
       const track = root.querySelector(
         '.timeline-help-track[data-timeline-row="payment"]',
       );
-      const title = root.querySelector(".timeline-help-opened-item .content-title");
+      const title = root.querySelector(
+        ".timeline-help-opened-item .content-title",
+      );
       if (!label || !track || !title) return;
       const origin = root.getBoundingClientRect();
       const labelRect = label.getBoundingClientRect();
@@ -111,7 +114,9 @@ function useDependencyHighlightBounds(
       typeof ResizeObserver !== "undefined" ? new ResizeObserver(measure) : null;
     if (observer) {
       observer.observe(root);
-      const title = root.querySelector(".timeline-help-opened-item .content-title");
+      const title = root.querySelector(
+        ".timeline-help-opened-item .content-title",
+      );
       if (title) observer.observe(title);
     }
     window.addEventListener("resize", measure);
@@ -172,8 +177,16 @@ export default function TimelineHelpDemo() {
   const highlight: HighlightBounds = {
     x: interpolate(targets.chart.x, targets.item.x, animation.towardItem),
     y: interpolate(targets.chart.y, targets.item.y, animation.towardItem),
-    width: interpolate(targets.chart.width, targets.item.width, animation.towardItem),
-    height: interpolate(targets.chart.height, targets.item.height, animation.towardItem),
+    width: interpolate(
+      targets.chart.width,
+      targets.item.width,
+      animation.towardItem,
+    ),
+    height: interpolate(
+      targets.chart.height,
+      targets.item.height,
+      animation.towardItem,
+    ),
   };
 
   return (

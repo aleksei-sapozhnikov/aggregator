@@ -29,7 +29,6 @@ export default function CatalogItemInfo({
   const [isTooltipVisible, setIsTooltipVisible] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-
   const shortDescription = normalizeDescription(item.shortDescription);
   const fullDescription = normalizeDescription(item.fullDescription);
   const hasShortDescription = Boolean(shortDescription);
@@ -52,7 +51,6 @@ export default function CatalogItemInfo({
 
     setIsTooltipVisible(true);
   };
-
 
   return (
     <span className="catalog-item-info">

@@ -110,6 +110,24 @@ describe("InfoHelp Actors example", () => {
   });
 });
 
+describe("InfoHelp shared tooltip", () => {
+  it("shows the summary and secondary click hint", () => {
+    render(
+      <ContextualHelpProvider>
+        <InfoHelp topicId="actors" />
+      </ContextualHelpProvider>,
+    );
+    fireEvent.mouseEnter(
+      screen.getByRole("button", { name: "About Actors" }),
+    );
+    const tooltip = screen.getByRole("tooltip");
+    expect(tooltip.textContent).toContain("Click for details");
+    expect(tooltip.querySelector(".help-tooltip-action")?.textContent).toBe(
+      "Click for details",
+    );
+  });
+});
+
 describe("InfoHelp tooltip lifecycle", () => {
   it.each(["Escape", "Close button", "Backdrop"] as const)(
     "does not reopen the tooltip after closing its modal via %s",
