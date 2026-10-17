@@ -1,5 +1,6 @@
 import type { HelpTopic } from "../shared/help/HelpContext";
 import ModalWindow from "../shared/ui/ModalWindow";
+import "./ContextualHelpDialog.css";
 
 export default function ContextualHelpDialog({
   topic,

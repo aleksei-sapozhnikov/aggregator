@@ -12,6 +12,7 @@ import {
 } from "../shared/demoData";
 import HelpAnimationProgress from "../shared/HelpAnimationProgress";
 import HelpInteractionShield from "../shared/HelpInteractionShield";
+import HelpAnimationCanvas from "../shared/HelpAnimationCanvas";
 import DemoWoodLabel from "../shared/DemoWoodLabel";
 import "./ActorsHelpDemo.css";
 
@@ -508,13 +509,14 @@ export default function ActorsHelpDemo() {
   const moving = frame.travel;
 
   return (
-    <figure
+    <HelpAnimationCanvas
       className={
         "actors-help-demo" +
         (reduceMotion ? " is-still" : "") +
         (illustrating ? " is-illustrating" : "")
       }
-      aria-label="Actors become Item ownership and relationship entries"
+      ariaLabel="Actors become Item ownership and relationship entries"
+      maxWidth={452}
     >
       <HelpAnimationProgress progress={elapsed / actorsHelpDuration} />
       <HelpScene width={420} height={310}>
@@ -615,6 +617,6 @@ export default function ActorsHelpDemo() {
         </svg>
       </HelpScene>
       <HelpInteractionShield />
-    </figure>
+    </HelpAnimationCanvas>
   );
 }

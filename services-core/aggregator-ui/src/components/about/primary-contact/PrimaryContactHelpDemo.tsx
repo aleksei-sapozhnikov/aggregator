@@ -16,6 +16,7 @@ import HelpAnimationProgress from "../shared/HelpAnimationProgress";
 import HelpInteractionShield from "../shared/HelpInteractionShield";
 import DemoHighlightFrame from "../shared/DemoHighlightFrame";
 import DemoWoodLabel from "../shared/DemoWoodLabel";
+import HelpAnimationCanvas from "../shared/HelpAnimationCanvas";
 import "./PrimaryContactHelpDemo.css";
 
 // HTML and SVG share scene coordinates, while the page uses production components.
@@ -601,9 +602,10 @@ export default function PrimaryContactHelpDemo() {
   const frame = getPrimaryContactHelpFrame(elapsed);
   const layout = getPrimaryContactHelpLayout(availableWidth);
   return (
-    <figure
+    <HelpAnimationCanvas
       className="primary-contact-help-demo"
-      aria-label="Find the primary contact in Aggregator to get a failing service repaired"
+      ariaLabel="Find the primary contact in Aggregator to get a failing service repaired"
+      maxWidth={660}
     >
       <HelpAnimationProgress
         progress={reduceMotion ? 0 : elapsed / primaryContactHelpDuration}
@@ -669,6 +671,6 @@ export default function PrimaryContactHelpDemo() {
         />
       </HelpScene>
       <HelpInteractionShield />
-    </figure>
+    </HelpAnimationCanvas>
   );
 }

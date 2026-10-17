@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import ItemTitle from "../../shared/item/ItemTitle";
 import ItemOwnership from "../../shared/item/ItemOwnership";
 import { HealthySignals } from "../../shared/item/ItemSignals";
-import ItemTimeline from "../../shared/item/ItemTimeline";
 import HelpAnimationProgress from "../shared/HelpAnimationProgress";
 import HelpInteractionShield from "../shared/HelpInteractionShield";
+import HelpAnimationCanvas from "../shared/HelpAnimationCanvas";
 import DemoHelp from "../shared/DemoHelp";
 import {
   demoIconSpriteHref,
@@ -16,7 +16,6 @@ import {
 import GrafanaTimelineIllustration, {
   type Scenario,
 } from "./GrafanaTimelineIllustration";
-import "../shared/HelpScene.css";
 import "./TimelineHelpDemo.css";
 
 export { getInspectCursorRow } from "./GrafanaTimelineIllustration";
@@ -113,7 +112,11 @@ export default function TimelineHelpDemo() {
           </button>
         ))}
       </nav>
-      <section className="timeline-help-preview" aria-label="Example Timeline">
+      <HelpAnimationCanvas
+        className="timeline-help-preview"
+        ariaLabel="Example Timeline"
+        maxWidth={840}
+      >
         <HelpAnimationProgress
           progress={reduceMotion ? 0 : elapsed / cycleDurations[scenario]}
         />
@@ -129,17 +132,15 @@ export default function TimelineHelpDemo() {
             {openedItem ? (
               <OpenedDependencyItem />
             ) : (
-              <ItemTimeline expanded help={<DemoHelp title="Timeline" />}>
-                <GrafanaTimelineIllustration
-                  scenario={scenario}
-                  elapsed={elapsed}
-                />
-              </ItemTimeline>
+              <GrafanaTimelineIllustration
+                scenario={scenario}
+                elapsed={elapsed}
+              />
             )}
           </div>
         </div>
         <HelpInteractionShield />
-      </section>
+      </HelpAnimationCanvas>
     </div>
   );
 }

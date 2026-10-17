@@ -1,0 +1,16 @@
+/* Text, animation and later prose blocks can be interleaved freely. */
+.info-help-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.info-help-modal > * {
+  min-width: 0;
+}
+
+.info-help-modal > .info-help-sections,
+.info-help-modal > .info-help-detail-list {
+  margin-top: 0;
+}

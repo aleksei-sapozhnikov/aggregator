@@ -1,17 +1,3 @@
-.signal-flow-help {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-  min-width: 0;
-  margin: 0;
-  padding: 10px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: transparent;
-  color: var(--text);
-}
-
 .signal-flow-help-diagram {
   display: block;
   width: 100%;
@@ -103,12 +89,6 @@
   fill: var(--status-down);
   font-size: 15px;
   font-weight: 800;
-}
-
-@media (max-width: 540px) {
-  .signal-flow-help {
-    padding: 5px;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
