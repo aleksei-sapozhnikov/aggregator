@@ -19,9 +19,9 @@ making their impact visible across products and dependencies.
 
 The catalog tree and item headers use these health indicators:
 
-- **✓ UP** (green) - Working normally.
-- **× DOWN** (red) - This item or a service it needs has a problem.
-- **? UNKNOWN** (yellow) - There is not enough information to determine its health.
+- ![Green check mark](docs/assets/status-up.svg) **UP** - Working normally.
+- ![Red cross](docs/assets/status-down.svg) **DOWN** - This item or a service it needs has a problem.
+- ![Yellow question mark](docs/assets/status-unknown.svg) **UNKNOWN** - There is not enough information to determine its health.
 
 What to look at:
 
