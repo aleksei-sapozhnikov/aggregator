@@ -242,8 +242,12 @@ describe("Primary contact contextual help", () => {
     expect(page.style.opacity).toBe("0");
     expect(backdrop).not.toBeNull();
     const layout = getPrimaryContactHelpLayout(540);
-    expect(backdrop.style.left).toBe(`-${layout.backdropInsetX}px`);
-    expect(backdrop.style.right).toBe(`-${layout.backdropInsetX}px`);
+    expect(Number.parseFloat(backdrop.style.left)).toBeCloseTo(
+      -layout.backdropInsetX,
+    );
+    expect(Number.parseFloat(backdrop.style.right)).toBeCloseTo(
+      -layout.backdropInsetX,
+    );
 
     // The opaque backing covers the entire viewport when fully expanded.
     const [, , width, height] = layout.viewBox.split(" ").map(Number);

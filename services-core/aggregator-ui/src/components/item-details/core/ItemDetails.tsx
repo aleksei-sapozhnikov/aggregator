@@ -7,7 +7,7 @@ import {
   UnhealthySignals,
   type UnhealthyDependencyRow,
 } from "../../shared/item/ItemSignals";
-import TimelineSection from "./timeline/TimelineSection";
+import TimelineSection from "../timeline/TimelineSection";
 import InfoHelp from "../../shared/help/InfoHelp";
 import { isPlainLeftClick } from "../../../shared/ui/pointerUtils";
 import type {
