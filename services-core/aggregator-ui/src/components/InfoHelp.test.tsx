@@ -11,7 +11,7 @@ import {
 } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import InfoHelp from "./InfoHelp";
-import type { InfoHelpTopic } from "../shared/infoHelpTopics";
+import { infoHelpTopics, type InfoHelpTopic } from "../shared/infoHelpTopics";
 
 const topic: InfoHelpTopic = {
   title: "Timeline",
@@ -22,6 +22,19 @@ const topic: InfoHelpTopic = {
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+});
+
+describe("InfoHelp signal examples", () => {
+  it.each([
+    ["healthySignals", "Healthy dependency signals example"],
+    ["unhealthySignals", "Unhealthy dependency propagation example"],
+  ] as const)("renders the %s animation in its existing contextual help dialog", (key, label) => {
+    render(<InfoHelp topic={infoHelpTopics[key]} />);
+    fireEvent.click(screen.getByRole("button", { name: "About " + infoHelpTopics[key].title }));
+    const dialog = screen.getByRole("dialog", { name: "About " + infoHelpTopics[key].title });
+    expect(dialog.querySelector("figure[aria-label='" + label + "']")).not.toBeNull();
+    expect(dialog.querySelectorAll("[data-flow-node]")).toHaveLength(6);
+  });
 });
 
 describe("InfoHelp tooltip lifecycle", () => {

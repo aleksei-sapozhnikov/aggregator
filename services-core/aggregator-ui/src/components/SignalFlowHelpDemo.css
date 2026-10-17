@@ -1,0 +1,247 @@
+.signal-flow-help {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  min-width: 0;
+  margin: 0;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+}
+
+.signal-flow-help-diagram {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.signal-flow-help-wire,
+.signal-flow-help-current,
+.signal-flow-help-propagation {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.signal-flow-help-wire {
+  stroke: var(--status-up);
+  stroke-width: 2.8;
+  opacity: 0.55;
+}
+
+.signal-flow-help-current {
+  stroke: var(--status-up);
+  stroke-width: 3.3;
+  stroke-dasharray: 4 13;
+  animation: signal-flow-help-current-move 1.35s linear infinite;
+}
+
+.signal-flow-help-current.is-red {
+  stroke: var(--status-down);
+}
+
+.signal-flow-help-propagation {
+  stroke: var(--status-down);
+  stroke-width: 3.5;
+}
+
+@keyframes signal-flow-help-current-move {
+  to { stroke-dashoffset: -34; }
+}
+
+.signal-flow-help-node-frame {
+  fill: var(--panel);
+  stroke: var(--status-up);
+  stroke-width: 2.4;
+  transition: stroke 220ms ease, fill 220ms ease;
+}
+
+.signal-flow-help-node.is-affected .signal-flow-help-node-frame {
+  stroke: var(--status-down);
+  fill: color-mix(in srgb, var(--status-down) 12%, var(--panel));
+}
+
+.signal-flow-help-node-title {
+  fill: var(--text);
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.signal-flow-help-checks {
+  fill: var(--status-up);
+  font-size: 19px;
+  font-weight: 800;
+}
+
+.signal-flow-help-impacted-label {
+  fill: var(--status-down);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.signal-flow-help-alarm path {
+  fill: color-mix(in srgb, var(--status-down) 15%, var(--panel));
+  stroke: var(--status-down);
+  stroke-width: 1.8;
+}
+
+.signal-flow-help-alarm text {
+  fill: var(--status-down);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+@media (max-width: 540px) {
+  .signal-flow-help {
+    padding: 5px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .signal-flow-help-current {
+    animation: none;
+    stroke-dasharray: none;
+    opacity: 0.5;
+  }
+  .signal-flow-help-node-frame {
+    transition: none;
+  }
+}
+
+
+/* Healthy signals: the graph, Item preview and moving checks share one
+   SVG coordinate system, so the motion scales with the diagram. */
+.signal-flow-help-graph,
+.signal-flow-help-page {
+  pointer-events: none;
+}
+
+.signal-flow-help-page-surface {
+  fill: var(--panel);
+  stroke: none;
+}
+
+.signal-flow-help-page-divider {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.signal-flow-help-page-status {
+  fill: var(--status-up);
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.signal-flow-help-page-title {
+  fill: var(--text);
+  font-size: 19px;
+  font-weight: 650;
+}
+
+.signal-flow-help-page-muted {
+  fill: var(--muted);
+  font-size: 12px;
+}
+
+.signal-flow-help-page-contact {
+  fill: var(--link);
+  font-size: 12px;
+}
+
+.signal-flow-help-page-heading {
+  fill: var(--text);
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.signal-flow-help-selection-frame {
+  fill: color-mix(in srgb, var(--link) 10%, transparent);
+  stroke: var(--link);
+  stroke-width: 2;
+}
+
+.signal-flow-help-owned-check {
+  fill: var(--status-up);
+  font-size: 19px;
+  font-weight: 800;
+}
+
+.signal-flow-help-page-link,
+.signal-flow-help-page-link-arrow {
+  fill: var(--link);
+  font-size: 14px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.signal-flow-help-page-link-arrow {
+  font-size: 16px;
+  text-decoration: none;
+}
+
+.signal-flow-help-owned-signal {
+  pointer-events: none;
+}
+
+
+/* Unhealthy signals: keep the dependency and its two failing checks in
+   the same SVG coordinate system while they turn into grouped links. */
+.signal-flow-help-unhealthy-page,
+.signal-flow-help-moving-dependency,
+.signal-flow-help-moving-failure,
+.signal-flow-help-projection-metadata {
+  pointer-events: none;
+}
+
+.signal-flow-help-page-failed-status {
+  fill: var(--status-down);
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.signal-flow-help-selection-frame.is-unhealthy-frame {
+  fill: color-mix(in srgb, var(--status-down) 9%, transparent);
+  stroke: var(--status-down);
+}
+
+.signal-flow-help-dependency-label {
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.signal-flow-help-dependency-link-mark {
+  fill: var(--link);
+  font-size: 16px;
+}
+
+.signal-flow-help-dependency-tag {
+  fill: var(--muted);
+  font-size: 12px;
+}
+
+.signal-flow-help-failure-marker {
+  fill: var(--status-down);
+  font-size: 20px;
+  font-weight: 800;
+}
+
+
+/* The two full dependency nodes retain their outlines while morphing into
+   grouped dependency/signal entries on the Item page and back. */
+.signal-flow-help-projected-title {
+  font-size: 15px;
+  text-decoration: none;
+}
+
+.signal-flow-help-moving-dependency .signal-flow-help-node-frame {
+  transition: none;
+}
+
+.signal-flow-help-moving-dependency .signal-flow-help-alarm {
+  pointer-events: none;
+}
