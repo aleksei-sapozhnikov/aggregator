@@ -7,7 +7,11 @@ const padding = 8;
 
 /** Viewport-aware help tooltip with primary and secondary text. */
 export default function HelpTooltip({
-  id, anchorRef, visible, content, action,
+  id,
+  anchorRef,
+  visible,
+  content,
+  action,
 }: {
   id: string;
   anchorRef: RefObject<HTMLElement | null>;

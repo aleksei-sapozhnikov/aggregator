@@ -112,11 +112,7 @@ describe("InfoHelp Actors example", () => {
 
 describe("InfoHelp shared tooltip", () => {
   it("shows the summary and secondary click hint", () => {
-    render(
-      <ContextualHelpProvider>
-        <InfoHelp topicId="actors" />
-      </ContextualHelpProvider>,
-    );
+    render(<InfoHelp topicId="actors" />);
     fireEvent.mouseEnter(
       screen.getByRole("button", { name: "About Actors" }),
     );
