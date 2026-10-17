@@ -110,6 +110,13 @@ describe("aggregatorApi", () => {
     );
   });
 
+  it("rejects malformed Product Health data instead of reporting UNKNOWN", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => response({ error: "unavailable" })));
+    await expect(fetchProductHealth()).rejects.toThrow(
+      "Invalid Product Health response",
+    );
+  });
+
   it("passes cancellation to the Product Health request", async () => {
     const fetchMock = vi.fn(async () => response([]));
     vi.stubGlobal("fetch", fetchMock);

@@ -75,7 +75,9 @@ describe("useCatalogData", () => {
 
   it("retries catalog initialization after failure and stops retrying once loaded", async () => {
     vi.useFakeTimers();
-    vi.mocked(loadCatalog).mockRejectedValueOnce(new Error("Catalog unavailable"));
+    vi.mocked(loadCatalog).mockRejectedValueOnce(
+      new Error("Catalog unavailable"),
+    );
     const { result } = renderHook(() => useCatalogData());
     await flushMicrotasks();
 

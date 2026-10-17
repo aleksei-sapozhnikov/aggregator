@@ -409,7 +409,10 @@ export const fetchProductHealth = async (signal?: AbortSignal): Promise<{
     throw new Error(`Failed to load product health: ${response.status}`);
   }
   const payload = (await response.json()) as unknown;
-  const rawItems = Array.isArray(payload) ? payload : [];
+  if (!Array.isArray(payload)) {
+    throw new Error("Invalid Product Health response");
+  }
+  const rawItems = payload;
   const items = rawItems
     .map(normalizeProductHealthItem)
     .filter((item): item is ProductHealthItem => Boolean(item));
