@@ -129,7 +129,7 @@ function Laptop({ frame }: { frame: HelpFrame }) {
   return (
     <g
       data-primary-contact-laptop="true"
-      style={{ opacity: Math.min(1, frame.laptop * 3) }}
+      style={{ opacity: frame.laptop }}
       transform="translate(371 211)"
     >
       <rect
