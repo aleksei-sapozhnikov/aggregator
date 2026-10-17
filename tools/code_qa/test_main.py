@@ -65,15 +65,35 @@ class OrchestratorFlowTests(unittest.TestCase):
             self.assertEqual(main.run_qa_command(), 0)
         self.assertEqual(calls, ["format", "test", "secrets"])
 
-    def test_full_qa_skips_secrets_after_test_failure(self) -> None:
+    def test_full_qa_scans_secrets_after_test_failure(self) -> None:
         with (
             patch.object(main, "run_format_command", return_value=0),
             patch.object(main, "run_test_command", return_value=1),
-            patch.object(main, "run_secrets_command") as secrets,
+            patch.object(main, "run_secrets_command", return_value=0) as secrets,
             redirect_stdout(StringIO()),
         ):
             self.assertEqual(main.run_qa_command(), 1)
-        secrets.assert_not_called()
+        secrets.assert_called_once()
+
+    def test_full_qa_scans_secrets_after_format_failure(self) -> None:
+        with (
+            patch.object(main, "run_format_command", return_value=1),
+            patch.object(main, "run_test_command") as tests,
+            patch.object(main, "run_secrets_command", return_value=0) as secrets,
+            redirect_stdout(StringIO()),
+        ):
+            self.assertEqual(main.run_qa_command(), 1)
+        tests.assert_not_called()
+        secrets.assert_called_once()
+
+    def test_full_qa_fails_when_only_secret_scan_fails(self) -> None:
+        with (
+            patch.object(main, "run_format_command", return_value=0),
+            patch.object(main, "run_test_command", return_value=0),
+            patch.object(main, "run_secrets_command", return_value=1),
+            redirect_stdout(StringIO()),
+        ):
+            self.assertEqual(main.run_qa_command(), 1)
 
     def test_test_output_is_streamed_without_truncation(self) -> None:
         process = MagicMock()

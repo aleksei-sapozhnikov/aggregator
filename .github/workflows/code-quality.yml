@@ -64,12 +64,10 @@ jobs:
             ${{ runner.os }}-qa-cache-py${{ env.PYTHON_VERSION }}-
             ${{ runner.os }}-qa-cache-
 
-      - name: Run code quality checks
-        run: python tools/code_qa/main.py lint
+      - name: Run QA
+        run: make qa
 
-      - name: Run module unit tests
-        run: python tools/code_qa/main.py test
-
-      - name: Scan secrets
+      # Formatting can fix files; CI must still reject unformatted committed code.
+      - name: Verify no tracked files were reformatted
         if: always()
-        run: python tools/code_qa/main.py secrets
+        run: git diff --exit-code

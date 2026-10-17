@@ -19,6 +19,11 @@ ifeq ($(filter $(ENV),$(SUPPORTED_ENVS)),)
   $(error Invalid ENV='$(ENV)'. Supported: $(SUPPORTED_ENVS))
 endif
 
+# Compose configuration and runtime checks are needed only for Compose commands.
+# QA and help targets must also run in clean CI checkouts without .env or Docker.
+SERVICE_TARGETS := up-svc down-svc restart-svc recreate-svc rebuild-svc rebuild-recreate-svc clean-svc
+COMPOSE_TARGETS := info up down restart recreate rebuild rebuild-recreate clean $(SERVICE_TARGETS)
+
 # ---- Compose files ----
 COMPOSE_DIR := compose
 BASE := -f $(COMPOSE_DIR)/compose.yaml
@@ -43,7 +48,8 @@ PROJECT := $(PROJECT_$(ENV))
 CONTAINER_RUNTIME :=
 COMPOSE_CMD :=
 
-# ---- Project version ----
+# ---- Project version (Compose targets only) ----
+ifneq ($(filter $(COMPOSE_TARGETS),$(MAKECMDGOALS)),)
 PROJECT_ENV_FILE := .env
 ifeq ($(wildcard $(PROJECT_ENV_FILE)),)
   $(error Missing $(PROJECT_ENV_FILE))
@@ -82,6 +88,8 @@ COMPOSE := $(CONTAINER_RUNTIME) compose
 endif
 
 COMPOSE_CMD := $(COMPOSE) --project-name $(PROJECT) --project-directory . $(STACK)
+
+endif
 
 # ---- Chaos-maker last-start control to ensure ----
 # ---- it starts when services ready            ----
@@ -183,8 +191,6 @@ clean: info
 # ---- Service-scoped commands (positional service args) ----
 # Positional services are passed after the target:
 #   make down-svc caddy grafana
-SERVICE_TARGETS := up-svc down-svc restart-svc recreate-svc rebuild-svc rebuild-recreate-svc clean-svc
-
 ifneq ($(filter $(SERVICE_TARGETS),$(MAKECMDGOALS)),)
 SERVICES := $(filter-out $(SERVICE_TARGETS),$(MAKECMDGOALS))
 $(SERVICES):

@@ -28,5 +28,5 @@ Run a single module without Make: `python tools/code_qa/main.py test --module ca
 Pass `--module` more than once for a subset. All supported modules run by default.
 To save the test transcript: `python tools/code_qa/main.py test --out-file test-results.txt`.
 
-The `qa` and `code-qa` flows stop if formatting fails. `qa` scans secrets only after successful tests.
-The CI workflow runs lint, tests, and secrets as separate steps, so a failed test does not suppress the security scan.
+The `code-qa` flow stops if formatting fails. Full `qa` always scans secrets, even when formatting or tests fail.
+The CI workflow runs `make qa` as its single QA entrypoint and separately verifies that formatting did not change any tracked files. The Makefile does not require `.env` or Docker/Podman for QA targets.

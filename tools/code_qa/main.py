@@ -319,14 +319,7 @@ def run_qa_command(
         out_file=out_file,
         suppress_final_summary=True,
     )
-    if code_qa_rc != 0:
-        emit, _, close = build_emitter(out_file, append=True)
-        try:
-            emit_final_summary(emit, False)
-        finally:
-            close()
-        return 1
-
+    # Security scanning must run even when formatting or unit tests fail.
     secrets_rc = run_secrets_command(
         scan_root=scan_root,
         output_file=output_file,
