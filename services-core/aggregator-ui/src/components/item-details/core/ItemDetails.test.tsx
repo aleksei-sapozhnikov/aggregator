@@ -3,8 +3,8 @@
  */
 
 import type { ReactElement } from "react";
-import ContextualHelpProvider from "../about/core/ContextualHelpProvider";
-import ThemeProvider from "../../shared/theme/ThemeProvider";
+import ContextualHelpProvider from "../../about/core/ContextualHelpProvider";
+import ThemeProvider from "../../../shared/theme/ThemeProvider";
 
 import { createRef } from "react";
 import {
@@ -17,13 +17,13 @@ import {
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ComponentProps } from "react";
-import type { CatalogActor, CatalogContact } from "../../shared/types";
+import type { CatalogActor, CatalogContact } from "../../../shared/types";
 
 // A changed shared markup attribute must reach the live panel and every demo.
 // Checking CSS class names alone would also pass for separately copied markup.
-vi.mock("../shared/item/ItemTitle", async (importOriginal) => {
+vi.mock("../../shared/item/ItemTitle", async (importOriginal) => {
   const actual =
-    await importOriginal<typeof import("../shared/item/ItemTitle")>();
+    await importOriginal<typeof import("../../shared/item/ItemTitle")>();
   const { cloneElement } = await import("react");
   return {
     ...actual,
@@ -31,9 +31,9 @@ vi.mock("../shared/item/ItemTitle", async (importOriginal) => {
       cloneElement(actual.default(props), { "data-shared-revision": "title" }),
   };
 });
-vi.mock("../shared/item/ItemOwnership", async (importOriginal) => {
+vi.mock("../../shared/item/ItemOwnership", async (importOriginal) => {
   const actual =
-    await importOriginal<typeof import("../shared/item/ItemOwnership")>();
+    await importOriginal<typeof import("../../shared/item/ItemOwnership")>();
   const { cloneElement } = await import("react");
   return {
     ...actual,
@@ -43,9 +43,9 @@ vi.mock("../shared/item/ItemOwnership", async (importOriginal) => {
       }),
   };
 });
-vi.mock("../shared/item/ItemSignals", async (importOriginal) => {
+vi.mock("../../shared/item/ItemSignals", async (importOriginal) => {
   const actual =
-    await importOriginal<typeof import("../shared/item/ItemSignals")>();
+    await importOriginal<typeof import("../../shared/item/ItemSignals")>();
   const { cloneElement } = await import("react");
   return {
     ...actual,
@@ -59,9 +59,9 @@ vi.mock("../shared/item/ItemSignals", async (importOriginal) => {
       }),
   };
 });
-vi.mock("../shared/item/ItemTimeline", async (importOriginal) => {
+vi.mock("../../shared/item/ItemTimeline", async (importOriginal) => {
   const actual =
-    await importOriginal<typeof import("../shared/item/ItemTimeline")>();
+    await importOriginal<typeof import("../../shared/item/ItemTimeline")>();
   const { cloneElement } = await import("react");
   return {
     ...actual,
@@ -73,12 +73,12 @@ vi.mock("../shared/item/ItemTimeline", async (importOriginal) => {
 });
 
 import ItemDetails from "./ItemDetails";
-import AppLayout from "../../app/AppLayout";
-import ActorsHelpDemo from "../about/actors/ActorsHelpDemo";
-import PrimaryContactHelpDemo from "../about/primary-contact/PrimaryContactHelpDemo";
-import HealthySignalsHelpDemo from "../about/healthy-signals/HealthySignalsHelpDemo";
-import UnhealthySignalsHelpDemo from "../about/unhealthy-signals/UnhealthySignalsHelpDemo";
-import TimelineHelpDemo from "../about/timeline/TimelineHelpDemo";
+import AppLayout from "../../../app/AppLayout";
+import ActorsHelpDemo from "../../about/actors/ActorsHelpDemo";
+import PrimaryContactHelpDemo from "../../about/primary-contact/PrimaryContactHelpDemo";
+import HealthySignalsHelpDemo from "../../about/healthy-signals/HealthySignalsHelpDemo";
+import UnhealthySignalsHelpDemo from "../../about/unhealthy-signals/UnhealthySignalsHelpDemo";
+import TimelineHelpDemo from "../../about/timeline/TimelineHelpDemo";
 
 const render = (ui: ReactElement) => {
   const view = baseRender(

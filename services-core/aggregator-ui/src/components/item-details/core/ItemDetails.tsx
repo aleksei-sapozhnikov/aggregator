@@ -1,22 +1,22 @@
 /** Renders the selected Item independently of the application shell. */
 import ItemOwnership, {
   type ActorSummaryRow,
-} from "../shared/item/ItemOwnership";
+} from "../../shared/item/ItemOwnership";
 import {
   HealthySignals,
   UnhealthySignals,
   type UnhealthyDependencyRow,
-} from "../shared/item/ItemSignals";
+} from "../../shared/item/ItemSignals";
 import TimelineSection from "./timeline/TimelineSection";
-import InfoHelp from "../shared/help/InfoHelp";
-import { isPlainLeftClick } from "../../shared/ui/pointerUtils";
+import InfoHelp from "../../shared/help/InfoHelp";
+import { isPlainLeftClick } from "../../../shared/ui/pointerUtils";
 import type {
   CatalogActor,
   CatalogContact,
   CatalogItem,
   FailingDependencyEntry,
   ItemSignal,
-} from "../../shared/types";
+} from "../../../shared/types";
 import type { MouseEvent, RefObject } from "react";
 import { useEffect, useMemo, useState } from "react";
 

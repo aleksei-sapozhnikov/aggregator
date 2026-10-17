@@ -3,11 +3,11 @@
  * ownership and contact data for presentation without recalculating health.
  */
 import { useMemo } from "react";
-import { sortContactsWithPrimaryFirst } from "../../shared/contacts/contactPresentation";
+import { sortContactsWithPrimaryFirst } from "../../../shared/contacts/contactPresentation";
 import {
   compareHealthStatus,
   isUnhealthyHealthStatus,
-} from "../../shared/health/healthPresentation";
+} from "../../../shared/health/healthPresentation";
 import type {
   CatalogActor,
   CatalogActorContact,
@@ -18,7 +18,7 @@ import type {
   FailingDependencyEntry,
   HealthStatus,
   ItemSignal,
-} from "../../shared/types";
+} from "../../../shared/types";
 
 type ItemActorsEntry = {
   owner: CatalogActor | null;
