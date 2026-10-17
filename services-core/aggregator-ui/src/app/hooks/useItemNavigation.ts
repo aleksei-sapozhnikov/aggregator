@@ -318,6 +318,7 @@ export default function useItemNavigation({
 
     applySelectionFromLocation({ normalize: true });
 
+    /** Restores the selected Item and dependency path when browser history changes. */
     const handlePopState = () => {
       lastHistoryUrlRef.current = window.location.href;
       if (window.history.state?.itemId) {

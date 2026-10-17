@@ -114,6 +114,7 @@ export function getFilterCursorTop(time: number): number {
 }
 
 // Start and finish each walkthrough in the empty chart header area.
+/** Returns cursor movement progress for each illustrated Timeline scenario. */
 export function getTimelineCursorTravel(scenario: Scenario, time: number) {
   const exit: Record<Scenario, [number, number]> = {
     inspect: [7800, 8380],
@@ -187,6 +188,7 @@ function timestampAt(position: number): string {
   const date = new Date(
     timelineStart + Math.round((position / 100) * timelineWeekMs),
   );
+  /** Formats a timestamp component to two digits. */
   const pad = (value: number) => String(value).padStart(2, "0");
   return (
     date.getUTCFullYear() +

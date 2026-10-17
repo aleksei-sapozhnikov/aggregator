@@ -54,6 +54,7 @@ const fallbackBounds = {
 const interpolate = (a: number, b: number, t: number) => a + (b - a) * t;
 
 // A single frame follows the real row, then the real Item title, and back.
+/** Moves the highlight from a Timeline row to the opened dependency. */
 export function getDependencyHighlightFrame(elapsed: number) {
   const forward = smooth(progressBetween(elapsed, 7300, 8200));
   const reverse = smooth(progressBetween(elapsed, 10200, 11100));
@@ -76,6 +77,7 @@ function useDependencyHighlightBounds(
     const root = rootRef.current;
     if (!root) return undefined;
 
+    /** Updates bounds for the chart row and destination Item title. */
     const measure = () => {
       const label = root.querySelector(
         '.timeline-help-label[data-timeline-row="payment"]',
@@ -171,6 +173,7 @@ export default function TimelineHelpDemo() {
     stillFrames[scenario],
   );
 
+  /** Switches the help scenario and resets its animation clock. */
   const changeScenario = (nextScenario: Scenario) => {
     setScenario(nextScenario);
     setElapsed(reduceMotion ? stillFrames[nextScenario] : 0);

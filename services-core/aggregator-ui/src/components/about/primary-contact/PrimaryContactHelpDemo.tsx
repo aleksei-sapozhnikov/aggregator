@@ -28,10 +28,10 @@ import "./PrimaryContactHelpDemo.css";
 
 // HTML and SVG share scene coordinates, while the page uses production components.
 export const primaryContactHelpDuration = 15200;
-/** Renders transition for the contextual help scene. */
+/** Returns eased progress through one contact animation stage. */
 const transition = (time: number, start: number, end: number) =>
   smooth(progressBetween(time, start, end));
-/** Renders mix for the contextual help scene. */
+/** Interpolates positions and scale values between animation keyframes. */
 const mix = (start: number, end: number, amount: number) =>
   start + (end - start) * amount;
 
@@ -80,6 +80,7 @@ export function getPrimaryContactHelpFrame(time: number) {
 
 // Center the complete cast in its viewport, scaling on narrow devices so no
 // service, character, or phone signal gets cropped.
+/** Fits the simulated contact scene and Item preview into the available width. */
 export function getPrimaryContactHelpLayout(availableWidth: number) {
   const compact = availableWidth < 640;
   const width = compact ? Math.max(300, Math.min(640, availableWidth)) : 640;

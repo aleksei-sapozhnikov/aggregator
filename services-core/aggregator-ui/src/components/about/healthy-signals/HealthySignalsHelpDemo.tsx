@@ -22,7 +22,7 @@ const ownChecks = clientChecks.map((signal, index) => ({
 // The outer selection follows the Item as a whole, while the three inner
 // selections continue to follow their individual healthy signals.
 const itemSource = { x: 239, y: 15, width: 162, height: 70 };
-/** Renders mix for the contextual help scene. */
+/** Interpolates the position and size of animated check highlights. */
 const mix = (from: number, to: number, progress: number): number =>
   from + (to - from) * progress;
 

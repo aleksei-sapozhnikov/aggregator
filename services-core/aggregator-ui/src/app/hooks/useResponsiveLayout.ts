@@ -29,6 +29,7 @@ export default function useResponsiveLayout() {
     }
 
     let frameId = 0;
+    /** Updates the usable viewport height, including mobile browser chrome. */
     const updateViewportHeight = () => {
       if (frameId) {
         window.cancelAnimationFrame(frameId);
@@ -57,6 +58,7 @@ export default function useResponsiveLayout() {
 
   useEffect(() => {
     const mediaQuery = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT}px)`);
+    /** Applies the current media-query breakpoint to sidebar layout. */
     const updateLayout = (event: MediaQueryListEvent) => {
       setIsMobileLayout(event.matches);
     };

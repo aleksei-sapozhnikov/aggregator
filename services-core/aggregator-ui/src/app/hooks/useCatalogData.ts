@@ -57,6 +57,7 @@ export default function useCatalogData() {
   useEffect(() => {
     let cancelled = false;
 
+    /** Loads required catalog data once and exposes any startup error. */
     const loadInitialCatalog = async () => {
       try {
         const nextCatalog = await loadCatalog();
@@ -85,6 +86,7 @@ export default function useCatalogData() {
 
     let cancelled = false;
 
+    /** Refreshes authoritative Item health facts on the polling interval. */
     const fetchStatuses = async () => {
       try {
         const next = await fetchProductHealth();

@@ -28,7 +28,7 @@ import "./ActorsHelpDemo.css";
 export const actorsHelpDuration = 8000;
 const previewTime = 4600;
 const between = progressBetween;
-/** Renders lerp for the contextual help scene. */
+/** Interpolates an actor's position and scale between keyframes. */
 const lerp = (start: number, end: number, factor: number) =>
   start + (end - start) * factor;
 

@@ -66,10 +66,12 @@ export default function AiChatPanel({
     ]);
   };
 
+  /** Clears the local assistant conversation. */
   const handleClearChat = () => {
     setMessages([]);
   };
 
+  /** Submits the current question and appends the returned answer or error. */
   const handleSend = async () => {
     const question = draft.trim();
     if (!question || isSending) {
@@ -96,11 +98,13 @@ export default function AiChatPanel({
     }
   };
 
+  /** Sends the draft when the chat form is submitted. */
   const handleSubmit = (event: SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
     void handleSend();
   };
 
+  /** Handles keyboard submission while preserving multiline input. */
   const handleInputKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key !== "Enter" || event.shiftKey) {
       return;
@@ -353,6 +357,7 @@ function HealthItemLink({
   onSelectItem,
 }: HealthItemLinkProps) {
   const statusText = buildStatusText(state);
+  /** Opens a linked Item through application navigation. */
   const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
     if (!isPlainLeftClick(event)) {
       return;

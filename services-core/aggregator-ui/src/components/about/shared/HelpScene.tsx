@@ -29,6 +29,7 @@ export default function HelpScene({
   useLayoutEffect(() => {
     const element = ref.current;
     if (!element) return;
+    /** Measures available width to scale the combined HTML/SVG scene. */
     const measure = () => {
       const measured = element.getBoundingClientRect().width;
       if (measured > 0) {
@@ -76,6 +77,7 @@ export function useHelpTargets<T extends string>(
   useLayoutEffect(() => {
     const page = pageRef.current;
     if (!page) return;
+    /** Re-measures the preview's DOM targets when the scene geometry changes. */
     const measure = () => {
       const pageRect = page.getBoundingClientRect();
       const scale = pageRect.width / page.offsetWidth;

@@ -45,6 +45,7 @@ export default function useTitlePlacement({
       return width;
     };
 
+    /** Moves the Item title below toolbar actions when space is insufficient. */
     const updateTitlePrimaryPlacement = () => {
       if (
         !headerRef.current ||

@@ -2,8 +2,7 @@
 
 import "./HelpInteractionShield.css";
 
-// Transparent overlay prevents demo elements from capturing mouse or touch events.
-// Keep it behind the non-interactive progress indicator but above the SVG.
+/** Prevents animated demo elements from capturing pointer or touch events. */
 export default function HelpInteractionShield() {
   return <div className="help-interaction-shield" aria-hidden="true" />;
 }
