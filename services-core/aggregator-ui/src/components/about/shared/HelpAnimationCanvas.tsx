@@ -3,7 +3,6 @@
 import type { CSSProperties, ReactNode } from "react";
 import "./HelpAnimationCanvas.css";
 
-/** Responsive, centered frame sized to each help animation's scene. */
 export default function HelpAnimationCanvas({
   ariaLabel,
   className = "",

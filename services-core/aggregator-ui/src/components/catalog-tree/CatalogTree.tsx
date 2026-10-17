@@ -1,5 +1,6 @@
 /**
- * @file Catalog tree, search, and navigation.
+ * @file Presents catalog browsing and search results with backend health indicators.
+ * Navigation state and actions are supplied by the application.
  */
 
 import { buildItemRouteHref } from "../../shared/navigation/itemRoutes";
@@ -63,11 +64,6 @@ type CatalogTreeProps = {
   onSelectNode: (node: CatalogTreeNode) => void;
 };
 
-/**
- * Recursive tree node renderer used only by CatalogTree.
- * Kept local to preserve the coarse-grained component split.
- *
- */
 const CatalogNode = ({
   node,
   selectedNodeUid,
@@ -179,16 +175,6 @@ const CatalogNode = ({
   );
 };
 
-/**
- * Renders the left-side navigation area:
- * - catalog tree
- * - search input + autocomplete
- * - search results mode
- *
- * App owns orchestration state and passes callbacks / derived data.
- *
- */
-/** Renders catalog browsing, search results, and service-reported status indicators. */
 export default function CatalogTree({
   isSidebarOpen,
   homeHref,

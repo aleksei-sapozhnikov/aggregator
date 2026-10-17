@@ -7,7 +7,6 @@ export const actorsHelp = {
   summary: "People or teams involved with this item.",
 };
 
-/** Renders the shared summary and detailed explanation before the Actors animation. */
 export default function ActorsHelpContent() {
   return (
     <>

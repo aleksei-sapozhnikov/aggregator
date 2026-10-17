@@ -1,10 +1,9 @@
-/** @file Advances deterministic help animations and supports reduced motion. */
+/** @file Drives looping help scenes or holds a chosen frame when reduced motion is requested. */
 
 import { useEffect, useState } from "react";
 
 export const helpAnimationFrameMs = 20;
 
-/** Advances an illustration cycle and provides a static frame for reduced motion. */
 export default function useHelpAnimationClock(
   duration: number,
   stillFrame: number,

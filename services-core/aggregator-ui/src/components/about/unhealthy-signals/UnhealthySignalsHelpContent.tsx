@@ -7,7 +7,6 @@ export const unhealthySignalsHelp = {
   summary: "See which checks need attention right now.",
 };
 
-/** Renders the help summary, explanation, and failing-signal animation. */
 export default function UnhealthySignalsHelpContent() {
   return (
     <>

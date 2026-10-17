@@ -1,5 +1,5 @@
 /** @vitest-environment jsdom */
-/** @file Tests catalog loading and periodic Product Health refresh behavior. */
+/** @file Tests catalog retries, health polling, and preservation of the last snapshot through outages. */
 
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";

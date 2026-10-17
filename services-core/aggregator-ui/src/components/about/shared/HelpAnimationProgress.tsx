@@ -6,7 +6,6 @@ type HelpAnimationProgressProps = {
   progress: number;
 };
 
-/** Shows normalized progress through the current illustration cycle. */
 export default function HelpAnimationProgress({
   progress,
 }: HelpAnimationProgressProps) {

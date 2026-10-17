@@ -1,5 +1,6 @@
 /**
- * @file Main React application orchestrator for aggregator-ui.
+ * @file Connects catalog loading, Item navigation, and layout to the application views and dialogs.
+ * Feature hooks own their state; this module wires them together.
  */
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -28,25 +29,14 @@ import type { CatalogContact } from "../shared/types";
 const TEMP_AI_CHAT_STORAGE_KEY = "aggregator-ui-ai-chat-enabled";
 
 /**
- * TODO (2026-10): Temporary per-browser AI chat UX gate for the demo rollout.
- *
- * Enable in the browser console:
- *   localStorage.setItem("aggregator-ui-ai-chat-enabled", "true"); location.reload();
- *
- * Disable in the browser console:
- *   localStorage.removeItem("aggregator-ui-ai-chat-enabled"); location.reload();
- *
- * TODO (2026-10): Delete temp flag when AI feature is considered ready.
- * Delete this block and the related CSS classes when AI chat is ready for everyone.
+ * TODO (2026-10): Remove this demo rollout flag and its CSS classes when AI chat is ready for everyone.
+ * Enable in the browser console, then reload:
+ *   localStorage.setItem("aggregator-ui-ai-chat-enabled", "true");
+ * Disable with localStorage.removeItem("aggregator-ui-ai-chat-enabled"), then reload.
  */
 const isTemporaryAiChatEnabled = (): boolean =>
   localStorage.getItem(TEMP_AI_CHAT_STORAGE_KEY) === "true";
 
-/**
- * Application orchestrator.
- * Coordinates feature hooks (routing, catalog, presentation, responsive layout)
- * and wires large UI blocks (CatalogTree, AppLayout, ItemDetails, AboutModal).
- */
 export default function App() {
   const catalogTitle = resolveCatalogTitle();
   const isAiChatFeatureEnabled = useMemo(isTemporaryAiChatEnabled, []);

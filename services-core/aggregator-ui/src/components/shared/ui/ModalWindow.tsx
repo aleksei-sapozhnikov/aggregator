@@ -1,4 +1,4 @@
-/** @file Provides focus-safe, stacked modal layout and keyboard handling. */
+/** @file Centralizes modal stacking, keyboard focus containment, and focus restoration. */
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -62,13 +62,11 @@ const syncBackgroundAccessibility = () => {
   }
 };
 
-/** Notifies open dialogs that their stacking order may have changed. */
 const notifyStackChanged = () => {
   syncBackgroundAccessibility();
   window.dispatchEvent(new Event(stackChangeEventName));
 };
 
-/** Removes a dialog from the current modal stack. */
 const removeModalId = (id: number) => {
   const index = openModalIds.indexOf(id);
   if (index >= 0) {
@@ -78,17 +76,14 @@ const removeModalId = (id: number) => {
   }
 };
 
-/** Returns the open-order position of a modal. */
 const getStackIndex = (id: number): number => openModalIds.indexOf(id);
 
-/** Checks whether a modal currently owns keyboard and backdrop actions. */
 const isTopmostModal = (id: number): boolean =>
   openModalIds[openModalIds.length - 1] === id;
 
 const focusableSelector =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
-/** Finds keyboard-focusable controls within the current dialog. */
 const getFocusableElements = (dialog: HTMLElement): HTMLElement[] =>
   [...dialog.querySelectorAll<HTMLElement>(focusableSelector)].filter(
     (element) =>
@@ -97,7 +92,6 @@ const getFocusableElements = (dialog: HTMLElement): HTMLElement[] =>
       window.getComputedStyle(element).visibility !== "hidden",
   );
 
-/** Manages accessible modal stacking, focus restoration, and Escape handling. */
 export default function ModalWindow({
   isOpen,
   onClose,
@@ -134,7 +128,6 @@ export default function ModalWindow({
       notifyStackChanged();
     }
 
-    /** Keeps this dialog's stacking order synchronized with other open modals. */
     const syncStackIndex = () => {
       setStackIndex(getStackIndex(modalId));
     };

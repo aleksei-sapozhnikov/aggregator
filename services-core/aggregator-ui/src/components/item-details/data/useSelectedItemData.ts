@@ -1,9 +1,8 @@
-/** @file Prepares selected Item presentation data from catalog and service-reported health facts. */
-
 /**
- * Prepares the selected Item's backend health facts, signals, dependency rows,
- * ownership and contact data for presentation without recalculating health.
+ * @file Joins catalog relationships and reported health into selected Item display groups.
+ * Groups and sorts signals without recalculating Item health.
  */
+
 import { useMemo } from "react";
 import { sortContactsWithPrimaryFirst } from "../../../shared/contacts/contactPresentation";
 import {
@@ -27,7 +26,6 @@ type ItemActorsEntry = {
   otherActors: CatalogActor[];
 };
 
-/** Orders received signals by reported status and then title. */
 const compareSignalsByStatusAndTitle = (
   left: ItemSignal,
   right: ItemSignal,
@@ -59,7 +57,6 @@ type SelectedItemDataOptions = {
   openedActorId: string;
 };
 
-/** Derives display groups and ownership from existing catalog and Product Health facts. */
 export default function useSelectedItemData({
   selectedId,
   selectedNode,
@@ -199,7 +196,6 @@ export default function useSelectedItemData({
     const result: FailingDependencyEntry[] = [];
     const displayedItemIds = new Set<string>();
 
-    /** Traverses dependencies and collects their relevant failing signals for display. */
     const visit = (children: CatalogTreeNode[]) => {
       children.forEach((node) => {
         const failingSignals = (itemSignals[node.item.id] || [])

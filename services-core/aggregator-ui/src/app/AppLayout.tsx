@@ -37,7 +37,6 @@ type AppLayoutProps = {
   selectedTitleRest: string;
 };
 
-/** Application workspace layout; independent of Item details and AI chat content. */
 export default function AppLayout({
   children,
   chat,

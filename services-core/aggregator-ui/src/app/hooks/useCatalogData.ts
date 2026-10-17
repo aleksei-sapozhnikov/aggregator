@@ -1,9 +1,8 @@
-/** @file Loads catalog metadata and polls authoritative Product Health facts. */
-
 /**
- * Owns initial catalog loading and periodic Product Health polling.
- * Health states are backend facts; this hook never computes or infers them.
+ * @file Loads catalog metadata and polls backend Product Health, tracking connectivity separately.
+ * Retains the last successful health snapshot during request failures.
  */
+
 import { useEffect, useState } from "react";
 import { fetchProductHealth, loadCatalog } from "../../services/aggregatorApi";
 import type {
@@ -43,7 +42,6 @@ const EMPTY_CATALOG: {
   actorContacts: [],
 };
 
-/** Loads catalog data and polls server-computed Product Health facts. */
 export default function useCatalogData() {
   const [catalog, setCatalog] = useState(EMPTY_CATALOG);
   const [error, setError] = useState("");
@@ -71,7 +69,6 @@ export default function useCatalogData() {
     let inFlight = false;
     let activeController: AbortController | null = null;
 
-    /** Retries failed catalog initialization without restarting successful loads. */
     const loadInitialCatalog = async () => {
       if (cancelled || loaded || inFlight) {
         return;
@@ -125,7 +122,7 @@ export default function useCatalogData() {
     let inFlight = false;
     let activeController: AbortController | null = null;
 
-    /** Polls without overlapping requests while preserving the last known health facts. */
+    /** Skips interval ticks while a request is still in flight. */
     const fetchStatuses = async () => {
       if (inFlight) {
         return;

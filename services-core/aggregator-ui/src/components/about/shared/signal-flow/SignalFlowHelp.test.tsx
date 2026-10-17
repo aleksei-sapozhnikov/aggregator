@@ -473,7 +473,7 @@ describe("Signal flow help demonstrations", () => {
     expect(getNode("dep1").getAttribute("data-health")).toBe("unhealthy");
     expect(getNode("item").getAttribute("data-health")).toBe("healthy");
 
-    // Keep the original 500 ms pause after the dependency turns red.
+    // Hold for 500 ms after the dependency turns red before the next wave.
     advance(secondLinkStart - dependencyAffectedAt);
     expect(getProgress("dep1-item")).toBe(0);
     expect(getNode("item").getAttribute("data-health")).toBe("healthy");

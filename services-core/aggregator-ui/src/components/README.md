@@ -1,89 +1,26 @@
 # UI component boundaries
 
-Group components by feature, not just by rendering mechanism.
+Feature components own catalog browsing, selected Item details, entity dialogs,
+assistant conversation, and contextual help. The application in `src/app/`
+connects these features and supplies navigation and shared data.
 
-- `item-details/`: selected Item health and ownership presentation, including `useSelectedItemData.ts`, and replaceable Timeline integration.
-- `catalog-tree/`: catalog navigation and search, including feature hooks for tree expansion, autocomplete, and scroll synchronization.
-- `ai-chat/`: optional standalone assistant UI.
-- `src/app/`: application orchestration, workspace layout, and toolbar.
-- `entity-details/`: entity detail dialogs (actor, contact, signal). They do
-  not belong to the Details panel. `signal/useSignalDetails.ts` also owns
-  signal deep-link state, so Grafana and the Item panel can open the same dialog.
-- `about/`: application description, contextual help content, animation scenes,
-  and the single contextual-help provider.
-- `shared/ui/`: small reusable buttons, links, labels, and modal framing.
-- `shared/item/`: presentation of an Item's title, ownership, health signals,
-  and timeline, shared by the live panel and help scenes.
-- `shared/help/`: generic help trigger, tooltip, and typed React context.
-  These components never import an animation or a specific help topic.
+Features may import their own modules and `components/shared/`, but not sibling
+feature implementations. Shared components must not import features.
+`ComponentBoundaries.test.ts` checks these directions, including separation of
+help topics and the Grafana integration.
 
-## Dependency rules
+Entity dialogs are independent of the selected Item panel so different entry
+points can open the same details. Generic help controls use a context defined
+in `shared/help/`; the provider and registered topics belong to `about/`.
+Reusable Item components serve both the live view and help scenes.
 
-Feature modules may depend on their own child components and on `shared/`.
-They must not import the implementation details of a sibling feature.
-`shared/` must not depend on any feature module. The entrypoint in `src/main.tsx` initializes the app and help provider,
-including the `about/ContextualHelpProvider`.
+Keep detailed constraints with the feature that owns them:
 
-The context provider owns registered help content and modal lifecycle.
-`InfoHelp` only resolves a topic, shows its summary, and requests that it be
-opened. Static topic text and its illustration are colocated in each
-`about/<topic>/*HelpContent.tsx`. Dynamic contact-preview topics are built
-inside `entity-details/contact/` and passed to the same generic context.
+- [Catalog navigation](catalog-tree/README.md): search, expansion, and selection synchronization.
+- [Selected Item view](item-details/README.md): presentation data and the Timeline boundary.
+- [Entity details](entity-details/README.md): dialogs, signal fragments, and contact previews.
+- [Contextual help](about/README.md): topic registration and animation constraints.
+- [Shared Item presentation](shared/item/README.md) and [modal controls](shared/ui/README.md): reuse and accessibility.
 
-Keep tests next to the relevant source or at a feature integration boundary.
-A focused dependency test (`ComponentBoundaries.test.ts`) verifies these
-import directions without additional tooling. The architecture lives here;
-individual folders need README files only when
-their behavior or constraints warrant additional explanation.
-
-The `src/shared/` directory outside `components/` contains data types and
-non-visual helpers and is deliberately separate from reusable React UI.
-
-## Timeline boundary
-
-`ItemDetails` only uses `TimelineSection`, not Grafana-specific interfaces.
-The section owns the adapter under `item-details/timeline/grafana/`.
-`src/app/AppLayout.tsx` composes the toolbar and AI chat independently of Item details.
-
-The legacy CSS selectors and global `src/styles.css` deliberately remain
-unchanged. Extracting feature styles is a separate, visual-regression-sensitive task.
-
-## Catalog tree and Item routing
-
-`catalog-tree/useCatalogNavigation.ts` owns the catalog tree, search query,
-autocomplete lifecycle, branch expansion, and scroll targeting. The shared
-`catalog/tree.ts` and `catalog/search.ts` modules remain pure data helpers.
-
-`app/hooks/useItemNavigation.ts` owns selected Item identity and browser routes.
-`catalog-tree/useCatalogSelectionSync.ts` reacts to Item selection to restore
-expanded branches after clearing search and to scroll to the requested tree node.
-This integration stays separate to avoid circular dependencies between the two
-stateful hooks. Neither hook computes Product Health.
-
-## Selected Item presentation data
-
-`item-details/useSelectedItemData.ts` prepares the selected Item's signals,
-dependency paths, owner/actor relationships, and primary contacts for rendering.
-It accepts statuses and signals already returned by Product Health services;
-it must not infer or override an Item's health status. The app orchestrator
-only passes catalog data and selection into this hook and consumes its outputs.
-
-## Responsive application layout
-
-`app/hooks/useResponsiveLayout.ts` owns desktop/mobile catalog visibility,
-mobile swipe gestures, media query changes, and visual viewport sizing.
-`app/hooks/useTitlePlacement.ts` keeps the current Item title positioning
-and ResizeObserver behavior isolated from the application orchestrator.
-Both hooks preserve existing breakpoints and layout behavior, and the global
-`styles.css` remains unchanged.
-
-## Catalog loading and Product Health polling
-
-`app/hooks/useCatalogData.ts` owns the initial catalog request, Product Health
-polling at a 10-second interval, error handling, and poll cleanup. The hook
-preserves service-provided UP/DOWN/UNKNOWN states and exposes catalog and
-health data separately. The application-level HealthConnectionBanner shows
-DISCONNECTED and the last successful snapshot time when polling fails.
-ItemTitle, CatalogTree and ItemDetails mark retained data as Last known but
-never invent failed signals. Choosing the initial Item remains the
-responsibility of `app/App.tsx` and `useItemNavigation.ts`, not the loading hook.
+Data contracts, non-visual helpers, and global theme state live in
+[`src/shared/`](../shared/README.md).

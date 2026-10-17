@@ -1,6 +1,8 @@
-/** @file Composes selected Item ownership, signal disclosures, and Timeline. */
+/**
+ * @file Composes the selected Item's ownership, signals, and Timeline with navigation and dialog actions.
+ * Remembers disclosure state for each Item.
+ */
 
-/** Renders the selected Item independently of the application shell. */
 import ItemOwnership, {
   type ActorSummaryRow,
 } from "../../shared/item/ItemOwnership";
@@ -50,7 +52,6 @@ export type ItemDetailsProps = {
   onNavigateToTimelineItem: (itemId: string, href: string) => void;
 };
 
-/** Constructs a signal deep link without altering Item navigation. */
 const buildSignalLink = (id: string): string =>
   `#signal/${encodeURIComponent(id)}`;
 
@@ -66,7 +67,6 @@ const emptyDisclosureState: DetailsDisclosureState = {
   isAffectingOpen: true,
 };
 
-/** Prepares actor summaries in a stable role-based display order. */
 const buildExtraActorRows = (actors: CatalogActor[]): ActorSummaryRow[] =>
   [...actors]
     .sort((left, right) => {
@@ -88,7 +88,6 @@ const buildExtraActorRows = (actors: CatalogActor[]): ActorSummaryRow[] =>
         .replace(/^./, (firstLetter) => firstLetter.toUpperCase()),
     }));
 
-/** Displays the current Item's ownership and reported signal/dependency facts. */
 export default function ItemDetails({
   contentRef,
   headerRef,
@@ -194,7 +193,6 @@ export default function ItemDetails({
       }
     : { ...emptyDisclosureState };
 
-  /** Updates the expansion state for the currently selected Item only. */
   const updateDisclosureState = (patch: Partial<DetailsDisclosureState>) => {
     if (!selectedItemId) {
       return;
@@ -213,17 +211,14 @@ export default function ItemDetails({
     });
   };
 
-  /** Toggles the additional actor relationships for this Item. */
   const toggleContactsExtra = () =>
     updateDisclosureState({
       isContactsExtraOpen: !itemDisclosureState.isContactsExtraOpen,
     });
-  /** Toggles the Item's currently unhealthy signals. */
   const toggleAffectingSignals = () =>
     updateDisclosureState({
       isAffectingOpen: !itemDisclosureState.isAffectingOpen,
     });
-  /** Toggles the list of passing signals. */
   const toggleHealthySignals = () =>
     updateDisclosureState({
       isHealthyOpen: !itemDisclosureState.isHealthyOpen,

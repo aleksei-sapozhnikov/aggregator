@@ -4058,7 +4058,6 @@ body[data-theme="dark"] .about-social-icon-linkedin {
   }
 }
 
-/* Compact health hierarchy: neutral surfaces, consistent disclosures, and shape-coded states. */
 .details-summary-block {
   /* Align list text with disclosure titles, accounting for row icons. */
   --details-disclosure-text-indent: 52px;

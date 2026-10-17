@@ -1,10 +1,5 @@
-/**
- * @file Static About dialog content.
- */
+/** @file Introduces the application, its health states, and navigation in the About dialog. */
 
-/**
- * Renders descriptive text shown inside the About modal.
- */
 export function AboutHeader() {
   return (
     <div className="about-header">
@@ -40,7 +35,6 @@ export function AboutHeader() {
   );
 }
 
-/** Explains the demo's purpose, navigation, health states, and implementation at a high level. */
 export default function AboutContent() {
   return (
     <div className="about-content modal-text-flow">

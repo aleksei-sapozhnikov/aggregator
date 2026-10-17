@@ -5,7 +5,6 @@ import type { CatalogItem, HealthStatus } from "../../../shared/types";
 import { buildStatusText } from "../../../shared/health/healthPresentation";
 import CatalogItemInfo from "./CatalogItemInfo";
 
-/** Renders the current Item's name, status indicator, and catalog description help. */
 export default function ItemTitle({
   item,
   status,

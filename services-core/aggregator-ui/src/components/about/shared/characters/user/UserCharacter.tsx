@@ -4,7 +4,6 @@ import CharacterLayer from "../shared/CharacterLayer";
 import asset from "./UserCharacter.svg?no-inline";
 import "./UserCharacter.css";
 
-/** Renders the user sprite and controls phone and distress state layers. */
 export default function UserCharacter({
   unhappy = 0,
   phoneVisible = 1,

@@ -1,15 +1,15 @@
-# Shared UI primitives
+# Shared UI controls
 
-These components provide consistent controls without importing feature logic.
+Shared buttons, links, labels, and modal framing keep common interactions
+consistent. Callers choose the entity and action; these controls do not import
+feature logic. Routable details use real links, while entities available only
+in a modal use buttons.
 
-- `ModalWindow` owns modal focus, backdrop, Escape handling, and stacking.
-- `CloseButton` and `ModalDetailsTrigger` provide common actions.
-- `ItemNavigationLink` and `SecondaryLabel` display navigation and context.
+`ModalWindow` owns focus containment, restoration, and stacking. Only the
+topmost modal responds to Escape and backdrop clicks. Tab navigation and
+programmatic focus must stay inside it; closing a child restores focus to its
+trigger in the parent.
 
-Feature components decide which record to open and which action to perform.
-These primitives must not depend on catalog search, health aggregation, or
-specific help animations.
-
-When any modal is open, all body siblings of the topmost modal become inert and
-hidden from assistive technology. Their prior `inert` and `aria-hidden`
-attributes are restored when the modal stack changes or closes.
+All body siblings of the topmost overlay become inert and hidden from assistive
+technology. Their previous `inert` and `aria-hidden` attributes are restored
+when the stack changes or closes.

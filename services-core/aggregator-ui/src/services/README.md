@@ -1,20 +1,17 @@
 # HTTP adapters
 
 `aggregatorApi.ts` is the HTTP boundary for catalog metadata, Product Health,
-and optional AI-agent requests. It normalizes server payloads into the UI
-contracts in `src/shared/types.ts`.
+and optional AI-agent requests. It normalizes payloads into the contracts in
+`src/shared/types.ts`; callers consume typed results rather than decoding
+responses themselves. The signal details dialog fetches its catalog definition
+when opened.
 
-Required catalog records and optional contact/actor relationships are loaded
-separately. Components consume typed results; they should not decode raw
-server responses.
+Items and dependencies are required for catalog initialization. Actor and
+contact metadata are best-effort: each optional request has a 3-second timeout
+and may fail without discarding the required records. All requests honor
+cancellation of the catalog load.
 
-Health states are authoritative backend facts. The adapter may validate or
-normalize wire values but must never infer or recalculate product health.
-Transport connectivity is tracked by useCatalogData, not encoded as a Product
-Health value; DISCONNECTED refers to the entire UI-to-Aggregator request.
-The UI preserves the last successful snapshot during a request outage.
-
-Optional catalog endpoints are best-effort and have a 3-second timeout each.
-Required requests honor catalog loading cancellation; the UI retries failed
-initial catalog loads every 10 seconds. A missing Product Health response is
-presented as UI-only DISCONNECTED, distinct from backend UNKNOWN.
+The adapter normalizes reported health values without recalculating Product
+Health. A Product Health response must be an array; other payload shapes and
+failed requests reject so that `useCatalogData` can track connectivity and
+preserve the previous snapshot.

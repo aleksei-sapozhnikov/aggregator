@@ -11,7 +11,6 @@ type HealthConnectionBannerProps = {
 const formatTime = (timestamp: number): string =>
   new Date(timestamp).toLocaleTimeString();
 
-/** Displays the detection time and the freshness of retained health data. */
 export default function HealthConnectionBanner({
   connectionStatus,
   lastSuccessfulFetchAt,

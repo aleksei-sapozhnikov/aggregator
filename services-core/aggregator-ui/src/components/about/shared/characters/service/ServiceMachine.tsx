@@ -4,7 +4,6 @@ import CharacterLayer from "../shared/CharacterLayer";
 import asset from "./ServiceMachine.svg?no-inline";
 import "./ServiceMachine.css";
 
-/** A single service illustration with animated gear and stateful lamps. */
 export default function ServiceMachine({
   unhealthy = 0,
 }: {

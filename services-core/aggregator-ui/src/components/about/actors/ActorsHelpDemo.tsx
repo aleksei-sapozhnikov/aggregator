@@ -28,11 +28,9 @@ import "./ActorsHelpDemo.css";
 export const actorsHelpDuration = 8000;
 const previewTime = 4600;
 const between = progressBetween;
-/** Interpolates an actor's position and scale between keyframes. */
 const lerp = (start: number, end: number, factor: number) =>
   start + (end - start) * factor;
 
-/** Calculates deterministic actor movement and preview visibility at an animation time. */
 export function getActorsHelpFrame(time: number) {
   // Move into the Item rows, hold the sprites for two seconds, then return.
   const travel =
@@ -86,7 +84,6 @@ const actorFallback = {
   item: { x: 242, y: 20, width: 26, height: 26 },
 };
 
-/** Renders a passive Item ownership preview shared with the illustration. */
 function ItemPreview({
   opacity,
   pageRef,
@@ -129,7 +126,6 @@ function ItemPreview({
   );
 }
 
-/** Animates example actors moving into their roles on the Item details page. */
 export default function ActorsHelpDemo() {
   const { elapsed, reduceMotion } = useHelpAnimationClock(
     actorsHelpDuration,

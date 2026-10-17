@@ -35,7 +35,6 @@ const topics: Record<string, HelpTopic> = {
   timeline: { ...timelineHelp, content: <TimelineHelpContent /> },
 };
 
-/** Registers contextual help topics and controls the active help dialog. */
 export default function ContextualHelpProvider({
   children,
 }: {

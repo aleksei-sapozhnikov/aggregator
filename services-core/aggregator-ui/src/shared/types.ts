@@ -1,6 +1,4 @@
-/**
- * @file Shared TypeScript type definitions for aggregator-ui.
- */
+/** @file Defines catalog, health, and view-data contracts shared by UI features and HTTP adapters. */
 
 export type HealthStatus = "up" | "down" | "unknown";
 
