@@ -44,10 +44,12 @@ Characters, machines, phones, dependency diagrams, moving checkmarks,
 selection frames, and simulated cursors are explanatory SVG/CSS illustrations
 and do not replace the application UI.
 
-Reusable character assets live in `about/shared/characters/`: User calls
-and waves a phone, Owner carries the repair wrench, and Support adjusts a
-call-center headset. Their gestures are animated when the actors are visible.
-The same role uses the same SVG in Actors and Primary contact. The service
+Illustrations are organized by role in `about/shared/characters/{owner,user,support}/`.
+Each role owns a standalone SVG with named base and animated layers, its own
+React renderer and gesture CSS. The generic `characters/shared/CharacterLayer`
+composes SVG layers without choosing a role or inheriting character drawings.
+User waves a phone, Owner carries the repair wrench, and Support adjusts a
+call-center headset. The same assets are reused in Actors and Primary contact. The service
 machine has one SVG with an `unhealthy` parameter that switches its lamp
 between green and red. Wooden captions are used for people only and remain
 separate `DemoWoodLabel` elements, rather than becoming part of the SVG
