@@ -143,7 +143,7 @@ export default function DemoCharacter({
             transform={
               repairProgress === undefined
                 ? undefined
-                : "rotate(" + repairProgress * 17 + " 78 88)"
+                : "rotate(" + repairProgress + " 78 88)"
             }
           >
             <path

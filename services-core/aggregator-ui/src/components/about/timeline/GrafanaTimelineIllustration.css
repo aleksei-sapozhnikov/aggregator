@@ -185,11 +185,7 @@
   pointer-events: none;
   filter: drop-shadow(1px 1px 1px var(--bg));
 }
-.grafana-timeline-illustration > .timeline-help-cursor {
-  transition:
-    top 480ms ease-in-out,
-    left 350ms ease-in-out;
-}
+/* Pointer entry/exit follow the shared animation clock rather than CSS lag. */
 .timeline-help-cursor.is-pressed {
   transform: scale(0.85);
 }

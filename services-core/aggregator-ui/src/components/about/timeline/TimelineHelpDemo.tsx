@@ -80,7 +80,9 @@ export default function TimelineHelpDemo() {
     setScenario(nextScenario);
     setElapsed(reduceMotion ? stillFrames[nextScenario] : 0);
   };
-  const openedItem = scenario === "navigate" && elapsed >= 7300;
+  // Show the chart again for the pointer to exit before the cycle restarts.
+  const openedItem =
+    scenario === "navigate" && elapsed >= 7300 && elapsed < 11000;
 
   return (
     <div className="timeline-help">
