@@ -81,6 +81,9 @@ describe("Contextual help content layout", () => {
       const dialog = screen.getByRole("dialog", { name: "About " + title });
       const layout = dialog.querySelector(".info-help-modal");
       const description = layout?.querySelector(".info-help-description");
+      const paragraphs = description?.querySelectorAll("p");
+      expect(paragraphs?.length).toBeGreaterThanOrEqual(2);
+      expect(paragraphs?.[0]?.querySelector("strong")?.textContent).toBeTruthy();
       const canvas = layout?.querySelector(".help-animation-canvas");
       expect(description?.parentElement).toBe(layout);
       if (topicId === "timeline") {
@@ -137,7 +140,7 @@ describe("InfoHelp shared tooltip", () => {
     );
     const tooltip = screen.getByRole("tooltip");
     expect(tooltip.textContent).toBe(
-      "People or teams associated with this item.Click for details",
+      "Who owns, uses, or supports this item.Click for details",
     );
     expect(
       tooltip.querySelectorAll(".help-tooltip-action"),

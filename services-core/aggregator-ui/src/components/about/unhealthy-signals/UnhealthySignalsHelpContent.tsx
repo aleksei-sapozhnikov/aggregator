@@ -2,8 +2,7 @@ import UnhealthySignalsHelpDemo from "./UnhealthySignalsHelpDemo";
 
 export const unhealthySignalsHelp = {
   title: "Unhealthy signals",
-  summary:
-    "Signals currently contributing to this item's unhealthy state.",
+  summary: "What's affecting this item's health right now.",
 };
 
 export default function UnhealthySignalsHelpContent() {
@@ -11,12 +10,9 @@ export default function UnhealthySignalsHelpContent() {
     <>
       <div className="info-help-description modal-text-flow">
         <p>
-          Unhealthy signals show what is currently affecting the health of this
-          item. The list can include the item's own failing signals and failing
-          signals coming from its dependencies. Dependencies are shown with
-          their relevant signals so you can see where the problem originates and
-          open the dependency for more detail.
+          <strong>See which checks need attention right now.</strong>
         </p>
+        <p>The issue may be in this item or in a service it depends on. Affected services appear next to their checks, so you can open them for more details.</p>
       </div>
       <UnhealthySignalsHelpDemo />
     </>

@@ -44,64 +44,57 @@ export default function AboutContent() {
   return (
     <div className="about-content modal-text-flow">
       <p>
-        This demo shows the current health of products and the technical
-        services they depend on. It also helps trace a product problem back to
-        where it started.
+        <strong>
+          See whether a product is working, what's affecting it, and who to
+          contact.
+        </strong>
       </p>
       <p>
-        Start with the dependency tree on the left. Select any item to see its
-        current state, health checks, dependencies, recent history, who owns it,
-        and how to contact them.
+        Products rely on many technical services. A problem in one service can
+        affect several products. This demo puts their health and connections in
+        one place.
       </p>
       <p>
-        On a DOWN item, the <strong>Affecting now</strong> section shows which
-        checks are responsible for its current state and whether the problem
-        comes from the item itself or one of its dependencies. Select an
-        affected dependency to open it directly, even if it is several levels
-        deeper in the tree.
+        Choose a product or service from the tree on the left. You'll see its
+        health, checks, dependencies, history, and contacts. The{" "}
+        <strong>?</strong> buttons explain each section with an animated
+        example.
       </p>
       <p>
-        The demo contains three product lines and dependency chains up to six
-        levels deep. Demo services fail and recover automatically, so the states
-        change as you explore the system.
+        If something goes wrong, open <strong>Unhealthy signals</strong> to see
+        which checks are affected. You can follow a dependency to find out more.
       </p>
 
       <div aria-hidden="true" className="about-divider" />
 
-      <p>Health states are:</p>
+      <p>Health states:</p>
       <ul>
-        <li>{"\u{1F7E2}"} UP - the item is currently healthy.</li>
+        <li>{"\u{1F7E2}"} <strong>UP</strong> - Working normally.</li>
         <li>
-          {"\u{1F534}"} DOWN - the item or something it depends on is unhealthy.
+          {"\u{1F534}"} <strong>DOWN</strong> - This item or a service it needs
+          has a problem.
         </li>
         <li>
-          {"\u{1F7E1}"} UNKNOWN - there is not enough current information to
-          fully determine its health.
+          {"\u{1F7E1}"} <strong>UNKNOWN</strong> - There isn't enough
+          information to tell.
         </li>
       </ul>
+      <p>
+        Demo services fail and recover automatically, so you can watch the
+        health change. There are three product lines and chains of connected
+        services to explore.
+      </p>
 
       <div aria-hidden="true" className="about-divider" />
 
       <p>
-        Real products are built from many services, which may depend on shared
-        components owned by different teams. When a product stops working, the
-        visible failure may be only the last symptom.
+        Behind the scenes, the app reads a catalog of products, services, and
+        contacts, checks service health, and shows how problems affect dependent
+        products. It uses Prometheus and Grafana for history.
       </p>
       <p>
-        The goal is simple: show what is broken, what else is affected, and
-        where the problem likely started, instead of guessing or asking every
-        nearby team, "Is it on your side?"
-      </p>
-      <p>
-        Behind the demo, Catalog Health Aggregator uses a catalog of products,
-        services, owners, dependencies, and health-check definitions. It checks
-        service health over HTTP, calculates how failures affect dependent
-        items, and exports Prometheus metrics used by this UI and Grafana
-        panels.
-      </p>
-      <p>
-        For the source code, architecture, and local setup instructions, see the
-        project on{" "}
+        This is a pet project I build in my free time. The code and setup
+        instructions are on{" "}
         <a
           href="https://github.com/aleksei-sapozhnikov/aggregator"
           target="_blank"
@@ -109,17 +102,13 @@ export default function AboutContent() {
         >
           GitHub
         </a>
-        .
-      </p>
-      <p>
-        This is a pet project I work on in my free time. To learn more about my
-        work and background, visit my{" "}
+        . You can also find out more about my work on{" "}
         <a
           href="https://www.linkedin.com/in/aleksei-v-sapozhnikov/"
           target="_blank"
           rel="noreferrer"
         >
-          LinkedIn profile
+          LinkedIn
         </a>
         .
       </p>
