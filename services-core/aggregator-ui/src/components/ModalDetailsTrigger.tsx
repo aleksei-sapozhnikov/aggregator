@@ -15,7 +15,7 @@ type ModalDetailsTriggerProps = TriggerBaseProps &
       }
     | {
         href?: never;
-        onClick: () => void;
+        onClick?: () => void;
       }
   );
 
@@ -54,6 +54,7 @@ export default function ModalDetailsTrigger(props: ModalDetailsTriggerProps) {
       title={props.title}
       aria-label={props.ariaLabel}
       aria-haspopup="dialog"
+      disabled={!props.onClick}
       onClick={props.onClick}
     >
       {props.children}

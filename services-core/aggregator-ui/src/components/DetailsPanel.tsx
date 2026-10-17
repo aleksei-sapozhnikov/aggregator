@@ -4,21 +4,14 @@
 
 import TopBarActions from "./TopBarActions";
 import AiChatPanel from "./AiChatPanel";
-import CatalogItemInfo from "./CatalogItemInfo";
+import ItemTitle from "./ItemTitle";
+import ItemOwnership, { type ActorSummaryRow } from "./ItemOwnership";
+import { HealthySignals, UnhealthySignals, type UnhealthyDependencyRow } from "./ItemSignals";
+import ItemTimeline from "./ItemTimeline";
 import InfoHelp, { InfoHelpProvider } from "./InfoHelp";
 import HealthSignalModal from "./HealthSignalModal";
-import SecondaryLabel from "./SecondaryLabel";
-import ModalDetailsTrigger from "./ModalDetailsTrigger";
-import ItemNavigationLink from "./ItemNavigationLink";
 import { isPlainLeftClick } from "../shared/catalogUtils";
 import { infoHelpTopics } from "../shared/infoHelpTopics";
-import { buildStatusText } from "../shared/statusText";
-import {
-  resolveContactIconId,
-  resolveContactLabel,
-  resolveContactTypeClass,
-  resolveContactTypeDisplayName,
-} from "../shared/contactUtils";
 import type {
   CatalogActor,
   CatalogContact,
@@ -28,13 +21,10 @@ import type {
   ItemSignal,
 } from "../shared/types";
 import type {
-  KeyboardEvent,
   MouseEvent,
-  PointerEvent as ReactPointerEvent,
-  ReactElement,
   RefObject,
 } from "react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type DetailsPanelProps = {
   contentRef: RefObject<HTMLElement | null>;
@@ -105,35 +95,13 @@ type DetailsDisclosureState = {
   isAffectingOpen: boolean;
 };
 
-type UnhealthyDependencyRow = {
-  id: string;
-  title: string;
-  signals: ItemSignal[];
-  href: string;
-  onClick?: (event: MouseEvent<HTMLAnchorElement>) => void;
-};
-
-type ExtraActorRow = {
-  key: string;
-  actor: CatalogActor;
-  typeLabel: string;
-};
-
-type DisclosurePointerState = {
-  startX: number;
-  startY: number;
-  startSelection: string;
-  dragged: boolean;
-  suppressClick: boolean;
-};
-
 const emptyDisclosureState: DetailsDisclosureState = {
   isHealthyOpen: false,
   isContactsExtraOpen: false,
   isAffectingOpen: true,
 };
 
-const buildExtraActorRows = (actors: CatalogActor[]): ExtraActorRow[] =>
+const buildExtraActorRows = (actors: CatalogActor[]): ActorSummaryRow[] =>
   [...actors]
     .sort((left, right) => {
       const rankByType: Record<string, number> = {
@@ -156,58 +124,6 @@ const buildExtraActorRows = (actors: CatalogActor[]): ExtraActorRow[] =>
         .toLowerCase()
         .replace(/^./, (firstLetter) => firstLetter.toUpperCase()),
     }));
-
-const renderActorTeamIcon = (iconSpriteHref: string): ReactElement => (
-  <span className="actor-team-icon-wrap" aria-hidden="true">
-    <svg className="actor-team-icon" viewBox="0 0 24 24" focusable="false">
-      <use href={`${iconSpriteHref}#icon-actor`} />
-    </svg>
-  </span>
-);
-
-const renderContactIcon = (
-  contact: CatalogContact,
-  iconSpriteHref: string,
-): ReactElement => {
-  const typeDisplayName = resolveContactTypeDisplayName(contact.type);
-  return (
-    <span
-      className="contact-type-icon-wrap"
-      title={typeDisplayName}
-      aria-label={typeDisplayName}
-    >
-      <svg
-        className={`contact-type-icon ${resolveContactTypeClass(contact.type)}`}
-        viewBox="0 0 24 24"
-        focusable="false"
-        aria-hidden="true"
-      >
-        <use href={`${iconSpriteHref}#${resolveContactIconId(contact.type)}`} />
-      </svg>
-    </span>
-  );
-};
-
-const readSelectedText = () => {
-  if (typeof window === "undefined") {
-    return "";
-  }
-  const selection = window.getSelection?.();
-  return selection?.toString() || "";
-};
-
-const DISCLOSURE_DRAG_THRESHOLD_PX = 5;
-
-const handleDisclosureActionKeyDown = (
-  event: KeyboardEvent<HTMLElement>,
-  onToggle: () => void,
-) => {
-  if (event.key !== "Enter" && event.key !== " ") {
-    return;
-  }
-  event.preventDefault();
-  onToggle();
-};
 
 /**
  * Renders the right-side content area:
@@ -256,14 +172,12 @@ function DetailsPanelContent({
   onGrafanaLoad,
   grafanaFrameUrl,
 }: DetailsPanelProps) {
-  const selectedStatusText = buildStatusText(selectedStatus, { lastUpdated });
   const selectedItemId = selectedItem?.id || "";
   const [openedSignalId, setOpenedSignalId] = useState(signalIdFromHash);
   const [openedSignalTitle, setOpenedSignalTitle] = useState("");
   const [disclosureByItemId, setDisclosureByItemId] = useState<
     Record<string, DetailsDisclosureState>
   >({});
-  const disclosurePointerState = useRef<DisclosurePointerState | null>(null);
 
   useEffect(() => {
     const syncSignalWithLocation = () => {
@@ -406,63 +320,6 @@ function DetailsPanelContent({
       isHealthyOpen: !itemDisclosureState.isHealthyOpen,
     });
 
-  const handleDisclosurePointerDown = (
-    event: ReactPointerEvent<HTMLElement>,
-  ) => {
-    disclosurePointerState.current = {
-      startX: event.clientX,
-      startY: event.clientY,
-      startSelection: readSelectedText(),
-      dragged: false,
-      suppressClick: false,
-    };
-  };
-
-  const handleDisclosurePointerMove = (
-    event: ReactPointerEvent<HTMLElement>,
-  ) => {
-    const pointerState = disclosurePointerState.current;
-    if (!pointerState) {
-      return;
-    }
-    const deltaX = event.clientX - pointerState.startX;
-    const deltaY = event.clientY - pointerState.startY;
-    if (Math.hypot(deltaX, deltaY) > DISCLOSURE_DRAG_THRESHOLD_PX) {
-      pointerState.dragged = true;
-    }
-  };
-
-  const updateDisclosureDragState = (
-    pointerState: DisclosurePointerState,
-    event: ReactPointerEvent<HTMLElement>,
-  ) => {
-    const deltaX = event.clientX - pointerState.startX;
-    const deltaY = event.clientY - pointerState.startY;
-    if (Math.hypot(deltaX, deltaY) > DISCLOSURE_DRAG_THRESHOLD_PX) {
-      pointerState.dragged = true;
-    }
-  };
-
-  const handleDisclosurePointerUp = (event: ReactPointerEvent<HTMLElement>) => {
-    const pointerState = disclosurePointerState.current;
-    if (!pointerState) {
-      return;
-    }
-    updateDisclosureDragState(pointerState, event);
-    const endSelection = readSelectedText();
-    pointerState.suppressClick =
-      pointerState.dragged || endSelection !== pointerState.startSelection;
-  };
-
-  const handleDisclosureClick = (onToggle: () => void) => {
-    const pointerState = disclosurePointerState.current;
-    disclosurePointerState.current = null;
-    if (pointerState?.suppressClick) {
-      return;
-    }
-    onToggle();
-  };
-
   return (
     <main className="content" ref={contentRef}>
       {!isSidebarOpen && (
@@ -500,34 +357,9 @@ function DetailsPanelContent({
           />
         </div>
         <div className="content-header-main">
-          <div className="content-title">
-            <span
-              className="content-title-primary"
-              ref={contentTitlePrimaryRef}
-            >
-              {selectedItem && (
-                <span
-                  className={`status-indicator status-${selectedStatus}`}
-                  aria-label={selectedStatusText}
-                  title={selectedStatusText}
-                />
-              )}
-              <span className="content-title-text content-title-text-first">
-                {selectedTitleFirstWord}
-              </span>
-            </span>
-            {selectedTitleRest && (
-              <span className="content-title-text content-title-text-rest">
-                {selectedTitleRest}
-              </span>
-            )}
-            {selectedItem && <CatalogItemInfo item={selectedItem} />}
-            {selectedItem && selectedStatus !== "up" && (
-              <span className={`content-status-label status-${selectedStatus}`}>
-                {selectedStatus.toUpperCase()}
-              </span>
-            )}
-          </div>
+          <ItemTitle item={selectedItem} status={selectedStatus} lastUpdated={lastUpdated}
+            firstWord={selectedTitleFirstWord} rest={selectedTitleRest}
+            primaryRef={contentTitlePrimaryRef} />
         </div>
       </header>
       <div
@@ -541,356 +373,29 @@ function DetailsPanelContent({
           ) : (
             <>
               <section className="details-summary-block">
-                <div
-                  className="ownership-summary"
-                  role="group"
-                  aria-label="Ownership"
-                >
-                  {primaryContact && (
-                    <div className="ownership-contact-section">
-                      <div
-                        className="primary-contact-block"
-                        aria-label="Primary contact"
-                      >
-                        <div className="primary-contact-heading-row">
-                          <div className="primary-contact-heading">
-                            Primary contact
-                          </div>
-                          <InfoHelp topic={infoHelpTopics.primaryContact} />
-                        </div>
-                        <div className="primary-contact-row">
-                          <span className="primary-contact-icon">
-                            {renderContactIcon(primaryContact, iconSpriteHref)}
-                          </span>
-                          <ModalDetailsTrigger
-                            className="primary-contact-link"
-                            onClick={() => onOpenContact(primaryContact)}
-                            title={resolveContactLabel(primaryContact)}
-                          >
-                            {resolveContactLabel(primaryContact)}
-                          </ModalDetailsTrigger>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {actorRowsForContacts.length > 0 && (
-                    <div className="ownership-actors-group">
-                      <div className="details-disclosure-header">
-                        <span
-                          role="button"
-                          tabIndex={0}
-                          className="details-disclosure-toggle"
-                          aria-label="Toggle Actors"
-                          aria-expanded={
-                            itemDisclosureState.isContactsExtraOpen
-                          }
-                          onPointerDown={handleDisclosurePointerDown}
-                          onPointerMove={handleDisclosurePointerMove}
-                          onPointerUp={handleDisclosurePointerUp}
-                          onClick={() =>
-                            handleDisclosureClick(toggleContactsExtra)
-                          }
-                          onKeyDown={(event) =>
-                            handleDisclosureActionKeyDown(
-                              event,
-                              toggleContactsExtra,
-                            )
-                          }
-                        >
-                          <span
-                            className={`details-panel-chevron ${
-                              itemDisclosureState.isContactsExtraOpen
-                                ? "is-open"
-                                : ""
-                            }`}
-                            aria-hidden="true"
-                          >
-                            ›
-                          </span>
-                          <span
-                            className="details-disclosure-icon"
-                            aria-hidden="true"
-                          >
-                            {renderActorTeamIcon(iconSpriteHref)}
-                          </span>
-                          <span className="details-disclosure-label">
-                            Actors ({actorRowsForContacts.length})
-                          </span>
-                        </span>
-                        <InfoHelp topic={infoHelpTopics.actors} />
-                      </div>
-                      <div
-                        className={`disclosure-panel ownership-extra-contacts ${
-                          itemDisclosureState.isContactsExtraOpen
-                            ? "is-open"
-                            : ""
-                        }`}
-                      >
-                        <ul className="ownership-extra-list">
-                          {actorRowsForContacts.map((entry) => (
-                            <li key={entry.key}>
-                              <div className="actor-summary-row">
-                                <ModalDetailsTrigger
-                                  className="actor-summary-name"
-                                  onClick={() => onOpenActor(entry.actor)}
-                                  title={entry.actor.title || entry.actor.id}
-                                >
-                                  {entry.actor.title || entry.actor.id}
-                                </ModalDetailsTrigger>
-                                <SecondaryLabel text={entry.typeLabel} />
-                              </div>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
+                <ItemOwnership primaryContact={primaryContact} actorRows={actorRowsForContacts}
+                  expanded={itemDisclosureState.isContactsExtraOpen} onToggleActors={toggleContactsExtra}
+                  onOpenContact={onOpenContact} onOpenActor={onOpenActor} iconSpriteHref={iconSpriteHref}
+                  primaryHelp={<InfoHelp topic={infoHelpTopics.primaryContact} />}
+                  actorsHelp={<InfoHelp topic={infoHelpTopics.actors} />} />
                 {hasAffectingSignals && (
-                  <div className="details-disclosure-section">
-                    <div className="details-disclosure-header">
-                      <span
-                        role="button"
-                        tabIndex={0}
-                        className="details-disclosure-toggle"
-                        aria-label="Toggle Unhealthy signals"
-                        aria-expanded={itemDisclosureState.isAffectingOpen}
-                        onPointerDown={handleDisclosurePointerDown}
-                        onPointerMove={handleDisclosurePointerMove}
-                        onPointerUp={handleDisclosurePointerUp}
-                        onClick={() =>
-                          handleDisclosureClick(toggleAffectingSignals)
-                        }
-                        onKeyDown={(event) =>
-                          handleDisclosureActionKeyDown(
-                            event,
-                            toggleAffectingSignals,
-                          )
-                        }
-                      >
-                        <span
-                          className={`details-panel-chevron ${
-                            itemDisclosureState.isAffectingOpen ? "is-open" : ""
-                          }`}
-                          aria-hidden="true"
-                        >
-                          ›
-                        </span>
-                        <span
-                          className="status-indicator status-down details-disclosure-status"
-                          aria-hidden="true"
-                        />
-                        <span className="details-disclosure-label">
-                          Unhealthy signals ({affectingCount})
-                        </span>
-                      </span>
-                      <InfoHelp topic={infoHelpTopics.unhealthySignals} />
-                    </div>
-                    <div
-                      className={`disclosure-panel ${
-                        itemDisclosureState.isAffectingOpen ? "is-open" : ""
-                      }`}
-                    >
-                      <ul className="details-unhealthy-list">
-                        {selectedFailingSignals.map((entry) => (
-                          <li
-                            key={entry.id}
-                            className="signals-unhealthy-own-row"
-                            aria-label={`${entry.title || entry.id}, ${buildStatusText(entry.status)}`}
-                          >
-                            <div className="signal-row signal-status-row">
-                              <ModalDetailsTrigger
-                                className="signal-name"
-                                title={entry.title || entry.id}
-                                href={buildSignalLink(entry.id)}
-                                onClick={(event) =>
-                                  handleSignalClick(event, entry)
-                                }
-                              >
-                                {entry.title || entry.id}
-                              </ModalDetailsTrigger>
-                              {entry.status === "unknown" && (
-                                <span className="signal-unknown-label">
-                                  UNKNOWN
-                                </span>
-                              )}
-                            </div>
-                          </li>
-                        ))}
-
-                        {unhealthyDependencyRows.map((row) => (
-                          <li key={row.id} className="signals-incident-row">
-                            <div className="signals-dependency-row">
-                              <ItemNavigationLink
-                                title={row.title}
-                                href={row.href}
-                                onClick={row.onClick}
-                              >
-                                {row.title}
-                              </ItemNavigationLink>
-                              <SecondaryLabel text="Dependency" />
-                            </div>
-                            <ul className="signals-incident-signal-list">
-                              {row.signals.map((signal) => (
-                                <li
-                                  key={signal.id}
-                                  className="signals-incident-signal"
-                                  title={signal.title || signal.id}
-                                  aria-label={`${signal.title || signal.id}, ${buildStatusText(signal.status)}`}
-                                >
-                                  <ModalDetailsTrigger
-                                    className="signal-name"
-                                    title={signal.title || signal.id}
-                                    href={buildSignalLink(signal.id)}
-                                    onClick={(event) =>
-                                      handleSignalClick(event, signal)
-                                    }
-                                  >
-                                    {signal.title || signal.id}
-                                  </ModalDetailsTrigger>
-                                  {signal.status === "unknown" && (
-                                    <span className="signal-unknown-label">
-                                      UNKNOWN
-                                    </span>
-                                  )}
-                                </li>
-                              ))}
-                            </ul>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
+                  <UnhealthySignals signals={selectedFailingSignals} dependencies={unhealthyDependencyRows}
+                    expanded={itemDisclosureState.isAffectingOpen} onToggle={toggleAffectingSignals}
+                    buildSignalLink={buildSignalLink} onSignalClick={handleSignalClick}
+                    help={<InfoHelp topic={infoHelpTopics.unhealthySignals} />} />
                 )}
-
                 {passingSignalsCount > 0 && (
-                  <div className="details-disclosure-section">
-                    <div className="details-disclosure-header">
-                      <span
-                        role="button"
-                        tabIndex={0}
-                        className="details-disclosure-toggle"
-                        aria-label="Toggle Healthy signals"
-                        aria-expanded={itemDisclosureState.isHealthyOpen}
-                        onPointerDown={handleDisclosurePointerDown}
-                        onPointerMove={handleDisclosurePointerMove}
-                        onPointerUp={handleDisclosurePointerUp}
-                        onClick={() =>
-                          handleDisclosureClick(toggleHealthySignals)
-                        }
-                        onKeyDown={(event) =>
-                          handleDisclosureActionKeyDown(
-                            event,
-                            toggleHealthySignals,
-                          )
-                        }
-                      >
-                        <span
-                          className={`details-panel-chevron ${
-                            itemDisclosureState.isHealthyOpen ? "is-open" : ""
-                          }`}
-                          aria-hidden="true"
-                        >
-                          ›
-                        </span>
-                        <span
-                          className="status-indicator status-up details-disclosure-status"
-                          aria-hidden="true"
-                        />
-                        <span className="details-disclosure-label">
-                          Healthy signals ({passingSignalsCount})
-                        </span>
-                      </span>
-                      <InfoHelp topic={infoHelpTopics.healthySignals} />
-                    </div>
-                    <div
-                      className={`disclosure-panel ${
-                        itemDisclosureState.isHealthyOpen ? "is-open" : ""
-                      }`}
-                    >
-                      <ul className="signals-healthy-list">
-                        {selectedPassingSignals.map((entry) => (
-                          <li
-                            key={entry.id}
-                            className="signals-healthy-row"
-                            aria-label={`${entry.title || entry.id}, ${buildStatusText(entry.status)}`}
-                          >
-                            <div className="signal-row signal-status-row">
-                              <ModalDetailsTrigger
-                                className="signal-name"
-                                title={entry.title || entry.id}
-                                href={buildSignalLink(entry.id)}
-                                onClick={(event) =>
-                                  handleSignalClick(event, entry)
-                                }
-                              >
-                                {entry.title || entry.id}
-                              </ModalDetailsTrigger>
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
+                  <HealthySignals signals={selectedPassingSignals} count={passingSignalsCount}
+                    expanded={itemDisclosureState.isHealthyOpen} onToggle={toggleHealthySignals}
+                    buildSignalLink={buildSignalLink} onSignalClick={handleSignalClick}
+                    help={<InfoHelp topic={infoHelpTopics.healthySignals} />} />
                 )}
               </section>
 
-              <section className="details-disclosure-section details-timeline-section">
-                <div className="details-disclosure-header">
-                  <span
-                    role="button"
-                    tabIndex={0}
-                    className="details-disclosure-toggle"
-                    aria-label="Toggle Timeline"
-                    aria-expanded={isGrafanaOpen}
-                    onPointerDown={handleDisclosurePointerDown}
-                    onPointerMove={handleDisclosurePointerMove}
-                    onPointerUp={handleDisclosurePointerUp}
-                    onClick={() => handleDisclosureClick(onToggleGrafana)}
-                    onKeyDown={(event) =>
-                      handleDisclosureActionKeyDown(event, onToggleGrafana)
-                    }
-                  >
-                    <span
-                      className={`details-panel-chevron ${isGrafanaOpen ? "is-open" : ""}`}
-                      aria-hidden="true"
-                    >
-                      ›
-                    </span>
-                    <span
-                      className="details-disclosure-icon details-disclosure-symbol"
-                      aria-hidden="true"
-                    >
-                      ◷
-                    </span>
-                    <span className="details-disclosure-label">Timeline</span>
-                  </span>
-                  <InfoHelp topic={infoHelpTopics.timeline} />
-                </div>
-                {isGrafanaOpen && (
-                  <div className="details-timeline-body">
-                    <div className="grafana-grid">
-                      <section
-                        className="grafana-panel"
-                        style={
-                          grafanaHeight
-                            ? { height: `${grafanaHeight}px` }
-                            : undefined
-                        }
-                      >
-                        <iframe
-                          title="State Timeline"
-                          ref={grafanaIframeRef}
-                          onLoad={onGrafanaLoad}
-                          src={grafanaFrameUrl}
-                        />
-                      </section>
-                    </div>
-                  </div>
-                )}
-              </section>
+              <ItemTimeline expanded={isGrafanaOpen} onToggle={onToggleGrafana} height={grafanaHeight}
+                help={<InfoHelp topic={infoHelpTopics.timeline} />}>
+                <iframe title="State Timeline" ref={grafanaIframeRef} onLoad={onGrafanaLoad} src={grafanaFrameUrl} />
+              </ItemTimeline>
             </>
           )}
         </div>
