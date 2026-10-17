@@ -15,8 +15,8 @@ from io import StringIO
 from pathlib import Path
 from unittest.mock import patch
 
-import run_jdk
 import run_java_format
+import run_jdk
 
 
 class JDKBootstrapTests(unittest.TestCase):
@@ -84,12 +84,11 @@ class JDKBootstrapTests(unittest.TestCase):
             patch.object(run_jdk, "platform_details", return_value=("windows", "x64")),
             patch.object(run_jdk.urllib.request, "urlopen", return_value=metadata(
                 "https://evil.example/temurin.zip", checksum
-            )),
+            )),self.assertRaisesRegex(
+            ValueError, "Unexpected Temurin download source"
+        )
         ):
-            with self.assertRaisesRegex(
-                ValueError, "Unexpected Temurin download source"
-            ):
-                run_jdk.adoptium_package()
+            run_jdk.adoptium_package()
 
     def test_adoptium_rejects_incorrect_metadata_types(self) -> None:
         invalid_metadata = [

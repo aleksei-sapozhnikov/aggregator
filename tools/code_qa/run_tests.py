@@ -10,7 +10,6 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from run_jdk import resolve_java_home
-
 from run_maven import maven_environment, resolve_maven_command
 from utils import (
     ensure_venv,

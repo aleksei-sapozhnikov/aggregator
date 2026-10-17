@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import hashlib
-import os
 import io
+import os
 import tempfile
 import unittest
 import zipfile
