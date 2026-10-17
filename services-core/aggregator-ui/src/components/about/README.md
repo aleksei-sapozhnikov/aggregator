@@ -16,6 +16,11 @@ Item rows to align highlights and illustrated characters with the real UI.
 CSS selectors and animation geometry still require visual regression review
 when the shared markup changes.
 
+The Unhealthy walkthrough uses a compact sequence: the fully red diagram is
+held for 250 ms, the expanded Item is held for 2 seconds, and green recovery
+waves propagate upward as fast as the preceding red failure waves. Arrival
+times determine when dependent nodes change state.
+
 ## Healthy and unhealthy help
 
 `healthy-signals/` and `unhealthy-signals/` expose separate help topics.
@@ -43,8 +48,9 @@ Reusable character assets live in `about/shared/characters/`: User calls,
 Owner carries the repair wrench, and Support wears a call-center headset.
 The same role uses the same SVG in Actors and Primary contact. The service
 machine has one SVG with an `unhealthy` parameter that switches its lamp
-between green and red. Wooden role/service captions remain separate
-`DemoWoodLabel` elements in each scene so assets do not own their labels.
+between green and red. Wooden captions are used for people only and remain
+separate `DemoWoodLabel` elements, rather than becoming part of the SVG
+assets. The service illustration needs no caption.
 
 Use the UI service's `npm run typecheck`, `npm test`, and `npm run build`
 for validation, plus browser checks at desktop and mobile widths.

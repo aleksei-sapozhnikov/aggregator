@@ -4,12 +4,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import HealthySignalsHelpDemo from "./healthy-signals/HealthySignalsHelpDemo";
 import UnhealthySignalsHelpDemo from "./unhealthy-signals/UnhealthySignalsHelpDemo";
 import { unhealthyTiming } from "./unhealthy-signals/UnhealthySignalTiming";
-import {
-  expandedListHoldMs,
-} from "./shared/signal-flow/progress";
-import {
-  unhealthyCycleDuration,
-} from "./unhealthy-signals/UnhealthySignalProjection";
+import { expandedListHoldMs } from "./shared/signal-flow/progress";
+import { unhealthyCycleDuration } from "./unhealthy-signals/UnhealthySignalProjection";
 
 beforeEach(() => vi.useFakeTimers());
 afterEach(() => {
@@ -172,7 +168,11 @@ describe("Signal flow help demonstrations", () => {
   it.each([
     ["healthy", '[data-selection-frame="availability"]', 6500],
     ["unhealthy", '[data-unhealthy-frame="dep1"]', unhealthyTiming.pageHoldAt + 10],
-    ["unhealthy", '[data-unhealthy-frame="nested1"]', unhealthyTiming.pageHoldAt + 10],
+    [
+      "unhealthy",
+      '[data-unhealthy-frame="nested1"]',
+      unhealthyTiming.pageHoldAt + 10,
+    ],
   ] as const)(
     "adds left and right text gutters around %s signal rows",
     (mode, selector, holdAt) => {
@@ -432,7 +432,9 @@ describe("Signal flow help demonstrations", () => {
     advance(240);
     expect(page.style.opacity).toBe("0");
 
-    advance(unhealthyTiming.pageHoldAt - unhealthyTiming.itemAffectedAt - 240 + 20);
+    advance(
+      unhealthyTiming.pageHoldAt - unhealthyTiming.itemAffectedAt - 240 + 20,
+    );
     expect(page.style.opacity).toBe("1");
     expect(graph.style.opacity).toBe("0");
     advance(expandedListHoldMs - 20);
