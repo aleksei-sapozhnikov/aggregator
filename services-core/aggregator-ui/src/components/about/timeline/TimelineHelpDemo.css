@@ -48,9 +48,29 @@
   background: var(--panel);
 }
 .timeline-help-content {
+  position: relative;
   min-width: 0;
   width: 100%;
   pointer-events: none;
+}
+.timeline-help-chart-layer {
+  position: relative;
+}
+.timeline-help-opened-item {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+.timeline-help-opened-item .help-item-page {
+  box-sizing: border-box;
+  width: 100%;
+}
+/* One shared blue frame stays above both layouts but below Grafana popups. */
+.timeline-help-content > .demo-highlight-frame {
+  z-index: 2;
+}
+.timeline-help-popup {
+  z-index: 20;
 }
 @media (max-width: 540px) {
   .timeline-help-scenarios {

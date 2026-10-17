@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import ItemTitle from "../../shared/item/ItemTitle";
 import ItemOwnership from "../../shared/item/ItemOwnership";
 import { HealthySignals } from "../../shared/item/ItemSignals";
 import HelpAnimationProgress from "../shared/HelpAnimationProgress";
 import HelpInteractionShield from "../shared/HelpInteractionShield";
 import HelpAnimationCanvas from "../shared/HelpAnimationCanvas";
+import DemoHighlightFrame from "../shared/DemoHighlightFrame";
+import { progressBetween, smooth } from "../shared/signal-flow/progress";
 import useHelpAnimationClock from "../shared/useHelpAnimationClock";
 import ItemTimeline from "../../shared/item/ItemTimeline";
 import DemoHelp from "../shared/DemoHelp";
@@ -36,8 +38,90 @@ const cycleDurations: Record<Scenario, number> = {
 const stillFrames: Record<Scenario, number> = {
   inspect: 5000,
   filter: 6000,
-  navigate: 8000,
+  navigate: 8500,
 };
+
+type HighlightBounds = { x: number; y: number; width: number; height: number };
+const fallbackBounds = {
+  chart: { x: 12, y: 142, width: 750, height: 34 },
+  item: { x: 20, y: 18, width: 350, height: 38 },
+};
+
+const interpolate = (a: number, b: number, t: number) => a + (b - a) * t;
+
+// A single frame follows the real row, then the real Item title, and back.
+export function getDependencyHighlightFrame(elapsed: number) {
+  const forward = smooth(progressBetween(elapsed, 7300, 8200));
+  const reverse = smooth(progressBetween(elapsed, 10200, 11100));
+  return {
+    towardItem: forward * (1 - reverse),
+    opacity:
+      smooth(progressBetween(elapsed, 6000, 6250)) *
+      (1 - smooth(progressBetween(elapsed, 11500, 12600))),
+  };
+}
+
+function useDependencyHighlightBounds(
+  rootRef: React.RefObject<HTMLDivElement | null>,
+  scenario: Scenario,
+) {
+  const [bounds, setBounds] = useState(fallbackBounds);
+  useLayoutEffect(() => {
+    if (scenario !== "navigate") return undefined;
+    const root = rootRef.current;
+    if (!root) return undefined;
+
+    const measure = () => {
+      const label = root.querySelector(
+        '.timeline-help-label[data-timeline-row="payment"]',
+      );
+      const track = root.querySelector(
+        '.timeline-help-track[data-timeline-row="payment"]',
+      );
+      const title = root.querySelector(".timeline-help-opened-item .content-title");
+      if (!label || !track || !title) return;
+      const origin = root.getBoundingClientRect();
+      const labelRect = label.getBoundingClientRect();
+      const trackRect = track.getBoundingClientRect();
+      const titleRect = title.getBoundingClientRect();
+      if (labelRect.width <= 0 || trackRect.width <= 0 || titleRect.width <= 0) {
+        return;
+      }
+      const next = {
+        chart: {
+          x: labelRect.left - origin.left - 5,
+          y: labelRect.top - origin.top - 5,
+          width: trackRect.right - labelRect.left + 10,
+          height: Math.max(labelRect.height, trackRect.height) + 10,
+        },
+        item: {
+          x: titleRect.left - origin.left - 5,
+          y: titleRect.top - origin.top - 5,
+          width: titleRect.width + 10,
+          height: titleRect.height + 10,
+        },
+      };
+      setBounds((current) =>
+        JSON.stringify(current) === JSON.stringify(next) ? current : next,
+      );
+    };
+
+    measure();
+    const observer =
+      typeof ResizeObserver !== "undefined" ? new ResizeObserver(measure) : null;
+    if (observer) {
+      observer.observe(root);
+      const title = root.querySelector(".timeline-help-opened-item .content-title");
+      if (title) observer.observe(title);
+    }
+    window.addEventListener("resize", measure);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, [rootRef, scenario]);
+  return bounds;
+}
 
 function OpenedDependencyItem() {
   return (
@@ -80,9 +164,17 @@ export default function TimelineHelpDemo() {
     setScenario(nextScenario);
     setElapsed(reduceMotion ? stillFrames[nextScenario] : 0);
   };
-  // Show the chart again for the pointer to exit before the cycle restarts.
-  const openedItem =
-    scenario === "navigate" && elapsed >= 7300 && elapsed < 11000;
+  const contentRef = useRef<HTMLDivElement>(null);
+  const targets = useDependencyHighlightBounds(contentRef, scenario);
+  const animation = getDependencyHighlightFrame(elapsed);
+  const reveal = scenario === "navigate" ? animation.towardItem : 0;
+  const openedItem = scenario === "navigate" && reveal > 0.5;
+  const highlight: HighlightBounds = {
+    x: interpolate(targets.chart.x, targets.item.x, animation.towardItem),
+    y: interpolate(targets.chart.y, targets.item.y, animation.towardItem),
+    width: interpolate(targets.chart.width, targets.item.width, animation.towardItem),
+    height: interpolate(targets.chart.height, targets.item.height, animation.towardItem),
+  };
 
   return (
     <div className="timeline-help">
@@ -120,14 +212,40 @@ export default function TimelineHelpDemo() {
               : "A timeline of Orders Service demonstrates inspecting states, filtering signals and opening a dependency"
           }
         >
-          <div inert aria-hidden="true" className="timeline-help-content">
-            {openedItem ? (
-              <OpenedDependencyItem />
-            ) : (
+          <div
+            ref={contentRef}
+            inert
+            aria-hidden="true"
+            className="timeline-help-content"
+          >
+            <div
+              className="timeline-help-chart-layer"
+              style={{ opacity: 1 - reveal }}
+            >
               <GrafanaTimelineIllustration
                 scenario={scenario}
                 elapsed={elapsed}
               />
+            </div>
+            {scenario === "navigate" && (
+              <>
+                <div
+                  className="timeline-help-opened-item"
+                  style={{ opacity: reveal }}
+                >
+                  <OpenedDependencyItem />
+                </div>
+                <DemoHighlightFrame
+                  mode="html"
+                  data-timeline-dependency-highlight="true"
+                  color="var(--link)"
+                  x={highlight.x}
+                  y={highlight.y}
+                  width={highlight.width}
+                  height={highlight.height}
+                  opacity={animation.opacity}
+                />
+              </>
             )}
           </div>
         </div>

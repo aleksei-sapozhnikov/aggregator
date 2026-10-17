@@ -437,6 +437,7 @@ export default function GrafanaTimelineIllustration({
             <div
               key={row.id}
               className="timeline-help-label"
+              data-timeline-row={row.id}
             >
               <span>{row.label}</span>
             </div>
@@ -447,6 +448,7 @@ export default function GrafanaTimelineIllustration({
             <div
               key={row.id}
               className="timeline-help-track"
+              data-timeline-row={row.id}
             >
               {row.states.map((state, index) => (
                 <span
