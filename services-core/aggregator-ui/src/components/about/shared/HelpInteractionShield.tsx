@@ -1,3 +1,5 @@
+/** @file Prevents demo-only UI from responding to pointer interactions. */
+
 import "./HelpInteractionShield.css";
 
 // Transparent overlay prevents demo elements from capturing mouse or touch events.

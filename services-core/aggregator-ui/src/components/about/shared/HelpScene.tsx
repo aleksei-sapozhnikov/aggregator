@@ -1,3 +1,5 @@
+/** @file Aligns scaled HTML previews and SVG illustration geometry. */
+
 import { useLayoutEffect, useRef, useState } from "react";
 import type { ReactNode, RefObject } from "react";
 import "./HelpScene.css";

@@ -1,7 +1,10 @@
+/** @file Renders the reusable owner character and repair animation. */
+
 import CharacterLayer from "../shared/CharacterLayer";
 import asset from "./OwnerCharacter.svg?no-inline";
 import "./OwnerCharacter.css";
 
+/** Renders the owner sprite and animated repair wrench. */
 export default function OwnerCharacter({
   repairProgress,
 }: {
