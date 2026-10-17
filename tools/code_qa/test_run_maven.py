@@ -73,6 +73,7 @@ class MavenBootstrapTests(unittest.TestCase):
 
     def test_maven_environment_suppresses_only_known_unsafe_warning(self) -> None:
         java_home = Path("/qa/jdk-25")
+        original_options = os.environ.get("MAVEN_OPTS")
         with patch.dict(os.environ, {"MAVEN_OPTS": "-Xmx1g"}):
             env = run_maven.maven_environment(java_home)
 
@@ -82,7 +83,7 @@ class MavenBootstrapTests(unittest.TestCase):
         )
         self.assertEqual(env["JAVA_HOME"], str(java_home))
         self.assertTrue(env["PATH"].startswith(str(java_home / "bin")))
-        self.assertEqual(os.environ.get("MAVEN_OPTS"), os.environ.get("MAVEN_OPTS"))
+        self.assertEqual(os.environ.get("MAVEN_OPTS"), original_options)
 
     def test_maven_environment_does_not_duplicate_option(self) -> None:
         option = run_maven.MAVEN_UNSAFE_ACCESS_OPTION
