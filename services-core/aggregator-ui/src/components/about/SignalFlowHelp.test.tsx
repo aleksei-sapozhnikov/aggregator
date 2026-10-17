@@ -163,6 +163,33 @@ describe("Signal flow help demonstrations", () => {
     },
   );
 
+  it.each([
+    ["healthy", '[data-selection-frame="availability"]', 6500],
+    ["unhealthy", '[data-unhealthy-frame="dep1"]', 11120],
+    ["unhealthy", '[data-unhealthy-frame="nested1"]', 11120],
+  ] as const)(
+    "adds left and right text gutters around %s signal rows",
+    (mode, selector, holdAt) => {
+      const { container } = render(
+        mode === "healthy" ? (
+          <HealthySignalsHelpDemo />
+        ) : (
+          <UnhealthySignalsHelpDemo />
+        ),
+      );
+      advance(holdAt);
+      const frame = container.querySelector(selector) as SVGRectElement;
+      // No geometry is available in jsdom: the scene uses the target fallback,
+      // scaled into the SVG by the production preview layout.
+      const left = 95 + 72 * 0.9;
+      const right = left + 408 * 0.9;
+      expect(Number(frame.getAttribute("x"))).toBeCloseTo(left - 16);
+      expect(
+        Number(frame.getAttribute("x")) + Number(frame.getAttribute("width")),
+      ).toBeCloseTo(right + 12);
+    },
+  );
+
   it("keeps neighboring unhealthy dependency highlights separated", () => {
     const { container } = render(<UnhealthySignalsHelpDemo />);
     const upper = container.querySelector(

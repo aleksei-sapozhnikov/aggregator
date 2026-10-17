@@ -80,7 +80,12 @@ describe("Primary contact contextual help", () => {
     );
     expect(text?.nextElementSibling).toBe(figure);
     expect(figure?.classList.contains("help-animation-canvas")).toBe(true);
-    expect(figure?.getAttribute("style")).toContain("660px");
+    expect(figure?.getAttribute("style")).toContain("560px");
+    const compactLayout = getPrimaryContactHelpLayout(540);
+    expect(compactLayout.compact).toBe(true);
+    const [, , width, height] = compactLayout.viewBox.split(" ").map(Number);
+    expect(width).toBe(540);
+    expect(height).toBeLessThan(340);
     expect(figure?.querySelector("[data-primary-contact-page]")).not.toBeNull();
     expect(
       figure?.querySelector("[data-primary-contact-transfer]"),
