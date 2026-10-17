@@ -93,6 +93,7 @@ describe("Primary contact contextual help", () => {
     const start = getPrimaryContactHelpFrame(0);
     const failed = getPrimaryContactHelpFrame(1900);
     const calling = getPrimaryContactHelpFrame(8000);
+    const puttingAway = getPrimaryContactHelpFrame(9400);
     const arrived = getPrimaryContactHelpFrame(9600);
     const repaired = getPrimaryContactHelpFrame(11800);
     const restarting = getPrimaryContactHelpFrame(15100);
@@ -102,10 +103,14 @@ describe("Primary contact contextual help", () => {
     expect(failed.unhealthy).toBe(1);
     expect(calling.unhealthy).toBe(1);
     expect(calling.userPhoneVisible).toBe(1);
+    expect(puttingAway.laptop).toBeCloseTo(puttingAway.phone);
+    expect(puttingAway.laptop).toBeGreaterThan(0);
+    expect(puttingAway.laptop).toBeLessThan(1);
     expect(arrived.unhealthy).toBe(1);
     expect(arrived.technicianX).toBe(238);
     expect(arrived.userPhoneVisible).toBe(0);
     expect(arrived.phone).toBe(0);
+    expect(arrived.laptop).toBe(0);
     expect(repaired.unhealthy).toBe(0);
     expect(repaired.userPhoneVisible).toBe(0);
     expect(restarting.userPhoneVisible).toBe(1);
@@ -119,10 +124,14 @@ describe("Primary contact contextual help", () => {
     const unhappy = user?.querySelector('[data-user-expression="unhappy"]');
     const phone = user?.querySelector('[data-demo-gesture="phone"]');
     const idleArm = user?.querySelector('[data-user-arm="idle"]');
+    const laptop = container.querySelector(
+      "[data-primary-contact-laptop]",
+    ) as SVGGElement;
 
     expect(happy?.getAttribute("opacity")).toBe("1");
     expect(unhappy?.getAttribute("opacity")).toBe("0");
     expect(phone?.getAttribute("opacity")).toBe("1");
+    expect(laptop.style.opacity).toBe("0");
 
     act(() => vi.advanceTimersByTime(1900));
     expect(happy?.getAttribute("opacity")).toBe("0");
@@ -132,6 +141,7 @@ describe("Primary contact contextual help", () => {
     expect(unhappy?.getAttribute("opacity")).toBe("1");
     expect(phone?.getAttribute("opacity")).toBe("0");
     expect(idleArm?.getAttribute("opacity")).toBe("1");
+    expect(laptop.style.opacity).toBe("0");
     const contactPhone = container.querySelector(
       "[data-primary-contact-phone]",
     ) as SVGGElement;
@@ -151,6 +161,7 @@ describe("Primary contact contextual help", () => {
 
     expect(getPrimaryContactHelpFrame(1900).unhealthy).toBe(1);
     expect(getPrimaryContactHelpFrame(3500).laptop).toBe(1);
+    expect(getPrimaryContactHelpFrame(8000).laptop).toBe(1);
     const page = getPrimaryContactHelpFrame(5350);
     expect(page.pageExpansion).toBe(1);
     expect(page.pageOpacity).toBe(1);
