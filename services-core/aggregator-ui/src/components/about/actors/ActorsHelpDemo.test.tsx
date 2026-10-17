@@ -59,7 +59,9 @@ describe("Actors contextual help animation", () => {
     expect(figure.querySelector(".contact-type-icon")).not.toBeNull();
     expect(figure.querySelector(".actor-team-icon")).not.toBeNull();
     expect(figure.querySelector(".catalog-item-info-button")).not.toBeNull();
-    expect(figure.querySelector(".content-title .catalog-item-info")).not.toBeNull();
+    expect(
+      figure.querySelector(".content-title .catalog-item-info"),
+    ).not.toBeNull();
     expect(
       Array.from(figure.querySelectorAll("[data-scene-label]"), (label) =>
         label.getAttribute("data-scene-label"),
@@ -121,7 +123,9 @@ describe("Actors contextual help animation", () => {
         ?.querySelector("[data-service-sprite]")
         ?.getAttribute("transform"),
     ).toContain("scale(0.078)");
-    const serviceX = Number(machine?.getAttribute("transform")?.match(/translate\(([-\d.]+)/)?.[1]);
+    const serviceX = Number(
+      machine?.getAttribute("transform")?.match(/translate\(([-\d.]+)/)?.[1],
+    );
     expect(serviceX).toBeGreaterThan(180);
     expect(serviceX).toBeLessThan(280);
     for (const sprite of [owner, user, other, machine]) {
@@ -131,7 +135,9 @@ describe("Actors contextual help animation", () => {
     act(() => {
       vi.advanceTimersByTime(1000);
     });
-    expect(machine?.getAttribute("transform")).toContain(`translate(${serviceX} `);
+    expect(machine?.getAttribute("transform")).toContain(
+      `translate(${serviceX} `,
+    );
     act(() => {
       vi.advanceTimersByTime(900);
     });
@@ -160,7 +166,7 @@ describe("Actors contextual help animation", () => {
     ).not.toBe("0");
   });
 
-  it("positions the service beside the measured title info icon, not the full title width", () => {
+  it("anchors the service to the title info icon", () => {
     const bounds = (left: number, top: number, width: number, height: number) =>
       ({
         left,
@@ -200,7 +206,9 @@ describe("Actors contextual help animation", () => {
     });
 
     const service = document.querySelector('[data-service="item"]');
-    const x = Number(service?.getAttribute("transform")?.match(/translate\(([-\d.]+)/)?.[1]);
+    const x = Number(
+      service?.getAttribute("transform")?.match(/translate\(([-\d.]+)/)?.[1],
+    );
     // Measured info icon ends at x=234, not at the title container's x=506.
     expect(x).toBeCloseTo(164.6, 1);
   });
