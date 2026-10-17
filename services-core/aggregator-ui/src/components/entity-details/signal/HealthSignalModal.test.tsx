@@ -2,6 +2,8 @@
  * @vitest-environment jsdom
  */
 
+/** @file Tests health signal detail requests and dialog behavior. */
+
 import {
   cleanup,
   fireEvent,

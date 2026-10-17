@@ -1,6 +1,9 @@
+/** @file Parses and builds Item routes, including dependency-path context. */
+
 import type { CatalogTreeNode } from "../types";
 import { findNodeById, findNodeByPath } from "../catalog/tree";
 
+/** Removes the deployment prefix from a URL pathname. */
 const stripBasePath = (pathname: string, basePath: string): string => {
   if (!basePath || basePath === "/") {
     return pathname.replace(/^\/+/, "");
@@ -15,6 +18,7 @@ const stripBasePath = (pathname: string, basePath: string): string => {
   return pathname.replace(/^\/+/, "");
 };
 
+/** Parses an encoded dependency path from a route. */
 export const parseServicePath = (
   value: string | null | undefined,
 ): string[] => {
@@ -27,9 +31,11 @@ export const parseServicePath = (
     .filter(Boolean);
 };
 
+/** Encodes Item path segments for route parameters. */
 export const buildServicePath = (pathIds: string[]): string =>
   pathIds.map((segment) => encodeURIComponent(segment)).join("/");
 
+/** Constructs a browser pathname for an Item. */
 export const buildItemPathname = (basePath: string, itemId: string): string => {
   const normalizedBase = basePath.endsWith("/")
     ? basePath.slice(0, -1)
@@ -38,6 +44,7 @@ export const buildItemPathname = (basePath: string, itemId: string): string => {
   return `${prefix}/item/${encodeURIComponent(itemId)}`;
 };
 
+/** Builds a deep link that can preserve its dependency-tree path. */
 export const buildItemRouteHref = (
   basePath: string,
   itemId: string,
@@ -52,6 +59,7 @@ export const buildItemRouteHref = (
   return `${pathname}?${params.toString()}`;
 };
 
+/** Resolves the selected tree occurrence from the browser URL. */
 export const resolveNodeFromLocation = (
   nodes: CatalogTreeNode[],
   basePath: string,
@@ -96,6 +104,7 @@ export const resolveNodeFromLocation = (
   return null;
 };
 
+/** Reads Item selection and path context from the current URL. */
 export const readLocationRouteContext = (
   basePath: string,
 ): {

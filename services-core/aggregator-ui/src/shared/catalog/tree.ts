@@ -1,15 +1,21 @@
+/** @file Builds and traverses catalog dependency trees without changing health state. */
+
 import type { CatalogDependency, CatalogItem, CatalogTreeNode } from "../types";
 
+/** Sorts catalog entries by title for stable tree display. */
 const sortItemsByName = (items: CatalogItem[]): CatalogItem[] =>
   [...items].sort((a, b) => (a.title || a.id).localeCompare(b.title || b.id));
 
+/** Sorts sibling catalog nodes for predictable navigation. */
 const sortNodesByName = (nodes: CatalogTreeNode[]): CatalogTreeNode[] =>
   [...nodes].sort((a, b) =>
     (a.item.title || a.item.id).localeCompare(b.item.title || b.item.id),
   );
 
+/** Collects Item IDs present in the provided tree. */
 export const collectNodeIds = (nodes: CatalogTreeNode[]): string[] => {
   const ids: string[] = [];
+  /** Collects Item IDs recursively through the catalog tree. */
   const visit = (node: CatalogTreeNode) => {
     ids.push(node.item.id);
     node.children.forEach(visit);
@@ -18,8 +24,10 @@ export const collectNodeIds = (nodes: CatalogTreeNode[]): string[] => {
   return ids;
 };
 
+/** Collects all descendant Item IDs beneath a node. */
 export const collectDescendantIds = (node: CatalogTreeNode): string[] => {
   const descendants: string[] = [];
+  /** Collects descendant IDs beneath the selected catalog node. */
   const visit = (children: CatalogTreeNode[]) => {
     children.forEach((child) => {
       descendants.push(child.item.id);
@@ -30,9 +38,11 @@ export const collectDescendantIds = (node: CatalogTreeNode): string[] => {
   return descendants;
 };
 
+/** Collects unique Item IDs that can be expanded in the tree. */
 export const collectExpandableIds = (nodes: CatalogTreeNode[]): string[] =>
   collectNodeIds(nodes).filter((id, index, arr) => arr.indexOf(id) === index);
 
+/** Builds the dependency hierarchy while preserving explicit traversal paths. */
 export const buildCatalogTree = (
   items: CatalogItem[],
   dependencies: CatalogDependency[],
@@ -95,6 +105,7 @@ export const buildCatalogTree = (
     .filter((node): node is CatalogTreeNode => Boolean(node));
 };
 
+/** Finds a dependency path leading to a requested Item. */
 export const findNodePath = (
   nodes: CatalogTreeNode[],
   targetId: string,
@@ -113,6 +124,7 @@ export const findNodePath = (
   return null;
 };
 
+/** Finds the first tree node matching an Item ID. */
 export const findNodeById = (
   nodes: CatalogTreeNode[],
   targetId: string,
@@ -131,6 +143,7 @@ export const findNodeById = (
   return null;
 };
 
+/** Resolves a particular tree occurrence using an explicit dependency path. */
 export const findNodeByPath = (
   nodes: CatalogTreeNode[],
   pathIds: string[],
@@ -154,6 +167,7 @@ export const findNodeByPath = (
   return null;
 };
 
+/** Returns the rendered tree identifier for an Item ID. */
 export const findNodeUidById = (
   nodes: CatalogTreeNode[],
   targetId: string,

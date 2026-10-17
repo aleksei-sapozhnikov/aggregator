@@ -19,7 +19,10 @@ import useResponsiveLayout from "./hooks/useResponsiveLayout";
 import useTitlePlacement from "./hooks/useTitlePlacement";
 import useCatalogNavigation from "../components/catalog-tree/useCatalogNavigation";
 import useCatalogSelectionSync from "../components/catalog-tree/useCatalogSelectionSync";
-import { resolveBasePath, resolveCatalogTitle } from "../services/aggregatorApi";
+import {
+  resolveBasePath,
+  resolveCatalogTitle,
+} from "../services/aggregatorApi";
 import type { CatalogContact } from "../shared/types";
 
 const TEMP_AI_CHAT_STORAGE_KEY = "aggregator-ui-ai-chat-enabled";

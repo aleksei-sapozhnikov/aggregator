@@ -1,3 +1,5 @@
+/** @file Illustrates dependency health propagation using animated SVG nodes and edges. */
+
 import { useId } from "react";
 import type { ReactNode } from "react";
 
@@ -103,6 +105,7 @@ const edges: FlowEdge[] = [
   },
 ];
 
+/** Renders the illustrative dependency graph, including failure and recovery waves. */
 export default function SignalFlowGraph({
   unhealthy,
   compact,

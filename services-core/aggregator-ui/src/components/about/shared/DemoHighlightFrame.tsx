@@ -1,3 +1,5 @@
+/** @file Draws selection highlights over animated SVG or HTML previews. */
+
 import type { CSSProperties } from "react";
 import "./DemoHighlightFrame.css";
 

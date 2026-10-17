@@ -1,3 +1,5 @@
+/** @file Provides pure catalog filtering, ranking, and autocomplete search helpers. */
+
 import type {
   CatalogItem,
   CatalogTreeNode,
@@ -6,12 +8,14 @@ import type {
   SearchResult,
 } from "../types";
 
+/** Normalizes a string for case-insensitive catalog matching. */
 export const normalizeSearchText = (value: string): string =>
   value
     .toLowerCase()
     .replace(/[^\p{L}\p{N}]+/gu, " ")
     .trim();
 
+/** Checks whether an Item title contains the query tokens. */
 const matchSearch = (item: CatalogItem, queryTokens: string[]): boolean => {
   if (!queryTokens.length) {
     return true;
@@ -20,6 +24,7 @@ const matchSearch = (item: CatalogItem, queryTokens: string[]): boolean => {
   return queryTokens.every((token) => name.includes(token));
 };
 
+/** Retains matching catalog nodes and their navigable ancestors. */
 export const filterCatalogTree = (
   nodes: CatalogTreeNode[],
   queryTokens: string[],
@@ -41,6 +46,7 @@ export const filterCatalogTree = (
     .filter((node): node is CatalogTreeNode => Boolean(node));
 };
 
+/** Ranks matching Items for catalog search results. */
 export const rankSearchResults = (
   items: CatalogItem[],
   queryTokens: string[],
@@ -69,6 +75,7 @@ export const rankSearchResults = (
   );
 };
 
+/** Builds a token-to-item index for autocomplete suggestions. */
 export const buildSearchAutocompleteIndex = (
   items: CatalogItem[],
 ): SearchAutocompleteIndex => {
@@ -97,6 +104,7 @@ export const buildSearchAutocompleteIndex = (
   return { tokenToItemIds, itemIdToTokens };
 };
 
+/** Separates completed query tokens from the current partial token. */
 const parseSearchAutocompleteQuery = (
   query: string,
 ): { baseTokens: string[]; currentToken: string } => {
@@ -111,6 +119,7 @@ const parseSearchAutocompleteQuery = (
   return { baseTokens, currentToken };
 };
 
+/** Proposes matching completion tokens from the indexed Items. */
 export const buildSearchAutocompleteOptions = (
   query: string,
   searchIndex: SearchAutocompleteIndex | null,

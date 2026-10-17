@@ -1,3 +1,5 @@
+/** @file Renders the shared help icon trigger. */
+
 import type { ButtonHTMLAttributes, Ref } from "react";
 
 /** The same help affordance can be displayed without mounting a help dialog. */

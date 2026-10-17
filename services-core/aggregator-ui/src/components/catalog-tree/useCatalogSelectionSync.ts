@@ -1,3 +1,5 @@
+/** @file Synchronizes external Item selection with the catalog tree. */
+
 /**
  * Synchronizes catalog search reset and pending tree scrolling with a selected Item.
  * Kept separate to avoid a cyclic dependency on useItemNavigation.
@@ -15,6 +17,7 @@ type CatalogSelectionSyncOptions = {
   isSidebarOpen: boolean;
 };
 
+/** Expands and scrolls to the selected Item after navigation or search changes. */
 export default function useCatalogSelectionSync({
   navigation,
   selectedId,

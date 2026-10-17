@@ -1,3 +1,5 @@
+/** @file Renders primary contacts and actor associations shared by live UI and help scenes. */
+
 import type { ReactNode } from "react";
 import type { CatalogActor, CatalogContact } from "../../../shared/types";
 import {
@@ -22,6 +24,7 @@ type ContactProps = {
   onOpenContact?: (contact: CatalogContact) => void;
 };
 
+/** Renders the preferred contact channel for an Item. */
 export function PrimaryContactRow({
   contact,
   iconSpriteHref,
@@ -59,6 +62,7 @@ export function PrimaryContactRow({
   );
 }
 
+/** Renders a distinct primary-contact section for ownership details. */
 export function PrimaryContact({
   help,
   ...props
@@ -76,6 +80,7 @@ export function PrimaryContact({
   );
 }
 
+/** Renders other Item actors in a collapsible ownership list. */
 export function ActorsSection({
   rows,
   expanded,
@@ -139,6 +144,7 @@ export function ActorsSection({
   );
 }
 
+/** Combines primary contact and actor information for live and demo Item views. */
 export default function ItemOwnership({
   primaryContact,
   actorRows,

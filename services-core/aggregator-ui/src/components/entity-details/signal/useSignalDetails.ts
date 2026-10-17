@@ -1,3 +1,5 @@
+/** @file Owns health signal modal selection and deep-link URL fragments. */
+
 import { useEffect, useState } from "react";
 import type { ItemSignal } from "../../../shared/types";
 
@@ -13,11 +15,13 @@ const signalIdFromHash = (): string => {
   }
 };
 
+/** Synchronizes signal dialog selection with the browser's URL fragment. */
 export default function useSignalDetails() {
   const [openedSignalId, setOpenedSignalId] = useState(signalIdFromHash);
   const [openedSignalTitle, setOpenedSignalTitle] = useState("");
 
   useEffect(() => {
+    /** Updates the open signal dialog from the current URL fragment. */
     const syncSignalWithLocation = () => {
       setOpenedSignalId(signalIdFromHash());
       setOpenedSignalTitle("");
@@ -30,6 +34,7 @@ export default function useSignalDetails() {
     };
   }, []);
 
+  /** Opens a signal and writes its identifier to the URL fragment. */
   const openSignal = (signal: ItemSignal) => {
     const url = new URL(window.location.href);
     url.hash = `signal/${encodeURIComponent(signal.id)}`;
@@ -38,6 +43,7 @@ export default function useSignalDetails() {
     setOpenedSignalTitle(signal.title || signal.id);
   };
 
+  /** Closes signal details and removes the corresponding URL fragment. */
   const closeSignal = () => {
     setOpenedSignalId("");
     setOpenedSignalTitle("");

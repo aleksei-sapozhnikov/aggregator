@@ -1,3 +1,5 @@
+/** @file Tests computed highlight bounds for signal labels in help scenes. */
+
 import { describe, expect, it } from "vitest";
 import { getSignalHighlightBounds } from "./signalHighlightBounds";
 

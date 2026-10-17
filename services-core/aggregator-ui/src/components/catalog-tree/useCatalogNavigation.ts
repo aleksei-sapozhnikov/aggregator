@@ -1,3 +1,5 @@
+/** @file Owns catalog search, tree expansion, autocomplete, and scroll targeting. */
+
 /**
  * Owns the catalog tree, search state, autocomplete, expansion, and tree scrolling.
  * Selected Item routes are owned separately by useItemNavigation.
@@ -33,6 +35,7 @@ type CatalogNavigationOptions = {
   dependencies: CatalogDependency[];
 };
 
+/** Maintains catalog expansion, filtering, autocomplete, and scroll position. */
 export default function useCatalogNavigation({
   items,
   dependencies,
@@ -67,6 +70,7 @@ export default function useCatalogNavigation({
     setSearchAutocompleteIndex(null);
     setIsSearchAutocompleteReady(false);
 
+    /** Builds autocomplete data without blocking initial catalog rendering. */
     const buildIndex = () => {
       const nextIndex = buildSearchAutocompleteIndex(items);
       if (cancelled) {
@@ -215,6 +219,7 @@ export default function useCatalogNavigation({
     if (!isSearchActive) {
       return undefined;
     }
+    /** Handles keyboard navigation and dismissal of catalog search. */
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         event.preventDefault();
@@ -236,6 +241,7 @@ export default function useCatalogNavigation({
       if (!container) {
         return;
       }
+      /** Scrolls long distances in shorter segments toward the selected node. */
       const animateScrollTo = (nextTop: number) => {
         const startTop = container.scrollTop;
         const targetTop = Math.max(0, nextTop);
@@ -264,6 +270,7 @@ export default function useCatalogNavigation({
         });
       };
       const startedAt = performance.now();
+      /** Waits for the selected catalog row to render before scrolling it into view. */
       const tryScroll = () => {
         const node = container.querySelector<HTMLElement>(
           `[data-node-id="${targetId}"]`,

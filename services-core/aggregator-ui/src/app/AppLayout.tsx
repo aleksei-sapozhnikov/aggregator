@@ -1,3 +1,5 @@
+/** @file Positions the application toolbar, Item heading, and feature content. */
+
 import type { ReactNode, RefObject } from "react";
 import AppToolbar from "./AppToolbar";
 import ItemTitle from "../components/shared/item/ItemTitle";
