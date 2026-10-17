@@ -8,7 +8,10 @@ export default function DemoCharacter({
   repairProgress?: number;
 }) {
   return (
-    <g className={"actors-help-person actors-help-person-" + role}>
+    <g
+      className={"actors-help-person actors-help-person-" + role}
+      data-demo-character={role}
+    >
       <ellipse cx="50" cy="136" rx="33" ry="6" fill="#d2d9e1" opacity=".65" />
       <path
         d="M28 115 21 136h20l9-28 12 28h20l-9-37Z"

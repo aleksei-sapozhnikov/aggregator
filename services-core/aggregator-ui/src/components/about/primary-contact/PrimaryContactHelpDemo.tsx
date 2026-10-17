@@ -223,10 +223,10 @@ function Technician({ frame }: { frame: HelpFrame }) {
       style={{ opacity: frame.technicianOpacity }}
       transform={"translate(" + frame.technicianX + " 143)"}
     >
-      <g transform="translate(-19 0) scale(1.15)">
+      <g transform="translate(-19 0)">
         <OwnerCharacter repairProgress={frame.wrenchAngle * frame.repair} />
       </g>
-      <g transform="translate(40 166) scale(1.8)">
+      <g transform="translate(31 146) scale(1.5)">
         <DemoWoodLabel x={0} y={0} width={70} label="Owner" />
       </g>
     </g>
@@ -236,10 +236,10 @@ function Technician({ frame }: { frame: HelpFrame }) {
 function Observer({ frame }: { frame: HelpFrame }) {
   return (
     <g data-primary-contact-observer="true" transform="translate(352 76)">
-      <g transform="translate(-5 -20) scale(1.6)">
+      <g transform="translate(9 -7) scale(1.32)">
         <UserCharacter />
       </g>
-      <g transform="translate(75 211) scale(2.4)">
+      <g transform="translate(75 182) scale(2)">
         <DemoWoodLabel x={0} y={0} width={62} label="User" />
       </g>
       <g data-primary-contact-alarm="true" opacity={frame.alarm}>
@@ -393,6 +393,9 @@ export default function PrimaryContactHelpDemo() {
               <g data-primary-contact-service="true"
                 transform="translate(75 113) scale(0.82)">
                 <ServiceMachine unhealthy={frame.unhealthy} />
+              </g>
+              <g transform="translate(152 308) scale(1.5)">
+                <DemoWoodLabel x={0} y={0} width={74} label="Service" />
               </g>
               <g
                 data-primary-contact-observer-offset="true"

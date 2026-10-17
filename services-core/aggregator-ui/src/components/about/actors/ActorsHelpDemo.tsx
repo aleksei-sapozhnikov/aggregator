@@ -223,12 +223,12 @@ export default function ActorsHelpDemo() {
                     transform={"scale(" + scale + ") translate(-50 -70)"}
                   >
                     {actor.id === "owner" ? (
-                        <OwnerCharacter />
-                      ) : actor.id === "user" ? (
-                        <UserCharacter />
-                      ) : (
-                        <SupportCharacter />
-                      )}
+                      <OwnerCharacter />
+                    ) : actor.id === "user" ? (
+                      <UserCharacter />
+                    ) : (
+                      <SupportCharacter />
+                    )}
                   </g>
                   <g
                     aria-hidden="true"

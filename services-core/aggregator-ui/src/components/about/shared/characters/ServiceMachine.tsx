@@ -4,7 +4,7 @@ export default function ServiceMachine({
   unhealthy?: number;
 }) {
   return (
-    <g className="actors-help-machine">
+    <g className="actors-help-machine" data-demo-service-machine="true">
       <ellipse cx="94" cy="224" rx="105" ry="12" fill="#ccd5de" opacity=".55" />
       <rect
         x="14"
