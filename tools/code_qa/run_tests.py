@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import argparse
+import os
 import subprocess
 import sys
 from dataclasses import dataclass
+from pathlib import Path
 
 from run_jdk import resolve_java_home
-from pathlib import Path
 
 from run_maven import maven_environment, resolve_maven_command
 from utils import (
@@ -142,7 +143,16 @@ def build_module(root: Path, name: str) -> TestModule | None:
     elif name == "aggregator-ui":
         if not ensure_ui_test_dependencies(directory):
             return None
-        command = [platform_command("npm"), "test", "--", "--reporter=verbose"]
+        command = [
+            platform_command("npm"),
+            "test",
+            "--",
+            "--reporter=verbose",
+            "--no-color",
+        ]
+        environment = os.environ.copy()
+        environment["NO_COLOR"] = "1"
+        environment.pop("FORCE_COLOR", None)
     elif name == "catalog":
         command = ["go", "test", "-v", "./..."]
     elif name == "ai-agent":

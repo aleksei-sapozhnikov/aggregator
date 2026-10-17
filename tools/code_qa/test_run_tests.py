@@ -81,9 +81,28 @@ class TestRunnerTests(unittest.TestCase):
             self.assertIsNotNone(module)
             self.assertEqual(
                 module.command,
-                [run_tests.platform_command("npm"), "test", "--", "--reporter=verbose"],
+                [
+                    run_tests.platform_command("npm"),
+                    "test",
+                    "--",
+                    "--reporter=verbose",
+                    "--no-color",
+                ],
             )
+            self.assertEqual(module.env["NO_COLOR"], "1")
+            self.assertNotIn("FORCE_COLOR", module.env)
             setup.assert_called_once_with(root / "services-core" / "aggregator-ui")
+
+    def test_ui_removes_inherited_force_color(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            with (
+                patch.dict(run_tests.os.environ, {"FORCE_COLOR": "3"}),
+                patch.object(run_tests, "ensure_ui_test_dependencies", return_value=True),
+            ):
+                module = run_tests.build_module(root, "aggregator-ui")
+            self.assertEqual(module.env["NO_COLOR"], "1")
+            self.assertNotIn("FORCE_COLOR", module.env)
 
     def test_ai_agent_uses_python_from_resolver(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

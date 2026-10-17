@@ -111,6 +111,28 @@ class OrchestratorFlowTests(unittest.TestCase):
         self.assertIn("=== QA: PASSED ===", output.getvalue())
         self.assertEqual(popen.call_args.args[0][-2:], ["--module", "catalog"])
 
+    def test_test_output_is_plain_text_even_with_ansi_codes(self) -> None:
+        process = MagicMock()
+        process.stdout = iter([
+            "\x1b[32m✓\x1b[39m sample.test.tsx > passes\n",
+            "\x1b[31m✗\x1b[39m sample.test.tsx > fails\n",
+        ])
+        process.wait.return_value = 1
+        process.__enter__.return_value = process
+        output = StringIO()
+        with (
+            patch.object(main.subprocess, "Popen", return_value=process) as popen,
+            redirect_stdout(output),
+        ):
+            self.assertEqual(main.run_test_command(modules=["aggregator-ui"]), 1)
+        self.assertIn("PASS sample.test.tsx > passes", output.getvalue())
+        self.assertIn("FAIL sample.test.tsx > fails", output.getvalue())
+        self.assertNotIn("\x1b[", output.getvalue())
+        self.assertNotIn("✓", output.getvalue())
+        self.assertEqual(
+            popen.call_args.kwargs["env"]["PYTHONIOENCODING"], "utf-8"
+        )
+
     def test_redirected_cp1251_stdout_preserves_unicode_test_output(self) -> None:
         """Windows redirected stdout must not crash on Unicode from test tools."""
         process = MagicMock()
