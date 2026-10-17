@@ -1,3 +1,5 @@
+/** @file Draws a non-interactive educational Timeline without embedding Grafana. */
+
 import { progressBetween, smooth } from "../shared/signal-flow/progress";
 import "./GrafanaTimelineIllustration.css";
 
@@ -58,6 +60,7 @@ const exampleRows: TimelineRow[] = [
   },
 ];
 
+/** Selects the illustrative signal group for the current animation moment. */
 const getFilter = (time: number): SignalFilter =>
   time >= 9200
     ? "all"
@@ -73,11 +76,13 @@ const filterMenuVisits = [
   { opensAt: 8350, selectedAt: 9200, optionY: 96 },
 ] as const;
 
+/** Determines when the illustrated signal-filter menu should appear. */
 const isFilterMenuOpen = (time: number): boolean =>
   filterMenuVisits.some(
     ({ opensAt, selectedAt }) => time >= opensAt && time < selectedAt,
   );
 
+/** Interpolates between the start and end positions of an illustration. */
 const lerp = (start: number, end: number, fraction: number) =>
   start + (end - start) * Math.max(0, Math.min(1, fraction));
 
@@ -121,6 +126,7 @@ export function getTimelineCursorTravel(scenario: Scenario, time: number) {
   );
 }
 
+/** Builds a chart cursor style from illustration coordinates. */
 function positionedChartCursor(left: string, top: string, travel: number) {
   if (travel >= 1) return { left, top };
   return {
@@ -129,6 +135,7 @@ function positionedChartCursor(left: string, top: string, travel: number) {
   };
 }
 
+/** Builds a selector cursor style from illustration coordinates. */
 function positionedSelectorCursor(top: string, travel: number) {
   if (travel >= 1) return { left: "172px", top };
   const percentage = 100 * (1 - travel);
@@ -150,6 +157,7 @@ function positionedSelectorCursor(top: string, travel: number) {
 const inspectCursorStart = 3000;
 const inspectRowDuration = 760;
 const inspectRowPitch = 33;
+/** Selects which Timeline row the simulated cursor is inspecting. */
 export function getInspectCursorRow(time: number): number {
   const lastRow = exampleRows.length - 1;
   const progress = Math.max(
@@ -162,6 +170,7 @@ export function getInspectCursorRow(time: number): number {
   return row + eased;
 }
 
+/** Renders the illustrative state marker for a chart row. */
 function TimelineStatusMarker({ state }: { state: HealthState }) {
   return (
     <span
@@ -173,6 +182,7 @@ function TimelineStatusMarker({ state }: { state: HealthState }) {
 
 const timelineStart = Date.UTC(2026, 9, 9, 0, 0, 0);
 const timelineWeekMs = 7 * 24 * 60 * 60 * 1000;
+/** Formats a sample timestamp at a relative position in the demo chart. */
 function timestampAt(position: number): string {
   const date = new Date(
     timelineStart + Math.round((position / 100) * timelineWeekMs),
@@ -193,6 +203,7 @@ function timestampAt(position: number): string {
   );
 }
 
+/** Shows the simulated health values at a chosen chart moment. */
 function TimelineHoverPopup({
   x,
   inspectedRowId,
@@ -236,6 +247,7 @@ function TimelineHoverPopup({
   );
 }
 
+/** Shows the example dependency signal details in a simulated hover popup. */
 function TimelineDependencyPopup({
   x,
   linkPressed,
@@ -285,6 +297,7 @@ function TimelineDependencyPopup({
   );
 }
 
+/** Illustrates filtering the Timeline by signal group. */
 function TimelineSignalSelect({
   filter,
   menuOpen,
@@ -340,6 +353,7 @@ function TimelineSignalSelect({
   );
 }
 
+/** Renders the animated cursor used in Timeline help. */
 function ExampleCursor({
   left,
   top,
@@ -376,6 +390,7 @@ function ExampleCursor({
   );
 }
 
+/** Shows a static representation of Timeline behaviors without accessing Grafana. */
 export default function GrafanaTimelineIllustration({
   scenario,
   elapsed,

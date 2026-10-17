@@ -1,3 +1,5 @@
+/** @file Introduces the Timeline and renders its interactive help demonstration. */
+
 import TimelineHelpDemo from "./TimelineHelpDemo";
 
 export const timelineHelp = {
@@ -5,6 +7,7 @@ export const timelineHelp = {
   summary: "See when this item was healthy or had problems.",
 };
 
+/** Renders the common short summary and the animated Timeline walkthrough. */
 export default function TimelineHelpContent() {
   return (
     <>

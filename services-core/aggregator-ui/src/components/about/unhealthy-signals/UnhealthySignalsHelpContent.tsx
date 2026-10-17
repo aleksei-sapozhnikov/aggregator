@@ -1,3 +1,5 @@
+/** @file Defines the Unhealthy signals topic summary and illustrated explanation. */
+
 import UnhealthySignalsHelpDemo from "./UnhealthySignalsHelpDemo";
 
 export const unhealthySignalsHelp = {
@@ -5,6 +7,7 @@ export const unhealthySignalsHelp = {
   summary: "See which checks need attention right now.",
 };
 
+/** Renders the help summary, explanation, and failing-signal animation. */
 export default function UnhealthySignalsHelpContent() {
   return (
     <>

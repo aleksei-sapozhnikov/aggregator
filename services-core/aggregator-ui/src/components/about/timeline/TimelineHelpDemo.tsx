@@ -1,3 +1,5 @@
+/** @file Illustrates Timeline inspection, signal filters, and dependency navigation. */
+
 import { useLayoutEffect, useRef, useState } from "react";
 import type { RefObject } from "react";
 import ItemTitle from "../../shared/item/ItemTitle";
@@ -48,6 +50,7 @@ const fallbackBounds = {
   item: { x: 20, y: 18, width: 350, height: 38 },
 };
 
+/** Interpolates between numeric positions for a smooth highlight transition. */
 const interpolate = (a: number, b: number, t: number) => a + (b - a) * t;
 
 // A single frame follows the real row, then the real Item title, and back.
@@ -62,6 +65,7 @@ export function getDependencyHighlightFrame(elapsed: number) {
   };
 }
 
+/** Measures actual chart row and Item title positions to align the moving highlight. */
 function useDependencyHighlightBounds(
   rootRef: RefObject<HTMLDivElement | null>,
   scenario: Scenario,
@@ -128,6 +132,7 @@ function useDependencyHighlightBounds(
   return bounds;
 }
 
+/** Renders a passive Item view reached by the illustrated Timeline navigation. */
 function OpenedDependencyItem() {
   return (
     <div className="help-item-page" aria-label="Opened Payment Gateway Item">
@@ -158,6 +163,7 @@ function OpenedDependencyItem() {
   );
 }
 
+/** Cycles through the three Timeline actions using an isolated example. */
 export default function TimelineHelpDemo() {
   const [scenario, setScenario] = useState<Scenario>("inspect");
   const { elapsed, setElapsed, reduceMotion } = useHelpAnimationClock(
