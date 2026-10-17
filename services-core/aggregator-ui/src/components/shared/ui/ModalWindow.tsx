@@ -74,6 +74,7 @@ export default function ModalWindow({
       notifyStackChanged();
     }
 
+    /** Keeps this dialog's stacking order synchronized with other open modals. */
     const syncStackIndex = () => {
       setStackIndex(getStackIndex(modalId));
     };
@@ -97,6 +98,7 @@ export default function ModalWindow({
       return undefined;
     }
 
+    /** Handles Escape only for the topmost modal. */
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape" && isTopmostModal(modalId)) {
         event.preventDefault();

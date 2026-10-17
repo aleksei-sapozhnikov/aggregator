@@ -11,7 +11,7 @@ type PointerState = {
   suppressClick: boolean;
 };
 
-/** Presents selected text for the shared UI. */
+/** Reads the current text selection to avoid unintended disclosure toggles. */
 const selectedText = () => window.getSelection?.()?.toString() || "";
 
 /** Selection and dragging must not accidentally toggle a disclosure. */
@@ -31,6 +31,7 @@ export default function DetailsDisclosureHeader({
   help?: ReactNode;
 }) {
   const pointer = useRef<PointerState | null>(null);
+  /** Suppresses disclosure toggles when a pointer movement was a drag. */
   const trackDrag = (event: PointerEvent<HTMLElement>) => {
     if (
       pointer.current &&

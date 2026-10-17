@@ -49,6 +49,7 @@ export default function CatalogItemInfo({
     [fullDescription],
   );
 
+  /** Shows the short catalog description when the Item information dialog is closed. */
   const showTooltip = () => {
     if (!interactive || isModalOpen) {
       return;

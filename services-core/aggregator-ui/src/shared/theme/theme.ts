@@ -5,7 +5,7 @@ export type Theme = "dark" | "light";
 
 export const THEME_STORAGE_KEY = "aggregator-ui-theme";
 
-/** Provides get initial theme for UI consumers. */
+/** Loads the stored theme or falls back to the preferred system appearance. */
 export function getInitialTheme(): Theme {
   const stored = localStorage.getItem(THEME_STORAGE_KEY);
   if (stored === "dark" || stored === "light") return stored;
@@ -14,6 +14,6 @@ export function getInitialTheme(): Theme {
     : "light";
 }
 
-/** Provides next theme for UI consumers. */
+/** Returns the alternative light/dark theme. */
 export const nextTheme = (theme: Theme): Theme =>
   theme === "dark" ? "light" : "dark";

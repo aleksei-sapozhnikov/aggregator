@@ -366,6 +366,7 @@ const MailEnvelopeIcon = () => (
   </svg>
 );
 
+/** Renders the simulated interaction for the selected contact channel. */
 const renderContactDemo = (
   label: string,
   details: ContactDemoDetails,

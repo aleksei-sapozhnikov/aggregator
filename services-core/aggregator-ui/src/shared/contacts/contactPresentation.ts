@@ -30,7 +30,7 @@ const contactTypeDisplayNameById: Record<string, string> = {
   other: "Other",
 };
 
-/** Provides resolve contact icon id for UI consumers. */
+/** Resolves a contact channel's icon, falling back to the generic icon. */
 export const resolveContactIconId = (contactType?: string): string => {
   if (!contactType) {
     return contactTypeIconById.other;
@@ -48,7 +48,7 @@ export const resolveContactTypeDisplayName = (contactType?: string): string => {
   );
 };
 
-/** Provides resolve contact type class for UI consumers. */
+/** Resolves the CSS class for the contact channel type. */
 export const resolveContactTypeClass = (contactType?: string): string => {
   if (!contactType || !(contactType in contactTypeIconById)) {
     return "contact-type-other";

@@ -7,7 +7,7 @@
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { expect } from "vitest";
 
-/** Provides expect decorative scene shield for UI consumers. */
+/** Checks that a demo's interaction shield is present and non-interactive. */
 export function expectDecorativeSceneShield(figure: HTMLElement): void {
   const shield = figure.querySelector(".help-interaction-shield");
   expect(shield).not.toBeNull();
@@ -19,7 +19,7 @@ export function expectDecorativeSceneShield(figure: HTMLElement): void {
   expect(figure.querySelector(".help-animation-progress")).not.toBeNull();
 }
 
-/** Provides open help dialog from hover for UI consumers. */
+/** Opens help after checking the tooltip interaction sequence. */
 export function openHelpDialogFromHover(trigger: HTMLElement): void {
   trigger.focus();
   expect(screen.queryByRole("tooltip")).toBeNull();
@@ -31,7 +31,7 @@ export function openHelpDialogFromHover(trigger: HTMLElement): void {
   expect(screen.queryByRole("tooltip")).toBeNull();
 }
 
-/** Provides expect tooltip after modal close for UI consumers. */
+/** Ensures closing a modal restores focus without reopening the tooltip. */
 export async function expectTooltipAfterModalClose(
   trigger: HTMLElement,
 ): Promise<void> {

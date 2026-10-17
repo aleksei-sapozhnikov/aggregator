@@ -549,7 +549,7 @@ const normalizeAgentHealthItem = (
   };
 };
 
-/** Handles normalize agent health signals for this module. */
+/** Maps agent-provided signals to typed facts without recalculating their health. */
 const normalizeAgentHealthSignals = (
   rawSignals: unknown,
 ): AgentHealthSignalContent[] => {
@@ -572,7 +572,7 @@ const normalizeAgentHealthSignals = (
     .filter((signal) => Boolean(signal.id));
 };
 
-/** Handles normalize agent health dependencies for this module. */
+/** Maps reported affected dependencies and their signals into typed facts. */
 const normalizeAgentHealthDependencies = (
   rawDependencies: unknown,
 ): AgentHealthDependencyContent[] => {

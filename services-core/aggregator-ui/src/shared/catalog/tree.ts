@@ -15,6 +15,7 @@ const sortNodesByName = (nodes: CatalogTreeNode[]): CatalogTreeNode[] =>
 /** Collects Item IDs present in the provided tree. */
 export const collectNodeIds = (nodes: CatalogTreeNode[]): string[] => {
   const ids: string[] = [];
+  /** Collects Item IDs recursively through the catalog tree. */
   const visit = (node: CatalogTreeNode) => {
     ids.push(node.item.id);
     node.children.forEach(visit);
@@ -26,6 +27,7 @@ export const collectNodeIds = (nodes: CatalogTreeNode[]): string[] => {
 /** Collects all descendant Item IDs beneath a node. */
 export const collectDescendantIds = (node: CatalogTreeNode): string[] => {
   const descendants: string[] = [];
+  /** Collects descendant IDs beneath the selected catalog node. */
   const visit = (children: CatalogTreeNode[]) => {
     children.forEach((child) => {
       descendants.push(child.item.id);
