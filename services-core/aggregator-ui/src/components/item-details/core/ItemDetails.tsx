@@ -192,6 +192,7 @@ export default function ItemDetails({
       }
     : { ...emptyDisclosureState };
 
+  /** Updates the expansion state for the currently selected Item only. */
   const updateDisclosureState = (patch: Partial<DetailsDisclosureState>) => {
     if (!selectedItemId) {
       return;
@@ -210,14 +211,17 @@ export default function ItemDetails({
     });
   };
 
+  /** Toggles the additional actor relationships for this Item. */
   const toggleContactsExtra = () =>
     updateDisclosureState({
       isContactsExtraOpen: !itemDisclosureState.isContactsExtraOpen,
     });
+  /** Toggles the Item's currently unhealthy signals. */
   const toggleAffectingSignals = () =>
     updateDisclosureState({
       isAffectingOpen: !itemDisclosureState.isAffectingOpen,
     });
+  /** Toggles the list of passing signals. */
   const toggleHealthySignals = () =>
     updateDisclosureState({
       isHealthyOpen: !itemDisclosureState.isHealthyOpen,

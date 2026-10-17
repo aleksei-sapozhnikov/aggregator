@@ -28,6 +28,7 @@ export default function HelpTooltip({
 
   useLayoutEffect(() => {
     if (!visible) return undefined;
+    /** Measures the trigger and places the tooltip within viewport bounds. */
     const update = () => {
       if (!anchorRef.current || !tipRef.current) return;
       const anchor = anchorRef.current.getBoundingClientRect();

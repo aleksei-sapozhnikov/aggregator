@@ -66,6 +66,7 @@ export default function GrafanaFrame({
   }, [dashboardUrl, theme, sendMessage]);
 
   useEffect(() => {
+    /** Validates a message from the iframe before navigating to an Item. */
     const handleItemNavigation = (event: MessageEvent) => {
       if (
         event.origin !== window.location.origin ||

@@ -26,6 +26,7 @@ export default function TimelineSection({
 }: TimelineSectionProps) {
   const [height, setHeight] = useState(0);
   useEffect(() => {
+    /** Fits the Timeline to the available viewport below the fixed header. */
     const updateHeight = () => {
       if (!contentRef.current || !headerRef.current) return;
       const styles = window.getComputedStyle(contentRef.current);

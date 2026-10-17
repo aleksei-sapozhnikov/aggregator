@@ -70,6 +70,7 @@ export default function HealthSignalModal({
     setError("");
     setIsLoading(true);
 
+    /** Loads the selected signal details and cancels obsolete requests. */
     const loadSignal = async () => {
       try {
         const response = await fetch(

@@ -199,6 +199,7 @@ export default function useSelectedItemData({
     const result: FailingDependencyEntry[] = [];
     const displayedItemIds = new Set<string>();
 
+    /** Traverses dependencies and collects their relevant failing signals for display. */
     const visit = (children: CatalogTreeNode[]) => {
       children.forEach((node) => {
         const failingSignals = (itemSignals[node.item.id] || [])

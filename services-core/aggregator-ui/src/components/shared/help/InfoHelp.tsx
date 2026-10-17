@@ -25,6 +25,7 @@ export default function InfoHelp({
     );
   }
 
+  /** Displays the topic summary only when no help dialog is open. */
   const showTooltip = () => {
     if (help.activeTopic !== null) return;
     setIsTooltipVisible(true);
