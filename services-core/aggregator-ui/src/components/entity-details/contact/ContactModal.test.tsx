@@ -5,7 +5,7 @@
 /** @file Tests contact dialogs and their safe simulated channel interactions. */
 
 import type { ReactElement } from "react";
-import ContextualHelpProvider from "../../about/ContextualHelpProvider";
+import ContextualHelpProvider from "../../about/core/ContextualHelpProvider";
 
 import {
   act,
