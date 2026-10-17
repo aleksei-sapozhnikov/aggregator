@@ -48,7 +48,7 @@ def build_emitter(
         handle = out_path.open(mode, encoding="utf-8")
 
     def emit(message: str) -> None:
-        print(message)
+        print(message, flush=True)
         if handle:
             handle.write(message + "\n")
 
@@ -86,7 +86,7 @@ def parse_secrets_summary(output: str) -> tuple[str, int] | None:
 def run_script(
     script_name: str, script_args: list[str] | None = None
 ) -> tuple[bool, list[str]]:
-    """Execute QA helper script and return status with short details."""
+    """Execute a QA helper and preserve all diagnostic lines."""
     script = script_dir() / script_name
     args = script_args or []
     result = subprocess.run(
@@ -101,7 +101,7 @@ def run_script(
         details.extend([line for line in result.stdout.splitlines() if line.strip()])
     if result.stderr:
         details.extend([line for line in result.stderr.splitlines() if line.strip()])
-    return result.returncode == 0, details[:12]
+    return result.returncode == 0, details
 
 
 def is_excluded(path: Path) -> bool:
