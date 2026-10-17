@@ -29,10 +29,14 @@ class TestRunnerTests(unittest.TestCase):
             ):
                 module = run_tests.build_module(root, "aggregator")
             self.assertEqual(module.command, ["mvn.cmd", "-q", "-B", "test"])
-            self.assertEqual(
-                run_tests.build_module(root, "aggregator", verbose=True).command,
-                ["mvn.cmd", "-B", "test"],
-            )
+            with (
+                patch.object(run_tests, "resolve_java_home", return_value=home),
+                patch.object(run_tests, "resolve_maven_command", return_value="mvn.cmd"),
+            ):
+                verbose_module = run_tests.build_module(
+                    root, "aggregator", verbose=True
+                )
+            self.assertEqual(verbose_module.command, ["mvn.cmd", "-B", "test"])
             self.assertEqual(module.env["JAVA_HOME"], str(home))
             self.assertIn(
                 "--sun-misc-unsafe-memory-access=allow",
@@ -122,6 +126,9 @@ class TestRunnerTests(unittest.TestCase):
                 run_tests, "resolve_ai_agent_python", return_value="python-for-tests"
             ):
                 module = run_tests.build_module(root, "ai-agent")
+                verbose_module = run_tests.build_module(
+                    root, "ai-agent", verbose=True
+                )
             self.assertEqual(
                 module.command,
                 [
@@ -132,9 +139,7 @@ class TestRunnerTests(unittest.TestCase):
                     "tests",
                 ],
             )
-            self.assertIn(
-                "-v", run_tests.build_module(root, "ai-agent", verbose=True).command
-            )
+            self.assertIn("-v", verbose_module.command)
 
     def test_qa_runner_discovers_its_own_unit_tests(self) -> None:
         module = run_tests.build_module(Path("/repo"), "code-qa")

@@ -110,9 +110,7 @@ def ensure_ui_test_dependencies(directory: Path) -> bool:
     return result.returncode == 0 and vitest.exists()
 
 
-def build_module(
-    root: Path, name: str, *, verbose: bool = False
-) -> TestModule | None:
+def build_module(root: Path, name: str, *, verbose: bool = False) -> TestModule | None:
     """Build a module command; return None if prerequisites cannot be prepared."""
     if name == "code-qa":
         return TestModule(
@@ -127,7 +125,7 @@ def build_module(
                 "tools/code_qa",
                 "-p",
                 "test_*.py",
-                *([] if not verbose else ["-v"]),
+                *(["-v"] if verbose else []),
             ],
         )
 
