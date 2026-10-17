@@ -1,3 +1,5 @@
+/** @file Renders a reusable service illustration with health indicator layers. */
+
 import CharacterLayer from "../shared/CharacterLayer";
 import asset from "./ServiceMachine.svg?no-inline";
 import "./ServiceMachine.css";

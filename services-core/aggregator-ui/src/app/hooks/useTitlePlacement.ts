@@ -1,3 +1,5 @@
+/** @file Measures the header to keep the Item heading clear of toolbar controls. */
+
 /**
  * Positions the Item title relative to the application toolbar without
  * changing the markup or the existing responsive layout thresholds.
@@ -12,6 +14,7 @@ type TitlePlacementOptions = {
   selectedTitleFirstWord: string;
 };
 
+/** Measures heading and actions to avoid overlap when space is limited. */
 export default function useTitlePlacement({
   isMobileLayout,
   isMobileSidebarOpen,
@@ -42,6 +45,7 @@ export default function useTitlePlacement({
       return width;
     };
 
+    /** Moves the Item title below toolbar actions when space is insufficient. */
     const updateTitlePrimaryPlacement = () => {
       if (
         !headerRef.current ||

@@ -1,3 +1,5 @@
+/** @file Illustrates Timeline inspection, signal filters, and dependency navigation. */
+
 import { useLayoutEffect, useRef, useState } from "react";
 import type { RefObject } from "react";
 import ItemTitle from "../../shared/item/ItemTitle";
@@ -48,9 +50,11 @@ const fallbackBounds = {
   item: { x: 20, y: 18, width: 350, height: 38 },
 };
 
+/** Interpolates between numeric positions for a smooth highlight transition. */
 const interpolate = (a: number, b: number, t: number) => a + (b - a) * t;
 
 // A single frame follows the real row, then the real Item title, and back.
+/** Moves the highlight from a Timeline row to the opened dependency. */
 export function getDependencyHighlightFrame(elapsed: number) {
   const forward = smooth(progressBetween(elapsed, 7300, 8200));
   const reverse = smooth(progressBetween(elapsed, 10200, 11100));
@@ -62,6 +66,7 @@ export function getDependencyHighlightFrame(elapsed: number) {
   };
 }
 
+/** Measures actual chart row and Item title positions to align the moving highlight. */
 function useDependencyHighlightBounds(
   rootRef: RefObject<HTMLDivElement | null>,
   scenario: Scenario,
@@ -72,6 +77,7 @@ function useDependencyHighlightBounds(
     const root = rootRef.current;
     if (!root) return undefined;
 
+    /** Updates bounds for the chart row and destination Item title. */
     const measure = () => {
       const label = root.querySelector(
         '.timeline-help-label[data-timeline-row="payment"]',
@@ -87,7 +93,11 @@ function useDependencyHighlightBounds(
       const labelRect = label.getBoundingClientRect();
       const trackRect = track.getBoundingClientRect();
       const titleRect = title.getBoundingClientRect();
-      if (labelRect.width <= 0 || trackRect.width <= 0 || titleRect.width <= 0) {
+      if (
+        labelRect.width <= 0 ||
+        trackRect.width <= 0 ||
+        titleRect.width <= 0
+      ) {
         return;
       }
       const next = {
@@ -111,7 +121,9 @@ function useDependencyHighlightBounds(
 
     measure();
     const observer =
-      typeof ResizeObserver !== "undefined" ? new ResizeObserver(measure) : null;
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(measure)
+        : null;
     if (observer) {
       observer.observe(root);
       const title = root.querySelector(
@@ -128,6 +140,7 @@ function useDependencyHighlightBounds(
   return bounds;
 }
 
+/** Renders a passive Item view reached by the illustrated Timeline navigation. */
 function OpenedDependencyItem() {
   return (
     <div className="help-item-page" aria-label="Opened Payment Gateway Item">
@@ -158,6 +171,7 @@ function OpenedDependencyItem() {
   );
 }
 
+/** Cycles through the three Timeline actions using an isolated example. */
 export default function TimelineHelpDemo() {
   const [scenario, setScenario] = useState<Scenario>("inspect");
   const { elapsed, setElapsed, reduceMotion } = useHelpAnimationClock(
@@ -165,6 +179,7 @@ export default function TimelineHelpDemo() {
     stillFrames[scenario],
   );
 
+  /** Switches the help scenario and resets its animation clock. */
   const changeScenario = (nextScenario: Scenario) => {
     setScenario(nextScenario);
     setElapsed(reduceMotion ? stillFrames[nextScenario] : 0);

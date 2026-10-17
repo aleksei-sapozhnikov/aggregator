@@ -121,6 +121,32 @@ class PrettierBatchTests(unittest.TestCase):
 
         self.assertEqual(stdout.getvalue().splitlines(), ["a.ts 10ms", "b.ts 20ms"])
 
+    def test_format_output_skips_unchanged_files_but_keeps_changes(self) -> None:
+        command = ["prettier", "--write"]
+        stdout = StringIO()
+        stderr = StringIO()
+        with (
+            patch.object(run_prettier, "repo_root", return_value=Path("/repo")),
+            patch.object(
+                run_prettier.subprocess,
+                "run",
+                return_value=subprocess.CompletedProcess(
+                    [],
+                    0,
+                    stdout="Formatting...\na.ts 10ms (unchanged)\nb.ts 20ms\n",
+                    stderr="[warn] Some configuration warning\n",
+                ),
+            ),
+            redirect_stdout(stdout),
+            redirect_stderr(stderr),
+        ):
+            self.assertEqual(run_prettier.run_prettier(command, ["a.ts", "b.ts"]), 0)
+
+        self.assertEqual(stdout.getvalue().splitlines(), ["b.ts 20ms"])
+        self.assertEqual(
+            stderr.getvalue().splitlines(), ["[warn] Some configuration warning"]
+        )
+
     def test_overlong_single_file_reports_a_clear_error(self) -> None:
         with self.assertRaisesRegex(ValueError, "File path is too long"):
             list(run_prettier.batched_file_args(["prettier", "--check"], ["x" * 4_000]))

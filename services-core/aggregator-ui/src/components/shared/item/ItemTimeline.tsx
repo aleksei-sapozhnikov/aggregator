@@ -1,3 +1,5 @@
+/** @file Provides a Timeline disclosure independent of its chart provider. */
+
 import type { ReactNode } from "react";
 import DetailsDisclosureHeader from "./DetailsDisclosureHeader";
 

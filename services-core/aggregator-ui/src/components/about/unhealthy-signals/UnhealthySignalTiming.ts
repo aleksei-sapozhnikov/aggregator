@@ -1,3 +1,5 @@
+/** @file Defines shared timing milestones for failing and recovering signal animations. */
+
 /**
  * Unhealthy signal animation timings in milliseconds (excluding the 2-second
  * expanded Item pause, which is inserted at pageHoldAt).

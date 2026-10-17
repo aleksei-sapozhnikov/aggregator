@@ -1,3 +1,5 @@
+/** @file Renders Item deep links with the dependency navigation affordance. */
+
 import type { MouseEvent, ReactNode } from "react";
 
 type ItemNavigationLinkProps = {

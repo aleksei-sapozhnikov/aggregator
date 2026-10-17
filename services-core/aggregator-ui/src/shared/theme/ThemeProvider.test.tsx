@@ -1,4 +1,6 @@
 /** @vitest-environment jsdom */
+/** @file Tests theme persistence, context updates, and document theme application. */
+
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import ThemeProvider, { useTheme } from "./ThemeProvider";
@@ -10,7 +12,9 @@ function ThemeProbe() {
   return (
     <>
       <span data-testid="active-theme">{theme}</span>
-      <button type="button" onClick={toggleTheme}>Toggle theme</button>
+      <button type="button" onClick={toggleTheme}>
+        Toggle theme
+      </button>
     </>
   );
 }
@@ -24,7 +28,10 @@ afterEach(() => {
 
 describe("Application theme", () => {
   it("uses saved theme in preference to the OS theme", () => {
-    vi.stubGlobal("matchMedia", vi.fn(() => ({ matches: true })));
+    vi.stubGlobal(
+      "matchMedia",
+      vi.fn(() => ({ matches: true })),
+    );
     localStorage.setItem(THEME_STORAGE_KEY, "light");
     expect(getInitialTheme()).toBe("light");
     localStorage.setItem(THEME_STORAGE_KEY, "dark");
@@ -32,9 +39,15 @@ describe("Application theme", () => {
   });
 
   it("falls back to the OS setting without an explicit preference", () => {
-    vi.stubGlobal("matchMedia", vi.fn(() => ({ matches: true })));
+    vi.stubGlobal(
+      "matchMedia",
+      vi.fn(() => ({ matches: true })),
+    );
     expect(getInitialTheme()).toBe("dark");
-    vi.stubGlobal("matchMedia", vi.fn(() => ({ matches: false })));
+    vi.stubGlobal(
+      "matchMedia",
+      vi.fn(() => ({ matches: false })),
+    );
     expect(getInitialTheme()).toBe("light");
   });
 
@@ -79,7 +92,9 @@ describe("Application theme", () => {
       useTheme();
       return null;
     }
-    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
     expect(() => render(<Consumer />)).toThrow(
       "useTheme must be used inside ThemeProvider",
     );

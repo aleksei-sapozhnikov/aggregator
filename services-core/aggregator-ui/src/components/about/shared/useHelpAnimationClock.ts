@@ -1,9 +1,10 @@
+/** @file Advances deterministic help animations and supports reduced motion. */
+
 import { useEffect, useState } from "react";
 
-// A single ~50 FPS clock for every help animation, including Timeline.
-// Easing is defined separately so every step retains its own timing.
 export const helpAnimationFrameMs = 20;
 
+/** Advances an illustration cycle and provides a static frame for reduced motion. */
 export default function useHelpAnimationClock(
   duration: number,
   stillFrame: number,

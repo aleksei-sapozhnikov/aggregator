@@ -1,4 +1,6 @@
 /** @vitest-environment jsdom */
+/** @file Tests signal modal deep-link synchronization. */
+
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import useSignalDetails from "./useSignalDetails";

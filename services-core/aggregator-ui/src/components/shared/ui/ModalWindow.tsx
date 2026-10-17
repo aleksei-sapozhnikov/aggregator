@@ -1,3 +1,5 @@
+/** @file Provides focus-safe, stacked modal layout and keyboard handling. */
+
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { ReactNode } from "react";
@@ -16,10 +18,12 @@ const stackChangeEventName = "aggregator-modal-stack-change";
 let nextModalId = 1;
 const openModalIds: number[] = [];
 
+/** Notifies open dialogs that their stacking order may have changed. */
 const notifyStackChanged = () => {
   window.dispatchEvent(new Event(stackChangeEventName));
 };
 
+/** Removes a dialog from the current modal stack. */
 const removeModalId = (id: number) => {
   const index = openModalIds.indexOf(id);
   if (index >= 0) {
@@ -28,11 +32,14 @@ const removeModalId = (id: number) => {
   }
 };
 
+/** Returns the open-order position of a modal. */
 const getStackIndex = (id: number): number => openModalIds.indexOf(id);
 
+/** Checks whether a modal currently owns keyboard and backdrop actions. */
 const isTopmostModal = (id: number): boolean =>
   openModalIds[openModalIds.length - 1] === id;
 
+/** Manages accessible modal stacking, focus restoration, and Escape handling. */
 export default function ModalWindow({
   isOpen,
   onClose,
@@ -67,6 +74,7 @@ export default function ModalWindow({
       notifyStackChanged();
     }
 
+    /** Keeps this dialog's stacking order synchronized with other open modals. */
     const syncStackIndex = () => {
       setStackIndex(getStackIndex(modalId));
     };
@@ -90,6 +98,7 @@ export default function ModalWindow({
       return undefined;
     }
 
+    /** Handles Escape only for the topmost modal. */
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape" && isTopmostModal(modalId)) {
         event.preventDefault();

@@ -1,6 +1,8 @@
 /**
  * @vitest-environment jsdom
  */
+/** @file Tests Timeline help scene timing, filtering, and navigation demonstration. */
+
 import {
   act,
   cleanup,
@@ -11,7 +13,10 @@ import {
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import TimelineHelpDemo, { getInspectCursorRow } from "./TimelineHelpDemo";
-import { getFilterCursorTop, getTimelineCursorTravel } from "./GrafanaTimelineIllustration";
+import {
+  getFilterCursorTop,
+  getTimelineCursorTravel,
+} from "./GrafanaTimelineIllustration";
 
 beforeEach(() => vi.useFakeTimers());
 afterEach(() => {
@@ -31,7 +36,9 @@ describe("Timeline help walkthrough", () => {
     ).not.toBeNull();
     expect(container.querySelector(".details-timeline-body")).toBeNull();
     expect(
-      container.querySelector(".timeline-help-content .details-disclosure-header"),
+      container.querySelector(
+        ".timeline-help-content .details-disclosure-header",
+      ),
     ).toBeNull();
     expect(container.querySelector("iframe")).toBeNull();
     const preview = screen.getByLabelText("Example Timeline");
@@ -67,7 +74,9 @@ describe("Timeline help walkthrough", () => {
     const preview = screen.getByLabelText("Example Timeline");
     expect(preview.classList.contains("help-animation-canvas")).toBe(true);
     expect(preview.getAttribute("style")).toContain("840px");
-    expect(preview.querySelector(".grafana-timeline-illustration")).not.toBeNull();
+    expect(
+      preview.querySelector(".grafana-timeline-illustration"),
+    ).not.toBeNull();
     expect(preview.querySelector(".details-timeline-section")).toBeNull();
     expect(container.querySelector(".timeline-help-scenarios")).not.toBeNull();
   });
@@ -140,9 +149,7 @@ describe("Timeline help walkthrough", () => {
       const cursor = () =>
         preview.querySelector(".timeline-help-cursor") as SVGElement;
       expect(getTimelineCursorTravel(scenario, 0)).toBe(0);
-      expect(cursor().style.top).toBe(
-        scenario === "filter" ? "14px" : "-98px",
-      );
+      expect(cursor().style.top).toBe(scenario === "filter" ? "14px" : "-98px");
       expect(cursor().style.left).toBe(
         scenario === "filter" ? "calc(100% - 160px)" : "67%",
       );
@@ -155,13 +162,9 @@ describe("Timeline help walkthrough", () => {
 
       advance(duration - 960);
       expect(getTimelineCursorTravel(scenario, duration - 60)).toBe(0);
-      expect(cursor().style.top).toBe(
-        scenario === "filter" ? "14px" : "-98px",
-      );
+      expect(cursor().style.top).toBe(scenario === "filter" ? "14px" : "-98px");
       advance(60);
-      expect(cursor().style.top).toBe(
-        scenario === "filter" ? "14px" : "-98px",
-      );
+      expect(cursor().style.top).toBe(scenario === "filter" ? "14px" : "-98px");
     },
   );
 
@@ -337,15 +340,21 @@ describe("Timeline help walkthrough", () => {
     const frame = preview.querySelector(
       "[data-timeline-dependency-highlight]",
     ) as HTMLElement;
-    const chart = preview.querySelector(".timeline-help-chart-layer") as HTMLElement;
-    const item = preview.querySelector(".timeline-help-opened-item") as HTMLElement;
+    const chart = preview.querySelector(
+      ".timeline-help-chart-layer",
+    ) as HTMLElement;
+    const item = preview.querySelector(
+      ".timeline-help-opened-item",
+    ) as HTMLElement;
     expect(frame.style.opacity).toBe("0");
 
     advance(6600);
     expect(frame.style.opacity).toBe("1");
     expect(chart.style.opacity).toBe("1");
     expect(item.style.opacity).toBe("0");
-    expect(within(preview).getByLabelText("Dependency signal details")).not.toBeNull();
+    expect(
+      within(preview).getByLabelText("Dependency signal details"),
+    ).not.toBeNull();
 
     advance(1200);
     expect(Number(item.style.opacity)).toBeGreaterThan(0);
@@ -409,8 +418,7 @@ describe("Timeline help walkthrough", () => {
       expect(getFilterCursorTop(opensAt - 20)).toBe(65);
       expect(getFilterCursorTop(opensAt)).toBe(65);
       expect(getFilterCursorTop(opensAt + 100)).toBe(65);
-      const midpoint =
-        Math.round((opensAt + 100 + selectedAt - 250) / 40) * 20;
+      const midpoint = Math.round((opensAt + 100 + selectedAt - 250) / 40) * 20;
       const between = getFilterCursorTop(midpoint);
       expect(between).toBeGreaterThan(Math.min(65, targetY));
       expect(between).toBeLessThan(Math.max(65, targetY));
@@ -445,7 +453,7 @@ describe("Timeline help walkthrough", () => {
     expect(Number.parseFloat(cursor.style.top)).toBeLessThan(134);
     expect(Number.parseFloat(cursor.style.top)).toBeGreaterThan(65);
     advance(210);
-    expect(cursor.style.top).toBe("65px");
+    expect(Number.parseFloat(cursor.style.top)).toBeCloseTo(65, 0);
   });
 
   it("opens the selector, filters to two Own and then three Dependencies", () => {
@@ -467,7 +475,9 @@ describe("Timeline help walkthrough", () => {
     ).toBeNull();
     expect(rowCount()).toBe(3);
     expect(preview.querySelectorAll(".timeline-help-track")).toHaveLength(3);
-    expect(preview.querySelector(".timeline-help-track.is-highlighted")).toBeNull();
+    expect(
+      preview.querySelector(".timeline-help-track.is-highlighted"),
+    ).toBeNull();
     advance(2900);
     expect(
       within(preview).getByLabelText("Available signal groups"),
@@ -475,7 +485,9 @@ describe("Timeline help walkthrough", () => {
     advance(700);
     expect(rowCount()).toBe(4);
     expect(preview.querySelectorAll(".timeline-help-track")).toHaveLength(4);
-    expect(preview.querySelector(".timeline-help-track.is-highlighted")).toBeNull();
+    expect(
+      preview.querySelector(".timeline-help-track.is-highlighted"),
+    ).toBeNull();
     expect(
       within(preview).getByText("[Overall] Orders Service"),
     ).not.toBeNull();

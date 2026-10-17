@@ -1,3 +1,5 @@
+/** @file Declares global ambient types for UI runtime configuration. */
+
 /// <reference types="vite/client" />
 import type { AggregatorUiRuntimeConfig } from "./shared/types";
 

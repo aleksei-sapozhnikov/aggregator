@@ -1,3 +1,5 @@
+/** @file Loads catalog metadata and polls authoritative Product Health facts. */
+
 /**
  * Owns initial catalog loading and periodic Product Health polling.
  * Health states are backend facts; this hook never computes or infers them.
@@ -37,6 +39,7 @@ const EMPTY_CATALOG: {
   actorContacts: [],
 };
 
+/** Loads catalog data and polls server-computed Product Health facts. */
 export default function useCatalogData() {
   const [catalog, setCatalog] = useState(EMPTY_CATALOG);
   const [error, setError] = useState("");
@@ -54,6 +57,7 @@ export default function useCatalogData() {
   useEffect(() => {
     let cancelled = false;
 
+    /** Loads required catalog data once and exposes any startup error. */
     const loadInitialCatalog = async () => {
       try {
         const nextCatalog = await loadCatalog();
@@ -82,6 +86,7 @@ export default function useCatalogData() {
 
     let cancelled = false;
 
+    /** Refreshes authoritative Item health facts on the polling interval. */
     const fetchStatuses = async () => {
       try {
         const next = await fetchProductHealth();

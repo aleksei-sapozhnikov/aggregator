@@ -1,3 +1,5 @@
+/** @file Positions accessible help text beside a trigger within viewport bounds. */
+
 import { useLayoutEffect, useRef, useState } from "react";
 import type { ReactNode, RefObject } from "react";
 import { createPortal } from "react-dom";
@@ -20,12 +22,14 @@ export default function HelpTooltip({
   action?: ReactNode;
 }) {
   const tipRef = useRef<HTMLSpanElement | null>(null);
-  const [position, setPosition] = useState<{ left: number; top: number } | null>(
-    null,
-  );
+  const [position, setPosition] = useState<{
+    left: number;
+    top: number;
+  } | null>(null);
 
   useLayoutEffect(() => {
     if (!visible) return undefined;
+    /** Measures the trigger and places the tooltip within viewport bounds. */
     const update = () => {
       if (!anchorRef.current || !tipRef.current) return;
       const anchor = anchorRef.current.getBoundingClientRect();
@@ -37,14 +41,18 @@ export default function HelpTooltip({
       const x = anchor.left + anchor.width / 2 - tip.width / 2;
       const next = {
         left: Math.max(
-          padding, Math.min(x, window.innerWidth - tip.width - padding),
+          padding,
+          Math.min(x, window.innerWidth - tip.width - padding),
         ),
         top: Math.max(
-          padding, Math.min(y, window.innerHeight - tip.height - padding),
+          padding,
+          Math.min(y, window.innerHeight - tip.height - padding),
         ),
       };
       setPosition((current) =>
-        current?.left === next.left && current.top === next.top ? current : next,
+        current?.left === next.left && current.top === next.top
+          ? current
+          : next,
       );
     };
     update();

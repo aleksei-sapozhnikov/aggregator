@@ -1,3 +1,5 @@
+/** @file Formats and orders contact channel labels, icons, and preferred contacts. */
+
 import type { CatalogContact } from "../types";
 
 const contactTypeIconById: Record<string, string> = {
@@ -28,6 +30,7 @@ const contactTypeDisplayNameById: Record<string, string> = {
   other: "Other",
 };
 
+/** Resolves a contact channel's icon, falling back to the generic icon. */
 export const resolveContactIconId = (contactType?: string): string => {
   if (!contactType) {
     return contactTypeIconById.other;
@@ -35,6 +38,7 @@ export const resolveContactIconId = (contactType?: string): string => {
   return contactTypeIconById[contactType] || contactTypeIconById.other;
 };
 
+/** Maps a contact type to the label shown in ownership views. */
 export const resolveContactTypeDisplayName = (contactType?: string): string => {
   if (!contactType) {
     return contactTypeDisplayNameById.other;
@@ -44,6 +48,7 @@ export const resolveContactTypeDisplayName = (contactType?: string): string => {
   );
 };
 
+/** Resolves the CSS class for the contact channel type. */
 export const resolveContactTypeClass = (contactType?: string): string => {
   if (!contactType || !(contactType in contactTypeIconById)) {
     return "contact-type-other";
@@ -51,6 +56,7 @@ export const resolveContactTypeClass = (contactType?: string): string => {
   return `contact-type-${contactType}`;
 };
 
+/** Returns a readable label for an actor or contact channel. */
 export const resolveContactLabel = (
   contact?: CatalogContact | null,
 ): string => {
@@ -64,6 +70,7 @@ export const resolveContactLabel = (
   return "Unnamed contact";
 };
 
+/** Orders contact channels with the preferred contact at the front. */
 export const sortContactsWithPrimaryFirst = (
   contacts: CatalogContact[],
   primaryContactId: string | null | undefined,

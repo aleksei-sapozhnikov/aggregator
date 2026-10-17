@@ -1,7 +1,10 @@
+/** @file Displays a selected help topic using common modal components. */
+
 import type { HelpTopic } from "../../shared/help/HelpContext";
 import ModalWindow from "../../shared/ui/ModalWindow";
 import "./ContextualHelpDialog.css";
 
+/** Displays a topic's registered content, sections, and optional metadata. */
 export default function ContextualHelpDialog({
   topic,
   onClose,

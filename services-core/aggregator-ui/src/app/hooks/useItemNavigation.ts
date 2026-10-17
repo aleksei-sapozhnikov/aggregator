@@ -1,3 +1,5 @@
+/** @file Coordinates selected Item identity, route paths, browser history, and navigation actions. */
+
 /**
  * Owns the selected Item route, browser history, deep links and navigation.
  * Catalog search, scrolling and panel layout belong to their feature modules.
@@ -36,6 +38,7 @@ type ItemNavigationOptions = {
   ensurePathExpanded: (pathIds: string[]) => void;
 };
 
+/** Synchronizes Item selection, tree paths, URL state, and browser history. */
 export default function useItemNavigation({
   basePath,
   tree,
@@ -315,6 +318,7 @@ export default function useItemNavigation({
 
     applySelectionFromLocation({ normalize: true });
 
+    /** Restores the selected Item and dependency path when browser history changes. */
     const handlePopState = () => {
       lastHistoryUrlRef.current = window.location.href;
       if (window.history.state?.itemId) {

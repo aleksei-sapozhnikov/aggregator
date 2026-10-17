@@ -1,3 +1,5 @@
+/** @file Defines the Primary contact topic and demonstration. */
+
 import PrimaryContactHelpDemo from "./PrimaryContactHelpDemo";
 
 export const primaryContactHelp = {
@@ -5,6 +7,7 @@ export const primaryContactHelp = {
   summary: "This is who to contact first about this item.",
 };
 
+/** Renders the shared summary and animated primary-contact explanation. */
 export default function PrimaryContactHelpContent() {
   return (
     <>
@@ -12,7 +15,10 @@ export default function PrimaryContactHelpContent() {
         <p>
           <strong>{primaryContactHelp.summary}</strong>
         </p>
-        <p>Use the contact details to ask a question or report a problem. You don't need to know which team handles it.</p>
+        <p>
+          Use the contact details to ask a question or report a problem. You
+          don't need to know which team handles it.
+        </p>
       </div>
       <PrimaryContactHelpDemo />
     </>

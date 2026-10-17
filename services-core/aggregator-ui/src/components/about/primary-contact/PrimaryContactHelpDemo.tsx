@@ -1,3 +1,5 @@
+/** @file Animates detection, contact, repair, and recovery for an Item. */
+
 import { useRef, useState } from "react";
 import type { RefObject } from "react";
 import ItemTitle from "../../shared/item/ItemTitle";
@@ -26,11 +28,14 @@ import "./PrimaryContactHelpDemo.css";
 
 // HTML and SVG share scene coordinates, while the page uses production components.
 export const primaryContactHelpDuration = 15200;
+/** Returns eased progress through one contact animation stage. */
 const transition = (time: number, start: number, end: number) =>
   smooth(progressBetween(time, start, end));
+/** Interpolates positions and scale values between animation keyframes. */
 const mix = (start: number, end: number, amount: number) =>
   start + (end - start) * amount;
 
+/** Computes deterministic incident, call, technician, and recovery animation stages. */
 export function getPrimaryContactHelpFrame(time: number) {
   const t =
     ((time % primaryContactHelpDuration) + primaryContactHelpDuration) %
@@ -46,10 +51,8 @@ export function getPrimaryContactHelpFrame(time: number) {
     laptop: transition(t, 2200, 3050) * (1 - phonePutAway),
     // The opaque page grows over the scene and then shrinks away; the
     // characters underneath never fade out on their own.
-    pageExpansion:
-      transition(t, 2950, 4250) * (1 - transition(t, 5900, 7050)),
-    pageOpacity:
-      transition(t, 2850, 3250) * (1 - transition(t, 6800, 7050)),
+    pageExpansion: transition(t, 2950, 4250) * (1 - transition(t, 5900, 7050)),
+    pageOpacity: transition(t, 2850, 3250) * (1 - transition(t, 6800, 7050)),
     selectedContact:
       transition(t, 4650, 5200) * (1 - transition(t, 5950, 6400)),
     contactTravel,
@@ -58,8 +61,7 @@ export function getPrimaryContactHelpFrame(time: number) {
     phone: transition(t, 6250, 6900) * (1 - phonePutAway),
     // The user puts the handset away when Owner arrives, and gradually
     // returns to the opening pose ahead of the next animation loop.
-    userPhoneVisible:
-      1 - phonePutAway * (1 - transition(t, 14200, 15100)),
+    userPhoneVisible: 1 - phonePutAway * (1 - transition(t, 14200, 15100)),
     calling: transition(t, 7450, 7950) * (1 - transition(t, 8750, 9200)),
     technicianX: mix(
       mix(665, 238, technicianArrival),
@@ -75,6 +77,7 @@ export function getPrimaryContactHelpFrame(time: number) {
 
 // Center the complete cast in its viewport, scaling on narrow devices so no
 // service, character, or phone signal gets cropped.
+/** Fits the simulated contact scene and Item preview into the available width. */
 export function getPrimaryContactHelpLayout(availableWidth: number) {
   const compact = availableWidth < 640;
   const width = compact ? Math.max(300, Math.min(640, availableWidth)) : 640;
@@ -112,10 +115,8 @@ export function getPrimaryContactHelpLayout(availableWidth: number) {
     pageX,
     pageY,
     // Extend the opaque preview past the viewport's edges when expanded.
-    backdropInsetX:
-      Math.max(0, (width / pageScale - pageWidth) / 2) + 12,
-    backdropInsetY:
-      Math.max(0, (height / pageScale - pageHeight) / 2) + 12,
+    backdropInsetX: Math.max(0, (width / pageScale - pageWidth) / 2) + 12,
+    backdropInsetY: Math.max(0, (height / pageScale - pageHeight) / 2) + 12,
     sceneX,
     sceneY,
     sceneScale,
@@ -125,6 +126,7 @@ export function getPrimaryContactHelpLayout(availableWidth: number) {
 type HelpFrame = ReturnType<typeof getPrimaryContactHelpFrame>;
 type HelpLayout = ReturnType<typeof getPrimaryContactHelpLayout>;
 
+/** Draws the service-side interaction in the primary-contact illustration. */
 function Laptop({ frame }: { frame: HelpFrame }) {
   return (
     <g
@@ -175,6 +177,7 @@ function Laptop({ frame }: { frame: HelpFrame }) {
   );
 }
 
+/** Draws the phone and outgoing call illustration. */
 function Phone({ frame }: { frame: HelpFrame }) {
   return (
     <g data-primary-contact-phone="true" style={{ opacity: frame.phone }}>
@@ -246,9 +249,11 @@ function Phone({ frame }: { frame: HelpFrame }) {
   );
 }
 
+/** Renders the owner performing the simulated repair. */
 function Technician({ frame }: { frame: HelpFrame }) {
   return (
-    <g data-primary-contact-technician="true"
+    <g
+      data-primary-contact-technician="true"
       style={{ opacity: frame.technicianOpacity }}
       transform={"translate(" + frame.technicianX + " 143)"}
     >
@@ -262,6 +267,7 @@ function Technician({ frame }: { frame: HelpFrame }) {
   );
 }
 
+/** Renders the user noticing a service problem and initiating contact. */
 function Observer({ frame }: { frame: HelpFrame }) {
   return (
     <g data-primary-contact-observer="true" transform="translate(352 76)">
@@ -275,7 +281,9 @@ function Observer({ frame }: { frame: HelpFrame }) {
         <DemoWoodLabel x={0} y={0} width={62} label="User" />
       </g>
       <g data-primary-contact-alarm="true" opacity={frame.alarm}>
-        <text x="117" y="2" className="primary-contact-exclamation">!</text>
+        <text x="117" y="2" className="primary-contact-exclamation">
+          !
+        </text>
         <path
           d="M116-7l-5-8M130-8l7-8"
           className="primary-contact-alarm-rays"
@@ -289,6 +297,7 @@ function Observer({ frame }: { frame: HelpFrame }) {
 const contactSelectors = { contact: ".primary-contact-row" };
 const contactFallback = { contact: { x: 49, y: 90, width: 220, height: 34 } };
 
+/** Displays a passive Item page within the primary-contact scene. */
 function AggregatorPage({
   frame,
   layout,
@@ -359,6 +368,7 @@ function AggregatorPage({
   );
 }
 
+/** Animates the contact card moving from the Item view to the user's phone. */
 function ContactTransfer({
   frame,
   layout,
@@ -398,6 +408,7 @@ function ContactTransfer({
   );
 }
 
+/** Shows a failure, discovery of the primary contact, repair, and recovery loop. */
 export default function PrimaryContactHelpDemo() {
   const pageRef = useRef<HTMLDivElement>(null);
   const targets = useHelpTargets(pageRef, contactSelectors, contactFallback);

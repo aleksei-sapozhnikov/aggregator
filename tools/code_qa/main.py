@@ -67,11 +67,18 @@ CHECKS: list[CheckSpec] = [
         format_args=["--format"],
     ),
     CheckSpec(
-        check_id="ruff",
-        display_name="ruff",
+        check_id="ruff-lint",
+        display_name="ruff lint",
         script_name="run_ruff.py",
-        check_args=["--check-only"],
-        format_args=["--format"],
+        check_args=["--lint-check-only"],
+        format_args=["--lint-fix"],
+    ),
+    CheckSpec(
+        check_id="ruff-format",
+        display_name="ruff formatting",
+        script_name="run_ruff.py",
+        check_args=["--format-check-only"],
+        format_args=["--format-fix"],
     ),
     CheckSpec(
         check_id="prettier",
@@ -166,7 +173,7 @@ def run_format_command(
             spec = by_id.get(check_id)
             if spec is None or not spec.format_args:
                 continue
-            print(f"  Formatting {spec.display_name}.. ", end="", flush=True)
+            print(f"  Fixing {spec.display_name}.. ", end="", flush=True)
             ok, details = run_script(spec.script_name, spec.format_args)
             print("OK" if ok else "FAILED", flush=True)
             for line in details:

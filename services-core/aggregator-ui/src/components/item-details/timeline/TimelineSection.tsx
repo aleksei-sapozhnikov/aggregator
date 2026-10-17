@@ -1,3 +1,5 @@
+/** @file Adapts the replaceable Timeline view to an Item details section. */
+
 import { useEffect, useState } from "react";
 import type { RefObject } from "react";
 import ItemTimeline from "../../shared/item/ItemTimeline";
@@ -24,6 +26,7 @@ export default function TimelineSection({
 }: TimelineSectionProps) {
   const [height, setHeight] = useState(0);
   useEffect(() => {
+    /** Fits the Timeline to the available viewport below the fixed header. */
     const updateHeight = () => {
       if (!contentRef.current || !headerRef.current) return;
       const styles = window.getComputedStyle(contentRef.current);
@@ -64,10 +67,7 @@ export default function TimelineSection({
       height={height}
       help={<InfoHelp topicId="timeline" />}
     >
-      <GrafanaFrame
-        itemId={itemId}
-        onNavigateToItem={onNavigateToItem}
-      />
+      <GrafanaFrame itemId={itemId} onNavigateToItem={onNavigateToItem} />
     </ItemTimeline>
   );
 }

@@ -1,4 +1,6 @@
 /** @vitest-environment jsdom */
+/** @file Tests shared help scene scaling and geometry measurement behavior. */
+
 import { useRef } from "react";
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
