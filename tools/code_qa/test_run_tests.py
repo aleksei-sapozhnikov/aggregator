@@ -23,7 +23,9 @@ class TestRunnerTests(unittest.TestCase):
             home = root / "fake-jdk-25"
             with (
                 patch.object(run_tests, "resolve_java_home", return_value=home) as java,
-                patch.object(run_tests, "resolve_maven_command", return_value="mvn.cmd") as resolve,
+                patch.object(
+                    run_tests, "resolve_maven_command", return_value="mvn.cmd"
+                ) as resolve,
             ):
                 module = run_tests.build_module(root, "aggregator")
             self.assertEqual(module.command, ["mvn.cmd", "-B", "test"])

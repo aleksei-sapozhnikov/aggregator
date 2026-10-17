@@ -39,9 +39,13 @@ class JDKBootstrapTests(unittest.TestCase):
             cached.mkdir(parents=True)
             with (
                 patch.dict(os.environ, {"JAVA_HOME": "/outdated/jdk"}, clear=False),
-                patch.object(run_jdk, "platform_details", return_value=("linux", "x64")),
+                patch.object(
+                    run_jdk, "platform_details", return_value=("linux", "x64")
+                ),
                 patch.object(run_jdk.shutil, "which", return_value=None),
-                patch.object(run_jdk, "is_jdk_25", side_effect=lambda path: path == cached),
+                patch.object(
+                    run_jdk, "is_jdk_25", side_effect=lambda path: path == cached
+                ),
                 patch.object(run_jdk, "bootstrap_temurin") as download,
             ):
                 self.assertEqual(run_jdk.resolve_java_home(root), cached)
@@ -68,7 +72,11 @@ class JDKBootstrapTests(unittest.TestCase):
 
         with (
             patch.object(run_jdk, "platform_details", return_value=("windows", "x64")),
-            patch.object(run_jdk.urllib.request, "urlopen", return_value=metadata(url, checksum)),
+            patch.object(
+                run_jdk.urllib.request,
+                "urlopen",
+                return_value=metadata(url, checksum),
+            ),
         ):
             self.assertEqual(run_jdk.adoptium_package(), (url, checksum))
 
@@ -78,7 +86,9 @@ class JDKBootstrapTests(unittest.TestCase):
                 "https://evil.example/temurin.zip", checksum
             )),
         ):
-            with self.assertRaisesRegex(ValueError, "Unexpected Temurin download source"):
+            with self.assertRaisesRegex(
+                ValueError, "Unexpected Temurin download source"
+            ):
                 run_jdk.adoptium_package()
 
     def test_verified_archive_is_cached_and_reused(self) -> None:
@@ -90,12 +100,19 @@ class JDKBootstrapTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             with (
-                patch.object(run_jdk, "platform_details", return_value=("windows", "x64")),
+                patch.object(
+                    run_jdk, "platform_details", return_value=("windows", "x64")
+                ),
                 patch.object(run_jdk, "adoptium_package", return_value=(
-                    "https://github.com/adoptium/temurin25-binaries/releases/download/anything",
+                    "https://github.com/adoptium/temurin25-binaries/"
+                    "releases/download/anything",
                     hashlib.sha256(data.getvalue()).hexdigest(),
                 )),
-                patch.object(run_jdk.urllib.request, "urlopen", return_value=io.BytesIO(data.getvalue())) as fetch,
+                patch.object(
+                    run_jdk.urllib.request,
+                    "urlopen",
+                    return_value=io.BytesIO(data.getvalue()),
+                ) as fetch,
                 patch.object(run_jdk, "is_jdk_25", side_effect=lambda home: (
                     (home / "bin" / "java.exe").exists() and
                     (home / "bin" / "javac.exe").exists()
@@ -112,12 +129,19 @@ class JDKBootstrapTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             with (
-                patch.object(run_jdk, "platform_details", return_value=("windows", "x64")),
+                patch.object(
+                    run_jdk, "platform_details", return_value=("windows", "x64")
+                ),
                 patch.object(run_jdk, "adoptium_package", return_value=(
-                    "https://github.com/adoptium/temurin25-binaries/releases/download/anything",
+                    "https://github.com/adoptium/temurin25-binaries/"
+                    "releases/download/anything",
                     "0" * 64,
                 )),
-                patch.object(run_jdk.urllib.request, "urlopen", return_value=io.BytesIO(b"invalid")),
+                patch.object(
+                    run_jdk.urllib.request,
+                    "urlopen",
+                    return_value=io.BytesIO(b"invalid"),
+                ),
                 redirect_stdout(StringIO()) as output,
             ):
                 self.assertIsNone(run_jdk.bootstrap_temurin(root))
@@ -134,8 +158,14 @@ class JDKBootstrapTests(unittest.TestCase):
         with (
             patch.object(sys, "argv", ["run_java_format.py", "--check-only"]),
             patch.object(run_java_format, "resolve_java_home", return_value=home),
-            patch.object(run_java_format, "ensure_formatter_jar", return_value=Path("formatter.jar")),
-            patch.object(run_java_format, "discover_java_files", return_value=[Path("A.java")]),
+            patch.object(
+                run_java_format,
+                "ensure_formatter_jar",
+                return_value=Path("formatter.jar"),
+            ),
+            patch.object(
+                run_java_format, "discover_java_files", return_value=[Path("A.java")]
+            ),
             patch.object(run_java_format, "run_formatter", return_value=0) as formatter,
         ):
             self.assertEqual(run_java_format.main(), 0)

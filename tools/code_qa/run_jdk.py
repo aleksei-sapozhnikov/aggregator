@@ -75,7 +75,10 @@ def java_environment(home: Path) -> dict[str, str]:
 def cached_jdk_root(root: Path) -> Path:
     """Return the persistent cache location for this OS and architecture."""
     os_name, arch = platform_details()
-    return root / ".temp" / "qa-runtime" / "jdk" / f"temurin-{JAVA_MAJOR}-{os_name}-{arch}"
+    return (
+        root / ".temp" / "qa-runtime" / "jdk"
+        / f"temurin-{JAVA_MAJOR}-{os_name}-{arch}"
+    )
 
 
 def find_jdk_home(directory: Path) -> Path | None:
@@ -95,8 +98,15 @@ def adoptium_package() -> tuple[str, str]:
 
     if not isinstance(releases, list) or not releases:
         raise ValueError("Adoptium did not return a JDK 25 release")
-    binary = releases[0].get("binary", {})
-    package = binary.get("package", {})
+    release = releases[0]
+    if not isinstance(release, dict):
+        raise ValueError("Invalid Adoptium release metadata")
+    binary = release.get("binary")
+    if not isinstance(binary, dict):
+        raise ValueError("Invalid Adoptium binary metadata")
+    package = binary.get("package")
+    if not isinstance(package, dict):
+        raise ValueError("Invalid Adoptium package metadata")
     url, sha256 = package.get("link"), package.get("checksum")
     if not isinstance(url, str) or not isinstance(sha256, str):
         raise ValueError("Adoptium release lacks download link or SHA-256")
@@ -120,7 +130,7 @@ def adoptium_package() -> tuple[str, str]:
 def validate_archive_path(name: str) -> None:
     """Reject absolute and parent-traversal paths before extraction."""
     path = Path(name.replace("\\", "/"))
-    if path.is_absolute() or ".." in path.parts or ":" in path.parts[0]:
+    if not path.parts or path.is_absolute() or ".." in path.parts or ":" in path.parts[0]:
         raise ValueError(f"Unsafe path in Temurin archive: {name}")
 
 
@@ -151,10 +161,15 @@ def bootstrap_temurin(root: Path) -> Path | None:
     cache.mkdir(parents=True, exist_ok=True)
     try:
         url, checksum = adoptium_package()
-        print(f"Downloading Eclipse Temurin JDK {JAVA_MAJOR} into {cache}...", flush=True)
+        print(
+            f"Downloading Eclipse Temurin JDK {JAVA_MAJOR} into {cache}...",
+            flush=True,
+        )
         with tempfile.TemporaryDirectory(dir=cache, prefix="jdk-install-") as temp:
             staging = Path(temp)
-            archive_path = staging / ("jdk.zip" if sys.platform == "win32" else "jdk.tar.gz")
+            archive_path = staging / (
+                "jdk.zip" if sys.platform == "win32" else "jdk.tar.gz"
+            )
             digest = hashlib.sha256()
             with urllib.request.urlopen(url, timeout=120) as response:
                 with archive_path.open("wb") as output:
@@ -172,16 +187,27 @@ def bootstrap_temurin(root: Path) -> Path | None:
                 raise ValueError("Unexpected Temurin archive layout")
             home = find_jdk_home(roots[0])
             if home is None:
-                raise ValueError(f"Downloaded archive does not contain JDK {JAVA_MAJOR}")
+                raise ValueError(
+                    f"Downloaded archive does not contain JDK {JAVA_MAJOR}"
+                )
 
             if target.exists():
                 shutil.rmtree(target)
             roots[0].rename(target)
 
         return find_jdk_home(target)
-    except (OSError, ValueError, KeyError, TypeError, json.JSONDecodeError,
-            tarfile.TarError, zipfile.BadZipFile) as error:
-        print(f"Unable to prepare Eclipse Temurin JDK {JAVA_MAJOR}: {error}", flush=True)
+    except (
+        OSError,
+        ValueError,
+        KeyError,
+        TypeError,
+        tarfile.TarError,
+        zipfile.BadZipFile,
+    ) as error:
+        print(
+            f"Unable to prepare Eclipse Temurin JDK {JAVA_MAJOR}: {error}",
+            flush=True,
+        )
         return None
 
 
