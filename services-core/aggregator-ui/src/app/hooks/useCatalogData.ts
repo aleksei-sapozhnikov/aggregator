@@ -15,7 +15,6 @@ import type {
   CatalogItemActor,
   CatalogItemContact,
   DisplayHealthStatus,
-  HealthStatus,
   ItemSignal,
   ProductHealthItem,
 } from "../../shared/types";
@@ -145,7 +144,9 @@ export default function useCatalogData() {
           console.error(err);
           // DISCONNECTED is a UI transport state, never a backend health fact.
           setItemStatuses(
-            Object.fromEntries(catalog.items.map((item) => [item.id, "disconnected"])),
+            Object.fromEntries(
+              catalog.items.map((item) => [item.id, "disconnected"]),
+            ),
           );
           setItemSignals({});
           setProductHealthByItemId({});

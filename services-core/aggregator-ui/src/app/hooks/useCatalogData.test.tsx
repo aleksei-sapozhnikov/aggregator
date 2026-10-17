@@ -73,6 +73,30 @@ describe("useCatalogData", () => {
     expect(result.current.lastUpdated).not.toBe("");
   });
 
+  it("retries catalog initialization after failure and stops retrying once loaded", async () => {
+    vi.useFakeTimers();
+    vi.mocked(loadCatalog).mockRejectedValueOnce(new Error("Catalog unavailable"));
+    const { result } = renderHook(() => useCatalogData());
+    await flushMicrotasks();
+
+    expect(result.current.error).toBe("Catalog unavailable");
+    expect(result.current.catalog.items).toEqual([]);
+    expect(fetchProductHealth).not.toHaveBeenCalled();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10_000);
+    });
+    expect(loadCatalog).toHaveBeenCalledTimes(2);
+    expect(result.current.error).toBe("");
+    expect(result.current.catalog.items).toEqual(catalog.items);
+    expect(fetchProductHealth).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(20_000);
+    });
+    expect(loadCatalog).toHaveBeenCalledTimes(2);
+  });
+
   it("starts polling only after a non-empty catalog loads and refreshes every 10 seconds", async () => {
     vi.useFakeTimers();
     let resolveCatalog!: (value: typeof catalog) => void;
@@ -125,7 +149,7 @@ describe("useCatalogData", () => {
     });
 
     expect(log).toHaveBeenCalledOnce();
-    expect(result.current.itemStatuses).toEqual({});
+    expect(result.current.itemStatuses).toEqual({ checkout: "disconnected" });
     expect(result.current.itemSignals).toEqual({});
     expect(result.current.productHealthByItemId).toEqual({});
     expect(result.current.lastUpdated).toBe("");
@@ -158,7 +182,7 @@ describe("useCatalogData", () => {
       await vi.advanceTimersByTimeAsync(18_000);
     });
     expect(fetchProductHealth).toHaveBeenCalledTimes(2);
-    expect(result.current.itemStatuses).toEqual({});
+    expect(result.current.itemStatuses).toEqual({ checkout: "disconnected" });
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(2_000);
@@ -204,7 +228,7 @@ describe("useCatalogData", () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(10_000);
     });
-    expect(result.current.itemStatuses).toEqual({});
+    expect(result.current.itemStatuses).toEqual({ checkout: "disconnected" });
     expect(log).toHaveBeenCalledTimes(1);
 
     await act(async () => {

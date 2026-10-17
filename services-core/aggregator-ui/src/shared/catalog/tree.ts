@@ -107,13 +107,20 @@ export const buildCatalogTree = (
   // A cycle can have no root. Represent otherwise unreachable items once as
   // additional roots, while toNode prevents infinite recursion along a path.
   const reachable = new Set(collectNodeIds(roots));
-  const remaining = sortItemsByName(items.filter((item) => !reachable.has(item.id)));
+  const remaining = sortItemsByName(
+    items.filter((item) => !reachable.has(item.id)),
+  );
   const extraRoots: CatalogTreeNode[] = [];
   remaining.forEach((item, index) => {
     if (reachable.has(item.id)) {
       return;
     }
-    const node = toNode(item.id, new Set<string>(), [`cycle-${index}:${item.id}`], []);
+    const node = toNode(
+      item.id,
+      new Set<string>(),
+      [`cycle-${index}:${item.id}`],
+      [],
+    );
     if (node) {
       extraRoots.push(node);
       collectNodeIds([node]).forEach((id) => reachable.add(id));

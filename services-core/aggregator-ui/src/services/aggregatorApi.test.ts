@@ -11,6 +11,7 @@ const response = (payload: unknown, ok = true) => ({
 });
 
 afterEach(() => {
+  vi.useRealTimers();
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
 });
@@ -63,6 +64,36 @@ describe("aggregatorApi", () => {
     expect(catalog.itemActors).toEqual([]);
     expect(catalog.actorContacts).toEqual([]);
     expect(fetchMock).toHaveBeenCalledTimes(7);
+  });
+
+  it("times out a stalled optional request while keeping the required catalog", async () => {
+    vi.useFakeTimers();
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    let optionalAborted = false;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((input: URL, init?: RequestInit) => {
+        if (input.pathname.endsWith("/contacts")) {
+          return new Promise((_, reject) => {
+            init?.signal?.addEventListener("abort", () => {
+              optionalAborted = true;
+              reject(new DOMException("Aborted", "AbortError"));
+            });
+          });
+        }
+        return Promise.resolve(
+          input.pathname.endsWith("/items")
+            ? response({ items: [{ id: "checkout", title: "Checkout" }] })
+            : response({ dependencies: [] }),
+        );
+      }),
+    );
+
+    const pending = loadCatalog();
+    await vi.advanceTimersByTimeAsync(3_000);
+    const catalog = await pending;
+    expect(optionalAborted).toBe(true);
+    expect(catalog.items).toHaveLength(1);
   });
 
   it("still rejects when a required catalog endpoint fails", async () => {

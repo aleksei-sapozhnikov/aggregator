@@ -376,9 +376,14 @@ const loadOptionalJson = async (
       return {};
     }
     const payload = (await response.json()) as unknown;
-    return payload !== null && typeof payload === "object" && !Array.isArray(payload)
-      ? payload
-      : {};
+    if (
+      payload !== null &&
+      typeof payload === "object" &&
+      !Array.isArray(payload)
+    ) {
+      return payload;
+    }
+    return {};
   } catch (error) {
     if (!signal?.aborted) {
       console.warn(`Optional catalog data unavailable: ${path}`, error);
