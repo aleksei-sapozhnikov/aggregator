@@ -1,3 +1,5 @@
+import "./DemoCharacter.css";
+
 export default function DemoCharacter({
   role,
   color,
@@ -60,7 +62,7 @@ export default function DemoCharacter({
         />
       )}
       {role === "support" && (
-        <>
+        <g className="demo-character-support-headset" data-demo-gesture="headset">
           <path
             d="M25 39Q16 7 49 9Q81 10 76 43L67 33Q53 18 38 31Z"
             fill="#483b46"
@@ -94,7 +96,15 @@ export default function DemoCharacter({
             stroke="#273b4c"
             strokeWidth="2"
           />
-        </>
+          <path
+            d="M80 56Q83 68 69 65L63 62"
+            fill="none"
+            stroke="#273b4c"
+            strokeWidth="3"
+            strokeLinecap="round"
+          />
+          <circle cx="62" cy="62" r="3.5" fill="#273b4c" />
+        </g>
       )}
       <circle cx="42" cy="43" r="2" fill="#263440" />
       <circle cx="62" cy="43" r="2" fill="#263440" />
@@ -108,46 +118,56 @@ export default function DemoCharacter({
       {role === "user" && (
         <>
           <path
-            d="M22 85 15 111 38 120M77 87 83 64 78 54"
+            d="M22 85 15 111 38 120"
             fill="none"
             stroke={color}
             strokeWidth="14"
             strokeLinecap="round"
           />
-          <rect
-            x="71"
-            y="37"
-            width="13"
-            height="27"
-            rx="4"
-            fill="#35556a"
-            stroke="#253a4a"
-            strokeWidth="2"
-          />
-          <rect x="74" y="41" width="7" height="17" rx="2" fill="#dcebf3" />
           <circle cx="38" cy="120" r="7" fill="#f6c29b" />
-          <circle cx="78" cy="54" r="5" fill="#f6c29b" />
+          <g className="demo-character-phone-gesture" data-demo-gesture="phone">
+            <path
+              d="M77 87 83 64 78 54"
+              fill="none"
+              stroke={color}
+              strokeWidth="14"
+              strokeLinecap="round"
+            />
+            <rect
+              x="71"
+              y="37"
+              width="13"
+              height="27"
+              rx="4"
+              fill="#35556a"
+              stroke="#253a4a"
+              strokeWidth="2"
+            />
+            <rect x="74" y="41" width="7" height="17" rx="2" fill="#dcebf3" />
+            <circle cx="78" cy="54" r="5" fill="#f6c29b" />
+          </g>
         </>
       )}
       {role === "support" && (
         <>
           <path
-            d="M22 85 16 111 38 119M79 85 89 111 72 119"
+            d="M22 85 16 111 38 119"
             fill="none"
             stroke={color}
             strokeWidth="14"
             strokeLinecap="round"
           />
           <circle cx="38" cy="119" r="7" fill="#f6c29b" />
-          <circle cx="72" cy="119" r="7" fill="#f6c29b" />
-          <path
-            d="M80 56Q83 68 69 65L63 62"
-            fill="none"
-            stroke="#273b4c"
-            strokeWidth="3"
-            strokeLinecap="round"
-          />
-          <circle cx="62" cy="62" r="3.5" fill="#273b4c" />
+          <g className="demo-character-support-hand">
+            <path
+              d="M79 85 79 65 77 50"
+              fill="none"
+              stroke={color}
+              strokeWidth="14"
+              strokeLinecap="round"
+            />
+            <circle cx="77" cy="50" r="7" fill="#f6c29b" />
+          </g>
         </>
       )}
       {role === "owner" && (
