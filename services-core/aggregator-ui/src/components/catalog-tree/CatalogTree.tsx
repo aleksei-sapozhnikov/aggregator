@@ -132,7 +132,7 @@ const CatalogNode = ({
         <div className="node-main">
           <div className="node-label">
             <span className="node-heading">
-              {hasHealthSnapshot && (
+              {hasHealthSnapshot && statuses[node.item.id] !== undefined && (
                 <span
                   className={`status-indicator status-${status}`}
                   aria-label={statusLabel}
@@ -397,8 +397,9 @@ export default function CatalogTree({
                         <div className="node-main">
                           <div className="node-label">
                             <span className="node-heading">
-                              {hasHealthSnapshot && (
-                                <span
+                              {hasHealthSnapshot &&
+                                itemStatuses[item.id] !== undefined && (
+                                  <span
                                   className={`status-indicator status-${searchItemStatus}`}
                                   aria-label={searchItemStatusText}
                                   title={searchItemStatusText}

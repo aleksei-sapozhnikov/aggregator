@@ -56,7 +56,7 @@ export default function ItemTitle({
           {status.toUpperCase()}
         </span>
       )}
-      {item && isLastKnownHealth && (
+      {item && showHealthStatus && isLastKnownHealth && (
         <span className="health-last-known-label">Last known</span>
       )}
     </div>

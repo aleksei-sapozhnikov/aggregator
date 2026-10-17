@@ -170,6 +170,11 @@ export default function App() {
     openedActorId,
   });
 
+  const hasSelectedHealthStatus =
+    hasHealthSnapshot &&
+    selectedItem !== undefined &&
+    itemStatuses[selectedItem.id] !== undefined;
+
   const homeHref = basePath || "/";
   const homeIconSrc = `${basePath || "/"}logo.svg`;
   const iconSpriteHref = `${basePath || "/"}icons.svg`;
@@ -286,7 +291,7 @@ export default function App() {
         selectedItem={selectedItem}
         selectedStatus={selectedStatus}
         lastUpdated={lastHealthFetchTime}
-        hasHealthSnapshot={hasHealthSnapshot}
+        hasHealthSnapshot={hasSelectedHealthStatus}
         isLastKnownHealth={isLastKnownHealth}
         connectionStatus={connectionStatus}
         lastSuccessfulFetchAt={lastSuccessfulFetchAt}
@@ -307,7 +312,7 @@ export default function App() {
           headerRef={headerRef}
           iconSpriteHref={iconSpriteHref}
           selectedItem={selectedItem}
-          isLastKnownHealth={isLastKnownHealth}
+          isLastKnownHealth={isLastKnownHealth && hasSelectedHealthStatus}
           selectedFailingSignals={selectedFailingSignals}
           failingDependencies={failingDependencies}
           selectedItemActors={selectedItemActors}
