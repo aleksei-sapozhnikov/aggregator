@@ -44,16 +44,18 @@ Characters, machines, phones, dependency diagrams, moving checkmarks,
 selection frames, and simulated cursors are explanatory SVG/CSS illustrations
 and do not replace the application UI.
 
-Illustrations are organized by role in `about/shared/characters/{owner,user,support}/`.
+Illustrations are organized by role in
+`about/shared/characters/{owner,user,support,service}/`.
 Each role owns a standalone SVG with named base and animated layers, its own
 React renderer and gesture CSS. The generic `characters/shared/CharacterLayer`
 composes SVG layers without choosing a role or inheriting character drawings.
 Sprite imports use Vite's `?no-inline` option because SVG `<use>` fragment
 references require a separately emitted file, not a small inlined data URL.
 User waves a phone, Owner carries the repair wrench, and Support adjusts a
-call-center headset. The same assets are reused in Actors and Primary contact. The service
-machine has one SVG with an `unhealthy` parameter that switches its lamp
-between green and red. Wooden captions are used for people only and remain
+call-center headset. The same assets are reused in Actors and Primary contact. Service has its own
+SVG, component, and CSS. Its `unhealthy` parameter selects the green/red
+indicator layers without duplicating the machine illustration. Wooden
+captions are used for people only and remain
 separate `DemoWoodLabel` elements, rather than becoming part of the SVG
 assets. The service illustration needs no caption.
 

@@ -19,7 +19,7 @@ import DemoWoodLabel from "../shared/DemoWoodLabel";
 import OwnerCharacter from "../shared/characters/owner/OwnerCharacter";
 import UserCharacter from "../shared/characters/user/UserCharacter";
 import SupportCharacter from "../shared/characters/support/SupportCharacter";
-import ServiceMachine from "../shared/characters/ServiceMachine";
+import ServiceMachine from "../shared/characters/service/ServiceMachine";
 import "./ActorsHelpDemo.css";
 
 // The HTML page and illustrated sprites scale together; destinations follow its DOM rows.
