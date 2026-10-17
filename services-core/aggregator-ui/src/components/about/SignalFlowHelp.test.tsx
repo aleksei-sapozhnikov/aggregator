@@ -139,6 +139,30 @@ describe("Signal flow help demonstrations", () => {
     },
   );
 
+  it.each(["healthy", "unhealthy"] as const)(
+    "updates the %s animation between old 100ms ticks",
+    (mode) => {
+      const { container } = render(
+        mode === "healthy" ? (
+          <HealthySignalsHelpDemo />
+        ) : (
+          <UnhealthySignalsHelpDemo />
+        ),
+      );
+      const selector =
+        mode === "healthy"
+          ? '[data-selection-frame="availability"]'
+          : '[data-flow-edge="nested1-dep1"] .signal-flow-help-propagation';
+      advance(mode === "healthy" ? 3560 : 2540);
+      const before = container.querySelector(selector);
+      const coordinate = mode === "healthy" ? "x" : "stroke-dashoffset";
+      const first = before?.getAttribute(coordinate);
+      advance(20);
+      const after = container.querySelector(selector);
+      expect(after?.getAttribute(coordinate)).not.toBe(first);
+    },
+  );
+
   it("keeps neighboring unhealthy dependency highlights separated", () => {
     const { container } = render(<UnhealthySignalsHelpDemo />);
     const upper = container.querySelector(
@@ -280,8 +304,12 @@ describe("Signal flow help demonstrations", () => {
 
   it("turns each dependent node red exactly when its incoming wave arrives", () => {
     render(<UnhealthySignalsHelpDemo />);
-    const { firstLinkStart, dependencyAffectedAt, secondLinkStart, itemAffectedAt } =
-      unhealthyTiming;
+    const {
+      firstLinkStart,
+      dependencyAffectedAt,
+      secondLinkStart,
+      itemAffectedAt,
+    } = unhealthyTiming;
 
     expect(getNode("nested1").getAttribute("data-health")).toBe("healthy");
     expect(getNode("dep1").getAttribute("data-health")).toBe("healthy");
@@ -344,10 +372,14 @@ describe("Signal flow help demonstrations", () => {
       );
       expect(
         Number(frame.getAttribute("x")) + Number(frame.getAttribute("width")),
-      ).toBeLessThan(Number(node.getAttribute("x")) + Number(node.getAttribute("width")));
+      ).toBeLessThan(
+        Number(node.getAttribute("x")) + Number(node.getAttribute("width")),
+      );
       expect(
         Number(frame.getAttribute("y")) + Number(frame.getAttribute("height")),
-      ).toBeLessThan(Number(node.getAttribute("y")) + Number(node.getAttribute("height")));
+      ).toBeLessThan(
+        Number(node.getAttribute("y")) + Number(node.getAttribute("height")),
+      );
     }
   });
 

@@ -64,11 +64,17 @@ export default function UnhealthySignalProjection({
         timing.presentationEnd,
       ),
     ) *
-    (1 - smooth(progressBetween(elapsed, timing.reverseStart, timing.reverseEnd)));
+    (1 -
+      smooth(progressBetween(elapsed, timing.reverseStart, timing.reverseEnd)));
   // Keep highlighting visible during the expanded-list pause.
   const selectionOpacity =
     progressBetween(elapsed, timing.selectionStart, timing.selectionFull) *
-    (1 - progressBetween(elapsed, timing.selectionFadeStart, timing.selectionFadeEnd));
+    (1 -
+      progressBetween(
+        elapsed,
+        timing.selectionFadeStart,
+        timing.selectionFadeEnd,
+      ));
   const symbolOpacity = 1 - smooth(progressBetween(progress, 0.38, 0.88));
 
   return (

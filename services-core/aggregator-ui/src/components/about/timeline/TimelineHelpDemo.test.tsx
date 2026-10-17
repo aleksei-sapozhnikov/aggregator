@@ -126,6 +126,19 @@ describe("Timeline help walkthrough", () => {
     },
   );
 
+  it("moves the Timeline cursor smoothly between 100ms ticks", () => {
+    render(<TimelineHelpDemo />);
+    const cursor = screen
+      .getByLabelText("Example Timeline")
+      .querySelector(
+        ".timeline-help-tracks > .timeline-help-cursor",
+      ) as SVGElement;
+    advance(1520);
+    const before = cursor.style.left;
+    advance(20);
+    expect(cursor.style.left).not.toBe(before);
+  });
+
   it("uses a one-week range rather than the old fifteen-minute sample", () => {
     render(<TimelineHelpDemo />);
     const preview = screen.getByLabelText("Example Timeline");
