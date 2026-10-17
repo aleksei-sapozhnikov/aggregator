@@ -150,24 +150,6 @@
 .timeline-help-state.is-unknown {
   background: var(--status-unknown);
 }
-.timeline-help-label.is-highlighted,
-.timeline-help-track.is-highlighted {
-  animation: timeline-help-highlight 1.4s ease-out;
-}
-.timeline-help-track.is-highlighted {
-  outline: 2px solid var(--status-unknown);
-  outline-offset: 2px;
-}
-@keyframes timeline-help-highlight {
-  0%,
-  100% {
-    background: transparent;
-  }
-  35%,
-  70% {
-    background: color-mix(in srgb, var(--status-unknown) 22%, transparent);
-  }
-}
 .timeline-help-crosshair {
   position: absolute;
   z-index: 11;

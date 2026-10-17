@@ -352,11 +352,6 @@ export default function GrafanaTimelineIllustration({
 }) {
   const filter = scenario === "filter" ? getFilter(elapsed) : "all";
   const menuOpen = scenario === "filter" && isFilterMenuOpen(elapsed);
-  const highlighted =
-    scenario === "filter" &&
-    ((elapsed >= 1800 && elapsed < 3700) || (elapsed >= 5400 && elapsed < 7400))
-      ? filter
-      : null;
   const visibleRows = exampleRows.filter(
     (row) => row.kind === "overall" || filter === "all" || row.kind === filter,
   );
@@ -441,10 +436,7 @@ export default function GrafanaTimelineIllustration({
           {visibleRows.map((row) => (
             <div
               key={row.id}
-              className={
-                "timeline-help-label" +
-                (highlighted === row.kind ? " is-highlighted" : "")
-              }
+              className="timeline-help-label"
             >
               <span>{row.label}</span>
             </div>
@@ -454,10 +446,7 @@ export default function GrafanaTimelineIllustration({
           {visibleRows.map((row) => (
             <div
               key={row.id}
-              className={
-                "timeline-help-track" +
-                (highlighted === row.kind ? " is-highlighted" : "")
-              }
+              className="timeline-help-track"
             >
               {row.states.map((state, index) => (
                 <span
