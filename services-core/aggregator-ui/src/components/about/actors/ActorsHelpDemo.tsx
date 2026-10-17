@@ -190,12 +190,6 @@ export default function ActorsHelpDemo() {
               >
                 <ServiceMachine />
               </g>
-              <g
-                aria-hidden="true"
-                style={{ opacity: 1 - smooth(between(moving, 0.12, 0.7)) }}
-              >
-                <DemoWoodLabel x={0} y={83} width={74} label="Service" />
-              </g>
             </g>
           )}
           {!reduceMotion &&

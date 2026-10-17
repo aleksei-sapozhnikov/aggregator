@@ -77,7 +77,9 @@ export function getPrimaryContactHelpLayout(availableWidth: number) {
   const pageScale = compact
     ? Math.min((width - 20) / pageWidth, (height - 18) / pageHeight)
     : 1;
-  const pageX = compact ? left + (width - pageWidth * pageScale) / 2 : 0;
+  // Keep the expanded Item near the canvas edge instead of leaving a large
+  // empty gutter to its left in compact modal layouts.
+  const pageX = compact ? left + 12 : 0;
   const pageY = compact ? top + (height - pageHeight * pageScale) / 2 : 0;
   const observerShift = compact ? Math.max(0, 360 - width) * 0.6 : 0;
 
@@ -398,9 +400,6 @@ export default function PrimaryContactHelpDemo() {
                 transform="translate(75 113) scale(0.75)"
               >
                 <ServiceMachine unhealthy={frame.unhealthy} />
-              </g>
-              <g transform="translate(146 294) scale(1.5)">
-                <DemoWoodLabel x={0} y={0} width={74} label="Service" />
               </g>
               <g
                 data-primary-contact-observer-offset="true"
