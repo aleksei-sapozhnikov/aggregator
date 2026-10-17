@@ -21,13 +21,17 @@ afterEach(() => {
 const advance = (ms: number) => act(() => vi.advanceTimersByTime(ms));
 
 describe("Timeline help walkthrough", () => {
-  it("uses the production timeline wrapper and an isolated Grafana illustration without an iframe", () => {
+  it("shows only the Grafana chart without a duplicate Timeline disclosure or iframe", () => {
     const { container } = render(<TimelineHelpDemo />);
     expect(
       container.querySelector(
-        ".details-timeline-body .grafana-grid .grafana-panel .grafana-timeline-illustration",
+        ".timeline-help-content > .grafana-timeline-illustration",
       ),
     ).not.toBeNull();
+    expect(container.querySelector(".details-timeline-body")).toBeNull();
+    expect(
+      container.querySelector(".timeline-help-content .details-disclosure-header"),
+    ).toBeNull();
     expect(container.querySelector("iframe")).toBeNull();
     const preview = screen.getByLabelText("Example Timeline");
     expect(
@@ -57,6 +61,16 @@ describe("Timeline help walkthrough", () => {
     }
     expect(preview.querySelector(".help-item-page")).not.toBeNull();
   });
+  it("frames just the illustration while keeping the scenarios outside the canvas", () => {
+    const { container } = render(<TimelineHelpDemo />);
+    const preview = screen.getByLabelText("Example Timeline");
+    expect(preview.classList.contains("help-animation-canvas")).toBe(true);
+    expect(preview.getAttribute("style")).toContain("840px");
+    expect(preview.querySelector(".grafana-timeline-illustration")).not.toBeNull();
+    expect(preview.querySelector(".details-timeline-section")).toBeNull();
+    expect(container.querySelector(".timeline-help-scenarios")).not.toBeNull();
+  });
+
   it("shows the animation directly below scenario buttons without redundant descriptions", () => {
     const { container } = render(<TimelineHelpDemo />);
     const navigation = screen.getByRole("navigation", {

@@ -16,6 +16,7 @@ import {
 import GrafanaTimelineIllustration, {
   type Scenario,
 } from "./GrafanaTimelineIllustration";
+import "../shared/HelpScene.css";
 import "./TimelineHelpDemo.css";
 
 export { getInspectCursorRow } from "./GrafanaTimelineIllustration";

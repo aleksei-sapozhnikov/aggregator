@@ -51,6 +51,8 @@ describe("Actors contextual help animation", () => {
     const figure = screen.getByRole("figure", {
       name: "Actors become Item ownership and relationship entries",
     });
+    expect(figure.classList.contains("help-animation-canvas")).toBe(true);
+    expect(figure.getAttribute("style")).toContain("452px");
     expect(figure.querySelectorAll("[data-actor]")).toHaveLength(3);
     expect(figure.querySelectorAll("[data-service='item']")).toHaveLength(1);
     expect(figure.querySelector("svg[viewBox='0 0 420 310']")).not.toBeNull();

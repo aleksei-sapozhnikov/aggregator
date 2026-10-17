@@ -79,6 +79,8 @@ describe("Primary contact contextual help", () => {
       "The primary contact is the main contact point",
     );
     expect(text?.nextElementSibling).toBe(figure);
+    expect(figure?.classList.contains("help-animation-canvas")).toBe(true);
+    expect(figure?.getAttribute("style")).toContain("660px");
     expect(figure?.querySelector("[data-primary-contact-page]")).not.toBeNull();
     expect(
       figure?.querySelector("[data-primary-contact-transfer]"),

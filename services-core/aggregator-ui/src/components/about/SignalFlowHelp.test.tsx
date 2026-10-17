@@ -44,6 +44,9 @@ describe("Signal flow help demonstrations", () => {
         ),
       );
       const page = container.querySelector(".help-item-page") as HTMLElement;
+      const canvas = container.querySelector(".signal-flow-help");
+      expect(canvas?.classList.contains("help-animation-canvas")).toBe(true);
+      expect(canvas?.getAttribute("style")).toContain("660px");
       expect(page.closest("svg")).toBeNull();
       expect(page.querySelector(".content-title")?.textContent).toContain(
         "client-service",
