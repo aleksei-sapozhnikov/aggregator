@@ -7,16 +7,16 @@ import type { DisplayHealthStatus, HealthStatus } from "../types";
 export const isUnhealthyHealthStatus = (status: HealthStatus): boolean =>
   status !== "up";
 
-type StatusTextOptions = { lastUpdated?: string };
+type StatusTextOptions = { lastUpdated?: string; lastKnown?: boolean };
 
 /** Formats a reported health state and optional update time for accessibility. */
 export const buildStatusText = (
   status: DisplayHealthStatus | string | undefined,
-  { lastUpdated }: StatusTextOptions = {},
+  { lastUpdated, lastKnown = false }: StatusTextOptions = {},
 ) =>
   status === "disconnected"
     ? "Status: DISCONNECTED (cannot reach Aggregator)"
-    : `Status: ${(status || "unknown").toUpperCase()}${lastUpdated ? ` (at ${lastUpdated})` : ""}`;
+    : `${lastKnown ? "Last known status" : "Status"}: ${(status || "unknown").toUpperCase()}${lastUpdated ? ` (at ${lastUpdated})` : ""}`;
 
 /** Orders reported health states for display and sorting. */
 export const compareHealthStatus = (

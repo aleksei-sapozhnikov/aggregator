@@ -14,7 +14,8 @@ import type {
   CatalogItem,
   CatalogItemActor,
   CatalogItemContact,
-  DisplayHealthStatus,
+  HealthConnectionStatus,
+  HealthStatus,
   ItemSignal,
   ProductHealthItem,
 } from "../../shared/types";
@@ -47,7 +48,7 @@ export default function useCatalogData() {
   const [catalog, setCatalog] = useState(EMPTY_CATALOG);
   const [error, setError] = useState("");
   const [itemStatuses, setItemStatuses] = useState<
-    Record<string, DisplayHealthStatus>
+    Record<string, HealthStatus>
   >({});
   const [itemSignals, setItemSignals] = useState<Record<string, ItemSignal[]>>(
     {},
@@ -55,7 +56,12 @@ export default function useCatalogData() {
   const [productHealthByItemId, setProductHealthByItemId] = useState<
     Record<string, ProductHealthItem>
   >({});
-  const [lastUpdated, setLastUpdated] = useState("");
+  const [lastSuccessfulFetchAt, setLastSuccessfulFetchAt] = useState<number | null>(null);
+  const [disconnectedDetectedAt, setDisconnectedDetectedAt] = useState<
+    number | null
+  >(null);
+  const [connectionStatus, setConnectionStatus] =
+    useState<HealthConnectionStatus>("connecting");
 
   useEffect(() => {
     let cancelled = false;
@@ -117,7 +123,7 @@ export default function useCatalogData() {
     let inFlight = false;
     let activeController: AbortController | null = null;
 
-    /** Polls without overlapping requests or retaining stale health facts. */
+    /** Polls without overlapping requests while preserving the last known health facts. */
     const fetchStatuses = async () => {
       if (inFlight) {
         return;
@@ -137,20 +143,16 @@ export default function useCatalogData() {
           setProductHealthByItemId(
             Object.fromEntries(next.items.map((item) => [item.itemId, item])),
           );
-          setLastUpdated(new Date().toLocaleTimeString());
+          setLastSuccessfulFetchAt(Date.now());
+          setDisconnectedDetectedAt(null);
+          setConnectionStatus("connected");
         }
       } catch (err) {
         if (!cancelled) {
           console.error(err);
-          // DISCONNECTED is a UI transport state, never a backend health fact.
-          setItemStatuses(
-            Object.fromEntries(
-              catalog.items.map((item) => [item.id, "disconnected"]),
-            ),
-          );
-          setItemSignals({});
-          setProductHealthByItemId({});
-          setLastUpdated("");
+          // A transport failure does not change the last reported health facts.
+          setDisconnectedDetectedAt((previous) => previous ?? Date.now());
+          setConnectionStatus("disconnected");
         }
       } finally {
         window.clearTimeout(timeoutId);
@@ -178,6 +180,12 @@ export default function useCatalogData() {
     itemStatuses,
     itemSignals,
     productHealthByItemId,
-    lastUpdated,
+    lastUpdated:
+      lastSuccessfulFetchAt === null
+        ? ""
+        : new Date(lastSuccessfulFetchAt).toLocaleTimeString(),
+    connectionStatus,
+    lastSuccessfulFetchAt,
+    disconnectedDetectedAt,
   };
 }

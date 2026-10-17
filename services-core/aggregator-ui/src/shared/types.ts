@@ -4,7 +4,10 @@
 
 export type HealthStatus = "up" | "down" | "unknown";
 
-/** UI-only connectivity state; it is never emitted by Product Health. */
+/** The UI transport state never changes Product Health facts. */
+export type HealthConnectionStatus = "connecting" | "connected" | "disconnected";
+
+/** The legacy display union also supports the standalone disconnected symbol. */
 export type DisplayHealthStatus = HealthStatus | "disconnected";
 
 export interface CatalogItem {
