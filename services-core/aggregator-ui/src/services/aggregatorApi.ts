@@ -350,21 +350,35 @@ const loadRequiredJson = async (path: string): Promise<unknown> => {
 
 /** Fetches optional catalog data without blocking the required catalog. */
 const loadOptionalJson = async (path: string): Promise<unknown> => {
-  const response = await fetch(new URL(path, resolveBaseUrl()));
-  if (!response.ok) {
+  try {
+    const response = await fetch(new URL(path, resolveBaseUrl()));
+    if (!response.ok) {
+      return {};
+    }
+    const payload = (await response.json()) as unknown;
+    if (
+      payload !== null &&
+      typeof payload === "object" &&
+      !Array.isArray(payload)
+    ) {
+      return payload;
+    }
+    return {};
+  } catch (error) {
+    console.warn(`Optional catalog data unavailable: ${path}`, error);
     return {};
   }
-  return (await response.json()) as unknown;
 };
 
 /** Retrieves current server-computed Item statuses and signal/dependency facts. */
-export const fetchProductHealth = async (): Promise<{
+export const fetchProductHealth = async (signal?: AbortSignal): Promise<{
   items: ProductHealthItem[];
   itemStatuses: Record<string, HealthStatus>;
   itemSignals: Record<string, ItemSignal[]>;
 }> => {
   const response = await fetch(
     new URL("api/product-health/items", resolveBaseUrl()),
+    { signal },
   );
   if (!response.ok) {
     throw new Error(`Failed to load product health: ${response.status}`);

@@ -39,6 +39,18 @@ const getStackIndex = (id: number): number => openModalIds.indexOf(id);
 const isTopmostModal = (id: number): boolean =>
   openModalIds[openModalIds.length - 1] === id;
 
+const focusableSelector =
+  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+/** Finds keyboard-focusable controls within the current dialog. */
+const getFocusableElements = (dialog: HTMLElement): HTMLElement[] =>
+  [...dialog.querySelectorAll<HTMLElement>(focusableSelector)].filter(
+    (element) =>
+      element.tabIndex >= 0 &&
+      !element.closest('[hidden], [inert], [aria-hidden="true"]') &&
+      window.getComputedStyle(element).visibility !== "hidden",
+  );
+
 /** Manages accessible modal stacking, focus restoration, and Escape handling. */
 export default function ModalWindow({
   isOpen,
@@ -81,11 +93,14 @@ export default function ModalWindow({
 
     syncStackIndex();
     window.addEventListener(stackChangeEventName, syncStackIndex);
-    window.setTimeout(() => {
-      dialogRef.current?.focus({ preventScroll: true });
+    const focusTimer = window.setTimeout(() => {
+      if (isTopmostModal(modalId)) {
+        dialogRef.current?.focus({ preventScroll: true });
+      }
     }, 0);
 
     return () => {
+      window.clearTimeout(focusTimer);
       window.removeEventListener(stackChangeEventName, syncStackIndex);
       removeModalId(modalId);
       previousFocusRef.current?.focus({ preventScroll: true });
@@ -98,17 +113,66 @@ export default function ModalWindow({
       return undefined;
     }
 
-    /** Handles Escape only for the topmost modal. */
+    /** Keeps Tab navigation inside the topmost dialog and handles Escape. */
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && isTopmostModal(modalId)) {
+      if (!isTopmostModal(modalId)) {
+        return;
+      }
+      if (event.key === "Escape") {
         event.preventDefault();
         onClose();
+        return;
+      }
+      if (event.key !== "Tab") {
+        return;
+      }
+
+      const dialog = dialogRef.current;
+      if (!dialog) {
+        return;
+      }
+      const focusable = getFocusableElements(dialog);
+      const active = document.activeElement;
+      if (focusable.length === 0) {
+        event.preventDefault();
+        dialog.focus();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (
+        event.shiftKey &&
+        (active === first || active === dialog || !dialog.contains(active))
+      ) {
+        event.preventDefault();
+        last.focus();
+      } else if (
+        !event.shiftKey &&
+        (active === last || !dialog.contains(active))
+      ) {
+        event.preventDefault();
+        first.focus();
       }
     };
 
-    window.addEventListener("keydown", handleKeyDown);
+    /** Redirects programmatic focus changes away from background content. */
+    const handleFocusIn = (event: FocusEvent) => {
+      const dialog = dialogRef.current;
+      if (
+        !isTopmostModal(modalId) ||
+        !dialog ||
+        (event.target instanceof Node && dialog.contains(event.target))
+      ) {
+        return;
+      }
+      (getFocusableElements(dialog)[0] ?? dialog).focus();
+    };
+
+    window.addEventListener("keydown", handleKeyDown, true);
+    document.addEventListener("focusin", handleFocusIn);
     return () => {
-      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keydown", handleKeyDown, true);
+      document.removeEventListener("focusin", handleFocusIn);
     };
   }, [isOpen, modalId, onClose]);
 
