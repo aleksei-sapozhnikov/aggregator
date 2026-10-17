@@ -12,9 +12,5 @@
   box-sizing: border-box;
   border: 2px solid var(--demo-highlight-color);
   border-radius: 7px;
-  background: color-mix(
-    in srgb,
-    var(--demo-highlight-color) 12%,
-    transparent
-  );
+  background: color-mix(in srgb, var(--demo-highlight-color) 12%, transparent);
 }

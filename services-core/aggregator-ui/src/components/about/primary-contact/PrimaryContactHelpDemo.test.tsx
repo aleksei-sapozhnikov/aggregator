@@ -127,8 +127,10 @@ describe("Primary contact contextual help", () => {
       '[data-primary-contact-technician="true"]',
     );
     expect(
-      technician?.querySelector('[data-scene-label="Owner"]')?.classList,
-    ).toContain("demo-wood-label");
+      technician
+        ?.querySelector('[data-scene-label="Owner"]')
+        ?.classList.contains("demo-wood-label"),
+    ).toBe(true);
   });
 
   it("loops and resets its progress indicator", () => {

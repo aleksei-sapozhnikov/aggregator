@@ -137,17 +137,21 @@ describe("Signal flow help demonstrations", () => {
 
   it("keeps neighboring unhealthy dependency highlights separated", () => {
     const { container } = render(<UnhealthySignalsHelpDemo />);
-    advance(13800);
     const upper = container.querySelector(
       '[data-unhealthy-frame="dep1"]',
     ) as SVGRectElement;
     const lower = container.querySelector(
       '[data-unhealthy-frame="nested1"]',
     ) as SVGRectElement;
-    const upperBottom =
-      Number(upper.getAttribute("y")) + Number(upper.getAttribute("height"));
-    const lowerTop = Number(lower.getAttribute("y"));
-    expect(lowerTop - upperBottom).toBeGreaterThanOrEqual(6);
+    let previousTime = 0;
+    for (const time of [11200, 13800, 15800, 17800]) {
+      advance(time - previousTime);
+      previousTime = time;
+      const upperBottom =
+        Number(upper.getAttribute("y")) + Number(upper.getAttribute("height"));
+      const lowerTop = Number(lower.getAttribute("y"));
+      expect(lowerTop - upperBottom).toBeGreaterThanOrEqual(6);
+    }
     expect(upper.getAttribute("opacity")).toBe("1");
     expect(lower.getAttribute("opacity")).toBe("1");
     expect(upper.classList.contains("demo-highlight-frame")).toBe(true);
