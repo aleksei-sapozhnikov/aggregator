@@ -2,6 +2,7 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import ThemeProvider, { useTheme } from "./ThemeProvider";
+import AppToolbar from "../../app/AppToolbar";
 import { getInitialTheme, nextTheme, THEME_STORAGE_KEY } from "./theme";
 
 function ThemeProbe() {
@@ -54,6 +55,23 @@ describe("Application theme", () => {
     expect(document.body.dataset.theme).toBe("light");
     expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe("light");
     expect(nextTheme("light")).toBe("dark");
+  });
+
+  it("updates the real application theme switch without any theme props", () => {
+    localStorage.setItem(THEME_STORAGE_KEY, "light");
+    render(
+      <ThemeProvider>
+        <AppToolbar
+          isAiChatOpen={false}
+          onToggleAiChat={() => {}}
+          onOpenAbout={() => {}}
+        />
+      </ThemeProvider>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Go dark" }));
+    expect(screen.getByRole("button", { name: "Go light" })).not.toBeNull();
+    expect(document.body.dataset.theme).toBe("dark");
+    expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe("dark");
   });
 
   it("fails when a component tries to read the theme outside its provider", () => {
