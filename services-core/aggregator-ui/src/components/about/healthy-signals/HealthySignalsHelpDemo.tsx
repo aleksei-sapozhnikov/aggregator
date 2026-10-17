@@ -9,6 +9,7 @@ import {
 } from "../shared/signal-flow/progress";
 import { clientChecks } from "../shared/demoData";
 import DemoHighlightFrame from "../shared/DemoHighlightFrame";
+import { getSignalHighlightBounds } from "../shared/signal-flow/signalHighlightBounds";
 
 const cycleDuration = 13000 + expandedListHoldMs;
 const ownChecks = clientChecks.map((signal, index) => ({
@@ -35,10 +36,14 @@ function HealthySignalHighlights({
         const target = targets[check.id as keyof typeof targets];
         const targetX = target.x;
         const targetY = target.y;
-        const rectX = startX + (targetX - startX) * presentationProgress;
-        const rectY = startY + (targetY - startY) * presentationProgress;
-        const rectWidth = 24 + (target.width - 24) * presentationProgress;
-        const rectHeight = 22 + (target.height - 22) * presentationProgress;
+        const highlight = getSignalHighlightBounds(target);
+        const rectX =
+          startX + (highlight.x - startX) * presentationProgress;
+        const rectY = startY + (highlight.y - startY) * presentationProgress;
+        const rectWidth =
+          24 + (highlight.width - 24) * presentationProgress;
+        const rectHeight =
+          22 + (highlight.height - 22) * presentationProgress;
         const checkX =
           320 +
           check.offset +

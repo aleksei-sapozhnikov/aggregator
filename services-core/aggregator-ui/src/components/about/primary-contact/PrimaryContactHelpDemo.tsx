@@ -583,7 +583,8 @@ function ContactTransfer({
 export default function PrimaryContactHelpDemo() {
   const pageRef = useRef<HTMLDivElement>(null);
   const targets = useHelpTargets(pageRef, contactSelectors, contactFallback);
-  const [availableWidth, setAvailableWidth] = useState(640);
+  // Match the compact canvas at first paint; resize measurements take over.
+  const [availableWidth, setAvailableWidth] = useState(540);
   const { elapsed, reduceMotion } = useHelpAnimationClock(
     primaryContactHelpDuration,
     5350,
@@ -595,7 +596,7 @@ export default function PrimaryContactHelpDemo() {
     <HelpAnimationCanvas
       className="primary-contact-help-demo"
       ariaLabel="Find the primary contact in Aggregator to get a failing service repaired"
-      maxWidth={660}
+      maxWidth={560}
     >
       <HelpAnimationProgress
         progress={reduceMotion ? 0 : elapsed / primaryContactHelpDuration}

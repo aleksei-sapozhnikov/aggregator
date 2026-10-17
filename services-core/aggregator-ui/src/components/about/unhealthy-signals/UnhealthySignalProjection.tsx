@@ -6,6 +6,7 @@ import {
 } from "../shared/signal-flow/progress";
 import DemoHighlightFrame from "../shared/DemoHighlightFrame";
 import { unhealthyTiming as timing } from "./UnhealthySignalTiming";
+import { getSignalHighlightBounds } from "../shared/signal-flow/signalHighlightBounds";
 
 type MovingDependency = {
   id: "dep1" | "nested1";
@@ -83,6 +84,7 @@ export default function UnhealthySignalProjection({
         timing.selectionFadeEnd,
       ));
   const symbolOpacity = 1 - smooth(progressBetween(progress, 0.38, 0.88));
+  const itemHighlight = getSignalHighlightBounds(targets.item, 4);
 
   return (
     <>
@@ -98,10 +100,10 @@ export default function UnhealthySignalProjection({
       >
         <DemoHighlightFrame
           data-unhealthy-frame="item"
-          x={mix(248, targets.item.x + 4, progress)}
-          y={mix(24, targets.item.y + 4, progress)}
-          width={mix(144, Math.max(0, targets.item.width - 8), progress)}
-          height={mix(52, Math.max(0, targets.item.height - 8), progress)}
+          x={mix(248, itemHighlight.x, progress)}
+          y={mix(24, itemHighlight.y, progress)}
+          width={mix(144, itemHighlight.width, progress)}
+          height={mix(52, itemHighlight.height, progress)}
           color="var(--status-down)"
           opacity={selectionOpacity}
         />
@@ -166,6 +168,7 @@ export default function UnhealthySignalProjection({
         const center = x + width / 2;
         const symbolX = mix(center, destX + 26, progress);
         const symbolY = mix(y + 48, destY + 49, progress);
+        const highlight = getSignalHighlightBounds(target, 4);
 
         return (
           <g
@@ -180,10 +183,10 @@ export default function UnhealthySignalProjection({
           >
             <DemoHighlightFrame
               data-unhealthy-frame={dependency.id}
-              x={mix(x + 4, destX + 4, progress)}
-              y={mix(y + 4, destY + 4, progress)}
-              width={mix(width - 8, Math.max(0, target.width - 8), progress)}
-              height={mix(height - 8, Math.max(0, target.height - 8), progress)}
+              x={mix(x + 4, highlight.x, progress)}
+              y={mix(y + 4, highlight.y, progress)}
+              width={mix(width - 8, highlight.width, progress)}
+              height={mix(height - 8, highlight.height, progress)}
               color="var(--status-down)"
               opacity={selectionOpacity}
             />
