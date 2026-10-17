@@ -26,7 +26,7 @@ def test_product_health_tool_reports_api_unavailable(monkeypatch, caplog) -> Non
     assert "Traceback" in caplog.text
 
 
-def test_list_unhealthy_items_tool_schema_requires_presentation_metadata() -> None:
+def test_list_unhealthy_items_tool_schema_has_no_presentation_metadata() -> None:
     tools = {
         tool.definition.name: tool.definition
         for tool in RestProductHealthTools("http://product-health").tools()
@@ -34,46 +34,17 @@ def test_list_unhealthy_items_tool_schema_requires_presentation_metadata() -> No
 
     schema = tools["list_unhealthy_items"].input_schema
 
-    assert schema["required"] == ["presentation"]
-    presentation = schema["properties"]["presentation"]
-    assert presentation["type"] == "object"
-    assert presentation["required"] == [
-        "header",
-        "signals_label",
-        "dependencies_label",
-        "healthy_message",
-    ]
+    assert schema["properties"] == {}
+    assert schema["additionalProperties"] is False
 
 
-def test_list_unhealthy_items_presentation_schema_requires_response_language() -> None:
+def test_get_product_health_tool_schema_keeps_query_argument() -> None:
     tools = {
         tool.definition.name: tool.definition
         for tool in RestProductHealthTools("http://product-health").tools()
     }
 
-    presentation = tools["list_unhealthy_items"].input_schema["properties"][
-        "presentation"
-    ]
+    schema = tools["get_product_health"].input_schema
 
-    assert "Every string MUST use the RESPONSE LANGUAGE" in presentation["description"]
-    assert (
-        "same language as the user's original question"
-        not in presentation["description"]
-    )
-
-    properties = presentation["properties"]
-    for name in (
-        "header",
-        "signals_label",
-        "dependencies_label",
-        "healthy_message",
-    ):
-        assert properties[name]["type"] == "string"
-        assert properties[name]["description"]
-        assert "RESPONSE LANGUAGE" in properties[name]["description"]
-        assert (
-            "same language as the user's original question"
-            not in properties[name]["description"]
-        )
-
-    assert "Do not repeat or paraphrase" in properties["header"]["description"]
+    assert schema["required"] == ["query"]
+    assert schema["properties"]["query"]["type"] == "string"
