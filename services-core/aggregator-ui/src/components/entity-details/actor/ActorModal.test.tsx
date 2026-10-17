@@ -100,10 +100,11 @@ describe("ActorModal contact list", () => {
   it("uses the shared modal paragraph style for actor descriptions", () => {
     const description =
       "Owns dispatch orchestration.\nLeads operational response.";
-    const { container } = renderActorModal({
+    renderActorModal({
       actor: { ...actor, description },
     });
-    const block = container.querySelector(".actor-modal-description");
+    const dialog = screen.getByRole("dialog", { name: "Actor details" });
+    const block = dialog.querySelector(".actor-modal-description");
     expect(block?.classList.contains("modal-text-flow")).toBe(true);
     expect(
       Array.from(block?.querySelectorAll("p") || [], (p) => p.textContent),
