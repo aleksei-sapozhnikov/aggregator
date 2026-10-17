@@ -37,30 +37,40 @@ describe("Primary contact contextual help", () => {
   it("has matching user, owner and service assets with separate wooden captions", () => {
     const { container } = render(<PrimaryContactHelpDemo />);
     const caller = container.querySelector("[data-primary-contact-observer]");
-    const technician = container.querySelector("[data-primary-contact-technician]");
+    const technician = container.querySelector(
+      "[data-primary-contact-technician]",
+    );
     const service = container.querySelector("[data-primary-contact-service]");
     expect(caller?.querySelector('[data-demo-character="user"]')).not.toBeNull();
-    expect(technician?.querySelector('[data-demo-character="owner"]')).not.toBeNull();
+    expect(
+      technician?.querySelector('[data-demo-character="owner"]'),
+    ).not.toBeNull();
     expect(service?.querySelector("[data-demo-service-machine]")).not.toBeNull();
     expect(caller?.querySelector('[data-scene-label="User"]')).not.toBeNull();
-    expect(technician?.querySelector('[data-scene-label="Owner"]')).not.toBeNull();
-    expect(container.querySelector('[data-scene-label="Service"]')).not.toBeNull();
+    expect(
+      technician?.querySelector('[data-scene-label="Owner"]'),
+    ).not.toBeNull();
+    expect(
+      container.querySelector('[data-scene-label="Service"]'),
+    ).not.toBeNull();
     expect(
       caller?.querySelector('[data-demo-character="user"] [data-scene-label]'),
     ).toBeNull();
     expect(
-      technician?.querySelector('[data-demo-character="owner"] [data-scene-label]'),
+      technician?.querySelector(
+        '[data-demo-character="owner"] [data-scene-label]',
+      ),
     ).toBeNull();
   });
 
   it("switches the shared service lamp to red during the failure and back on recovery", () => {
+    vi.useFakeTimers();
     const { container } = render(<PrimaryContactHelpDemo />);
     const service = container.querySelector("[data-primary-contact-service]");
     const red = service?.querySelector('rect[fill="#eb4d46"]');
     const green = service?.querySelector('rect[fill="#70c87c"]');
     expect(red?.getAttribute("opacity")).toBe("0");
     expect(green?.getAttribute("opacity")).toBe("1");
-    vi.useFakeTimers();
     act(() => vi.advanceTimersByTime(2000));
     expect(Number(red?.getAttribute("opacity"))).toBe(1);
     expect(Number(green?.getAttribute("opacity"))).toBe(0);

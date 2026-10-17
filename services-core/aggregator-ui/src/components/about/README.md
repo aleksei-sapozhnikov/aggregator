@@ -31,12 +31,20 @@ Item use production React components.
 
 Grafana owns the chart, time range, signal filter, and hover popups inside an
 iframe. Therefore `timeline/GrafanaTimelineIllustration.tsx` is a static
-demonstration, while its surrounding `ItemTimeline` wrapper and Item details
-are the production components.
+demonstration, while Item details on the simulated destination page use production
+components. The chart itself is displayed without an extra Timeline
+disclosure header.
 
 Characters, machines, phones, dependency diagrams, moving checkmarks,
 selection frames, and simulated cursors are explanatory SVG/CSS illustrations
 and do not replace the application UI.
+
+Reusable character assets live in `about/shared/characters/`: User calls,
+Owner carries the repair wrench, and Support wears a call-center headset.
+The same role uses the same SVG in Actors and Primary contact. The service
+machine has one SVG with an `unhealthy` parameter that switches its lamp
+between green and red. Wooden role/service captions remain separate
+`DemoWoodLabel` elements in each scene so assets do not own their labels.
 
 Use the UI service's `npm run typecheck`, `npm test`, and `npm run build`
 for validation, plus browser checks at desktop and mobile widths.

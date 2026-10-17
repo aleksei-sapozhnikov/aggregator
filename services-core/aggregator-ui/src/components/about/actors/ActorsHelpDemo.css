@@ -48,29 +48,9 @@
   }
 }
 
-@keyframes actors-help-laptop-tilt {
-  to {
-    transform: rotate(-9deg) translateY(-3px);
-  }
-}
 
-@keyframes actors-help-type {
-  to {
-    transform: translateY(-12px);
-  }
-}
 
-@keyframes actors-help-tablet-tilt {
-  to {
-    transform: rotate(15deg) translateY(-4px);
-  }
-}
 
-@keyframes actors-help-check {
-  to {
-    transform: translate(-9px, 13px) rotate(20deg);
-  }
-}
 
 @keyframes actors-help-wrench-turn {
   to {

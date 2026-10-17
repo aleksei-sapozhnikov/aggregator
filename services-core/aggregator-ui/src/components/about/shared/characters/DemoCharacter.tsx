@@ -114,8 +114,16 @@ export default function DemoCharacter({
             strokeWidth="14"
             strokeLinecap="round"
           />
-          <rect x="71" y="37" width="13" height="27" rx="4"
-            fill="#35556a" stroke="#253a4a" strokeWidth="2" />
+          <rect
+            x="71"
+            y="37"
+            width="13"
+            height="27"
+            rx="4"
+            fill="#35556a"
+            stroke="#253a4a"
+            strokeWidth="2"
+          />
           <rect x="74" y="41" width="7" height="17" rx="2" fill="#dcebf3" />
           <circle cx="38" cy="120" r="7" fill="#f6c29b" />
           <circle cx="78" cy="54" r="5" fill="#f6c29b" />
@@ -123,12 +131,22 @@ export default function DemoCharacter({
       )}
       {role === "support" && (
         <>
-          <path d="M22 85 16 111 38 119M79 85 89 111 72 119"
-            fill="none" stroke={color} strokeWidth="14" strokeLinecap="round" />
+          <path
+            d="M22 85 16 111 38 119M79 85 89 111 72 119"
+            fill="none"
+            stroke={color}
+            strokeWidth="14"
+            strokeLinecap="round"
+          />
           <circle cx="38" cy="119" r="7" fill="#f6c29b" />
           <circle cx="72" cy="119" r="7" fill="#f6c29b" />
-          <path d="M80 56Q83 68 69 65L63 62" fill="none"
-            stroke="#273b4c" strokeWidth="3" strokeLinecap="round" />
+          <path
+            d="M80 56Q83 68 69 65L63 62"
+            fill="none"
+            stroke="#273b4c"
+            strokeWidth="3"
+            strokeLinecap="round"
+          />
           <circle cx="62" cy="62" r="3.5" fill="#273b4c" />
         </>
       )}
