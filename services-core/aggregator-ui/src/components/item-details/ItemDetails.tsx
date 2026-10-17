@@ -24,7 +24,6 @@ export type ItemDetailsProps = {
   contentRef: RefObject<HTMLElement | null>;
   headerRef: RefObject<HTMLElement | null>;
   iconSpriteHref: string;
-  theme: "dark" | "light";
   selectedItem: CatalogItem | undefined;
   selectedFailingSignals: ItemSignal[];
   failingDependencies: FailingDependencyEntry[];
@@ -88,7 +87,6 @@ export default function ItemDetails({
   contentRef,
   headerRef,
   iconSpriteHref,
-  theme,
   selectedItem,
   selectedFailingSignals,
   failingDependencies,
@@ -264,7 +262,6 @@ export default function ItemDetails({
 
           <TimelineSection
             itemId={selectedItem.id}
-            theme={theme}
             expanded={isTimelineOpen}
             onToggle={onToggleTimeline}
             onNavigateToItem={onNavigateToTimelineItem}

@@ -19,11 +19,7 @@ import useResponsiveLayout from "./hooks/useResponsiveLayout";
 import useTitlePlacement from "./hooks/useTitlePlacement";
 import useCatalogNavigation from "../components/catalog-tree/useCatalogNavigation";
 import useCatalogSelectionSync from "../components/catalog-tree/useCatalogSelectionSync";
-import {
-  getInitialTheme,
-  resolveBasePath,
-  resolveCatalogTitle,
-} from "../services/aggregatorApi";
+import { resolveBasePath, resolveCatalogTitle } from "../services/aggregatorApi";
 import type { CatalogContact } from "../shared/types";
 
 const TEMP_AI_CHAT_STORAGE_KEY = "aggregator-ui-ai-chat-enabled";
@@ -51,7 +47,6 @@ const isTemporaryAiChatEnabled = (): boolean =>
 export default function App() {
   const catalogTitle = resolveCatalogTitle();
   const isAiChatFeatureEnabled = useMemo(isTemporaryAiChatEnabled, []);
-  const [theme, setTheme] = useState(getInitialTheme);
   const {
     catalog,
     error,
@@ -86,11 +81,6 @@ export default function App() {
 
   const basePath = useMemo(resolveBasePath, []);
   const effectiveIsAiChatOpen = isAiChatFeatureEnabled && isAiChatOpen;
-
-  useEffect(() => {
-    document.body.dataset.theme = theme;
-    localStorage.setItem("aggregator-ui-theme", theme);
-  }, [theme]);
 
   const catalogNavigation = useCatalogNavigation({
     items: catalog.items,
@@ -276,12 +266,8 @@ export default function App() {
         onToggleCatalog={handleToggleSidebar}
         shouldOffsetContentHeader={shouldOffsetContentHeader}
         isTitlePrimaryBelowControls={isTitlePrimaryBelowControls}
-        theme={theme}
         isAiChatOpen={effectiveIsAiChatOpen}
         onToggleAiChat={() => setIsAiChatOpen((prev) => !prev)}
-        onToggleTheme={() =>
-          setTheme((prev) => (prev === "dark" ? "light" : "dark"))
-        }
         onOpenAbout={() => setIsAboutOpen(true)}
         selectedItem={selectedItem}
         selectedStatus={selectedStatus}
@@ -301,7 +287,6 @@ export default function App() {
           contentRef={contentRef}
           headerRef={headerRef}
           iconSpriteHref={iconSpriteHref}
-          theme={theme}
           selectedItem={selectedItem}
           selectedFailingSignals={selectedFailingSignals}
           failingDependencies={failingDependencies}
