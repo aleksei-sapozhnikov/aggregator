@@ -1,0 +1,5 @@
+/* Common SVG rendering styles only; character gestures live per role. */
+.actors-help-person {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
