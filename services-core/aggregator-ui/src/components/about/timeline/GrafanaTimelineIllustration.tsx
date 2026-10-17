@@ -78,6 +78,9 @@ const isFilterMenuOpen = (time: number): boolean =>
     ({ opensAt, selectedAt }) => time >= opensAt && time < selectedAt,
   );
 
+const lerp = (start: number, end: number, fraction: number) =>
+  start + (end - start) * Math.max(0, Math.min(1, fraction));
+
 const selectorY = 65;
 
 /**
@@ -104,9 +107,6 @@ export function getFilterCursorTop(time: number): number {
   }
   return selectorY;
 }
-
-const lerp = (start: number, end: number, fraction: number) =>
-  start + (end - start) * Math.max(0, Math.min(1, fraction));
 
 // Start and finish each walkthrough in the empty chart header area.
 export function getTimelineCursorTravel(scenario: Scenario, time: number) {
