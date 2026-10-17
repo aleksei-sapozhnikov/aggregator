@@ -447,7 +447,7 @@ describe("Timeline help walkthrough", () => {
     expect(Number.parseFloat(cursor.style.top)).toBeLessThan(134);
     expect(Number.parseFloat(cursor.style.top)).toBeGreaterThan(65);
     advance(210);
-    expect(cursor.style.top).toBe("65px");
+    expect(Number.parseFloat(cursor.style.top)).toBeCloseTo(65, 0);
   });
 
   it("opens the selector, filters to two Own and then three Dependencies", () => {

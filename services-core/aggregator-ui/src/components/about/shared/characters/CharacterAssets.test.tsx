@@ -69,14 +69,14 @@ describe("Independent character SVG assets", () => {
     const owner = container.querySelector('[data-demo-character="owner"]');
     expect(owner?.querySelectorAll("use")).toHaveLength(2);
     expect(owner?.querySelector("use")?.getAttribute("href")).toContain(
-      "OwnerCharacter.svg#owner-base",
+      `${ownerAssetUrl}#owner-base`,
     );
     expect(owner?.querySelector(".actors-help-wrench")?.getAttribute("transform")).toBe(
       "rotate(20 78 88)",
     );
     expect(
       owner?.querySelector(".actors-help-wrench use")?.getAttribute("href"),
-    ).toContain("OwnerCharacter.svg#owner-wrench");
+    ).toContain(`${ownerAssetUrl}#owner-wrench`);
   });
 
   it("keeps User and Support gestures in their respective components", () => {
@@ -92,15 +92,15 @@ describe("Independent character SVG assets", () => {
     expect(support?.querySelectorAll("use")).toHaveLength(3);
     expect(
       user?.querySelector('[data-demo-gesture="phone"] use')?.getAttribute("href"),
-    ).toContain("UserCharacter.svg#user-phone");
+    ).toContain(`${userAssetUrl}#user-phone`);
     expect(
       support
         ?.querySelector('[data-demo-gesture="headset"] use')
         ?.getAttribute("href"),
-    ).toContain("SupportCharacter.svg#support-headset");
+    ).toContain(`${supportAssetUrl}#support-headset`);
     expect(
       support?.querySelector(".demo-character-support-hand use")?.getAttribute("href"),
-    ).toContain("SupportCharacter.svg#support-hand");
+    ).toContain(`${supportAssetUrl}#support-hand`);
     expect(support?.querySelector(".actors-help-wrench")).toBeNull();
   });
   it("shows User concern and changes from phone to resting arm by composition", () => {
@@ -130,10 +130,10 @@ describe("Independent character SVG assets", () => {
     expect(idle?.getAttribute("opacity")).toBe("1");
     expect(
       unhappy?.querySelector("use")?.getAttribute("href"),
-    ).toContain("UserCharacter.svg#user-unhappy");
+    ).toContain(`${userAssetUrl}#user-unhappy`);
     expect(
       idle?.querySelector("use")?.getAttribute("href"),
-    ).toContain("UserCharacter.svg#user-idle-arm");
+    ).toContain(`${userAssetUrl}#user-idle-arm`);
   });
 
   it("provides a standalone service illustration with four independent layers", () => {
@@ -174,12 +174,12 @@ describe("Independent character SVG assets", () => {
     expect(machine?.querySelectorAll("use")).toHaveLength(4);
     expect(
       machine?.querySelector(".actors-help-gear use")?.getAttribute("href"),
-    ).toContain("ServiceMachine.svg#service-gear");
+    ).toContain(`${serviceAssetUrl}#service-gear`);
     expect(green?.querySelector("use")?.getAttribute("href")).toContain(
-      "ServiceMachine.svg#service-up",
+      `${serviceAssetUrl}#service-up`,
     );
     expect(red?.querySelector("use")?.getAttribute("href")).toContain(
-      "ServiceMachine.svg#service-down",
+      `${serviceAssetUrl}#service-down`,
     );
     expect(green?.getAttribute("opacity")).toBe("1");
     expect(red?.getAttribute("opacity")).toBe("0");

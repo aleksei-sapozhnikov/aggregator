@@ -19,6 +19,8 @@ import PrimaryContactHelpDemo, {
 } from "./PrimaryContactHelpDemo";
 import InfoHelp from "../../shared/help/InfoHelp";
 import ContextualHelpProvider from "../core/ContextualHelpProvider";
+import { primaryContactHelp } from "./PrimaryContactHelpContent";
+import serviceAssetUrl from "../shared/characters/service/ServiceMachine.svg?no-inline";
 
 afterEach(() => {
   cleanup();
@@ -76,10 +78,10 @@ describe("Primary contact contextual help", () => {
     const red = service?.querySelector('[data-service-lamp="down"]');
     const green = service?.querySelector('[data-service-lamp="up"]');
     expect(red?.querySelector("use")?.getAttribute("href")).toContain(
-      "ServiceMachine.svg#service-down",
+      `${serviceAssetUrl}#service-down`,
     );
     expect(green?.querySelector("use")?.getAttribute("href")).toContain(
-      "ServiceMachine.svg#service-up",
+      `${serviceAssetUrl}#service-up`,
     );
     expect(red?.getAttribute("opacity")).toBe("0");
     expect(green?.getAttribute("opacity")).toBe("1");
@@ -198,9 +200,9 @@ describe("Primary contact contextual help", () => {
     });
     const text = dialog.querySelector(".info-help-description");
     const figure = dialog.querySelector("figure.primary-contact-help-demo");
-    expect(text?.textContent).toContain(
-      "The primary contact is the main contact point",
-    );
+    expect(
+      text?.querySelector("p:first-child strong")?.textContent,
+    ).toBe(primaryContactHelp.summary);
     expect(text?.nextElementSibling).toBe(figure);
     expect(figure?.classList.contains("help-animation-canvas")).toBe(true);
     expect(figure?.getAttribute("style")).toContain("560px");

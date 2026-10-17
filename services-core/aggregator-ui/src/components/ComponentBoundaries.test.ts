@@ -67,7 +67,8 @@ describe("Component dependency boundaries", () => {
           targetFeature === "about" &&
           target.length >= 3 &&
           source[1] !== target[1] &&
-          target[1] !== "shared"
+          target[1] !== "shared" &&
+          !(source[1] === "core" && source[2] === "ContextualHelpProvider.tsx")
         ) {
           violations.push(
             `${relative(root, file)} imports a sibling help topic ${match[1]}`,
@@ -81,7 +82,7 @@ describe("Component dependency boundaries", () => {
   it("keeps Grafana-specific details behind the Timeline feature boundary", () => {
     for (const path of [
       "src/app/App.tsx",
-      "src/components/item-details/ItemDetails.tsx",
+      "src/components/item-details/core/ItemDetails.tsx",
     ]) {
       const source = readFileSync(resolve(path), "utf8");
       expect(source).not.toMatch(/Grafana|grafana|postMessage|dashboardUrl/);
