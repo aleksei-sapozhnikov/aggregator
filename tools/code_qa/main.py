@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import argparse
 import os
-import re
 import subprocess
 import sys
 from collections.abc import Callable
@@ -238,15 +237,6 @@ def run_secrets_command(
     return result.returncode
 
 
-ANSI_ESCAPE_SEQUENCE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
-
-
-def readable_test_line(line: str) -> str:
-    """Strip terminal styling and render common test status glyphs as text."""
-    clean = ANSI_ESCAPE_SEQUENCE.sub("", line)
-    return clean.replace("✓", "PASS").replace("✗", "FAIL").replace("❯", ">")
-
-
 def run_test_command(
     *,
     modules: list[str] | None = None,
@@ -277,7 +267,7 @@ def run_test_command(
             ) as process:
                 assert process.stdout is not None
                 for line in process.stdout:
-                    emit(readable_test_line(line.rstrip("\r\n")))
+                    emit(line.rstrip("\r\n"))
                 result_code = process.wait()
         except OSError as error:
             emit(f"Unable to start module tests: {error}")

@@ -15,7 +15,7 @@ The QA runners are invoked from the repository root through the Makefile.
 ## Test modules
 
 - **aggregator:** `mvn -B test` (uses an installed JDK 25 or downloads Eclipse Temurin 25 to `.temp/qa-runtime/jdk`; uses Maven on PATH or downloads and verifies Maven 3.9.11 in `.temp/qa-runtime/maven`).
-- **aggregator-ui:** `npm test -- --reporter=verbose --no-color` (uses the package lock and runs `npm ci` if Vitest is missing). The runner disables ANSI colors and formats test status markers as readable text.
+- **aggregator-ui:** `npm test -- --reporter=verbose --no-color` (uses the package lock and runs `npm ci` if Vitest is missing). The runner disables ANSI colors and preserves UTF-8 test output unchanged.
 - **catalog:** `go test -v ./...` (requires Go 1.23 or newer).
 - **ai-agent:** `python -m pytest -v tests` (uses existing Python dependencies or bootstraps the QA virtualenv).
 - **code-qa:** `python -m unittest discover -s tools/code_qa -p "test_*.py" -v`.

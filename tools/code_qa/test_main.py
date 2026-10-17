@@ -111,11 +111,12 @@ class OrchestratorFlowTests(unittest.TestCase):
         self.assertIn("=== QA: PASSED ===", output.getvalue())
         self.assertEqual(popen.call_args.args[0][-2:], ["--module", "catalog"])
 
-    def test_test_output_is_plain_text_even_with_ansi_codes(self) -> None:
+    def test_test_output_preserves_unicode_status_symbols(self) -> None:
         process = MagicMock()
         process.stdout = iter([
-            "\x1b[32m✓\x1b[39m sample.test.tsx > passes\n",
-            "\x1b[31m✗\x1b[39m sample.test.tsx > fails\n",
+            "✓ sample.test.tsx > passes\n",
+            "✗ sample.test.tsx > fails\n",
+            "❯ sample.test.tsx > nested case\n",
         ])
         process.wait.return_value = 1
         process.__enter__.return_value = process
@@ -125,10 +126,10 @@ class OrchestratorFlowTests(unittest.TestCase):
             redirect_stdout(output),
         ):
             self.assertEqual(main.run_test_command(modules=["aggregator-ui"]), 1)
-        self.assertIn("PASS sample.test.tsx > passes", output.getvalue())
-        self.assertIn("FAIL sample.test.tsx > fails", output.getvalue())
-        self.assertNotIn("\x1b[", output.getvalue())
-        self.assertNotIn("✓", output.getvalue())
+        self.assertIn("✓ sample.test.tsx > passes", output.getvalue())
+        self.assertIn("✗ sample.test.tsx > fails", output.getvalue())
+        self.assertIn("❯ sample.test.tsx > nested case", output.getvalue())
+        self.assertIn("=== QA: FAILED ===", output.getvalue())
         self.assertEqual(
             popen.call_args.kwargs["env"]["PYTHONIOENCODING"], "utf-8"
         )

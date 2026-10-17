@@ -151,14 +151,23 @@ class TestRunnerTests(unittest.TestCase):
                 calls.append(module.name)
                 return 1 if module.name == "catalog" else 0
 
+            def prepared_module(root_dir: Path, name: str) -> run_tests.TestModule:
+                return run_tests.TestModule(name, root_dir, ["mock-test-command"])
+
             output = StringIO()
             with (
+                patch.object(
+                    run_tests, "build_module", side_effect=prepared_module
+                ) as prepare,
                 patch.object(run_tests, "execute_module", side_effect=execute),
                 redirect_stdout(output),
             ):
                 rc = run_tests.run_modules(names, root)
 
             self.assertEqual(rc, 1)
+            self.assertEqual(
+                [call.args[1] for call in prepare.call_args_list], names
+            )
             self.assertEqual(calls, names)
             self.assertIn("Testing aggregator.. OK", output.getvalue())
             self.assertIn("Testing catalog.. FAILED", output.getvalue())
