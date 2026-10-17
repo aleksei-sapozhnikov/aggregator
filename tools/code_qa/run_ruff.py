@@ -46,9 +46,13 @@ def main() -> int:
     if not files:
         return 0
     if args.check_only:
-        return subprocess.run(
+        lint_rc = subprocess.run(
             [*cmd, "check", "--no-fix", *files], cwd=root, check=False
         ).returncode
+        format_rc = subprocess.run(
+            [*cmd, "format", "--check", *files], cwd=root, check=False
+        ).returncode
+        return 0 if lint_rc == 0 and format_rc == 0 else 1
     rc = subprocess.run(
         [*cmd, "check", "--fix", *files], cwd=root, check=False
     ).returncode
