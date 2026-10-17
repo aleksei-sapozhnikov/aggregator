@@ -5,28 +5,12 @@ import {
   progressBetween,
 } from "../shared/signal-flow/progress";
 import type { FlowNodeId } from "../shared/signal-flow/SignalFlowGraph";
+import { unhealthyTiming as timing } from "./UnhealthySignalTiming";
 import UnhealthySignalProjection, {
   unhealthyCycleDuration,
   unhealthyResetAt,
   getUnhealthyDiagramOpacity,
 } from "./UnhealthySignalProjection";
-
-const failureStart = 1500;
-const redPropagationSpeed = 2.5;
-const firstLinkStart = 2400;
-const firstLinkEnd = firstLinkStart + 1800 / redPropagationSpeed;
-const dependencyAffectedAt = 4400;
-const secondLinkStart = 4900;
-const secondLinkEnd = secondLinkStart + 2000 / redPropagationSpeed;
-const itemAffectedAt = 7100;
-
-const leafRecoveredAt = 20200;
-const firstRecoveryStart = 20800;
-const firstRecoveryEnd = 22300;
-const dependencyRecoveredAt = 22500;
-const secondRecoveryStart = 23100;
-const secondRecoveryEnd = 24600;
-const itemRecoveredAt = 24800;
 
 export default function UnhealthySignalsHelpDemo() {
   const [elapsed, setElapsed] = useState(0);
@@ -42,34 +26,34 @@ export default function UnhealthySignalsHelpDemo() {
   }, []);
 
   const sceneElapsed =
-    elapsed - Math.min(expandedListHoldMs, Math.max(0, elapsed - 13800));
+    elapsed - Math.min(expandedListHoldMs, Math.max(0, elapsed - timing.pageHoldAt));
   const time = sceneElapsed >= unhealthyResetAt ? 0 : sceneElapsed;
-  const failedLeaf = time >= failureStart && time < leafRecoveredAt;
+  const failedLeaf = time >= timing.failureStart && time < timing.leafRecoveredAt;
   const affectedDependency =
-    time >= dependencyAffectedAt && time < dependencyRecoveredAt;
-  const affectedItem = time >= itemAffectedAt && time < itemRecoveredAt;
+    time >= timing.dependencyAffectedAt && time < timing.dependencyRecoveredAt;
+  const affectedItem = time >= timing.itemAffectedAt && time < timing.itemRecoveredAt;
   const affectedNodes = new Set<FlowNodeId>();
   if (failedLeaf) affectedNodes.add("nested1");
   if (affectedDependency) affectedNodes.add("dep1");
   if (affectedItem) affectedNodes.add("item");
   const redProgress: Record<string, number> = {
     "nested1-dep1":
-      time >= failureStart
-        ? progressBetween(time, firstLinkStart, firstLinkEnd)
+      time >= timing.failureStart
+        ? progressBetween(time, timing.firstLinkStart, timing.firstLinkEnd)
         : 0,
     "dep1-item":
-      time >= dependencyAffectedAt
-        ? progressBetween(time, secondLinkStart, secondLinkEnd)
+      time >= timing.dependencyAffectedAt
+        ? progressBetween(time, timing.secondLinkStart, timing.secondLinkEnd)
         : 0,
   };
   const greenProgress: Record<string, number> = {
     "nested1-dep1":
-      time >= firstRecoveryStart
-        ? progressBetween(time, firstRecoveryStart, firstRecoveryEnd)
+      time >= timing.firstRecoveryStart
+        ? progressBetween(time, timing.firstRecoveryStart, timing.firstRecoveryEnd)
         : 0,
     "dep1-item":
-      time >= secondRecoveryStart
-        ? progressBetween(time, secondRecoveryStart, secondRecoveryEnd)
+      time >= timing.secondRecoveryStart
+        ? progressBetween(time, timing.secondRecoveryStart, timing.secondRecoveryEnd)
         : 0,
   };
   const graphOpacity = getUnhealthyDiagramOpacity(sceneElapsed);

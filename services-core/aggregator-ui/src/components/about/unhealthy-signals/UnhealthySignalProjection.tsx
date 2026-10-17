@@ -1,6 +1,8 @@
 import type { SceneRect } from "../shared/HelpScene";
 import { expandedListHoldMs } from "../shared/signal-flow/progress";
 import DemoHighlightFrame from "../shared/DemoHighlightFrame";
+import { unhealthyTiming as timing } from "./UnhealthySignalTiming";
+import { progressBetween, smooth } from "../shared/signal-flow/progress";
 
 type MovingDependency = {
   id: "dep1" | "nested1";
@@ -22,21 +24,24 @@ const dependencies: MovingDependency[] = [
 ];
 
 const clamp = (value: number): number => Math.max(0, Math.min(1, value));
-const between = (time: number, start: number, end: number): number =>
-  clamp((time - start) / (end - start));
-const ease = (value: number): number => value * value * (3 - 2 * value);
 const mix = (start: number, end: number, progress: number): number =>
   start + (end - start) * progress;
 
 // Keep the existing page hold and a half-second green pause after recovery.
 export { expandedListHoldMs } from "../shared/signal-flow/progress";
-export const unhealthyResetAt = 24800;
+export const unhealthyResetAt = timing.resetAt;
 export const unhealthyCycleDuration =
   unhealthyResetAt + 500 + expandedListHoldMs;
 
 // Graph and page fade in opposite directions over the entire transformation.
 export const getUnhealthyDiagramOpacity = (elapsed: number): number =>
-  clamp(1 - between(elapsed, 9600, 12800) + between(elapsed, 15800, 18600));
+  clamp(
+    1 -
+      smooth(
+        progressBetween(elapsed, timing.presentationStart, timing.presentationEnd),
+      ) +
+      smooth(progressBetween(elapsed, timing.reverseStart, timing.reverseEnd)),
+  );
 
 export default function UnhealthySignalProjection({
   elapsed,
@@ -52,13 +57,19 @@ export default function UnhealthySignalProjection({
   targets: Record<"item" | "dep1" | "nested1", SceneRect>;
 }) {
   const progress =
-    ease(between(elapsed, 9600, 12800)) *
-    (1 - ease(between(elapsed, 15600, 18600)));
-  // Preserve the selection while the expanded list is held on screen.
+    smooth(
+      progressBetween(
+        elapsed,
+        timing.presentationStart,
+        timing.presentationEnd,
+      ),
+    ) *
+    (1 - smooth(progressBetween(elapsed, timing.reverseStart, timing.reverseEnd)));
+  // Keep highlighting visible during the expanded-list pause.
   const selectionOpacity =
-    between(elapsed, 8300, 9300) *
-    (1 - between(elapsed, 18900, 19600));
-  const symbolOpacity = 1 - between(progress, 0.38, 0.88);
+    progressBetween(elapsed, timing.selectionStart, timing.selectionFull) *
+    (1 - progressBetween(elapsed, timing.selectionFadeStart, timing.selectionFadeEnd));
+  const symbolOpacity = 1 - smooth(progressBetween(progress, 0.38, 0.88));
 
   return (
     <>
@@ -74,10 +85,10 @@ export default function UnhealthySignalProjection({
       >
         <DemoHighlightFrame
           data-unhealthy-frame="item"
-          x={mix(240, targets.item.x - 4, progress)}
-          y={mix(16, targets.item.y - 4, progress)}
-          width={mix(160, targets.item.width + 8, progress)}
-          height={mix(68, targets.item.height + 8, progress)}
+          x={mix(248, targets.item.x + 4, progress)}
+          y={mix(24, targets.item.y + 4, progress)}
+          width={mix(144, Math.max(0, targets.item.width - 8), progress)}
+          height={mix(52, Math.max(0, targets.item.height - 8), progress)}
           color="var(--status-down)"
           opacity={selectionOpacity}
         />
@@ -156,10 +167,10 @@ export default function UnhealthySignalProjection({
           >
             <DemoHighlightFrame
               data-unhealthy-frame={dependency.id}
-              x={mix(x - 4, destX + 4, progress)}
-              y={mix(y - 4, destY + 4, progress)}
-              width={mix(width + 8, Math.max(0, target.width - 8), progress)}
-              height={mix(height + 8, Math.max(0, target.height - 8), progress)}
+              x={mix(x + 4, destX + 4, progress)}
+              y={mix(y + 4, destY + 4, progress)}
+              width={mix(width - 8, Math.max(0, target.width - 8), progress)}
+              height={mix(height - 8, Math.max(0, target.height - 8), progress)}
               color="var(--status-down)"
               opacity={selectionOpacity}
             />
