@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 110 145"
+  width="110" height="145" stroke-linecap="round" stroke-linejoin="round">
+  <g id="owner-base">
+      <ellipse cx="50" cy="136" rx="33" ry="6" fill="#d2d9e1" opacity=".65" />
+      <path
+        d="M28 115 21 136h20l9-28 12 28h20l-9-37Z"
+        fill="#33495e"
+        stroke="#243442"
+        stroke-width="2.5"
+        stroke-linejoin="round"
+      />
+      <path
+        d="M17 88Q18 69 37 66H65Q83 69 87 88L82 114H19Z"
+        fill="#54b792"
+        stroke="#273b4c"
+        stroke-width="2.8"
+        stroke-linejoin="round"
+      />
+      <path
+        d="M35 69Q33 82 51 84Q67 82 65 69"
+        fill="none"
+        stroke="#273b4c"
+        stroke-width="2.5"
+      />
+      <rect x="44" y="58" width="13" height="13" rx="5" fill="#f5b98d" />
+      <ellipse
+        cx="51"
+        cy="42"
+        rx="26"
+        ry="29"
+        fill="#f6c29b"
+        stroke="#243442"
+        stroke-width="2.5"
+      />
+
+    <path d="M25 40Q17 6 50 8Q80 8 77 42Q65 27 53 22Q39 34 25 40Z"
+      fill="#9b593b" stroke="#243442" stroke-width="2" />
+      <circle cx="42" cy="43" r="2" fill="#263440" />
+      <circle cx="62" cy="43" r="2" fill="#263440" />
+      <path
+        d="M44 57Q51 62 59 55"
+        fill="none"
+        stroke="#263440"
+        stroke-width="2"
+        stroke-linecap="round"
+      />
+
+    <path d="M22 85 16 111 38 119M79 85 89 111 72 119"
+      fill="none" stroke="#54b792" stroke-width="14" stroke-linecap="round" />
+    <circle cx="72" cy="119" r="7" fill="#f6c29b" />
+  </g>
+  <g id="owner-wrench">
+    <path d="M78 88 56 124" stroke="#576b7e" stroke-width="9" stroke-linecap="round" />
+    <path d="M80 75q-13 3-10 16l10 5q13-2 14-15l-9 5-6-4Z"
+      fill="#b0c1cf" stroke="#33495e" stroke-width="2.5" />
+    <circle cx="54" cy="127" r="5" fill="#b0c1cf" stroke="#33495e" stroke-width="2" />
+  </g>
+</svg>

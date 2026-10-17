@@ -71,8 +71,14 @@ describe("Primary contact contextual help", () => {
     vi.useFakeTimers();
     const { container } = render(<PrimaryContactHelpDemo />);
     const service = container.querySelector("[data-primary-contact-service]");
-    const red = service?.querySelector('rect[fill="#eb4d46"]');
-    const green = service?.querySelector('rect[fill="#70c87c"]');
+    const red = service?.querySelector('[data-service-lamp="down"]');
+    const green = service?.querySelector('[data-service-lamp="up"]');
+    expect(red?.querySelector("use")?.getAttribute("href")).toContain(
+      "ServiceMachine.svg#service-down",
+    );
+    expect(green?.querySelector("use")?.getAttribute("href")).toContain(
+      "ServiceMachine.svg#service-up",
+    );
     expect(red?.getAttribute("opacity")).toBe("0");
     expect(green?.getAttribute("opacity")).toBe("1");
     act(() => vi.advanceTimersByTime(2000));

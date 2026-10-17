@@ -1,0 +1,19 @@
+.actors-help-demo.is-illustrating
+  .actors-help-person-owner
+  .actors-help-wrench {
+  transform-box: fill-box;
+  transform-origin: 50% 75%;
+  animation: actors-help-wrench-turn 0.85s ease-in-out infinite alternate;
+}
+
+@keyframes actors-help-wrench-turn {
+  to {
+    transform: rotate(38deg) translate(3px, -4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .actors-help-person-owner .actors-help-wrench {
+    animation: none !important;
+  }
+}
