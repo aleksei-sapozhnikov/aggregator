@@ -65,22 +65,18 @@ describe("Reusable Item presentation", () => {
     expect((info as HTMLButtonElement).disabled).toBe(true);
   });
 
-  it("labels connection loss without confusing it with backend UNKNOWN", () => {
-    render(
+  it("keeps backend UNKNOWN distinct from connection loss", () => {
+    const { container } = render(
       <ItemTitle
         item={{ id: "orders", title: "Orders API" }}
-        status="disconnected"
+        status="unknown"
         firstWord="Orders"
         interactive={false}
       />,
     );
-    expect(
-      screen.getByText("DISCONNECTED").classList.contains("status-disconnected"),
-    ).toBe(true);
-    expect(
-      screen.getByLabelText("Status: DISCONNECTED (cannot reach Aggregator)")
-        .classList.contains("status-disconnected"),
-    ).toBe(true);
+    expect(screen.getByText("UNKNOWN")).not.toBeNull();
+    expect(container.querySelector(".status-unknown")).not.toBeNull();
+    expect(screen.queryByText("DISCONNECTED")).toBeNull();
   });
 
   it("labels stale Item health without changing the reported state", () => {
