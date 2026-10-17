@@ -2,6 +2,8 @@
  * @vitest-environment jsdom
  */
 
+/** @file Tests selected Item sections, help controls, and shared UI composition. */
+
 import type { ReactElement } from "react";
 import ContextualHelpProvider from "../../about/core/ContextualHelpProvider";
 import ThemeProvider from "../../../shared/theme/ThemeProvider";

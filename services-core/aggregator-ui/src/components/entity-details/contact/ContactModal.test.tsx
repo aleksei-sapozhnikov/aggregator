@@ -2,6 +2,8 @@
  * @vitest-environment jsdom
  */
 
+/** @file Tests contact dialogs and their safe simulated channel interactions. */
+
 import type { ReactElement } from "react";
 import ContextualHelpProvider from "../../about/ContextualHelpProvider";
 

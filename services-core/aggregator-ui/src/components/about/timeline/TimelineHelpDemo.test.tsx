@@ -1,6 +1,8 @@
 /**
  * @vitest-environment jsdom
  */
+/** @file Tests Timeline help scene timing, filtering, and navigation demonstration. */
+
 import {
   act,
   cleanup,

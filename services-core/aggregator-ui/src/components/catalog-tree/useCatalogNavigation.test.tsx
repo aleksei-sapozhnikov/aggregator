@@ -1,4 +1,6 @@
 /** @vitest-environment jsdom */
+/** @file Tests catalog search, expansion, and scroll synchronization. */
+
 import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { findNodeByPath } from "../../shared/catalog/tree";

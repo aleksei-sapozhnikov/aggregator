@@ -1,4 +1,6 @@
 /** @vitest-environment jsdom */
+/** @file Tests mapping backend-provided Item health and catalog relationships to view data. */
+
 import { cleanup, renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { buildCatalogTree, findNodeByPath } from "../../../shared/catalog/tree";
