@@ -331,7 +331,15 @@ def run_qa_command(
         out_file=out_file,
         suppress_final_summary=True,
     )
-    # Security scanning must run even when formatting or unit tests fail.
+    if code_qa_rc != 0:
+        emit, _, close = build_emitter(out_file, append=True)
+        try:
+            emit("Skipping secrets scan: code checks or tests failed.")
+            emit_final_summary(emit, False)
+        finally:
+            close()
+        return 1
+
     secrets_rc = run_secrets_command(
         scan_root=scan_root,
         output_file=output_file,
@@ -344,10 +352,10 @@ def run_qa_command(
     )
     emit, _, close = build_emitter(out_file, append=True)
     try:
-        emit_final_summary(emit, code_qa_rc == 0 and secrets_rc == 0)
+        emit_final_summary(emit, secrets_rc == 0)
     finally:
         close()
-    return 0 if code_qa_rc == 0 and secrets_rc == 0 else 1
+    return 0 if secrets_rc == 0 else 1
 
 
 def build_parser() -> argparse.ArgumentParser:

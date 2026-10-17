@@ -128,7 +128,7 @@ help:
 	@echo "  code-lint        -> check code without modifying files (no secrets scan)"
 	@echo "  test             -> run all unit tests (or TEST_MODULE=aggregator)"
 	@echo "  code-secrets     -> scan secrets with TruffleHog"
-	@echo "  qa               -> check code, run tests, and scan secrets (no fixes)"
+	@echo "  qa               -> check code, run tests, then scan secrets (stop on failure; no fixes)"
 	@echo "  deps-audit       -> check npm dependency advisories and update suggestions"
 	@echo ""
 	@echo "Service-scoped (positional args):"
