@@ -3,7 +3,7 @@
 import type { ReactNode, RefObject } from "react";
 import AppToolbar from "./AppToolbar";
 import ItemTitle from "../components/shared/item/ItemTitle";
-import type { CatalogItem, HealthStatus } from "../shared/types";
+import type { CatalogItem, DisplayHealthStatus } from "../shared/types";
 
 type AppLayoutProps = {
   children: ReactNode;
@@ -21,7 +21,7 @@ type AppLayoutProps = {
   onToggleAiChat: () => void;
   onOpenAbout: () => void;
   selectedItem: CatalogItem | undefined;
-  selectedStatus: HealthStatus;
+  selectedStatus: DisplayHealthStatus;
   lastUpdated: string;
   selectedTitleFirstWord: string;
   selectedTitleRest: string;

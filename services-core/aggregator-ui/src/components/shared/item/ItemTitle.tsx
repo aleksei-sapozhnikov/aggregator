@@ -1,7 +1,7 @@
 /** @file Renders Item heading, reported status, and catalog information trigger. */
 
 import type { RefObject } from "react";
-import type { CatalogItem, HealthStatus } from "../../../shared/types";
+import type { CatalogItem, DisplayHealthStatus } from "../../../shared/types";
 import { buildStatusText } from "../../../shared/health/healthPresentation";
 import CatalogItemInfo from "./CatalogItemInfo";
 
@@ -16,7 +16,7 @@ export default function ItemTitle({
   interactive = true,
 }: {
   item?: CatalogItem;
-  status: HealthStatus;
+  status: DisplayHealthStatus;
   lastUpdated?: string;
   firstWord: string;
   rest?: string;
