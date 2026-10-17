@@ -1,0 +1,13 @@
+.demo-wood-label rect {
+  fill: #e2bf93;
+  stroke: #93683d;
+  stroke-width: 1.5;
+  filter: drop-shadow(0 1px 1px rgb(73 45 19 / 22%));
+}
+
+.demo-wood-label text {
+  fill: #432b1a;
+  font-family: Inter, "Segoe UI", system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+}

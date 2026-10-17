@@ -1,7 +1,7 @@
 import { useContext, useId, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import { HelpContext, type HelpTopic } from "./HelpContext";
 import InfoHelpButton from "./InfoHelpButton";
+import HelpTooltip from "./HelpTooltip";
 
 /** Displays a help trigger without depending on help content or illustrations. */
 export default function InfoHelp({
@@ -15,7 +15,6 @@ export default function InfoHelp({
   const tooltipId = useId();
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const [isTooltipVisible, setIsTooltipVisible] = useState(false);
-  const [tooltipPosition, setTooltipPosition] = useState({ left: 0, top: 0 });
   const resolved = topic ?? (topicId ? help?.resolveTopic(topicId) : null);
 
   if (!help || !resolved) {
@@ -26,11 +25,6 @@ export default function InfoHelp({
 
   const showTooltip = () => {
     if (help.activeTopic !== null) return;
-    const button = buttonRef.current;
-    if (button) {
-      const rect = button.getBoundingClientRect();
-      setTooltipPosition({ left: rect.left + rect.width / 2, top: rect.top });
-    }
     setIsTooltipVisible(true);
   };
 
@@ -49,21 +43,13 @@ export default function InfoHelp({
         onMouseEnter={showTooltip}
         onMouseLeave={() => setIsTooltipVisible(false)}
       />
-      {isTooltipVisible &&
-        createPortal(
-          <span
-            id={tooltipId}
-            role="tooltip"
-            className="info-help-tooltip"
-            style={{
-              left: `${tooltipPosition.left}px`,
-              top: `${tooltipPosition.top}px`,
-            }}
-          >
-            {resolved.summary}
-          </span>,
-          document.body,
-        )}
+      <HelpTooltip
+        id={tooltipId}
+        anchorRef={buttonRef}
+        visible={isTooltipVisible}
+        content={resolved.summary}
+        action="Click for details"
+      />
     </span>
   );
 }
