@@ -1,7 +1,7 @@
 /** @vitest-environment jsdom */
 import { cleanup, renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
-import { buildCatalogTree, findNodeByPath } from "../../shared/catalog/tree";
+import { buildCatalogTree, findNodeByPath } from "../../../shared/catalog/tree";
 import type {
   CatalogActor,
   CatalogActorContact,
@@ -11,7 +11,7 @@ import type {
   CatalogItemActor,
   HealthStatus,
   ItemSignal,
-} from "../../shared/types";
+} from "../../../shared/types";
 import useSelectedItemData from "./useSelectedItemData";
 
 const items: CatalogItem[] = [

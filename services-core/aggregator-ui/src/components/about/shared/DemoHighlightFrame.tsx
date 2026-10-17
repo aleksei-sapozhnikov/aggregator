@@ -10,6 +10,7 @@ type DemoHighlightFrameProps = {
   color: string;
   opacity?: number;
   "data-selection-frame"?: string;
+  "data-healthy-frame"?: string;
   "data-unhealthy-frame"?: string;
   "data-primary-contact-highlight"?: string;
   "data-timeline-dependency-highlight"?: string;

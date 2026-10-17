@@ -1,3 +1,16 @@
+.primary-contact-page {
+  /* Keep the opaque backdrop behind content within this transformed page. */
+  isolation: isolate;
+}
+
+.primary-contact-page-backdrop {
+  position: absolute;
+  z-index: -1;
+  background: var(--panel);
+  border-radius: 8px;
+  pointer-events: none;
+}
+
 .primary-contact-help-diagram {
   display: block;
   width: 100%;

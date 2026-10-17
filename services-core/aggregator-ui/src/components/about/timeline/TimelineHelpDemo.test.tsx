@@ -11,7 +11,7 @@ import {
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import TimelineHelpDemo, { getInspectCursorRow } from "./TimelineHelpDemo";
-import { getTimelineCursorTravel } from "./GrafanaTimelineIllustration";
+import { getFilterCursorTop, getTimelineCursorTravel } from "./GrafanaTimelineIllustration";
 
 beforeEach(() => vi.useFakeTimers());
 afterEach(() => {
@@ -396,6 +396,56 @@ describe("Timeline help walkthrough", () => {
   it("omits the status legend from the demonstration", () => {
     render(<TimelineHelpDemo />);
     expect(screen.queryByLabelText("Timeline status colors")).toBeNull();
+  });
+
+  it("moves the filter cursor smoothly to each option and back", () => {
+    const visits = [
+      { opensAt: 950, selectedAt: 1800, targetY: 134 },
+      { opensAt: 4550, selectedAt: 5400, targetY: 172 },
+      { opensAt: 8350, selectedAt: 9200, targetY: 96 },
+    ];
+    for (const { opensAt, selectedAt, targetY } of visits) {
+      // Opening and closing the dropdown must not teleport the pointer.
+      expect(getFilterCursorTop(opensAt - 20)).toBe(65);
+      expect(getFilterCursorTop(opensAt)).toBe(65);
+      expect(getFilterCursorTop(opensAt + 100)).toBe(65);
+      const midpoint =
+        Math.round((opensAt + 100 + selectedAt - 250) / 40) * 20;
+      const between = getFilterCursorTop(midpoint);
+      expect(between).toBeGreaterThan(Math.min(65, targetY));
+      expect(between).toBeLessThan(Math.max(65, targetY));
+      expect(getFilterCursorTop(selectedAt - 20)).toBe(targetY);
+      expect(getFilterCursorTop(selectedAt)).toBe(targetY);
+      expect(getFilterCursorTop(selectedAt + 100)).toBe(targetY);
+      expect(getFilterCursorTop(selectedAt + 650)).toBe(65);
+      expect(getFilterCursorTop(selectedAt + 670)).toBe(65);
+    }
+
+    render(<TimelineHelpDemo />);
+    fireEvent.click(
+      screen.getByRole("button", { name: "Switch signal groups" }),
+    );
+    const preview = screen.getByLabelText("Example Timeline");
+    const cursor = preview.querySelector(
+      ".grafana-timeline-illustration > .timeline-help-cursor",
+    ) as SVGElement;
+    expect(cursor.style.top).toBe("14px");
+    advance(960);
+    expect(cursor.style.top).toBe("65px");
+    expect(
+      within(preview).getByLabelText("Available signal groups"),
+    ).not.toBeNull();
+    advance(380);
+    const moving = Number.parseFloat(cursor.style.top);
+    expect(moving).toBeGreaterThan(65);
+    expect(moving).toBeLessThan(134);
+    advance(460);
+    expect(cursor.style.top).toBe("134px");
+    advance(440);
+    expect(Number.parseFloat(cursor.style.top)).toBeLessThan(134);
+    expect(Number.parseFloat(cursor.style.top)).toBeGreaterThan(65);
+    advance(210);
+    expect(cursor.style.top).toBe("65px");
   });
 
   it("opens the selector, filters to two Own and then three Dependencies", () => {

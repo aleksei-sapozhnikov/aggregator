@@ -3597,6 +3597,17 @@ body[data-theme="dark"] .contacts-actor-type-mark {
   margin-bottom: 6px;
 }
 
+.about-content .about-status-list {
+  list-style: none;
+  padding-left: 0;
+}
+
+.about-status-list li {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
 .about-social-link {
   display: inline-flex;
   align-items: center;

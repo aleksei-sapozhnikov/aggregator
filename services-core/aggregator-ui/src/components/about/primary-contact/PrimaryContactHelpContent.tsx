@@ -2,7 +2,7 @@ import PrimaryContactHelpDemo from "./PrimaryContactHelpDemo";
 
 export const primaryContactHelp = {
   title: "Primary contact",
-  summary: "The main contact for this item.",
+  summary: "This is who to contact first about this item.",
 };
 
 export default function PrimaryContactHelpContent() {
@@ -10,10 +10,9 @@ export default function PrimaryContactHelpContent() {
     <>
       <div className="info-help-description modal-text-flow">
         <p>
-          The primary contact is the main contact point associated with this
-          item. Use it when you need more information, need to reach the
-          responsible people, or are not sure who to contact about the item.
+          <strong>{primaryContactHelp.summary}</strong>
         </p>
+        <p>Use the contact details to ask a question or report a problem. You don't need to know which team handles it.</p>
       </div>
       <PrimaryContactHelpDemo />
     </>

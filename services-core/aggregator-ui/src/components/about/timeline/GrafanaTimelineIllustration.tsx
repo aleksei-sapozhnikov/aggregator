@@ -67,13 +67,46 @@ const getFilter = (time: number): SignalFilter =>
         ? "own"
         : "all";
 
+const filterMenuVisits = [
+  { opensAt: 950, selectedAt: 1800, optionY: 134 },
+  { opensAt: 4550, selectedAt: 5400, optionY: 172 },
+  { opensAt: 8350, selectedAt: 9200, optionY: 96 },
+] as const;
+
 const isFilterMenuOpen = (time: number): boolean =>
-  (time >= 950 && time < 1800) ||
-  (time >= 4550 && time < 5400) ||
-  (time >= 8350 && time < 9200);
+  filterMenuVisits.some(
+    ({ opensAt, selectedAt }) => time >= opensAt && time < selectedAt,
+  );
 
 const lerp = (start: number, end: number, fraction: number) =>
   start + (end - start) * Math.max(0, Math.min(1, fraction));
+
+const selectorY = 65;
+
+/**
+ * Move the same cursor from the selector to each dropdown choice and back.
+ * Never snap it to a menu option when the menu opens or closes.
+ */
+export function getFilterCursorTop(time: number): number {
+  for (const { opensAt, selectedAt, optionY } of filterMenuVisits) {
+    if (time < opensAt) return selectorY;
+    if (time < selectedAt) {
+      return lerp(
+        selectorY,
+        optionY,
+        smooth(progressBetween(time, opensAt + 100, selectedAt - 250)),
+      );
+    }
+    if (time < selectedAt + 650) {
+      return lerp(
+        optionY,
+        selectorY,
+        smooth(progressBetween(time, selectedAt + 100, selectedAt + 650)),
+      );
+    }
+  }
+  return selectorY;
+}
 
 // Start and finish each walkthrough in the empty chart header area.
 export function getTimelineCursorTravel(scenario: Scenario, time: number) {
@@ -392,14 +425,8 @@ export default function GrafanaTimelineIllustration({
     ? "var(--timeline-help-link-cursor-top)"
     : "107px";
 
-  // The filter selector is above the bars, so its cursor uses preview coordinates.
-  const cursorTop = menuOpen
-    ? elapsed < 1800
-      ? "134px"
-      : elapsed < 5400
-        ? "172px"
-        : "96px"
-    : "65px";
+  // Filter cursor position is continuous across opening, choosing and
+  // closing each menu, and stays in preview coordinates.
   const trackPointer = positionedChartCursor(
     scenario === "navigate" ? navigationCursorLeft : x + "%",
     scenario === "navigate"
@@ -407,7 +434,10 @@ export default function GrafanaTimelineIllustration({
       : 7 + inspectCursorRow * inspectRowPitch + "px",
     cursorTravel,
   );
-  const selectorPointer = positionedSelectorCursor(cursorTop, cursorTravel);
+  const selectorPointer = positionedSelectorCursor(
+    getFilterCursorTop(elapsed) + "px",
+    cursorTravel,
+  );
 
   return (
     <div

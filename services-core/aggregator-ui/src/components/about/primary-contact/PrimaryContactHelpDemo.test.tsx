@@ -16,7 +16,7 @@ import PrimaryContactHelpDemo, {
   primaryContactHelpDuration,
 } from "./PrimaryContactHelpDemo";
 import InfoHelp from "../../shared/help/InfoHelp";
-import ContextualHelpProvider from "../ContextualHelpProvider";
+import ContextualHelpProvider from "../core/ContextualHelpProvider";
 
 afterEach(() => {
   cleanup();
@@ -34,7 +34,7 @@ describe("Primary contact contextual help", () => {
     expectDecorativeSceneShield(figure);
   });
 
-  it("has matching user, owner and service assets with separate wooden captions", () => {
+  it("has matching user, primary technician and service assets with separate captions", () => {
     const { container } = render(<PrimaryContactHelpDemo />);
     const caller = container.querySelector("[data-primary-contact-observer]");
     const technician = container.querySelector(
@@ -51,7 +51,7 @@ describe("Primary contact contextual help", () => {
     expect(service?.querySelector("[data-demo-service-machine]")).not.toBeNull();
     expect(caller?.querySelector('[data-scene-label="User"]')).not.toBeNull();
     expect(
-      technician?.querySelector('[data-scene-label="Owner"]'),
+      technician?.querySelector('[data-scene-label="Primary"]'),
     ).not.toBeNull();
     expect(
       container.querySelector('[data-scene-label="Service"]'),
@@ -89,6 +89,70 @@ describe("Primary contact contextual help", () => {
     expect(green?.getAttribute("opacity")).toBe("1");
   });
 
+  it("makes User worried until repair and puts the phone down when Owner arrives", () => {
+    const start = getPrimaryContactHelpFrame(0);
+    const failed = getPrimaryContactHelpFrame(1900);
+    const calling = getPrimaryContactHelpFrame(8000);
+    const puttingAway = getPrimaryContactHelpFrame(9400);
+    const arrived = getPrimaryContactHelpFrame(9600);
+    const repaired = getPrimaryContactHelpFrame(11800);
+    const restarting = getPrimaryContactHelpFrame(15100);
+
+    expect(start.unhealthy).toBe(0);
+    expect(start.userPhoneVisible).toBe(1);
+    expect(failed.unhealthy).toBe(1);
+    expect(calling.unhealthy).toBe(1);
+    expect(calling.userPhoneVisible).toBe(1);
+    expect(puttingAway.laptop).toBeCloseTo(puttingAway.phone);
+    expect(puttingAway.laptop).toBeGreaterThan(0);
+    expect(puttingAway.laptop).toBeLessThan(1);
+    expect(arrived.unhealthy).toBe(1);
+    expect(arrived.technicianX).toBe(238);
+    expect(arrived.userPhoneVisible).toBe(0);
+    expect(arrived.phone).toBe(0);
+    expect(arrived.laptop).toBe(0);
+    expect(repaired.unhealthy).toBe(0);
+    expect(repaired.userPhoneVisible).toBe(0);
+    expect(restarting.userPhoneVisible).toBe(1);
+  });
+
+  it("renders the matching facial expression and lowers User's phone during repair", () => {
+    vi.useFakeTimers();
+    const { container } = render(<PrimaryContactHelpDemo />);
+    const user = container.querySelector('[data-demo-character="user"]');
+    const happy = user?.querySelector('[data-user-expression="happy"]');
+    const unhappy = user?.querySelector('[data-user-expression="unhappy"]');
+    const phone = user?.querySelector('[data-demo-gesture="phone"]');
+    const idleArm = user?.querySelector('[data-user-arm="idle"]');
+    const laptop = container.querySelector(
+      "[data-primary-contact-laptop]",
+    ) as SVGGElement;
+
+    expect(happy?.getAttribute("opacity")).toBe("1");
+    expect(unhappy?.getAttribute("opacity")).toBe("0");
+    expect(phone?.getAttribute("opacity")).toBe("1");
+    expect(laptop.style.opacity).toBe("0");
+
+    act(() => vi.advanceTimersByTime(1900));
+    expect(happy?.getAttribute("opacity")).toBe("0");
+    expect(unhappy?.getAttribute("opacity")).toBe("1");
+
+    act(() => vi.advanceTimersByTime(7700));
+    expect(unhappy?.getAttribute("opacity")).toBe("1");
+    expect(phone?.getAttribute("opacity")).toBe("0");
+    expect(idleArm?.getAttribute("opacity")).toBe("1");
+    expect(laptop.style.opacity).toBe("0");
+    const contactPhone = container.querySelector(
+      "[data-primary-contact-phone]",
+    ) as SVGGElement;
+    expect(contactPhone.style.opacity).toBe("0");
+
+    act(() => vi.advanceTimersByTime(2200));
+    expect(happy?.getAttribute("opacity")).toBe("1");
+    expect(unhappy?.getAttribute("opacity")).toBe("0");
+    expect(phone?.getAttribute("opacity")).toBe("0");
+  });
+
   it("follows the failure, laptop, contact, phone, repair and recovery sequence", () => {
     const initial = getPrimaryContactHelpFrame(0);
     expect(initial.unhealthy).toBe(0);
@@ -97,6 +161,7 @@ describe("Primary contact contextual help", () => {
 
     expect(getPrimaryContactHelpFrame(1900).unhealthy).toBe(1);
     expect(getPrimaryContactHelpFrame(3500).laptop).toBe(1);
+    expect(getPrimaryContactHelpFrame(8000).laptop).toBe(1);
     const page = getPrimaryContactHelpFrame(5350);
     expect(page.pageExpansion).toBe(1);
     expect(page.pageOpacity).toBe(1);
@@ -105,8 +170,9 @@ describe("Primary contact contextual help", () => {
     const transfer = getPrimaryContactHelpFrame(6750);
     expect(transfer.contactTravel).toBeGreaterThan(0);
     expect(transfer.contactTravel).toBeLessThan(1);
-    expect(transfer.pageOpacity).toBeGreaterThan(0);
-    expect(transfer.pageOpacity).toBeLessThan(1);
+    expect(transfer.pageOpacity).toBe(1);
+    expect(transfer.pageExpansion).toBeGreaterThan(0);
+    expect(transfer.pageExpansion).toBeLessThan(1);
 
     expect(getPrimaryContactHelpFrame(8000).calling).toBe(1);
     expect(getPrimaryContactHelpFrame(9950).repair).toBe(1);
@@ -156,7 +222,21 @@ describe("Primary contact contextual help", () => {
     expect(figure?.querySelectorAll("img")).toHaveLength(0);
   });
 
-  it("briefly overlays the full cast without leaving characters peeking out", () => {
+  it("lets the page grow over the scene and shrink to reveal it again", () => {
+    const emerging = getPrimaryContactHelpFrame(3500);
+    const full = getPrimaryContactHelpFrame(5350);
+    const shrinking = getPrimaryContactHelpFrame(6500);
+    const gone = getPrimaryContactHelpFrame(7100);
+    expect(emerging.pageExpansion).toBeGreaterThan(0);
+    expect(emerging.pageExpansion).toBeLessThan(1);
+    expect(full.pageExpansion).toBe(1);
+    expect(full.pageOpacity).toBe(1);
+    expect(shrinking.pageExpansion).toBeGreaterThan(0);
+    expect(shrinking.pageExpansion).toBeLessThan(1);
+    expect(shrinking.pageOpacity).toBe(1);
+    expect(gone.pageExpansion).toBe(0);
+    expect(gone.pageOpacity).toBe(0);
+
     vi.useFakeTimers();
     const { container } = render(<PrimaryContactHelpDemo />);
     const illustration = container.querySelector(
@@ -165,16 +245,42 @@ describe("Primary contact contextual help", () => {
     const page = container.querySelector(
       "[data-primary-contact-page]",
     ) as HTMLElement;
-    expect(illustration.style.opacity).toBe("1");
+    const backdrop = page.querySelector(
+      "[data-primary-contact-backdrop]",
+    ) as HTMLElement;
+
+    expect(illustration.style.opacity).toBe("");
     expect(page.style.opacity).toBe("0");
+    expect(backdrop).not.toBeNull();
+    const layout = getPrimaryContactHelpLayout(540);
+    expect(Number.parseFloat(backdrop.style.left)).toBeCloseTo(
+      -layout.backdropInsetX,
+    );
+    expect(Number.parseFloat(backdrop.style.right)).toBeCloseTo(
+      -layout.backdropInsetX,
+    );
+
+    // The opaque backing covers the entire viewport when fully expanded.
+    const [, , width, height] = layout.viewBox.split(" ").map(Number);
+    expect(
+      layout.pageWidth * layout.pageScale +
+        2 * layout.backdropInsetX * layout.pageScale,
+    ).toBeGreaterThan(width);
+    expect(
+      layout.pageHeight * layout.pageScale +
+        2 * layout.backdropInsetY * layout.pageScale,
+    ).toBeGreaterThan(height);
 
     act(() => vi.advanceTimersByTime(5350));
-    expect(illustration.style.opacity).toBe("0");
     expect(page.style.opacity).toBe("1");
-
-    act(() => vi.advanceTimersByTime(2350));
-    expect(illustration.style.opacity).toBe("1");
+    expect(illustration.style.opacity).toBe("");
+    act(() => vi.advanceTimersByTime(1150));
+    expect(page.style.opacity).toBe("1");
+    expect(illustration.style.opacity).toBe("");
+    expect(page.style.transform).not.toContain("scale(0.1)");
+    act(() => vi.advanceTimersByTime(600));
     expect(page.style.opacity).toBe("0");
+    expect(illustration.style.opacity).toBe("");
   });
 
   it("renders the page and moving contact as production HTML beside the illustrative SVG", () => {
@@ -216,7 +322,7 @@ describe("Primary contact contextual help", () => {
     );
     expect(
       technician
-        ?.querySelector('[data-scene-label="Owner"]')
+        ?.querySelector('[data-scene-label="Primary"]')
         ?.classList.contains("demo-wood-label"),
     ).toBe(true);
   });

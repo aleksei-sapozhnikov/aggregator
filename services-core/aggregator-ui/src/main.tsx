@@ -4,7 +4,7 @@
 
 import { createRoot } from "react-dom/client";
 import App from "./app/App";
-import ContextualHelpProvider from "./components/about/ContextualHelpProvider";
+import ContextualHelpProvider from "./components/about/core/ContextualHelpProvider";
 import ThemeProvider from "./shared/theme/ThemeProvider";
 import "./styles.css";
 
