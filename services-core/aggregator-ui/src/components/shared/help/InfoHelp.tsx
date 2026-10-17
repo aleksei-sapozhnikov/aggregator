@@ -5,7 +5,6 @@ import { HelpContext, type HelpTopic } from "./HelpContext";
 import InfoHelpButton from "./InfoHelpButton";
 import HelpTooltip from "./HelpTooltip";
 
-/** Displays a help trigger without depending on help content or illustrations. */
 export default function InfoHelp({
   topicId,
   topic,
@@ -25,7 +24,6 @@ export default function InfoHelp({
     );
   }
 
-  /** Displays the topic summary only when no help dialog is open. */
   const showTooltip = () => {
     if (help.activeTopic !== null) return;
     setIsTooltipVisible(true);

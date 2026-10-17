@@ -1,6 +1,4 @@
-/**
- * @file React application entrypoint.
- */
+/** @file Mounts the application with global theme and contextual help providers. */
 
 import { createRoot } from "react-dom/client";
 import App from "./app/App";

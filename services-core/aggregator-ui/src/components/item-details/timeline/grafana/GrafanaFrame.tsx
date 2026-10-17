@@ -15,7 +15,6 @@ type GrafanaFrameProps = {
   onNavigateToItem: (itemId: string, href: string) => void;
 };
 
-/** Owns the Grafana iframe lifecycle and all communication with its wrapper. */
 export default function GrafanaFrame({
   itemId,
   onNavigateToItem,
@@ -66,7 +65,6 @@ export default function GrafanaFrame({
   }, [dashboardUrl, theme, sendMessage]);
 
   useEffect(() => {
-    /** Validates a message from the iframe before navigating to an Item. */
     const handleItemNavigation = (event: MessageEvent) => {
       if (
         event.origin !== window.location.origin ||

@@ -102,7 +102,6 @@
   }
 }
 
-/* Only the explanatory graph and moving selection frames use SVG styles. */
 .signal-flow-help-graph,
 .signal-flow-help-owned-signal,
 .signal-flow-help-moving-dependency {

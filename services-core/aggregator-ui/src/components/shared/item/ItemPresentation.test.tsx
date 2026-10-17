@@ -65,6 +65,52 @@ describe("Reusable Item presentation", () => {
     expect((info as HTMLButtonElement).disabled).toBe(true);
   });
 
+  it("keeps backend UNKNOWN distinct from connection loss", () => {
+    const { container } = render(
+      <ItemTitle
+        item={{ id: "orders", title: "Orders API" }}
+        status="unknown"
+        firstWord="Orders"
+        interactive={false}
+      />,
+    );
+    expect(screen.getByText("UNKNOWN")).not.toBeNull();
+    expect(container.querySelector(".status-unknown")).not.toBeNull();
+    expect(screen.queryByText("DISCONNECTED")).toBeNull();
+  });
+
+  it("labels stale Item health without changing the reported state", () => {
+    const { container } = render(
+      <ItemTitle
+        item={{ id: "orders", title: "Orders API" }}
+        firstWord="Orders"
+        status="up"
+        lastUpdated="16:42:10"
+        isLastKnownHealth
+        interactive={false}
+      />,
+    );
+    expect(container.querySelector(".status-up")).not.toBeNull();
+    expect(screen.getByText("Last known")).not.toBeNull();
+    expect(
+      container.querySelector(".status-up")?.getAttribute("aria-label"),
+    ).toContain("Last known status: UP");
+  });
+
+  it("omits health indicators until the first response arrives", () => {
+    const { container } = render(
+      <ItemTitle
+        item={{ id: "orders", title: "Orders API" }}
+        firstWord="Orders"
+        status="unknown"
+        showHealthStatus={false}
+        interactive={false}
+      />,
+    );
+    expect(container.querySelector(".status-indicator")).toBeNull();
+    expect(screen.queryByText("UNKNOWN")).toBeNull();
+  });
+
   it("passes ownership actions through with their original records", () => {
     const onOpenActor = vi.fn();
     const onOpenContact = vi.fn();

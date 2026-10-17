@@ -25,5 +25,8 @@ describe("About health state legend", () => {
         status.toUpperCase(),
       );
     });
+    const connection = container.querySelector(".about-connection-help");
+    expect(connection?.textContent).toContain("DISCONNECTED");
+    expect(connection?.textContent).toContain("LAST KNOWN");
   });
 });

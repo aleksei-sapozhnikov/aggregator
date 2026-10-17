@@ -1,4 +1,3 @@
-/* Text, animation and later prose blocks can be interleaved freely. */
 .info-help-modal {
   display: flex;
   flex-direction: column;

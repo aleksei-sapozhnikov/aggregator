@@ -23,7 +23,6 @@ type HealthSignalModalProps = {
   onClose: () => void;
 };
 
-/** Formats unknown signal metadata values for display. */
 const formatFieldValue = (value: unknown): string => {
   if (typeof value === "string") {
     return value;
@@ -31,7 +30,6 @@ const formatFieldValue = (value: unknown): string => {
   return JSON.stringify(value, null, 2) ?? String(value);
 };
 
-/** Validates whether a response has the required signal detail fields. */
 const isHealthSignalDetails = (
   value: unknown,
   signalId: string,
@@ -46,7 +44,6 @@ const isHealthSignalDetails = (
   "type" in value &&
   typeof value.type === "string";
 
-/** Fetches detailed information for the selected signal and renders its modal. */
 export default function HealthSignalModal({
   isOpen,
   signalId,
@@ -70,7 +67,6 @@ export default function HealthSignalModal({
     setError("");
     setIsLoading(true);
 
-    /** Loads the selected signal details and cancels obsolete requests. */
     const loadSignal = async () => {
       try {
         const response = await fetch(

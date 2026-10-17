@@ -1,25 +1,42 @@
 # Aggregator UI
 
-React and TypeScript frontend for Catalog Health Aggregator. The UI presents
-catalog relationships, service-provided health, available contacts, and history.
-It never calculates product health: UP, DOWN, and UNKNOWN are backend facts.
+React and TypeScript frontend for exploring catalog relationships, reported
+Product Health, contacts, and history.
 
-## Reading the code
+## Health and connectivity
 
-- `src/main.tsx` mounts the application and global providers.
-- `src/app/` orchestrates data, navigation, responsive layout, and Item details.
-- `src/components/README.md` explains feature boundaries and reusable UI.
-- `src/shared/README.md` documents domain contracts and pure helpers.
-- `src/services/README.md` explains HTTP adapters and health-state ownership.
-- `src/components/about/README.md` covers help topics and animated scenes.
+Aggregator computes Product Health. UP, DOWN, and UNKNOWN are backend facts;
+UNKNOWN means the backend has insufficient health information.
 
-Use concise JSDoc before named functions and React components. File headers
-describe each module; folder README files document cross-file responsibilities
-and constraints. Prefer descriptive names and TypeScript types to comments
-inside implementations.
+A failed or timed-out Product Health request marks the **frontend connection**
+as DISCONNECTED. The UI retains the last successful statuses and signals,
+labels them **Last known**, and shows a banner with the last successful fetch
+and first detected failure. It never converts a connection failure into an
+Item health state. Before the first successful snapshot, status indicators
+remain hidden. A successful poll replaces the snapshot and clears the banner.
+
+Connection-loss detection time is the first failed poll, not necessarily the
+exact moment the network stopped working. Per-signal observation timestamps
+are not provided by the current backend API; the last-successful time records
+when this browser received the entire health snapshot.
+
+## Code and documentation
+
+- [Application composition](src/app/README.md): data loading, routing, and layout.
+- [Component boundaries](src/components/README.md): features and reusable UI.
+- [Shared utilities](src/shared/README.md): data contracts and common helpers.
+- [HTTP adapters](src/services/README.md): request and payload handling.
+
+Every TypeScript and TSX source file, including tests, must have a meaningful
+`@file` JSDoc header explaining its purpose and responsibility. README files
+explain module responsibilities and important decisions. Function-level
+comments and JSDoc are useful for non-obvious behavior, constraints, or
+reasoning; they are not required on every function or component. Prefer names
+and types over comments that repeat the code.
 
 ## Validation
 
 From this directory: `npm run typecheck`, `npm test`, and `npm run build`.
 Shared markup, CSS, and animation geometry also require desktop/mobile visual
-checks when changed.
+checks when changed. For stack setup, see
+[Running locally](../../docs/running-locally.md).

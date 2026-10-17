@@ -1,7 +1,6 @@
 /**
- * @file Dedicated Grafana iframe wrapper page script.
- * Intercepts selected keyboard/history behaviors and proxies item-link clicks
- * back to the parent aggregator UI via postMessage.
+ * @file Bridges the Grafana document to the parent UI for theme updates and Item navigation.
+ * Contains iframe-specific keyboard and history workarounds.
  */
 
 import type { Theme } from "../../../../../shared/theme/theme";
@@ -28,11 +27,7 @@ const iframe = document.getElementById(
 let detachEscHandlers: Array<() => void> = [];
 let detachItemLinkHandlers: Array<() => void> = [];
 
-/**
- * Renders a blank themed document inside the inner iframe so the browser does not
- * flash the default white `about:blank` page before Grafana is loaded.
- *
- */
+/** Prevent a white about:blank flash while the themed Grafana document loads. */
 const applyPlaceholder = (theme: Theme) => {
   if (!iframe) {
     return;
@@ -44,11 +39,7 @@ const applyPlaceholder = (theme: Theme) => {
   iframe.srcdoc = `<!doctype html><html lang="en"><head><meta charset="utf-8"><style>html,body{margin:0;width:100%;height:100%;background:${background};color-scheme:${colorScheme};overflow:hidden;}</style></head><body></body></html>`;
 };
 
-/**
- * Prevents Escape key handling inside Grafana and nested same-origin frames
- * so parent UI dialogs/search state are not unintentionally affected.
- *
- */
+/** Suppress Grafana's Escape shortcuts, including in same-origin nested frames. */
 const bindEscGuard = (targetWindow: GrafanaInnerWindow | null | undefined) => {
   detachEscHandlers.forEach((detach) => {
     try {
@@ -65,9 +56,6 @@ const bindEscGuard = (targetWindow: GrafanaInnerWindow | null | undefined) => {
   const boundWindows = new WeakSet<GrafanaInnerWindow>();
   const trackedFrames = new WeakSet<HTMLIFrameElement>();
 
-  /**
-   * Captures Escape to prevent Grafana shortcuts/dialogs from leaking outside the wrapper.
-   */
   const stopEsc = (event: KeyboardEvent) => {
     if (event.key === "Escape") {
       event.preventDefault();
@@ -78,10 +66,6 @@ const bindEscGuard = (targetWindow: GrafanaInnerWindow | null | undefined) => {
     }
   };
 
-  /**
-   * Recursively binds Escape interception to a same-origin window and nested iframes.
-   *
-   */
   const bindWindow = (windowRef: GrafanaInnerWindow | null | undefined) => {
     if (!windowRef?.addEventListener || boundWindows.has(windowRef)) {
       return;
@@ -100,7 +84,6 @@ const bindEscGuard = (targetWindow: GrafanaInnerWindow | null | undefined) => {
       if (!doc?.querySelectorAll) {
         return;
       }
-      /** Binds Escape protection to nested Grafana frames as they appear. */
       const attachNestedFrames = () => {
         doc.querySelectorAll("iframe").forEach((childFrameEl) => {
           const childFrame = childFrameEl as HTMLIFrameElement;
@@ -108,7 +91,6 @@ const bindEscGuard = (targetWindow: GrafanaInnerWindow | null | undefined) => {
             return;
           }
           trackedFrames.add(childFrame);
-          /** Attaches Escape guards once a nested iframe becomes accessible. */
           const bindChild = () => {
             try {
               bindWindow(childFrame.contentWindow);
@@ -141,10 +123,7 @@ const bindEscGuard = (targetWindow: GrafanaInnerWindow | null | undefined) => {
   bindWindow(targetWindow);
 };
 
-/**
- * Intercepts item links rendered inside Grafana and forwards them to the parent app.
- *
- */
+/** Route Item links through the parent app instead of navigating inside the iframe. */
 const bindItemLinkInterceptor = (
   targetWindow: GrafanaInnerWindow | null | undefined,
 ) => {
@@ -163,9 +142,6 @@ const bindItemLinkInterceptor = (
   const boundWindows = new WeakSet<GrafanaInnerWindow>();
   const trackedFrames = new WeakSet<HTMLIFrameElement>();
 
-  /**
-   * Emits a normalized item-link click event to the parent aggregator application.
-   */
   const emitItemLinkClick = (href: string) => {
     if (href.trim() === "") {
       return;
@@ -191,19 +167,12 @@ const bindItemLinkInterceptor = (
     );
   };
 
-  /**
-   * Recursively binds click interception to a same-origin window and nested iframes.
-   *
-   */
   const bindWindow = (windowRef: GrafanaInnerWindow | null | undefined) => {
     if (!windowRef?.addEventListener || boundWindows.has(windowRef)) {
       return;
     }
     boundWindows.add(windowRef);
 
-    /**
-     * Captures anchor clicks to rewrite Grafana item links into parent app navigation.
-     */
     const onClickCapture = (event: MouseEvent) => {
       const target = event.target as Element | null;
       if (!target?.closest) {
@@ -244,7 +213,6 @@ const bindItemLinkInterceptor = (
       if (!doc?.querySelectorAll) {
         return;
       }
-      /** Binds Item-link interception to nested Grafana frames as they appear. */
       const attachNestedFrames = () => {
         doc.querySelectorAll("iframe").forEach((childFrameEl) => {
           const childFrame = childFrameEl as HTMLIFrameElement;
@@ -252,7 +220,6 @@ const bindItemLinkInterceptor = (
             return;
           }
           trackedFrames.add(childFrame);
-          /** Attaches Item-link handlers once a nested iframe becomes accessible. */
           const bindChild = () => {
             try {
               bindWindow(childFrame.contentWindow);
@@ -285,9 +252,6 @@ const bindItemLinkInterceptor = (
   bindWindow(targetWindow);
 };
 
-/**
- * Applies wrapper background theme so Grafana transitions look consistent.
- */
 const applyTheme = (value: string) => {
   const nextTheme = value === "dark" ? "dark" : "light";
   document.documentElement.dataset.theme = nextTheme;
@@ -295,9 +259,6 @@ const applyTheme = (value: string) => {
   applyPlaceholder(nextTheme);
 };
 
-/**
- * Navigates the inner iframe to a Grafana URL while preserving wrapper lifecycle.
- */
 const applyTarget = (target: string) => {
   if (!iframe) {
     return;
@@ -316,9 +277,7 @@ const applyTarget = (target: string) => {
   }
 };
 
-/**
- * Initializes history/keyboard patches each time the inner Grafana iframe navigates.
- */
+// Replace Grafana history entries so browser Back follows application navigation.
 if (iframe) {
   iframe.addEventListener("load", () => {
     try {
@@ -360,9 +319,6 @@ if (initialTarget) {
   applyTarget(initialTarget);
 }
 
-/**
- * Receives commands from the parent app to update theme or target Grafana URL.
- */
 window.addEventListener("message", (event: MessageEvent) => {
   if (!event.data) {
     return;

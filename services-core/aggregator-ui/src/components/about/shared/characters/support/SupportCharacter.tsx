@@ -4,7 +4,6 @@ import CharacterLayer from "../shared/CharacterLayer";
 import asset from "./SupportCharacter.svg?no-inline";
 import "./SupportCharacter.css";
 
-/** Renders the reusable support sprite with its headset layers. */
 export default function SupportCharacter() {
   return (
     <g

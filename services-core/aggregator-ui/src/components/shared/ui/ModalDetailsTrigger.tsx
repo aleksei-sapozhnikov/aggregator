@@ -21,10 +21,7 @@ type ModalDetailsTriggerProps = TriggerBaseProps &
       }
   );
 
-/**
- * A text-style trigger for a details modal. Keep real links for routable
- * details (such as signals) and buttons for modal-only entities.
- */
+/** Use real links for routable details and buttons for entities available only in a modal. */
 export default function ModalDetailsTrigger(props: ModalDetailsTriggerProps) {
   const className = [
     "details-text-link",

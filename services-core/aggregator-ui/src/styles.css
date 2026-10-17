@@ -38,7 +38,11 @@
   --status-inner: rgba(255, 255, 255, 0.35);
   --status-up: #73bf69;
   --status-unknown: #f2c94c;
+  --status-disconnected: #64748b;
   --status-down: #e24d42;
+  --health-connection-banner-bg: #fff1f0;
+  --health-connection-banner-border: #efc1bd;
+  --health-connection-banner-accent: #a83229;
   --sidebar-selected-accent: #2f6feb;
   --sidebar-selected-bg: #eef4ff;
   --sidebar-selected-hover: #e4edff;
@@ -103,7 +107,11 @@ body[data-theme="dark"] {
   --status-inner: rgba(255, 255, 255, 0.28);
   --status-up: #73bf69;
   --status-unknown: #f2c94c;
+  --status-disconnected: #a6b2c1;
   --status-down: #e24d42;
+  --health-connection-banner-bg: #321e22;
+  --health-connection-banner-border: #754249;
+  --health-connection-banner-accent: #ff948b;
   --sidebar-selected-accent: #3b82f6;
   --sidebar-selected-bg: #141c2b;
   --sidebar-selected-hover: #1a2334;
@@ -745,6 +753,10 @@ body {
   background: var(--status-down);
 }
 
+.status-indicator.status-disconnected {
+  background: var(--status-disconnected);
+}
+
 .node-label:focus-visible,
 .node-content:focus-visible,
 .node-toggle-column:focus-visible,
@@ -855,8 +867,67 @@ body {
   color: var(--status-unknown);
 }
 
+.content-status-label.status-disconnected {
+  color: var(--status-disconnected);
+}
+
 .content-status-label.status-up {
   color: var(--status-up);
+}
+
+/* Connection freshness is application-wide, not another Product Health state. */
+.health-connection-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex: 0 0 auto;
+  min-width: 0;
+  padding: 11px 14px;
+  border: 1px solid var(--health-connection-banner-border);
+  border-left: 3px solid var(--health-connection-banner-accent);
+  border-radius: 8px;
+  background: var(--health-connection-banner-bg);
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.health-connection-icon {
+  flex: 0 0 auto;
+  color: var(--health-connection-banner-accent);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.health-connection-message {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.health-connection-message strong {
+  color: var(--health-connection-banner-accent);
+  font-size: 13px;
+}
+
+.health-connection-message > span {
+  color: var(--muted);
+}
+
+.health-last-known-label {
+  display: inline-block;
+  margin-left: 8px;
+  color: var(--status-disconnected);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.app.is-health-disconnected .status-indicator {
+  opacity: 0.75;
 }
 
 .catalog-item-info {
@@ -3194,16 +3265,6 @@ body[data-theme="dark"] .contact-email-reply {
   letter-spacing: 0.01em;
 }
 
-.actor-modal-description {
-  margin: 0;
-  color: var(--muted);
-  line-height: 1.5;
-  display: flex;
-  flex-direction: column;
-  gap: var(--modal-paragraph-gap);
-}
-
-.actor-modal-description p,
 .actor-modal-body > p {
   margin: 0;
 }
@@ -3547,6 +3608,8 @@ body[data-theme="dark"] .contacts-actor-type-mark {
   display: flex;
   flex-direction: column;
   gap: var(--modal-paragraph-gap);
+  color: var(--text);
+  font-size: 16px;
 }
 
 .modal-text-flow p {
@@ -3987,7 +4050,6 @@ body[data-theme="dark"] .about-social-icon-linkedin {
   }
 }
 
-/* Compact health hierarchy: neutral surfaces, consistent disclosures, and shape-coded states. */
 .details-summary-block {
   /* Align list text with disclosure titles, accounting for row icons. */
   --details-disclosure-text-indent: 52px;
@@ -4043,6 +4105,15 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 
 .status-indicator.status-unknown::before {
   content: "?";
+}
+
+.status-indicator.status-disconnected {
+  background: transparent;
+  color: var(--status-disconnected);
+}
+
+.status-indicator.status-disconnected::before {
+  content: "⊘";
 }
 
 .ai-health-response .status-indicator {

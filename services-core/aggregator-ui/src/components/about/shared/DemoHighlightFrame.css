@@ -1,4 +1,4 @@
-/* Match the contact selection: a 2px border and subtle 12% color fill. */
+/* Keep SVG and HTML selection highlights visually consistent. */
 .demo-highlight-frame {
   fill: color-mix(in srgb, var(--demo-highlight-color) 12%, transparent);
   stroke: var(--demo-highlight-color);

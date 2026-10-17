@@ -1,10 +1,5 @@
-/**
- * @file Static About dialog content.
- */
+/** @file Introduces the application, its health states, and navigation in the About dialog. */
 
-/**
- * Renders descriptive text shown inside the About modal.
- */
 export function AboutHeader() {
   return (
     <div className="about-header">
@@ -40,7 +35,6 @@ export function AboutHeader() {
   );
 }
 
-/** Explains the demo's purpose, navigation, health states, and implementation at a high level. */
 export default function AboutContent() {
   return (
     <div className="about-content modal-text-flow">
@@ -89,10 +83,24 @@ export default function AboutContent() {
             aria-hidden="true"
           />
           <span>
-            <strong>UNKNOWN</strong> - There isn't enough information to tell.
+            <strong>UNKNOWN</strong> - Aggregator is reachable but doesn't have
+            enough information to tell.
           </span>
         </li>
       </ul>
+      <p>Connection to Aggregator:</p>
+      <p className="about-connection-help">
+        <span
+          className="status-indicator status-disconnected"
+          aria-hidden="true"
+        />{" "}
+        <strong>DISCONNECTED</strong> - The interface cannot retrieve current
+        Product Health. The warning banner shows when the connection failure was
+        detected and, if available, the last successful update. Previously
+        reported statuses and signals remain visible, with{" "}
+        <strong>LAST KNOWN</strong> next to the selected Item's status. This
+        does not mean the underlying services are DOWN.
+      </p>
       <p>
         Demo services fail and recover automatically, so you can watch the
         health change. There are three product lines and chains of connected

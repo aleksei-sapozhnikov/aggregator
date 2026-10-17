@@ -1,15 +1,12 @@
 # Shared domain utilities
 
-This directory contains data types and ordinary TypeScript helpers, not React components.
+Shared catalog, health, and view-data contracts live here alongside helpers
+for tree traversal, search, routes, contact presentation, and pointer events.
+These utilities are used across feature components and HTTP adapters.
 
-- `catalog/tree.ts`: tree construction and tree navigation.
-- `catalog/search.ts`: search normalization, filtering, ranking and autocomplete.
-- `navigation/itemRoutes.ts`: browser route parsing and Item link generation.
-- `contacts/contactPresentation.ts`: contact labels, icons, and primary-first sorting.
-- `health/healthPresentation.ts`: presentation-only health helpers and status text.
-- `ui/pointerUtils.ts`: generic pointer-event rules.
-- `types.ts`: data contracts shared by UI and service adapters.
+Health helpers format, classify, and sort reported states. They must not
+calculate Product Health or turn a transport failure into a health value.
 
-Never calculate or infer Product Health in UI helper functions. Health states
-are supplied by the Product Health service; presentation helpers only format
-or classify these facts. React implementations belong in `components/`.
+Reusable visual controls belong in `components/shared/`.
+[Theme state](theme/README.md) lives here because it is shared by the whole
+application, including its React provider and integrations such as Grafana.

@@ -14,7 +14,6 @@ import UnhealthySignalProjection, {
   getUnhealthyDiagramOpacity,
 } from "./UnhealthySignalProjection";
 
-/** Illustrates how failing signals spread through dependencies and recover. */
 export default function UnhealthySignalsHelpDemo() {
   const { elapsed } = useHelpAnimationClock(
     unhealthyCycleDuration,

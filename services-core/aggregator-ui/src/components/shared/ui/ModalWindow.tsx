@@ -1,4 +1,4 @@
-/** @file Provides focus-safe, stacked modal layout and keyboard handling. */
+/** @file Centralizes modal stacking, keyboard focus containment, and focus restoration. */
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -17,29 +17,81 @@ type ModalWindowProps = {
 const stackChangeEventName = "aggregator-modal-stack-change";
 let nextModalId = 1;
 const openModalIds: number[] = [];
+const modalOverlays = new Map<number, HTMLElement>();
+const hiddenBackground = new Map<
+  HTMLElement,
+  { inert: string | null; ariaHidden: string | null }
+>();
 
-/** Notifies open dialogs that their stacking order may have changed. */
+/** Isolates the topmost modal without losing preexisting accessibility attributes. */
+const syncBackgroundAccessibility = () => {
+  const topOverlay = modalOverlays.get(openModalIds[openModalIds.length - 1]);
+  const background = topOverlay
+    ? [...document.body.children].filter(
+        (element): element is HTMLElement =>
+          element instanceof HTMLElement && element !== topOverlay,
+      )
+    : [];
+
+  for (const element of background) {
+    if (!hiddenBackground.has(element)) {
+      hiddenBackground.set(element, {
+        inert: element.getAttribute("inert"),
+        ariaHidden: element.getAttribute("aria-hidden"),
+      });
+    }
+    element.setAttribute("inert", "");
+    element.setAttribute("aria-hidden", "true");
+  }
+
+  for (const [element, previous] of hiddenBackground) {
+    if (background.includes(element)) {
+      continue;
+    }
+    if (previous.inert === null) {
+      element.removeAttribute("inert");
+    } else {
+      element.setAttribute("inert", previous.inert);
+    }
+    if (previous.ariaHidden === null) {
+      element.removeAttribute("aria-hidden");
+    } else {
+      element.setAttribute("aria-hidden", previous.ariaHidden);
+    }
+    hiddenBackground.delete(element);
+  }
+};
+
 const notifyStackChanged = () => {
+  syncBackgroundAccessibility();
   window.dispatchEvent(new Event(stackChangeEventName));
 };
 
-/** Removes a dialog from the current modal stack. */
 const removeModalId = (id: number) => {
   const index = openModalIds.indexOf(id);
   if (index >= 0) {
     openModalIds.splice(index, 1);
+    modalOverlays.delete(id);
     notifyStackChanged();
   }
 };
 
-/** Returns the open-order position of a modal. */
 const getStackIndex = (id: number): number => openModalIds.indexOf(id);
 
-/** Checks whether a modal currently owns keyboard and backdrop actions. */
 const isTopmostModal = (id: number): boolean =>
   openModalIds[openModalIds.length - 1] === id;
 
-/** Manages accessible modal stacking, focus restoration, and Escape handling. */
+const focusableSelector =
+  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+const getFocusableElements = (dialog: HTMLElement): HTMLElement[] =>
+  [...dialog.querySelectorAll<HTMLElement>(focusableSelector)].filter(
+    (element) =>
+      element.tabIndex >= 0 &&
+      !element.closest('[hidden], [inert], [aria-hidden="true"]') &&
+      window.getComputedStyle(element).visibility !== "hidden",
+  );
+
 export default function ModalWindow({
   isOpen,
   onClose,
@@ -50,6 +102,7 @@ export default function ModalWindow({
 }: ModalWindowProps) {
   const idRef = useRef<number>(0);
   const dialogRef = useRef<HTMLElement | null>(null);
+  const overlayRef = useRef<HTMLDivElement | null>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const [stackIndex, setStackIndex] = useState(-1);
 
@@ -69,23 +122,26 @@ export default function ModalWindow({
         ? document.activeElement
         : null;
 
-    if (!openModalIds.includes(modalId)) {
+    if (!openModalIds.includes(modalId) && overlayRef.current) {
+      modalOverlays.set(modalId, overlayRef.current);
       openModalIds.push(modalId);
       notifyStackChanged();
     }
 
-    /** Keeps this dialog's stacking order synchronized with other open modals. */
     const syncStackIndex = () => {
       setStackIndex(getStackIndex(modalId));
     };
 
     syncStackIndex();
     window.addEventListener(stackChangeEventName, syncStackIndex);
-    window.setTimeout(() => {
-      dialogRef.current?.focus({ preventScroll: true });
+    const focusTimer = window.setTimeout(() => {
+      if (isTopmostModal(modalId)) {
+        dialogRef.current?.focus({ preventScroll: true });
+      }
     }, 0);
 
     return () => {
+      window.clearTimeout(focusTimer);
       window.removeEventListener(stackChangeEventName, syncStackIndex);
       removeModalId(modalId);
       previousFocusRef.current?.focus({ preventScroll: true });
@@ -98,17 +154,66 @@ export default function ModalWindow({
       return undefined;
     }
 
-    /** Handles Escape only for the topmost modal. */
+    /** Keeps Tab navigation inside the topmost dialog and handles Escape. */
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && isTopmostModal(modalId)) {
+      if (!isTopmostModal(modalId)) {
+        return;
+      }
+      if (event.key === "Escape") {
         event.preventDefault();
         onClose();
+        return;
+      }
+      if (event.key !== "Tab") {
+        return;
+      }
+
+      const dialog = dialogRef.current;
+      if (!dialog) {
+        return;
+      }
+      const focusable = getFocusableElements(dialog);
+      const active = document.activeElement;
+      if (focusable.length === 0) {
+        event.preventDefault();
+        dialog.focus();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (
+        event.shiftKey &&
+        (active === first || active === dialog || !dialog.contains(active))
+      ) {
+        event.preventDefault();
+        last.focus();
+      } else if (
+        !event.shiftKey &&
+        (active === last || !dialog.contains(active))
+      ) {
+        event.preventDefault();
+        first.focus();
       }
     };
 
-    window.addEventListener("keydown", handleKeyDown);
+    /** Redirects programmatic focus changes away from background content. */
+    const handleFocusIn = (event: FocusEvent) => {
+      const dialog = dialogRef.current;
+      if (
+        !isTopmostModal(modalId) ||
+        !dialog ||
+        (event.target instanceof Node && dialog.contains(event.target))
+      ) {
+        return;
+      }
+      (getFocusableElements(dialog)[0] ?? dialog).focus();
+    };
+
+    window.addEventListener("keydown", handleKeyDown, true);
+    document.addEventListener("focusin", handleFocusIn);
     return () => {
-      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keydown", handleKeyDown, true);
+      document.removeEventListener("focusin", handleFocusIn);
     };
   }, [isOpen, modalId, onClose]);
 
@@ -120,6 +225,7 @@ export default function ModalWindow({
 
   return createPortal(
     <div
+      ref={overlayRef}
       className="modal-overlay"
       style={{ zIndex }}
       onClick={(event) => {

@@ -1,13 +1,13 @@
 # Entity details and contacts
 
-Actor, contact, and health-signal dialogs are independent of the selected
-Item panel. They use the shared modal shell and the catalog's typed records.
+Actor, contact, and signal dialogs are independent of the selected Item panel.
+The app owns which entity is open; dialogs present catalog records through the
+shared modal shell.
 
-`actor/ActorModal.tsx` presents people/teams and available channels.
-`contact/ContactModal.tsx` presents contact information and illustrative
-channel demos; previews must not send real messages or place calls.
-`signal/HealthSignalModal.tsx` loads details for an individual health check.
-`signal/useSignalDetails.ts` owns `#signal/<id>` deep links and modal state.
+Signal selection also lives in `#signal/<id>`, managed by
+`signal/useSignalDetails.ts`. Opening or closing it preserves the Item route.
+The signal dialog loads its definition on demand and cancels obsolete requests.
 
-This separation allows catalog rows and Grafana Item links to open the same
-entity details without duplicating dialog behavior.
+Contact previews simulate channel workflows using catalog metadata. Their
+messages, calls, and incident creation must remain local demonstrations.
+Example destination URLs are shown as help text and are never opened.
