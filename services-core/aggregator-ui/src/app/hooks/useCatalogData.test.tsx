@@ -184,7 +184,7 @@ describe("useCatalogData", () => {
     expect(result.current.lastSuccessfulFetchAt).toBeGreaterThan(receivedAt!);
   });
 
-  it("aborts a stalled poll rather than keeping a previous UP/DOWN status", async () => {
+  it("aborts a stalled poll while retaining the last known UP/DOWN status", async () => {
     vi.useFakeTimers();
     vi.spyOn(console, "error").mockImplementation(() => {});
     const { result } = renderHook(() => useCatalogData());
@@ -205,6 +205,7 @@ describe("useCatalogData", () => {
     });
     expect(fetchProductHealth).toHaveBeenCalledTimes(2);
     expect(result.current.itemStatuses).toEqual(health.itemStatuses);
+    expect(result.current.connectionStatus).toBe("disconnected");
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(2_000);
