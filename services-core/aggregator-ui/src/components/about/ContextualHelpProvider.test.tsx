@@ -117,7 +117,12 @@ describe("InfoHelp shared tooltip", () => {
       screen.getByRole("button", { name: "About Actors" }),
     );
     const tooltip = screen.getByRole("tooltip");
-    expect(tooltip.textContent).toContain("Click for details");
+    expect(tooltip.textContent).toBe(
+      "People or teams associated with this item.Click for details",
+    );
+    expect(
+      tooltip.querySelectorAll(".help-tooltip-action"),
+    ).toHaveLength(1);
     expect(tooltip.querySelector(".help-tooltip-action")?.textContent).toBe(
       "Click for details",
     );
