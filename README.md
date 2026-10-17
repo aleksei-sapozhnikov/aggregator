@@ -21,7 +21,8 @@ The catalog tree and item headers use these health indicators:
 
 - ![Green check mark](docs/assets/status-up.svg) **UP** - Working normally.
 - ![Red cross](docs/assets/status-down.svg) **DOWN** - This item or a service it needs has a problem.
-- ![Yellow question mark](docs/assets/status-unknown.svg) **UNKNOWN** - There is not enough information to determine its health.
+- ![Yellow question mark](docs/assets/status-unknown.svg) **UNKNOWN** - Aggregator is reachable, but it does not have enough information to determine health.
+- **⊘ DISCONNECTED** (gray) - The UI cannot reach Aggregator, so current health is unavailable. This is not a backend health state and does not imply the service is DOWN.
 
 What to look at:
 
