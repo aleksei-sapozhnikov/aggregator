@@ -17,9 +17,54 @@ type ModalWindowProps = {
 const stackChangeEventName = "aggregator-modal-stack-change";
 let nextModalId = 1;
 const openModalIds: number[] = [];
+const modalOverlays = new Map<number, HTMLElement>();
+const hiddenBackground = new Map<
+  HTMLElement,
+  { inert: string | null; ariaHidden: string | null }
+>();
+
+/** Isolates the topmost modal without losing preexisting accessibility attributes. */
+const syncBackgroundAccessibility = () => {
+  const topOverlay = modalOverlays.get(openModalIds[openModalIds.length - 1]);
+  const background = topOverlay
+    ? [...document.body.children].filter(
+        (element): element is HTMLElement =>
+          element instanceof HTMLElement && element !== topOverlay,
+      )
+    : [];
+
+  for (const element of background) {
+    if (!hiddenBackground.has(element)) {
+      hiddenBackground.set(element, {
+        inert: element.getAttribute("inert"),
+        ariaHidden: element.getAttribute("aria-hidden"),
+      });
+    }
+    element.setAttribute("inert", "");
+    element.setAttribute("aria-hidden", "true");
+  }
+
+  for (const [element, previous] of hiddenBackground) {
+    if (background.includes(element)) {
+      continue;
+    }
+    if (previous.inert === null) {
+      element.removeAttribute("inert");
+    } else {
+      element.setAttribute("inert", previous.inert);
+    }
+    if (previous.ariaHidden === null) {
+      element.removeAttribute("aria-hidden");
+    } else {
+      element.setAttribute("aria-hidden", previous.ariaHidden);
+    }
+    hiddenBackground.delete(element);
+  }
+};
 
 /** Notifies open dialogs that their stacking order may have changed. */
 const notifyStackChanged = () => {
+  syncBackgroundAccessibility();
   window.dispatchEvent(new Event(stackChangeEventName));
 };
 
@@ -28,6 +73,7 @@ const removeModalId = (id: number) => {
   const index = openModalIds.indexOf(id);
   if (index >= 0) {
     openModalIds.splice(index, 1);
+    modalOverlays.delete(id);
     notifyStackChanged();
   }
 };
@@ -62,6 +108,7 @@ export default function ModalWindow({
 }: ModalWindowProps) {
   const idRef = useRef<number>(0);
   const dialogRef = useRef<HTMLElement | null>(null);
+  const overlayRef = useRef<HTMLDivElement | null>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const [stackIndex, setStackIndex] = useState(-1);
 
@@ -81,7 +128,8 @@ export default function ModalWindow({
         ? document.activeElement
         : null;
 
-    if (!openModalIds.includes(modalId)) {
+    if (!openModalIds.includes(modalId) && overlayRef.current) {
+      modalOverlays.set(modalId, overlayRef.current);
       openModalIds.push(modalId);
       notifyStackChanged();
     }
@@ -184,6 +232,7 @@ export default function ModalWindow({
 
   return createPortal(
     <div
+      ref={overlayRef}
       className="modal-overlay"
       style={{ zIndex }}
       onClick={(event) => {
