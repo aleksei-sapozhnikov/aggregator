@@ -98,12 +98,15 @@ function positionedChartCursor(left: string, top: string, travel: number) {
 
 function positionedSelectorCursor(top: string, travel: number) {
   if (travel >= 1) return { left: "172px", top };
+  const percentage = 100 * (1 - travel);
+  const offset = 172 * travel - 160 * (1 - travel);
   return {
     left:
       "calc(" +
-      100 * (1 - travel) +
-      "% + " +
-      (172 * travel - 160 * (1 - travel)) +
+      percentage +
+      "% " +
+      (offset < 0 ? "- " : "+ ") +
+      Math.abs(offset) +
       "px)",
     top: lerp(14, Number.parseFloat(top), travel) + "px",
   };

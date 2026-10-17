@@ -143,6 +143,9 @@ describe("Timeline help walkthrough", () => {
       expect(cursor().style.top).toBe(
         scenario === "filter" ? "14px" : "-98px",
       );
+      expect(cursor().style.left).toBe(
+        scenario === "filter" ? "calc(100% - 160px)" : "67%",
+      );
 
       advance(900);
       expect(getTimelineCursorTravel(scenario, 900)).toBe(1);

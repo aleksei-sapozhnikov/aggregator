@@ -244,8 +244,11 @@ function Observer({ frame }: { frame: HelpFrame }) {
       </g>
       <g data-primary-contact-alarm="true" opacity={frame.alarm}>
         <text x="117" y="2" className="primary-contact-exclamation">!</text>
-        <path d="M116-7l-5-8M130-8l7-8"
-          className="primary-contact-alarm-rays" strokeWidth="3" />
+        <path
+          d="M116-7l-5-8M130-8l7-8"
+          className="primary-contact-alarm-rays"
+          strokeWidth="3"
+        />
       </g>
     </g>
   );
@@ -390,8 +393,10 @@ export default function PrimaryContactHelpDemo() {
               data-primary-contact-scene="true"
               transform="translate(130 55) scale(0.66)"
             >
-              <g data-primary-contact-service="true"
-                transform="translate(75 113) scale(0.82)">
+              <g
+                data-primary-contact-service="true"
+                transform="translate(75 113) scale(0.82)"
+              >
                 <ServiceMachine unhealthy={frame.unhealthy} />
               </g>
               <g transform="translate(152 308) scale(1.5)">

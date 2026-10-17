@@ -44,9 +44,17 @@ export default function ServiceMachine({
         stroke="#305e59"
         strokeWidth="4"
       />
-      <rect x="81" y="-5" width="31" height="21" rx="7"
-        fill="#eb4d46" opacity={unhealthy}
-        stroke="#9c3733" strokeWidth="4" />
+      <rect
+        x="81"
+        y="-5"
+        width="31"
+        height="21"
+        rx="7"
+        fill="#eb4d46"
+        opacity={unhealthy}
+        stroke="#9c3733"
+        strokeWidth="4"
+      />
       <path
         d="M90-12V-18M104-11l7-8M76-7l-8-8"
         stroke={unhealthy > 0.5 ? "#eb4d46" : "#70c87c"}
@@ -126,8 +134,15 @@ export default function ServiceMachine({
         strokeWidth="3"
         opacity={1 - unhealthy}
       />
-      <circle cx="26" cy="82" r="8" fill="#eb4d46"
-        stroke="#9c3733" strokeWidth="3" opacity={unhealthy} />
+      <circle
+        cx="26"
+        cy="82"
+        r="8"
+        fill="#eb4d46"
+        stroke="#9c3733"
+        strokeWidth="3"
+        opacity={unhealthy}
+      />
       <circle
         cx="26"
         cy="111"
