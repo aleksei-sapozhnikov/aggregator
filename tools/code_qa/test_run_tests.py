@@ -20,11 +20,16 @@ class TestRunnerTests(unittest.TestCase):
     def test_java_uses_maven_and_catalog_uses_go(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            with patch.object(run_tests, "resolve_maven_command", return_value="mvn.cmd") as resolve:
-                self.assertEqual(
-                    run_tests.build_module(root, "aggregator").command,
-                    ["mvn.cmd", "-B", "test"],
-                )
+            home = root / "fake-jdk-25"
+            with (
+                patch.object(run_tests, "resolve_java_home", return_value=home) as java,
+                patch.object(run_tests, "resolve_maven_command", return_value="mvn.cmd") as resolve,
+            ):
+                module = run_tests.build_module(root, "aggregator")
+            self.assertEqual(module.command, ["mvn.cmd", "-B", "test"])
+            self.assertEqual(module.env["JAVA_HOME"], str(home))
+            self.assertTrue(module.env["PATH"].startswith(str(home / "bin")))
+            java.assert_called_once_with(root)
             resolve.assert_called_once_with(root)
             self.assertEqual(
                 run_tests.build_module(root, "catalog").command,
@@ -33,11 +38,32 @@ class TestRunnerTests(unittest.TestCase):
 
     def test_missing_maven_prevents_java_tests_from_starting(self) -> None:
         with (
+            patch.object(run_tests, "resolve_java_home", return_value=Path("/jdk")),
             patch.object(run_tests, "resolve_maven_command", return_value=None),
             patch.object(run_tests, "execute_module") as execute,
         ):
             self.assertIsNone(run_tests.build_module(Path("/repo"), "aggregator"))
             execute.assert_not_called()
+
+    def test_missing_jdk_prevents_java_tests_from_starting(self) -> None:
+        with (
+            patch.object(run_tests, "resolve_java_home", return_value=None),
+            patch.object(run_tests, "resolve_maven_command") as maven,
+        ):
+            self.assertIsNone(run_tests.build_module(Path("/repo"), "aggregator"))
+        maven.assert_not_called()
+
+    def test_java_test_subprocess_receives_jdk_environment(self) -> None:
+        module = run_tests.TestModule(
+            "aggregator", Path("/repo"), ["mvn", "-B", "test"],
+            {"JAVA_HOME": "/qa-jdk", "PATH": "/qa-jdk/bin"},
+        )
+        with patch.object(
+            run_tests.subprocess, "run",
+            return_value=subprocess.CompletedProcess([], 0),
+        ) as execute:
+            self.assertEqual(run_tests.execute_module(module), 0)
+        self.assertEqual(execute.call_args.kwargs["env"], module.env)
 
     def test_ui_uses_verbose_vitest_and_locked_dependencies(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

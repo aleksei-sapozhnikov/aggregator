@@ -14,7 +14,7 @@ The QA runners are invoked from the repository root through the Makefile.
 
 ## Test modules
 
-- **aggregator:** `mvn -B test` (requires JDK 25; uses Maven on PATH or downloads and verifies Maven 3.9.11 in `.temp/qa-runtime/maven`).
+- **aggregator:** `mvn -B test` (uses an installed JDK 25 or downloads Eclipse Temurin 25 to `.temp/qa-runtime/jdk`; uses Maven on PATH or downloads and verifies Maven 3.9.11 in `.temp/qa-runtime/maven`).
 - **aggregator-ui:** `npm test -- --reporter=verbose` (uses the package lock and runs `npm ci` if Vitest is missing).
 - **catalog:** `go test -v ./...` (requires Go 1.23 or newer).
 - **ai-agent:** `python -m pytest -v tests` (uses existing Python dependencies or bootstraps the QA virtualenv).
@@ -29,4 +29,4 @@ Pass `--module` more than once for a subset. All supported modules run by defaul
 To save the test transcript: `python tools/code_qa/main.py test --out-file test-results.txt`.
 
 The `code-qa` flow stops if formatting fails. Full `qa` always scans secrets, even when formatting or tests fail.
-The CI workflow runs `make qa` as its single QA entrypoint and separately verifies that formatting did not change any tracked files. The Makefile does not require `.env` or Docker/Podman for QA targets.
+The CI workflow runs `make qa` as its single QA entrypoint and separately verifies that formatting did not change any tracked files. The Makefile does not require `.env` or Docker/Podman for QA targets. The Java formatter also uses the cached JDK 25 when needed; `JAVA_HOME` and `PATH` are scoped to each subprocess and do not modify the system installation.

@@ -11,6 +11,7 @@ import sys
 import urllib.request
 from pathlib import Path
 
+from run_jdk import JAVA_MAJOR, jdk_executable, resolve_java_home
 from utils import iter_repo_files
 
 GOOGLE_JAVA_FORMAT_VERSION = "1.34.1"
@@ -171,7 +172,13 @@ def discover_java_files() -> list[Path]:
     ]
 
 
-def run_formatter(jar_path: Path, mode: str, files: list[Path], java_major: int) -> int:
+def run_formatter(
+    jar_path: Path,
+    mode: str,
+    files: list[Path],
+    java_major: int,
+    java_command: str = "java",
+) -> int:
     """Run formatter/check against files and map failures to concise output."""
     if not files:
         return 0
@@ -179,7 +186,7 @@ def run_formatter(jar_path: Path, mode: str, files: list[Path], java_major: int)
     failed = False
     printed_compat_hint = False
     for file_path in files:
-        cmd = ["java", "-jar", str(jar_path)]
+        cmd = [java_command, "-jar", str(jar_path)]
         if mode == "format":
             cmd.extend(["--replace", str(file_path)])
         else:
@@ -258,12 +265,21 @@ def main() -> int:
     if args.doctor_json:
         return doctor_json(repo_root)
 
-    java_major = ensure_java_compatible()
+    java_home = resolve_java_home(repo_root)
+    if java_home is None:
+        return 1
+    java_major = JAVA_MAJOR
     jar_path = ensure_formatter_jar(repo_root)
     files = (
         normalize_files(repo_root, args.files) if args.files else discover_java_files()
     )
-    return run_formatter(jar_path, args.mode, files, java_major)
+    return run_formatter(
+        jar_path,
+        args.mode,
+        files,
+        java_major,
+        java_command=str(jdk_executable(java_home, "java")),
+    )
 
 
 if __name__ == "__main__":

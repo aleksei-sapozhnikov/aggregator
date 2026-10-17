@@ -6,6 +6,8 @@ import argparse
 import subprocess
 import sys
 from dataclasses import dataclass
+
+from run_jdk import java_environment, resolve_java_home
 from pathlib import Path
 
 from run_maven import resolve_maven_command
@@ -26,6 +28,7 @@ class TestModule:
     name: str
     directory: Path
     command: list[str]
+    env: dict[str, str] | None = None
 
 
 def platform_command(name: str) -> str:
@@ -126,11 +129,16 @@ def build_module(root: Path, name: str) -> TestModule | None:
         )
 
     directory = root / "services-core" / name
+    environment = None
     if name == "aggregator":
+        java_home = resolve_java_home(root)
+        if java_home is None:
+            return None
         maven = resolve_maven_command(root)
         if maven is None:
             return None
         command = [maven, "-B", "test"]
+        environment = java_environment(java_home)
     elif name == "aggregator-ui":
         if not ensure_ui_test_dependencies(directory):
             return None
@@ -145,7 +153,7 @@ def build_module(root: Path, name: str) -> TestModule | None:
     else:
         raise ValueError(f"Unknown test module: {name}")
 
-    return TestModule(name, directory, command)
+    return TestModule(name, directory, command, environment)
 
 
 def execute_module(module: TestModule) -> int:
@@ -156,6 +164,7 @@ def execute_module(module: TestModule) -> int:
             module.command,
             cwd=module.directory,
             check=False,
+            **({"env": module.env} if module.env is not None else {}),
         )
     except OSError as error:
         print(f"  Could not start {module.name} tests: {error}", flush=True)

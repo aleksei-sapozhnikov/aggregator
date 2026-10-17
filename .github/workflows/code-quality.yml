@@ -54,6 +54,7 @@ jobs:
             ~/.m2/repository
             .temp/qa-runtime/venv
             .temp/qa-runtime/maven
+            .temp/qa-runtime/jdk
             ~/.npm
             .temp/qa-runtime/google-java-format
             .temp/qa-runtime/node_modules
