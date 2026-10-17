@@ -128,7 +128,7 @@ class OrchestratorFlowTests(unittest.TestCase):
         violations = [f"Ruff violation {index}" for index in range(25)]
         result = MagicMock(
             returncode=1,
-            stdout="\\n".join(violations),
+            stdout="\n".join(violations),
             stderr="Additional diagnostics",
         )
         with patch.object(utils.subprocess, "run", return_value=result) as run:
