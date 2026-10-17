@@ -62,13 +62,15 @@ export default function DemoCharacter({
         />
       )}
       {role === "support" && (
+        <path
+          d="M25 39Q16 7 49 9Q81 10 76 43L67 33Q53 18 38 31Z"
+          fill="#483b46"
+          stroke="#243442"
+          strokeWidth="2"
+        />
+      )}
+      {role === "support" && (
         <g className="demo-character-support-headset" data-demo-gesture="headset">
-          <path
-            d="M25 39Q16 7 49 9Q81 10 76 43L67 33Q53 18 38 31Z"
-            fill="#483b46"
-            stroke="#243442"
-            strokeWidth="2"
-          />
           <path
             d="M23 48Q17 21 32 15M79 48Q84 22 69 15"
             fill="none"

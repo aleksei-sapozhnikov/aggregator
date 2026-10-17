@@ -44,13 +44,19 @@ Characters, machines, phones, dependency diagrams, moving checkmarks,
 selection frames, and simulated cursors are explanatory SVG/CSS illustrations
 and do not replace the application UI.
 
-Reusable character assets live in `about/shared/characters/`: User calls,
-Owner carries the repair wrench, and Support wears a call-center headset.
+Reusable character assets live in `about/shared/characters/`: User calls
+and waves a phone, Owner carries the repair wrench, and Support adjusts a
+call-center headset. Their gestures are animated when the actors are visible.
 The same role uses the same SVG in Actors and Primary contact. The service
 machine has one SVG with an `unhealthy` parameter that switches its lamp
 between green and red. Wooden captions are used for people only and remain
 separate `DemoWoodLabel` elements, rather than becoming part of the SVG
 assets. The service illustration needs no caption.
+
+Primary Contact centers the expanded Aggregator page independently from the
+SVG scene. Its Service, User with phone, and incoming Owner are distributed
+across the canvas, and the scene scales down as a unit on narrow screens so
+the figures and the outgoing phone waves remain inside the frame.
 
 Use the UI service's `npm run typecheck`, `npm test`, and `npm run build`
 for validation, plus browser checks at desktop and mobile widths.
