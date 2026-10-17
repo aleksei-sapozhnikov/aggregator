@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import hashlib
-import os
 import shutil
 import stat
 import sys
@@ -64,9 +63,11 @@ def ensure_cached_maven(root: Path) -> Path | None:
     archive_path = cache / f"apache-maven-{MAVEN_VERSION}-bin.zip"
     try:
         print(f"Downloading Apache Maven {MAVEN_VERSION} for Java tests...", flush=True)
-        with urllib.request.urlopen(MAVEN_DOWNLOAD_URL, timeout=90) as response:
-            with archive_path.open("wb") as archive_file:
-                shutil.copyfileobj(response, archive_file)
+        with (
+            urllib.request.urlopen(MAVEN_DOWNLOAD_URL, timeout=90) as response,
+            archive_path.open("wb") as archive_file,
+        ):
+            shutil.copyfileobj(response, archive_file)
 
         sha512 = hashlib.sha512(archive_path.read_bytes()).hexdigest()
         if sha512 != MAVEN_ZIP_SHA512:
