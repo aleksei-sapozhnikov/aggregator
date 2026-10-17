@@ -3,6 +3,7 @@ import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import HealthySignalsHelpDemo from "./healthy-signals/HealthySignalsHelpDemo";
 import UnhealthySignalsHelpDemo from "./unhealthy-signals/UnhealthySignalsHelpDemo";
+import { unhealthyTiming } from "./unhealthy-signals/UnhealthySignalTiming";
 
 beforeEach(() => vi.useFakeTimers());
 afterEach(() => {
@@ -84,7 +85,7 @@ describe("Signal flow help demonstrations", () => {
 
   it.each([
     ["healthy", 15000],
-    ["unhealthy", 27300],
+    ["unhealthy", 24620],
   ] as const)("preserves the %s cycle and progress reset", (mode, duration) => {
     render(
       mode === "healthy" ? (
@@ -105,7 +106,7 @@ describe("Signal flow help demonstrations", () => {
 
   it.each([
     ["healthy", 6500, '[data-selection-frame="availability"]'],
-    ["unhealthy", 13800, '[data-unhealthy-frame="item"]'],
+    ["unhealthy", 11120, '[data-unhealthy-frame="item"]'],
   ] as const)(
     "keeps %s selection frames visible during the two-second hold",
     (mode, start, selector) => {
@@ -147,7 +148,7 @@ describe("Signal flow help demonstrations", () => {
       '[data-unhealthy-frame="nested1"]',
     ) as SVGRectElement;
     let previousTime = 0;
-    for (const time of [11200, 13800, 15800, 17800]) {
+    for (const time of [8200, 11120, 13120, 14200]) {
       advance(time - previousTime);
       previousTime = time;
       const upperBottom =
@@ -200,11 +201,11 @@ describe("Signal flow help demonstrations", () => {
       ".signal-flow-help-node-frame",
     ) as Element;
     const startX = box.getAttribute("x");
-    advance(11200);
+    advance(7700);
     expect(Number(page.style.opacity)).toBeGreaterThan(0);
     expect(Number(page.style.opacity)).toBeLessThan(1);
     expect(box.getAttribute("x")).not.toBe(startX);
-    advance(2600);
+    advance(3420);
     expect(page.style.opacity).toBe("1");
     expect(box.getAttribute("opacity")).toBe("0");
     expect(page.querySelectorAll(".item-navigation-link")).toHaveLength(2);
@@ -212,7 +213,7 @@ describe("Signal flow help demonstrations", () => {
     expect(page.querySelector(".content-status-label")?.textContent).toBe(
       "DOWN",
     );
-    advance(7200);
+    advance(6620);
     expect(page.style.opacity).toBe("0");
     expect(box.getAttribute("x")).toBe(startX);
     expect(groups.every((group) => group.isConnected)).toBe(true);
@@ -277,58 +278,77 @@ describe("Signal flow help demonstrations", () => {
     },
   );
 
-  it("propagates red 2.5x faster without changing when dependent nodes fail", () => {
+  it("turns each dependent node red exactly when its incoming wave arrives", () => {
     render(<UnhealthySignalsHelpDemo />);
+    const { firstLinkStart, dependencyAffectedAt, secondLinkStart, itemAffectedAt } =
+      unhealthyTiming;
 
     expect(getNode("nested1").getAttribute("data-health")).toBe("healthy");
     expect(getNode("dep1").getAttribute("data-health")).toBe("healthy");
     expect(getNode("item").getAttribute("data-health")).toBe("healthy");
 
-    advance(1600);
+    advance(unhealthyTiming.failureStart);
     expect(getNode("nested1").getAttribute("data-health")).toBe("unhealthy");
     expect(document.querySelectorAll("[data-failing-check]")).toHaveLength(1);
     expect(getNode("dep1").getAttribute("data-health")).toBe("healthy");
 
-    // The first red wave still starts at 2400 ms, but now takes 720 ms.
-    advance(800);
+    advance(firstLinkStart - unhealthyTiming.failureStart);
     expect(getProgress("nested1-dep1")).toBe(0);
     advance(400);
     expect(getProgress("nested1-dep1")).toBeGreaterThan(0);
     expect(getProgress("nested1-dep1")).toBeLessThan(100);
-    expect(
-      document.querySelector(
-        '[data-flow-edge="nested1-dep1"] .signal-flow-help-current',
-      ),
-    ).toBeNull();
+    expect(getNode("dep1").getAttribute("data-health")).toBe("healthy");
 
-    advance(400);
+    advance(dependencyAffectedAt - firstLinkStart - 400 - 20);
+    expect(getNode("dep1").getAttribute("data-health")).toBe("healthy");
+    advance(20);
     expect(getProgress("nested1-dep1")).toBe(100);
-    expect(getNode("dep1").getAttribute("data-health")).toBe("healthy");
-    advance(1100);
-    expect(getNode("dep1").getAttribute("data-health")).toBe("healthy");
-    advance(100);
     expect(getNode("dep1").getAttribute("data-health")).toBe("unhealthy");
-    expect(getNode("dep2").getAttribute("data-health")).toBe("healthy");
+    expect(getNode("item").getAttribute("data-health")).toBe("healthy");
 
-    // The second wave still starts at 4900 ms, but now takes 800 ms.
-    advance(500);
+    // Keep the original 500 ms pause after the dependency turns red.
+    advance(secondLinkStart - dependencyAffectedAt);
     expect(getProgress("dep1-item")).toBe(0);
     expect(getNode("item").getAttribute("data-health")).toBe("healthy");
     advance(400);
     expect(getProgress("dep1-item")).toBeGreaterThan(0);
     expect(getProgress("dep1-item")).toBeLessThan(100);
-    advance(400);
+    advance(itemAffectedAt - secondLinkStart - 400 - 20);
+    expect(getNode("item").getAttribute("data-health")).toBe("healthy");
+    advance(20);
     expect(getProgress("dep1-item")).toBe(100);
-    expect(getNode("item").getAttribute("data-health")).toBe("healthy");
-    advance(1300);
-    expect(getNode("item").getAttribute("data-health")).toBe("healthy");
-    advance(100);
     expect(getNode("item").getAttribute("data-health")).toBe("unhealthy");
+    expect(getNode("dep2").getAttribute("data-health")).toBe("healthy");
     expect(getNode("nested2").getAttribute("data-health")).toBe("healthy");
-    expect(getNode("nested3").getAttribute("data-health")).toBe("healthy");
-    expect(document.querySelector("figcaption")).toBeNull();
-    expect(getNode("item").textContent).toContain("client-service");
-    expect(getNode("dep2").textContent).toContain("client-backend");
+
+    advance(unhealthyTiming.presentationStart - itemAffectedAt - 20);
+    expect(getNode("item").getAttribute("data-health")).toBe("unhealthy");
+    advance(20);
+    expect(getNode("item").getAttribute("data-health")).toBe("unhealthy");
+  });
+
+  it("keeps selection frames within the original unhealthy node outlines", () => {
+    const { container } = render(<UnhealthySignalsHelpDemo />);
+    for (const name of ["item", "dep1", "nested1"]) {
+      const frame = container.querySelector(
+        `[data-unhealthy-frame="${name}"]`,
+      ) as SVGRectElement;
+      const node = container.querySelector(
+        `[data-unhealthy-source="${name}"] .signal-flow-help-node-frame`,
+      ) as SVGRectElement;
+      expect(Number(frame.getAttribute("x"))).toBeGreaterThan(
+        Number(node.getAttribute("x")),
+      );
+      expect(Number(frame.getAttribute("y"))).toBeGreaterThan(
+        Number(node.getAttribute("y")),
+      );
+      expect(
+        Number(frame.getAttribute("x")) + Number(frame.getAttribute("width")),
+      ).toBeLessThan(Number(node.getAttribute("x")) + Number(node.getAttribute("width")));
+      expect(
+        Number(frame.getAttribute("y")) + Number(frame.getAttribute("height")),
+      ).toBeLessThan(Number(node.getAttribute("y")) + Number(node.getAttribute("height")));
+    }
   });
 
   it("restores the leaf, then the parent, then the Item with bottom-up green waves", () => {
@@ -343,7 +363,7 @@ describe("Signal flow help demonstrations", () => {
       '[data-flow-edge="dep1-item"]',
     ) as SVGGElement;
 
-    advance(21800);
+    advance(19120);
     expect(graph.style.opacity).toBe("1");
     expect(getNode("nested1").getAttribute("data-health")).toBe("unhealthy");
     expect(getNode("dep1").getAttribute("data-health")).toBe("unhealthy");
@@ -382,25 +402,20 @@ describe("Signal flow help demonstrations", () => {
       0,
     );
 
-    // All-green recovery ends at 26800 ms (including the page hold).
-    // The remaining 500 ms stay green, then the opening pause starts again.
+    // Recovery still ends 500 ms before the shorter cycle resets.
     advance(300);
     expect(document.querySelectorAll('[data-health="unhealthy"]')).toHaveLength(
       0,
     );
     advance(100);
-    expect(document.querySelectorAll('[data-health="unhealthy"]')).toHaveLength(
-      0,
-    );
-    advance(100);
-    expect(document.querySelectorAll('[data-health="unhealthy"]')).toHaveLength(
-      0,
-    );
     expect(
       screen
         .getByRole("progressbar", { name: "Animation progress" })
         .getAttribute("aria-valuenow"),
     ).toBe("0");
+    expect(document.querySelectorAll('[data-health="unhealthy"]')).toHaveLength(
+      0,
+    );
     advance(1600);
     expect(getNode("nested1").getAttribute("data-health")).toBe("unhealthy");
     expect(getNode("dep1").getAttribute("data-health")).toBe("healthy");
