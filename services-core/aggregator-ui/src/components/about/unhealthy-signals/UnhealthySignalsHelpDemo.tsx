@@ -12,11 +12,12 @@ import UnhealthySignalProjection, {
 } from "./UnhealthySignalProjection";
 
 const failureStart = 1500;
+const redPropagationSpeed = 2.5;
 const firstLinkStart = 2400;
-const firstLinkEnd = 4200;
+const firstLinkEnd = firstLinkStart + 1800 / redPropagationSpeed;
 const dependencyAffectedAt = 4400;
 const secondLinkStart = 4900;
-const secondLinkEnd = 6900;
+const secondLinkEnd = secondLinkStart + 2000 / redPropagationSpeed;
 const itemAffectedAt = 7100;
 
 const leafRecoveredAt = 20200;

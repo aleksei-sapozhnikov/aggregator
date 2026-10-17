@@ -274,7 +274,7 @@ describe("Signal flow help demonstrations", () => {
     },
   );
 
-  it("propagates the failed nested dependency toward its parent and current Item", () => {
+  it("propagates red 2.5x faster without changing when dependent nodes fail", () => {
     render(<UnhealthySignalsHelpDemo />);
 
     expect(getNode("nested1").getAttribute("data-health")).toBe("healthy");
@@ -285,9 +285,11 @@ describe("Signal flow help demonstrations", () => {
     expect(getNode("nested1").getAttribute("data-health")).toBe("unhealthy");
     expect(document.querySelectorAll("[data-failing-check]")).toHaveLength(1);
     expect(getNode("dep1").getAttribute("data-health")).toBe("healthy");
-    expect(getProgress("nested1-dep1")).toBe(0);
 
-    advance(1700);
+    // The first red wave still starts at 2400 ms, but now takes 720 ms.
+    advance(800);
+    expect(getProgress("nested1-dep1")).toBe(0);
+    advance(400);
     expect(getProgress("nested1-dep1")).toBeGreaterThan(0);
     expect(getProgress("nested1-dep1")).toBeLessThan(100);
     expect(
@@ -295,20 +297,29 @@ describe("Signal flow help demonstrations", () => {
         '[data-flow-edge="nested1-dep1"] .signal-flow-help-current',
       ),
     ).toBeNull();
-    expect(getNode("dep1").getAttribute("data-health")).toBe("healthy");
 
-    advance(1300);
+    advance(400);
     expect(getProgress("nested1-dep1")).toBe(100);
+    expect(getNode("dep1").getAttribute("data-health")).toBe("healthy");
+    advance(1100);
+    expect(getNode("dep1").getAttribute("data-health")).toBe("healthy");
+    advance(100);
     expect(getNode("dep1").getAttribute("data-health")).toBe("unhealthy");
     expect(getNode("dep2").getAttribute("data-health")).toBe("healthy");
-    expect(getNode("item").getAttribute("data-health")).toBe("healthy");
 
-    advance(1300);
+    // The second wave still starts at 4900 ms, but now takes 800 ms.
+    advance(500);
+    expect(getProgress("dep1-item")).toBe(0);
+    expect(getNode("item").getAttribute("data-health")).toBe("healthy");
+    advance(400);
     expect(getProgress("dep1-item")).toBeGreaterThan(0);
-    expect(getNode("item").getAttribute("data-health")).toBe("healthy");
-
-    advance(1500);
+    expect(getProgress("dep1-item")).toBeLessThan(100);
+    advance(400);
     expect(getProgress("dep1-item")).toBe(100);
+    expect(getNode("item").getAttribute("data-health")).toBe("healthy");
+    advance(1300);
+    expect(getNode("item").getAttribute("data-health")).toBe("healthy");
+    advance(100);
     expect(getNode("item").getAttribute("data-health")).toBe("unhealthy");
     expect(getNode("nested2").getAttribute("data-health")).toBe("healthy");
     expect(getNode("nested3").getAttribute("data-health")).toBe("healthy");
