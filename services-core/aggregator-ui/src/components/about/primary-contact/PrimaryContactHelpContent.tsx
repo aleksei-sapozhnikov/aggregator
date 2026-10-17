@@ -2,7 +2,7 @@ import PrimaryContactHelpDemo from "./PrimaryContactHelpDemo";
 
 export const primaryContactHelp = {
   title: "Primary contact",
-  summary: "The main contact for this item. Click for details.",
+  summary: "The main contact for this item.",
 };
 
 export default function PrimaryContactHelpContent() {
