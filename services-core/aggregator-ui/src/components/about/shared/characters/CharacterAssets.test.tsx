@@ -13,6 +13,9 @@ import userAssetUrl from "./user/UserCharacter.svg?no-inline";
 import SupportCharacter from "./support/SupportCharacter";
 import supportArtwork from "./support/SupportCharacter.svg?raw";
 import supportAssetUrl from "./support/SupportCharacter.svg?no-inline";
+import ServiceMachine from "./service/ServiceMachine";
+import serviceArtwork from "./service/ServiceMachine.svg?raw";
+import serviceAssetUrl from "./service/ServiceMachine.svg?no-inline";
 
 afterEach(cleanup);
 
@@ -40,7 +43,12 @@ describe("Independent character SVG assets", () => {
   );
 
   it("emits external SVG files instead of inlining fragment assets", () => {
-    for (const url of [ownerAssetUrl, userAssetUrl, supportAssetUrl]) {
+    for (const url of [
+      ownerAssetUrl,
+      userAssetUrl,
+      supportAssetUrl,
+      serviceAssetUrl,
+    ]) {
       expect(url).not.toMatch(/^data:/);
       expect(url).toContain(".svg");
     }
@@ -89,4 +97,61 @@ describe("Independent character SVG assets", () => {
     ).toContain("SupportCharacter.svg#support-hand");
     expect(support?.querySelector(".actors-help-wrench")).toBeNull();
   });
+  it("provides a standalone service illustration with four independent layers", () => {
+    const document = new DOMParser().parseFromString(
+      serviceArtwork,
+      "image/svg+xml",
+    );
+    expect(document.querySelector("parsererror")).toBeNull();
+    expect(document.documentElement.getAttribute("viewBox")).toBe(
+      "0 -20 215 260",
+    );
+    for (const id of [
+      "service-base",
+      "service-gear",
+      "service-up",
+      "service-down",
+    ]) {
+      expect(document.getElementById(id)?.tagName).toBe("g");
+    }
+    expect(document.querySelectorAll("g[id]")).toHaveLength(4);
+    expect(
+      document.querySelector('#service-up rect[fill="#70c87c"]'),
+    ).not.toBeNull();
+    expect(
+      document.querySelector('#service-down rect[fill="#eb4d46"]'),
+    ).not.toBeNull();
+  });
+
+  it("keeps one service SVG while switching its indicator layers", () => {
+    const { container, rerender } = render(
+      <svg>
+        <ServiceMachine unhealthy={0} />
+      </svg>,
+    );
+    const machine = container.querySelector("[data-demo-service-machine]");
+    const green = machine?.querySelector('[data-service-lamp="up"]');
+    const red = machine?.querySelector('[data-service-lamp="down"]');
+    expect(machine?.querySelectorAll("use")).toHaveLength(4);
+    expect(
+      machine?.querySelector(".actors-help-gear use")?.getAttribute("href"),
+    ).toContain("ServiceMachine.svg#service-gear");
+    expect(green?.querySelector("use")?.getAttribute("href")).toContain(
+      "ServiceMachine.svg#service-up",
+    );
+    expect(red?.querySelector("use")?.getAttribute("href")).toContain(
+      "ServiceMachine.svg#service-down",
+    );
+    expect(green?.getAttribute("opacity")).toBe("1");
+    expect(red?.getAttribute("opacity")).toBe("0");
+
+    rerender(
+      <svg>
+        <ServiceMachine unhealthy={1} />
+      </svg>,
+    );
+    expect(green?.getAttribute("opacity")).toBe("0");
+    expect(red?.getAttribute("opacity")).toBe("1");
+  });
+
 });
