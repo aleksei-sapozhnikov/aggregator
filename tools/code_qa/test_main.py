@@ -157,7 +157,7 @@ class OrchestratorFlowTests(unittest.TestCase):
             redirected_stdout.detach()
 
         output = buffer.getvalue().decode("utf-8")
-        self.assertIn("\u2713 passed, \u4e2d\u6587 supported", output)
+        self.assertIn("PASS passed, \u4e2d\u6587 supported", output)
         self.assertIn("=== QA: PASSED ===", output)
 
     def test_missing_test_process_reports_failure(self) -> None:
