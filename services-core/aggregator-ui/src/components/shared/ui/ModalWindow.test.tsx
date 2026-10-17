@@ -2,6 +2,8 @@
  * @vitest-environment jsdom
  */
 
+/** @file Tests modal stacking, focus handling, and close interactions. */
+
 import { useState } from "react";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";

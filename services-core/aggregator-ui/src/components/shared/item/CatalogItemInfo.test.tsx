@@ -2,6 +2,8 @@
  * @vitest-environment jsdom
  */
 
+/** @file Tests Item short and full descriptions in tooltip and modal. */
+
 import {
   cleanup,
   fireEvent,

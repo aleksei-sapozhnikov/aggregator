@@ -1,4 +1,6 @@
 /** @vitest-environment jsdom */
+/** @file Tests theme persistence, context updates, and document theme application. */
+
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import ThemeProvider, { useTheme } from "./ThemeProvider";
