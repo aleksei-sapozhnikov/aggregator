@@ -30,36 +30,6 @@
    Local fill boxes keep the pivot on the tool, not the full SVG canvas. */
 .actors-help-demo.is-illustrating
   .actors-help-person-owner
-  .actors-help-laptop {
-  transform-box: fill-box;
-  transform-origin: 50% 100%;
-  animation: actors-help-laptop-tilt 1.2s ease-in-out infinite alternate;
-}
-
-.actors-help-demo.is-illustrating
-  .actors-help-person-owner
-  .actors-help-typing {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: actors-help-type 0.32s ease-in-out infinite alternate;
-}
-
-.actors-help-demo.is-illustrating .actors-help-person-user .actors-help-tablet {
-  transform-box: fill-box;
-  transform-origin: 50% 85%;
-  animation: actors-help-tablet-tilt 0.85s ease-in-out infinite alternate;
-}
-
-.actors-help-demo.is-illustrating
-  .actors-help-person-user
-  .actors-help-moving-arm {
-  transform-box: fill-box;
-  transform-origin: 50% 0;
-  animation: actors-help-check 0.75s ease-in-out infinite alternate;
-}
-
-.actors-help-demo.is-illustrating
-  .actors-help-person-support
   .actors-help-wrench {
   transform-box: fill-box;
   transform-origin: 50% 75%;

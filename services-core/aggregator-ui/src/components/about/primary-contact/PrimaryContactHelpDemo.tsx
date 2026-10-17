@@ -18,6 +18,9 @@ import DemoHighlightFrame from "../shared/DemoHighlightFrame";
 import DemoWoodLabel from "../shared/DemoWoodLabel";
 import HelpAnimationCanvas from "../shared/HelpAnimationCanvas";
 import useHelpAnimationClock from "../shared/useHelpAnimationClock";
+import OwnerCharacter from "../shared/characters/OwnerCharacter";
+import UserCharacter from "../shared/characters/UserCharacter";
+import ServiceMachine from "../shared/characters/ServiceMachine";
 import { progressBetween, smooth } from "../shared/signal-flow/progress";
 import "./PrimaryContactHelpDemo.css";
 
@@ -92,192 +95,6 @@ export function getPrimaryContactHelpLayout(availableWidth: number) {
 
 type HelpFrame = ReturnType<typeof getPrimaryContactHelpFrame>;
 type HelpLayout = ReturnType<typeof getPrimaryContactHelpLayout>;
-
-function Service({ frame }: { frame: HelpFrame }) {
-  const healthyOpacity = 1 - frame.unhealthy;
-  return (
-    <g data-primary-contact-service="true" transform="translate(75 123)">
-      <ellipse
-        cx="89"
-        cy="181"
-        rx="89"
-        ry="8"
-        className="primary-contact-shadow"
-      />
-      <path
-        d="M140 37l16-10q9-4 9 9v130l-20 11Z"
-        fill="#587d98"
-        stroke="#354e63"
-        strokeWidth="3"
-      />
-      <rect
-        x="14"
-        y="28"
-        width="137"
-        height="149"
-        rx="15"
-        fill="#87a9c1"
-        stroke="#354e63"
-        strokeWidth="4"
-      />
-      <rect
-        x="31"
-        y="61"
-        width="102"
-        height="87"
-        rx="11"
-        fill="#334d64"
-        stroke="#31485b"
-        strokeWidth="3"
-      />
-      <g
-        transform="translate(82 104)"
-        fill="#98bace"
-        stroke="#31485b"
-        strokeWidth="2.7"
-      >
-        {Array.from({ length: 8 }, (_, index) => (
-          <rect
-            key={index}
-            x="-5"
-            y="-34"
-            width="10"
-            height="16"
-            rx="2"
-            transform={"rotate(" + index * 45 + ")"}
-          />
-        ))}
-        <circle r="24" />
-        <circle r="10" fill="#516f86" />
-      </g>
-      <circle cx="22" cy="77" r="4.5" className="primary-contact-up-light" />
-      <circle cx="22" cy="96" r="4.5" fill="#f6ca69" />
-      <circle cx="22" cy="115" r="3.5" fill="#edaa79" />
-      <rect x="50" y="159" width="61" height="7" rx="3.5" fill="#52758f" />
-      <rect
-        x="60"
-        y="5"
-        width="65"
-        height="26"
-        rx="5"
-        fill="#52758f"
-        stroke="#354e63"
-        strokeWidth="3"
-      />
-      <rect
-        x="82"
-        y="-7"
-        width="23"
-        height="17"
-        rx="5"
-        stroke="#354e63"
-        strokeWidth="3"
-        className="primary-contact-up-light"
-        style={{ opacity: healthyOpacity }}
-      />
-      <rect
-        x="82"
-        y="-7"
-        width="23"
-        height="17"
-        rx="5"
-        stroke="#9c3733"
-        strokeWidth="3"
-        className="primary-contact-down-light"
-        style={{ opacity: frame.unhealthy }}
-      />
-      <g
-        opacity={healthyOpacity}
-        className="primary-contact-up-rays"
-        strokeWidth="3"
-        strokeLinecap="round"
-      >
-        <path d="M87-15l-6-8M104-15l6-8M94-18v-9" />
-      </g>
-      <g
-        opacity={frame.unhealthy}
-        className="primary-contact-down-rays"
-        strokeWidth="3"
-        strokeLinecap="round"
-      >
-        <path d="M87-15l-6-8M104-15l6-8M94-18v-9" />
-      </g>
-    </g>
-  );
-}
-
-function Observer({ frame }: { frame: HelpFrame }) {
-  return (
-    <g
-      data-primary-contact-observer="true"
-      transform="translate(352 76)"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <ellipse
-        cx="73"
-        cy="230"
-        rx="55"
-        ry="7"
-        className="primary-contact-shadow"
-      />
-      <path
-        d="M42 168 33 228h28l13-50 11 50h27l-8-68Z"
-        fill="#35495e"
-        stroke="#283b4d"
-        strokeWidth="3"
-      />
-      <path
-        d="M28 101q2-20 29-21h35q25 4 28 23l-7 74H33Z"
-        fill="#4286c5"
-        stroke="#2b455b"
-        strokeWidth="3"
-      />
-      <path
-        d="M32 110 20 148 44 164M113 107l15 37-19 23"
-        fill="none"
-        stroke="#4286c5"
-        strokeWidth="15"
-      />
-      <circle cx="44" cy="164" r="7" fill="#f6c49d" />
-      <circle cx="109" cy="167" r="7" fill="#f6c49d" />
-      <rect x="66" y="70" width="17" height="16" rx="4" fill="#f6c49d" />
-      <ellipse
-        cx="75"
-        cy="48"
-        rx="32"
-        ry="35"
-        fill="#f6c49d"
-        stroke="#293e4f"
-        strokeWidth="3"
-      />
-      <path
-        d="M43 48q-9-33 22-38Q109 4 107 38l-16-10Q65 22 43 48Z"
-        fill="#323a46"
-        stroke="#293e4f"
-        strokeWidth="3"
-      />
-      <circle cx="64" cy="49" r="2.5" fill="#263745" />
-      <circle cx="88" cy="49" r="2.5" fill="#263745" />
-      <path
-        d={frame.unhealthy > 0.5 ? "M65 68Q76 61 87 68" : "M64 64Q76 73 88 63"}
-        fill="none"
-        stroke="#263745"
-        strokeWidth="2.5"
-      />
-      <g data-primary-contact-alarm="true" opacity={frame.alarm}>
-        <text x="118" y="2" className="primary-contact-exclamation">
-          !
-        </text>
-        <path
-          d="M116-7l-5-8M130-8l7-8"
-          className="primary-contact-alarm-rays"
-          strokeWidth="3"
-        />
-      </g>
-    </g>
-  );
-}
 
 function Laptop({ frame }: { frame: HelpFrame }) {
   return (
@@ -402,79 +219,34 @@ function Phone({ frame }: { frame: HelpFrame }) {
 
 function Technician({ frame }: { frame: HelpFrame }) {
   return (
-    <g
-      data-primary-contact-technician="true"
+    <g data-primary-contact-technician="true"
       style={{ opacity: frame.technicianOpacity }}
       transform={"translate(" + frame.technicianX + " 143)"}
-      strokeLinecap="round"
-      strokeLinejoin="round"
     >
-      <ellipse
-        cx="36"
-        cy="159"
-        rx="42"
-        ry="6"
-        className="primary-contact-shadow"
-      />
-      <path
-        d="M15 106 9 155h19l14-43 10 43h20l-6-55Z"
-        fill="#324e61"
-        stroke="#284354"
-        strokeWidth="2.5"
-      />
-      <path
-        d="M3 68q9-14 25-14h27q20 4 23 20l-7 44H5Z"
-        fill="#54b792"
-        stroke="#286751"
-        strokeWidth="3"
-      />
-      <circle
-        cx="39"
-        cy="27"
-        r="25"
-        fill="#f5bc91"
-        stroke="#304455"
-        strokeWidth="2.5"
-      />
-      <path
-        d="M16 29Q12 0 41 0Q66 0 64 29L55 16Q39 7 16 29Z"
-        fill="#a46b4d"
-        stroke="#304455"
-        strokeWidth="2"
-      />
-      <circle cx="31" cy="28" r="2" fill="#304455" />
-      <circle cx="48" cy="28" r="2" fill="#304455" />
-      <path d="M32 41q8 7 14-1" fill="none" stroke="#304455" strokeWidth="2" />
-      <path
-        d="M6 77 -3 94 20 103"
-        fill="none"
-        stroke="#54b792"
-        strokeWidth="12"
-      />
-      <circle cx="20" cy="103" r="6" fill="#f5bc91" />
-      <path d="M66 75 79 107" stroke="#54b792" strokeWidth="12" />
-      <g
-        data-primary-contact-wrench="true"
-        transform={"rotate(" + frame.wrenchAngle * frame.repair + " 20 103)"}
-      >
-        <path d="M20 103 -13 75" stroke="#64798b" strokeWidth="8" />
-        <path
-          d="M-22 58q-10 3-6 15l10 4q11-2 10-12l-7 5-6-5Z"
-          fill="#a8b9c7"
-          stroke="#41596b"
-          strokeWidth="2"
-        />
-        <circle
-          cx="20"
-          cy="103"
-          r="5"
-          fill="#a8b9c7"
-          stroke="#41596b"
-          strokeWidth="2"
-        />
+      <g transform="translate(-19 0) scale(1.15)">
+        <OwnerCharacter repairProgress={frame.wrenchAngle * frame.repair} />
       </g>
-      <circle cx="20" cy="103" r="5.5" fill="#f5bc91" />
-      <DemoWoodLabel x={39} y={170} width={70} label="Owner" />
+      <g transform="translate(40 166) scale(1.8)">
+        <DemoWoodLabel x={0} y={0} width={70} label="Owner" />
+      </g>
+    </g>
+  );
+}
+
+function Observer({ frame }: { frame: HelpFrame }) {
+  return (
+    <g data-primary-contact-observer="true" transform="translate(352 76)">
+      <g transform="translate(-5 -20) scale(1.6)">
+        <UserCharacter />
+      </g>
+      <g transform="translate(75 211) scale(2.4)">
+        <DemoWoodLabel x={0} y={0} width={62} label="User" />
+      </g>
+      <g data-primary-contact-alarm="true" opacity={frame.alarm}>
+        <text x="117" y="2" className="primary-contact-exclamation">!</text>
+        <path d="M116-7l-5-8M130-8l7-8"
+          className="primary-contact-alarm-rays" strokeWidth="3" />
+      </g>
     </g>
   );
 }
@@ -618,7 +390,10 @@ export default function PrimaryContactHelpDemo() {
               data-primary-contact-scene="true"
               transform="translate(130 55) scale(0.66)"
             >
-              <Service frame={frame} />
+              <g data-primary-contact-service="true"
+                transform="translate(75 113) scale(0.82)">
+                <ServiceMachine unhealthy={frame.unhealthy} />
+              </g>
               <g
                 data-primary-contact-observer-offset="true"
                 transform={
