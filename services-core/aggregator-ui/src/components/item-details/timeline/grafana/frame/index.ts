@@ -4,6 +4,8 @@
  * back to the parent aggregator UI via postMessage.
  */
 
+import type { Theme } from "../../../../../shared/theme/theme";
+
 type GrafanaInnerWindow = Window & {
   MutationObserver?: typeof MutationObserver;
   Mousetrap?: {
@@ -31,7 +33,7 @@ let detachItemLinkHandlers: Array<() => void> = [];
  * flash the default white `about:blank` page before Grafana is loaded.
  *
  */
-const applyPlaceholder = (theme: "dark" | "light") => {
+const applyPlaceholder = (theme: Theme) => {
   if (!iframe) {
     return;
   }

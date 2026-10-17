@@ -2,7 +2,7 @@ import ActorsHelpDemo from "./ActorsHelpDemo";
 
 export const actorsHelp = {
   title: "Actors",
-  summary: "People or teams associated with this item. Click for details.",
+  summary: "People or teams associated with this item.",
 };
 
 export default function ActorsHelpContent() {
