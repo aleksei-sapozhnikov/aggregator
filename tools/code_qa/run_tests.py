@@ -8,6 +8,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+from run_maven import resolve_maven_command
 from utils import (
     ensure_venv,
     python_has_module,
@@ -126,7 +127,10 @@ def build_module(root: Path, name: str) -> TestModule | None:
 
     directory = root / "services-core" / name
     if name == "aggregator":
-        command = [platform_command("mvn"), "-B", "test"]
+        maven = resolve_maven_command(root)
+        if maven is None:
+            return None
+        command = [maven, "-B", "test"]
     elif name == "aggregator-ui":
         if not ensure_ui_test_dependencies(directory):
             return None

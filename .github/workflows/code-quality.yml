@@ -53,6 +53,7 @@ jobs:
             ~/.cache/pip
             ~/.m2/repository
             .temp/qa-runtime/venv
+            .temp/qa-runtime/maven
             ~/.npm
             .temp/qa-runtime/google-java-format
             .temp/qa-runtime/node_modules
