@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import ItemTitle from "../../shared/item/ItemTitle";
 import ItemOwnership from "../../shared/item/ItemOwnership";
 import { HealthySignals } from "../../shared/item/ItemSignals";
 import HelpAnimationProgress from "../shared/HelpAnimationProgress";
 import HelpInteractionShield from "../shared/HelpInteractionShield";
 import HelpAnimationCanvas from "../shared/HelpAnimationCanvas";
+import useHelpAnimationClock from "../shared/useHelpAnimationClock";
+import ItemTimeline from "../../shared/item/ItemTimeline";
 import DemoHelp from "../shared/DemoHelp";
 import {
   demoIconSpriteHref,
@@ -69,23 +71,10 @@ function OpenedDependencyItem() {
 
 export default function TimelineHelpDemo() {
   const [scenario, setScenario] = useState<Scenario>("inspect");
-  const [elapsed, setElapsed] = useState(0);
-  const [reduceMotion] = useState(
-    () =>
-      typeof window !== "undefined" &&
-      Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)").matches),
+  const { elapsed, setElapsed, reduceMotion } = useHelpAnimationClock(
+    cycleDurations[scenario],
+    stillFrames[scenario],
   );
-
-  useEffect(() => {
-    if (reduceMotion) {
-      setElapsed(stillFrames[scenario]);
-      return;
-    }
-    const interval = window.setInterval(() => {
-      setElapsed((value) => (value + 100) % cycleDurations[scenario]);
-    }, 100);
-    return () => window.clearInterval(interval);
-  }, [scenario, reduceMotion]);
 
   const changeScenario = (nextScenario: Scenario) => {
     setScenario(nextScenario);

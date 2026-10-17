@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import type { RefObject } from "react";
 import ItemTitle from "../../shared/item/ItemTitle";
 import ItemOwnership from "../../shared/item/ItemOwnership";
@@ -13,16 +13,15 @@ import {
 import HelpAnimationProgress from "../shared/HelpAnimationProgress";
 import HelpInteractionShield from "../shared/HelpInteractionShield";
 import HelpAnimationCanvas from "../shared/HelpAnimationCanvas";
+import useHelpAnimationClock from "../shared/useHelpAnimationClock";
+import { progressBetween, smooth } from "../shared/signal-flow/progress";
 import DemoWoodLabel from "../shared/DemoWoodLabel";
 import "./ActorsHelpDemo.css";
 
 // The HTML page and illustrated sprites scale together; destinations follow its DOM rows.
 export const actorsHelpDuration = 8000;
 const previewTime = 4600;
-const clamp = (value: number) => Math.max(0, Math.min(1, value));
-const between = (time: number, start: number, end: number) =>
-  clamp((time - start) / (end - start));
-const smooth = (value: number) => value * value * (3 - 2 * value);
+const between = progressBetween;
 const lerp = (start: number, end: number, factor: number) =>
   start + (end - start) * factor;
 
@@ -482,27 +481,12 @@ function ItemPreview({
 }
 
 export default function ActorsHelpDemo() {
-  const [elapsed, setElapsed] = useState(0);
+  const { elapsed, reduceMotion } = useHelpAnimationClock(
+    actorsHelpDuration,
+    previewTime,
+  );
   const pageRef = useRef<HTMLDivElement>(null);
   const targets = useHelpTargets(pageRef, actorSelectors, actorFallback);
-  const [reduceMotion] = useState(
-    () =>
-      typeof window !== "undefined" &&
-      Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)").matches),
-  );
-
-  useEffect(() => {
-    if (reduceMotion) {
-      setElapsed(previewTime);
-      return undefined;
-    }
-    // A discrete interval lands exactly on zero, so the progress bar resets
-    // without animating backwards at the cycle boundary.
-    const timer = window.setInterval(() => {
-      setElapsed((current) => (current + 50) % actorsHelpDuration);
-    }, 50);
-    return () => window.clearInterval(timer);
-  }, [reduceMotion]);
 
   const frame = getActorsHelpFrame(elapsed);
   const illustrating = !reduceMotion && (elapsed < 1800 || elapsed >= 7400);

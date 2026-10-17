@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import useHelpAnimationClock from "../shared/useHelpAnimationClock";
 import SignalFlowHelpScene, {
   type SignalFlowTargets,
 } from "../shared/signal-flow/SignalFlowHelpScene";
@@ -76,39 +76,20 @@ function HealthySignalHighlights({
 }
 
 export default function HealthySignalsHelpDemo() {
-  const [elapsed, setElapsed] = useState(0);
-  useEffect(() => {
-    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
-      setElapsed(7500);
-      return undefined;
-    }
-    const interval = window.setInterval(() => {
-      setElapsed((current) => (current + 100) % cycleDuration);
-    }, 100);
-    return () => window.clearInterval(interval);
-  }, []);
+  const { elapsed } = useHelpAnimationClock(cycleDuration, 7500);
 
   const sceneElapsed =
     elapsed - Math.min(expandedListHoldMs, Math.max(0, elapsed - 6500));
   const presentationProgress =
-    smooth(progressBetween(sceneElapsed, 3500, 5600)) *
-    (1 - smooth(progressBetween(sceneElapsed, 7700, 9900)));
+    smooth(progressBetween(sceneElapsed, 3500, 5000)) *
+    (1 - smooth(progressBetween(sceneElapsed, 7700, 9300)));
   const selectionOpacity =
-    progressBetween(sceneElapsed, 2100, 2900) *
-    (1 - progressBetween(sceneElapsed, 10300, 11100));
-  const graphOpacity = Math.min(
-    1,
-    Math.max(
-      0,
-      1 -
-        progressBetween(sceneElapsed, 3450, 4450) +
-        progressBetween(sceneElapsed, 8250, 9500),
-    ),
-  );
-  const pageOpacity =
-    progressBetween(sceneElapsed, 3400, 4500) *
-    (1 - progressBetween(sceneElapsed, 8200, 9300));
-  const linkOpacity = progressBetween(presentationProgress, 0.7, 0.95);
+    smooth(progressBetween(sceneElapsed, 2100, 2900)) *
+    (1 - smooth(progressBetween(sceneElapsed, 10300, 11100)));
+  // One eased transition for the projected checks, graph and real Item page.
+  const graphOpacity = 1 - presentationProgress;
+  const pageOpacity = presentationProgress;
+  const linkOpacity = smooth(progressBetween(presentationProgress, 0.7, 0.95));
 
   return (
     <SignalFlowHelpScene

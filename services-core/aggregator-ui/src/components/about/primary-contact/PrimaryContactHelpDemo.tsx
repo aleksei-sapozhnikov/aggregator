@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import type { RefObject } from "react";
 import ItemTitle from "../../shared/item/ItemTitle";
 import ItemOwnership, {
@@ -17,14 +17,14 @@ import HelpInteractionShield from "../shared/HelpInteractionShield";
 import DemoHighlightFrame from "../shared/DemoHighlightFrame";
 import DemoWoodLabel from "../shared/DemoWoodLabel";
 import HelpAnimationCanvas from "../shared/HelpAnimationCanvas";
+import useHelpAnimationClock from "../shared/useHelpAnimationClock";
+import { progressBetween, smooth } from "../shared/signal-flow/progress";
 import "./PrimaryContactHelpDemo.css";
 
 // HTML and SVG share scene coordinates, while the page uses production components.
 export const primaryContactHelpDuration = 15200;
-const clamp = (value: number) => Math.max(0, Math.min(1, value));
-const ease = (value: number) => value * value * (3 - 2 * value);
 const transition = (time: number, start: number, end: number) =>
-  ease(clamp((time - start) / (end - start)));
+  smooth(progressBetween(time, start, end));
 const mix = (start: number, end: number, amount: number) =>
   start + (end - start) * amount;
 
@@ -584,20 +584,10 @@ export default function PrimaryContactHelpDemo() {
   const pageRef = useRef<HTMLDivElement>(null);
   const targets = useHelpTargets(pageRef, contactSelectors, contactFallback);
   const [availableWidth, setAvailableWidth] = useState(640);
-  const [reduceMotion] = useState(
-    () =>
-      typeof window !== "undefined" &&
-      Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)").matches),
+  const { elapsed, reduceMotion } = useHelpAnimationClock(
+    primaryContactHelpDuration,
+    5350,
   );
-  const [elapsed, setElapsed] = useState(reduceMotion ? 5350 : 0);
-
-  useEffect(() => {
-    if (reduceMotion) return undefined;
-    const timer = window.setInterval(() => {
-      setElapsed((current) => (current + 50) % primaryContactHelpDuration);
-    }, 50);
-    return () => window.clearInterval(timer);
-  }, [reduceMotion]);
 
   const frame = getPrimaryContactHelpFrame(elapsed);
   const layout = getPrimaryContactHelpLayout(availableWidth);

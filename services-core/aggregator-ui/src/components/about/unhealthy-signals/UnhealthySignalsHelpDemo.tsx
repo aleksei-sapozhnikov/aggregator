@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import useHelpAnimationClock from "../shared/useHelpAnimationClock";
 import SignalFlowHelpScene from "../shared/signal-flow/SignalFlowHelpScene";
 import {
   expandedListHoldMs,
@@ -13,17 +13,10 @@ import UnhealthySignalProjection, {
 } from "./UnhealthySignalProjection";
 
 export default function UnhealthySignalsHelpDemo() {
-  const [elapsed, setElapsed] = useState(0);
-  useEffect(() => {
-    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
-      setElapsed(15000);
-      return undefined;
-    }
-    const interval = window.setInterval(() => {
-      setElapsed((current) => (current + 100) % unhealthyCycleDuration);
-    }, 100);
-    return () => window.clearInterval(interval);
-  }, []);
+  const { elapsed } = useHelpAnimationClock(
+    unhealthyCycleDuration,
+    timing.pageHoldAt,
+  );
 
   const sceneElapsed =
     elapsed - Math.min(expandedListHoldMs, Math.max(0, elapsed - timing.pageHoldAt));

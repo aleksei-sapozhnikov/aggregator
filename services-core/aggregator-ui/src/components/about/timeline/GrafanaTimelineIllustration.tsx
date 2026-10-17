@@ -1,3 +1,4 @@
+import { progressBetween, smooth } from "../shared/signal-flow/progress";
 import "./GrafanaTimelineIllustration.css";
 
 // Grafana owns this chart, its filter menu, time range and popups inside an iframe.
@@ -87,7 +88,7 @@ export function getInspectCursorRow(time: number): number {
   );
   const row = Math.min(lastRow - 1, Math.floor(progress));
   const movement = Math.min(1, (progress - row) / 0.66);
-  const eased = movement * movement * (3 - 2 * movement);
+  const eased = smooth(movement);
   return row + eased;
 }
 
@@ -327,7 +328,7 @@ export default function GrafanaTimelineIllustration({
   // cursor, hover popup and state lookup. No independent CSS animation drives it.
   // Stop within a segment showing healthy, unhealthy and unknown signals together.
   const endX = scenario === "inspect" ? 50 : 48;
-  const x = lerp(20, endX, (elapsed - 600) / 2200);
+  const x = lerp(20, endX, smooth(progressBetween(elapsed, 600, 2800)));
   const inspectCursorRow = getInspectCursorRow(elapsed);
   const inspectPopup =
     scenario === "inspect" && elapsed >= 1100 && elapsed < 8150;
