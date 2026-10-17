@@ -190,5 +190,6 @@ class OrchestratorFlowTests(unittest.TestCase):
             popen.call_args.args[0][-3:], ["--module", "catalog", "--verbose"]
         )
 
+
 if __name__ == "__main__":
     unittest.main()

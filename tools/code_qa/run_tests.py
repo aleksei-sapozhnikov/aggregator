@@ -110,7 +110,9 @@ def ensure_ui_test_dependencies(directory: Path) -> bool:
     return result.returncode == 0 and vitest.exists()
 
 
-def build_module(root: Path, name: str) -> TestModule | None:
+def build_module(
+    root: Path, name: str, *, verbose: bool = False
+) -> TestModule | None:
     """Build a module command; return None if prerequisites cannot be prepared."""
     if name == "code-qa":
         return TestModule(
@@ -125,7 +127,7 @@ def build_module(root: Path, name: str) -> TestModule | None:
                 "tools/code_qa",
                 "-p",
                 "test_*.py",
-                "-v",
+                *([] if not verbose else ["-v"]),
             ],
         )
 
@@ -138,7 +140,7 @@ def build_module(root: Path, name: str) -> TestModule | None:
         maven = resolve_maven_command(root)
         if maven is None:
             return None
-        command = [maven, "-B", "test"]
+        command = [maven, *(["-q"] if not verbose else []), "-B", "test"]
         environment = maven_environment(java_home)
     elif name == "aggregator-ui":
         if not ensure_ui_test_dependencies(directory):
@@ -147,19 +149,19 @@ def build_module(root: Path, name: str) -> TestModule | None:
             platform_command("npm"),
             "test",
             "--",
-            "--reporter=verbose",
+            f"--reporter={'verbose' if verbose else 'dot'}",
             "--no-color",
         ]
         environment = os.environ.copy()
         environment["NO_COLOR"] = "1"
         environment.pop("FORCE_COLOR", None)
     elif name == "catalog":
-        command = ["go", "test", "-v", "./..."]
+        command = ["go", "test", *(["-v"] if verbose else []), "./..."]
     elif name == "ai-agent":
         python = resolve_ai_agent_python(root)
         if python is None:
             return None
-        command = [python, "-m", "pytest", "-v", "tests"]
+        command = [python, "-m", "pytest", "-v" if verbose else "-q", "tests"]
     else:
         raise ValueError(f"Unknown test module: {name}")
 
@@ -211,7 +213,7 @@ def run_modules(
             failures.append(name)
             continue
 
-        module = build_module(root, name)
+        module = build_module(root, name, verbose=verbose)
         if module is None:
             print(f"Testing {name}.. FAILED (setup)", flush=True)
             failures.append(name)
@@ -239,6 +241,7 @@ def run_modules(
     if failures:
         print(f"Failed modules: {', '.join(failures)}", flush=True)
     return 1 if failures else 0
+
 
 def build_parser() -> argparse.ArgumentParser:
     """Parse module selections; without --module, run the entire test matrix."""

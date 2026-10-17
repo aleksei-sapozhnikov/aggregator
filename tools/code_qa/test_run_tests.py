@@ -28,7 +28,11 @@ class TestRunnerTests(unittest.TestCase):
                 ) as resolve,
             ):
                 module = run_tests.build_module(root, "aggregator")
-            self.assertEqual(module.command, ["mvn.cmd", "-B", "test"])
+            self.assertEqual(module.command, ["mvn.cmd", "-q", "-B", "test"])
+            self.assertEqual(
+                run_tests.build_module(root, "aggregator", verbose=True).command,
+                ["mvn.cmd", "-B", "test"],
+            )
             self.assertEqual(module.env["JAVA_HOME"], str(home))
             self.assertIn(
                 "--sun-misc-unsafe-memory-access=allow",
@@ -39,7 +43,7 @@ class TestRunnerTests(unittest.TestCase):
             resolve.assert_called_once_with(root)
             self.assertEqual(
                 run_tests.build_module(root, "catalog").command,
-                ["go", "test", "-v", "./..."],
+                ["go", "test", "./..."],
             )
 
     def test_missing_maven_prevents_java_tests_from_starting(self) -> None:
@@ -71,7 +75,7 @@ class TestRunnerTests(unittest.TestCase):
             self.assertEqual(run_tests.execute_module(module), (0, ""))
         self.assertEqual(execute.call_args.kwargs["env"], module.env)
 
-    def test_ui_uses_verbose_vitest_and_locked_dependencies(self) -> None:
+    def test_ui_uses_compact_vitest_and_locked_dependencies(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             with patch.object(
@@ -85,13 +89,20 @@ class TestRunnerTests(unittest.TestCase):
                     run_tests.platform_command("npm"),
                     "test",
                     "--",
-                    "--reporter=verbose",
+                    "--reporter=dot",
                     "--no-color",
                 ],
             )
             self.assertEqual(module.env["NO_COLOR"], "1")
             self.assertNotIn("FORCE_COLOR", module.env)
             setup.assert_called_once_with(root / "services-core" / "aggregator-ui")
+            with patch.object(
+                run_tests, "ensure_ui_test_dependencies", return_value=True
+            ):
+                verbose_module = run_tests.build_module(
+                    root, "aggregator-ui", verbose=True
+                )
+            self.assertIn("--reporter=verbose", verbose_module.command)
 
     def test_ui_removes_inherited_force_color(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -117,9 +128,12 @@ class TestRunnerTests(unittest.TestCase):
                     "python-for-tests",
                     "-m",
                     "pytest",
-                    "-v",
+                    "-q",
                     "tests",
                 ],
+            )
+            self.assertIn(
+                "-v", run_tests.build_module(root, "ai-agent", verbose=True).command
             )
 
     def test_qa_runner_discovers_its_own_unit_tests(self) -> None:
@@ -135,8 +149,11 @@ class TestRunnerTests(unittest.TestCase):
                 "tools/code_qa",
                 "-p",
                 "test_*.py",
-                "-v",
             ],
+        )
+        self.assertIn(
+            "-v",
+            run_tests.build_module(Path("/repo"), "code-qa", verbose=True).command,
         )
 
     def test_all_modules_run_even_when_one_fails(self) -> None:
@@ -153,7 +170,9 @@ class TestRunnerTests(unittest.TestCase):
                 calls.append(module.name)
                 return (1, "catalog failed") if module.name == "catalog" else (0, "")
 
-            def prepared_module(root_dir: Path, name: str) -> run_tests.TestModule:
+            def prepared_module(
+                root_dir: Path, name: str, *, verbose: bool = False
+            ) -> run_tests.TestModule:
                 return run_tests.TestModule(name, root_dir, ["mock-test-command"])
 
             output = StringIO()
@@ -266,7 +285,7 @@ class TestRunnerTests(unittest.TestCase):
             with (
                 patch.object(
                     run_tests, "build_module",
-                    side_effect=lambda root, name: run_tests.TestModule(
+                    side_effect=lambda root, name, verbose=False: run_tests.TestModule(
                         name, root, ["mock-test-command"]
                     ),
                 ),
@@ -286,11 +305,14 @@ class TestRunnerTests(unittest.TestCase):
 
     def test_cli_accepts_verbose_flag(self) -> None:
         with (
-            patch.object(sys, "argv", ["run_tests.py", "--module", "catalog", "--verbose"]),
+            patch.object(
+                sys, "argv", ["run_tests.py", "--module", "catalog", "--verbose"]
+            ),
             patch.object(run_tests, "run_modules", return_value=0) as run,
         ):
             self.assertEqual(run_tests.main(), 0)
         run.assert_called_once_with(["catalog"], verbose=True)
+
 
 if __name__ == "__main__":
     unittest.main()
