@@ -81,6 +81,9 @@ Both hooks preserve existing breakpoints and layout behavior, and the global
 
 `app/hooks/useCatalogData.ts` owns the initial catalog request, Product Health
 polling at a 10-second interval, error handling, and poll cleanup. The hook
-preserves the service-provided UP/DOWN/UNKNOWN states and exposes catalog and
-health data separately. Choosing the initial Item remains the responsibility
-of `app/App.tsx` and `useItemNavigation.ts`, not the loading hook.
+preserves service-provided UP/DOWN/UNKNOWN states and exposes catalog and
+health data separately. The application-level HealthConnectionBanner shows
+DISCONNECTED and the last successful snapshot time when polling fails.
+ItemTitle, CatalogTree and ItemDetails mark retained data as Last known but
+never invent failed signals. Choosing the initial Item remains the
+responsibility of `app/App.tsx` and `useItemNavigation.ts`, not the loading hook.

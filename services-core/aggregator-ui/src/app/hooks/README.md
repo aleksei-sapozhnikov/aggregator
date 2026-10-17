@@ -19,5 +19,9 @@ compatible with Item route updates.
 
 Initial catalog requests retry every 10 seconds after failure, while each
 attempt has an 8-second timeout. Product Health polls every 10 seconds;
-failure displays UI-only DISCONNECTED for catalog items instead of reusing
-stale backend UP/DOWN/UNKNOWN states.
+failures set a separate connectionStatus to DISCONNECTED without mutating
+backend UP/DOWN/UNKNOWN data. The hook retains itemStatuses, itemSignals,
+productHealthByItemId and lastSuccessfulFetchAt until the next successful poll.
+disconnectedDetectedAt records only the first failure in an outage and resets
+when polling recovers. The UI does not invent health states before its first
+successful response.

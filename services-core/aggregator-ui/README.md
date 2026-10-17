@@ -4,10 +4,18 @@ React and TypeScript frontend for Catalog Health Aggregator. The UI presents
 catalog relationships, service-provided health, available contacts, and history.
 The UI does not calculate product health. UP, DOWN, and UNKNOWN are backend
 facts. UNKNOWN (yellow question mark) means Aggregator has insufficient health
-information. DISCONNECTED (visible gray crossed circle) is a UI-only connectivity
-state: the frontend could not retrieve current Product Health facts. It does
-not mean the underlying service is DOWN. Failed or timed-out health polls discard
-stale facts; the next successful poll restores backend-reported states.
+information. A single failed or timed-out Product Health request marks the
+**frontend connection** as DISCONNECTED. A gray banner shows when the failure
+was detected and when the last successful snapshot was received. Previously
+reported Item states and signals stay visible and are labeled Last known;
+they are not recomputed, changed to DOWN or UNKNOWN, or counted as connection
+failures. If no successful snapshot has been received, Item status indicators
+remain hidden. A successful poll removes the banner and updates the snapshot.
+
+Connection-loss detection time is the first failed poll, not necessarily the
+exact moment the network stopped working. Per-signal observation timestamps
+are not provided by the current backend API; the last-successful time records
+when this browser received the entire health snapshot.
 
 Catalog initialization retries after failure, while optional ownership/contact
 endpoints have independent timeouts so that they cannot block required data.
