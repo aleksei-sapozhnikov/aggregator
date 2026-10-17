@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import os
 import io
 import tempfile
 import unittest
@@ -69,6 +70,25 @@ class MavenBootstrapTests(unittest.TestCase):
                 self.assertIsNone(run_maven.ensure_cached_maven(root))
             self.assertIn("SHA-512 verification failed", output.getvalue())
             self.assertFalse(run_maven.cached_maven_command(root).exists())
+
+    def test_maven_environment_suppresses_only_known_unsafe_warning(self) -> None:
+        java_home = Path("/qa/jdk-25")
+        with patch.dict(os.environ, {"MAVEN_OPTS": "-Xmx1g"}):
+            env = run_maven.maven_environment(java_home)
+
+        self.assertEqual(
+            env["MAVEN_OPTS"],
+            "-Xmx1g --sun-misc-unsafe-memory-access=allow",
+        )
+        self.assertEqual(env["JAVA_HOME"], str(java_home))
+        self.assertTrue(env["PATH"].startswith(str(java_home / "bin")))
+        self.assertEqual(os.environ.get("MAVEN_OPTS"), os.environ.get("MAVEN_OPTS"))
+
+    def test_maven_environment_does_not_duplicate_option(self) -> None:
+        option = run_maven.MAVEN_UNSAFE_ACCESS_OPTION
+        with patch.dict(os.environ, {"MAVEN_OPTS": f"-Xmx1g {option}"}):
+            env = run_maven.maven_environment(Path("/qa/jdk-25"))
+        self.assertEqual(env["MAVEN_OPTS"], f"-Xmx1g {option}")
 
     def test_missing_distribution_reports_clear_error(self) -> None:
         with (

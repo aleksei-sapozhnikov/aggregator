@@ -30,6 +30,10 @@ class TestRunnerTests(unittest.TestCase):
                 module = run_tests.build_module(root, "aggregator")
             self.assertEqual(module.command, ["mvn.cmd", "-B", "test"])
             self.assertEqual(module.env["JAVA_HOME"], str(home))
+            self.assertIn(
+                "--sun-misc-unsafe-memory-access=allow",
+                module.env["MAVEN_OPTS"].split(),
+            )
             self.assertTrue(module.env["PATH"].startswith(str(home / "bin")))
             java.assert_called_once_with(root)
             resolve.assert_called_once_with(root)

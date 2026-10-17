@@ -7,10 +7,10 @@ import subprocess
 import sys
 from dataclasses import dataclass
 
-from run_jdk import java_environment, resolve_java_home
+from run_jdk import resolve_java_home
 from pathlib import Path
 
-from run_maven import resolve_maven_command
+from run_maven import maven_environment, resolve_maven_command
 from utils import (
     ensure_venv,
     python_has_module,
@@ -138,7 +138,7 @@ def build_module(root: Path, name: str) -> TestModule | None:
         if maven is None:
             return None
         command = [maven, "-B", "test"]
-        environment = java_environment(java_home)
+        environment = maven_environment(java_home)
     elif name == "aggregator-ui":
         if not ensure_ui_test_dependencies(directory):
             return None

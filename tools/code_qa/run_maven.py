@@ -11,6 +11,7 @@ import urllib.request
 import zipfile
 from pathlib import Path
 
+from run_jdk import java_environment
 from utils import repo_root
 
 MAVEN_VERSION = "3.9.11"
@@ -22,6 +23,20 @@ MAVEN_DOWNLOAD_URL = (
     "https://archive.apache.org/dist/maven/maven-3/"
     f"{MAVEN_VERSION}/binaries/apache-maven-{MAVEN_VERSION}-bin.zip"
 )
+
+
+MAVEN_UNSAFE_ACCESS_OPTION = "--sun-misc-unsafe-memory-access=allow"
+
+
+def maven_environment(java_home: Path) -> dict[str, str]:
+    """Suppress Maven's known Guice warning only in the Maven launcher JVM."""
+    env = java_environment(java_home)
+    existing_options = env.get("MAVEN_OPTS", "").strip()
+    if MAVEN_UNSAFE_ACCESS_OPTION not in existing_options.split():
+        env["MAVEN_OPTS"] = (
+            f"{existing_options} {MAVEN_UNSAFE_ACCESS_OPTION}".strip()
+        )
+    return env
 
 
 def cached_maven_command(root: Path) -> Path:
