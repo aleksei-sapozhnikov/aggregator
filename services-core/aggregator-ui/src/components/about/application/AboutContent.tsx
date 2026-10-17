@@ -88,17 +88,18 @@ export default function AboutContent() {
           </span>
         </li>
       </ul>
-      <p>Connection to Aggregator (separate from product health):</p>
+      <p>Connection to Aggregator:</p>
       <p className="about-connection-help">
         <span
           className="status-indicator status-disconnected"
           aria-hidden="true"
         />{" "}
         <strong>DISCONNECTED</strong> - The interface cannot retrieve current
-        Product Health. Previously received statuses and signals remain visible
-        as <strong>Last known</strong>, along with the last successful update
-        and the time connection loss was detected. It does not mean the
-        underlying services are DOWN.
+        Product Health. The warning banner shows when the connection failure
+        was detected and, if available, the last successful update. Previously
+        reported statuses and signals remain visible, with <strong>LAST KNOWN</strong>{" "}
+        next to the selected Item's status. This does not mean the underlying
+        services are DOWN.
       </p>
       <p>
         Demo services fail and recover automatically, so you can watch the
