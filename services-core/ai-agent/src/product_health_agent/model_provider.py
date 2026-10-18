@@ -17,19 +17,10 @@ class ToolDefinition:
 
 
 @dataclass(frozen=True)
-class PresentationMetadata:
-    header: str
-    signals_label: str
-    dependencies_label: str
-    healthy_message: str
-
-
-@dataclass(frozen=True)
 class ToolCall:
     id: str
     name: str
     arguments: JsonObject
-    presentation: PresentationMetadata | None = None
 
 
 @dataclass(frozen=True)

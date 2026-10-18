@@ -1,4 +1,4 @@
-"""Request-language detection for agent presentation text."""
+"""Request-language detection for agent user-facing text."""
 
 from __future__ import annotations
 
