@@ -572,7 +572,7 @@ export const askAgent = async (question: string): Promise<AgentAskResponse> => {
   }
   const payload = (await response.json()) as Partial<AgentAskResponse>;
   return {
-    answer: String(payload.answer || "").trim(),
+    answer: sanitizeAgentAnswer(payload.answer),
     structured_content: normalizeAgentStructuredContent(
       payload.structured_content,
     ),
@@ -581,38 +581,39 @@ export const askAgent = async (question: string): Promise<AgentAskResponse> => {
   };
 };
 
+const sanitizeAgentAnswer = (value: unknown): string => {
+  const text = String(value || "").trim();
+  if (!text) {
+    return "";
+  }
+  return text
+    .replace(
+      /<\s*(thinking|analysis|reasoning)\b[^>]*>[\s\S]*?<\/\s*\1\s*>/gi,
+      "",
+    )
+    .replace(/<\/?\s*(thinking|analysis|reasoning)\b[^>]*>/gi, "")
+    .replace(/\s+/g, " ")
+    .trim();
+};
+
 const normalizeAgentStructuredContent = (
   rawContent: unknown,
 ): AgentStructuredContent | null => {
   const content = rawContent as {
     type?: unknown;
-    presentation?: unknown;
+    scope?: unknown;
     items?: unknown;
   };
-  if (content?.type !== "unhealthy_items") {
+  if (content?.type !== "product_health") {
     return null;
   }
   return {
-    type: "unhealthy_items",
-    presentation: normalizeAgentUnhealthyPresentation(content.presentation),
+    type: "product_health",
+    scope:
+      content.scope === "item" || content.scope === "unhealthy_items"
+        ? content.scope
+        : "unhealthy_items",
     items: normalizeAgentHealthItems(content.items),
-  };
-};
-
-const normalizeAgentUnhealthyPresentation = (
-  rawPresentation: unknown,
-): AgentStructuredContent["presentation"] => {
-  const presentation = rawPresentation as {
-    header?: unknown;
-    signals_label?: unknown;
-    dependencies_label?: unknown;
-    healthy_message?: unknown;
-  };
-  return {
-    header: String(presentation?.header || "").trim(),
-    signals_label: String(presentation?.signals_label || "").trim(),
-    dependencies_label: String(presentation?.dependencies_label || "").trim(),
-    healthy_message: String(presentation?.healthy_message || "").trim(),
   };
 };
 
