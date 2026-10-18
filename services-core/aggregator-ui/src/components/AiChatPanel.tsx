@@ -115,9 +115,6 @@ export default function AiChatPanel({
         <div className="ai-chat-title-block">
           <h2>AI chat</h2>
           <p>Ask about current product health</p>
-        </div>
-        <CloseButton ariaLabel="Close AI chat" onClick={onClose} />
-        <div className="ai-chat-controls-row">
           <button
             type="button"
             className="ai-chat-clear"
@@ -125,9 +122,13 @@ export default function AiChatPanel({
             disabled={messages.length === 0}
             aria-label="Clear chat history"
           >
-            Clear chat
+            <span className="ai-chat-clear-icon" aria-hidden="true">
+              ×
+            </span>
+            <span>Clear chat</span>
           </button>
         </div>
+        <CloseButton ariaLabel="Close AI chat" onClick={onClose} />
       </div>
       <div className="ai-chat-messages" aria-live="polite" ref={messagesRef}>
         {messages.length === 0 && (
@@ -156,14 +157,14 @@ export default function AiChatPanel({
                 onSelectItem={onSelectItem}
               />
             ) : (
-              <span className="ai-chat-message-text">{message.text}</span>
+              <p className="ai-chat-message-text">{message.text}</p>
             )}
           </div>
         ))}
         {isSending && (
           <div className="ai-chat-message ai-chat-message-assistant">
             <span className="ai-chat-message-role">AI</span>
-            <span className="ai-chat-message-text">Thinking...</span>
+            <p className="ai-chat-message-text">Thinking...</p>
           </div>
         )}
       </div>
