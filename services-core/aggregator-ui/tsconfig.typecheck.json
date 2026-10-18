@@ -3,5 +3,6 @@
   "compilerOptions": {
     "types": ["vite/client", "node"]
   },
-  "include": ["src", "grafana-frame/index.ts", "vite.config.ts"]
+  "include": ["src", "grafana-frame/index.ts", "vite.config.ts"],
+  "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx"]
 }
