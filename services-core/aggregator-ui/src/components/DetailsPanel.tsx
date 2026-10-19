@@ -4,7 +4,9 @@
 
 import TopBarActions from "./TopBarActions";
 import AiChatPanel from "./AiChatPanel";
+import InfoHelp from "./InfoHelp";
 import { isPlainLeftClick } from "../shared/catalogUtils";
+import { infoHelpTopics } from "../shared/infoHelpTopics";
 import { buildStatusText } from "../shared/statusText";
 import {
   resolveContactIconId,
@@ -377,8 +379,11 @@ export default function DetailsPanel({
                         className="primary-contact-block"
                         aria-label="Primary contact"
                       >
-                        <div className="primary-contact-heading">
-                          Primary contact
+                        <div className="primary-contact-heading-row">
+                          <div className="primary-contact-heading">
+                            Primary contact
+                          </div>
+                          <InfoHelp topic={infoHelpTopics.primaryContact} />
                         </div>
                         <div className="primary-contact-row">
                           <span className="primary-contact-icon">
@@ -408,7 +413,7 @@ export default function DetailsPanel({
 
                   {actorRowsForContacts.length > 0 && (
                     <div className="ownership-actors-group">
-                      <>
+                      <div className="details-disclosure-header">
                         <button
                           type="button"
                           className="details-disclosure-toggle"
@@ -440,73 +445,78 @@ export default function DetailsPanel({
                           </span>
                           <span>Actors ({actorRowsForContacts.length})</span>
                         </button>
-                        <div
-                          className={`disclosure-panel ownership-extra-contacts ${
-                            itemDisclosureState.isContactsExtraOpen
-                              ? "is-open"
-                              : ""
-                          }`}
-                        >
-                          <ul className="ownership-extra-list">
-                            {actorRowsForContacts.map((entry) => (
-                              <li key={entry.key}>
-                                <div className="actor-summary-row">
-                                  <span className="actor-summary-icon">
-                                    {renderActorTeamIcon(iconSpriteHref)}
-                                  </span>
-                                  <a
-                                    className="details-text-link actor-summary-link"
-                                    href={`/actors/${entry.actor.id}`}
-                                    onClick={(event) => {
-                                      if (!isPlainLeftClick(event)) {
-                                        return;
-                                      }
-                                      event.preventDefault();
-                                      onOpenActor(entry.actor);
-                                    }}
-                                    title={entry.actor.title || entry.actor.id}
-                                  >
-                                    {entry.actor.title || entry.actor.id}
-                                  </a>
-                                  <span className="details-row-meta details-row-meta-capitalize">
-                                    ({entry.typeLabel})
-                                  </span>
-                                </div>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </>
+                        <InfoHelp topic={infoHelpTopics.actors} />
+                      </div>
+                      <div
+                        className={`disclosure-panel ownership-extra-contacts ${
+                          itemDisclosureState.isContactsExtraOpen
+                            ? "is-open"
+                            : ""
+                        }`}
+                      >
+                        <ul className="ownership-extra-list">
+                          {actorRowsForContacts.map((entry) => (
+                            <li key={entry.key}>
+                              <div className="actor-summary-row">
+                                <span className="actor-summary-icon">
+                                  {renderActorTeamIcon(iconSpriteHref)}
+                                </span>
+                                <a
+                                  className="details-text-link actor-summary-link"
+                                  href={`/actors/${entry.actor.id}`}
+                                  onClick={(event) => {
+                                    if (!isPlainLeftClick(event)) {
+                                      return;
+                                    }
+                                    event.preventDefault();
+                                    onOpenActor(entry.actor);
+                                  }}
+                                  title={entry.actor.title || entry.actor.id}
+                                >
+                                  {entry.actor.title || entry.actor.id}
+                                </a>
+                                <span className="details-row-meta details-row-meta-capitalize">
+                                  ({entry.typeLabel})
+                                </span>
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
                     </div>
                   )}
                 </div>
 
                 {hasAffectingSignals && (
                   <div className="details-disclosure-section">
-                    <button
-                      type="button"
-                      className="details-disclosure-toggle"
-                      onClick={() =>
-                        updateDisclosureState({
-                          isAffectingOpen: !itemDisclosureState.isAffectingOpen,
-                        })
-                      }
-                      aria-expanded={itemDisclosureState.isAffectingOpen}
-                    >
-                      <span
-                        className={`details-panel-chevron ${
-                          itemDisclosureState.isAffectingOpen ? "is-open" : ""
-                        }`}
-                        aria-hidden="true"
+                    <div className="details-disclosure-header">
+                      <button
+                        type="button"
+                        className="details-disclosure-toggle"
+                        onClick={() =>
+                          updateDisclosureState({
+                            isAffectingOpen:
+                              !itemDisclosureState.isAffectingOpen,
+                          })
+                        }
+                        aria-expanded={itemDisclosureState.isAffectingOpen}
                       >
-                        ›
-                      </span>
-                      <span
-                        className="status-indicator status-down details-disclosure-status"
-                        aria-hidden="true"
-                      />
-                      <span>Unhealthy signals ({affectingCount})</span>
-                    </button>
+                        <span
+                          className={`details-panel-chevron ${
+                            itemDisclosureState.isAffectingOpen ? "is-open" : ""
+                          }`}
+                          aria-hidden="true"
+                        >
+                          ›
+                        </span>
+                        <span
+                          className="status-indicator status-down details-disclosure-status"
+                          aria-hidden="true"
+                        />
+                        <span>Unhealthy signals ({affectingCount})</span>
+                      </button>
+                      <InfoHelp topic={infoHelpTopics.unhealthySignals} />
+                    </div>
                     <div
                       className={`disclosure-panel ${
                         itemDisclosureState.isAffectingOpen ? "is-open" : ""
@@ -570,30 +580,33 @@ export default function DetailsPanel({
 
                 {passingSignalsCount > 0 && (
                   <div className="details-disclosure-section">
-                    <button
-                      type="button"
-                      className="details-disclosure-toggle"
-                      onClick={() =>
-                        updateDisclosureState({
-                          isHealthyOpen: !itemDisclosureState.isHealthyOpen,
-                        })
-                      }
-                      aria-expanded={itemDisclosureState.isHealthyOpen}
-                    >
-                      <span
-                        className={`details-panel-chevron ${
-                          itemDisclosureState.isHealthyOpen ? "is-open" : ""
-                        }`}
-                        aria-hidden="true"
+                    <div className="details-disclosure-header">
+                      <button
+                        type="button"
+                        className="details-disclosure-toggle"
+                        onClick={() =>
+                          updateDisclosureState({
+                            isHealthyOpen: !itemDisclosureState.isHealthyOpen,
+                          })
+                        }
+                        aria-expanded={itemDisclosureState.isHealthyOpen}
                       >
-                        ›
-                      </span>
-                      <span
-                        className="status-indicator status-up details-disclosure-status"
-                        aria-hidden="true"
-                      />
-                      <span>Healthy signals ({passingSignalsCount})</span>
-                    </button>
+                        <span
+                          className={`details-panel-chevron ${
+                            itemDisclosureState.isHealthyOpen ? "is-open" : ""
+                          }`}
+                          aria-hidden="true"
+                        >
+                          ›
+                        </span>
+                        <span
+                          className="status-indicator status-up details-disclosure-status"
+                          aria-hidden="true"
+                        />
+                        <span>Healthy signals ({passingSignalsCount})</span>
+                      </button>
+                      <InfoHelp topic={infoHelpTopics.healthySignals} />
+                    </div>
                     <div
                       className={`disclosure-panel ${
                         itemDisclosureState.isHealthyOpen ? "is-open" : ""
