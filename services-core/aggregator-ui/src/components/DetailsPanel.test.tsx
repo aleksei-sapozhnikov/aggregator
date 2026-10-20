@@ -6,6 +6,7 @@ import { createRef } from "react";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import type { ComponentProps } from "react";
 import type { CatalogActor, CatalogContact } from "../shared/types";
 
 vi.mock("./AiChatPanel", () => ({
@@ -15,6 +16,7 @@ vi.mock("./AiChatPanel", () => ({
 import DetailsPanel from "./DetailsPanel";
 
 afterEach(() => {
+  vi.restoreAllMocks();
   cleanup();
 });
 
@@ -31,7 +33,9 @@ const primaryContact: CatalogContact = {
   href: "https://example.test/chat",
 };
 
-const renderDetailsPanel = () => {
+const renderDetailsPanel = (
+  overrides: Partial<ComponentProps<typeof DetailsPanel>> = {},
+) => {
   const props = {
     contentRef: createRef<HTMLElement>(),
     isSidebarOpen: true,
@@ -97,10 +101,12 @@ const renderDetailsPanel = () => {
     grafanaIframeRef: createRef<HTMLIFrameElement>(),
     onGrafanaLoad: vi.fn(),
     grafanaFrameUrl: "about:blank",
+    ...overrides,
   };
 
   return {
     user: userEvent.setup(),
+    props,
     ...render(<DetailsPanel {...props} />),
   };
 };
@@ -118,6 +124,9 @@ describe("DetailsPanel contextual help", () => {
     ).not.toBeNull();
     expect(
       screen.getByRole("button", { name: "About Healthy signals" }),
+    ).not.toBeNull();
+    expect(
+      screen.getByRole("button", { name: "About Timeline" }),
     ).not.toBeNull();
   });
 
@@ -174,7 +183,9 @@ describe("DetailsPanel contextual help", () => {
 
   it("does not toggle a disclosure when clicking adjacent help", async () => {
     const { user } = renderDetailsPanel();
-    const actorsToggle = screen.getByRole("button", { name: "Actors (1)" });
+    const actorsToggle = screen.getByRole("button", {
+      name: "Toggle Actors",
+    });
 
     expect(actorsToggle.getAttribute("aria-expanded")).toBe("false");
 
@@ -184,14 +195,57 @@ describe("DetailsPanel contextual help", () => {
     expect(screen.getByRole("dialog", { name: "About Actors" })).not.toBeNull();
   });
 
+  it("renders Timeline as a standard disclosure with contextual help", async () => {
+    const onToggleGrafana = vi.fn();
+    const { user } = renderDetailsPanel({ onToggleGrafana });
+    const timelineToggle = screen.getByRole("button", {
+      name: "Toggle Timeline",
+    });
+    const timelineLabel = screen.getByText("Timeline");
+
+    expect(timelineToggle.className).toContain("details-disclosure-toggle");
+    expect(timelineToggle.contains(timelineLabel)).toBe(true);
+    expect(timelineToggle.getAttribute("aria-expanded")).toBe("false");
+    expect(screen.queryByTitle("State Timeline")).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "About Timeline" }));
+
+    expect(onToggleGrafana).not.toHaveBeenCalled();
+    expect(timelineToggle.getAttribute("aria-expanded")).toBe("false");
+    const dialog = screen.getByRole("dialog", { name: "About Timeline" });
+    expect(dialog.textContent).toContain(
+      "Timeline shows how the selected item's health changes over time.",
+    );
+    expect(dialog.textContent).toContain("Green");
+    expect(dialog.textContent).toContain("Signals filter");
+    expect(dialog.textContent).toContain("Dependencies");
+    expect(dialog.textContent).toContain(
+      "were unhealthy or had an unknown state at some point during the selected time range",
+    );
+    expect(dialog.textContent).not.toContain("show: failing");
+    expect(dialog.textContent).not.toContain("↺");
+  });
+
+  it("keeps the expanded Timeline chart under the disclosure heading", () => {
+    renderDetailsPanel({ isGrafanaOpen: true });
+
+    const timelineToggle = screen.getByRole("button", {
+      name: "Toggle Timeline",
+    });
+    expect(timelineToggle.getAttribute("aria-expanded")).toBe("true");
+    expect(screen.getByTitle("State Timeline")).not.toBeNull();
+  });
+
   it("keeps disclosure expand and collapse behavior unchanged", async () => {
     const { user } = renderDetailsPanel();
-    const actorsToggle = screen.getByRole("button", { name: "Actors (1)" });
+    const actorsToggle = screen.getByRole("button", {
+      name: "Toggle Actors",
+    });
     const unhealthyToggle = screen.getByRole("button", {
-      name: "Unhealthy signals (2)",
+      name: "Toggle Unhealthy signals",
     });
     const healthyToggle = screen.getByRole("button", {
-      name: "Healthy signals (1)",
+      name: "Toggle Healthy signals",
     });
 
     await user.click(actorsToggle);
@@ -206,5 +260,96 @@ describe("DetailsPanel contextual help", () => {
     expect(healthyToggle.getAttribute("aria-expanded")).toBe("false");
     await user.click(healthyToggle);
     expect(healthyToggle.getAttribute("aria-expanded")).toBe("true");
+  });
+
+  it("toggles Timeline from its visible label text", async () => {
+    const onToggleGrafana = vi.fn();
+    const { user } = renderDetailsPanel({ onToggleGrafana });
+
+    await user.click(screen.getByText("Timeline"));
+
+    expect(onToggleGrafana).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not let old text selection block the next disclosure click", () => {
+    let selectedText = "previous selection";
+    vi.spyOn(window, "getSelection").mockImplementation(
+      () =>
+        ({
+          isCollapsed: false,
+          toString: () => selectedText,
+        }) as Selection,
+    );
+    const onToggleGrafana = vi.fn();
+    renderDetailsPanel({ onToggleGrafana });
+    const timelineToggle = screen.getByRole("button", {
+      name: "Toggle Timeline",
+    });
+
+    fireEvent.pointerDown(timelineToggle, { clientX: 10, clientY: 10 });
+    selectedText = "previous selection";
+    fireEvent.pointerUp(timelineToggle, { clientX: 10, clientY: 10 });
+    fireEvent.click(timelineToggle);
+
+    expect(onToggleGrafana).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not toggle a disclosure when the pointer gesture creates text selection", () => {
+    let selectedText = "";
+    vi.spyOn(window, "getSelection").mockImplementation(
+      () =>
+        ({
+          isCollapsed: selectedText === "",
+          toString: () => selectedText,
+        }) as Selection,
+    );
+    const onToggleGrafana = vi.fn();
+    renderDetailsPanel({ onToggleGrafana });
+    const timelineToggle = screen.getByRole("button", {
+      name: "Toggle Timeline",
+    });
+
+    fireEvent.pointerDown(timelineToggle, { clientX: 10, clientY: 10 });
+    selectedText = "Timeline";
+    fireEvent.pointerUp(timelineToggle, { clientX: 10, clientY: 10 });
+    fireEvent.click(timelineToggle);
+
+    expect(onToggleGrafana).not.toHaveBeenCalled();
+  });
+
+  it("does not toggle a disclosure after dragging across its label", () => {
+    const onToggleGrafana = vi.fn();
+    renderDetailsPanel({ onToggleGrafana });
+    const timelineToggle = screen.getByRole("button", {
+      name: "Toggle Timeline",
+    });
+
+    fireEvent(
+      timelineToggle,
+      new MouseEvent("pointerdown", {
+        bubbles: true,
+        clientX: 10,
+        clientY: 10,
+      }),
+    );
+    fireEvent(
+      timelineToggle,
+      new MouseEvent("pointermove", {
+        bubbles: true,
+        clientX: 17,
+        clientY: 10,
+      }),
+    );
+    fireEvent(
+      timelineToggle,
+      new MouseEvent("pointerup", {
+        bubbles: true,
+        clientX: 17,
+        clientY: 10,
+      }),
+    );
+    fireEvent.click(timelineToggle);
+
+    expect(onToggleGrafana).not.toHaveBeenCalled();
   });
 });
