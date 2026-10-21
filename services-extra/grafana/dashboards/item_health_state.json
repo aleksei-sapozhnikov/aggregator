@@ -32,6 +32,7 @@
           },
           "custom": {
             "axisPlacement": "auto",
+            "axisWidth": 300,
             "fillOpacity": 100,
             "hideFrom": {
               "legend": false,
@@ -77,24 +78,6 @@
           }
         },
         "overrides": [
-          {
-            "matcher": {
-              "id": "byFrameRefID",
-              "options": "B"
-            },
-            "properties": [
-              {
-                "id": "links",
-                "value": [
-                  {
-                    "targetBlank": false,
-                    "title": "Item: ${__field.labels.item_name}",
-                    "url": "${app_base_url}/item/${__field.labels.item_id}"
-                  }
-                ]
-              }
-            ]
-          },
           {
             "matcher": {
               "id": "byFrameRefID",
@@ -147,10 +130,10 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "catalog_item_state{item_id=~\"${item_id:regex}\"} and on() ((vector(${items}) == 1) or (vector(${items}) == 2))",
+          "expr": "catalog_item_state{item_id=~\"${item_id:regex}\"}",
           "hide": false,
           "instant": false,
-          "legendFormat": "\u25CF\u21BA {{item_name}}",
+          "legendFormat": "[Overall] {{item_name}}",
           "range": true,
           "refId": "A"
         },
@@ -160,8 +143,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(\n  (\n    (catalog_item_signal_state{item_id=~\"${item_id:regex}\"} and on() (vector(${show}) == 0))\n    or (\n      catalog_item_signal_state{item_id=~\"${item_id:regex}\"}\n      and on(item_id,signal_id,signal_source) (min_over_time(catalog_item_signal_state{item_id=~\"${item_id:regex}\"}[$__range] @ end()) < 1)\n      and on() (vector(${show}) == 1)\n    )\n  )\n  and on() ((vector(${signals}) == 1) or (vector(${signals}) == 2))\n)",
-          "legendFormat": "\u200b\u25B6\u21BA {{signal_name}}",
+          "expr": "catalog_item_signal_state{item_id=~\"${item_id:regex}\"}\n  and on(item_id,signal_id,signal_source) (min_over_time(catalog_item_signal_state{item_id=~\"${item_id:regex}\"}[$__range] @ end()) < 1)\n  and on() ((vector(${signals}) == 1) or (vector(${signals}) == 2))",
+          "legendFormat": "\u200b\u25CF {{signal_name}}",
           "range": true,
           "refId": "C"
         },
@@ -171,19 +154,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(\n  (catalog_item_own_state{item_id=~\"${deps:regex}\"} and on() (vector(${show}) == 0))\n  or (catalog_item_own_state{item_id=~\"${deps:regex}\"} and on(item_id) (min_over_time(catalog_item_own_state{item_id=~\"${deps:regex}\"}[$__range] @ end()) < 1) and on() (vector(${show}) == 1))\n) and on() ((vector(${items}) == 2) or (vector(${items}) == 3))",
-          "legendFormat": "\u200c\u25CF\u21B3 {{item_name}}",
-          "range": true,
-          "refId": "B"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "(\n  (\n    (catalog_item_signal_state{item_id=~\"${deps:regex}\"} and on() (vector(${show}) == 0))\n    or (\n      catalog_item_signal_state{item_id=~\"${deps:regex}\"}\n      and on(item_id,signal_id,signal_source) (min_over_time(catalog_item_signal_state{item_id=~\"${deps:regex}\"}[$__range] @ end()) < 1)\n      and on() (vector(${show}) == 1)\n    )\n  )\n  and on() ((vector(${signals}) == 2) or (vector(${signals}) == 3))\n)",
-          "legendFormat": "\u200d\u25B6\u21B3 {{signal_name}}",
+          "expr": "catalog_item_signal_state{item_id=~\"${deps:regex}\"}\n  and on(item_id,signal_id,signal_source) (min_over_time(catalog_item_signal_state{item_id=~\"${deps:regex}\"}[$__range] @ end()) < 1)\n  and on() ((vector(${signals}) == 2) or (vector(${signals}) == 3))",
+          "legendFormat": "\u200c\u21B3 {{signal_name}}",
           "range": true,
           "refId": "D"
         }
@@ -244,113 +216,32 @@
         },
         "definition": "",
         "includeAll": false,
-        "label": "\u25CF state",
+        "label": "Signals",
         "multi": false,
-        "name": "items",
+        "name": "signals",
         "current": {
           "selected": true,
-          "text": "all \u21BA\u21B3",
+          "text": "\u25CF \u21B3 All",
           "value": "2"
         },
         "options": [
           {
             "selected": true,
-            "text": "all \u21BA\u21B3",
+            "text": "All",
             "value": "2"
           },
           {
             "selected": false,
-            "text": "current \u21BA",
+            "text": "\u25CF Own",
             "value": "1"
           },
           {
             "selected": false,
-            "text": "dependency \u21B3",
+            "text": "\u21B3 Dependencies",
             "value": "3"
-          },
-          {
-            "selected": false,
-            "text": "hide",
-            "value": "0"
           }
         ],
-        "query": "all \u21BA\u21B3 : 2, current \u21BA : 1, dependency \u21B3 : 3, hide : 0",
-        "refresh": 1,
-        "regex": "",
-        "sort": 1,
-        "type": "custom"
-      },
-      {
-        "datasource": {
-          "type": "prometheus",
-          "uid": "prometheus"
-        },
-        "definition": "",
-        "includeAll": false,
-        "label": "\u25B6 signals",
-        "multi": false,
-        "name": "signals",
-        "current": {
-          "selected": true,
-          "text": "current \u21BA",
-          "value": "1"
-        },
-        "options": [
-          {
-            "selected": false,
-            "text": "all \u21BA\u21B3",
-            "value": "2"
-          },
-          {
-            "selected": true,
-            "text": "current \u21BA",
-            "value": "1"
-          },
-          {
-            "selected": false,
-            "text": "dependency \u21B3",
-            "value": "3"
-          },
-          {
-            "selected": false,
-            "text": "hide",
-            "value": "0"
-          }
-        ],
-        "query": "all \u21BA\u21B3 : 2, current \u21BA : 1, dependency \u21B3 : 3, hide : 0",
-        "refresh": 1,
-        "regex": "",
-        "sort": 1,
-        "type": "custom"
-      },
-      {
-        "datasource": {
-          "type": "prometheus",
-          "uid": "prometheus"
-        },
-        "definition": "",
-        "includeAll": false,
-        "multi": false,
-        "label": "show",
-        "name": "show",
-        "current": {
-          "selected": true,
-          "text": "failing",
-          "value": "1"
-        },
-        "options": [
-          {
-            "selected": true,
-            "text": "failing",
-            "value": "1"
-          },
-          {
-            "selected": false,
-            "text": "all",
-            "value": "0"
-          }
-        ],
-        "query": "failing : 1, all : 0",
+        "query": "\u25CF \u21B3 All : 2, \u25CF Own : 1, \u21B3 Dependencies : 3",
         "refresh": 1,
         "regex": "",
         "sort": 1,
