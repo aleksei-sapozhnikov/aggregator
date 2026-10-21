@@ -15,7 +15,12 @@ type ContactModalProps = {
 };
 
 type ContactDemoKind =
-  "chat" | "email" | "phone" | "sms" | "oncall" | "generic";
+  | "chat"
+  | "email"
+  | "phone"
+  | "sms"
+  | "oncall"
+  | "generic";
 
 type ContactDemoDetails = {
   appName: string;
