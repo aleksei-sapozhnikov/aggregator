@@ -3,147 +3,293 @@
 items:
   - id: it_e7f7ec2d
     title: Commerce Platform
+    shortDescription: Coordinates the commerce capabilities that support customer ordering.
+    fullDescription: The Commerce Platform represents the customer-facing commerce area in the demo catalog. It brings together the core commerce line and extension capabilities that allow orders to be accepted, checked, billed, and dispatched.
   - id: it_51dae4dd
     title: Operations Suite
+    shortDescription: Groups operational capabilities used to fulfill and move orders.
+    fullDescription: The Operations Suite represents the operational side of the demo system. It covers fulfillment, logistics, distribution, and accelerators that help orders move through the network after they are placed.
   - id: it_9d9e5627
     title: Customer Experience
+    shortDescription: Groups capabilities that shape customer profiles, messaging, and journeys.
+    fullDescription: Customer Experience represents the demo capabilities used to understand and communicate with customers. It connects engagement, journey, profile, messaging, and campaign functions into a single product-level view.
   - id: it_6307a2a8
     title: Commerce Line Core
+    shortDescription: Provides the main commerce line that depends on the commerce core.
+    fullDescription: Commerce Line Core is the top-level line for core commerce behavior. It depends on the Commerce Core so product health reflects problems in the foundational commerce services beneath it.
   - id: it_5b917d99
     title: Commerce Extensions
+    shortDescription: Adds supporting commerce capabilities around the order domain.
+    fullDescription: Commerce Extensions models the supporting features around the main commerce flow. In the demo topology it depends on the Order Domain, so order-domain issues affect this extension layer.
   - id: it_8be9ba4f
     title: Commerce Core
+    shortDescription: Provides shared commerce behavior for ordering and pricing.
+    fullDescription: Commerce Core represents foundational commerce capabilities. It depends on the Order Domain and the pricing synchronization service, making it sensitive to both order-flow and pricing-health problems.
   - id: it_144bbdb0
     title: Order Domain
+    shortDescription: Owns the order lifecycle across intake, validation, finance, and workflow.
+    fullDescription: Order Domain is the central order capability in the demo catalog. It connects intake, guard, finance, workflow, and domain event functions so the overall order lifecycle can be monitored as one area.
   - id: it_008a7af7
     title: Order Intake Hub
+    shortDescription: Handles entry points and buffering for new orders.
+    fullDescription: Order Intake Hub represents the first stage of the order flow. It depends on order capture, intake API, and buffering capabilities that receive orders before they move deeper into processing.
   - id: it_1668c093
     title: Order Guard Hub
+    shortDescription: Checks orders against validation, fraud, and policy controls.
+    fullDescription: Order Guard Hub represents the protective checks in the order flow. It brings together validation, fraud screening, and policy evaluation so problematic orders can be detected before they continue.
   - id: it_6c7923ab
     title: Order Finance Hub
+    shortDescription: Coordinates billing, invoice, and payment authorization steps.
+    fullDescription: Order Finance Hub covers the financial side of order processing. It depends on billing, invoice orchestration, and payment authorization so commerce health reflects problems in payment-related processing.
   - id: it_43ab1049
     title: Order Workflow
+    shortDescription: Moves accepted orders through state tracking and dispatch.
+    fullDescription: Order Workflow represents the orchestration layer after orders have passed intake, guard, and finance checks. It depends on dispatch, state projection, and SLA tracking to keep order progress visible.
   - id: it_571c410e
     title: Operations Line
+    shortDescription: Connects the operations suite to fulfillment capabilities.
+    fullDescription: Operations Line is the main operations branch in the demo hierarchy. It depends on the Fulfillment Hub, which then connects to the logistics and distribution capabilities needed to deliver orders.
   - id: it_c51a1ccc
     title: Operations Accelerators
+    shortDescription: Provides supporting tools that improve operational planning.
+    fullDescription: Operations Accelerators represents helper capabilities for operations teams. In the demo topology it supports routing and simulation activities without being the primary fulfillment path.
   - id: it_0387f962
     title: Fulfillment Hub
+    shortDescription: Coordinates fulfillment control and logistics for orders.
+    fullDescription: Fulfillment Hub represents the point where orders move from commerce into fulfillment. It depends on the Logistics Domain and fulfillment control-plane service to coordinate operational execution.
   - id: it_978f32ea
     title: Logistics Domain
+    shortDescription: Owns routing and inventory capabilities for logistics.
+    fullDescription: Logistics Domain groups the capabilities that decide where inventory is and how orders should move. It depends on routing, inventory, and event-routing functions that support fulfillment decisions.
   - id: it_ef57ee00
     title: Logistics Routing Cell
+    shortDescription: Manages route planning inputs for delivery and fulfillment.
+    fullDescription: Logistics Routing Cell represents route-related logistics behavior. It depends on the routing engine, route cache, and route cost model so route availability and quality can be reflected in product health.
   - id: it_906f7e0d
     title: Logistics Inventory Cell
+    shortDescription: Tracks inventory availability and reservation health.
+    fullDescription: Logistics Inventory Cell represents inventory-related logistics behavior. It depends on synchronization, reconciliation, and reservation services so fulfillment health reflects inventory problems.
   - id: it_05c82f52
     title: Distribution Core
+    shortDescription: Coordinates dispatch, returns, slotting, and carrier capacity.
+    fullDescription: Distribution Core represents the last operational layer before delivery outcomes. It brings together dispatch, returns, depot slotting, and carrier capacity so distribution issues are visible from higher-level products.
   - id: it_5c743f44
     title: Experience Line
+    shortDescription: Connects the customer experience product to engagement capabilities.
+    fullDescription: Experience Line is the main customer-experience branch in the demo catalog. It feeds into the Engagement Suite so health problems in engagement capabilities affect the product-level customer experience view.
   - id: it_741e7f6b
     title: Experience Foundation
+    shortDescription: Provides foundational consent and engagement support for experience features.
+    fullDescription: Experience Foundation represents shared customer-experience support capabilities. It depends on the Engagement Suite and customer consent ledger so experience features can account for customer permissions.
   - id: it_6e67d308
     title: Engagement Suite
+    shortDescription: Coordinates customer engagement across journeys and intent processing.
+    fullDescription: Engagement Suite groups the capabilities that decide and coordinate customer engagement. It depends on journey functionality and audience intent processing to support targeted customer interactions.
   - id: it_d01a646d
     title: Journey Domain
+    shortDescription: Owns journey orchestration, rules, and experimentation.
+    fullDescription: Journey Domain represents customer journey behavior in the demo system. It depends on engagement orchestration, rules, and experimentation services that determine how customer interactions are planned and adjusted.
   - id: it_bee18e53
     title: Touchpoint Core
+    shortDescription: Provides shared profile, messaging, campaign, and session foundations.
+    fullDescription: Touchpoint Core is the shared layer beneath customer-facing touchpoints. It connects profile, messaging, campaign, and session-state pillars so customer interactions can be monitored through one dependency path.
   - id: it_a0a28b85
     title: Touchpoint Profile Pillar
+    shortDescription: Groups profile capabilities used by customer touchpoints.
+    fullDescription: Touchpoint Profile Pillar represents the profile-related functions used by touchpoints. It depends on core and identity profile nodes plus merge orchestration to keep customer profile information usable.
   - id: it_4869434a
     title: Touchpoint Messaging Pillar
+    shortDescription: Groups messaging capabilities used to render and deliver communications.
+    fullDescription: Touchpoint Messaging Pillar represents the messaging side of customer touchpoints. It depends on routing, templates, rendering, and delivery routing so messages can be prepared and sent through channels.
   - id: it_e8e0d47a
     title: Touchpoint Campaign Pillar
+    shortDescription: Groups campaign planning, optimization, segmentation, and budget controls.
+    fullDescription: Touchpoint Campaign Pillar represents campaign-related customer interactions. It depends on planner, optimizer, segmentation, and budget-guard capabilities so campaign execution can be monitored end to end.
   - id: it_5622ffff
     title: Profile Core Nodes
+    shortDescription: Provides the core profile path to the profile store.
+    fullDescription: Profile Core Nodes represents the base profile capability in the demo topology. It depends on the Profile Store Service, so issues in stored profile data affect higher-level profile functions.
   - id: it_5d0def3d
     title: Profile Identity Nodes
+    shortDescription: Provides identity-related profile paths to the profile store.
+    fullDescription: Profile Identity Nodes represents identity-oriented profile behavior. It also depends on the Profile Store Service, reflecting that profile identity and core profile views share the same underlying profile store.
   - id: it_ccf17b90
     title: Messaging Router Nodes
+    shortDescription: Provides the routing path into the messaging hub.
+    fullDescription: Messaging Router Nodes represents routing decisions for customer messages. It depends on the Messaging Hub Service, so routing health contributes directly to the overall messaging pillar.
   - id: it_e6af80a7
     title: Messaging Template Nodes
+    shortDescription: Provides the template path into the messaging hub.
+    fullDescription: Messaging Template Nodes represents template-related messaging behavior. It depends on the Messaging Hub Service, making template preparation part of the same messaging health view.
   - id: it_352b4411
     title: Campaign Planner Nodes
+    shortDescription: Provides the campaign planning path into campaign execution.
+    fullDescription: Campaign Planner Nodes represents the planning side of campaigns. It depends on Campaign Execution Service so planning problems can affect the campaign pillar's execution readiness.
   - id: it_ae13d093
     title: Campaign Optimizer Nodes
+    shortDescription: Provides the optimization path into campaign execution.
+    fullDescription: Campaign Optimizer Nodes represents optimization behavior for campaigns. It depends on Campaign Execution Service so optimization health contributes to the same campaign execution outcome.
   - id: it_5a9ca947
     title: Order Capture Service
+    shortDescription: Captures new order requests for the order workflow.
+    fullDescription: Order Capture Service receives new order requests from the intake hub. It feeds the Order Workflow so captured orders can continue through state tracking and dispatch.
   - id: it_31cdf080
     title: Order Validation Service
+    shortDescription: Validates orders before they continue through the workflow.
+    fullDescription: Order Validation Service checks whether an order is acceptable for further processing. It supports the Order Guard Hub and feeds the Order Workflow when validation succeeds.
   - id: it_b0833df4
     title: Order Billing Service
+    shortDescription: Performs billing work for orders entering the finance path.
+    fullDescription: Order Billing Service represents the billing step for order finance. It contributes to the Order Workflow by making sure accepted orders have the required billing work completed.
   - id: it_ca854f7f
     title: Order Dispatch Service
+    shortDescription: Dispatches processed orders from the order workflow.
+    fullDescription: Order Dispatch Service represents the final dispatch step in the order workflow. A failure here affects completed order movement even when intake, validation, and billing are healthy.
   - id: it_48bb5977
     title: Routing Engine Service
+    shortDescription: Calculates routing decisions for logistics and operations accelerators.
+    fullDescription: Routing Engine Service provides routing decisions used by logistics. It is shared by the routing cell and operations accelerators, so its health can affect both direct fulfillment and planning support.
   - id: it_34b1b4e7
     title: Inventory Sync Service
+    shortDescription: Synchronizes inventory information for logistics decisions.
+    fullDescription: Inventory Sync Service keeps inventory information aligned for logistics. It feeds Distribution Core through the inventory cell so dispatch and returns can rely on current stock information.
   - id: it_0d5a82d5
     title: Last-Mile Dispatch Service
+    shortDescription: Coordinates final delivery dispatch from distribution.
+    fullDescription: Last-Mile Dispatch Service represents the final delivery coordination step. It depends directly under Distribution Core, so last-mile problems surface in the operations health view.
   - id: it_4395c1de
     title: Returns Processing Service
+    shortDescription: Handles returns flowing back through distribution.
+    fullDescription: Returns Processing Service represents the reverse-flow side of distribution. It allows the demo topology to show that distribution health covers both outgoing deliveries and returned orders.
   - id: it_71574a7b
     title: Engagement Orchestrator Service
+    shortDescription: Orchestrates customer engagement actions for journeys.
+    fullDescription: Engagement Orchestrator Service coordinates customer engagement work inside the journey domain. It depends on Touchpoint Core so journeys can use profile, messaging, campaign, and session capabilities.
   - id: it_92628e0a
     title: Profile Store Service
+    shortDescription: Stores customer profile data used by profile nodes.
+    fullDescription: Profile Store Service is the shared storage-facing service for customer profiles. Both profile core and profile identity nodes depend on it, making it central to profile health in the demo.
   - id: it_51735b03
     title: Messaging Hub Service
+    shortDescription: Centralizes message routing and template paths for delivery.
+    fullDescription: Messaging Hub Service is the shared service behind messaging router and template nodes. It represents the point where prepared messaging inputs converge before customer communication continues.
   - id: it_8f468246
     title: Campaign Execution Service
+    shortDescription: Executes campaigns after planning and optimization.
+    fullDescription: Campaign Execution Service represents the runtime execution point for campaigns. Planner and optimizer nodes both depend on it, so execution health reflects whether campaigns can actually run.
   - id: it_b61910c1
     title: Commerce Core Pricing Sync Service
+    shortDescription: Keeps pricing information aligned for commerce core.
+    fullDescription: Commerce Core Pricing Sync Service represents pricing synchronization for core commerce. It gives the demo catalog a commerce-core dependency outside the order domain, showing how pricing issues can affect commerce health.
   - id: it_1151701c
     title: Order Domain Events Service
+    shortDescription: Publishes and tracks events for the order domain.
+    fullDescription: Order Domain Events Service represents event flow for order-domain changes. It supports the Order Domain by making order state changes visible to dependent parts of the demo system.
   - id: it_2484e0db
     title: Order Intake API Service
+    shortDescription: Provides the API entry point for order intake.
+    fullDescription: Order Intake API Service is the API-facing part of order intake. It supports the Order Intake Hub by accepting order submissions before they move to buffering and capture.
   - id: it_fbb05062
     title: Order Intake Buffer Service
+    shortDescription: Buffers incoming orders before downstream processing.
+    fullDescription: Order Intake Buffer Service represents the buffering step in order intake. It helps separate incoming order acceptance from downstream processing health in the demo topology.
   - id: it_96952012
     title: Fraud Screening Service
+    shortDescription: Screens orders for fraud-related risk.
+    fullDescription: Fraud Screening Service supports the Order Guard Hub by checking orders for fraud risk. Its health affects whether guarded order processing can continue confidently.
   - id: it_65839693
     title: Policy Evaluator Service
+    shortDescription: Evaluates order policies before orders continue.
+    fullDescription: Policy Evaluator Service supports policy checks in the Order Guard Hub. It represents the rules-based controls that determine whether an order should continue through the workflow.
   - id: it_3ca8ec85
     title: Invoice Orchestrator Service
+    shortDescription: Coordinates invoice creation for order finance.
+    fullDescription: Invoice Orchestrator Service supports the Order Finance Hub by coordinating invoice-related work. Its health affects the finance path independently from billing and payment authorization.
   - id: it_4c046b1d
     title: Payment Authorization Adapter Service
+    shortDescription: Connects order finance to payment authorization.
+    fullDescription: Payment Authorization Adapter Service represents the payment authorization step in order finance. It allows the demo topology to show finance health problems separately from invoice and billing work.
   - id: it_9e60bdd7
     title: Order State Projection Service
+    shortDescription: Maintains projected order state for workflow visibility.
+    fullDescription: Order State Projection Service supports the Order Workflow by maintaining a readable view of order state. It helps the demo model show workflow health beyond the final dispatch service.
   - id: it_3160377e
     title: Order SLA Tracker Service
+    shortDescription: Tracks service-level timing for orders in the workflow.
+    fullDescription: Order SLA Tracker Service monitors whether orders are progressing within expected timing. It contributes to Order Workflow health by surfacing delays even when other workflow steps are available.
   - id: it_bd3e8b82
     title: Fulfillment Control Plane Service
+    shortDescription: Coordinates fulfillment control decisions.
+    fullDescription: Fulfillment Control Plane Service supports the Fulfillment Hub by coordinating fulfillment decisions. It sits alongside the logistics domain so control-plane issues can affect operations even when logistics services are healthy.
   - id: it_9ead5a94
     title: Logistics Event Router Service
+    shortDescription: Routes logistics events within the logistics domain.
+    fullDescription: Logistics Event Router Service distributes logistics events for downstream capabilities. It supports the Logistics Domain by keeping routing and inventory-related events visible.
   - id: it_9de17f36
     title: Route Cache Writer Service
+    shortDescription: Writes route cache data used by routing decisions.
+    fullDescription: Route Cache Writer Service supports the Logistics Routing Cell by maintaining cached route information. Its health affects the freshness of route data available to routing decisions.
   - id: it_ed0d04bb
     title: Route Cost Model Service
+    shortDescription: Provides cost inputs for route planning.
+    fullDescription: Route Cost Model Service supports route planning with cost information. It contributes to the Logistics Routing Cell by helping routes account for operational cost considerations.
   - id: it_20cb3376
     title: Inventory Reconciler Service
+    shortDescription: Reconciles inventory differences for logistics.
+    fullDescription: Inventory Reconciler Service supports inventory correctness in the Logistics Inventory Cell. It helps the demo system represent cases where stock information must be corrected before reliable fulfillment.
   - id: it_7199280d
     title: Stock Reservation Service
+    shortDescription: Reserves stock for orders in the logistics path.
+    fullDescription: Stock Reservation Service reserves available stock for orders. It supports the Logistics Inventory Cell by connecting inventory availability to order fulfillment readiness.
   - id: it_2df0c55c
     title: Depot Slotting Service
+    shortDescription: Assigns depot slots for distribution work.
+    fullDescription: Depot Slotting Service supports Distribution Core by organizing depot capacity. It represents the planning work needed before orders can move efficiently through distribution.
   - id: it_116e2e82
     title: Carrier Capacity Broker Service
+    shortDescription: Tracks carrier capacity for distribution decisions.
+    fullDescription: Carrier Capacity Broker Service supports Distribution Core by representing available carrier capacity. Its health affects whether distribution can assign work to carriers reliably.
   - id: it_a6854c60
     title: Dispatch Simulation Service
+    shortDescription: Simulates dispatch outcomes for operations accelerators.
+    fullDescription: Dispatch Simulation Service supports Operations Accelerators with planning and what-if behavior. It is not the live dispatch path, but its health matters for operational preparation in the demo.
   - id: it_9c69814b
     title: Customer Consent Ledger Service
+    shortDescription: Stores customer consent records for experience features.
+    fullDescription: Customer Consent Ledger Service supports Experience Foundation by holding customer consent information. It helps the customer-experience topology reflect whether engagement can respect recorded permissions.
   - id: it_0c7f7cbf
     title: Audience Intent Processor Service
+    shortDescription: Processes audience intent signals for engagement.
+    fullDescription: Audience Intent Processor Service supports the Engagement Suite by interpreting audience intent. It helps determine which customer engagement paths should be considered by downstream journey capabilities.
   - id: it_40d8cd7c
     title: Journey Rules Engine Service
+    shortDescription: Evaluates rules that guide customer journeys.
+    fullDescription: Journey Rules Engine Service supports Journey Domain with rule evaluation. It represents the decision logic that helps choose the next customer interaction in the demo system.
   - id: it_12a5d380
     title: Journey Experimentation Service
+    shortDescription: Supports experiments within customer journeys.
+    fullDescription: Journey Experimentation Service supports controlled variation in customer journeys. It contributes to Journey Domain health by determining whether experimentation features are available.
   - id: it_5e0132b8
     title: Touchpoint Session State Service
+    shortDescription: Maintains session state for customer touchpoints.
+    fullDescription: Touchpoint Session State Service supports Touchpoint Core by tracking session state. It helps customer interactions remain consistent across the profile, messaging, and campaign pillars.
   - id: it_7e7405d3
     title: Profile Merge Orchestrator Service
+    shortDescription: Coordinates profile merging for profile touchpoints.
+    fullDescription: Profile Merge Orchestrator Service supports the Touchpoint Profile Pillar by coordinating profile merges. Its health affects whether customer profile information can be unified for touchpoint use.
   - id: it_6cab1e6f
     title: Template Renderer Service
+    shortDescription: Renders message templates for customer communications.
+    fullDescription: Template Renderer Service supports the Touchpoint Messaging Pillar by rendering message templates. It sits alongside delivery routing so messages can be prepared before being sent.
   - id: it_984c1c25
     title: Channel Delivery Router Service
+    shortDescription: Routes rendered messages to delivery channels.
+    fullDescription: Channel Delivery Router Service supports the messaging pillar by selecting delivery channels. Its health affects whether prepared communications can reach the right outbound path.
   - id: it_86ccee33
     title: Campaign Segmentation Service
+    shortDescription: Builds campaign audience segments for execution.
+    fullDescription: Campaign Segmentation Service supports the Touchpoint Campaign Pillar by preparing campaign audiences. It helps campaigns target the right groups before execution.
   - id: it_29082314
     title: Campaign Budget Guard Service
+    shortDescription: Checks campaign budgets before execution proceeds.
+    fullDescription: Campaign Budget Guard Service supports campaign controls by checking budget limits. It helps the campaign pillar represent whether campaigns can proceed within expected budget constraints.
