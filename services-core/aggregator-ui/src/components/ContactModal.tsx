@@ -560,133 +560,143 @@ const renderContactDemo = (
           helpTopic={helpTopic}
           title="Escalation"
         />
-        {isInitial && (
-          <div className="contact-oncall-start">
-            <div className="contact-oncall-profile">
-              <span className="contact-oncall-avatar">{details.iconLabel}</span>
-              <div>
-                <strong>{label}</strong>
-                <span className="contact-oncall-status">
-                  <span
-                    className="contact-oncall-status-dot"
-                    aria-hidden="true"
-                  />
-                  Primary responder available
-                </span>
-              </div>
-            </div>
-            <div className="contact-oncall-actions">
-              <button
-                type="button"
-                className={isCreatePressed ? "is-active" : ""}
-              >
-                {isCreatePressed ? "Opening..." : "Create incident"}
-              </button>
-            </div>
-          </div>
-        )}
-        {isForm && (
-          <div
-            className="contact-oncall-form"
-            aria-label="Create incident form"
-          >
-            <h3>Create incident</h3>
-            <label>
-              <span>Title</span>
-              <strong>
-                {typedIncidentTitle}
-                {onCallStage === "typing" &&
-                  onCallFormLength <= onCallIncidentTitle.length && (
-                    <span className="contact-typing-caret" />
-                  )}
-              </strong>
-            </label>
-            <label>
-              <span>Description</span>
-              <p>
-                {typedDescription}
-                {onCallStage === "typing" &&
-                  onCallFormLength > onCallIncidentTitle.length && (
-                    <span className="contact-typing-caret" />
-                  )}
-              </p>
-            </label>
-            <div className="contact-oncall-actions">
-              <button
-                type="button"
-                className={onCallStage === "creating" ? "is-active" : ""}
-              >
-                {onCallStage === "creating" ? "Creating..." : "Create incident"}
-              </button>
-            </div>
-          </div>
-        )}
-        {!isInitial && !isForm && (
-          <div className="contact-oncall-layout">
-            <div className="contact-oncall-summary">
+        <div
+          className={`contact-oncall-layout ${
+            isInitial || isForm ? "is-preparing" : ""
+          }`}
+        >
+          {isInitial && (
+            <div className="contact-oncall-start">
               <div className="contact-oncall-profile">
                 <span className="contact-oncall-avatar">
                   {details.iconLabel}
                 </span>
                 <div>
                   <strong>{label}</strong>
-                  <span
-                    className={
-                      isAcknowledged
-                        ? "contact-oncall-status is-complete"
-                        : "contact-oncall-status"
-                    }
-                  >
+                  <span className="contact-oncall-status">
                     <span
                       className="contact-oncall-status-dot"
                       aria-hidden="true"
                     />
-                    {statusText}
+                    Primary responder available
                   </span>
                 </div>
               </div>
               <div className="contact-oncall-actions">
                 <button
                   type="button"
-                  className="contact-oncall-secondary-action"
+                  className={isCreatePressed ? "is-active" : ""}
                 >
-                  Page responder
+                  {isCreatePressed ? "Opening..." : "Create incident"}
                 </button>
               </div>
             </div>
-            <div className="contact-oncall-activity-panel">
-              <h3>Activity</h3>
-              <ol
-                className="contact-oncall-activity"
-                aria-label="Escalation activity"
-              >
-                {activity.map((entry, index) => {
-                  const isVisible = index < onCallStep;
-                  const isFinal = index === activity.length - 1;
-                  const isCurrent = isVisible && index === onCallStep - 1;
-                  return (
-                    <li
-                      key={entry}
-                      className={[
-                        "contact-oncall-activity-item",
-                        isVisible ? "is-visible" : "",
-                        isVisible && isFinal ? "is-final" : "",
-                        isCurrent && !isFinal ? "is-current" : "",
-                      ]
-                        .filter(Boolean)
-                        .join(" ")}
-                    >
-                      <span className="contact-oncall-dot" aria-hidden="true">
-                        {isVisible && isFinal ? "✓" : ""}
-                      </span>
-                      <span>{entry}</span>
-                    </li>
-                  );
-                })}
-              </ol>
+          )}
+          {isForm && (
+            <div
+              className="contact-oncall-form"
+              aria-label="Create incident form"
+            >
+              <h3>Create incident</h3>
+              <label>
+                <span>Title</span>
+                <strong>
+                  {typedIncidentTitle}
+                  {onCallStage === "typing" &&
+                    onCallFormLength <= onCallIncidentTitle.length && (
+                      <span className="contact-typing-caret" />
+                    )}
+                </strong>
+              </label>
+              <label>
+                <span>Description</span>
+                <p>
+                  {typedDescription}
+                  {onCallStage === "typing" &&
+                    onCallFormLength > onCallIncidentTitle.length && (
+                      <span className="contact-typing-caret" />
+                    )}
+                </p>
+              </label>
+              <div className="contact-oncall-actions">
+                <button
+                  type="button"
+                  className={onCallStage === "creating" ? "is-active" : ""}
+                >
+                  {onCallStage === "creating"
+                    ? "Creating..."
+                    : "Create incident"}
+                </button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+          {!isInitial && !isForm && (
+            <>
+              <div className="contact-oncall-summary">
+                <div className="contact-oncall-profile">
+                  <span className="contact-oncall-avatar">
+                    {details.iconLabel}
+                  </span>
+                  <div>
+                    <strong>{label}</strong>
+                    <span
+                      className={
+                        isAcknowledged
+                          ? "contact-oncall-status is-complete"
+                          : "contact-oncall-status"
+                      }
+                    >
+                      <span
+                        className="contact-oncall-status-dot"
+                        aria-hidden="true"
+                      />
+                      {statusText}
+                    </span>
+                  </div>
+                </div>
+                <div className="contact-oncall-actions">
+                  <button
+                    type="button"
+                    className="contact-oncall-secondary-action"
+                  >
+                    Page responder
+                  </button>
+                </div>
+              </div>
+              <div className="contact-oncall-activity-panel">
+                <h3>Activity</h3>
+                <ol
+                  className="contact-oncall-activity"
+                  aria-label="Escalation activity"
+                >
+                  {activity.map((entry, index) => {
+                    const isVisible = index < onCallStep;
+                    const isFinal = index === activity.length - 1;
+                    const isCurrent = isVisible && index === onCallStep - 1;
+                    return (
+                      <li
+                        key={entry}
+                        className={[
+                          "contact-oncall-activity-item",
+                          isVisible ? "is-visible" : "",
+                          isVisible && isFinal ? "is-final" : "",
+                          isCurrent && !isFinal ? "is-current" : "",
+                        ]
+                          .filter(Boolean)
+                          .join(" ")}
+                      >
+                        <span className="contact-oncall-dot" aria-hidden="true">
+                          {isVisible && isFinal ? "✓" : ""}
+                        </span>
+                        <span>{entry}</span>
+                      </li>
+                    );
+                  })}
+                </ol>
+              </div>
+            </>
+          )}
+        </div>
       </section>
     );
   }
