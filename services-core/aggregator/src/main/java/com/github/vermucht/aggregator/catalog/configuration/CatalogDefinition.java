@@ -11,8 +11,14 @@ public record CatalogDefinition(
    *
    * @param id unique identifier for the item
    * @param title display title for the item
+   * @param shortDescription concise item summary for tooltips
+   * @param fullDescription detailed item description
    */
-  public record ItemDefinition(@Nullable String id, @Nullable String title) {}
+  public record ItemDefinition(
+      @Nullable String id,
+      @Nullable String title,
+      @Nullable String shortDescription,
+      @Nullable String fullDescription) {}
 
   /**
    * Raw dependency entry from the catalog payload.
