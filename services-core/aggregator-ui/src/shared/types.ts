@@ -7,6 +7,8 @@ export type HealthStatus = "up" | "down" | "unknown";
 export interface CatalogItem {
   id: string;
   title?: string;
+  shortDescription?: string;
+  fullDescription?: string;
 }
 
 export interface CatalogDependency {
@@ -70,6 +72,8 @@ export interface ProductHealthDependency {
 export interface ProductHealthItem {
   itemId: string;
   title: string;
+  shortDescription?: string;
+  fullDescription?: string;
   state: HealthStatus;
   ownState: HealthStatus;
   signals: ItemSignal[];
