@@ -921,6 +921,7 @@ body {
 }
 
 .catalog-item-info-content p {
+  margin: 0;
   white-space: pre-line;
 }
 
