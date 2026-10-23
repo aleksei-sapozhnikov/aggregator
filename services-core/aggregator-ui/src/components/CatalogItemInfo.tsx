@@ -50,8 +50,10 @@ export default function CatalogItemInfo({ item }: CatalogItemInfoProps) {
     : hasFullDescription
       ? viewDescriptionTooltip
       : missingTooltip;
-  const modalText = hasFullDescription ? fullDescription : shortDescription;
-  const paragraphs = useMemo(() => splitParagraphs(modalText), [modalText]);
+  const paragraphs = useMemo(
+    () => splitParagraphs(fullDescription),
+    [fullDescription],
+  );
 
   const showTooltip = () => {
     if (!isTooltipVisible) {
@@ -196,8 +198,9 @@ export default function CatalogItemInfo({ item }: CatalogItemInfoProps) {
                 <h2>{item.title || item.id}</h2>
               </header>
               <div className="catalog-item-info-content">
-                {paragraphs.map((paragraph) => (
-                  <p key={paragraph}>{paragraph}</p>
+                {hasShortDescription && <p>{shortDescription}</p>}
+                {paragraphs.map((paragraph, index) => (
+                  <p key={index}>{paragraph}</p>
                 ))}
                 {!hasFullDescription && hasShortDescription && (
                   <p className="catalog-item-info-missing-detail">
