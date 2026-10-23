@@ -82,7 +82,8 @@ export const resolveBaseUrl = (): string =>
 
 export const resolveGrafanaBaseUrl = (): string => {
   const runtimeConfig = window.__AGGREGATOR_UI__ as
-    AggregatorUiRuntimeConfig | undefined;
+    | AggregatorUiRuntimeConfig
+    | undefined;
   const configured = runtimeConfig?.grafanaUrl;
   if (configured) {
     return configured;
