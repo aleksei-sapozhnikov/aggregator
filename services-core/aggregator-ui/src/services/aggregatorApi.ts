@@ -33,6 +33,8 @@ interface ProductHealthDependencyPayload {
 interface ProductHealthItemPayload {
   itemId?: string;
   title?: string;
+  shortDescription?: string;
+  fullDescription?: string;
   state?: string;
   ownState?: string;
   signals?: ProductHealthSignalPayload[];
@@ -241,12 +243,28 @@ const normalizeItems = (rawItems: unknown): CatalogItem[] => {
     return [];
   }
   return rawItems
-    .filter((entry): entry is { id?: string; title?: string } => Boolean(entry))
+    .filter(
+      (
+        entry,
+      ): entry is {
+        id?: string;
+        title?: string;
+        shortDescription?: string;
+        fullDescription?: string;
+      } => Boolean(entry),
+    )
     .map((item) => ({
       id: String(item.id || "").trim(),
       title: String(item.title || item.id || "").trim(),
+      shortDescription: normalizeOptionalText(item.shortDescription),
+      fullDescription: normalizeOptionalText(item.fullDescription),
     }))
     .filter((item) => Boolean(item.id));
+};
+
+const normalizeOptionalText = (value: unknown): string | undefined => {
+  const text = typeof value === "string" ? value.trim() : "";
+  return text || undefined;
 };
 
 const normalizeDependencies = (
@@ -482,6 +500,8 @@ const normalizeProductHealthItem = (
   return {
     itemId,
     title: String(item.title || itemId).trim(),
+    shortDescription: normalizeOptionalText(item.shortDescription),
+    fullDescription: normalizeOptionalText(item.fullDescription),
     state: parseProductHealthStatus(item.state),
     ownState: parseProductHealthStatus(item.ownState),
     signals: normalizeProductHealthSignals(item.signals),

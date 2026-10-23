@@ -4,6 +4,7 @@
 
 import TopBarActions from "./TopBarActions";
 import AiChatPanel from "./AiChatPanel";
+import CatalogItemInfo from "./CatalogItemInfo";
 import InfoHelp from "./InfoHelp";
 import { isPlainLeftClick } from "../shared/catalogUtils";
 import { infoHelpTopics } from "../shared/infoHelpTopics";
@@ -455,6 +456,7 @@ export default function DetailsPanel({
                 {selectedTitleRest}
               </span>
             )}
+            {selectedItem && <CatalogItemInfo item={selectedItem} />}
             {selectedItem && selectedStatus !== "up" && (
               <span className={`content-status-label status-${selectedStatus}`}>
                 {selectedStatus.toUpperCase()}

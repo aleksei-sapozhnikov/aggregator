@@ -116,6 +116,11 @@ describe("DetailsPanel contextual help", () => {
     renderDetailsPanel();
 
     expect(
+      screen.getByRole("button", {
+        name: "Catalog information for Checkout",
+      }),
+    ).not.toBeNull();
+    expect(
       screen.getByRole("button", { name: "About Primary contact" }),
     ).not.toBeNull();
     expect(screen.getByRole("button", { name: "About Actors" })).not.toBeNull();
@@ -168,6 +173,141 @@ describe("DetailsPanel contextual help", () => {
     expect(
       screen.queryByRole("dialog", { name: "About Healthy signals" }),
     ).toBeNull();
+  });
+
+  it("shows catalog short description in the item information tooltip", async () => {
+    const { user } = renderDetailsPanel({
+      selectedItem: {
+        id: "checkout",
+        title: "Checkout",
+        shortDescription: "Accepts and prepares customer orders.",
+        fullDescription:
+          "Checkout accepts customer orders and prepares them for downstream processing.",
+      },
+    });
+    const infoButton = screen.getByRole("button", {
+      name: "Catalog information for Checkout",
+    });
+
+    await user.hover(infoButton);
+
+    expect(screen.getByRole("tooltip").textContent).toBe(
+      "Accepts and prepares customer orders.",
+    );
+    expect(infoButton.getAttribute("aria-disabled")).toBe("false");
+  });
+
+  it("disables catalog item information when no descriptions are present but keeps the tooltip", async () => {
+    const { user } = renderDetailsPanel({
+      selectedItem: {
+        id: "checkout",
+        title: "Checkout",
+        shortDescription: "   ",
+        fullDescription: "",
+      },
+    });
+    const infoButton = screen.getByRole("button", {
+      name: "Catalog information for Checkout",
+    });
+
+    await user.hover(infoButton);
+    expect(screen.getByRole("tooltip").textContent).toBe(
+      "No description in catalog",
+    );
+    expect(infoButton.getAttribute("aria-disabled")).toBe("true");
+
+    await user.click(infoButton);
+
+    expect(
+      screen.queryByRole("dialog", {
+        name: "Catalog information for Checkout",
+      }),
+    ).toBeNull();
+  });
+
+  it("opens catalog item information with the detailed description", async () => {
+    const { user } = renderDetailsPanel({
+      selectedItem: {
+        id: "checkout",
+        title: "Checkout",
+        shortDescription: "Accepts and prepares customer orders.",
+        fullDescription:
+          "Checkout accepts customer orders.\n\nIt prepares them for downstream processing.",
+      },
+    });
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Catalog information for Checkout",
+      }),
+    );
+
+    const dialog = screen.getByRole("dialog", {
+      name: "Catalog information for Checkout",
+    });
+    expect(dialog.textContent).toContain("Checkout");
+    expect(dialog.textContent).toContain("Checkout accepts customer orders.");
+    expect(dialog.textContent).toContain(
+      "It prepares them for downstream processing.",
+    );
+    expect(dialog.textContent).not.toContain(
+      "No detailed description in catalog.",
+    );
+    expect(dialog.textContent).not.toContain(
+      "Accepts and prepares customer orders.",
+    );
+  });
+
+  it("falls back to the short description when detailed catalog information is missing", async () => {
+    const { user } = renderDetailsPanel({
+      selectedItem: {
+        id: "checkout",
+        title: "Checkout",
+        shortDescription: "Accepts and prepares customer orders.",
+      },
+    });
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Catalog information for Checkout",
+      }),
+    );
+
+    const dialog = screen.getByRole("dialog", {
+      name: "Catalog information for Checkout",
+    });
+    expect(dialog.textContent).toContain(
+      "Accepts and prepares customer orders.",
+    );
+    expect(dialog.textContent).toContain("No detailed description in catalog.");
+  });
+
+  it("uses the generic catalog information tooltip when only a detailed description exists", async () => {
+    const { user } = renderDetailsPanel({
+      selectedItem: {
+        id: "checkout",
+        title: "Checkout",
+        fullDescription: "Checkout accepts customer orders.",
+      },
+    });
+    const infoButton = screen.getByRole("button", {
+      name: "Catalog information for Checkout",
+    });
+
+    await user.hover(infoButton);
+    expect(screen.getByRole("tooltip").textContent).toBe(
+      "View item description",
+    );
+
+    await user.click(infoButton);
+
+    const dialog = screen.getByRole("dialog", {
+      name: "Catalog information for Checkout",
+    });
+    expect(dialog.textContent).toContain("Checkout accepts customer orders.");
+    expect(dialog.textContent).not.toContain(
+      "No detailed description in catalog.",
+    );
   });
 
   it("closes the help modal when clicking the backdrop", async () => {
