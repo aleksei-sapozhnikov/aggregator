@@ -104,12 +104,16 @@ public class ProductHealthQueryService {
   private ItemHealthFact buildItemHealthFact(ItemId itemId, Catalog catalog) {
     Item item = catalog.items().get(itemId);
     String title = item != null ? item.getTitle() : itemId.getValue();
+    String shortDescription = item != null ? item.getShortDescription() : null;
+    String fullDescription = item != null ? item.getFullDescription() : null;
     List<DependencyHealthFact> dependencies = dependencyFacts(itemId, catalog);
     List<DependencyHealthFact> affectingDependencies =
         dependencies.stream().filter(dependency -> dependency.state() != HealthStatus.UP).toList();
     return new ItemHealthFact(
         itemId.getValue(),
         title,
+        shortDescription,
+        fullDescription,
         itemHealthStateStore.getAggregatedStatus(itemId),
         itemHealthStateStore.getRawStatus(itemId),
         signalFacts(itemId),

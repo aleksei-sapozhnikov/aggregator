@@ -72,6 +72,25 @@ class ProductHealthQueryServiceTest {
     assertThat(lookup.candidates()).isEmpty();
   }
 
+  @Test
+  void returnsCatalogItemDescriptionsWhenProvided() {
+    Item checkout =
+        Item.of(
+            ItemId.of("product:checkout"),
+            "Checkout",
+            "Accepts customer orders.",
+            "Checkout accepts customer orders and starts fulfillment.");
+    Catalog catalog = new Catalog(Map.of(checkout.getId(), checkout), List.of());
+    Fixture fixture = fixture(catalog);
+
+    ProductHealthLookup lookup = fixture.queryService().getItemHealthById("product:checkout");
+
+    assertThat(lookup.found()).isTrue();
+    assertThat(lookup.item().shortDescription()).isEqualTo("Accepts customer orders.");
+    assertThat(lookup.item().fullDescription())
+        .isEqualTo("Checkout accepts customer orders and starts fulfillment.");
+  }
+
   private static Fixture fixture(Catalog catalog) {
     CatalogRegistry catalogRegistry = new CatalogRegistry(catalog);
     ItemHealthStateStore itemHealthStateStore =

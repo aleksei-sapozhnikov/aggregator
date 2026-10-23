@@ -59,7 +59,11 @@ public class CatalogValidator {
         throw new IllegalStateException("Duplicate catalog item id: " + id);
       }
       String title = requireText(definition.title(), "title", "item " + id);
-      Item item = Item.of(itemId, title);
+      String shortDescription =
+          optionalText(definition.shortDescription(), "shortDescription", "item " + id);
+      String fullDescription =
+          optionalText(definition.fullDescription(), "fullDescription", "item " + id);
+      Item item = Item.of(itemId, title, shortDescription, fullDescription);
       items.put(itemId, item);
     }
     return items;
@@ -105,6 +109,18 @@ public class CatalogValidator {
       @Nullable String value, @Nonnull String field, @Nonnull String context) {
     if (value == null) {
       throw new IllegalStateException("Catalog " + context + " must include " + field);
+    }
+    return value;
+  }
+
+  @Nullable
+  private String optionalText(
+      @Nullable String value, @Nonnull String field, @Nonnull String context) {
+    if (value == null) {
+      return null;
+    }
+    if (value.isBlank()) {
+      throw new IllegalStateException("Catalog " + context + " " + field + " must not be blank");
     }
     return value;
   }
