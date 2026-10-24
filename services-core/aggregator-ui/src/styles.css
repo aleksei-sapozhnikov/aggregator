@@ -4094,6 +4094,8 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 
 /* Compact health hierarchy: neutral surfaces, consistent disclosures, and shape-coded states. */
 .details-summary-block {
+  /* Align list text with disclosure titles, accounting for row icons. */
+  --details-disclosure-text-indent: 52px;
   width: 100%;
   max-width: 100%;
   display: flex;
@@ -4279,6 +4281,10 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 
 .details-disclosure-toggle .details-panel-chevron {
   color: currentColor;
+  width: 16px;
+  flex: 0 0 16px;
+  display: inline-flex;
+  justify-content: center;
 }
 
 .details-disclosure-toggle:hover {
@@ -4504,15 +4510,28 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 .details-unhealthy-list {
   list-style: none;
   margin: 0;
-  padding: 0 0 4px 23px;
+  padding: 10px 0 4px var(--details-disclosure-text-indent);
   display: flex;
   flex-direction: column;
   gap: 0;
 }
 
+.signals-unhealthy-own-row {
+  min-width: 0;
+  padding: 1px 0;
+  color: var(--text);
+}
+
 .details-unhealthy-list > .signals-incident-row + .signals-incident-row,
-.details-unhealthy-list > .signals-healthy-row + .signals-incident-row {
-  margin-top: 6px;
+.details-unhealthy-list > .signals-unhealthy-own-row + .signals-incident-row {
+  margin-top: 18px;
+}
+
+.signal-unknown-label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .details-disclosure-icon {
@@ -4537,8 +4556,9 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 }
 
 .details-disclosure-status {
-  width: 16px;
-  min-width: 16px;
+  width: 18px;
+  min-width: 18px;
+  flex-basis: 18px;
 }
 
 .ownership-extra-contacts {
@@ -4551,7 +4571,8 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 
 .ownership-extra-list {
   gap: 0;
-  padding-left: 23px;
+  /* Actor icon (18px) and row gap (8px) precede the actor's name. */
+  padding-left: calc(var(--details-disclosure-text-indent) - 26px);
 }
 
 .ownership-extra-list li {
@@ -4566,7 +4587,7 @@ body[data-theme="dark"] .about-social-icon-linkedin {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 2px 4px;
+  padding: 2px 0;
   white-space: nowrap;
 }
 
@@ -4608,7 +4629,7 @@ body[data-theme="dark"] .about-social-icon-linkedin {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 0 4px;
+  padding: 0;
   white-space: nowrap;
 }
 
@@ -4637,7 +4658,7 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 }
 
 .signals-incident-signal-list {
-  margin: -2px 0 2px 11px;
+  margin: 2px 0 2px 11px;
   padding: 0 0 0 17px;
   border-left: 1px solid var(--border);
   gap: 0;
@@ -4645,7 +4666,7 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 
 .signals-incident-signal {
   min-height: 26px;
-  color: var(--text);
+  color: var(--muted);
   display: flex;
   align-items: center;
   gap: 7px;
@@ -4669,7 +4690,8 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 
 .signals-healthy-list {
   gap: 0;
-  padding: 2px 0 4px 23px;
+  /* Status icon (16px) and row gap (8px) precede the signal's name. */
+  padding: 2px 0 4px calc(var(--details-disclosure-text-indent) - 24px);
 }
 
 .details-disclosure-section > .disclosure-panel > .signals-healthy-list {
@@ -4677,7 +4699,7 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 }
 
 .signals-healthy-row {
-  padding: 1px 4px;
+  padding: 1px 0;
 }
 
 .signal-status-row {

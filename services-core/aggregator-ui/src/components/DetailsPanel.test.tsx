@@ -416,6 +416,37 @@ describe("DetailsPanel contextual help", () => {
     expect(healthyToggle.getAttribute("aria-expanded")).toBe("true");
   });
 
+  it("shows unhealthy signals without repeated status icons", () => {
+    const { container } = renderDetailsPanel();
+    const list = container.querySelector(".details-unhealthy-list");
+
+    expect(list?.querySelectorAll(".status-indicator")).toHaveLength(0);
+    expect(
+      list
+        ?.querySelector(".signals-unhealthy-own-row")
+        ?.getAttribute("aria-label"),
+    ).toBe("Latency, Status: DOWN");
+    expect(
+      list
+        ?.querySelector(".signals-incident-signal")
+        ?.getAttribute("aria-label"),
+    ).toBe("Errors, Status: DOWN");
+  });
+
+  it("keeps unknown unhealthy states explicitly visible", () => {
+    const { container } = renderDetailsPanel({
+      selectedFailingSignals: [
+        { id: "latency", title: "Latency", status: "unknown" },
+      ],
+      failingDependencies: [],
+    });
+    const unknownLabel = container.querySelector(
+      ".details-unhealthy-list .signal-unknown-label",
+    );
+
+    expect(unknownLabel?.textContent).toBe("UNKNOWN");
+  });
+
   it("toggles Timeline from its visible label text", async () => {
     const onToggleGrafana = vi.fn();
     const { user } = renderDetailsPanel({ onToggleGrafana });
