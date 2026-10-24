@@ -456,12 +456,12 @@ export default function DetailsPanel({
                 {selectedTitleRest}
               </span>
             )}
-            {selectedItem && <CatalogItemInfo item={selectedItem} />}
             {selectedItem && selectedStatus !== "up" && (
               <span className={`content-status-label status-${selectedStatus}`}>
                 {selectedStatus.toUpperCase()}
               </span>
             )}
+            {selectedItem && <CatalogItemInfo item={selectedItem} />}
           </div>
         </div>
       </header>
