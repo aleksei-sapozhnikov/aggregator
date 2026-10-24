@@ -22,10 +22,14 @@ properties:
           type: string
           minLength: 1
         shortDescription:
+          description: Optional concise summary shown in the item tooltip.
           type: string
           minLength: 1
           pattern: \S
         fullDescription:
+          description: >-
+            Optional detailed description. In YAML, use a literal block scalar
+            (| or |-) with blank lines between paragraphs.
           type: string
           minLength: 1
           pattern: \S
