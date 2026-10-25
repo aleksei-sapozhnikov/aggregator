@@ -80,3 +80,17 @@ resource "aws_iam_policy" "publication_role_boundary" {
     prevent_destroy = true
   }
 }
+
+resource "aws_iam_policy" "bedrock_model" {
+  name   = "AggregatorCallBedrockModel"
+  path   = "/"
+  policy = file("${path.module}/policies/AggregatorCallBedrockModel.json")
+  tags = {
+    "Environment" = "demo"
+    "Project"     = "aggregator"
+  }
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
