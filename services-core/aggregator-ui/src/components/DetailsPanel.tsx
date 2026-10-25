@@ -456,12 +456,12 @@ export default function DetailsPanel({
                 {selectedTitleRest}
               </span>
             )}
+            {selectedItem && <CatalogItemInfo item={selectedItem} />}
             {selectedItem && selectedStatus !== "up" && (
               <span className={`content-status-label status-${selectedStatus}`}>
                 {selectedStatus.toUpperCase()}
               </span>
             )}
-            {selectedItem && <CatalogItemInfo item={selectedItem} />}
           </div>
         </div>
       </header>
@@ -576,9 +576,6 @@ export default function DetailsPanel({
                           {actorRowsForContacts.map((entry) => (
                             <li key={entry.key}>
                               <div className="actor-summary-row">
-                                <span className="actor-summary-icon">
-                                  {renderActorTeamIcon(iconSpriteHref)}
-                                </span>
                                 <a
                                   className="details-text-link actor-summary-link"
                                   href={`/actors/${entry.actor.id}`}
@@ -758,13 +755,12 @@ export default function DetailsPanel({
                     >
                       <ul className="signals-healthy-list">
                         {selectedPassingSignals.map((entry) => (
-                          <li key={entry.id} className="signals-healthy-row">
+                          <li
+                            key={entry.id}
+                            className="signals-healthy-row"
+                            aria-label={`${entry.title || entry.id}, ${buildStatusText(entry.status)}`}
+                          >
                             <div className="signal-row signal-status-row">
-                              <span
-                                className={`status-indicator status-${entry.status}`}
-                                aria-label={buildStatusText(entry.status)}
-                                title={buildStatusText(entry.status)}
-                              />
                               <span
                                 className="signal-name"
                                 title={entry.title || entry.id}

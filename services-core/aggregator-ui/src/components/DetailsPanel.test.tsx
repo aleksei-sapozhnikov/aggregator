@@ -416,6 +416,23 @@ describe("DetailsPanel contextual help", () => {
     expect(healthyToggle.getAttribute("aria-expanded")).toBe("true");
   });
 
+  it("groups actor links and healthy signals without redundant icons", () => {
+    const { container } = renderDetailsPanel();
+    const actors = container.querySelector(".ownership-extra-list");
+    const healthy = container.querySelector(".signals-healthy-list");
+
+    expect(actors?.querySelectorAll(".actor-summary-icon")).toHaveLength(0);
+    expect(actors?.querySelector(".actor-summary-link")?.textContent).toBe(
+      "Checkout Team",
+    );
+    expect(healthy?.querySelectorAll(".status-indicator")).toHaveLength(0);
+    expect(
+      healthy
+        ?.querySelector(".signals-healthy-row")
+        ?.getAttribute("aria-label"),
+    ).toBe("Availability, Status: UP");
+  });
+
   it("shows unhealthy signals without repeated status icons", () => {
     const { container } = renderDetailsPanel();
     const list = container.querySelector(".details-unhealthy-list");

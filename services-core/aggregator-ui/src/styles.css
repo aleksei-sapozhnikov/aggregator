@@ -2605,7 +2605,7 @@ body[data-theme="dark"] .contact-chip:hover {
 }
 
 .contact-demo-phone {
-  height: min(360px, calc(100vh - 88px));
+  height: min(400px, calc(100vh - 88px));
   display: flex;
   flex-direction: column;
   background: var(--client-thread-bg);
@@ -2837,10 +2837,6 @@ body[data-theme="dark"] .contact-chip:hover {
   justify-content: flex-start;
   margin-top: auto;
   gap: 10px;
-}
-
-.contact-oncall-actions button {
-  min-height: 34px;
 }
 
 .contact-oncall-actions button.is-active {
@@ -3546,7 +3542,7 @@ body[data-theme="dark"] .contacts-actor-type-mark {
 }
 
 .about-modal p {
-  margin: 0 0 12px;
+  margin: 0;
   line-height: 1.5;
 }
 
@@ -4173,7 +4169,7 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 }
 
 .ownership-contact-section + .ownership-actors-group {
-  margin-top: 14px;
+  margin-top: 20px;
 }
 
 .primary-contact-block {
@@ -4183,7 +4179,7 @@ body[data-theme="dark"] .about-social-icon-linkedin {
   flex-direction: column;
   gap: 3px;
   border-left: 3px solid var(--sidebar-selected-accent);
-  padding: 3px 0 4px 11px;
+  padding: 3px 0 4px 26px;
 }
 
 .primary-contact-heading {
@@ -4205,7 +4201,6 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 .primary-contact-row {
   width: fit-content;
   max-width: 100%;
-  min-height: 34px;
   display: flex;
   align-items: center;
   gap: 9px;
@@ -4226,7 +4221,6 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 }
 
 .primary-contact-link {
-  min-height: 34px;
   font-size: 18px;
   font-weight: 600;
 }
@@ -4247,16 +4241,18 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 .details-disclosure-section {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
 }
 
 .ownership-summary + .details-disclosure-section,
 .details-disclosure-section + .details-disclosure-section {
-  margin-top: 14px;
+  margin-top: 20px;
 }
 
 .details-timeline-section {
   width: 100%;
+  /* Keep Timeline at the same separation as other sections (parent gap: 16px). */
+  margin-top: 4px;
 }
 
 .details-timeline-body {
@@ -4510,7 +4506,7 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 .details-unhealthy-list {
   list-style: none;
   margin: 0;
-  padding: 10px 0 4px var(--details-disclosure-text-indent);
+  padding: 0 0 4px var(--details-disclosure-text-indent);
   display: flex;
   flex-direction: column;
   gap: 0;
@@ -4524,7 +4520,7 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 
 .details-unhealthy-list > .signals-incident-row + .signals-incident-row,
 .details-unhealthy-list > .signals-unhealthy-own-row + .signals-incident-row {
-  margin-top: 18px;
+  margin-top: 0;
 }
 
 .signal-unknown-label {
@@ -4570,9 +4566,8 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 }
 
 .ownership-extra-list {
-  gap: 0;
-  /* Actor icon (18px) and row gap (8px) precede the actor's name. */
-  padding-left: calc(var(--details-disclosure-text-indent) - 26px);
+  gap: 2px;
+  padding-left: var(--details-disclosure-text-indent);
 }
 
 .ownership-extra-list li {
@@ -4583,26 +4578,11 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 .actor-summary-row {
   width: fit-content;
   max-width: 100%;
-  min-height: 40px;
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 2px 0;
+  padding: 0;
   white-space: nowrap;
-}
-
-.actor-summary-icon {
-  width: 18px;
-  min-width: 18px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.actor-summary-icon .actor-team-icon {
-  width: 17px;
-  height: 17px;
-  flex-basis: 17px;
 }
 
 .actor-summary-link {
@@ -4625,7 +4605,6 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 .signals-dependency-row {
   width: fit-content;
   max-width: 100%;
-  min-height: 34px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -4635,7 +4614,6 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 
 .details-text-link {
   min-width: 0;
-  min-height: 34px;
   display: inline-flex;
   align-items: center;
   color: var(--link);
@@ -4689,9 +4667,8 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 }
 
 .signals-healthy-list {
-  gap: 0;
-  /* Status icon (16px) and row gap (8px) precede the signal's name. */
-  padding: 2px 0 4px calc(var(--details-disclosure-text-indent) - 24px);
+  gap: 2px;
+  padding: 0 0 4px var(--details-disclosure-text-indent);
 }
 
 .details-disclosure-section > .disclosure-panel > .signals-healthy-list {
@@ -4699,7 +4676,12 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 }
 
 .signals-healthy-row {
-  padding: 1px 0;
+  padding: 0;
+}
+
+.details-summary-block .signals-healthy-list .signal-status-row,
+.details-summary-block .details-unhealthy-list .signal-status-row {
+  min-height: 30px;
 }
 
 .signal-status-row {
