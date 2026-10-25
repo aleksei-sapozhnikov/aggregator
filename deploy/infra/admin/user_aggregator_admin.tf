@@ -21,16 +21,6 @@ resource "aws_iam_user_group_membership" "aggregator_admin" {
   }
 }
 
-resource "aws_iam_group_policy_attachment" "base_readonlyaccess" {
-  group      = aws_iam_group.base.name
-  policy_arn = "arn:aws:iam::aws:policy/ReadOnlyAccess"
-}
-
-resource "aws_iam_group_policy_attachment" "base_signinlocaldevelopmentaccess" {
-  group      = aws_iam_group.base.name
-  policy_arn = "arn:aws:iam::aws:policy/SignInLocalDevelopmentAccess"
-}
-
 resource "aws_iam_group_policy_attachment" "demo_demo_ec2_management" {
   group      = aws_iam_group.demo.name
   policy_arn = aws_iam_policy.demo_ec2_management.arn

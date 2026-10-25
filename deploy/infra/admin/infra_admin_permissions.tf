@@ -26,3 +26,17 @@ data "aws_iam_policy_document" "infrastructure_admin_permissions" {
     ]
   }
 }
+
+resource "aws_iam_policy" "infrastructure_admin_management" {
+  name        = "AggregatorInfrastructureManagement"
+  description = "Manage Aggregator IAM configuration and OpenTofu state"
+  policy      = data.aws_iam_policy_document.infrastructure_admin_permissions.json
+
+  tags = {
+    Project = "aggregator"
+  }
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
