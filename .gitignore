@@ -88,6 +88,9 @@ build/
 # =========================
 # Temporary / Local Dev
 # =========================
+# Private local backups, state archives, and credentials
+/.private/
+
 .temp/
 tmp/
 *.tmp
