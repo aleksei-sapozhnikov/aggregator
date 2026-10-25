@@ -1,62 +1,92 @@
 # Aggregator demo infrastructure (OpenTofu)
 
-This directory contains two deliberately distinct EC2 modules.
+This directory is an independent OpenTofu root with its own state. Always run
+OpenTofu commands from `deploy/infra/demo`, **not** `deploy/infra`.
+The shared EC2 modules live in `../modules/`.
 
 | Module | Intended use |
 | --- | --- |
-| `modules/ec2_legacy/` | The existing imported Docker Compose demo instance. Preserves current behavior and imported-resource exceptions. |
-| `modules/ec2_k3s/` | A new instance only. Uses strict creation-time tagging, encryption, dedicated IAM, and fixed ingress rules. |
+| `../modules/ec2_legacy/` | Existing imported Docker Compose demo instance. Preserves imported-resource behavior. |
+| `../modules/ec2_k3s/` | New instance only. Enforces tagging, encrypted storage, and a role permissions boundary. |
 
-## Preserving existing state
+## Existing demo and state
 
-The existing root module remains named `module.aggregator_demo`, and the Terraform resource names inside `ec2_legacy` are unchanged. Only its `source` path changed. **Do not rename the existing root module**, change its state address, import it again, or run `tofu state mv` for this refactor.
+The existing instance is tracked as `module.aggregator_demo`. Its module source
+changed to `../modules/ec2_legacy`, but its resource addresses did **not** change.
+Do not re-import the instance or move its state for this refactor.
 
-From `deploy/infra`, using the **same existing state**:
+From the repository root:
 
-```sh
+```powershell
+cd deploy/infra/demo
 tofu init
 tofu validate
 tofu plan
 ```
 
-Before enabling the new instance, verify that the plan reports `No changes` for the existing resources. Do not apply if replacements or tag removals are planned.
+Do not apply a plan that would replace the legacy instance or remove its tags.
 
-## New instance contract
+## Bedrock managed policy ownership migration
 
-`ec2_k3s` intentionally has no imported-resource overrides or optional unsafe settings:
+`AggregatorCallBedrockModel` was originally created by
+`module.permissions.aws_iam_policy.bedrock` in this demo state. Its new owner
+will be `aws_iam_policy.bedrock_model` in `../admin`.
 
-- Resource names are fixed for the new `aggregator-demo-k3s` node.
-- `Project=aggregator`, `Environment=demo`, `ManagedBy=terraform`, and `Component=k3s` are always set on taggable resources. The EBS root volume receives these tags **during instance creation**.
-- Only a verified, Amazon-owned Amazon Linux 2023 x86_64 AMI is accepted. Pin its ID at the call site.
-- Root disk is always encrypted gp3, 40–200 GiB, deleted when the instance is terminated.
-- IMDSv2 is always required, with metadata hop limit 2 for container workloads.
-- New IAM role/profile are independent. The role has the existing `AggregatorDemoRoleBoundary` and attaches the existing `AggregatorCallBedrockModel` and AWS-managed `AmazonSSMManagedInstanceCore` policies.
-- Inbound 80/443 are public. SSH is disabled by default; enabling it requires an existing EC2 key pair and a single `/32` administrator address. Port 6443 is not public.
-- Outbound IPv4 access is allowed for AWS APIs and container images.
-- The VPC and public subnet are shared network dependencies, not owned or deleted by this module.
-- EC2 is initially empty. Ansible/k3s setup is **not** performed by OpenTofu.
+The `removed` block in `main.tf` explicitly uses `destroy = false`.
+Applying it **forgets** `module.permissions` in demo state but does not delete
+the policy from AWS. This migration requires OpenTofu 1.10 or newer.
 
-## Enable the new instance later
+Complete the migration in this order, and do not run either state concurrently:
 
-After provisioning permissions are ready, select a verified Amazon Linux 2023 x86_64 AMI in `eu-central-1` and add the following root module to `main.tf` (this is **not enabled** in the delivered code):
+1. Back up both state files somewhere private and outside Git.
+2. In this directory, run `tofu plan` and confirm that the only operation is
+   forgetting `module.permissions.aws_iam_policy.bedrock`, **not** destroying it.
+3. Apply the reviewed demo plan. Confirm that the policy remains in AWS and
+   `tofu plan` now reports `No changes`.
+4. In `../admin`, run the read-only snapshot generator with
+   `--include-bedrock`, review the generated JSON and HCL, and plan an
+   import of `aws_iam_policy.bedrock_model`.
+5. Apply the admin import only when it proposes no creations, updates, or
+   deletions. Confirm `No changes` in **both** roots.
+6. Commit the generated `admin/policies/AggregatorCallBedrockModel.json`,
+   `admin/policies.tf`, `admin/imports.tf` and
+   `admin/snapshot-summary.json`.
 
-```hcl
-module "aggregator_demo_k3s" {
-  source        = "./modules/ec2_k3s"
-  ami_id        = "ami-REPLACE_WITH_VERIFIED_AL2023_AMI_ID"
-  instance_type = "t3.large"
-  vpc_id        = data.aws_vpc.default.id
-  subnet_id     = data.aws_subnet.default["aggregator_demo"].id
-}
-```
+See `../admin/README.md` for detailed PowerShell commands.
 
-For SSH-based Ansible configuration, explicitly add an existing key pair name and a single trusted `/32` source:
+The Bedrock policy's ARN is stable and is referenced directly by the legacy
+module (if enabled) and the new k3s module. Never allow the same remote IAM
+policy to be managed by two OpenTofu states.
 
-```hcl
-  ssh_key_name  = "YOUR_K3S_KEY_PAIR_NAME"
-  admin_ssh_cidr = "YOUR_PUBLIC_IP/32"
-```
+## New k3s instance contract
 
-Alternatively, keep SSH closed and use a documented AWS Systems Manager transport workflow for Ansible. Ensure the AMI/instance has SSM Agent enabled and SSM network connectivity before relying on this access path.
+The `ec2_k3s` module intentionally has no imported-resource overrides:
 
-**Do not run `tofu apply` until the IAM management policy, EC2 permissions, AMI selection, and access method have been validated.**
+- Uses fixed names for the demo k3s node and related infrastructure.
+- Requires `Project=aggregator`, `Environment=demo`, `ManagedBy=terraform`,
+  and `Component=k3s` on taggable resources, including root EBS at launch.
+- Requires a verified Amazon-owned AL2023 x86_64 AMI, pinned at the call site.
+- Uses encrypted gp3 storage, IMDSv2, and a restricted IAM role with
+  `AggregatorDemoRoleBoundary`, Bedrock, and SSM policies.
+- Opens public HTTP/HTTPS only. SSH is disabled by default; port 6443 is not
+  opened to the Internet.
+- Reuses the account's default VPC and a public default subnet, but does not
+  manage their lifecycle.
+- Provisions only the EC2 infrastructure, not Kubernetes. Ansible and k3s setup
+  are separate steps.
+
+The k3s module is currently commented out in `main.tf`. To recreate it,
+uncomment the existing `module "aggregator_demo_k3s"` block, verify the
+selected AL2023 AMI, and run `tofu plan` from `deploy/infra/demo`.
+Only apply after reviewing that the plan creates **new k3s resources** and
+does not modify `module.aggregator_demo`.
+
+## Access and Terraform state
+
+The regular provisioning identity is `aggregator-admin`; administrative
+IAM policies and permissions boundaries are managed separately by the
+`../admin` root with privileged credentials.
+
+The demo state currently uses a local backend:
+`../../../.temp/demo/demo-infra.tfstate` relative to this directory.
+Do not commit state, plan files, or credentials to Git.
