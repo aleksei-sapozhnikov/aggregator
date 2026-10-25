@@ -92,6 +92,26 @@ build/
 tmp/
 *.tmp
 
+# OpenTofu / Terraform local data, state, plans, and credentials
+.terraform/
+.tofu/
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.plan
+crash.log
+crash.*.log
+*.auto.tfvars
+*.auto.tfvars.json
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+!*.tfvars.example.json
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
 # =========================
 # Archives (optional)
 # =========================
