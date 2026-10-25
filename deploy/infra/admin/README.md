@@ -2,7 +2,7 @@
 
 **Goal:** Import the existing IAM configuration into an independent admin state without creating, deleting, or changing AWS resources.
 
-This directory is separate from the live demo root (`deploy/infra`). Do **not** run `tofu apply` in this directory until you have captured actual IAM settings and confirmed that the plan contains *imports only*.
+This directory is separate from the live demo root (`deploy/infra/demo`). Do **not** run `tofu apply` in this directory until you have captured actual IAM settings and confirmed that the plan contains *imports only*.
 
 ## Ownership boundary
 
@@ -63,29 +63,85 @@ The next plan should report `No changes`. Remove `admin-import.tfplan` after the
 
 If the `aggregator-admin` profile has enough IAM **read** permissions, importing may work under that identity. A privileged admin identity will be needed to make actual admin policy changes later. Do not grant the ordinary demo runtime identity permission to edit its own boundaries or the admin state.
 
-## Bedrock managed policy migration (later, separately)
+## Bedrock managed policy migration (separate, ordered operation)
 
-Only do this after the first admin import is clean and you have backups of both states:
+The existing `AggregatorCallBedrockModel` policy is still tracked by
+`module.permissions.aws_iam_policy.bedrock` in the demo state until the
+first stage below is applied. Do not run admin import before demo has
+forgotten that resource: OpenTofu must not manage it in two states at once.
 
-1. In `deploy/infra/main.tf`, remove `module "permissions"` and replace `module.permissions.bedrock_policy_arn` with the literal ARN `arn:aws:iam::905418096305:policy/AggregatorCallBedrockModel` wherever referenced. Do not apply a plan that proposes deleting the Bedrock policy.
-2. In the **demo** root, back up the state and then forget the policy without deleting it:
+This migration uses an OpenTofu `removed` block with
+`lifecycle { destroy = false }` in `../demo/main.tf`. It preserves the
+AWS policy and only updates the demo state. Use OpenTofu 1.10 or newer.
 
-   ```sh
-   tofu state pull > demo-state-backup.json
-   tofu state rm module.permissions.aws_iam_policy.bedrock
-   tofu plan
-   ```
+Starting from the repository root in PowerShell, after updating the
+configuration from Git and ensuring your AWS profile is correct:
 
-   The demo plan should not include any changes to the IAM policy or its attachments. The policy still exists in AWS.
-3. Re-run the capture tool for the **admin** root with `--include-bedrock`:
+**Stage A — Back up both states and forget the policy in demo:**
 
-   ```sh
-   python deploy/infra/admin/scripts/capture_iam.py --profile aggregator-admin --output deploy/infra/admin --include-bedrock
-   ```
+```powershell
+cd deploy/infra/demo
+tofu --version
+tofu init
+tofu state pull > "$env:TEMP/aggregator-demo-before-bedrock.tfstate"
+tofu state list | Select-String "module.permissions.aws_iam_policy.bedrock"
 
-4. Review the admin plan; it should **only import** the Bedrock policy (`aws_iam_policy.bedrock_model`). Apply the import, then confirm `No changes` in both states.
+cd ../admin
+tofu init
+tofu state pull > "$env:TEMP/aggregator-admin-before-bedrock.tfstate"
+cd ../demo
 
-The period between forgetting the policy and importing it should be short; no simultaneous owner is ever allowed. Do not execute `tofu destroy` during migration.
+tofu plan -out=bedrock-forget.tfplan
+tofu show bedrock-forget.tfplan
+```
+
+The demo plan must **only forget** the Bedrock policy, without
+destroying, creating, replacing, or updating any AWS resources.
+A plan showing `delete`/`destroy` is **not safe**. In particular,
+never delete the actual policy that may be used by EC2 workloads.
+If the plan is as expected:
+
+```powershell
+tofu apply bedrock-forget.tfplan
+tofu plan
+aws iam get-policy --policy-arn arn:aws:iam::905418096305:policy/AggregatorCallBedrockModel --profile aggregator-admin
+```
+
+The demo plan should now show `No changes`; the AWS policy must still
+exist. An inert `removed` block may remain in `main.tf` to document
+the migration.
+
+**Stage B — Capture and import the existing policy into admin:**
+
+```powershell
+cd ../admin
+python ./scripts/capture_iam.py --profile aggregator-admin --output . --include-bedrock
+tofu fmt -recursive
+tofu validate
+tofu plan -out=bedrock-import.tfplan
+tofu show bedrock-import.tfplan
+```
+
+The admin plan must show **one import** to
+`aws_iam_policy.bedrock_model` and **no** create/update/delete
+operations. The generator reads the live default policy version and its
+tags; it makes no AWS changes. It also refreshes the other admin policy
+snapshots, so inspect any unexpected Git diffs before continuing.
+
+```powershell
+tofu apply bedrock-import.tfplan
+tofu plan
+cd ../demo
+tofu plan
+```
+
+Both roots must report `No changes`. Commit the newly generated
+`admin/policies/AggregatorCallBedrockModel.json`, `admin/policies.tf`,
+`admin/imports.tf`, and `admin/snapshot-summary.json`.
+
+Do not commit state backups or `*.tfplan`. Never run operations in both
+state roots at the same time. If a step fails, do not re-create or delete
+the IAM policy: inspect state ownership first.
 
 ## Next infrastructure state work
 
