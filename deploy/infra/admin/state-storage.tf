@@ -1,5 +1,3 @@
-# This bucket is created while the admin state still uses its local backend.
-# Move backend configuration only after the bucket and access policy exist.
 resource "aws_s3_bucket" "tofu_state" {
   bucket        = "aggregator-tofu-state-905418096305-eu-central-1"
   force_destroy = false

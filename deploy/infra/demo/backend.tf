@@ -1,5 +1,9 @@
 terraform {
-  backend "local" {
-    path = "../../../.temp/demo/demo-infra.tfstate"
+  backend "s3" {
+    bucket       = "aggregator-tofu-state-905418096305-eu-central-1"
+    key          = "demo/tofu.tfstate"
+    region       = "eu-central-1"
+    encrypt      = true
+    use_lockfile = true
   }
 }
