@@ -137,7 +137,6 @@ resource "aws_instance" "this" {
     throughput            = var.root_volume_throughput
     volume_size           = var.root_volume_size
     volume_type           = var.root_volume_type
-    # Preserve tags on an imported root volume without enabling creation-time volume_tags.
     tags                  = var.root_volume_tags
   }
   tags        = merge(var.tags, { Name = var.name })
