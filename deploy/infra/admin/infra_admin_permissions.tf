@@ -10,21 +10,6 @@ data "aws_iam_policy_document" "infrastructure_admin_permissions" {
     ]
   }
 
-  # Temporary access to retire the exposed legacy Bedrock API key user.
-  # Remove this statement after the credential and IAM user have been deleted.
-  statement {
-    sid = "RetireLegacyBedrockKeyUser"
-    actions = [
-      "iam:UpdateServiceSpecificCredential",
-      "iam:DeleteServiceSpecificCredential",
-      "iam:DetachUserPolicy",
-      "iam:DeleteUser",
-    ]
-    resources = [
-      "arn:aws:iam::905418096305:user/BedrockAPIKey-33vz",
-    ]
-  }
-
   statement {
     sid       = "ReadIAMForPlans"
     actions   = ["iam:Get*", "iam:List*", "iam:SimulateCustomPolicy", "iam:SimulatePrincipalPolicy"]

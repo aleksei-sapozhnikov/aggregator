@@ -51,3 +51,8 @@ resource "aws_iam_group_policy_attachment" "bedrock_developers_model_invoke" {
   group      = aws_iam_group.bedrock_developers.name
   policy_arn = aws_iam_policy.bedrock_model.arn
 }
+
+resource "aws_iam_group_policy_attachment" "publication_publication_state_access" {
+  group      = aws_iam_group.publication.name
+  policy_arn = aws_iam_policy.publication_state_access.arn
+}

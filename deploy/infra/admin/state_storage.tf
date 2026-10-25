@@ -144,3 +144,49 @@ resource "aws_iam_policy" "demo_state_access" {
     prevent_destroy = true
   }
 }
+
+# State storage for the independent publication infrastructure root.
+data "aws_iam_policy_document" "publication_state_access" {
+  statement {
+    sid       = "ListPublicationStateOnly"
+    actions   = ["s3:ListBucket"]
+    resources = [aws_s3_bucket.tofu_state.arn]
+
+    condition {
+      test     = "StringLike"
+      variable = "s3:prefix"
+      values   = ["publication/*"]
+    }
+  }
+
+  statement {
+    sid       = "ReadWritePublicationState"
+    actions   = ["s3:GetObject", "s3:PutObject"]
+    resources = [
+      "${aws_s3_bucket.tofu_state.arn}/publication/tofu.tfstate",
+    ]
+  }
+
+  statement {
+    sid       = "ManagePublicationStateLock"
+    actions   = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
+    resources = [
+      "${aws_s3_bucket.tofu_state.arn}/publication/tofu.tfstate.tflock",
+    ]
+  }
+}
+
+resource "aws_iam_policy" "publication_state_access" {
+  name        = "AggregatorPublicationStateAccess"
+  description = "Access to the publication OpenTofu state and lock only"
+  policy      = data.aws_iam_policy_document.publication_state_access.json
+
+  tags = {
+    Project    = "aggregator"
+    Repository = "https://github.com/aleksei-sapozhnikov/aggregator"
+  }
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
