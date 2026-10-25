@@ -10,6 +10,10 @@ services:
   ai-agent:
     ports:
       - "8085:8080"
+    environment:
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_SESSION_TOKEN
 
   aggregator-ui:
     ports:

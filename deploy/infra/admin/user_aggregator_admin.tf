@@ -13,6 +13,7 @@ resource "aws_iam_user_group_membership" "aggregator_admin" {
   groups = [
     aws_iam_group.base.name,
     aws_iam_group.demo.name,
+    aws_iam_group.bedrock_developers.name,
     aws_iam_group.publication.name,
   ]
 
@@ -44,4 +45,9 @@ resource "aws_iam_group_policy_attachment" "publication_publication_management" 
 resource "aws_iam_group_policy_attachment" "demo_state_access" {
   group      = aws_iam_group.demo.name
   policy_arn = aws_iam_policy.demo_state_access.arn
+}
+
+resource "aws_iam_group_policy_attachment" "bedrock_developers_model_invoke" {
+  group      = aws_iam_group.bedrock_developers.name
+  policy_arn = aws_iam_policy.bedrock_model.arn
 }

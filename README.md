@@ -161,18 +161,12 @@ downloads Prometheus/Grafana/Caddy images. Full local-run options are in
 The Python AI agent is disabled by default. To use the Bedrock provider, set
 `AGENT_AI_ENABLED=true` and provide `AGENT_AI_CONFIG`.
 
-For local development with a Bedrock API key, use `api_key`. This is a Bedrock
-bearer token, not an AWS access key or secret key:
-
-```shell
-AGENT_AI_CONFIG={"provider":"bedrock","max_tool_rounds":2,"bedrock":{"model_id":"eu.amazon.nova-lite-v1:0","aws_region":"eu-central-1","api_key":"<bedrock-api-key>","temperature":0.00001,"max_tokens":300}}
-```
-
-For temporary local AWS credentials, use the explicit AWS credential fields:
-
-```shell
-AGENT_AI_CONFIG={"provider":"bedrock","max_tool_rounds":2,"bedrock":{"model_id":"eu.amazon.nova-lite-v1:0","aws_region":"eu-central-1","aws_access_key_id":"<aws-access-key-id>","aws_secret_access_key":"<aws-secret-access-key>","aws_session_token":"<optional-session-token>","temperature":0.00001,"max_tokens":300}}
-```
+For local Docker Compose, use short-lived AWS credentials from the
+`aggregator-admin` AWS CLI login rather than a long-term Bedrock API key.
+The local Compose overlay passes the temporary credentials to the AI agent,
+which uses the standard boto3 credential chain. For the PowerShell setup,
+credential refresh, and security notes, see
+[docs/running-locally.md](docs/running-locally.md#optional-ai-agent).
 
 For deployment on EC2, omit `api_key` and the explicit AWS credential fields so
 boto3 uses its normal default credential chain, including the instance IAM role.
