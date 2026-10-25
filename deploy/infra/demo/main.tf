@@ -11,11 +11,11 @@ data "aws_subnet" "default" {
 }
 
 module "permissions" {
-  source = "./modules/permissions"
+  source = "../modules/permissions"
 }
 
 module "aggregator_demo" {
-  source = "./modules/ec2_legacy"
+  source = "../modules/ec2_legacy"
 
   name                   = "demo-aggregator"
   resource_name_prefix   = "AggregatorDemo"
@@ -78,7 +78,7 @@ module "aggregator_demo" {
 }
 
 # module "aggregator_demo_k3s" {
-#   source = "./modules/ec2_k3s"
+#   source = "../modules/ec2_k3s"
 #   ami_id        = "ami-03054abaec0c63e6e"
 #   instance_type = "t3.medium"
 #   vpc_id    = data.aws_vpc.default.id
