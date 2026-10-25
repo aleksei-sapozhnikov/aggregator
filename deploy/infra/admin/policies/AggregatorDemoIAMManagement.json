@@ -108,6 +108,70 @@
       ]
     },
     {
+      "Sid": "TagExistingLegacyDemoRoleRepository",
+      "Effect": "Allow",
+      "Action": "iam:TagRole",
+      "Resource": "arn:aws:iam::905418096305:role/AggregatorDemoEC2Role",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestTag/Repository": "https://github.com/aleksei-sapozhnikov/aggregator"
+        },
+        "ForAllValues:StringEquals": {
+          "aws:TagKeys": [
+            "Repository"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "UntagExistingLegacyDemoRoleRepository",
+      "Effect": "Allow",
+      "Action": "iam:UntagRole",
+      "Resource": "arn:aws:iam::905418096305:role/AggregatorDemoEC2Role",
+      "Condition": {
+        "ForAllValues:StringEquals": {
+          "aws:TagKeys": [
+            "Repository"
+          ]
+        },
+        "Null": {
+          "aws:TagKeys": "false"
+        }
+      }
+    },
+    {
+      "Sid": "TagExistingLegacyDemoInstanceProfileRepository",
+      "Effect": "Allow",
+      "Action": "iam:TagInstanceProfile",
+      "Resource": "arn:aws:iam::905418096305:instance-profile/AggregatorDemoEC2Role",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestTag/Repository": "https://github.com/aleksei-sapozhnikov/aggregator"
+        },
+        "ForAllValues:StringEquals": {
+          "aws:TagKeys": [
+            "Repository"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "UntagExistingLegacyDemoInstanceProfileRepository",
+      "Effect": "Allow",
+      "Action": "iam:UntagInstanceProfile",
+      "Resource": "arn:aws:iam::905418096305:instance-profile/AggregatorDemoEC2Role",
+      "Condition": {
+        "ForAllValues:StringEquals": {
+          "aws:TagKeys": [
+            "Repository"
+          ]
+        },
+        "Null": {
+          "aws:TagKeys": "false"
+        }
+      }
+    },
+    {
       "Sid": "CreateDemoPolicies",
       "Effect": "Allow",
       "Action": "iam:CreatePolicy",
