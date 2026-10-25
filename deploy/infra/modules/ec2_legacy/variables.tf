@@ -112,6 +112,31 @@ variable "tags" {
   type    = map(string)
   default = {}
 }
+variable "volume_tags" {
+  description = "EBS tags applied during instance creation (including the root volume). Do not combine with root_volume_tags."
+  type        = map(string)
+  default     = null
+}
+variable "root_volume_tags" {
+  description = "Tags for an existing/imported root volume. Do not combine with creation-time volume_tags."
+  type        = map(string)
+  default     = null
+}
+variable "iam_instance_profile_tags" {
+  description = "Optional override for instance profile tags; null inherits the module's project tags."
+  type        = map(string)
+  default     = null
+}
+variable "eip_association_method" {
+  description = "Associate the Elastic IP using either the EC2 instance ID or its primary network interface."
+  type        = string
+  default     = "network_interface"
+
+  validation {
+    condition     = contains(["instance", "network_interface"], var.eip_association_method)
+    error_message = "eip_association_method must be instance or network_interface."
+  }
+}
 variable "security_group_name" {
   type    = string
   default = null
@@ -131,4 +156,9 @@ variable "iam_role_name" {
 variable "iam_role_description" {
   type    = string
   default = "IAM role for EC2 instance"
+}
+variable "iam_permissions_boundary_arn" {
+  description = "Optional permissions boundary for the EC2 IAM role."
+  type        = string
+  default     = null
 }

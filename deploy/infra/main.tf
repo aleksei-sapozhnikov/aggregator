@@ -15,7 +15,7 @@ module "permissions" {
 }
 
 module "aggregator_demo" {
-  source = "./modules/ec2_instance"
+  source = "./modules/ec2_legacy"
 
   name                   = "demo-aggregator"
   resource_name_prefix   = "AggregatorDemo"
@@ -62,27 +62,25 @@ module "aggregator_demo" {
   egress_rules = {
     all_ipv4 = { cidr_ipv4 = "0.0.0.0/0", ip_protocol = "-1" }
   }
+  tags = {
+    Project     = "aggregator"
+    Environment = "demo"
+  }
+  # Imported root volume: preserve the tags already applied in AWS.
+  # Do not set volume_tags on the existing instance (creation-time only).
+  root_volume_tags = {
+    Project     = "aggregator"
+    Environment = "demo"
+  }
+  # The existing IAM instance profile is currently untagged.
+  # Preserve it as-is; future instances use module tags automatically.
+  iam_instance_profile_tags = {}
 }
 
-# Example only: declare another independent instance by adding a module call.
-# It gets its own role, profile, security group, and Elastic IP.
-# module "ec2_new" {
-#   source               = "./modules/ec2_instance"
-#   name                 = "demo-secondary"
-#   resource_name_prefix = "DemoSecondary"
-#   ami_id               = "ami-0191d47ba10441f0b"
-#   instance_type        = "t3.small"
-#   root_volume_size     = 20
-#   vpc_id               = data.aws_vpc.default.id
-#   subnet_id            = data.aws_subnet.default["demo_secondary"].id
-#   availability_zone    = var.default_subnet_availability_zones["demo_secondary"]
-#   iam_policies         = { bedrock = module.permissions.bedrock_policy_arn }
-#   # Private IP is omitted so AWS assigns a unique address.
-#   # No SSH ingress is configured. If required, add a restricted rule:
-#   # ingress_rules = {
-#   #   admin_ssh = { cidr_ipv4 = var.admin_ssh_cidr, from_port = 22, ip_protocol = "tcp", to_port = 22 }
-#   # }
+# module "aggregator_demo_k3s" {
+#   source = "./modules/ec2_k3s"
+#   ami_id        = "ami-03054abaec0c63e6e"
+#   instance_type = "t3.medium"
+#   vpc_id    = data.aws_vpc.default.id
+#   subnet_id = data.aws_subnet.default["aggregator_demo"].id
 # }
-# Add "demo_secondary = \"eu-central-1a\"" to
-# default_subnet_availability_zones before enabling this example. To use a
-# non-default subnet or VPC, pass that VPC ID, subnet ID, and AZ explicitly.

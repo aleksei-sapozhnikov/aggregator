@@ -13,6 +13,7 @@ resource "aws_iam_role" "ec2" {
   name                 = coalesce(var.iam_role_name, "${var.resource_name_prefix}EC2Role")
   path                 = "/"
   description          = var.iam_role_description
+  permissions_boundary = var.iam_permissions_boundary_arn
   max_session_duration = 3600
   assume_role_policy   = data.aws_iam_policy_document.ec2_assume_role.json
   tags                 = var.tags
@@ -26,7 +27,9 @@ resource "aws_iam_instance_profile" "ec2" {
   name = coalesce(var.iam_role_name, "${var.resource_name_prefix}EC2Role")
   path = "/"
   role = aws_iam_role.ec2.name
-  tags = var.tags
+  # Allow imported instance profiles to retain their existing tag state.
+  # New instances inherit project tags by default.
+  tags = var.iam_instance_profile_tags == null ? var.tags : var.iam_instance_profile_tags
   lifecycle { prevent_destroy = true }
 }
 
@@ -134,9 +137,18 @@ resource "aws_instance" "this" {
     throughput            = var.root_volume_throughput
     volume_size           = var.root_volume_size
     volume_type           = var.root_volume_type
+    # Preserve tags on an imported root volume without enabling creation-time volume_tags.
+    tags                  = var.root_volume_tags
   }
-  tags = merge(var.tags, { Name = var.name })
-  lifecycle { prevent_destroy = true }
+  tags        = merge(var.tags, { Name = var.name })
+  volume_tags = var.volume_tags
+  lifecycle {
+    prevent_destroy = true
+    precondition {
+      condition     = var.volume_tags == null || var.root_volume_tags == null
+      error_message = "Specify either creation-time volume_tags or existing root_volume_tags, not both."
+    }
+  }
 }
 
 resource "aws_eip" "public" {
@@ -152,9 +164,11 @@ resource "aws_eip" "public" {
 
 resource "aws_eip_association" "public" {
   allocation_id        = aws_eip.public.id
-  network_interface_id = aws_instance.this.primary_network_interface_id
-  private_ip_address   = var.private_ip == null ? aws_instance.this.private_ip : var.private_ip
-  allow_reassociation  = false
+  instance_id          = var.eip_association_method == "instance" ? aws_instance.this.id : null
+  network_interface_id = var.eip_association_method == "network_interface" ? aws_instance.this.primary_network_interface_id : null
+  private_ip_address = var.eip_association_method == "network_interface" ? (
+    var.private_ip == null ? aws_instance.this.private_ip : var.private_ip
+  ) : null
+  allow_reassociation = false
   lifecycle { prevent_destroy = true }
 }
-
