@@ -1,0 +1,130 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ManagePublicationStacks",
+      "Effect": "Allow",
+      "Action": [
+        "cloudformation:CreateStack",
+        "cloudformation:UpdateStack",
+        "cloudformation:DeleteStack",
+        "cloudformation:CreateChangeSet",
+        "cloudformation:ExecuteChangeSet",
+        "cloudformation:DescribeChangeSet",
+        "cloudformation:DeleteChangeSet",
+        "cloudformation:CancelUpdateStack",
+        "cloudformation:ContinueUpdateRollback"
+      ],
+      "Resource": [
+        "arn:aws:cloudformation:eu-central-1:905418096305:stack/aggregator-publication/*",
+        "arn:aws:cloudformation:eu-central-1:905418096305:stack/aggregator-publication-*/*",
+        "arn:aws:cloudformation:eu-central-1:905418096305:changeSet/aggregator-publication-*/*"
+      ]
+    },
+    {
+      "Sid": "ManagePublicationServices",
+      "Effect": "Allow",
+      "Action": [
+        "lambda:*",
+        "dynamodb:*",
+        "scheduler:*",
+        "sns:*",
+        "sqs:*",
+        "logs:*",
+        "cloudwatch:*",
+        "s3:*"
+      ],
+      "Resource": [
+        "arn:aws:lambda:eu-central-1:905418096305:function:aggregator-publication-*",
+        "arn:aws:lambda:eu-central-1:905418096305:function:aggregator-publication-*:*",
+        "arn:aws:dynamodb:eu-central-1:905418096305:table/aggregator-publication-*",
+        "arn:aws:dynamodb:eu-central-1:905418096305:table/aggregator-publication-*/*",
+        "arn:aws:scheduler:eu-central-1:905418096305:schedule-group/aggregator-publication-*",
+        "arn:aws:scheduler:eu-central-1:905418096305:schedule/aggregator-publication-*/*",
+        "arn:aws:sns:eu-central-1:905418096305:aggregator-publication-*",
+        "arn:aws:sqs:eu-central-1:905418096305:aggregator-publication-*",
+        "arn:aws:logs:eu-central-1:905418096305:log-group:/aws/lambda/aggregator-publication-*",
+        "arn:aws:logs:eu-central-1:905418096305:log-group:/aws/lambda/aggregator-publication-*:*",
+        "arn:aws:cloudwatch:eu-central-1:905418096305:alarm:aggregator-publication-*",
+        "arn:aws:s3:::aggregator-publication-*",
+        "arn:aws:s3:::aggregator-publication-*/*"
+      ]
+    },
+    {
+      "Sid": "CreateBoundedPublicationRoles",
+      "Effect": "Allow",
+      "Action": "iam:CreateRole",
+      "Resource": "arn:aws:iam::905418096305:role/aggregator-publication-*",
+      "Condition": {
+        "ArnEquals": {
+          "iam:PermissionsBoundary": "arn:aws:iam::905418096305:policy/AggregatorPublicationRoleBoundary"
+        }
+      }
+    },
+    {
+      "Sid": "ManagePublicationRoles",
+      "Effect": "Allow",
+      "Action": [
+        "iam:PutRolePolicy",
+        "iam:DeleteRolePolicy",
+        "iam:UpdateAssumeRolePolicy",
+        "iam:UpdateRole",
+        "iam:DeleteRole",
+        "iam:TagRole",
+        "iam:UntagRole",
+        "iam:DetachRolePolicy"
+      ],
+      "Resource": "arn:aws:iam::905418096305:role/aggregator-publication-*"
+    },
+    {
+      "Sid": "MaintainRequiredBoundary",
+      "Effect": "Allow",
+      "Action": "iam:PutRolePermissionsBoundary",
+      "Resource": "arn:aws:iam::905418096305:role/aggregator-publication-*",
+      "Condition": {
+        "ArnEquals": {
+          "iam:PermissionsBoundary": "arn:aws:iam::905418096305:policy/AggregatorPublicationRoleBoundary"
+        }
+      }
+    },
+    {
+      "Sid": "ManagePublicationPolicies",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreatePolicy",
+        "iam:DeletePolicy",
+        "iam:CreatePolicyVersion",
+        "iam:DeletePolicyVersion",
+        "iam:SetDefaultPolicyVersion",
+        "iam:TagPolicy",
+        "iam:UntagPolicy"
+      ],
+      "Resource": "arn:aws:iam::905418096305:policy/aggregator-publication-*"
+    },
+    {
+      "Sid": "AttachPublicationPolicies",
+      "Effect": "Allow",
+      "Action": "iam:AttachRolePolicy",
+      "Resource": "arn:aws:iam::905418096305:role/aggregator-publication-*",
+      "Condition": {
+        "ArnLike": {
+          "iam:PolicyARN": "arn:aws:iam::905418096305:policy/aggregator-publication-*"
+        }
+      }
+    },
+    {
+      "Sid": "PassPublicationRoles",
+      "Effect": "Allow",
+      "Action": "iam:PassRole",
+      "Resource": "arn:aws:iam::905418096305:role/aggregator-publication-*",
+      "Condition": {
+        "StringEquals": {
+          "iam:PassedToService": [
+            "lambda.amazonaws.com",
+            "scheduler.amazonaws.com"
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,135 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "CreateBoundedDemoRoles",
+      "Effect": "Allow",
+      "Action": "iam:CreateRole",
+      "Resource": [
+        "arn:aws:iam::905418096305:role/AggregatorDemoK3s*",
+        "arn:aws:iam::905418096305:role/AggregatorDemoWorkload*"
+      ],
+      "Condition": {
+        "ArnEquals": {
+          "iam:PermissionsBoundary": "arn:aws:iam::905418096305:policy/AggregatorDemoRoleBoundary"
+        },
+        "StringEquals": {
+          "aws:RequestTag/Project": "aggregator"
+        }
+      }
+    },
+    {
+      "Sid": "ManageDemoRoles",
+      "Effect": "Allow",
+      "Action": [
+        "iam:PutRolePolicy",
+        "iam:DeleteRolePolicy",
+        "iam:UpdateAssumeRolePolicy",
+        "iam:UpdateRole",
+        "iam:DeleteRole",
+        "iam:TagRole",
+        "iam:UntagRole",
+        "iam:DetachRolePolicy"
+      ],
+      "Resource": [
+        "arn:aws:iam::905418096305:role/AggregatorDemoK3s*",
+        "arn:aws:iam::905418096305:role/AggregatorDemoWorkload*"
+      ]
+    },
+    {
+      "Sid": "AssignApprovedBoundary",
+      "Effect": "Allow",
+      "Action": "iam:PutRolePermissionsBoundary",
+      "Resource": [
+        "arn:aws:iam::905418096305:role/AggregatorDemoK3s*",
+        "arn:aws:iam::905418096305:role/AggregatorDemoWorkload*"
+      ],
+      "Condition": {
+        "ArnEquals": {
+          "iam:PermissionsBoundary": "arn:aws:iam::905418096305:policy/AggregatorDemoRoleBoundary"
+        }
+      }
+    },
+    {
+      "Sid": "ProtectRoleBoundary",
+      "Effect": "Deny",
+      "Action": "iam:DeleteRolePermissionsBoundary",
+      "Resource": [
+        "arn:aws:iam::905418096305:role/AggregatorDemoK3s*",
+        "arn:aws:iam::905418096305:role/AggregatorDemoWorkload*"
+      ]
+    },
+    {
+      "Sid": "AttachApprovedPolicies",
+      "Effect": "Allow",
+      "Action": "iam:AttachRolePolicy",
+      "Resource": [
+        "arn:aws:iam::905418096305:role/AggregatorDemoK3s*",
+        "arn:aws:iam::905418096305:role/AggregatorDemoWorkload*"
+      ],
+      "Condition": {
+        "ArnLike": {
+          "iam:PolicyARN": [
+            "arn:aws:iam::905418096305:policy/AggregatorCallBedrockModel",
+            "arn:aws:iam::905418096305:policy/AggregatorDemoCustom*",
+            "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "PassDemoRolesToEC2",
+      "Effect": "Allow",
+      "Action": "iam:PassRole",
+      "Resource": [
+        "arn:aws:iam::905418096305:role/AggregatorDemoK3s*",
+        "arn:aws:iam::905418096305:role/AggregatorDemoWorkload*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "iam:PassedToService": "ec2.amazonaws.com"
+        }
+      }
+    },
+    {
+      "Sid": "ManageDemoInstanceProfiles",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateInstanceProfile",
+        "iam:DeleteInstanceProfile",
+        "iam:AddRoleToInstanceProfile",
+        "iam:RemoveRoleFromInstanceProfile",
+        "iam:TagInstanceProfile",
+        "iam:UntagInstanceProfile"
+      ],
+      "Resource": [
+        "arn:aws:iam::905418096305:instance-profile/AggregatorDemoK3s*",
+        "arn:aws:iam::905418096305:instance-profile/AggregatorDemoWorkload*"
+      ]
+    },
+    {
+      "Sid": "CreateDemoPolicies",
+      "Effect": "Allow",
+      "Action": "iam:CreatePolicy",
+      "Resource": "arn:aws:iam::905418096305:policy/AggregatorDemoCustom*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestTag/Project": "aggregator"
+        }
+      }
+    },
+    {
+      "Sid": "ManageDemoPolicies",
+      "Effect": "Allow",
+      "Action": [
+        "iam:DeletePolicy",
+        "iam:CreatePolicyVersion",
+        "iam:DeletePolicyVersion",
+        "iam:SetDefaultPolicyVersion",
+        "iam:TagPolicy",
+        "iam:UntagPolicy"
+      ],
+      "Resource": "arn:aws:iam::905418096305:policy/AggregatorDemoCustom*"
+    }
+  ]
+}

@@ -1,0 +1,312 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "RunInstances",
+      "Effect": "Allow",
+      "Action": "ec2:RunInstances",
+      "Resource": "arn:aws:ec2:eu-central-1:905418096305:instance/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestTag/Project": "aggregator",
+          "aws:RequestTag/Environment": "demo",
+          "ec2:InstanceType": [
+            "t3.medium",
+            "t3.large",
+            "t3.xlarge"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "RunEBS",
+      "Effect": "Allow",
+      "Action": "ec2:RunInstances",
+      "Resource": "arn:aws:ec2:eu-central-1:905418096305:volume/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestTag/Project": "aggregator",
+          "aws:RequestTag/Environment": "demo"
+        }
+      }
+    },
+    {
+      "Sid": "RunAMI",
+      "Effect": "Allow",
+      "Action": "ec2:RunInstances",
+      "Resource": "arn:aws:ec2:eu-central-1::image/ami-*",
+      "Condition": {
+        "StringEquals": {
+          "ec2:Owner": "amazon"
+        }
+      }
+    },
+    {
+      "Sid": "RunSubnet",
+      "Effect": "Allow",
+      "Action": "ec2:RunInstances",
+      "Resource": "arn:aws:ec2:eu-central-1:905418096305:subnet/subnet-0911c2ce97b9adc80"
+    },
+    {
+      "Sid": "RunENI",
+      "Effect": "Allow",
+      "Action": "ec2:RunInstances",
+      "Resource": "arn:aws:ec2:eu-central-1:905418096305:network-interface/*",
+      "Condition": {
+        "ArnEquals": {
+          "ec2:Subnet": "arn:aws:ec2:eu-central-1:905418096305:subnet/subnet-0911c2ce97b9adc80"
+        }
+      }
+    },
+    {
+      "Sid": "RunSG",
+      "Effect": "Allow",
+      "Action": "ec2:RunInstances",
+      "Resource": "arn:aws:ec2:eu-central-1:905418096305:security-group/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:ResourceTag/Project": "aggregator"
+        }
+      }
+    },
+    {
+      "Sid": "RunKey",
+      "Effect": "Allow",
+      "Action": "ec2:RunInstances",
+      "Resource": "arn:aws:ec2:eu-central-1:905418096305:key-pair/*"
+    },
+    {
+      "Sid": "CreateSG",
+      "Effect": "Allow",
+      "Action": "ec2:CreateSecurityGroup",
+      "Resource": "arn:aws:ec2:eu-central-1:905418096305:security-group/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestTag/Project": "aggregator",
+          "aws:RequestTag/Environment": "demo"
+        }
+      }
+    },
+    {
+      "Sid": "UseVpcForSG",
+      "Effect": "Allow",
+      "Action": "ec2:CreateSecurityGroup",
+      "Resource": "arn:aws:ec2:eu-central-1:905418096305:vpc/vpc-06aa3479a68472664"
+    },
+    {
+      "Sid": "CreateEIP",
+      "Effect": "Allow",
+      "Action": "ec2:AllocateAddress",
+      "Resource": "arn:aws:ec2:eu-central-1:905418096305:elastic-ip/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestTag/Project": "aggregator",
+          "aws:RequestTag/Environment": "demo"
+        }
+      }
+    },
+    {
+      "Sid": "CreateEBS",
+      "Effect": "Allow",
+      "Action": "ec2:CreateVolume",
+      "Resource": "arn:aws:ec2:eu-central-1:905418096305:volume/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestTag/Project": "aggregator",
+          "aws:RequestTag/Environment": "demo"
+        }
+      }
+    },
+    {
+      "Sid": "ImportKey",
+      "Effect": "Allow",
+      "Action": "ec2:ImportKeyPair",
+      "Resource": "arn:aws:ec2:eu-central-1:905418096305:key-pair/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestTag/Project": "aggregator",
+          "aws:RequestTag/Environment": "demo"
+        }
+      }
+    },
+    {
+      "Sid": "TagsOnCreate",
+      "Effect": "Allow",
+      "Action": "ec2:CreateTags",
+      "Resource": [
+        "arn:aws:ec2:eu-central-1:905418096305:instance/*",
+        "arn:aws:ec2:eu-central-1:905418096305:volume/*",
+        "arn:aws:ec2:eu-central-1:905418096305:security-group/*",
+        "arn:aws:ec2:eu-central-1:905418096305:security-group-rule/*",
+        "arn:aws:ec2:eu-central-1:905418096305:elastic-ip/*",
+        "arn:aws:ec2:eu-central-1:905418096305:key-pair/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestTag/Project": "aggregator",
+          "ec2:CreateAction": [
+            "RunInstances",
+            "CreateSecurityGroup",
+            "AuthorizeSecurityGroupIngress",
+            "AuthorizeSecurityGroupEgress",
+            "AllocateAddress",
+            "CreateVolume",
+            "ImportKeyPair"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "ManageEC2",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:StartInstances",
+        "ec2:StopInstances",
+        "ec2:RebootInstances",
+        "ec2:TerminateInstances",
+        "ec2:ModifyInstanceAttribute",
+        "ec2:ModifyInstanceMetadataOptions",
+        "ec2:AssociateIamInstanceProfile",
+        "ec2:DisassociateIamInstanceProfile",
+        "ec2:ReplaceIamInstanceProfileAssociation"
+      ],
+      "Resource": "arn:aws:ec2:eu-central-1:905418096305:instance/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:ResourceTag/Project": "aggregator"
+        }
+      }
+    },
+    {
+      "Sid": "ManageEBS",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:DeleteVolume",
+        "ec2:ModifyVolume",
+        "ec2:ModifyVolumeAttribute",
+        "ec2:AttachVolume",
+        "ec2:DetachVolume"
+      ],
+      "Resource": [
+        "arn:aws:ec2:eu-central-1:905418096305:volume/*",
+        "arn:aws:ec2:eu-central-1:905418096305:instance/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:ResourceTag/Project": "aggregator"
+        }
+      }
+    },
+    {
+      "Sid": "ManageSG",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:DeleteSecurityGroup",
+        "ec2:AuthorizeSecurityGroupIngress",
+        "ec2:AuthorizeSecurityGroupEgress",
+        "ec2:RevokeSecurityGroupIngress",
+        "ec2:RevokeSecurityGroupEgress",
+        "ec2:UpdateSecurityGroupRuleDescriptionsIngress",
+        "ec2:UpdateSecurityGroupRuleDescriptionsEgress"
+      ],
+      "Resource": "arn:aws:ec2:eu-central-1:905418096305:security-group/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:ResourceTag/Project": "aggregator"
+        }
+      }
+    },
+    {
+      "Sid": "ManageSGRules",
+      "Effect": "Allow",
+      "Action": "ec2:ModifySecurityGroupRules",
+      "Resource": "arn:aws:ec2:eu-central-1:905418096305:security-group-rule/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:ResourceTag/Project": "aggregator"
+        }
+      }
+    },
+    {
+      "Sid": "ManageEIP",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:ReleaseAddress",
+        "ec2:DisassociateAddress",
+        "ec2:AssociateAddress"
+      ],
+      "Resource": "arn:aws:ec2:eu-central-1:905418096305:elastic-ip/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:ResourceTag/Project": "aggregator"
+        }
+      }
+    },
+    {
+      "Sid": "EIPOnProject",
+      "Effect": "Allow",
+      "Action": "ec2:AssociateAddress",
+      "Resource": [
+        "arn:aws:ec2:eu-central-1:905418096305:instance/*",
+        "arn:aws:ec2:eu-central-1:905418096305:network-interface/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:ResourceTag/Project": "aggregator"
+        }
+      }
+    },
+    {
+      "Sid": "DeleteKey",
+      "Effect": "Allow",
+      "Action": "ec2:DeleteKeyPair",
+      "Resource": "arn:aws:ec2:eu-central-1:905418096305:key-pair/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:ResourceTag/Project": "aggregator"
+        }
+      }
+    },
+    {
+      "Sid": "ManageTags",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:CreateTags",
+        "ec2:DeleteTags"
+      ],
+      "Resource": [
+        "arn:aws:ec2:eu-central-1:905418096305:instance/*",
+        "arn:aws:ec2:eu-central-1:905418096305:volume/*",
+        "arn:aws:ec2:eu-central-1:905418096305:security-group/*",
+        "arn:aws:ec2:eu-central-1:905418096305:security-group-rule/*",
+        "arn:aws:ec2:eu-central-1:905418096305:elastic-ip/*",
+        "arn:aws:ec2:eu-central-1:905418096305:key-pair/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:ResourceTag/Project": "aggregator"
+        }
+      }
+    },
+    {
+      "Sid": "ProtectTags",
+      "Effect": "Deny",
+      "Action": [
+        "ec2:CreateTags",
+        "ec2:DeleteTags"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "ForAnyValue:StringEquals": {
+          "aws:TagKeys": [
+            "Project",
+            "Environment"
+          ]
+        },
+        "Null": {
+          "ec2:CreateAction": "true"
+        }
+      }
+    }
+  ]
+}
