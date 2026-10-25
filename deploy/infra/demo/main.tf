@@ -10,16 +10,6 @@ data "aws_subnet" "default" {
   default_for_az    = true
 }
 
-# Move the shared Bedrock policy to the independent admin state.
-# This block forgets the old module in demo state without deleting its AWS policy.
-removed {
-  from = module.permissions
-
-  lifecycle {
-    destroy = false
-  }
-}
-
 module "aggregator_demo" {
   source = "../modules/ec2_legacy"
 
