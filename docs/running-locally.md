@@ -116,8 +116,33 @@ Invoke-Expression ((aws configure export-credentials --profile aggregator-admin 
 make up
 ```
 
-No `AGENT_AI_CONFIG` or `AGENT_AI_ENABLED` shell variables are needed
-locally. Only the `ai-agent` service receives the temporary credentials.
+With no overrides, local Compose uses the included Bedrock model settings.
+To change the model or region, set `AGENT_AI_CONFIG` in the same shell
+before running `make up`. For example, PowerShell:
+
+```powershell
+$agentConfig = @{
+    provider = "bedrock"
+    max_tool_rounds = 2
+    bedrock = @{
+        model_id = "eu.amazon.nova-lite-v1:0"
+        aws_region = "eu-central-1"
+        temperature = 0.00001
+        max_tokens = 300
+    }
+}
+$env:AGENT_AI_CONFIG = $agentConfig | ConvertTo-Json -Compress -Depth 5
+```
+
+Use your own AWS profile in the login and credential-export commands above
+instead of `aggregator-admin`. Your AWS identity must have permission to invoke
+the selected Bedrock model in the selected region. You do not need the project's
+IAM users or groups. The current AI agent supports the Bedrock provider only.
+
+Set `AGENT_AI_ENABLED=false` in the shell to disable local AI without
+modifying Compose files. Only `ai-agent` receives the temporary credentials.
+The project-root `.env` file is tracked by Git: do not put credentials there.
+Keep personal setup scripts in the ignored `.private/` directory.
 Docker stores them in the container configuration while it runs; do not share
 `docker inspect` output or run untrusted code inside that container.
 
