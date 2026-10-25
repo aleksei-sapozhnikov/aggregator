@@ -11,6 +11,11 @@ resource "aws_iam_user" "infra_admin" {
   }
 }
 
+resource "aws_iam_user_policy_attachment" "infra_admin_local_signin" {
+  user       = aws_iam_user.infra_admin.name
+  policy_arn = "arn:aws:iam::aws:policy/SignInLocalDevelopmentAccess"
+}
+
 data "aws_iam_policy_document" "infra_admin_assume_role" {
   statement {
     actions   = ["sts:AssumeRole"]
