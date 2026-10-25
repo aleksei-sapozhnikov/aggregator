@@ -159,10 +159,12 @@ downloads Prometheus/Grafana/Caddy images. Full local-run options are in
 ### Optional AI agent configuration
 
 Local Docker Compose environments enable the Bedrock AI agent with
-non-secret defaults from `compose/compose.overlay.local-ports.yaml`. Only
-temporary AWS credentials from the `aggregator-admin` login need to be
-exported before starting the stack; no local configuration script or long-lived
-API key is required. The base Compose stack leaves AI disabled unless configured.
+non-secret defaults from `compose/compose.overlay.local-ports.yaml`.
+Other developers can override `AGENT_AI_CONFIG` from their shell and provide
+temporary credentials from their own AWS profile, with access to their chosen
+Bedrock model. The project `aggregator-admin` profile is not required.
+The current AI agent implements the Bedrock provider only.
+The base Compose stack leaves AI disabled unless configured.
 
 For the PowerShell login, credential refresh, and security notes, see
 [docs/running-locally.md](docs/running-locally.md#optional-ai-agent).
