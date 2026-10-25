@@ -21,6 +21,14 @@ resource "aws_iam_user_policy_attachment" "infra_admin_change_password" {
   policy_arn = "arn:aws:iam::aws:policy/IAMUserChangePassword"
 }
 
+# Grant the same administrative permissions directly to the IAM user.
+# The existing role is retained until direct-profile access is verified.
+resource "aws_iam_user_policy" "infra_admin_management" {
+  name   = "ManageAggregatorAdministrativeInfrastructure"
+  user   = aws_iam_user.infra_admin.name
+  policy = data.aws_iam_policy_document.infrastructure_admin_permissions.json
+}
+
 data "aws_iam_policy_document" "infra_admin_assume_role" {
   statement {
     actions   = ["sts:AssumeRole"]
