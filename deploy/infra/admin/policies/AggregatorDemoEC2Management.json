@@ -289,27 +289,6 @@
       }
     },
     {
-      "Sid": "TagExistingLegacyDemoRulesRepository",
-      "Effect": "Allow",
-      "Action": "ec2:CreateTags",
-      "Resource": [
-        "arn:aws:ec2:eu-central-1:905418096305:security-group-rule/sgr-0355a731e760e2f47",
-        "arn:aws:ec2:eu-central-1:905418096305:security-group-rule/sgr-0f1e2dfaaf2943f47",
-        "arn:aws:ec2:eu-central-1:905418096305:security-group-rule/sgr-088bd9feaeab3f103",
-        "arn:aws:ec2:eu-central-1:905418096305:security-group-rule/sgr-0433f3ae7515065a9"
-      ],
-      "Condition": {
-        "StringEquals": {
-          "aws:RequestTag/Repository": "https://github.com/aleksei-sapozhnikov/aggregator"
-        },
-        "ForAllValues:StringEquals": {
-          "aws:TagKeys": [
-            "Repository"
-          ]
-        }
-      }
-    },
-    {
       "Sid": "ProtectTags",
       "Effect": "Deny",
       "Action": [
