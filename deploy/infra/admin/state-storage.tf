@@ -144,8 +144,3 @@ resource "aws_iam_policy" "demo_state_access" {
     prevent_destroy = true
   }
 }
-
-resource "aws_iam_group_policy_attachment" "demo_state_access" {
-  group      = aws_iam_group.demo.name
-  policy_arn = aws_iam_policy.demo_state_access.arn
-}
