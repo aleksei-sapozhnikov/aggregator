@@ -143,8 +143,8 @@ Set `AGENT_AI_ENABLED=false` in the shell to disable local AI without
 modifying Compose files. Only `ai-agent` receives the temporary credentials.
 The project-root `.env` file is tracked by Git: do not put credentials there.
 Keep personal setup scripts in the ignored `.private/` directory.
-Docker stores them in the container configuration while it runs; do not share
-`docker inspect` output or run untrusted code inside that container.
+Docker stores the temporary credentials in the running container's configuration;
+do not share `docker inspect` output or run untrusted code inside that container.
 
 The AWS session expires. After refreshing the login and exporting new
 credentials, recreate the agent so it receives the new session:
