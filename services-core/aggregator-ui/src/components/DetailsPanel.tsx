@@ -456,12 +456,12 @@ export default function DetailsPanel({
                 {selectedTitleRest}
               </span>
             )}
-            {selectedItem && <CatalogItemInfo item={selectedItem} />}
             {selectedItem && selectedStatus !== "up" && (
               <span className={`content-status-label status-${selectedStatus}`}>
                 {selectedStatus.toUpperCase()}
               </span>
             )}
+            {selectedItem && <CatalogItemInfo item={selectedItem} />}
           </div>
         </div>
       </header>
@@ -652,19 +652,23 @@ export default function DetailsPanel({
                     >
                       <ul className="details-unhealthy-list">
                         {selectedFailingSignals.map((entry) => (
-                          <li key={entry.id} className="signals-healthy-row">
+                          <li
+                            key={entry.id}
+                            className="signals-unhealthy-own-row"
+                            aria-label={`${entry.title || entry.id}, ${buildStatusText(entry.status)}`}
+                          >
                             <div className="signal-row signal-status-row">
-                              <span
-                                className={`status-indicator status-${entry.status}`}
-                                aria-label={buildStatusText(entry.status)}
-                                title={buildStatusText(entry.status)}
-                              />
                               <span
                                 className="signal-name"
                                 title={entry.title || entry.id}
                               >
                                 {entry.title || entry.id}
                               </span>
+                              {entry.status === "unknown" && (
+                                <span className="signal-unknown-label">
+                                  UNKNOWN
+                                </span>
+                              )}
                             </div>
                           </li>
                         ))}
@@ -687,15 +691,16 @@ export default function DetailsPanel({
                                   key={signal.id}
                                   className="signals-incident-signal"
                                   title={signal.title || signal.id}
+                                  aria-label={`${signal.title || signal.id}, ${buildStatusText(signal.status)}`}
                                 >
-                                  <span
-                                    className={`status-indicator status-${signal.status}`}
-                                    aria-label={buildStatusText(signal.status)}
-                                    title={buildStatusText(signal.status)}
-                                  />
                                   <span className="signal-name">
                                     {signal.title || signal.id}
                                   </span>
+                                  {signal.status === "unknown" && (
+                                    <span className="signal-unknown-label">
+                                      UNKNOWN
+                                    </span>
+                                  )}
                                 </li>
                               ))}
                             </ul>
