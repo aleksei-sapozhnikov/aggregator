@@ -10,8 +10,14 @@ data "aws_subnet" "default" {
   default_for_az    = true
 }
 
-module "permissions" {
-  source = "../modules/permissions"
+# Move the shared Bedrock policy to the independent admin state.
+# This block forgets the old module in demo state without deleting its AWS policy.
+removed {
+  from = module.permissions
+
+  lifecycle {
+    destroy = false
+  }
 }
 
 module "aggregator_demo" {
@@ -53,7 +59,7 @@ module "aggregator_demo" {
   eip_network_border_group   = "eu-central-1"
   iam_role_name              = "AggregatorDemoEC2Role"
   iam_role_description       = "IAM role for the Aggregator demo EC2 instance"
-  iam_policies               = var.enable_bedrock ? { bedrock = module.permissions.bedrock_policy_arn } : {}
+  iam_policies               = var.enable_bedrock ? { bedrock = "arn:aws:iam::905418096305:policy/AggregatorCallBedrockModel" } : {}
   ingress_rules = {
     public_http  = { cidr_ipv4 = "0.0.0.0/0", from_port = 80, ip_protocol = "tcp", to_port = 80 }
     public_https = { cidr_ipv4 = "0.0.0.0/0", from_port = 443, ip_protocol = "tcp", to_port = 443 }
