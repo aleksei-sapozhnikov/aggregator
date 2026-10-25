@@ -158,18 +158,17 @@ downloads Prometheus/Grafana/Caddy images. Full local-run options are in
 
 ### Optional AI agent configuration
 
-The Python AI agent is disabled by default. To use the Bedrock provider, set
-`AGENT_AI_ENABLED=true` and provide `AGENT_AI_CONFIG`.
+Local Docker Compose environments enable the Bedrock AI agent with
+non-secret defaults from `compose/compose.overlay.local-ports.yaml`. Only
+temporary AWS credentials from the `aggregator-admin` login need to be
+exported before starting the stack; no local configuration script or long-lived
+API key is required. The base Compose stack leaves AI disabled unless configured.
 
-For local Docker Compose, use short-lived AWS credentials from the
-`aggregator-admin` AWS CLI login rather than a long-term Bedrock API key.
-The local Compose overlay passes the temporary credentials to the AI agent,
-which uses the standard boto3 credential chain. For the PowerShell setup,
-credential refresh, and security notes, see
+For the PowerShell login, credential refresh, and security notes, see
 [docs/running-locally.md](docs/running-locally.md#optional-ai-agent).
 
-For deployment on EC2, omit `api_key` and the explicit AWS credential fields so
-boto3 uses its normal default credential chain, including the instance IAM role.
+For deployment on EC2, omit `api_key` and explicit AWS credentials so boto3
+uses the instance IAM role.
 
 ---
 

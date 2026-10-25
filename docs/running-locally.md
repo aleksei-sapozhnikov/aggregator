@@ -94,60 +94,46 @@ and service-scoped commands.
 
 ## Optional AI agent
 
-The Python AI agent container starts with AI disabled by default. The rest of the
-Product Health stack works normally in that mode. To enable the Bedrock
-provider, set `AGENT_AI_ENABLED=true` and provide one of the supported
-authentication configurations before starting Compose.
+The base Compose stack leaves AI disabled unless explicitly configured. Local
+Compose environments (`local` and `local-demo`) enable Bedrock automatically
+and keep the non-secret model settings in
+`compose/compose.overlay.local-ports.yaml`.
 
-For local Docker Compose, prefer temporary AWS credentials from the existing
-`aggregator-admin` profile. The user receives narrowly scoped model-invocation
-permission through the `AggregatorBedrockDevelopers` IAM group. No long-lived
-Bedrock API key or IAM access key needs to be stored.
+Authentication still requires temporary AWS credentials. The
+`aggregator-admin` IAM user gets restricted Nova Lite invocation permissions
+through the `AggregatorBedrockDevelopers` group, so no long-lived Bedrock API
+key or IAM access key is needed.
 
-Run these commands in PowerShell from the repository root:
+From PowerShell in the repository root:
 
 ```powershell
 aws login --profile aggregator-admin
 aws sts get-caller-identity --profile aggregator-admin
 
-# Export temporary session credentials for the local AI agent container.
+# Export temporary AWS credentials for the local AI agent container.
 Invoke-Expression ((aws configure export-credentials --profile aggregator-admin --format powershell) -join "`n")
-
-$agentConfig = @{
-    provider = "bedrock"
-    max_tool_rounds = 2
-    bedrock = @{
-        model_id = "eu.amazon.nova-lite-v1:0"
-        aws_region = "eu-central-1"
-        temperature = 0.00001
-        max_tokens = 300
-    }
-}
-
-$env:AGENT_AI_CONFIG = $agentConfig | ConvertTo-Json -Compress -Depth 5
-$env:AGENT_AI_ENABLED = "true"
 
 make up
 ```
 
-The local Compose overlay passes these temporary credentials only to the
-`ai-agent` container. Docker stores them in the container configuration while
-it runs, so do not share `docker inspect` output or run untrusted code inside
-that container. The session expires; after refreshing credentials with
-`aws login`, repeat the export and recreate the agent:
+No `AGENT_AI_CONFIG` or `AGENT_AI_ENABLED` shell variables are needed
+locally. Only the `ai-agent` service receives the temporary credentials.
+Docker stores them in the container configuration while it runs; do not share
+`docker inspect` output or run untrusted code inside that container.
+
+The AWS session expires. After refreshing the login and exporting new
+credentials, recreate the agent so it receives the new session:
 
 ```powershell
+aws login --profile aggregator-admin
+Invoke-Expression ((aws configure export-credentials --profile aggregator-admin --format powershell) -join "`n")
 make recreate-svc ai-agent
 ```
 
-When finished, stop the stack with `make down` and remove the temporary
+When finished, stop the stack with `make down` and clear
 `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_SESSION_TOKEN`
-environment variables from the PowerShell session.
+from the current PowerShell session.
 
-Alternatively, a Bedrock bearer API key is supported by setting
-`bedrock.api_key` in `AGENT_AI_CONFIG`, but long-term keys are discouraged.
-Do not commit any credentials.
-
-For deployment on EC2, omit `api_key` and the explicit AWS credential fields.
-boto3 then uses the normal default credential chain, including the instance IAM
-role.
+For deployment on EC2, the Bedrock provider uses the instance IAM role
+when `api_key` and explicit AWS credentials are omitted from
+`AGENT_AI_CONFIG`.

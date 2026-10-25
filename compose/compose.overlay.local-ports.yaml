@@ -11,9 +11,14 @@ services:
     ports:
       - "8085:8080"
     environment:
-      - AWS_ACCESS_KEY_ID
-      - AWS_SECRET_ACCESS_KEY
-      - AWS_SESSION_TOKEN
+      # Local-only defaults; the hosted demo uses its own AI configuration.
+      AGENT_AI_ENABLED: "true"
+      AGENT_AI_CONFIG: >-
+        {"provider":"bedrock","max_tool_rounds":2,"bedrock":{"model_id":"eu.amazon.nova-lite-v1:0","aws_region":"eu-central-1","temperature":0.00001,"max_tokens":300}}
+      # Temporary credentials are supplied by the local shell, never committed.
+      AWS_ACCESS_KEY_ID:
+      AWS_SECRET_ACCESS_KEY:
+      AWS_SESSION_TOKEN:
 
   aggregator-ui:
     ports:
