@@ -86,16 +86,9 @@ build/
 .vite/
 
 # =========================
-# Temporary / Local Dev
+# OpenTofu / Terraform
 # =========================
-# Private local backups, state archives, and credentials
-/.private/
 
-.temp/
-tmp/
-*.tmp
-
-# OpenTofu / Terraform local data, state, plans, and credentials
 .terraform/
 .tofu/
 *.tfstate
@@ -114,6 +107,14 @@ override.tf
 override.tf.json
 *_override.tf
 *_override.tf.json
+
+# =========================
+# Temporary / Local Dev
+# =========================
+
+.temp/
+tmp/
+*.tmp
 
 # =========================
 # Archives (optional)
