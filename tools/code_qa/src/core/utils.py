@@ -12,7 +12,7 @@ EXCLUDED_DIRS = {
     ".git",
     ".idea",
     ".venv",
-    ".temp",
+    ".local",
     ".ruff_cache",
     ".terraform",
     ".tflint.d",
@@ -38,7 +38,7 @@ def project_dir() -> Path:
 
 def runtime_dir(root: Path | None = None) -> Path:
     """Return the ignored, repository-local home for QA tools and caches."""
-    return (root or repo_root()) / ".temp" / QA_RUNTIME_DIR
+    return (root or repo_root()) / ".local" / QA_RUNTIME_DIR
 
 
 def dependency_environment() -> dict[str, str]:

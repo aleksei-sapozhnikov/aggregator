@@ -41,7 +41,7 @@ def cached_maven_command(root: Path) -> Path:
     executable = "mvn.cmd" if sys.platform == "win32" else "mvn"
     return (
         root
-        / ".temp"
+        / ".local"
         / "qa-runtime"
         / "maven"
         / f"apache-maven-{MAVEN_VERSION}"

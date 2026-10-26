@@ -181,13 +181,13 @@ def local_binary_candidates(repo_root: Path) -> list[Path]:
     if os.name == "nt":
         return [
             (
-                repo_root / ".temp" / QA_RUNTIME_DIR / "trufflehog" / "trufflehog.exe"
+                repo_root / ".local" / QA_RUNTIME_DIR / "trufflehog" / "trufflehog.exe"
             ).resolve(),
-            (repo_root / ".temp" / QA_RUNTIME_DIR / "trufflehog.exe").resolve(),
+            (repo_root / ".local" / QA_RUNTIME_DIR / "trufflehog.exe").resolve(),
         ]
     return [
-        (repo_root / ".temp" / QA_RUNTIME_DIR / "trufflehog" / "trufflehog").resolve(),
-        (repo_root / ".temp" / QA_RUNTIME_DIR / "trufflehog").resolve(),
+        (repo_root / ".local" / QA_RUNTIME_DIR / "trufflehog" / "trufflehog").resolve(),
+        (repo_root / ".local" / QA_RUNTIME_DIR / "trufflehog").resolve(),
     ]
 
 
@@ -246,7 +246,7 @@ def download_trufflehog_binary(repo_root: Path) -> str | None:
         print(f"error: no pinned SHA-256 for {asset}", file=sys.stderr)
         return None
 
-    cache_dir = (repo_root / ".temp" / QA_RUNTIME_DIR / "trufflehog").resolve()
+    cache_dir = (repo_root / ".local" / QA_RUNTIME_DIR / "trufflehog").resolve()
     cache_dir.mkdir(parents=True, exist_ok=True)
     url = f"{TRUFFLEHOG_RELEASE_BASE_URL}/{asset}"
     extracted_name = "trufflehog.exe" if os.name == "nt" else "trufflehog"

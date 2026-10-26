@@ -66,7 +66,7 @@ def sha256_file(path: Path) -> str:
 
 def ensure_formatter_jar(repo_root: Path) -> Path:
     """Return cached formatter JAR path, downloading it when missing."""
-    cache_dir = repo_root / ".temp" / QA_RUNTIME_DIR / "google-java-format"
+    cache_dir = repo_root / ".local" / QA_RUNTIME_DIR / "google-java-format"
     cache_dir.mkdir(parents=True, exist_ok=True)
     jar_path = (
         cache_dir / f"google-java-format-{GOOGLE_JAVA_FORMAT_VERSION}-all-deps.jar"
@@ -89,7 +89,7 @@ def formatter_jar_path(repo_root: Path) -> Path:
     """Return expected cached formatter jar path."""
     return (
         repo_root
-        / ".temp"
+        / ".local"
         / QA_RUNTIME_DIR
         / "google-java-format"
         / f"google-java-format-{GOOGLE_JAVA_FORMAT_VERSION}-all-deps.jar"

@@ -112,7 +112,7 @@ override.tf.json
 # Temporary / Local Dev
 # =========================
 
-.temp/
+.local/
 tmp/
 *.tmp
 
