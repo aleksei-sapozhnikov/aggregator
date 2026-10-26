@@ -23,106 +23,188 @@ class OrchestratorFlowTests(unittest.TestCase):
         self.addCleanup(changed.stop)
         self.addCleanup(files.stop)
 
-    def test_code_qa_checks_then_runs_tests_without_secrets(self) -> None:
-        calls: list[str] = []
+    def test_code_qa_runs_tests_after_checks_within_each_module(self) -> None:
+        output = StringIO()
         with (
-            patch.object(
-                main,
-                "run_check_command",
-                side_effect=lambda **_: calls.append("check") or 0,
-            ),
-            patch.object(
-                main,
-                "run_test_command",
-                side_effect=lambda **_: calls.append("test") or 0,
-            ),
+            patch.object(main, "execute_check", return_value=(True, [])),
+            patch.object(main, "execute_test", return_value=(0, [])) as tests,
             patch.object(main, "run_secrets_command") as secrets,
+            redirect_stdout(output),
         ):
-            self.assertEqual(main.run_code_qa_command(suppress_final_summary=True), 0)
-        self.assertEqual(calls, ["check", "test"])
-        secrets.assert_not_called()
+            self.assertEqual(
+                main.run_code_qa_command(modules=["aggregator", "aggregator-ui"]), 0
+            )
 
-    def test_code_qa_stops_when_checks_fail_without_formatting(self) -> None:
+        log = output.getvalue()
+        markers = [
+            "Module: aggregator\n",
+            "  Checking java format.. ",
+            "  Testing aggregator.. OK",
+            "Module: aggregator-ui\n",
+            "  Checking typescript.. ",
+            "  Testing aggregator-ui.. OK",
+        ]
+        # Every module's checks finish before its tests and the next module.
+        self.assertEqual(sorted(log.index(value) for value in markers),
+                         [log.index(value) for value in markers])
+        self.assertEqual(tests.call_count, 2)
+        secrets.assert_not_called()
+        self.assertNotIn("=== TESTS:", log)
+
+    def test_code_qa_skips_only_failing_module_tests(self) -> None:
+        events: list[str] = []
+
+        def check(_emit, selected, **_kwargs):
+            name = selected[0]
+            events.append(f"check:{name}")
+            return (name != "aggregator", [])
+
+        def test(command, _emit, *, verbose):
+            events.append("test:aggregator-ui")
+            return 0, []
+
         with (
-            patch.object(main, "run_check_command", return_value=1),
+            patch.object(main, "_run_checks", side_effect=check),
+            patch.object(main, "execute_test", side_effect=test) as tests,
             patch.object(main, "run_format_command") as formatter,
-            patch.object(main, "run_test_command") as tests,
-            redirect_stdout(StringIO()),
+            redirect_stdout(StringIO()) as output,
         ):
-            self.assertEqual(main.run_code_qa_command(), 1)
+            self.assertEqual(
+                main.run_code_qa_command(modules=["aggregator", "aggregator-ui"]), 1
+            )
+
+        self.assertEqual(
+            events, ["check:aggregator", "check:aggregator-ui", "test:aggregator-ui"]
+        )
+        tests.assert_called_once()
         formatter.assert_not_called()
+        self.assertIn("Testing aggregator.. SKIPPED (checks failed)", output.getvalue())
+        self.assertIn("Testing aggregator-ui.. OK", output.getvalue())
+        self.assertIn("=== QA: FAILED ===", output.getvalue())
+
+    def test_code_qa_continues_after_test_failure_and_reports_details(self) -> None:
+        with (
+            patch.object(main, "_run_checks", return_value=(True, [])),
+            patch.object(
+                main,
+                "execute_test",
+                side_effect=[(1, ["test failure details"]), (0, [])],
+            ) as tests,
+            redirect_stdout(StringIO()) as output,
+        ):
+            self.assertEqual(
+                main.run_code_qa_command(modules=["aggregator", "aggregator-ui"]), 1
+            )
+        self.assertEqual(tests.call_count, 2)
+        self.assertIn("Testing aggregator.. FAILED", output.getvalue())
+        self.assertIn("test failure details", output.getvalue())
+        self.assertIn("Testing aggregator-ui.. OK", output.getvalue())
+
+    def test_code_qa_does_not_run_tests_for_modules_without_suites(self) -> None:
+        with (
+            patch.object(main, "_run_checks", return_value=(True, [])) as checks,
+            patch.object(main, "execute_test") as tests,
+            redirect_stdout(StringIO()) as output,
+        ):
+            self.assertEqual(main.run_code_qa_command(modules=["repository"]), 0)
+        checks.assert_called_once()
         tests.assert_not_called()
+        self.assertNotIn("Testing repository", output.getvalue())
 
     def test_full_qa_scans_secrets_only_after_checks_and_tests(self) -> None:
-        calls: list[str] = []
+        events: list[str] = []
+
+        def check(_emit, selected, **_kwargs):
+            events.append("check:" + selected[0])
+            return True, []
+
+        def test(_command, _emit, *, verbose):
+            events.append("test")
+            return 0, []
+
         with (
-            patch.object(
-                main,
-                "run_check_command",
-                side_effect=lambda **_: calls.append("check") or 0,
-            ),
-            patch.object(
-                main,
-                "run_test_command",
-                side_effect=lambda **_: calls.append("test") or 0,
-            ),
+            patch.object(main, "_run_checks", side_effect=check),
+            patch.object(main, "execute_test", side_effect=test),
             patch.object(
                 main,
                 "run_secrets_command",
-                side_effect=lambda **_: calls.append("secrets") or 0,
+                side_effect=lambda **_: events.append("secrets") or 0,
             ),
             redirect_stdout(StringIO()),
         ):
-            self.assertEqual(main.run_qa_command(), 0)
-        self.assertEqual(calls, ["check", "test", "secrets"])
+            self.assertEqual(main.run_qa_command(modules=["catalog"]), 0)
+        self.assertEqual(events, ["check:catalog", "test", "secrets"])
 
     def test_full_qa_skips_secrets_after_test_failure(self) -> None:
         with (
-            patch.object(main, "run_check_command", return_value=0),
-            patch.object(main, "run_test_command", return_value=1),
+            patch.object(main, "_run_checks", return_value=(True, [])),
+            patch.object(main, "execute_test", return_value=(1, ["test failure"])),
             patch.object(main, "run_secrets_command") as secrets,
             redirect_stdout(StringIO()) as output,
         ):
-            self.assertEqual(main.run_qa_command(), 1)
+            self.assertEqual(main.run_qa_command(modules=["catalog"]), 1)
         secrets.assert_not_called()
         self.assertIn("Skipping secrets scan", output.getvalue())
         self.assertIn("=== QA: FAILED ===", output.getvalue())
 
     def test_full_qa_skips_secrets_after_check_failure(self) -> None:
         with (
-            patch.object(main, "run_check_command", return_value=1),
-            patch.object(main, "run_test_command") as tests,
+            patch.object(main, "_run_checks", return_value=(False, ["catalog/error"])),
+            patch.object(main, "execute_test") as tests,
             patch.object(main, "run_secrets_command") as secrets,
             redirect_stdout(StringIO()) as output,
         ):
-            self.assertEqual(main.run_qa_command(), 1)
+            self.assertEqual(main.run_qa_command(modules=["catalog"]), 1)
         tests.assert_not_called()
         secrets.assert_not_called()
         self.assertIn("Skipping secrets scan", output.getvalue())
-        self.assertIn("=== QA: FAILED ===", output.getvalue())
 
     def test_full_qa_fails_when_only_secret_scan_fails(self) -> None:
         with (
-            patch.object(main, "run_check_command", return_value=0),
-            patch.object(main, "run_test_command", return_value=0),
+            patch.object(main, "_run_checks", return_value=(True, [])),
+            patch.object(main, "execute_test", return_value=(0, [])),
             patch.object(main, "run_secrets_command", return_value=1),
             redirect_stdout(StringIO()),
         ):
-            self.assertEqual(main.run_qa_command(), 1)
+            self.assertEqual(main.run_qa_command(modules=["catalog"]), 1)
 
     def test_qa_never_formats_even_when_all_checks_pass(self) -> None:
         with (
-            patch.object(main, "run_check_command", return_value=0) as check,
+            patch.object(main, "_run_checks", return_value=(True, [])) as checks,
+            patch.object(main, "execute_test", return_value=(0, [])) as tests,
             patch.object(main, "run_format_command") as formatter,
-            patch.object(main, "run_test_command", return_value=0) as tests,
             patch.object(main, "run_secrets_command", return_value=0) as secrets,
             redirect_stdout(StringIO()),
         ):
-            self.assertEqual(main.run_qa_command(), 0)
-        check.assert_called_once()
-        formatter.assert_not_called()
+            self.assertEqual(main.run_qa_command(modules=["catalog"]), 0)
+        checks.assert_called_once()
         tests.assert_called_once()
+        formatter.assert_not_called()
         secrets.assert_called_once()
+
+    def test_secret_scan_scope_is_preserved_in_compact_output(self) -> None:
+        result = main.subprocess.CompletedProcess(
+            [],
+            0,
+            stdout="Scan scope: /repo (recursive filesystem; excluding .git and Git-ignored paths)\nOK: 0 secrets found\n",
+            stderr="",
+        )
+        with (
+            patch.object(main.subprocess, "run", return_value=result),
+            redirect_stdout(StringIO()) as output,
+        ):
+            self.assertEqual(
+                main.run_secrets_command(
+                    scan_root=".",
+                    output_file=None,
+                    gitignored_output_file=None,
+                    binary=None,
+                    raw=False,
+                ),
+                0,
+            )
+        self.assertIn("Scan scope: /repo", output.getvalue())
+        self.assertIn("0 secrets found", output.getvalue())
 
     def test_code_format_still_applies_fixes(self) -> None:
         with (
