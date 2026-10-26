@@ -26,6 +26,16 @@ if ($null -eq $preferences.inputs) {
   throw "Existing session preferences are missing inputs."
 }
 
+# Keep the exact original document for recovery if the replacement fails.
+$backupDirectory = Join-Path (Split-Path -Parent $PSScriptRoot) ".local"
+[System.IO.Directory]::CreateDirectory($backupDirectory) | Out-Null
+$backup = Join-Path $backupDirectory "session-manager-preferences-before-runas.json"
+[System.IO.File]::WriteAllText(
+  $backup,
+  ($preferences | ConvertTo-Json -Depth 50) + "`n",
+  (New-Object System.Text.UTF8Encoding($false))
+)
+
 $preferences.inputs | Add-Member -NotePropertyName runAsEnabled -NotePropertyValue $true -Force
 $preferences | Add-Member -NotePropertyName _capturedFromAWS -NotePropertyValue $true -Force
 

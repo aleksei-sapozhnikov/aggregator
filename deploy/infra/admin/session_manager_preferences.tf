@@ -10,6 +10,9 @@ resource "aws_ssm_document" "session_manager_preferences" {
   document_type   = "Session"
   document_format = "JSON"
 
+  # Apply the narrow DeleteDocument permission before replacing schema 1.0.
+  depends_on = [aws_iam_policy.infrastructure_admin_management]
+
   content = jsonencode(merge(
     {
       for key, value in local.session_manager_preferences_snapshot :
