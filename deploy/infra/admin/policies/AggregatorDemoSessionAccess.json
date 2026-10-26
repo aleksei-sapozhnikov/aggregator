@@ -23,13 +23,21 @@
     {
       "Sid": "ManageOwnInteractiveSessionsOnly",
       "Effect": "Allow",
-      "Action": ["ssm:TerminateSession", "ssm:ResumeSession", "ssmmessages:OpenDataChannel"],
+      "Action": [
+        "ssm:TerminateSession",
+        "ssm:ResumeSession",
+        "ssmmessages:OpenDataChannel"
+      ],
       "Resource": "arn:aws:ssm:eu-central-1:905418096305:session/${aws:userid}-*"
     },
     {
       "Sid": "SeeSessionAvailability",
       "Effect": "Allow",
-      "Action": ["ssm:GetConnectionStatus", "ssm:DescribeInstanceInformation", "ssm:DescribeSessions"],
+      "Action": [
+        "ssm:GetConnectionStatus",
+        "ssm:DescribeInstanceInformation",
+        "ssm:DescribeSessions"
+      ],
       "Resource": "*"
     }
   ]
