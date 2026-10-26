@@ -45,14 +45,14 @@ make help
 
 - `local-demo` (default): full local demo with dummy services and chaos-maker.
 - `local`: core stack without demo service overlay.
-- `demo`: hosted demo stack with public Caddy configuration.
+- `demo`: hosted demo with public Caddy and GHCR images, tagged by `IMAGE_TAG`.
 
 Examples:
 
 ```shell
 make up ENV=local
 make rebuild-recreate ENV=local-demo
-make down ENV=demo
+IMAGE_TAG=<published-commit-sha> make deploy ENV=demo
 ```
 
 ## Local ports
@@ -78,13 +78,13 @@ Examples below use Docker. If you use Podman, replace `docker compose` with
 To start the default local demo, run this command from the repository root:
 
 ```shell
-docker compose --project-name aggregator-local-demo --project-directory . -f compose/compose.yaml -f compose/compose.local-demo.yaml -f compose/compose.overlay.demo-services.yaml -f compose/compose.overlay.local-ports.yaml -f compose/compose.overlay.demo-services-local-ports.yaml up --detach --wait --remove-orphans
+docker compose --project-name aggregator-local-demo --project-directory . -f compose/compose.yaml -f compose/compose.local-demo.yaml -f compose/compose.overlay.demo-services.yaml -f compose/compose.build.core.yaml -f compose/compose.build.demo-services.yaml -f compose/compose.overlay.local-ports.yaml -f compose/compose.overlay.demo-services-local-ports.yaml up --detach --wait --remove-orphans
 ```
 
 To stop it, run this command from the repository root:
 
 ```shell
-docker compose --project-name aggregator-local-demo --project-directory . -f compose/compose.yaml -f compose/compose.local-demo.yaml -f compose/compose.overlay.demo-services.yaml -f compose/compose.overlay.local-ports.yaml -f compose/compose.overlay.demo-services-local-ports.yaml down --remove-orphans
+docker compose --project-name aggregator-local-demo --project-directory . -f compose/compose.yaml -f compose/compose.local-demo.yaml -f compose/compose.overlay.demo-services.yaml -f compose/compose.build.core.yaml -f compose/compose.build.demo-services.yaml -f compose/compose.overlay.local-ports.yaml -f compose/compose.overlay.demo-services-local-ports.yaml down --remove-orphans
 ```
 
 The compose files live under `compose/`. Keep `--project-directory .` in manual
@@ -162,3 +162,17 @@ from the current PowerShell session.
 For deployment on EC2, the Bedrock provider uses the instance IAM role
 when `api_key` and explicit AWS credentials are omitted from
 `AGENT_AI_CONFIG`.
+
+## UI runtime settings
+
+The same UI image works in every environment. At container startup,
+`APP_TITLE` and `TIMELINE_DEFAULT_RANGE` become public `/config.json`
+settings. The local-demo title contains `PROJECT_VERSION`, and its range is
+`15m`; hosted demo uses `1d`.
+
+For standalone `npm run dev` in `services-core/aggregator-ui`, Vite serves
+the same JSON endpoint using the dev server process environment.
+
+`local` and `local-demo` still build from the local Dockerfiles, while
+`demo` uses only published GHCR images. Deployment instructions are in
+[deploy/demo/README.md](../deploy/demo/README.md).

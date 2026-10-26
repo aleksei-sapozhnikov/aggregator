@@ -14,8 +14,6 @@ services:
       options:
         max-size: "10m"
         max-file: "5"
-    build:
-      context: services-demo/dummy-java
 
   dummy-python:
     logging:
@@ -23,8 +21,6 @@ services:
       options:
         max-size: "10m"
         max-file: "5"
-    build:
-      context: services-demo/dummy-python
 
   dummy-javascript:
     logging:
@@ -32,5 +28,3 @@ services:
       options:
         max-size: "10m"
         max-file: "5"
-    build:
-      context: services-demo/dummy-javascript

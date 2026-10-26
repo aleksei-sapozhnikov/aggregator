@@ -1,0 +1,17 @@
+services:
+  catalog:
+    image: ghcr.io/aleksei-sapozhnikov/catalog:${IMAGE_TAG:?Missing IMAGE_TAG}
+  aggregator:
+    image: ghcr.io/aleksei-sapozhnikov/aggregator:${IMAGE_TAG:?Missing IMAGE_TAG}
+  ai-agent:
+    image: ghcr.io/aleksei-sapozhnikov/ai-agent:${IMAGE_TAG:?Missing IMAGE_TAG}
+  aggregator-ui:
+    image: ghcr.io/aleksei-sapozhnikov/aggregator-ui:${IMAGE_TAG:?Missing IMAGE_TAG}
+  chaos-maker:
+    image: ghcr.io/aleksei-sapozhnikov/chaos-maker:${IMAGE_TAG:?Missing IMAGE_TAG}
+  dummy-java:
+    image: ghcr.io/aleksei-sapozhnikov/dummy-java:${IMAGE_TAG:?Missing IMAGE_TAG}
+  dummy-python:
+    image: ghcr.io/aleksei-sapozhnikov/dummy-python:${IMAGE_TAG:?Missing IMAGE_TAG}
+  dummy-javascript:
+    image: ghcr.io/aleksei-sapozhnikov/dummy-javascript:${IMAGE_TAG:?Missing IMAGE_TAG}

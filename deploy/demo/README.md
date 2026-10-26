@@ -1,68 +1,51 @@
-# Aggregator Demo
+# Aggregator Demo Deployment
 
-This document describes how to run and verify the Aggregator demo stack on a prepared host machine.
+The hosted demo deploys from the `demo` branch only. Commits to `dev` or
+`main` do not redeploy it.
 
-Virtual machine provisioning and OS-level setup are handled separately via platform-specific
-bootstrap scripts under [deploy/bootstrap-vm](/deploy/bootstrap-vm).
+## Pipeline
 
----
+1. Shared repository checks run before any publication.
+2. GitHub Actions builds eight project-owned images and publishes them to GHCR,
+   tagged with the full Git commit SHA.
+3. The SSH job checks out that exact commit on EC2, runs Compose pull, then
+   Compose up with `--no-build`. Chaos-maker starts after the other services.
+4. Compose still mounts Caddy, Prometheus, and Grafana configuration from the
+   Git checkout. SSH and Git remain in use for this phase.
 
-## Demo stack overview
-
-The demo stack is started using Docker Compose and includes:
-
-- Aggregator service
-- Dummy dependency services
-- Prometheus
-- Grafana
-- Reverse proxy with HTTPS (self-signed TLS certificate)
-
----
+See [the workflow](/.github/workflows/demo-deploy.yml) and
+[the SSH script](demo-deploy.sh).
 
 ## Prerequisites
 
-- A host machine already bootstrapped for Docker Compose
+- EC2 is bootstrapped for Docker Compose, Git, Make, and SSH.
+- The existing checkout is at `/home/ec2-user/aggregator-demo/repo`.
+- The GitHub `demo` environment has `SSH_HOST`, `SSH_KEY`, and
+  `SSH_HOST_KEY` secrets.
+- All eight GHCR packages must be **public** for unauthenticated pulls on EC2.
+  Newly published packages default to private. After their first publication,
+  switch their visibility in GitHub's package settings. Until then, pulls
+  without registry authentication will fail.
+- The workflow publishes with `GITHUB_TOKEN` and `packages: write`; no
+  personal access token is needed.
 
-- See [deploy/bootstrap-vm](/deploy/bootstrap-vm) for platform-specific instructions
-- Inbound HTTPS access allowed to the host (port 443)
-- Repository present on the host (typically under `~/aggregator-demo/repo`)
+## Manual deployment of an already published commit
 
----
-
-## Start the demo stack
-
-From the repository root on the host machine:
-
-```shell
+```sh
 cd ~/aggregator-demo/repo
-make demo-up
+export IMAGE_TAG=<full-40-character-commit-sha>
+make deploy ENV=demo
+curl -f https://aggregator.alivion.cc/
 ```
 
----
+`make deploy` downloads the published images and starts them without a build.
+`make pull ENV=demo` only downloads images. Image tags are pinned to the
+exact commit, not `latest`.
 
-## Verify access
+The UI image has no environment-specific build arguments. Its entrypoint
+generates `/config.json` from `APP_TITLE` and `TIMELINE_DEFAULT_RANGE`.
+React loads this configuration before rendering. These are public browser
+settings and must never contain credentials.
 
-### Local verification (on the host)
-
-```shell
-curl -vk https://127.0.0.1/
-```
-
-### Browser access
-
-Open public DNS name (replace with the real one of your instance)
-
-```
-https://ec2-0-0-0-0...amazonaws.com
-```
-
-A certificate warning is expected because the TLS certificate is self-signed.
-
----
-
-## Automated demo redeployment
-
-The demo environment is redeployed automatically using GitHub Actions.
-
-- Deployment trigger (when): [demo-deploy.yml](/.github/workflows/demo-deploy.yml)
-- Deployment logic (how): [demo-deploy.sh](/deploy/demo/demo-deploy.sh)
+The `demo` branch does not yet exist. Create or advance it only when ready
+to publish and deploy a tested commit; there is no auto-deploy from `dev`.

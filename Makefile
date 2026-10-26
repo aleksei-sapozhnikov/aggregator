@@ -22,7 +22,7 @@ endif
 # Compose configuration and runtime checks are needed only for Compose commands.
 # QA and help targets must also run in clean CI checkouts without .env or Docker.
 SERVICE_TARGETS := up-svc down-svc restart-svc recreate-svc rebuild-svc rebuild-recreate-svc clean-svc
-COMPOSE_TARGETS := info up down restart recreate rebuild rebuild-recreate clean $(SERVICE_TARGETS)
+COMPOSE_TARGETS := info up down restart recreate rebuild rebuild-recreate clean pull deploy $(SERVICE_TARGETS)
 
 # ---- Compose files ----
 COMPOSE_DIR := compose
@@ -31,12 +31,15 @@ LOCAL := -f $(COMPOSE_DIR)/compose.local.yaml
 LOCAL_DEMO := -f $(COMPOSE_DIR)/compose.local-demo.yaml
 DEMO := -f $(COMPOSE_DIR)/compose.demo.yaml
 LOCAL_PORTS := -f $(COMPOSE_DIR)/compose.overlay.local-ports.yaml
+CORE_BUILD := -f $(COMPOSE_DIR)/compose.build.core.yaml
+DEMO_BUILD := -f $(COMPOSE_DIR)/compose.build.demo-services.yaml
+DEMO_IMAGES := -f $(COMPOSE_DIR)/compose.images.demo.yaml
 DEMO_SERVICES := -f $(COMPOSE_DIR)/compose.overlay.demo-services.yaml
 DEMO_SERVICES_PORTS := -f $(COMPOSE_DIR)/compose.overlay.demo-services-local-ports.yaml
 
-STACK_local := $(BASE) $(LOCAL) $(LOCAL_PORTS)
-STACK_local-demo := $(BASE) $(LOCAL_DEMO) $(DEMO_SERVICES) $(LOCAL_PORTS) $(DEMO_SERVICES_PORTS)
-STACK_demo := $(BASE) $(DEMO) $(DEMO_SERVICES)
+STACK_local := $(BASE) $(LOCAL) $(CORE_BUILD) $(LOCAL_PORTS)
+STACK_local-demo := $(BASE) $(LOCAL_DEMO) $(DEMO_SERVICES) $(CORE_BUILD) $(DEMO_BUILD) $(LOCAL_PORTS) $(DEMO_SERVICES_PORTS)
+STACK_demo := $(BASE) $(DEMO) $(DEMO_SERVICES) $(DEMO_IMAGES)
 
 PROJECT_local := aggregator-local
 PROJECT_local-demo := aggregator-local-demo
@@ -104,7 +107,7 @@ export AGENT_AI_ENABLED
 export AGENT_AI_CONFIG
 
 .PHONY: help info env \
-        up down restart recreate rebuild rebuild-recreate clean \
+        up down restart recreate rebuild rebuild-recreate clean pull deploy \
         up-svc down-svc restart-svc recreate-svc rebuild-svc rebuild-recreate-svc clean-svc \
         code-qa code-format code-lint code-secrets test qa deps-audit
 
@@ -117,6 +120,8 @@ help:
 	@echo ""
 	@echo "Targets:"
 	@echo "  up               -> start/update containers (no build)"
+	@echo "  pull             -> download published demo images (ENV=demo)"
+	@echo "  deploy           -> pull demo images and run without building (ENV=demo)"
 	@echo "  down             -> stop/remove containers + network (keep volumes)"
 	@echo "  restart          -> restart existing containers (no recreate)"
 	@echo "  recreate         -> force re-create containers (keep volumes)"
@@ -154,6 +159,17 @@ ifneq ($(CHAOS_LAST),)
 else
 	$(COMPOSE_CMD) up --detach --wait --remove-orphans
 endif
+
+# Published demo artifacts are immutable per Git commit.
+pull: info
+	$(if $(filter demo,$(ENV)),,$(error pull requires ENV=demo))
+	$(COMPOSE_CMD) pull
+
+deploy: info
+	$(if $(filter demo,$(ENV)),,$(error deploy requires ENV=demo))
+	$(COMPOSE_CMD) pull
+	$(COMPOSE_CMD) up --detach --no-build --wait --remove-orphans --scale $(CHAOS_SVC)=0
+	$(COMPOSE_CMD) up --detach --no-build --wait --remove-orphans $(CHAOS_SVC)
 
 down: info
 	$(COMPOSE_CMD) down --remove-orphans

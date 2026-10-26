@@ -5,8 +5,6 @@ services:
       options:
         max-size: "10m"
         max-file: "5"
-    build:
-      context: services-core/catalog
     environment:
       CATALOG_DIR: ./catalog/empty
     healthcheck:
@@ -22,8 +20,6 @@ services:
       options:
         max-size: "10m"
         max-file: "5"
-    build:
-      context: services-core/aggregator
     depends_on:
       catalog:
         condition: service_healthy
@@ -34,8 +30,6 @@ services:
       options:
         max-size: "10m"
         max-file: "5"
-    build:
-      context: services-core/ai-agent
     environment:
       PRODUCT_HEALTH_BASE_URL: http://aggregator:8080
       AGENT_AI_ENABLED: ${AGENT_AI_ENABLED:-false}
@@ -56,10 +50,9 @@ services:
       options:
         max-size: "10m"
         max-file: "5"
-    build:
-      context: services-core/aggregator-ui
-      args:
-        VITE_APP_TITLE: ""
+    environment:
+      APP_TITLE: ""
+      TIMELINE_DEFAULT_RANGE: "1d"
     depends_on:
       catalog:
         condition: service_healthy

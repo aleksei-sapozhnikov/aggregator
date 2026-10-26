@@ -1,24 +1,91 @@
-name: Demo auto-deploy
+name: Demo build and deploy
 
 on:
   push:
     branches:
-      - main
+      - demo
   workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
 
 concurrency:
   group: demo-deploy
   cancel-in-progress: false
 
 jobs:
+  quality:
+    name: Verify repository
+    if: github.ref == 'refs/heads/demo'
+    uses: ./.github/workflows/code-quality.yml
+    permissions:
+      contents: read
+
+  build-and-publish:
+    name: Build & publish / ${{ matrix.service }}
+    if: github.ref == 'refs/heads/demo'
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: aggregator
+            context: services-core/aggregator
+          - service: aggregator-ui
+            context: services-core/aggregator-ui
+          - service: catalog
+            context: services-core/catalog
+          - service: ai-agent
+            context: services-core/ai-agent
+          - service: chaos-maker
+            context: services-demo/chaos-maker
+          - service: dummy-java
+            context: services-demo/dummy-java
+          - service: dummy-python
+            context: services-demo/dummy-python
+          - service: dummy-javascript
+            context: services-demo/dummy-javascript
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and publish immutable image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./${{ matrix.context }}
+          platforms: linux/amd64
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/${{ matrix.service }}:${{ github.sha }}
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+
   deploy:
-    name: Deploy demo stack
+    name: Deploy published images over SSH
+    if: github.ref == 'refs/heads/demo'
+    needs: build-and-publish
     runs-on: ubuntu-latest
     environment: demo
     timeout-minutes: 15
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Deploy over SSH
         run: bash ./deploy/demo/demo-deploy.sh
@@ -29,6 +96,7 @@ jobs:
           SSH_HOST_KEY: ${{ secrets.SSH_HOST_KEY }}
           SSH_USER: ec2-user
           REPO_PATH: /home/ec2-user/aggregator-demo/repo
-          DEPLOY_BRANCH: ${{ github.ref_name }}
+          DEPLOY_BRANCH: demo
+          DEPLOY_SHA: ${{ github.sha }}
           AGENT_AI_ENABLED: "true"
           AGENT_AI_CONFIG: '{"provider":"bedrock","max_tool_rounds":2,"bedrock":{"model_id":"eu.amazon.nova-lite-v1:0","aws_region":"eu-central-1","temperature":0.00001,"max_tokens":300}}'

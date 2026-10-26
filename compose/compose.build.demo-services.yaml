@@ -1,0 +1,13 @@
+services:
+  chaos-maker:
+    build:
+      context: services-demo/chaos-maker
+  dummy-java:
+    build:
+      context: services-demo/dummy-java
+  dummy-python:
+    build:
+      context: services-demo/dummy-python
+  dummy-javascript:
+    build:
+      context: services-demo/dummy-javascript

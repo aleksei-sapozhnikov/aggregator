@@ -56,6 +56,9 @@ set -euo pipefail
 #   or:
 #     DEPLOY_BRANCH=release/demo
 #
+# DEPLOY_SHA
+#   Exact Git commit whose images were published to GHCR.
+#
 # AGENT_AI_ENABLED
 #   Enables or disables the AI agent.
 #   Example:
@@ -75,10 +78,13 @@ set -euo pipefail
 : "${SSH_HOST_KEY:?Missing SSH_HOST_KEY}"
 : "${REPO_PATH:?Missing REPO_PATH}"
 : "${DEPLOY_BRANCH:?Missing DEPLOY_BRANCH}"
+: "${DEPLOY_SHA:?Missing DEPLOY_SHA}"
+[[ "${DEPLOY_SHA}" =~ ^[0-9a-f]{40}$ ]] || { echo "DEPLOY_SHA must be a full commit SHA" >&2; exit 1; }
 : "${AGENT_AI_ENABLED:?Missing AGENT_AI_ENABLED}"
 : "${AGENT_AI_CONFIG:?Missing AGENT_AI_CONFIG}"
 
 AGENT_AI_ENABLED_ESCAPED="$(printf '%q' "${AGENT_AI_ENABLED}")"
+DEPLOY_SHA_ESCAPED="$(printf '%q' "${DEPLOY_SHA}")"
 AGENT_AI_CONFIG_ESCAPED="$(printf '%q' "${AGENT_AI_CONFIG}")"
 
 # -------------------------------------------------------------------
@@ -108,12 +114,12 @@ ssh -i ~/.ssh/demo_key \
   "set -euo pipefail; \
    cd '${REPO_PATH}'; \
    git fetch --prune; \
-   git checkout '${DEPLOY_BRANCH}'; \
-   git reset --hard 'origin/${DEPLOY_BRANCH}'; \
+   git cat-file -e ${DEPLOY_SHA_ESCAPED}^{commit}; \
+   git merge-base --is-ancestor ${DEPLOY_SHA_ESCAPED} 'origin/${DEPLOY_BRANCH}'; \
+   git checkout -B '${DEPLOY_BRANCH}' ${DEPLOY_SHA_ESCAPED}; \
    sudo -n journalctl --vacuum-time=7d || true; \
-   docker image prune -f || true; \
-   docker builder prune -af --keep-storage 500m || true; \
+   IMAGE_TAG=${DEPLOY_SHA_ESCAPED} \
    AGENT_AI_ENABLED=${AGENT_AI_ENABLED_ESCAPED} \
    AGENT_AI_CONFIG=${AGENT_AI_CONFIG_ESCAPED} \
-   make rebuild-recreate ENV=demo; \
+   make deploy ENV=demo; \
    docker image prune -f || true;"

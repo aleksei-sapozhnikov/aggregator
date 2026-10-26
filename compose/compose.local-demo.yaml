@@ -4,11 +4,9 @@ services:
       CATALOG_BASE_URL: http://catalog:8080
 
   aggregator-ui:
-    build:
-      context: services-core/aggregator-ui
-      args:
-        VITE_APP_TITLE: "Health Aggregator LOCAL DEMO v${PROJECT_VERSION:?Missing PROJECT_VERSION}"
-        VITE_TIMELINE_DEFAULT_RANGE: "15m"
+    environment:
+      APP_TITLE: "Health Aggregator LOCAL DEMO v${PROJECT_VERSION:?Missing PROJECT_VERSION}"
+      TIMELINE_DEFAULT_RANGE: "15m"
 
   chaos-maker:
     logging:
@@ -16,8 +14,6 @@ services:
       options:
         max-size: "10m"
         max-file: "5"
-    build:
-      context: services-demo/chaos-maker
     environment:
       CHAOS_ENABLED: "true"
       CHAOS_ALWAYS_BROKEN: "true"
