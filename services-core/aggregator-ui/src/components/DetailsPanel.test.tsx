@@ -416,6 +416,26 @@ describe("DetailsPanel contextual help", () => {
     expect(healthyToggle.getAttribute("aria-expanded")).toBe("true");
   });
 
+  it("renders actor roles as small supplementary labels without parentheses", () => {
+    const { container } = renderDetailsPanel({
+      selectedItemActors: {
+        owner: ownerActor,
+        otherActors: [
+          { id: "team-marketing", title: "Marketing Team", type: "user" },
+          { id: "team-support", title: "Support Team", type: "other" },
+        ],
+      },
+    });
+
+    expect(
+      Array.from(
+        container.querySelectorAll(".ownership-extra-list .actor-role"),
+        (role) => role.textContent?.trim(),
+      ),
+    ).toEqual(["Owner", "User", "Other"]);
+    expect(container.querySelectorAll(".details-row-meta")).toHaveLength(0);
+  });
+
   it("groups actor links and healthy signals without redundant icons", () => {
     const { container } = renderDetailsPanel();
     const actors = container.querySelector(".ownership-extra-list");

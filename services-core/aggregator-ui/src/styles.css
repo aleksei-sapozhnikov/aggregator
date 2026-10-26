@@ -4225,17 +4225,13 @@ body[data-theme="dark"] .about-social-icon-linkedin {
   font-weight: 600;
 }
 
-.details-row-meta {
+.actor-role {
   flex: 0 0 auto;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 400;
   line-height: 1.3;
   white-space: nowrap;
-}
-
-.details-row-meta-capitalize {
-  text-transform: capitalize;
 }
 
 .details-disclosure-section {
