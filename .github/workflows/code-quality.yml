@@ -3,82 +3,122 @@ name: Code quality
 on:
   workflow_dispatch:
   pull_request:
-    types:
-      - opened
-      - reopened
-      - synchronize
-      - ready_for_review
+    types: [opened, reopened, synchronize, ready_for_review]
   push:
-    branches:
-      - main
+    branches: [main]
+
+permissions:
+  contents: read
+
+env:
+  PYTHON_VERSION: "3.12"
 
 jobs:
-  quality:
-    name: Checks
+  module-matrix:
+    name: Select modules
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      matrix: ${{ steps.modules.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - id: modules
+        run: |
+          matrix=$(python tools/code_qa/src/main.py modules --json)
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+
+  module-quality:
+    name: Module / ${{ matrix.module }}
+    needs: module-matrix
     runs-on: ubuntu-latest
     timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.module-matrix.outputs.matrix) }}
     env:
-      PYTHON_VERSION: "3.12"
-      JAVA_VERSION: "25"
-      # Keep the major/minor version aligned with services-core/catalog/go.mod.
       GO_VERSION: "1.23.12"
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
+      - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: Set up Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: ${{ env.JAVA_VERSION }}
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-
-      # setup-go's built-in cache stores modules/build outputs, not the SDK across runners.
+      - name: Set up Java
+        if: matrix.java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
       - name: Cache Go toolchain
+        if: matrix.go
         uses: actions/cache@v4
         with:
           path: ${{ runner.tool_cache }}/go/${{ env.GO_VERSION }}
           key: ${{ runner.os }}-${{ runner.arch }}-go-toolchain-${{ env.GO_VERSION }}
-
       - name: Set up Go
+        if: matrix.go
         uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: services-core/catalog/go.sum
-
+          cache: false
+      - name: Set up OpenTofu
+        if: matrix.tofu
+        uses: opentofu/setup-opentofu@v2
+        with:
+          tofu_version: "1.13.1"
+          tofu_wrapper: false
+      - name: Set up TFLint
+        if: matrix.tofu
+        uses: terraform-linters/setup-tflint@v6
+        with:
+          tflint_version: v0.65.0
       - name: Cache QA dependencies
         uses: actions/cache@v4
         with:
-          path: |
-            ~/.cache/pip
-            ~/.m2/repository
-            .temp/qa-runtime/venv
-            .temp/qa-runtime/maven
-            .temp/qa-runtime/jdk
-            ~/.npm
-            .temp/qa-runtime/google-java-format
-            .temp/qa-runtime/node_modules
-            .temp/qa-runtime/package-lock.json
-            .temp/qa-runtime/package.json
-            .temp/qa-runtime/trufflehog
-          key: ${{ runner.os }}-qa-cache-py${{ env.PYTHON_VERSION }}-runtime-${{ hashFiles('tools/code_qa/**') }}
+          path: .temp/qa-runtime
+          key: ${{ runner.os }}-qa-${{ matrix.module }}-py${{ env.PYTHON_VERSION }}-${{ hashFiles('tools/code_qa/**', '**/requirements*.txt', '**/package-lock.json', '**/pom.xml', '**/.terraform.lock.hcl') }}
           restore-keys: |
-            ${{ runner.os }}-qa-cache-py${{ env.PYTHON_VERSION }}-
-            ${{ runner.os }}-qa-cache-
-
-      - name: Run QA
-        run: make qa
-
-      # Formatting can fix files; CI must still reject unformatted committed code.
-      - name: Verify no tracked files were reformatted
+            ${{ runner.os }}-qa-${{ matrix.module }}-py${{ env.PYTHON_VERSION }}-
+      - name: Check module and run its tests
+        run: python tools/code_qa/src/main.py code-qa --module "${{ matrix.module }}"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+      - name: Verify checks left tracked files unchanged
         if: always()
         run: git diff --exit-code
+
+  secrets:
+    name: Repository / secrets
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - uses: actions/cache@v4
+        with:
+          path: .temp/qa-runtime/trufflehog
+          key: ${{ runner.os }}-qa-trufflehog-${{ hashFiles('tools/code_qa/src/checks/other/trufflehog.py') }}
+      - name: Scan repository secrets
+        run: python tools/code_qa/src/main.py secrets
+
+  quality:
+    name: Checks
+    needs: [module-quality, secrets]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require every module and the secrets scan to pass
+        env:
+          MODULE_RESULT: ${{ needs.module-quality.result }}
+          SECRETS_RESULT: ${{ needs.secrets.result }}
+        run: test "$MODULE_RESULT" = success && test "$SECRETS_RESULT" = success
