@@ -2,8 +2,7 @@ name: Demo build and deploy
 
 on:
   push:
-    branches:
-      - demo
+    branches: [ demo ]
     paths-ignore:
       - "deploy/infra/demo/**"
       - "deploy/ansible/**"

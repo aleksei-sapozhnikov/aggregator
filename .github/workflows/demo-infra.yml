@@ -2,7 +2,7 @@ name: Demo infrastructure
 
 on:
   push:
-    branches: [dev, demo]
+    branches: [ demo ]
     paths:
       - ".github/workflows/demo-infra.yml"
       - "deploy/infra/demo/**"
@@ -183,7 +183,7 @@ jobs:
 
   apply:
     name: Approve, apply and reconcile K3s
-    needs: [validate, plan]
+    needs: [ validate, plan ]
     if: github.ref == 'refs/heads/demo' && needs.plan.result == 'success' && (needs.plan.outputs.has_changes == 'true' || needs.plan.outputs.ansible_changed == 'true')
     environment: demo-infra
     runs-on: ubuntu-latest

@@ -4,10 +4,10 @@ on:
   workflow_call:
   workflow_dispatch:
   pull_request:
-    types: [opened, reopened, synchronize, ready_for_review]
-    branches: [main]
+    types: [ opened, reopened, synchronize, ready_for_review ]
+    branches: [ main ]
   push:
-    branches: [main]
+    branches: [ main ]
 
 permissions:
   contents: read
@@ -114,7 +114,7 @@ jobs:
 
   quality:
     name: Checks
-    needs: [module-quality, secrets]
+    needs: [ module-quality, secrets ]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
