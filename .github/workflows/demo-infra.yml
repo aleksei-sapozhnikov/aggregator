@@ -93,11 +93,19 @@ jobs:
             echo "::error::DEMO_ENABLE_BEDROCK must be explicitly true or false."
             exit 1
           }
-          if [[ -n "$BOOTSTRAP_REF" ]]; then
-            [[ "$BOOTSTRAP_REF" == dev || "$BOOTSTRAP_REF" =~ ^[a-f0-9]{40}$ ]] || {
-              echo "::error::DEMO_K3S_BOOTSTRAP_GIT_REF must be dev or a full lowercase Git SHA."
+          if [[ "$TF_VAR_enable_k3s_node" == true ]]; then
+            [[ "$BOOTSTRAP_REF" =~ ^[a-f0-9]{40}$ ]] || {
+              echo "::error::Enabled K3s nodes require a pinned DEMO_K3S_BOOTSTRAP_GIT_REF commit SHA."
               exit 2
             }
+            git merge-base --is-ancestor "$BOOTSTRAP_REF" "$GITHUB_SHA" || {
+              echo "::error::The K3s bootstrap SHA must belong to the published demo branch history."
+              exit 2
+            }
+          elif [[ -n "$BOOTSTRAP_REF" ]]; then
+            [[ "$BOOTSTRAP_REF" == dev || "$BOOTSTRAP_REF" =~ ^[a-f0-9]{40}$ ]] || exit 2
+          fi
+          if [[ -n "$BOOTSTRAP_REF" ]]; then
             echo "TF_VAR_k3s_bootstrap_git_ref=$BOOTSTRAP_REF" >> "$GITHUB_ENV"
           fi
       - name: Detect Ansible changes in demo
