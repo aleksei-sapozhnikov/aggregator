@@ -15,8 +15,8 @@ class GoTests(unittest.TestCase):
         self.assertEqual(command.command, ["go", "test", "-v", "./api/..."])
         self.assertEqual(command.directory, directory)
         self.assertEqual(
-            command.env["GOMODCACHE"], str(workspace / ".temp/qa-runtime/go/modules")
+            command.env["GOMODCACHE"], str(workspace / ".local/qa-runtime/go/modules")
         )
         self.assertEqual(
-            command.env["GOCACHE"], str(workspace / ".temp/qa-runtime/go/build")
+            command.env["GOCACHE"], str(workspace / ".local/qa-runtime/go/build")
         )

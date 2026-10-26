@@ -68,28 +68,32 @@ class ModuleConfigurationTests(unittest.TestCase):
         )
 
     def test_file_checks_receive_only_the_configured_module_directory(self) -> None:
-        root = Path(tempfile.gettempdir()).resolve() / "qa-module-inputs"
-        selected = module_path(root, "code-qa", "tools.py")
-        other = module_path(root, "catalog", "main.go")
-        check = next(
-            check for check in cli.CHECKS if check.check_id == "code-qa/ruff-lint"
-        )
-
-        def inspect(runner: str, args: list[str]) -> tuple[bool, list[str]]:
-            self.assertEqual(runner, "code_qa.src.checks.format.ruff")
-            manifest = Path(args[args.index("--files-from") + 1])
-            self.assertEqual(
-                json.loads(manifest.read_text(encoding="utf-8")),
-                [selected.relative_to(root).as_posix()],
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            selected = module_path(root, "code-qa", "tools.py")
+            other = module_path(root, "catalog", "main.go")
+            for path in (selected, other):
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.touch()
+            check = next(
+                check for check in cli.CHECKS if check.check_id == "code-qa/ruff-lint"
             )
-            return True, []
 
-        with patch.object(cli, "run_module", side_effect=inspect) as run:
-            self.assertEqual(
-                cli.execute_check(check, check.check_args, root, [selected, other]),
-                (True, []),
-            )
-        run.assert_called_once()
+            def inspect(runner: str, args: list[str]) -> tuple[bool, list[str]]:
+                self.assertEqual(runner, "code_qa.src.checks.format.ruff")
+                manifest = Path(args[args.index("--files-from") + 1])
+                self.assertEqual(
+                    json.loads(manifest.read_text(encoding="utf-8")),
+                    [selected.relative_to(root).as_posix()],
+                )
+                return True, []
+
+            with patch.object(cli, "run_module", side_effect=inspect) as run:
+                self.assertEqual(
+                    cli.execute_check(check, check.check_args, root, [selected, other]),
+                    (True, []),
+                )
+            run.assert_called_once()
 
     def test_changed_paths_are_passed_to_project_checks(self) -> None:
         root = repo_root()

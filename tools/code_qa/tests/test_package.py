@@ -9,7 +9,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from code_qa.src.core import cli, utils
 
@@ -57,8 +57,9 @@ class PackageLayoutTests(unittest.TestCase):
     def test_public_entrypoint_imports_the_cli_without_running_checks(self) -> None:
         entrypoint = Path(__file__).resolve().parents[1] / "src" / "main.py"
         namespace = runpy.run_path(str(entrypoint), run_name="entrypoint_import")
+        run = MagicMock(return_value=0)
         with (
-            patch.object(cli, "main", return_value=0) as run,
+            patch.dict(namespace["main"].__globals__, {"run": run}),
             patch.object(sys, "path", list(sys.path)),
         ):
             self.assertEqual(namespace["main"](), 0)
