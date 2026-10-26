@@ -1,4 +1,4 @@
-"""Verify that Java formatter artifacts are pinned and independently diagnosable."""
+"""Verify the Java formatter CLI and pinned artifact downloads."""
 
 from __future__ import annotations
 
@@ -13,12 +13,22 @@ from code_qa.src.checks.format import java_format
 
 
 class JavaFormatterDownloadTests(unittest.TestCase):
-    def test_doctor_does_not_require_file_manifest(self) -> None:
-        with patch.object(sys, "argv", ["java_format.py", "--doctor-json"]):
+    def test_parser_accepts_explicit_inputs_and_mode(self) -> None:
+        with patch.object(
+            sys,
+            "argv",
+            [
+                "java_format.py",
+                "--root",
+                ".",
+                "--files-from",
+                "paths.json",
+                "--check-only",
+            ],
+        ):
             args = java_format.parse_args()
-        self.assertTrue(args.doctor_json)
-        self.assertIsNone(args.root)
-        self.assertIsNone(args.files_from)
+        self.assertEqual(args.mode, "check")
+        self.assertEqual(args.files_from, Path("paths.json"))
 
     def test_verified_jar_is_installed_and_reused(self) -> None:
         payload = b"verified-jar"

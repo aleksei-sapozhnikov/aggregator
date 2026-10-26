@@ -62,11 +62,6 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--binary", help="Explicit path to trufflehog binary.")
     parser.add_argument(
-        "--doctor-json",
-        action="store_true",
-        help="Print binary/version status as JSON and exit.",
-    )
-    parser.add_argument(
         "--summary",
         action="store_true",
         help="Print concise human-readable scan summary.",
@@ -395,20 +390,6 @@ def main() -> int:
         gitignored_output_file.parent.mkdir(parents=True, exist_ok=True)
 
     trufflehog_binary = resolve_trufflehog_binary(repo_root, args.binary)
-    if args.doctor_json:
-        version_result = run_command([trufflehog_binary, "--version"])
-        version_text = (version_result.stdout or version_result.stderr).strip()
-        print(
-            json.dumps(
-                {
-                    "ok": version_result.returncode == 0,
-                    "binary": trufflehog_binary,
-                    "version": version_text,
-                }
-            )
-        )
-        return 0 if version_result.returncode == 0 else 1
-
     gitignored_items, exclude_patterns = collect_gitignored(repo_root)
     if gitignored_output_file is not None:
         gitignored_output_file.write_text(

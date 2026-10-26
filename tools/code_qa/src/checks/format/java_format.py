@@ -5,16 +5,13 @@ from __future__ import annotations
 import argparse
 import hashlib
 import os
-import re
-import shutil
 import subprocess
 import sys
 import tempfile
 import urllib.request
 from pathlib import Path
 
-from code_qa.src.core.inputs import file_inputs
-from code_qa.src.core.utils import repo_root
+from code_qa.src.core.inputs import add_file_arguments, file_inputs
 from code_qa.src.tools.jdk import JAVA_MAJOR, jdk_executable, resolve_java_home
 
 GOOGLE_JAVA_FORMAT_VERSION = "1.34.1"
@@ -37,14 +34,12 @@ def min_java_requirement_label() -> str:
 
 
 def parse_args() -> argparse.Namespace:
-    """Parse formatter mode and optional doctor command."""
+    """Parse the required formatter inputs and mode."""
     parser = argparse.ArgumentParser(
         description="Run java formatter in check-only or format mode."
     )
-    # Doctor mode does not need a file manifest.
-    parser.add_argument("--root", type=Path)
-    parser.add_argument("--files-from", type=Path)
-    group = parser.add_mutually_exclusive_group()
+    add_file_arguments(parser)
+    group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument(
         "--check-only",
         action="store_true",
@@ -55,84 +50,9 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Apply formatting changes in-place.",
     )
-    parser.add_argument(
-        "--doctor-json",
-        action="store_true",
-        help="Print Java/formatter compatibility status as JSON and exit.",
-    )
     args = parser.parse_args()
-    if args.doctor_json:
-        return args
-
-    if args.root is None or args.files_from is None:
-        parser.error("--root and --files-from are required for formatting")
-
-    resolved_mode = None
-    if args.format:
-        resolved_mode = "format"
-    elif args.check_only:
-        resolved_mode = "check"
-
-    if resolved_mode is None:
-        parser.error("choose one mode (--check-only/--format)")
-    args.mode = resolved_mode
+    args.mode = "format" if args.format else "check"
     return args
-
-
-def get_java_major_version() -> int | None:
-    """Extract Java major version from `java -version` output."""
-    result = subprocess.run(
-        ["java", "-version"], check=False, capture_output=True, text=True
-    )
-    combined = f"{result.stdout}\n{result.stderr}"
-    match = re.search(r'version "([^"]+)"', combined)
-    if not match:
-        return None
-
-    version = match.group(1)
-    if version.startswith("1."):
-        parts = version.split(".")
-        return int(parts[1]) if len(parts) > 1 and parts[1].isdigit() else None
-
-    major_match = re.match(r"(\d+)", version)
-    return int(major_match.group(1)) if major_match else None
-
-
-def detect_java_major() -> tuple[int | None, str | None]:
-    """Detect Java major version and return error text when unavailable."""
-    if shutil.which("java") is None:
-        return None, "Java runtime not found in PATH. Install JDK/JRE and retry."
-    result = subprocess.run(
-        ["java", "-version"], check=False, capture_output=True, text=True
-    )
-    if result.returncode != 0:
-        return None, "Unable to run `java -version`."
-    major = get_java_major_version()
-    if major is None:
-        return None, "Could not detect Java major version from `java -version`."
-    return major, None
-
-
-def ensure_java_compatible() -> int:
-    """Validate Java version compatibility for configured formatter."""
-    major, err = detect_java_major()
-    if err is not None or major is None:
-        print(f"error: {err}", file=sys.stderr)
-        sys.exit(1)
-
-    if major < MIN_SUPPORTED_JAVA_MAJOR:
-        print(
-            (
-                f"error: google-java-format requires JDK {min_java_requirement_label()} in this setup "
-                f"(detected Java {major}). "
-                f"Use JDK {min_java_requirement_label()} or newer. "
-                "If you must stay on an older JDK, pin a compatible google-java-format version."
-            ),
-            file=sys.stderr,
-        )
-        sys.exit(1)
-
-    return major
 
 
 def sha256_file(path: Path) -> str:
@@ -223,48 +143,9 @@ def run_formatter(
     return 1 if failed else 0
 
 
-def doctor_json(repo_root: Path) -> int:
-    """Print Java/formatter diagnostic payload in JSON format."""
-    major, err = detect_java_major()
-    jar_path = formatter_jar_path(repo_root)
-    payload: dict[str, object] = {
-        "ok": False,
-        "formatter_version": GOOGLE_JAVA_FORMAT_VERSION,
-        "requires_java_major": MIN_SUPPORTED_JAVA_MAJOR,
-        "jar_path": str(jar_path),
-        "jar_cached": jar_path.exists(),
-    }
-    if err is not None or major is None:
-        payload["error"] = err or "unknown error"
-        print(json_dumps(payload))
-        return 1
-
-    payload["java_major"] = major
-    if major < MIN_SUPPORTED_JAVA_MAJOR:
-        payload["error"] = (
-            f"google-java-format requires Java {MIN_SUPPORTED_JAVA_MAJOR}+ (detected {major})"
-        )
-        print(json_dumps(payload))
-        return 1
-
-    payload["ok"] = True
-    print(json_dumps(payload))
-    return 0
-
-
-def json_dumps(payload: dict[str, object]) -> str:
-    """Serialize payload as compact deterministic JSON."""
-    import json
-
-    return json.dumps(payload, sort_keys=True)
-
-
 def main() -> int:
     """Execute java format/check flow from parsed CLI arguments."""
     args = parse_args()
-    if args.doctor_json:
-        return doctor_json(args.root.resolve() if args.root else repo_root())
-
     inputs = file_inputs(args)
     root = inputs.root
     os.chdir(root)
