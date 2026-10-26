@@ -9,15 +9,15 @@ COMMON_CHECKS = (
     "yaml",
     "line-endings",
     "prettier",
-    "trailing-whitespace",
-    "final-newline",
 )
+# Hygiene checks must run after all formatters and language-specific checks.
+FINAL_CHECKS = ("trailing-whitespace", "final-newline")
 CODE_PROFILES = {
-    "common_code": COMMON_CHECKS,
-    "java_code": COMMON_CHECKS + ("java-format",),
-    "python_code": COMMON_CHECKS + ("ruff-lint", "ruff-format"),
-    "typescript_code": COMMON_CHECKS + ("typescript",),
-    "tofu_code": COMMON_CHECKS + ("tofu-format", "tofu-validate", "tflint"),
+    "common_code": COMMON_CHECKS + FINAL_CHECKS,
+    "java_code": COMMON_CHECKS + ("java-format",) + FINAL_CHECKS,
+    "python_code": COMMON_CHECKS + ("ruff-lint", "ruff-format") + FINAL_CHECKS,
+    "typescript_code": COMMON_CHECKS + ("typescript",) + FINAL_CHECKS,
+    "tofu_code": COMMON_CHECKS + ("tofu-format", "tofu-validate", "tflint") + FINAL_CHECKS,
 }
 
 

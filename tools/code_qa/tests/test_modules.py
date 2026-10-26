@@ -21,6 +21,36 @@ def module_path(root: Path, name: str, relative: str) -> Path:
 
 
 class ModuleConfigurationTests(unittest.TestCase):
+    def test_whitespace_and_final_newline_checks_are_last_in_each_module(self) -> None:
+        for module in modules.MODULES:
+            if module.code is None:
+                continue
+            with self.subTest(module=module.name):
+                configured = list(module.checks)
+                self.assertEqual(configured[-2:], list(modules.FINAL_CHECKS))
+                for check_id in modules.FINAL_CHECKS:
+                    self.assertEqual(configured.count(check_id), 1)
+
+                bound_checks = [
+                    check.check_id.removeprefix(f"{module.name}/")
+                    for check in cli.selected_checks([module.name])
+                    if not check.global_scope
+                ]
+                self.assertEqual(bound_checks, configured)
+
+    def test_large_file_check_remains_repository_global(self) -> None:
+        self.assertIn(
+            "repository/added-large-files",
+            [check.check_id for check in cli.selected_checks(["repository"])],
+        )
+        self.assertTrue(
+            all(
+                check.module == "repository"
+                for check in cli.CHECKS
+                if check.check_id.endswith("/added-large-files")
+            )
+        )
+
     def test_module_files_use_paths_and_exclude_registered_child_modules(self) -> None:
         root = Path(tempfile.gettempdir()).resolve() / "qa-module-paths"
         paths = [

@@ -45,6 +45,10 @@ python tools/code_qa/src/main.py lint --module infra-demo
 python tools/code_qa/src/main.py test --module catalog
 ```
 
+Within each module, specialized formatters and validators run before the
+final `trailing whitespace` and `final newline` checks. The large-file check
+remains a repository-wide check.
+
 With `CODE_QA_FILE_LIST` set, file-based formatters only modify listed files.
 OpenTofu deliberately differs: a changed infrastructure source triggers
 `tofu fmt -recursive` across its entire infrastructure root, including local
