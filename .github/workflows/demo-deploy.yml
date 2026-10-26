@@ -76,27 +76,29 @@ jobs:
             org.opencontainers.image.revision=${{ github.sha }}
 
   deploy:
-    name: Deploy published images over SSH
+    name: Deploy published images using SSM
     if: github.ref == 'refs/heads/demo'
     needs: build-and-publish
     runs-on: ubuntu-latest
     environment: demo
-    timeout-minutes: 15
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
 
-      - name: Deploy over SSH
-        run: bash ./deploy/demo/demo-deploy.sh
+      - name: Configure AWS credentials with GitHub OIDC
+        uses: aws-actions/configure-aws-credentials@v6.3.0
+        with:
+          role-to-assume: ${{ vars.AWS_DEMO_DEPLOY_ROLE_ARN }}
+          aws-region: eu-central-1
+          role-session-name: aggregator-demo-deploy
+
+      - name: Trigger and verify deployment
+        run: bash ./deploy/demo/dispatch-ssm.sh
         env:
-          SSH_HOST: ${{ secrets.SSH_HOST }}
-          SSH_PORT: 22
-          SSH_KEY: ${{ secrets.SSH_KEY }}
-          SSH_HOST_KEY: ${{ secrets.SSH_HOST_KEY }}
-          SSH_USER: ec2-user
-          REPO_PATH: /home/ec2-user/aggregator-demo/repo
-          DEPLOY_BRANCH: demo
+          SSM_INSTANCE_ID: ${{ vars.SSM_INSTANCE_ID }}
           DEPLOY_SHA: ${{ github.sha }}
-          AGENT_AI_ENABLED: "true"
-          AGENT_AI_CONFIG: '{"provider":"bedrock","max_tool_rounds":2,"bedrock":{"model_id":"eu.amazon.nova-lite-v1:0","aws_region":"eu-central-1","temperature":0.00001,"max_tokens":300}}'
