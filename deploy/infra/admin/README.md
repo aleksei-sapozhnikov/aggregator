@@ -9,6 +9,7 @@ This directory can be used as a standalone repository.
 - `main.tf`: users, groups, and memberships.
 - `permissions.tf`: group policy attachments.
 - `policies.tf` and `policies/`: delegated permissions and workload boundaries.
+- `session_manager.tf`: regional Session Manager settings for interactive shells.
 - `state.tf`: protected, encrypted, versioned S3 state bucket.
 - `state_access.tf`: workload access to state keys and lock files.
 - `backend.tf`, `providers.tf`, `versions.tf`: state, AWS account, and tool versions.
@@ -89,7 +90,7 @@ their own sessions.
 
 The IAM user `aggregator-admin` is tagged `SSMSessionRunAs=ec2-user`.
 Regional Run As preferences are defined directly in
-`session_manager_preferences.tf`.
+`session_manager.tf`.
 Session preferences apply to every managed instance in the selected account
 and region. The IAM tag takes priority over the account default OS user.
 
@@ -111,7 +112,7 @@ or expose TCP/22. Administrative access uses Session Manager.
 
 ## Regional Session Manager preferences
 
-`session_manager_preferences.tf` owns the regional
+`session_manager.tf` owns the regional
 `SSM-SessionManagerRunShell` document and declares its full contents
 inline. Run As is enabled for IAM identities tagged with
 `SSMSessionRunAs`. Existing documents must be imported once before
