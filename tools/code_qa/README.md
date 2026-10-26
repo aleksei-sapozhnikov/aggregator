@@ -35,7 +35,7 @@ selects an executor and passes it module-relative arguments.
 | `test`    | Run configured module test commands.                         |
 | `code-qa` | Check and test each module before proceeding to the next.    |
 | `secrets` | Scan the repository with TruffleHog.                         |
-| `qa`      | Check and test each module, then scan repository secrets.     |
+| `qa`      | Check and test each module, then scan repository secrets.    |
 | `modules` | List modules; `--json` prints the CI matrix.                 |
 
 Use `--module NAME` to select one or more modules. For example:
