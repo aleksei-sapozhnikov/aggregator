@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import os
 import re
 import shutil
 import subprocess
 import sys
 import urllib.request
+import tempfile
 from pathlib import Path
 
 from code_qa.src.core.inputs import file_inputs
@@ -17,10 +19,12 @@ from code_qa.src.tools.jdk import JAVA_MAJOR, jdk_executable, resolve_java_home
 
 GOOGLE_JAVA_FORMAT_VERSION = "1.34.1"
 GOOGLE_JAVA_FORMAT_URL = (
-    "https://repo1.maven.org/maven2/com/google/googlejavaformat/"
-    f"google-java-format/{GOOGLE_JAVA_FORMAT_VERSION}/"
+    "https://github.com/google/google-java-format/releases/download/"
+    f"v{GOOGLE_JAVA_FORMAT_VERSION}/"
     f"google-java-format-{GOOGLE_JAVA_FORMAT_VERSION}-all-deps.jar"
 )
+# SHA-256 published for the pinned asset in the official GitHub release.
+GOOGLE_JAVA_FORMAT_SHA256 = "79e1cb5c8bd698c572c0ae504d07816129b8fc06204fb49550bec83bd5ea0aa8"
 MIN_SUPPORTED_JAVA_MAJOR = 21
 QA_RUNTIME_DIR = "qa-runtime"
 
@@ -136,6 +140,15 @@ def ensure_java_compatible() -> int:
     return major
 
 
+def sha256_file(path: Path) -> str:
+    """Hash a local artifact without loading the whole file into memory."""
+    digest = hashlib.sha256()
+    with path.open("rb") as source:
+        for chunk in iter(lambda: source.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
 def ensure_formatter_jar(repo_root: Path) -> Path:
     """Return cached formatter JAR path, downloading it when missing."""
     cache_dir = repo_root / ".temp" / QA_RUNTIME_DIR / "google-java-format"
@@ -143,11 +156,17 @@ def ensure_formatter_jar(repo_root: Path) -> Path:
     jar_path = (
         cache_dir / f"google-java-format-{GOOGLE_JAVA_FORMAT_VERSION}-all-deps.jar"
     )
-    if jar_path.exists():
+    if jar_path.is_file() and sha256_file(jar_path) == GOOGLE_JAVA_FORMAT_SHA256:
         return jar_path
 
     print(f"Downloading {GOOGLE_JAVA_FORMAT_URL} -> {jar_path}")
-    urllib.request.urlretrieve(GOOGLE_JAVA_FORMAT_URL, jar_path)
+    # Never make an unverified or incomplete download available as the cached JAR.
+    with tempfile.TemporaryDirectory(prefix="java-format-", dir=cache_dir) as temp:
+        candidate = Path(temp) / jar_path.name
+        urllib.request.urlretrieve(GOOGLE_JAVA_FORMAT_URL, candidate)
+        if sha256_file(candidate) != GOOGLE_JAVA_FORMAT_SHA256:
+            raise ValueError("google-java-format JAR SHA-256 verification failed")
+        candidate.replace(jar_path)
     return jar_path
 
 

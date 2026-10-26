@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import platform
@@ -18,6 +19,15 @@ from pathlib import Path
 
 TRUFFLEHOG_VERSION = "3.94.0"
 TRUFFLEHOG_RELEASE_BASE_URL = f"https://github.com/trufflesecurity/trufflehog/releases/download/v{TRUFFLEHOG_VERSION}"
+# SHA-256 digests published by the official v3.94.0 GitHub release.
+TRUFFLEHOG_ARCHIVE_SHA256 = {
+    ("darwin", "amd64"): "841ee5716b05b78139938de2a78a84661154d71c9fe4a90c742a7226ba9ce9e7",
+    ("darwin", "arm64"): "ea190c1124b9f0d3d76835128ff8d8e7fe71cdcba65930ec2fbe5a26382873bd",
+    ("linux", "amd64"): "21a67ab716576fda96d96f6478d8b4da84c7a53b43eb27619faa0c228333dde2",
+    ("linux", "arm64"): "f3383c04229a5b4b50becfe20901df053411323ec9f7d8f9d65719ecdb9df266",
+    ("windows", "amd64"): "ae91a36f86ae30e0b1b7b416cd0209b7f65c0292ef3f198d944d06b139623e6c",
+    ("windows", "arm64"): "c72fdc7972b50072d14ee57ff581b9ca10e0b123df36af1b382177443b57ce74",
+}
 SCOPED_FILES_ENV = "CODE_QA_FILE_LIST"
 QA_RUNTIME_DIR = "qa-runtime"
 
@@ -217,44 +227,61 @@ def download_trufflehog_binary(repo_root: Path) -> str | None:
         )
         return None
 
+    system = platform.system().lower()
+    architecture = {
+        "x86_64": "amd64", "amd64": "amd64",
+        "aarch64": "arm64", "arm64": "arm64",
+    }.get(platform.machine().lower())
+    expected_hash = TRUFFLEHOG_ARCHIVE_SHA256.get((system, architecture))
+    if expected_hash is None:
+        print(f"error: no pinned SHA-256 for {asset}", file=sys.stderr)
+        return None
+
     cache_dir = (repo_root / ".temp" / QA_RUNTIME_DIR / "trufflehog").resolve()
     cache_dir.mkdir(parents=True, exist_ok=True)
-    archive_path = cache_dir / asset
     url = f"{TRUFFLEHOG_RELEASE_BASE_URL}/{asset}"
-
-    try:
-        print(f"Downloading {url} -> {archive_path}", file=sys.stderr)
-        urllib.request.urlretrieve(url, archive_path)
-    except (OSError, urllib.error.URLError) as exc:
-        print(f"error: failed to download trufflehog: {exc}", file=sys.stderr)
-        return None
-
-    try:
-        with tarfile.open(archive_path, "r:gz") as tf:
-            tf.extractall(cache_dir)
-    except (OSError, tarfile.TarError) as exc:
-        print(f"error: failed to extract trufflehog archive: {exc}", file=sys.stderr)
-        return None
-
     extracted_name = "trufflehog.exe" if os.name == "nt" else "trufflehog"
-    extracted_path = cache_dir / extracted_name
-    if not extracted_path.exists():
-        print("error: extracted trufflehog binary not found.", file=sys.stderr)
-        return None
-
     target_path = local_binary_candidates(repo_root)[0]
-    target_path.parent.mkdir(parents=True, exist_ok=True)
-    if extracted_path.resolve() != target_path.resolve():
-        try:
-            shutil.copy2(extracted_path, target_path)
-        except OSError as exc:
-            print(f"error: failed to copy trufflehog binary: {exc}", file=sys.stderr)
-            return None
-    else:
-        target_path = extracted_path
-    if os.name != "nt":
-        target_path.chmod(0o755)
-    return str(target_path)
+
+    try:
+        with tempfile.TemporaryDirectory(prefix="download-", dir=cache_dir) as temp:
+            archive_path = Path(temp) / asset
+            print(f"Downloading {url} -> {archive_path}", file=sys.stderr)
+            urllib.request.urlretrieve(url, archive_path)
+
+            digest = hashlib.sha256()
+            with archive_path.open("rb") as source:
+                for chunk in iter(lambda: source.read(1024 * 1024), b""):
+                    digest.update(chunk)
+            if digest.hexdigest() != expected_hash:
+                raise ValueError("TruffleHog archive SHA-256 verification failed")
+
+            # Only extract the expected regular file, never archive-supplied paths.
+            candidate = Path(temp) / extracted_name
+            with tarfile.open(archive_path, "r:gz") as archive:
+                member = next(
+                    (
+                        entry for entry in archive.getmembers()
+                        if entry.name in (extracted_name, "./" + extracted_name)
+                        and entry.isfile()
+                    ),
+                    None,
+                )
+                if member is None:
+                    raise ValueError("TruffleHog binary missing from archive")
+                source = archive.extractfile(member)
+                if source is None:
+                    raise ValueError("Unable to read TruffleHog binary")
+                with source, candidate.open("wb") as output:
+                    shutil.copyfileobj(source, output)
+            if os.name != "nt":
+                candidate.chmod(0o755)
+            target_path.parent.mkdir(parents=True, exist_ok=True)
+            candidate.replace(target_path)
+        return str(target_path)
+    except (OSError, ValueError, urllib.error.URLError, tarfile.TarError) as error:
+        print(f"error: failed to install trufflehog: {error}", file=sys.stderr)
+        return None
 
 
 def deep_get(data: dict, path: list[str]) -> object | None:
