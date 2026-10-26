@@ -12,7 +12,10 @@ The GitHub workflow needs two AWS IAM roles with different trust boundaries:
 | `AggregatorDemoInfraApplyGithub` | `repo:aleksei-sapozhnikov/aggregator:environment:demo-infra` | Apply changes for the `demo` OpenTofu root; run Ansible through SSM only on the dedicated K3s instance. |
 
 The plan job has access to AWS *before* any approval. **Never give it the
-write permissions granted to the apply role.** The apply role's subject
+write permissions granted to the apply role.** In particular, the plan
+role must NOT receive the existing `AggregatorDemoStateAccess` policy:
+that policy allows writing the state object. The separate plan-state policy
+allows state reads and lock-file writes only. The apply role's subject
 names the Environment, not a branch: GitHub Environment
 `demo-infra` **must** limit deployment branches to `demo` and require
 reviewers, or the IAM trust would be insufficiently restrictive.
@@ -36,7 +39,8 @@ Attach the following **existing** policies, plus the extra policies below:
 
 | Policy | Plan role | Apply role |
 | --- | --- | --- |
-| `AggregatorDemoStateAccess` (S3 demo state + lock only) | Yes | Yes |
+| `AggregatorDemoStateAccess` (S3 demo state + lock) | No | Yes |
+| [demo-plan-state-policy.json](demo-plan-state-policy.json) (read state; write/delete lock only) | Yes | No |
 | `AggregatorDemoEC2Management` | No | Yes |
 | `AggregatorDemoIAMManagement` | No | Yes |
 | `AggregatorDemoSGRuleCreation` | No | Yes |
