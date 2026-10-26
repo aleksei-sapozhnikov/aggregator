@@ -22,7 +22,7 @@ for attempt in $(seq 1 90); do
     --region "$region" \
     --target "$SSM_INSTANCE_ID" \
     --query Status --output text 2>/dev/null || true)"
-  if [[ "$status" == connected ]]; then
+  if [[ "$status" == Connected || "$status" == connected ]]; then
     connected=true
     break
   fi
@@ -36,7 +36,7 @@ fi
 
 # Wait for first-boot cloud-init before running the root-owned wrapper.
 # Quote and validate the immutable SHA before embedding it in a shell command.
-command_line="cloud-init status --wait && test -x /usr/local/sbin/aggregator-node-configure && /usr/local/sbin/aggregator-node-configure $CONFIGURATION_SHA"
+command_line="cloud-init status --wait || true; test -x /usr/local/sbin/aggregator-node-configure && /usr/local/sbin/aggregator-node-configure $CONFIGURATION_SHA"
 parameters="$(jq -nc --arg command "$command_line" \
   '{commands: [$command], executionTimeout: ["2400"]}')"
 
