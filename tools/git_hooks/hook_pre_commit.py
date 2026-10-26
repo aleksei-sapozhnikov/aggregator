@@ -38,7 +38,7 @@ def main() -> int:
         return 1
 
     if mode == "lint-only":
-        cmd = [sys.executable, "tools/git_hooks/run_format_check_only.py"]
+        cmd = [sys.executable, "tools/git_hooks/run_lint_only.py"]
     elif mode == "format-and-lint":
         cmd = [sys.executable, "tools/git_hooks/run_format_and_check.py"]
     else:

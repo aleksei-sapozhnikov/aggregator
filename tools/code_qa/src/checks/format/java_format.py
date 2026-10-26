@@ -56,11 +56,6 @@ def parse_args() -> argparse.Namespace:
         help="Apply formatting changes in-place.",
     )
     parser.add_argument(
-        "--mode",
-        choices=("check", "format"),
-        help="Deprecated alias for mode selection.",
-    )
-    parser.add_argument(
         "--doctor-json",
         action="store_true",
         help="Print Java/formatter compatibility status as JSON and exit.",
@@ -77,8 +72,6 @@ def parse_args() -> argparse.Namespace:
         resolved_mode = "format"
     elif args.check_only:
         resolved_mode = "check"
-    elif args.mode:
-        resolved_mode = args.mode
 
     if resolved_mode is None:
         parser.error("choose one mode (--check-only/--format)")

@@ -1,4 +1,4 @@
-"""Hook flow: run code checks only (no formatting, no secrets scan)."""
+"""Hook flow: run scoped linting without formatting or secret scanning."""
 
 from __future__ import annotations
 
@@ -36,7 +36,7 @@ def staged_files() -> list[str] | None:
 
 
 def main() -> int:
-    """Run scoped check-only flow for staged files."""
+    """Run the scoped lint command for staged files."""
     files = staged_files()
     if files is None:
         print("error: failed to read staged files.", file=sys.stderr)
