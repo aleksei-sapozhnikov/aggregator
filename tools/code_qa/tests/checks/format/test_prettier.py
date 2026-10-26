@@ -17,7 +17,7 @@ class PrettierBatchTests(unittest.TestCase):
 
     def test_batches_fit_the_command_limit_and_preserve_file_order(self) -> None:
         command = [
-            r"C:\repo\.temp\qa-runtime\node_modules\.bin\prettier.cmd",
+            r"C:\repo\.local\qa-runtime\node_modules\.bin\prettier.cmd",
             "--check",
         ]
         files = [

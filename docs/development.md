@@ -17,8 +17,8 @@ with `=== QA: PASSED ===` or `=== QA: FAILED ===`.
 ## Manual formatting and checks
 
 Install Python, Git, and Node.js with npm. The QA runner automatically creates
-`.temp/qa-runtime/venv` for its pinned Python requirements and installs Prettier
-into `.temp/qa-runtime/node_modules`. No activation or global package install
+`.local/qa-runtime/venv` for its pinned Python requirements and installs Prettier
+into `.local/qa-runtime/node_modules`. No activation or global package install
 is needed. The first run needs internet access; subsequent runs reuse local tools.
 
 TypeScript checks run through each npm package's `typecheck` script. When local
@@ -44,7 +44,7 @@ newline, or Java formatting, then re-checks.
 `lint` runs code checks without changes or secrets scanning.
 
 Infrastructure checks bootstrap OpenTofu 1.13.1 and TFLint 0.65.0 inside
-`.temp/qa-runtime`, with local provider and plugin caches. Each infra root
+`.local/qa-runtime`, with local provider and plugin caches. Each infra root
 has an independent strict TFLint configuration. Catalog tests require Go 1.23+.
 See the [QA guide](../tools/code_qa/README.md) for module configuration,
 commands, and the scoped-formatting policy. The CI module matrix is derived from

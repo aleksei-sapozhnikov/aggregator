@@ -5,7 +5,7 @@
 minimum_pre_commit_version = "3.7.0"
 default_stages = ["pre-commit"]
 default_install_hook_types = ["pre-commit", "pre-push"]
-exclude = '^(\.git/|\.idea/|\.venv/|\.temp/|node_modules/)'
+exclude = '^(\.git/|\.idea/|\.venv/|\.local/|node_modules/)'
 
 [[repos]]
 repo = "local"

@@ -36,7 +36,7 @@ class JDKBootstrapTests(unittest.TestCase):
     def test_ignores_older_jdk_and_reuses_cached_temurin(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            cached = root / ".temp" / "qa-runtime" / "jdk" / "temurin-25-linux-x64"
+            cached = root / ".local" / "qa-runtime" / "jdk" / "temurin-25-linux-x64"
             cached.mkdir(parents=True)
             with (
                 patch.dict(os.environ, {"JAVA_HOME": "/outdated/jdk"}, clear=False),

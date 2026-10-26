@@ -60,5 +60,5 @@ class NodeDependenciesTests(unittest.TestCase):
             self.assertEqual(run.call_args.kwargs["cwd"], directory)
             self.assertEqual(
                 run.call_args.kwargs["env"]["npm_config_cache"],
-                str(Path(temporary) / ".temp/qa-runtime/npm-cache"),
+                str(Path(temporary) / ".local/qa-runtime/npm-cache"),
             )

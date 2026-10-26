@@ -20,6 +20,12 @@ from code_qa.src.tools import python as python_toolchain
 
 
 class LocalDependencyTests(unittest.TestCase):
+    def test_qa_runtime_is_local_and_excluded_from_file_scans(self) -> None:
+        root = Path("/repo")
+        self.assertEqual(utils.runtime_dir(root), root / ".local" / "qa-runtime")
+        self.assertTrue(utils.is_excluded(Path(".local/qa-runtime/venv/python")))
+        self.assertFalse(utils.is_excluded(Path("src/application.py")))
+
     def test_python_requirements_are_pinned_cached_and_reinstalled_when_changed(
         self,
     ) -> None:
@@ -29,7 +35,7 @@ class LocalDependencyTests(unittest.TestCase):
             scripts.mkdir()
             requirements = scripts / "requirements.txt"
             requirements.write_text("ruff==0.16.8\n", encoding="utf-8")
-            venv = root / ".temp/qa-runtime/venv"
+            venv = root / ".local/qa-runtime/venv"
             venv.mkdir(parents=True)
             python = venv / "python"
             with (
@@ -64,7 +70,7 @@ class LocalDependencyTests(unittest.TestCase):
                 )
                 self.assertEqual(
                     install.call_args.kwargs["env"]["PIP_CACHE_DIR"],
-                    str(root / ".temp/qa-runtime/pip-cache"),
+                    str(root / ".local/qa-runtime/pip-cache"),
                 )
                 requirements.write_text(
                     "ruff==0.16.8\nPyYAML==6.0.3\n", encoding="utf-8"

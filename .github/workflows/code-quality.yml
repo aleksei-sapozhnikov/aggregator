@@ -82,7 +82,7 @@ jobs:
       - name: Cache QA dependencies
         uses: actions/cache@v4
         with:
-          path: .temp/qa-runtime
+          path: .local/qa-runtime
           key: ${{ runner.os }}-qa-${{ matrix.module }}-py${{ env.PYTHON_VERSION }}-${{ hashFiles('tools/code_qa/**', '**/requirements*.txt', '**/package-lock.json', '**/pom.xml', '**/.terraform.lock.hcl') }}
           restore-keys: |
             ${{ runner.os }}-qa-${{ matrix.module }}-py${{ env.PYTHON_VERSION }}-
@@ -105,7 +105,7 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
       - uses: actions/cache@v4
         with:
-          path: .temp/qa-runtime/trufflehog
+          path: .local/qa-runtime/trufflehog
           key: ${{ runner.os }}-qa-trufflehog-${{ hashFiles('tools/code_qa/src/checks/other/trufflehog.py') }}
       - name: Scan repository secrets
         run: python tools/code_qa/src/main.py secrets
