@@ -34,10 +34,13 @@ describe("runtime UI configuration", () => {
   });
 
   it("rejects a missing timeline range", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => ({
-      ok: true,
-      json: async () => ({ appTitle: "Demo" }),
-    })));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({
+        ok: true,
+        json: async () => ({ appTitle: "Demo" }),
+      })),
+    );
     await expect(loadRuntimeConfig()).rejects.toThrow(
       "Invalid UI runtime configuration",
     );

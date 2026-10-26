@@ -15,7 +15,9 @@ export const DASHBOARDS = {
 export const GRAFANA_FRAME_WRAPPER_REV = "v2026-03-04";
 
 const resolveTimelineDefaultRange = (): string => {
-  const configured = (window.__AGGREGATOR_UI__?.timelineDefaultRange ?? "1d").trim();
+  const configured = (
+    window.__AGGREGATOR_UI__?.timelineDefaultRange ?? "1d"
+  ).trim();
   if (!configured) {
     throw new Error("TIMELINE_DEFAULT_RANGE is required");
   }
