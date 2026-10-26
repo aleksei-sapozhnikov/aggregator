@@ -54,7 +54,8 @@ resource "aws_secretsmanager_secret" "notification_email" {
   }
 }
 
-# SNS persists the email endpoint in state and saved plans.
+# SNS requires a persistent endpoint, so this lookup cannot be ephemeral.
+# tflint-ignore: aws_ephemeral_resources
 data "aws_secretsmanager_secret_version" "notification_email" {
   secret_id     = "aggregator-publication-notification-email"
   version_stage = "AWSCURRENT"

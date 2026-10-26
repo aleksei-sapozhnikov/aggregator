@@ -32,6 +32,17 @@ managed IAM policies must already exist in AWS.
 `false`. `default_subnet_availability_zones` selects the default VPC subnet for
 each instance.
 
+## Checks
+
+Use TFLint 0.65.0 with this directory's `.tflint.hcl`. These static checks
+require no AWS credentials:
+
+```sh
+tofu fmt -check -recursive
+tflint --init
+tflint --recursive --config="$PWD/.tflint.hcl" --minimum-failure-severity=notice
+```
+
 ## Operations
 
 Review plans that replace or destroy the serving instance before applying.

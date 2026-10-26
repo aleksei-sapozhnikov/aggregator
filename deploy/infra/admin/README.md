@@ -29,6 +29,17 @@ The configured account is `905418096305`, region `eu-central-1`.
 State is stored under `admin/tofu.tfstate`. The backend bucket must exist
 before initialization.
 
+## Checks
+
+Use TFLint 0.65.0 with this directory's `.tflint.hcl`. These static checks
+require no AWS credentials:
+
+```sh
+tofu fmt -check -recursive
+tflint --init
+tflint --recursive --config="$PWD/.tflint.hcl" --minimum-failure-severity=notice
+```
+
 ## Operations
 
 Review privilege changes before applying them. The `aggregator-admin` user

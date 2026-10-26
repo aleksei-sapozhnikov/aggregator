@@ -4,10 +4,7 @@
     {
       "Sid": "UseNovaLiteEUProfile",
       "Effect": "Allow",
-      "Action": [
-        "bedrock:InvokeModel",
-        "bedrock:GetInferenceProfile"
-      ],
+      "Action": ["bedrock:InvokeModel", "bedrock:GetInferenceProfile"],
       "Resource": "arn:aws:bedrock:eu-central-1:905418096305:inference-profile/eu.amazon.nova-lite-v1:0"
     },
     {

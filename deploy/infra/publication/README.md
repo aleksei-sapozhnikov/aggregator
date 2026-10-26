@@ -55,6 +55,17 @@ component is moved.
 See [lambda_publisher/README.md](lambda_publisher/README.md) for the runtime and
 [tools/README.md](tools/README.md) for operator commands.
 
+## Checks
+
+Use TFLint 0.65.0 with this directory's `.tflint.hcl`. These static checks
+require no AWS credentials:
+
+```sh
+tofu fmt -check -recursive
+tflint --init
+tflint --recursive --config="$PWD/.tflint.hcl" --minimum-failure-severity=notice
+```
+
 ## Operations
 
 Infrastructure and Lambda code releases are separate. OpenTofu ignores code

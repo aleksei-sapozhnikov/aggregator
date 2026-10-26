@@ -53,9 +53,7 @@
     {
       "Sid": "CreatePublicationSecrets",
       "Effect": "Allow",
-      "Action": [
-        "secretsmanager:CreateSecret"
-      ],
+      "Action": ["secretsmanager:CreateSecret"],
       "Resource": [
         "arn:aws:secretsmanager:eu-central-1:905418096305:secret:aggregator-publication-github-token-??????",
         "arn:aws:secretsmanager:eu-central-1:905418096305:secret:aggregator-publication-project-token-??????",
@@ -101,9 +99,7 @@
     {
       "Sid": "TagPublicationSecrets",
       "Effect": "Allow",
-      "Action": [
-        "secretsmanager:TagResource"
-      ],
+      "Action": ["secretsmanager:TagResource"],
       "Resource": [
         "arn:aws:secretsmanager:eu-central-1:905418096305:secret:aggregator-publication-github-token-??????",
         "arn:aws:secretsmanager:eu-central-1:905418096305:secret:aggregator-publication-project-token-??????",
@@ -122,9 +118,7 @@
     {
       "Sid": "ReadPublicationNotificationEndpoint",
       "Effect": "Allow",
-      "Action": [
-        "secretsmanager:GetSecretValue"
-      ],
+      "Action": ["secretsmanager:GetSecretValue"],
       "Resource": "arn:aws:secretsmanager:eu-central-1:905418096305:secret:aggregator-publication-notification-email-??????",
       "Condition": {
         "StringEquals": {

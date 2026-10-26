@@ -117,9 +117,7 @@
           "aws:RequestTag/Repository": "https://github.com/aleksei-sapozhnikov/aggregator"
         },
         "ForAllValues:StringEquals": {
-          "aws:TagKeys": [
-            "Repository"
-          ]
+          "aws:TagKeys": ["Repository"]
         }
       }
     },
@@ -130,9 +128,7 @@
       "Resource": "arn:aws:iam::905418096305:role/AggregatorDemoEC2Role",
       "Condition": {
         "ForAllValues:StringEquals": {
-          "aws:TagKeys": [
-            "Repository"
-          ]
+          "aws:TagKeys": ["Repository"]
         },
         "Null": {
           "aws:TagKeys": "false"
@@ -149,9 +145,7 @@
           "aws:RequestTag/Repository": "https://github.com/aleksei-sapozhnikov/aggregator"
         },
         "ForAllValues:StringEquals": {
-          "aws:TagKeys": [
-            "Repository"
-          ]
+          "aws:TagKeys": ["Repository"]
         }
       }
     },
@@ -162,9 +156,7 @@
       "Resource": "arn:aws:iam::905418096305:instance-profile/AggregatorDemoEC2Role",
       "Condition": {
         "ForAllValues:StringEquals": {
-          "aws:TagKeys": [
-            "Repository"
-          ]
+          "aws:TagKeys": ["Repository"]
         },
         "Null": {
           "aws:TagKeys": "false"

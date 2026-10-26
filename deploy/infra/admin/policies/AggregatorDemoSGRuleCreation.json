@@ -31,9 +31,7 @@
           "aws:RequestTag/Repository": "https://github.com/aleksei-sapozhnikov/aggregator"
         },
         "ForAllValues:StringEquals": {
-          "aws:TagKeys": [
-            "Repository"
-          ]
+          "aws:TagKeys": ["Repository"]
         }
       }
     }

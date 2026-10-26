@@ -2,55 +2,38 @@
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Action": [
-        "logs:CreateLogStream",
-        "logs:PutLogEvents"
-      ],
+      "Action": ["logs:CreateLogStream", "logs:PutLogEvents"],
       "Resource": "arn:aws:logs:eu-central-1:905418096305:log-group:/aws/lambda/aggregator-publication-runner:*",
       "Effect": "Allow"
     },
     {
-      "Action": [
-        "dynamodb:GetItem",
-        "dynamodb:PutItem",
-        "dynamodb:UpdateItem"
-      ],
+      "Action": ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem"],
       "Resource": "arn:aws:dynamodb:eu-central-1:905418096305:table/aggregator-publication-state",
       "Effect": "Allow"
     },
     {
-      "Action": [
-        "s3:GetObject"
-      ],
+      "Action": ["s3:GetObject"],
       "Resource": "arn:aws:s3:::aggregator-publication-data-905418096305-eu-central-1/snapshots/*",
       "Effect": "Allow"
     },
     {
-      "Action": [
-        "sns:Publish"
-      ],
+      "Action": ["sns:Publish"],
       "Resource": "arn:aws:sns:eu-central-1:905418096305:aggregator-publication-failure",
       "Effect": "Allow"
     },
     {
-      "Action": [
-        "lambda:InvokeFunction"
-      ],
+      "Action": ["lambda:InvokeFunction"],
       "Resource": "arn:aws:lambda:eu-central-1:905418096305:function:aggregator-publication-runner",
       "Effect": "Allow"
     },
     {
-      "Action": [
-        "sqs:SendMessage"
-      ],
+      "Action": ["sqs:SendMessage"],
       "Resource": "arn:aws:sqs:eu-central-1:905418096305:aggregator-publication-scheduler-dlq",
       "Effect": "Allow"
     },
     {
       "Sid": "ReadPublicationTokenSecrets",
-      "Action": [
-        "secretsmanager:GetSecretValue"
-      ],
+      "Action": ["secretsmanager:GetSecretValue"],
       "Resource": [
         "arn:aws:secretsmanager:eu-central-1:905418096305:secret:aggregator-publication-github-token-??????",
         "arn:aws:secretsmanager:eu-central-1:905418096305:secret:aggregator-publication-project-token-??????"
