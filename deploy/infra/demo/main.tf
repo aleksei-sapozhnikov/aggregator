@@ -1,3 +1,5 @@
+# Serving demo EC2 instance and its default VPC subnet.
+
 data "aws_vpc" "default" {
   default = true
 }
@@ -11,7 +13,7 @@ data "aws_subnet" "default" {
 }
 
 module "aggregator_demo" {
-  source = "../modules/ec2_legacy"
+  source = "./modules/ec2_legacy"
 
   name                   = "demo-aggregator"
   resource_name_prefix   = "AggregatorDemo"
@@ -62,19 +64,17 @@ module "aggregator_demo" {
     Project     = "aggregator"
     Environment = "demo"
   }
-  # Imported root volume: preserve the tags already applied in AWS.
-  # Do not set volume_tags on the existing instance (creation-time only).
+  # Existing root volume tags; volume_tags applies only during instance creation.
   root_volume_tags = {
     Project     = "aggregator"
     Environment = "demo"
   }
-  # The existing IAM instance profile is currently untagged.
-  # Preserve it as-is; future instances use module tags automatically.
+  # Keep the serving instance profile untagged.
   iam_instance_profile_tags = {}
 }
 
 # module "aggregator_demo_k3s" {
-#   source = "../modules/ec2_k3s"
+#   source = "./modules/ec2_k3s"
 #   ami_id        = "ami-03054abaec0c63e6e"
 #   instance_type = "t3.medium"
 #   vpc_id    = data.aws_vpc.default.id

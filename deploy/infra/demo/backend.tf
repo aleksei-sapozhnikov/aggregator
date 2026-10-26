@@ -1,3 +1,5 @@
+# Remote state location and S3 lock-file configuration.
+
 terraform {
   backend "s3" {
     bucket       = "aggregator-tofu-state-905418096305-eu-central-1"

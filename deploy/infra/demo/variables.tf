@@ -1,3 +1,5 @@
+# Optional Bedrock access and availability zone selection.
+
 variable "enable_bedrock" {
   description = "Allow the demo EC2 instance to invoke Bedrock models."
   type        = bool

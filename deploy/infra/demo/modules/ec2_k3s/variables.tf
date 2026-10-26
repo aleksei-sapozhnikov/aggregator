@@ -1,3 +1,5 @@
+# Inputs for instance sizing, networking, access, and tags.
+
 variable "ami_id" {
   description = "Pinned Amazon Linux 2023 x86_64 AMI ID for eu-central-1."
   type        = string

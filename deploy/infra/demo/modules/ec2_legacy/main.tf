@@ -1,3 +1,5 @@
+# Protected EC2 instance, IAM role, security group, and Elastic IP.
+
 data "aws_iam_policy_document" "ec2_assume_role" {
   statement {
     effect  = "Allow"
@@ -27,10 +29,11 @@ resource "aws_iam_instance_profile" "ec2" {
   name = coalesce(var.iam_role_name, "${var.resource_name_prefix}EC2Role")
   path = "/"
   role = aws_iam_role.ec2.name
-  # Allow imported instance profiles to retain their existing tag state.
-  # New instances inherit project tags by default.
+  # Explicit overrides preserve existing tags; null inherits the module tags.
   tags = var.iam_instance_profile_tags == null ? var.tags : var.iam_instance_profile_tags
-  lifecycle { prevent_destroy = true }
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "aws_iam_role_policy_attachment" "managed" {
@@ -57,7 +60,9 @@ resource "aws_vpc_security_group_ingress_rule" "rules" {
   from_port         = each.value.from_port
   ip_protocol       = each.value.ip_protocol
   to_port           = each.value.to_port
-  lifecycle { prevent_destroy = true }
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "aws_vpc_security_group_egress_rule" "rules" {
@@ -67,7 +72,9 @@ resource "aws_vpc_security_group_egress_rule" "rules" {
   ip_protocol       = each.value.ip_protocol
   from_port         = each.value.from_port
   to_port           = each.value.to_port
-  lifecycle { prevent_destroy = true }
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "aws_instance" "this" {
@@ -169,5 +176,7 @@ resource "aws_eip_association" "public" {
     var.private_ip == null ? aws_instance.this.private_ip : var.private_ip
   ) : null
   allow_reassociation = false
-  lifecycle { prevent_destroy = true }
+  lifecycle {
+    prevent_destroy = true
+  }
 }

@@ -1,3 +1,5 @@
+# Separate EC2 node prepared for a k3s installation.
+
 data "aws_caller_identity" "current" {}
 
 data "aws_ami" "al2023" {
