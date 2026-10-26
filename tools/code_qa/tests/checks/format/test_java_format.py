@@ -25,14 +25,19 @@ class JavaFormatterDownloadTests(unittest.TestCase):
         expected = hashlib.sha256(payload).hexdigest()
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
+
             def download(_url: str, target: Path) -> None:
                 target.write_bytes(payload)
+
             with (
                 patch.object(java_format, "GOOGLE_JAVA_FORMAT_SHA256", expected),
-                patch.object(java_format.urllib.request, "urlretrieve", side_effect=download) as retrieve,
+                patch.object(
+                    java_format.urllib.request, "urlretrieve", side_effect=download
+                ) as retrieve,
             ):
                 first = java_format.ensure_formatter_jar(root)
                 second = java_format.ensure_formatter_jar(root)
+
             self.assertEqual(first, second)
             self.assertEqual(first.read_bytes(), payload)
             retrieve.assert_called_once()
@@ -40,11 +45,15 @@ class JavaFormatterDownloadTests(unittest.TestCase):
     def test_invalid_download_never_replaces_cached_jar(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
+
             def download(_url: str, target: Path) -> None:
                 target.write_bytes(b"wrong")
+
             with (
                 patch.object(java_format, "GOOGLE_JAVA_FORMAT_SHA256", "0" * 64),
-                patch.object(java_format.urllib.request, "urlretrieve", side_effect=download),
+                patch.object(
+                    java_format.urllib.request, "urlretrieve", side_effect=download
+                ),
             ):
                 with self.assertRaisesRegex(ValueError, "SHA-256"):
                     java_format.ensure_formatter_jar(root)
