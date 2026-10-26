@@ -43,6 +43,36 @@ class TruffleHogScanTests(unittest.TestCase):
         self.assertEqual(result, 0)
         self.assertIn("OK: 0 secrets found", summary)
 
+    def test_default_scan_passes_the_repository_directory_to_trufflehog(self) -> None:
+        with (
+            tempfile.TemporaryDirectory() as temporary,
+            patch.object(
+                sys,
+                "argv",
+                ["trufflehog.py", "--summary", "--quiet", "--scan-root", temporary],
+            ),
+            patch.object(trufflehog, "find_repo_root", return_value=Path(temporary)),
+            patch.object(
+                trufflehog, "resolve_trufflehog_binary", return_value="trufflehog"
+            ),
+            patch.object(trufflehog, "collect_gitignored", return_value=([], [])),
+            patch.object(trufflehog, "scoped_scan_targets", return_value=None),
+            patch.object(
+                trufflehog,
+                "run_command",
+                return_value=subprocess.CompletedProcess(
+                    ["trufflehog"], 0, stdout="", stderr=""
+                ),
+            ) as run,
+            redirect_stdout(StringIO()) as output,
+        ):
+            self.assertEqual(trufflehog.main(), 0)
+            command = run.call_args.args[0]
+            self.assertEqual(command[:3], ["trufflehog", "filesystem", "--json"])
+            self.assertIn("--exclude-paths", command)
+            self.assertEqual(command[-1], str(Path(temporary).resolve()))
+            self.assertIn("recursive filesystem", output.getvalue())
+
     def test_scanner_error_never_reports_success(self) -> None:
         result, summary = self.run_scan(exit_code=2)
         self.assertEqual(result, 2)

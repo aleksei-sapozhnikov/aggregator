@@ -45,8 +45,10 @@ class OrchestratorFlowTests(unittest.TestCase):
             "  Testing aggregator-ui.. OK",
         ]
         # Every module's checks finish before its tests and the next module.
-        self.assertEqual(sorted(log.index(value) for value in markers),
-                         [log.index(value) for value in markers])
+        self.assertEqual(
+            sorted(log.index(value) for value in markers),
+            [log.index(value) for value in markers],
+        )
         self.assertEqual(tests.call_count, 2)
         secrets.assert_not_called()
         self.assertNotIn("=== TESTS:", log)

@@ -557,8 +557,7 @@ def run_code_qa_command(
     try:
         root = repo_root()
         selected = [
-            module for module in MODULES
-            if modules is None or module.name in modules
+            module for module in MODULES if modules is None or module.name in modules
         ]
         failed = False
 
