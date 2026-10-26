@@ -100,7 +100,7 @@ resource "aws_iam_role_policy" "scheduler_invoke_and_dlq" {
 
 resource "aws_iam_role_policy" "function_secret_read" {
   name = "PublicationSecretRead"
-  role = "aggregator-publication-FunctionRole-UMrD5Cv9Prk0"
+  role = aws_iam_role.function.name
 
   policy = jsonencode({
     Version = "2012-10-17"

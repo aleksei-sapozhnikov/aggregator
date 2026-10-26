@@ -54,6 +54,10 @@ Python and npm dependencies, tool binaries, and caches are stored under the
 ignored `.temp/qa-runtime` directory. No global Python or npm packages are
 required.
 
+Pinned OpenTofu, TFLint, Java formatter, and TruffleHog downloads verify SHA-256
+checksums before installation. Tool bootstrapping does not modify application
+dependencies.
+
 Run code_qa's own tests from the repository root with:
 
 ```shell

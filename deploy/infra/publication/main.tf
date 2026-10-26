@@ -7,6 +7,8 @@ locals {
   table_name         = "${local.publication_prefix}-state"
   schedule_group     = "${local.publication_prefix}-group"
   watchdog_name      = "${local.publication_prefix}-watchdog"
+  # Imported role names originate from the original SAM deployment.
+  # Renaming requires deliberate replacement or migration of live IAM roles.
   scheduler_role     = "aggregator-publication-SchedulerRole-7X0C8b4I4r8Z"
   function_role      = "aggregator-publication-FunctionRole-UMrD5Cv9Prk0"
   scheduler_dlq_name = "${local.publication_prefix}-scheduler-dlq"

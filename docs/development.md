@@ -46,8 +46,9 @@ newline, or Java formatting, then re-checks.
 Infrastructure checks bootstrap OpenTofu 1.13.1 and TFLint 0.65.0 inside
 `.temp/qa-runtime`, with local provider and plugin caches. Each infra root
 has an independent strict TFLint configuration. Catalog tests require Go 1.23+.
-See the
-[QA guide](../tools/code_qa/README.md) for profiles, prerequisites, and CI behavior.
+See the [QA guide](../tools/code_qa/README.md) for module configuration,
+commands, and the scoped-formatting policy. The CI module matrix is derived from
+the same configuration.
 
 ## Dependency checks
 
