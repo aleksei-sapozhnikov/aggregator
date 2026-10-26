@@ -96,9 +96,9 @@ resource "aws_vpc_security_group_egress_rule" "all_ipv4" {
 }
 
 resource "aws_instance" "this" {
-  ami                    = data.aws_ami.al2023.id
-  instance_type          = var.instance_type
-  subnet_id              = var.subnet_id
+  ami           = data.aws_ami.al2023.id
+  instance_type = var.instance_type
+  subnet_id     = var.subnet_id
   # No SSH key pair; the SSM instance profile enables remote access.
   iam_instance_profile   = aws_iam_instance_profile.ec2.name
   vpc_security_group_ids = [aws_security_group.instance_access.id]
