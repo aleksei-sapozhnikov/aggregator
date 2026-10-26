@@ -6,11 +6,12 @@ locals {
 }
 
 resource "aws_ssm_document" "session_manager_preferences" {
+  provider        = aws.session_preferences
   name            = "SSM-SessionManagerRunShell"
   document_type   = "Session"
   document_format = "JSON"
 
-  # Apply the narrow DeleteDocument permission before replacing schema 1.0.
+  # Ensure the scoped SSM document permissions are applied first.
   depends_on = [aws_iam_policy.infrastructure_admin_management]
 
   content = jsonencode(merge(
