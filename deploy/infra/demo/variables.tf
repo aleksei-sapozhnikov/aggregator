@@ -17,5 +17,5 @@ variable "default_subnet_availability_zones" {
 variable "enable_legacy_ssh" {
   description = "Retain legacy SSH ingress during SSM cutover. Disable after SSM is verified."
   type        = bool
-  default     = true
+  default     = false
 }
