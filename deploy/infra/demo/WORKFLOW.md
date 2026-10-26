@@ -16,7 +16,7 @@ starts a run after setup has been enabled:
    GitHub job summary as a `terraform` code block and stored as a 7-day
    artifact if it contains changes.
 2. **apply** — wait for approval through the GitHub environment
-   `demo-infra-apply`. After approval, apply **the exact saved plan** (never
+   `demo-infra`. After approval, apply **the exact saved plan** (never
    create another plan in this job). If the plan has no changes, skip OpenTofu
    apply but keep the approval step for Ansible changes.
 3. **configure** — only when the Ansible files changed, or a manual reapply
@@ -67,7 +67,7 @@ the workflow's ordering or approval controls. Rotate and scope keys carefully.
 
 ### Required manual approval
 
-Under **Settings → Environments**, create `demo-infra-apply` and:
+Under **Settings → Environments**, create `demo-infra` and:
 
 1. Enable **Required reviewers**, selecting your account or intended approver.
    If you plan to approve your own pushes, leave **Prevent self-review**
@@ -115,7 +115,7 @@ remain outside this workflow; the shared `admin` root is not modified.
 
 Review the job summary (rendered with a `terraform` code fence), not merely
 the presence of a green plan check. Select **Review deployments** and approve
-`demo-infra-apply` only when the proposed actions are acceptable. An
+`demo-infra` only when the proposed actions are acceptable. An
 unapproved job cannot continue.
 
 Saved `demo.tfplan` may contain *sensitive state or configuration values

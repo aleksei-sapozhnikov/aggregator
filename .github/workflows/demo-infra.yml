@@ -157,7 +157,7 @@ jobs:
     name: Approve and apply
     needs: plan
     if: needs.plan.outputs.has_changes == 'true' || needs.plan.outputs.ansible_changed == 'true'
-    environment: demo-infra-apply
+    environment: demo-infra
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
@@ -167,7 +167,7 @@ jobs:
           APPROVAL_CONFIGURED: ${{ vars.DEMO_INFRA_APPROVAL_CONFIGURED }}
         run: |
           [[ "$APPROVAL_CONFIGURED" == yes ]] || {
-            echo "::error::Set required reviewers and DEMO_INFRA_APPROVAL_CONFIGURED=yes in the demo-infra-apply environment."
+            echo "::error::Set required reviewers and DEMO_INFRA_APPROVAL_CONFIGURED=yes in the demo-infra environment."
             exit 1
           }
       - uses: actions/checkout@v4
@@ -183,7 +183,7 @@ jobs:
           aws-access-key-id: ${{ secrets.AGGREGATOR_ADMIN_AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AGGREGATOR_ADMIN_AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-central-1
-          role-session-name: aggregator-demo-infra-apply
+          role-session-name: aggregator-demo-infra
       - name: Verify permitted AWS identity
         shell: bash
         run: |
