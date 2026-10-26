@@ -374,14 +374,6 @@ def main() -> int:
             json.dumps(gitignored_items, indent=2), encoding="utf-8"
         )
 
-    with tempfile.NamedTemporaryFile(
-        mode="w", delete=False, encoding="utf-8", suffix=".txt"
-    ) as tmp:
-        exclude_file = Path(tmp.name)
-        for pattern in exclude_patterns:
-            tmp.write(pattern)
-            tmp.write("\n")
-
     targets = scoped_scan_targets(scan_root, repo_root)
     if targets is None:
         targets = [scan_root]
@@ -389,6 +381,14 @@ def main() -> int:
         if args.summary:
             print("OK: 0 secrets found")
         return 0
+
+    with tempfile.NamedTemporaryFile(
+        mode="w", delete=False, encoding="utf-8", suffix=".txt"
+    ) as tmp:
+        exclude_file = Path(tmp.name)
+        for pattern in exclude_patterns:
+            tmp.write(pattern)
+            tmp.write("\n")
 
     try:
         all_stdout: list[str] = []
@@ -422,14 +422,20 @@ def main() -> int:
 
         if args.summary:
             findings = parse_trufflehog_findings(merged_stdout, repo_root)
-            if not findings:
-                print("OK: 0 secrets found")
-            else:
+            if return_code != 0:
+                print(
+                    f"FAILED: secret scanner exited with status {return_code}; "
+                    "scan incomplete"
+                )
+                for finding in findings:
+                    print(f"- {finding['path']}: {finding['issue']}")
+            elif findings:
                 print(f"FAILED: {len(findings)} potential secret(s) found")
                 for finding in findings:
                     print(f"- {finding['path']}: {finding['issue']}")
-                if return_code == 0:
-                    return 1
+                return 1
+            else:
+                print("OK: 0 secrets found")
         return return_code
     finally:
         if exclude_file.exists():
