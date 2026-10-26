@@ -14,7 +14,7 @@ write_files:
       set -euo pipefail
       umask 077
 
-      REVISION="${1:-dev}"
+      REVISION="$${1:-dev}"
       if [[ "$REVISION" != "dev" && ! "$REVISION" =~ ^[a-f0-9]{40}$ ]]; then
         echo "Expected dev or a full lowercase Git commit SHA" >&2
         exit 2
