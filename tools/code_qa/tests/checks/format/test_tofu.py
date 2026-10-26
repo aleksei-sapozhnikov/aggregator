@@ -83,6 +83,26 @@ class OpenTofuTests(unittest.TestCase):
                 )
             resolve.assert_called_once_with(self.workspace)
 
+    def test_scoped_format_explicitly_formats_the_entire_infra_root(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            manifest = Path(temporary) / "changed.json"
+            manifest.write_text(json.dumps(["infra/main.tf"]), encoding="utf-8")
+            with (
+                patch.object(tofu, "runtime_dir", return_value=Path(self.cache.name)),
+                patch.object(tofu, "resolve", return_value="tofu"),
+                patch.object(
+                    tofu.subprocess,
+                    "run",
+                    return_value=subprocess.CompletedProcess([], 0),
+                ) as run,
+            ):
+                self.assertEqual(
+                    tofu.run(self.directory, self.workspace, "format", manifest), 0
+                )
+            self.assertEqual(
+                run.call_args.args[0], ["tofu", "fmt", "-recursive"]
+            )
+
     def test_initialization_failure_stops_validation(self) -> None:
         with (
             patch.object(tofu, "runtime_dir", return_value=Path(self.cache.name)),

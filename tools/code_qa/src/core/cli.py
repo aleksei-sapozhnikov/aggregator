@@ -319,6 +319,12 @@ def run_format_command(
     _ = raw
     emit, _, close = build_emitter(out_file, append=append_out_file)
     try:
+        # Fix exactly the inputs used by scoped checks. Project-wide formatters
+        # (such as recursive OpenTofu fmt) receive the same scope manifest and
+        # deliberately operate on their entire root when triggered.
+        root = repo_root()
+        changed = scoped_paths(root)
+        paths = changed if changed is not None else iter_repo_files(root)
         checks = selected_checks(modules)
         by_id = {check.check_id: check for check in checks}
         module_names = list(
@@ -343,7 +349,9 @@ def run_format_command(
                     end="",
                     flush=True,
                 )
-                ok, details = execute_check(spec, spec.format_args)
+                ok, details = execute_check(
+                    spec, spec.format_args, root, paths, scoped=changed is not None
+                )
                 print("OK" if ok else "FAILED", flush=True)
                 for line in details:
                     emit(f"  {line}")

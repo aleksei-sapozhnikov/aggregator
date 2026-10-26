@@ -139,6 +139,26 @@ class OrchestratorFlowTests(unittest.TestCase):
         self.assertEqual(fix.call_args.args[0].check_id, "code-qa/ruff-format")
         self.assertEqual(fix.call_args.args[1], ["--format-fix"])
 
+    def test_scoped_format_passes_the_same_files_to_each_fixer(self) -> None:
+        root = main.repo_root()
+        selected = root / "tools/code_qa/src/core/cli.py"
+        changed = [selected]
+        with (
+            patch.object(main, "scoped_paths", return_value=changed),
+            patch.object(main, "iter_repo_files") as all_files,
+            patch.object(
+                main,
+                "_run_checks",
+                side_effect=[(False, ["code-qa/ruff-format"]), (True, [])],
+            ),
+            patch.object(main, "execute_check", return_value=(True, [])) as fix,
+            redirect_stdout(StringIO()),
+        ):
+            self.assertEqual(main.run_format_command(modules=["code-qa"]), 0)
+        all_files.assert_not_called()
+        self.assertEqual(fix.call_args.args[2:], (root, changed))
+        self.assertTrue(fix.call_args.kwargs["scoped"])
+
     def test_code_format_tries_remaining_fixers_after_failure(self) -> None:
         with (
             patch.object(

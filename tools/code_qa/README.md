@@ -45,6 +45,11 @@ python tools/code_qa/src/main.py lint --module infra-demo
 python tools/code_qa/src/main.py test --module catalog
 ```
 
+With `CODE_QA_FILE_LIST` set, file-based formatters only modify listed files.
+OpenTofu deliberately differs: a changed infrastructure source triggers
+`tofu fmt -recursive` across its entire infrastructure root, including local
+modules. Review these changes before committing.
+
 Python and npm dependencies, tool binaries, and caches are stored under the
 ignored `.temp/qa-runtime` directory. No global Python or npm packages are
 required.
