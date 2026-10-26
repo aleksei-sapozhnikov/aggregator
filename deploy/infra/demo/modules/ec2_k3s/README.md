@@ -1,8 +1,10 @@
 # EC2 environment for k3s
 
-Creates a separate Amazon Linux 2023 EC2 node, role and profile, security group,
-and Elastic IP. It attaches SSM and Bedrock policies; it does not install k3s.
-The demo root does not enable this module.
+Defines an Amazon Linux 2023 EC2 node, role and profile, and security group.
+It attaches SSM and Bedrock policies but does not install k3s.
+The node gets an auto-assigned public IPv4 address rather than an Elastic IP;
+the address can change after stopping and starting the instance.
+The demo root does not enable this module yet.
 
 The caller supplies the AMI, VPC, and public subnet. The module does not
 configure an SSH key pair or expose TCP/22. Interactive administration uses

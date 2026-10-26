@@ -1,4 +1,4 @@
-# Separate EC2 node prepared for a k3s installation.
+# EC2 node prepared for a k3s installation.
 
 data "aws_caller_identity" "current" {}
 
@@ -96,9 +96,10 @@ resource "aws_vpc_security_group_egress_rule" "all_ipv4" {
 }
 
 resource "aws_instance" "this" {
-  ami           = data.aws_ami.al2023.id
-  instance_type = var.instance_type
-  subnet_id     = var.subnet_id
+  ami                         = data.aws_ami.al2023.id
+  instance_type               = var.instance_type
+  subnet_id                   = var.subnet_id
+  associate_public_ip_address = true
   # No SSH key pair; the SSM instance profile enables remote access.
   iam_instance_profile   = aws_iam_instance_profile.ec2.name
   vpc_security_group_ids = [aws_security_group.instance_access.id]
@@ -123,16 +124,5 @@ resource "aws_instance" "this" {
 
   # Creation-time EBS tags are required for IAM ABAC; do not use root_block_device.tags.
   volume_tags = merge(local.base_tags, { Name = "${local.name}-root" })
-
 }
 
-resource "aws_eip" "public" {
-  domain = "vpc"
-  tags   = merge(local.base_tags, { Name = "${local.name}-eip" })
-}
-
-resource "aws_eip_association" "public" {
-  allocation_id       = aws_eip.public.id
-  instance_id         = aws_instance.this.id
-  allow_reassociation = false
-}

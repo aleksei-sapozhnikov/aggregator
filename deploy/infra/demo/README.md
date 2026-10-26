@@ -9,7 +9,7 @@ operations. This directory can be used as a standalone repository.
 - `main.tf`: serving instance configuration and default VPC subnet lookup.
 - `variables.tf`, `outputs.tf`: inputs and resource identifiers.
 - `modules/ec2_legacy/`: protected resources for the serving instance.
-- `modules/ec2_k3s/`: separate EC2 environment prepared for k3s; not enabled.
+- `modules/ec2_k3s/`: future k3s node in this same OpenTofu root and state; not enabled.
 - `backend.tf`, `providers.tf`, `versions.tf`: state, AWS account, and tool versions.
 
 ## Usage
@@ -46,8 +46,9 @@ tflint --recursive --config="$PWD/.tflint.hcl" --minimum-failure-severity=notice
 ## Operations
 
 Review plans that replace or destroy the serving instance before applying.
-The k3s module creates a separate environment and does not upgrade the serving
-instance or install Kubernetes.
+The k3s module uses the same root and state as the serving demo, without
+creating a second Elastic IP. It does not install Kubernetes. Keep the
+existing serving instance and its Elastic IP until a deliberate cutover.
 
 Keep state, saved plans, variable values, and credentials out of Git.
 Commit `.terraform.lock.hcl` to preserve provider selections.

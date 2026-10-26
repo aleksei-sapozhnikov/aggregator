@@ -10,14 +10,9 @@ output "private_ip" {
   value       = aws_instance.this.private_ip
 }
 
-output "elastic_ip_address" {
-  description = "Public IPv4 address."
-  value       = aws_eip.public.public_ip
-}
-
-output "elastic_ip_allocation_id" {
-  description = "Elastic IP allocation ID."
-  value       = aws_eip.public.allocation_id
+output "public_ip" {
+  description = "Auto-assigned public IPv4 address; not an Elastic IP."
+  value       = aws_instance.this.public_ip
 }
 
 output "security_group_id" {
