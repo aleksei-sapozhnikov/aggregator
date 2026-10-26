@@ -136,13 +136,13 @@ jobs:
           {
             echo "## Demo infrastructure plan"
             echo "Commit: $GITHUB_SHA"
-            echo '\`\`\`terraform'
+            echo '```terraform'
             head -c 120000 "$RUNNER_TEMP/plan.txt"
             echo
             if [[ $(wc -c < "$RUNNER_TEMP/plan.txt") -gt 120000 ]]; then
               echo '# Plan output truncated: inspect full text in the job log.'
             fi
-            echo '\`\`\`'
+            echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Upload exact approved plan
         if: steps.plan.outputs.has_changes == 'true'
