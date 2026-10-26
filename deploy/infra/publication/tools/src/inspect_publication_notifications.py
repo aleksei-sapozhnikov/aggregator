@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Inspect alert wiring without exposing endpoints, reading messages, or invoking Lambda."""
 
 from __future__ import annotations

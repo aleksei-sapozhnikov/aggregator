@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Build a reproducible Lambda ZIP, checksum, and member manifest locally."""
 
 from __future__ import annotations

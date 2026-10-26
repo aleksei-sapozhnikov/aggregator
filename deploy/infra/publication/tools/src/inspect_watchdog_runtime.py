@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Summarize watchdog logs from an explicit UTC time without exposing raw messages."""
 
 from __future__ import annotations

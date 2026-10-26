@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Build and review a Lambda code release; deploy only with ``--apply``.
 
 Deployment requires the function name and uses its observed revision ID.

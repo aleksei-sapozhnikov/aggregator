@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Compare Lambda ZIP member names and hashes without printing file contents."""
 
 from __future__ import annotations
