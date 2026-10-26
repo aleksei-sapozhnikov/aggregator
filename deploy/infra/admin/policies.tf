@@ -41,6 +41,20 @@ resource "aws_iam_policy" "demo_ssm_management" {
   }
 }
 
+resource "aws_iam_policy" "demo_session_access" {
+  name        = "AggregatorDemoSessionAccess"
+  path        = "/"
+  policy      = file("${path.module}/policies/AggregatorDemoSessionAccess.json")
+  description = "Allow browser-based Session Manager access only to the serving demo"
+  tags = {
+    Project = "aggregator"
+  }
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
 resource "aws_iam_policy" "demo_sg_rule_creation" {
   name        = "AggregatorDemoSGRuleCreation"
   path        = "/"

@@ -77,3 +77,22 @@ tags. Other SSM documents and Run Command execution permissions are not granted.
 Apply this IAM change as `infra-admin` before retrying
 `deploy/infra/demo` as `aggregator-admin`. The latter already has its
 EC2 `AmazonSSMManagedInstanceCore` attachment from the previous partial apply.
+
+## Browser access without inbound SSH
+
+The `AggregatorDemoSessionAccess` policy allows members of
+`AggregatorDemoAdmins` to open an interactive AWS Systems Manager
+Session Manager shell on the tagged `demo-aggregator` instance only.
+The permitted session document is `SSM-SessionManagerRunShell`;
+users can resume or terminate only their own sessions.
+
+Apply this root as `infra-admin`, then sign in to AWS as
+`aggregator-admin` and select EC2 > Instances > demo-aggregator >
+Connect > **Session Manager** > Connect. Do not use the EC2 Instance
+Connect tab: it requires SSH, and the demo security group has closed
+TCP/22. A successfully executed SSM Run Command does not grant the
+console user interactive Session Manager access.
+
+Keep the existing EC2 `key_name` Terraform setting and EC2 key pair
+untouched to avoid unintended instance replacement or loss of a recovery
+path. Closing inbound TCP/22 already blocks ordinary public SSH.
