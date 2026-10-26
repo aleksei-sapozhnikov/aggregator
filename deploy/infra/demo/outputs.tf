@@ -1,4 +1,4 @@
-# Compute and networking identifiers for the serving demo.
+# Compute and networking identifiers for the serving demo and optional K3s node.
 
 output "instance_id" {
   description = "Demo EC2 instance ID."
@@ -38,4 +38,19 @@ output "iam_role_arn" {
 output "iam_instance_profile_arn" {
   description = "EC2 instance profile ARN."
   value       = module.aggregator_demo.iam_instance_profile_arn
+}
+
+output "k3s_instance_id" {
+  description = "K3s EC2 instance ID, null when the optional node is disabled."
+  value       = one(module.aggregator_demo_k3s[*].instance_id)
+}
+
+output "k3s_public_ip" {
+  description = "K3s node auto-assigned public IPv4, null when disabled."
+  value       = one(module.aggregator_demo_k3s[*].public_ip)
+}
+
+output "k3s_security_group_id" {
+  description = "K3s node security group ID, null when disabled."
+  value       = one(module.aggregator_demo_k3s[*].security_group_id)
 }

@@ -1,4 +1,4 @@
-# EC2 node prepared for a k3s installation.
+# EC2 node configured on first boot by cloud-init and Ansible.
 
 data "aws_caller_identity" "current" {}
 
@@ -104,6 +104,7 @@ resource "aws_instance" "this" {
   iam_instance_profile   = aws_iam_instance_profile.ec2.name
   vpc_security_group_ids = [aws_security_group.instance_access.id]
   source_dest_check      = true
+  user_data              = templatefile("${path.module}/cloud-init.yaml.tftpl", { bootstrap_git_ref = var.bootstrap_git_ref })
 
   metadata_options {
     http_endpoint               = "enabled"
@@ -125,4 +126,3 @@ resource "aws_instance" "this" {
   # Creation-time EBS tags are required for IAM ABAC; do not use root_block_device.tags.
   volume_tags = merge(local.base_tags, { Name = "${local.name}-root" })
 }
-
