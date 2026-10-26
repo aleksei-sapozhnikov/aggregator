@@ -1,7 +1,7 @@
 # Demo infrastructure
 
 See [the demo infrastructure GitHub Actions workflow](WORKFLOW.md) for
-plan, manual approval, SSM reconciliation, and required one-time setup.
+dev validation, demo-only plan/apply, OIDC, manual approval, and SSM setup.
 
 This OpenTofu root manages the protected serving EC2 demo (including its
 Elastic IP) and an **optional, separate K3s EC2 node**. The serving instance
