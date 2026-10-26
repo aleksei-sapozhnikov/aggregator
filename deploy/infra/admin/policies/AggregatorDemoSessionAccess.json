@@ -2,7 +2,7 @@
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "StartSessionOnServingDemoOnly",
+      "Sid": "StartSessionOnServingOrK3sDemo",
       "Effect": "Allow",
       "Action": "ssm:StartSession",
       "Resource": "arn:aws:ec2:eu-central-1:905418096305:instance/*",
@@ -10,14 +10,20 @@
         "StringEquals": {
           "ssm:resourceTag/Project": "aggregator",
           "ssm:resourceTag/Environment": "demo",
-          "ssm:resourceTag/Name": "demo-aggregator"
+          "ssm:resourceTag/Name": [
+            "demo-aggregator",
+            "aggregator-demo-k3s"
+          ]
         }
       }
     },
     {
       "Sid": "UseDefaultInteractiveShellDocumentOnly",
       "Effect": "Allow",
-      "Action": ["ssm:StartSession", "ssm:GetDocument"],
+      "Action": [
+        "ssm:StartSession",
+        "ssm:GetDocument"
+      ],
       "Resource": "arn:aws:ssm:eu-central-1:905418096305:document/SSM-SessionManagerRunShell"
     },
     {

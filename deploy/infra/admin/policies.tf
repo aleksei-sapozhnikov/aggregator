@@ -45,7 +45,7 @@ resource "aws_iam_policy" "demo_session_access" {
   name        = "AggregatorDemoSessionAccess"
   path        = "/"
   policy      = file("${path.module}/policies/AggregatorDemoSessionAccess.json")
-  description = "Allow browser-based Session Manager access only to the serving demo"
+  description = "Allow Session Manager access to serving demo and future k3s EC2"
   tags = {
     Project = "aggregator"
   }

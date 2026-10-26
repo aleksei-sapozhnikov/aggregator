@@ -82,9 +82,23 @@ EC2 `AmazonSSMManagedInstanceCore` attachment from the previous partial apply.
 
 The `AggregatorDemoSessionAccess` policy allows members of
 `AggregatorDemoAdmins` to open an interactive AWS Systems Manager
-Session Manager shell on the tagged `demo-aggregator` instance only.
-The permitted session document is `SSM-SessionManagerRunShell`;
-users can resume or terminate only their own sessions.
+Session Manager shell only on the tagged `demo-aggregator` or future
+`aggregator-demo-k3s` instances. The permitted session document is
+`SSM-SessionManagerRunShell`; users can resume or terminate only
+their own sessions.
+
+The IAM user `aggregator-admin` is tagged `SSMSessionRunAs=ec2-user`.
+For this tag to take effect, enable **Run As support for Linux instances**
+under Systems Manager > Session Manager > Preferences in `eu-central-1`.
+Keep existing logging, encryption, and timeout preferences unchanged.
+Session preferences apply to every managed instance in the selected account
+and region. The IAM tag has priority over the account default OS user.
+
+Test `whoami` and `id -u` in the browser shell. The expected user is
+`ec2-user` with a nonzero UID. This is not a strict privilege separation:
+`ec2-user` usually has sudo access and the serving demo user has Docker
+access. Do not overwrite `SSM-SessionManagerRunShell` from this stack;
+it might contain existing account-wide logging or encryption settings.
 
 Apply this root as `infra-admin`, then sign in to AWS as
 `aggregator-admin` and select EC2 > Instances > demo-aggregator >
@@ -93,6 +107,7 @@ Connect tab: it requires SSH, and the demo security group has closed
 TCP/22. A successfully executed SSM Run Command does not grant the
 console user interactive Session Manager access.
 
-Keep the existing EC2 `key_name` Terraform setting and EC2 key pair
-untouched to avoid unintended instance replacement or loss of a recovery
-path. Closing inbound TCP/22 already blocks ordinary public SSH.
+The original EC2 key pairs were deleted manually. Keep the serving EC2
+`key_name` field unchanged: clearing it in Terraform may replace the
+instance, and it has no effect on Session Manager. The future k3s
+module uses no EC2 key pair or SSH ingress.

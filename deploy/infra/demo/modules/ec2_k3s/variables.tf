@@ -41,22 +41,3 @@ variable "root_volume_size" {
     error_message = "root_volume_size must be an integer between 40 and 200 GiB."
   }
 }
-
-variable "ssh_key_name" {
-  description = "Optional existing EC2 key pair name. Required if administrator SSH access is enabled."
-  type        = string
-  default     = null
-}
-
-variable "admin_ssh_cidr" {
-  description = "Optional, single IPv4 administrator address (/32) for SSH. Disabled by default."
-  type        = string
-  default     = null
-
-  validation {
-    condition = var.admin_ssh_cidr == null ? true : (
-      can(cidrhost(var.admin_ssh_cidr, 0)) && can(regex("^([0-9]{1,3}\\.){3}[0-9]{1,3}/32$", var.admin_ssh_cidr))
-    )
-    error_message = "admin_ssh_cidr must be a single IPv4 /32 address; public-wide SSH access is forbidden."
-  }
-}

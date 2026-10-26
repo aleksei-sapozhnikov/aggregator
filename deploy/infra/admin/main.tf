@@ -48,7 +48,10 @@ resource "aws_iam_group" "bedrock_developers" {
 resource "aws_iam_user" "aggregator_admin" {
   name = "aggregator-admin"
   path = "/"
-  tags = {}
+  tags = {
+    # Session Manager Run As maps this AWS identity to a regular Linux user.
+    SSMSessionRunAs = "ec2-user"
+  }
 
   lifecycle {
     prevent_destroy = true

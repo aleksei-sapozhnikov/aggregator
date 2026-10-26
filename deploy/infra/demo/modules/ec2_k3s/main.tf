@@ -38,15 +38,11 @@ locals {
     Component   = "k3s"
   }
 
-  ingress = merge(
-    {
-      http  = { port = 80, cidr = "0.0.0.0/0", description = "Public HTTP" }
-      https = { port = 443, cidr = "0.0.0.0/0", description = "Public HTTPS" }
-    },
-    var.admin_ssh_cidr == null ? {} : {
-      ssh = { port = 22, cidr = var.admin_ssh_cidr, description = "Administrator SSH" }
-    }
-  )
+  # Only public application ports; use Session Manager for administration.
+  ingress = {
+    http  = { port = 80, cidr = "0.0.0.0/0", description = "Public HTTP" }
+    https = { port = 443, cidr = "0.0.0.0/0", description = "Public HTTPS" }
+  }
 }
 
 resource "aws_iam_role" "ec2" {
@@ -103,7 +99,7 @@ resource "aws_instance" "this" {
   ami                    = data.aws_ami.al2023.id
   instance_type          = var.instance_type
   subnet_id              = var.subnet_id
-  key_name               = var.ssh_key_name
+  # No SSH key pair; the SSM instance profile enables remote access.
   iam_instance_profile   = aws_iam_instance_profile.ec2.name
   vpc_security_group_ids = [aws_security_group.instance_access.id]
   source_dest_check      = true
@@ -128,12 +124,6 @@ resource "aws_instance" "this" {
   # Creation-time EBS tags are required for IAM ABAC; do not use root_block_device.tags.
   volume_tags = merge(local.base_tags, { Name = "${local.name}-root" })
 
-  lifecycle {
-    precondition {
-      condition     = var.admin_ssh_cidr == null || var.ssh_key_name != null
-      error_message = "When admin_ssh_cidr is set, provide ssh_key_name."
-    }
-  }
 }
 
 resource "aws_eip" "public" {

@@ -62,3 +62,15 @@ and outbound HTTPS access to Systems Manager.
 Keep `enable_legacy_ssh=true` during the cutover. After proving SSM remote
 deployment works, set `enable_legacy_ssh=false` and apply again to remove
 inbound SSH. This does not remove the EC2 key pair or replace the instance.
+
+## Interactive Session Manager access
+
+The IAM `AggregatorDemoSessionAccess` policy authorizes interactive
+sessions on `demo-aggregator` and the future `aggregator-demo-k3s` only.
+Both use `ec2-user` on Amazon Linux 2023, via the
+`SSMSessionRunAs=ec2-user` tag on `aggregator-admin`.
+
+Enable **Run As support for Linux instances** in the regional Session
+Manager preferences before testing. These settings are account-wide;
+preserve any existing session logging, encryption and timeouts.
+The k3s module never configures SSH keys or inbound TCP/22.
