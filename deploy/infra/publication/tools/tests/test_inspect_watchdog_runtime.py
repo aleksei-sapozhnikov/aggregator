@@ -21,7 +21,7 @@ class WatchdogSummaryTests(unittest.TestCase):
         start = "2026-01-01T00:00:00Z"
         timestamp = int(parse_utc_timestamp(start).timestamp() * 1000)
         logs = {
-            "Events": [
+            "events": [
                 {"timestamp": timestamp, "message": "not JSON"},
                 {"timestamp": timestamp, "message": json.dumps({"level": "info", "phase": "end", "status": "disabled"})},
                 {"timestamp": timestamp, "message": json.dumps({"level": "error", "reason": "failed (AccessDenied): private@example.com"})},

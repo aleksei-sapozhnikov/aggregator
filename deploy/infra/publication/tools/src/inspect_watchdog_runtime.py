@@ -69,7 +69,7 @@ def collect_report(profile: str, region: str, start_time_utc: str) -> dict[str, 
     reconcile_start_count = 0
     completion_events = []
     safe_error_events = []
-    for event in logs.get("Events", []):
+    for event in logs.get("events", []):
         try:
             entry = json.loads(event.get("message", ""))
         except (json.JSONDecodeError, TypeError):
