@@ -36,7 +36,8 @@ python tools/code_qa/src/main.py modules
 ```
 
 Repeat `--module` to select several modules; omit it to check all modules.
-`code-qa` checks code and runs tests. `qa` also scans repository secrets.
+`code-qa` runs checks and then tests for each module before starting the next.
+`qa` follows the same per-module order, then scans repository secrets.
 
 `format` runs checks, formats failed check groups such as Prettier, final
 newline, or Java formatting, then re-checks.

@@ -188,7 +188,10 @@ class OrchestratorFlowTests(unittest.TestCase):
         result = main.subprocess.CompletedProcess(
             [],
             0,
-            stdout="Scan scope: /repo (recursive filesystem; excluding .git and Git-ignored paths)\nOK: 0 secrets found\n",
+            stdout=(
+                "Scan scope: /repo (recursive filesystem; excluding .git "
+                "and Git-ignored paths)\nOK: 0 secrets found\n"
+            ),
             stderr="",
         )
         with (
