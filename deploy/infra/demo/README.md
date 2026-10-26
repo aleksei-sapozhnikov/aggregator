@@ -1,6 +1,9 @@
 # Demo infrastructure
 
-See [the demo infrastructure GitHub Actions workflow](WORKFLOW.md) for\nplan, manual approval, SSM reconciliation, and required one-time setup.\n\nThis OpenTofu root manages the protected serving EC2 demo (including its
+See [the demo infrastructure GitHub Actions workflow](WORKFLOW.md) for
+plan, manual approval, SSM reconciliation, and required one-time setup.
+
+This OpenTofu root manages the protected serving EC2 demo (including its
 Elastic IP) and an **optional, separate K3s EC2 node**. The serving instance
 remains untouched by the new bootstrap; application deployment and traffic
 cutover are separate future steps. The shared state key is `demo/tofu.tfstate`
