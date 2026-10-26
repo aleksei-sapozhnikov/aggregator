@@ -145,6 +145,24 @@ data "aws_iam_policy_document" "infrastructure_admin_permissions" {
     resources = ["*"]
   }
 
+  # Session Manager preferences are regional/account-wide, so only infra-admin
+  # can enable Run As; ordinary demo administrators can start sessions only.
+  statement {
+    sid = "ConfigureRegionalSessionManagerPreferences"
+    actions = [
+      "ssm:CreateDocument",
+      "ssm:UpdateDocument",
+      "ssm:UpdateDocumentDefaultVersion",
+      "ssm:GetDocument",
+      "ssm:DescribeDocument",
+      "ssm:ListDocumentVersions",
+      "ssm:ListTagsForResource",
+    ]
+    resources = [
+      "arn:aws:ssm:eu-central-1:905418096305:document/SSM-SessionManagerRunShell",
+    ]
+  }
+
   statement {
     sid     = "ManageOpenTofuStateBucket"
     actions = ["s3:*"]

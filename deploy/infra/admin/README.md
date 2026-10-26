@@ -111,3 +111,22 @@ The original EC2 key pairs were deleted manually. Keep the serving EC2
 `key_name` field unchanged: clearing it in Terraform may replace the
 instance, and it has no effect on Session Manager. The future k3s
 module uses no EC2 key pair or SSH ingress.
+
+## Regional Session Manager Run As preferences
+
+The `infra-admin` group may create or update **only**
+`SSM-SessionManagerRunShell` in `eu-central-1`. This account-level
+document may already exist with logging and encryption preferences;
+review and preserve them rather than recreating or overwriting it.
+
+After applying the admin OpenTofu stack, sign into AWS as `infra-admin`:
+Systems Manager > Session Manager > Preferences > Edit > enable **Run As
+support for Linux instances**. Preserve existing logging, encryption,
+timeouts and optional fallback OS user. The `aggregator-admin` IAM tag
+`SSMSessionRunAs=ec2-user` determines the shell identity on the serving
+and future k3s instances; it overrides the account fallback OS user.
+
+If Run As is enabled without a fallback OS user, IAM identities without
+a valid `SSMSessionRunAs` tag can no longer start interactive sessions.
+This is an intentional account-level change that should be reviewed
+before saving. Test as `aggregator-admin` in a new browser session.
