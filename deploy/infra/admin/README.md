@@ -88,16 +88,16 @@ Session Manager shell only on the tagged `demo-aggregator` or future
 their own sessions.
 
 The IAM user `aggregator-admin` is tagged `SSMSessionRunAs=ec2-user`.
-Regional Run As preferences are defined in
-`session_manager_preferences.tf` and the captured JSON document.
+Regional Run As preferences are defined directly in
+`session_manager_preferences.tf`.
 Session preferences apply to every managed instance in the selected account
 and region. The IAM tag takes priority over the account default OS user.
 
 Test `whoami` and `id -u` in the browser shell. The expected user is
 `ec2-user` with a nonzero UID. This is not a strict privilege separation:
 `ec2-user` usually has sudo access and the serving demo user has Docker
-access. The session document is managed in this root using a snapshot of the
-existing regional settings to preserve session logging and encryption.
+access. The session document is managed in this root with explicit settings for
+session logging, encryption, and timeouts.
 
 Apply this root as `infra-admin`, then sign in to AWS as
 `aggregator-admin` and select EC2 > Instances > demo-aggregator >
@@ -112,7 +112,8 @@ or expose TCP/22. Administrative access uses Session Manager.
 ## Regional Session Manager preferences
 
 `session_manager_preferences.tf` owns the regional
-`SSM-SessionManagerRunShell` document. Before applying it, run
-`scripts/capture-session-preferences.ps1` to preserve the live settings.
-Import the document into OpenTofu, then review the replacement plan.
-The captured JSON is the declarative source of truth; Run As is enabled.
+`SSM-SessionManagerRunShell` document and declares its full contents
+inline. Run As is enabled for IAM identities tagged with
+`SSMSessionRunAs`. Existing documents must be imported once before
+OpenTofu can manage them. Review `tofu plan` before applying any
+change to account-wide session preferences.
