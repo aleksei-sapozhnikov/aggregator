@@ -3,6 +3,11 @@
 resource "aws_iam_openid_connect_provider" "github_actions" {
   url            = "https://token.actions.githubusercontent.com"
   client_id_list = ["sts.amazonaws.com"]
+
+  # Bootstrap the administrator permission update before creating the provider.
+  # IAM propagation is eventually consistent, so a retry may still be necessary.
+  depends_on = [aws_iam_policy.infrastructure_admin_management]
+
   tags = {
     Project = "aggregator"
   }
