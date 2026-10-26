@@ -5,11 +5,13 @@ The roots can be maintained separately in source control, but depend on shared
 AWS resources and delegated permissions. Do not apply them as if they were
 disposable environments.
 
-| Root | Owns | State key |
-| --- | --- | --- |
-| [admin](admin/) | IAM identities, delegated policies, permissions boundaries, and the protected state bucket | `admin/tofu.tfstate` |
-| [demo](demo/) | Public demo EC2 instance, its network access, IAM role/profile, and Elastic IP | `demo/tofu.tfstate` |
-| [publication](publication/) | GitHub publication Lambda, Scheduler watchdog, DynamoDB, snapshots, secrets containers, and notifications | `publication/tofu.tfstate` |
+- [admin](admin/): IAM identities, delegated policies, permissions
+  boundaries, and the protected state bucket (`admin/tofu.tfstate`).
+- [demo](demo/): Public demo EC2 instance, network access, IAM role/profile,
+  and Elastic IP (`demo/tofu.tfstate`).
+- [publication](publication/): GitHub publication Lambda, Scheduler watchdog,
+  DynamoDB, snapshots, secrets containers, and notifications
+  (`publication/tofu.tfstate`).
 
 ## Ownership and initialization
 

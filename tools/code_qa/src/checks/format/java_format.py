@@ -9,8 +9,8 @@ import re
 import shutil
 import subprocess
 import sys
-import urllib.request
 import tempfile
+import urllib.request
 from pathlib import Path
 
 from code_qa.src.core.inputs import file_inputs
@@ -24,7 +24,9 @@ GOOGLE_JAVA_FORMAT_URL = (
     f"google-java-format-{GOOGLE_JAVA_FORMAT_VERSION}-all-deps.jar"
 )
 # SHA-256 published for the pinned asset in the official GitHub release.
-GOOGLE_JAVA_FORMAT_SHA256 = "79e1cb5c8bd698c572c0ae504d07816129b8fc06204fb49550bec83bd5ea0aa8"
+GOOGLE_JAVA_FORMAT_SHA256 = (
+    "79e1cb5c8bd698c572c0ae504d07816129b8fc06204fb49550bec83bd5ea0aa8"
+)
 MIN_SUPPORTED_JAVA_MAJOR = 21
 QA_RUNTIME_DIR = "qa-runtime"
 
@@ -278,7 +280,11 @@ def main() -> int:
     if java_home is None:
         return 1
     java_major = JAVA_MAJOR
-    jar_path = ensure_formatter_jar(root)
+    try:
+        jar_path = ensure_formatter_jar(root)
+    except (OSError, ValueError) as error:
+        print(f"Unable to prepare Java formatter: {error}", file=sys.stderr)
+        return 1
     files = [path for path in inputs.files if path.suffix.lower() == ".java"]
     return run_formatter(
         jar_path,

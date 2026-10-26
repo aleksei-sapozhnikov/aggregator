@@ -21,12 +21,24 @@ TRUFFLEHOG_VERSION = "3.94.0"
 TRUFFLEHOG_RELEASE_BASE_URL = f"https://github.com/trufflesecurity/trufflehog/releases/download/v{TRUFFLEHOG_VERSION}"
 # SHA-256 digests published by the official v3.94.0 GitHub release.
 TRUFFLEHOG_ARCHIVE_SHA256 = {
-    ("darwin", "amd64"): "841ee5716b05b78139938de2a78a84661154d71c9fe4a90c742a7226ba9ce9e7",
-    ("darwin", "arm64"): "ea190c1124b9f0d3d76835128ff8d8e7fe71cdcba65930ec2fbe5a26382873bd",
-    ("linux", "amd64"): "21a67ab716576fda96d96f6478d8b4da84c7a53b43eb27619faa0c228333dde2",
-    ("linux", "arm64"): "f3383c04229a5b4b50becfe20901df053411323ec9f7d8f9d65719ecdb9df266",
-    ("windows", "amd64"): "ae91a36f86ae30e0b1b7b416cd0209b7f65c0292ef3f198d944d06b139623e6c",
-    ("windows", "arm64"): "c72fdc7972b50072d14ee57ff581b9ca10e0b123df36af1b382177443b57ce74",
+    ("darwin", "amd64"): (
+        "841ee5716b05b78139938de2a78a84661154d71c9fe4a90c742a7226ba9ce9e7"
+    ),
+    ("darwin", "arm64"): (
+        "ea190c1124b9f0d3d76835128ff8d8e7fe71cdcba65930ec2fbe5a26382873bd"
+    ),
+    ("linux", "amd64"): (
+        "21a67ab716576fda96d96f6478d8b4da84c7a53b43eb27619faa0c228333dde2"
+    ),
+    ("linux", "arm64"): (
+        "f3383c04229a5b4b50becfe20901df053411323ec9f7d8f9d65719ecdb9df266"
+    ),
+    ("windows", "amd64"): (
+        "ae91a36f86ae30e0b1b7b416cd0209b7f65c0292ef3f198d944d06b139623e6c"
+    ),
+    ("windows", "arm64"): (
+        "c72fdc7972b50072d14ee57ff581b9ca10e0b123df36af1b382177443b57ce74"
+    ),
 }
 SCOPED_FILES_ENV = "CODE_QA_FILE_LIST"
 QA_RUNTIME_DIR = "qa-runtime"
@@ -229,8 +241,10 @@ def download_trufflehog_binary(repo_root: Path) -> str | None:
 
     system = platform.system().lower()
     architecture = {
-        "x86_64": "amd64", "amd64": "amd64",
-        "aarch64": "arm64", "arm64": "arm64",
+        "x86_64": "amd64",
+        "amd64": "amd64",
+        "aarch64": "arm64",
+        "arm64": "arm64",
     }.get(platform.machine().lower())
     expected_hash = TRUFFLEHOG_ARCHIVE_SHA256.get((system, architecture))
     if expected_hash is None:
