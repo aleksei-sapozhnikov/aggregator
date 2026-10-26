@@ -7,8 +7,8 @@ disposable environments.
 
 - [admin](admin/): IAM identities, delegated policies, permissions
   boundaries, and the protected state bucket (`admin/tofu.tfstate`).
-- [demo](demo/): Public demo EC2 instance, network access, IAM role/profile,
-  and Elastic IP (`demo/tofu.tfstate`).
+- [demo](demo/): Public serving demo EC2, IAM, network and Elastic IP; optional
+  separately bootstrapped K3s and Argo CD EC2 (`demo/tofu.tfstate`).
 - [publication](publication/): GitHub publication Lambda, Scheduler watchdog,
   DynamoDB, snapshots, secrets containers, and notifications
   (`publication/tofu.tfstate`).
@@ -18,9 +18,9 @@ disposable environments.
 1. Bootstrap the remote state bucket and the administrative identity through
    separately authorized AWS operations. The `admin` root then manages them;
    its own backend cannot create the bucket during `tofu init`.
-2. Apply `admin` using `infra-admin` or equivalent privileges. It manages the
-   policies required by the other roots; it must not be administered using the
-   delegated `aggregator-admin` user.
+2. Apply `admin` using `infra-admin` or equivalent privileges. It manages
+   the policies required by the other roots; it must not be administered using
+   the delegated `aggregator-admin` user.
 3. Initialize `demo` and `publication` independently with their delegated AWS
    permissions. Both assume the state bucket and their IAM policies exist.
    `publication` additionally requires the bootstrap Lambda code object and a
@@ -35,8 +35,10 @@ in each root's README.
 - Review `tofu plan` before every apply. These roots manage existing live
   resources and use `prevent_destroy` on critical objects. Avoid replacing
   resources simply to normalize historical names or descriptions.
-- The serving demo uses a legacy EC2 module. The optional k3s module is not
-  enabled and does not install Kubernetes.
+- The current serving EC2 is preserved by the legacy module. The optional K3s
+  node is created only when enabled explicitly and receives OS, K3s, and Argo CD
+  configuration from cloud-init plus local Ansible. It does not cut over the
+  live demo or expose the Argo CD UI publicly.
 - Application rollout, Lambda code deployment, publication queue schedules,
   and GitHub token values are separate operations. The publication root
   deliberately ignores updates to Lambda code made by its code deployer.

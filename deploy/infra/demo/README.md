@@ -1,77 +1,91 @@
 # Demo infrastructure
 
-OpenTofu root for the serving demo's EC2 instance, workload role, networking,
-and Elastic IP. Application deployment and Kubernetes installation are separate
-operations. This directory can be used as a standalone repository.
+This OpenTofu root manages the protected serving EC2 demo (including its
+Elastic IP) and an **optional, separate K3s EC2 node**. The serving instance
+remains untouched by the new bootstrap; application deployment and traffic
+cutover are separate future steps. The shared state key is `demo/tofu.tfstate`
+in AWS account `905418096305`, region `eu-central-1`.
 
-## Contents
+## Provisioning
 
-- `main.tf`: serving instance configuration and default VPC subnet lookup.
-- `variables.tf`, `outputs.tf`: inputs and resource identifiers.
-- `modules/ec2_legacy/`: protected resources for the serving instance.
-- `modules/ec2_k3s/`: future k3s node in this same OpenTofu root and state; not enabled.
-- `backend.tf`, `providers.tf`, `versions.tf`: state, AWS account, and tool versions.
-
-## Usage
-
-Use OpenTofu 1.12 or newer within the 1.x series and an AWS profile with demo
-administration permissions, such as `aggregator-admin`. Set `AWS_PROFILE` for
-your shell, then run from this directory:
+Use OpenTofu 1.12+, the existing state backend, and the delegated
+`aggregator-admin` AWS credentials:
 
 ```sh
+export AWS_PROFILE=aggregator-admin
 tofu init
 tofu validate
 tofu plan
 ```
 
-The configured account is `905418096305`, region `eu-central-1`.
-State is stored under `demo/tofu.tfstate`. The backend bucket and referenced
-managed IAM policies must already exist in AWS.
+By default `enable_k3s_node = false` to avoid unexpected EC2 charges.
+To provision the K3s node, review a plan with the new node explicitly
+enabled. Pin the checked-in Ansible configuration to a known commit:
 
-`enable_bedrock` grants the instance Bedrock model access and defaults to
-`false`. `default_subnet_availability_zones` selects the default VPC subnet for
-each instance.
+```sh
+tofu plan \
+  -var='enable_k3s_node=true' \
+  -var="k3s_bootstrap_git_ref=$(git rev-parse dev)"
+```
 
-## Checks
+Apply only after reviewing a plan with the **same variables and revision**.
+The node uses the selected default public subnet, its own IAM profile and
+security group, a 50 GiB encrypted root volume by default, and an automatically
+assigned public IP. It does not take the serving demo's Elastic IP.
 
-Use TFLint 0.65.0 with this directory's `.tflint.hcl`. These static checks
-require no AWS credentials:
+The selected pinned AL2023 AMI must remain available in `eu-central-1`.
+First-boot cloud-init installs Python 3.12 and Git and fetches the
+specified repository revision. Local Ansible roles install base packages,
+K3s, then Argo CD; egress to AWS Systems Manager, GitHub, PyPI, K3s releases,
+and container registries must work. K3s has Traefik and ServiceLB disabled
+until a separately configured ingress solution is added.
+
+## Reapply and inspect with SSM
+
+The new instance role has `AmazonSSMManagedInstanceCore`. Administrators
+with the existing `AggregatorDemoSessionAccess` policy can start Session
+Manager sessions; Run As must be enabled in the admin root preferences.
+There is no inbound TCP/22 or Kubernetes API access.
+
+```sh
+aws ssm start-session \
+  --region eu-central-1 \
+  --target "$(tofu output -raw k3s_instance_id)"
+```
+
+Within that SSM session, run the desired reviewed Git commit directly:
+
+```sh
+sudo /usr/local/sbin/aggregator-node-configure <40-character-git-commit-sha>
+sudo /usr/local/bin/k3s kubectl get nodes
+sudo /usr/local/bin/k3s kubectl get pods -n argocd
+sudo cat /var/lib/aggregator-node/last-configured-revision
+```
+
+The script uses a lock to prevent concurrent runs, reports failures,
+and writes `/var/log/aggregator-node-configure.log`.
+First-boot logs are also in `/var/log/cloud-init-output.log`.
+Updating Terraform user data on an existing instance does **not**
+reinvoke the playbook; use SSM for subsequent reconciliation. A separate
+`deploy/ansible/README.md` describes role behavior and checks.
+
+Argo CD is initially a **ClusterIP-only** service. Its UI is not publicly
+exposed and no Aggregator application manifests are installed.
+
+## Checks and safeguards
+
+Static checks for the Terraform root, when OpenTofu/TFLint are installed:
 
 ```sh
 tofu fmt -check -recursive
+tofu validate
 tflint --init
 tflint --recursive --config="$PWD/.tflint.hcl" --minimum-failure-severity=notice
 ```
 
-## Operations
-
-Review plans that replace or destroy the serving instance before applying.
-The k3s module uses the same root and state as the serving demo, without
-creating a second Elastic IP. It does not install Kubernetes. Keep the
-existing serving instance and its Elastic IP until a deliberate cutover.
-
-Keep state, saved plans, variable values, and credentials out of Git.
-Commit `.terraform.lock.hcl` to preserve provider selections.
-
-## SSM-based deployment
-
-`ssm.tf` creates the limited `AggregatorDemoDeploy` Run Command document,
-and the serving instance role receives `AmazonSSMManagedInstanceCore`.
-The serving host must have an online SSM Agent at version 3.3.2746.0 or newer,
-and outbound HTTPS access to Systems Manager.
-
-Ingress is limited to HTTP/HTTPS. No SSH key, access rule, or compatibility
-switch is configured. Review `tofu plan` before applying to an existing
-instance; an unexpected EC2 replacement must not be approved.
-
-## Interactive Session Manager access
-
-The IAM `AggregatorDemoSessionAccess` policy authorizes interactive
-sessions on `demo-aggregator` and the future `aggregator-demo-k3s` only.
-Both use `ec2-user` on Amazon Linux 2023, via the
-`SSMSessionRunAs=ec2-user` tag on `aggregator-admin`.
-
-Enable **Run As support for Linux instances** in the regional Session
-Manager preferences before testing. These settings are account-wide;
-preserve any existing session logging, encryption and timeouts.
-The k3s module never configures SSH keys or inbound TCP/22.
+Review every plan that might affect the currently serving legacy instance.
+It remains protected by `prevent_destroy`. Turning off the K3s flag after
+enabling it would plan removal of the **new** node; preserve its data first.
+Keep state, saved plans, credentials and local variables out of Git.
+The separate `enable_bedrock` switch for the existing serving EC2
+still defaults to `false`.

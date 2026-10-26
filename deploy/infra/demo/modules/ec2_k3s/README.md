@@ -1,17 +1,29 @@
-# EC2 environment for k3s
+# EC2 node for K3s
 
-Defines an Amazon Linux 2023 EC2 node, role and profile, and security group.
-It attaches SSM and Bedrock policies but does not install k3s.
-The node gets an auto-assigned public IPv4 address rather than an Elastic IP;
-the address can change after stopping and starting the instance.
-The demo root does not enable this module yet.
+This opt-in Terraform module creates a separate Amazon Linux 2023 EC2 node,
+instance profile, and security group. Cloud-init runs during **first boot**:
+it installs the Ansible control environment and applies
+[deploy/ansible](../../../../ansible/README.md) to install K3s and Argo CD.
 
-The caller supplies the AMI, VPC, and public subnet. The module does not
-configure an SSH key pair or expose TCP/22. Interactive administration uses
-Session Manager as `ec2-user` on Amazon Linux 2023. The IAM
-`AggregatorDemoSessionAccess` policy authorizes the tagged
-`aggregator-demo-k3s` node. The referenced demo permissions boundary and
-Bedrock policy must exist in AWS.
+Security and networking:
+- IMDSv2 is required, the gp3 root volume is encrypted, and the IAM role
+  grants SSM and Bedrock access within its permissions boundary.
+- Only inbound HTTP/HTTPS (80/443) is configured for future applications.
+  There is no SSH key pair, port 22, public Kubernetes API port, or public
+  Argo CD endpoint.
+- The instance gets an ephemeral public IPv4 address, **not** an Elastic IP.
+  It may change after a stop/start; the existing demo IP is not changed.
+- Session Manager provides interactive access as `ec2-user`, with sudo
+  for node configuration.
 
-`main.tf` declares resources, `variables.tf` describes inputs, `outputs.tf`
-exposes identifiers, and `versions.tf` declares the AWS provider requirement.
+`bootstrap_git_ref` must be `dev` or a full lowercase Git commit SHA. It
+defaults to `dev` for development. Prefer a reviewed immutable SHA: the
+bootstrapped repository playbook is executed as root.
+
+Cloud-init does not run automatically again when user data changes on an
+existing node. Reapply with the wrapper over SSM, as documented in the
+[demo root](../../README.md).
+
+The K3s and Argo CD versions are pinned inside the Ansible configuration.
+Changing them is a deliberate upgrade, not a Terraform replacement. No
+Kubernetes workloads or ingress controller are deployed at this stage.
