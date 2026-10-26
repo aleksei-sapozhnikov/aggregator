@@ -106,6 +106,8 @@ data "aws_iam_policy_document" "infrastructure_admin_permissions" {
       "arn:aws:iam::905418096305:user/infra-admin",
       "arn:aws:iam::905418096305:group/Aggregator*",
       "arn:aws:iam::905418096305:policy/Aggregator*",
+      "arn:aws:iam::905418096305:role/AggregatorDemoDeployGithub",
+      "arn:aws:iam::905418096305:oidc-provider/token.actions.githubusercontent.com",
     ]
   }
 

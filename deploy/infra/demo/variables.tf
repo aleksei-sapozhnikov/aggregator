@@ -13,3 +13,9 @@ variable "default_subnet_availability_zones" {
     aggregator_demo = "eu-central-1b"
   }
 }
+
+variable "enable_legacy_ssh" {
+  description = "Retain legacy SSH ingress during SSM cutover. Disable after SSM is verified."
+  type        = bool
+  default     = true
+}

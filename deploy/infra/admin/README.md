@@ -49,3 +49,20 @@ roots.
 
 Keep state, saved plans, variable values, and credentials out of Git.
 Commit `.terraform.lock.hcl` to preserve provider selections.
+
+## GitHub OIDC deploy identity
+
+`github_demo_deploy.tf` creates the GitHub OIDC provider and role
+`AggregatorDemoDeployGithub`. The role can only run the dedicated SSM
+document on the tagged serving demo EC2 and read its result.
+
+Apply this root using an administrator who can create the OIDC provider and
+role. If an OIDC provider already exists, import it into
+`aws_iam_openid_connect_provider.github_actions` before applying.
+Set the resulting `github_demo_deploy_role_arn` output in the `demo`
+GitHub environment variable `AWS_DEMO_DEPLOY_ROLE_ARN`.
+
+**Important:** Restrict GitHub's `demo` environment to the `demo` branch.
+OIDC environment subjects do not independently enforce branch restrictions.
+Older repositories typically use the legacy name-based subject; adjust the
+trust subject if immutable OIDC claims have been explicitly enabled.

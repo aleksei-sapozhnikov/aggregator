@@ -51,12 +51,19 @@ module "aggregator_demo" {
   eip_network_border_group   = "eu-central-1"
   iam_role_name              = "AggregatorDemoEC2Role"
   iam_role_description       = "IAM role for the Aggregator demo EC2 instance"
-  iam_policies               = var.enable_bedrock ? { bedrock = "arn:aws:iam::905418096305:policy/AggregatorCallBedrockModel" } : {}
-  ingress_rules = {
-    public_http  = { cidr_ipv4 = "0.0.0.0/0", from_port = 80, ip_protocol = "tcp", to_port = 80 }
-    public_https = { cidr_ipv4 = "0.0.0.0/0", from_port = 443, ip_protocol = "tcp", to_port = 443 }
-    public_ssh   = { cidr_ipv4 = "0.0.0.0/0", from_port = 22, ip_protocol = "tcp", to_port = 22 }
-  }
+  iam_policies = merge(
+    { ssm = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore" },
+    var.enable_bedrock ? { bedrock = "arn:aws:iam::905418096305:policy/AggregatorCallBedrockModel" } : {}
+  )
+  ingress_rules = merge(
+    {
+      public_http  = { cidr_ipv4 = "0.0.0.0/0", from_port = 80, ip_protocol = "tcp", to_port = 80 }
+      public_https = { cidr_ipv4 = "0.0.0.0/0", from_port = 443, ip_protocol = "tcp", to_port = 443 }
+    },
+    var.enable_legacy_ssh ? {
+      public_ssh = { cidr_ipv4 = "0.0.0.0/0", from_port = 22, ip_protocol = "tcp", to_port = 22 }
+    } : {}
+  )
   egress_rules = {
     all_ipv4 = { cidr_ipv4 = "0.0.0.0/0", ip_protocol = "-1" }
   }
