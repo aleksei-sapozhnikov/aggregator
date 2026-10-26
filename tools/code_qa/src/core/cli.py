@@ -310,13 +310,11 @@ def run_check_command(
 def run_format_command(
     *,
     modules: list[str] | None = None,
-    raw: bool = False,
     out_file: str = "",
     append_out_file: bool = False,
     suppress_final_summary: bool = False,
 ) -> int:
     """Format and verify one selected module at a time."""
-    _ = raw
     emit, _, close = build_emitter(out_file, append=append_out_file)
     try:
         # Fix exactly the inputs used by scoped checks. Project-wide formatters
@@ -548,12 +546,10 @@ def run_test_command(
 def run_code_qa_command(
     *,
     modules: list[str] | None = None,
-    raw: bool = False,
     out_file: str = "",
     suppress_final_summary: bool = False,
 ) -> int:
     """Check code and run module tests without modifying source files."""
-    _ = raw
     check_rc = run_check_command(
         modules=modules,
         out_file=out_file,
@@ -605,7 +601,6 @@ def run_qa_command(
     """Check code without fixes, run tests, and then scan secrets."""
     code_qa_rc = run_code_qa_command(
         modules=modules,
-        raw=raw,
         out_file=out_file,
         suppress_final_summary=True,
     )
@@ -656,7 +651,6 @@ def build_parser() -> argparse.ArgumentParser:
         "code-qa",
         help="Check code and run module tests without fixes or secrets scanning.",
     )
-    code_qa_cmd.add_argument("--raw", action="store_true")
     code_qa_cmd.add_argument("--out-file", default="")
 
     test_cmd = sub.add_parser("test", help="Run unit tests by module.")
@@ -681,19 +675,12 @@ def build_parser() -> argparse.ArgumentParser:
     secrets_cmd.add_argument("--out-file", default="")
 
     format_cmd = sub.add_parser("format", help="Run code format flow.")
-    format_cmd.add_argument("--raw", action="store_true")
     format_cmd.add_argument("--out-file", default="")
-
-    format_check_only_cmd = sub.add_parser(
-        "format-check-only",
-        help="Run code checks only (without secrets scan).",
-    )
-    format_check_only_cmd.add_argument("--out-file", default="")
 
     lint_cmd = sub.add_parser("lint", help="Run code checks without secrets scanning.")
     lint_cmd.add_argument("--out-file", default="")
 
-    for command in (qa_cmd, code_qa_cmd, format_cmd, format_check_only_cmd, lint_cmd):
+    for command in (qa_cmd, code_qa_cmd, format_cmd, lint_cmd):
         command.add_argument(
             "--module",
             action="append",
@@ -737,7 +724,7 @@ def main() -> int:
 
     if args.command == "code-qa":
         return run_code_qa_command(
-            modules=args.module, raw=args.raw, out_file=args.out_file
+            modules=args.module, out_file=args.out_file
         )
 
     if args.command == "test":
@@ -757,11 +744,8 @@ def main() -> int:
 
     if args.command == "format":
         return run_format_command(
-            modules=args.module, raw=args.raw, out_file=args.out_file
+            modules=args.module, out_file=args.out_file
         )
-
-    if args.command == "format-check-only":
-        return run_check_command(modules=args.module, out_file=args.out_file)
 
     if args.command == "lint":
         return run_check_command(modules=args.module, out_file=args.out_file)

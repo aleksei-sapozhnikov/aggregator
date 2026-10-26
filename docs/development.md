@@ -41,9 +41,6 @@ Repeat `--module` to select several modules; omit it to check all modules.
 `format` runs checks, formats failed check groups such as Prettier, final
 newline, or Java formatting, then re-checks.
 
-`format-check-only` runs only code checks without formatting and without the
-secrets scan.
-
 `lint` runs code checks without changes or secrets scanning.
 
 Infrastructure checks bootstrap OpenTofu 1.13.1 and TFLint 0.65.0 inside

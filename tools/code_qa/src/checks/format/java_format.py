@@ -11,7 +11,8 @@ import sys
 import urllib.request
 from pathlib import Path
 
-from code_qa.src.core.inputs import add_file_arguments, file_inputs
+from code_qa.src.core.inputs import file_inputs
+from code_qa.src.core.utils import repo_root
 from code_qa.src.tools.jdk import JAVA_MAJOR, jdk_executable, resolve_java_home
 
 GOOGLE_JAVA_FORMAT_VERSION = "1.34.1"
@@ -34,7 +35,9 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Run java formatter in check-only or format mode."
     )
-    add_file_arguments(parser)
+    # Doctor mode does not need a file manifest.
+    parser.add_argument("--root", type=Path)
+    parser.add_argument("--files-from", type=Path)
     group = parser.add_mutually_exclusive_group()
     group.add_argument(
         "--check-only",
@@ -59,6 +62,9 @@ def parse_args() -> argparse.Namespace:
     args = parser.parse_args()
     if args.doctor_json:
         return args
+
+    if args.root is None or args.files_from is None:
+        parser.error("--root and --files-from are required for formatting")
 
     resolved_mode = None
     if args.format:
@@ -242,18 +248,18 @@ def json_dumps(payload: dict[str, object]) -> str:
 def main() -> int:
     """Execute java format/check flow from parsed CLI arguments."""
     args = parse_args()
-    inputs = file_inputs(args)
-    repo_root = inputs.root
-    os.chdir(repo_root)
-
     if args.doctor_json:
-        return doctor_json(repo_root)
+        return doctor_json(args.root.resolve() if args.root else repo_root())
 
-    java_home = resolve_java_home(repo_root)
+    inputs = file_inputs(args)
+    root = inputs.root
+    os.chdir(root)
+
+    java_home = resolve_java_home(root)
     if java_home is None:
         return 1
     java_major = JAVA_MAJOR
-    jar_path = ensure_formatter_jar(repo_root)
+    jar_path = ensure_formatter_jar(root)
     files = [path for path in inputs.files if path.suffix.lower() == ".java"]
     return run_formatter(
         jar_path,
