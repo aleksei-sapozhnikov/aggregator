@@ -23,6 +23,7 @@ type ActorModalProps = {
   isOpen: boolean;
   actor: CatalogActor | null;
   contacts: CatalogContact[];
+  primaryContact: CatalogContact | null;
   iconSpriteHref: string;
   onClose: () => void;
   onOpenContact: (contact: CatalogContact) => void;
@@ -32,6 +33,7 @@ export default function ActorModal({
   isOpen,
   actor,
   contacts,
+  primaryContact,
   iconSpriteHref,
   onClose,
   onOpenContact,
@@ -74,7 +76,7 @@ export default function ActorModal({
           {orderedContacts.length > 0 ? (
             <ul className="actor-modal-contacts">
               {orderedContacts.map((contact) => (
-                <li key={contact.id}>
+                <li key={contact.id} className="actor-modal-contact-row">
                   <a
                     className="details-text-link actor-modal-contact-link"
                     href={`/contacts/${contact.id}`}
@@ -105,6 +107,9 @@ export default function ActorModal({
                       {resolveContactLabel(contact)}
                     </span>
                   </a>
+                  {primaryContact?.id === contact.id && (
+                    <span className="actor-role">Primary</span>
+                  )}
                 </li>
               ))}
             </ul>

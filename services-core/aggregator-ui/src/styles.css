@@ -3248,6 +3248,13 @@ body[data-theme="dark"] .contact-email-reply {
   margin: 0;
 }
 
+.actor-modal-contact-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .actor-modal-contact-link {
   display: inline-flex;
   align-items: center;
