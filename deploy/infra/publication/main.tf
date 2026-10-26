@@ -41,8 +41,8 @@ resource "aws_lambda_function" "runner" {
       GITHUB_SECRET_ARN     = aws_secretsmanager_secret.github_token.arn
       PROJECT_SECRET_ARN    = aws_secretsmanager_secret.project_token.arn
       SNS_TOPIC_ARN         = aws_sns_topic.failure.arn
-      NOTIFICATIONS_ENABLED = "false"
-      ACTIVATION_ENABLED    = "false"
+      NOTIFICATIONS_ENABLED = "true"
+      ACTIVATION_ENABLED    = "true"
     }
   }
 
