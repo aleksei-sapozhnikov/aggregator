@@ -45,6 +45,17 @@
       ],
       "Resource": "arn:aws:sqs:eu-central-1:905418096305:aggregator-publication-scheduler-dlq",
       "Effect": "Allow"
+    },
+    {
+      "Sid": "ReadPublicationTokenSecrets",
+      "Action": [
+        "secretsmanager:GetSecretValue"
+      ],
+      "Resource": [
+        "arn:aws:secretsmanager:eu-central-1:905418096305:secret:aggregator-publication-github-token-??????",
+        "arn:aws:secretsmanager:eu-central-1:905418096305:secret:aggregator-publication-project-token-??????"
+      ],
+      "Effect": "Allow"
     }
   ]
 }

@@ -4,9 +4,6 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Project    = "aggregator"
-      Component  = "publication"
-      ManagedBy  = "opentofu"
       Repository = "https://github.com/aleksei-sapozhnikov/aggregator"
     }
   }

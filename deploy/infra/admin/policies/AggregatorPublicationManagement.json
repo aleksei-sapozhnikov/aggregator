@@ -51,6 +51,88 @@
       ]
     },
     {
+      "Sid": "CreatePublicationSecrets",
+      "Effect": "Allow",
+      "Action": [
+        "secretsmanager:CreateSecret"
+      ],
+      "Resource": [
+        "arn:aws:secretsmanager:eu-central-1:905418096305:secret:aggregator-publication-github-token-??????",
+        "arn:aws:secretsmanager:eu-central-1:905418096305:secret:aggregator-publication-project-token-??????",
+        "arn:aws:secretsmanager:eu-central-1:905418096305:secret:aggregator-publication-notification-email-??????"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "secretsmanager:Name": [
+            "aggregator-publication-github-token",
+            "aggregator-publication-project-token",
+            "aggregator-publication-notification-email"
+          ],
+          "aws:RequestTag/Name": [
+            "aggregator-publication-github-token",
+            "aggregator-publication-project-token",
+            "aggregator-publication-notification-email"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "ReadMetadataAndWritePublicationSecretValues",
+      "Effect": "Allow",
+      "Action": [
+        "secretsmanager:DescribeSecret",
+        "secretsmanager:PutSecretValue"
+      ],
+      "Resource": [
+        "arn:aws:secretsmanager:eu-central-1:905418096305:secret:aggregator-publication-github-token-??????",
+        "arn:aws:secretsmanager:eu-central-1:905418096305:secret:aggregator-publication-project-token-??????",
+        "arn:aws:secretsmanager:eu-central-1:905418096305:secret:aggregator-publication-notification-email-??????"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:ResourceTag/Name": [
+            "aggregator-publication-github-token",
+            "aggregator-publication-project-token",
+            "aggregator-publication-notification-email"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "TagPublicationSecrets",
+      "Effect": "Allow",
+      "Action": [
+        "secretsmanager:TagResource"
+      ],
+      "Resource": [
+        "arn:aws:secretsmanager:eu-central-1:905418096305:secret:aggregator-publication-github-token-??????",
+        "arn:aws:secretsmanager:eu-central-1:905418096305:secret:aggregator-publication-project-token-??????",
+        "arn:aws:secretsmanager:eu-central-1:905418096305:secret:aggregator-publication-notification-email-??????"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestTag/Name": [
+            "aggregator-publication-github-token",
+            "aggregator-publication-project-token",
+            "aggregator-publication-notification-email"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "ReadPublicationNotificationEndpoint",
+      "Effect": "Allow",
+      "Action": [
+        "secretsmanager:GetSecretValue"
+      ],
+      "Resource": "arn:aws:secretsmanager:eu-central-1:905418096305:secret:aggregator-publication-notification-email-??????",
+      "Condition": {
+        "StringEquals": {
+          "aws:ResourceTag/Name": "aggregator-publication-notification-email"
+        }
+      }
+    },
+    {
       "Sid": "CreateBoundedPublicationRoles",
       "Effect": "Allow",
       "Action": "iam:CreateRole",
