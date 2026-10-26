@@ -132,7 +132,9 @@ const buildExtraActorRows = (actors: CatalogActor[]): ExtraActorRow[] =>
     .map((actor) => ({
       key: actor.id,
       actor,
-      typeLabel: String(actor.type || "other").toLowerCase(),
+      typeLabel: String(actor.type || "other")
+        .toLowerCase()
+        .replace(/^./, (firstLetter) => firstLetter.toUpperCase()),
     }));
 
 const renderActorTeamIcon = (iconSpriteHref: string): ReactElement => (
@@ -590,8 +592,8 @@ export default function DetailsPanel({
                                 >
                                   {entry.actor.title || entry.actor.id}
                                 </a>
-                                <span className="details-row-meta details-row-meta-capitalize">
-                                  ({entry.typeLabel})
+                                <span className="actor-role">
+                                  {entry.typeLabel}
                                 </span>
                               </div>
                             </li>
