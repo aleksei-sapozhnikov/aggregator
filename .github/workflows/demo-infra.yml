@@ -1,0 +1,257 @@
+name: Demo infrastructure
+
+on:
+  push:
+    branches: [dev]
+    paths:
+      - ".github/workflows/demo-infra.yml"
+      - "deploy/infra/demo/**"
+      - "deploy/ansible/**"
+  workflow_dispatch:
+    inputs:
+      reapply_ansible:
+        description: "Reapply Ansible after the infrastructure check"
+        type: boolean
+        default: true
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: aggregator-demo-infra
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: eu-central-1
+  TF_IN_AUTOMATION: "true"
+  TF_INPUT: "0"
+
+jobs:
+  plan:
+    name: Validate and plan
+    if: vars.DEMO_INFRA_WORKFLOW_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      has_changes: ${{ steps.plan.outputs.has_changes }}
+      ansible_changed: ${{ steps.changes.outputs.ansible_changed }}
+    env:
+      TF_VAR_enable_k3s_node: ${{ vars.DEMO_ENABLE_K3S_NODE }}
+      TF_VAR_enable_bedrock: ${{ vars.DEMO_ENABLE_BEDROCK }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Validate configuration and optional bootstrap ref
+        shell: bash
+        env:
+          BOOTSTRAP_REF: ${{ vars.DEMO_K3S_BOOTSTRAP_GIT_REF }}
+        run: |
+          set -euo pipefail
+          [[ "$TF_VAR_enable_k3s_node" == true || "$TF_VAR_enable_k3s_node" == false ]] || {
+            echo "::error::Set DEMO_ENABLE_K3S_NODE to true or false."
+            exit 1
+          }
+          [[ "$TF_VAR_enable_bedrock" == true || "$TF_VAR_enable_bedrock" == false ]] || {
+            echo "::error::Set DEMO_ENABLE_BEDROCK to true or false."
+            exit 1
+          }
+          if [[ -n "$BOOTSTRAP_REF" ]]; then
+            [[ "$BOOTSTRAP_REF" == dev || "$BOOTSTRAP_REF" =~ ^[a-f0-9]{40}$ ]] || exit 2
+            echo "TF_VAR_k3s_bootstrap_git_ref=$BOOTSTRAP_REF" >> "$GITHUB_ENV"
+          fi
+      - name: Detect Ansible changes
+        id: changes
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.before }}
+          MANUAL_REAPPLY: ${{ inputs.reapply_ansible }}
+        run: |
+          set -euo pipefail
+          changed=false
+          if [[ "$GITHUB_EVENT_NAME" == workflow_dispatch ]]; then
+            [[ "$MANUAL_REAPPLY" != true ]] || changed=true
+          elif [[ -z "$BASE_SHA" || "$BASE_SHA" =~ ^0+$ ]] || ! git cat-file -e "$BASE_SHA^{commit}"; then
+            changed=true
+          elif git diff --name-only "$BASE_SHA" "$GITHUB_SHA" -- deploy/ansible/ | grep -q .; then
+            changed=true
+          fi
+          echo "ansible_changed=$changed" >> "$GITHUB_OUTPUT"
+      - uses: opentofu/setup-opentofu@v2
+        with:
+          tofu_version: "1.13.1"
+          tofu_wrapper: false
+      - name: Validate Ansible syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m venv "$RUNNER_TEMP/ansible"
+          "$RUNNER_TEMP/ansible/bin/pip" install --disable-pip-version-check ansible-core==2.21.0
+          cd deploy/ansible
+          "$RUNNER_TEMP/ansible/bin/ansible-playbook" -i localhost, -c local --syntax-check site.yml
+      - name: Use aggregator-admin credentials
+        uses: aws-actions/configure-aws-credentials@v6.3.0
+        with:
+          aws-access-key-id: ${{ secrets.AGGREGATOR_ADMIN_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AGGREGATOR_ADMIN_AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1
+          role-session-name: aggregator-demo-infra-plan
+      - name: Verify permitted AWS identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$(aws sts get-caller-identity --query Account --output text)" == 905418096305 ]]
+          [[ "$(aws sts get-caller-identity --query Arn --output text)" == *":user/aggregator-admin" ]] || {
+            echo "::error::Expected the aggregator-admin IAM identity."
+            exit 1
+          }
+      - name: Initialize and validate demo root
+        working-directory: deploy/infra/demo
+        shell: bash
+        run: |
+          set -euo pipefail
+          tofu fmt -check -recursive
+          tofu init -input=false -lockfile=readonly
+          tofu validate
+      - name: Save plan and print terraform-formatted summary
+        id: plan
+        working-directory: deploy/infra/demo
+        shell: bash
+        run: |
+          set -euo pipefail
+          set +e
+          tofu plan -input=false -no-color -detailed-exitcode -out="$RUNNER_TEMP/demo.tfplan" > "$RUNNER_TEMP/plan.log" 2>&1
+          status=$?
+          set -e
+          cat "$RUNNER_TEMP/plan.log"
+          if [[ "$status" != 0 && "$status" != 2 ]]; then exit "$status"; fi
+          if [[ "$status" == 2 ]]; then
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          fi
+          tofu show -no-color "$RUNNER_TEMP/demo.tfplan" > "$RUNNER_TEMP/plan.txt"
+          {
+            echo "## Demo infrastructure plan"
+            echo "Commit: $GITHUB_SHA"
+            echo '~~~terraform'
+            head -c 120000 "$RUNNER_TEMP/plan.txt"
+            echo
+            if [[ $(wc -c < "$RUNNER_TEMP/plan.txt") -gt 120000 ]]; then
+              echo '# Plan output truncated: inspect full text in the job log.'
+            fi
+            echo '~~~'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload exact approved plan
+        if: steps.plan.outputs.has_changes == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: demo-tofu-plan-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/demo.tfplan
+          if-no-files-found: error
+          retention-days: 7
+
+  apply:
+    name: Approve and apply
+    needs: plan
+    if: needs.plan.outputs.has_changes == 'true' || needs.plan.outputs.ansible_changed == 'true'
+    environment: demo-infra-apply
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Refuse an unconfigured environment
+        shell: bash
+        env:
+          APPROVAL_CONFIGURED: ${{ vars.DEMO_INFRA_APPROVAL_CONFIGURED }}
+        run: |
+          [[ "$APPROVAL_CONFIGURED" == yes ]] || {
+            echo "::error::Set required reviewers and DEMO_INFRA_APPROVAL_CONFIGURED=yes in the demo-infra-apply environment."
+            exit 1
+          }
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: opentofu/setup-opentofu@v2
+        with:
+          tofu_version: "1.13.1"
+          tofu_wrapper: false
+      - name: Use aggregator-admin credentials
+        uses: aws-actions/configure-aws-credentials@v6.3.0
+        with:
+          aws-access-key-id: ${{ secrets.AGGREGATOR_ADMIN_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AGGREGATOR_ADMIN_AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1
+          role-session-name: aggregator-demo-infra-apply
+      - name: Verify permitted AWS identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$(aws sts get-caller-identity --query Account --output text)" == 905418096305 ]]
+          [[ "$(aws sts get-caller-identity --query Arn --output text)" == *":user/aggregator-admin" ]]
+      - name: Initialize demo root
+        working-directory: deploy/infra/demo
+        run: tofu init -input=false -lockfile=readonly
+      - name: Download reviewed plan
+        if: needs.plan.outputs.has_changes == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: demo-tofu-plan-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/approved-plan
+      - name: Apply the exact saved plan
+        if: needs.plan.outputs.has_changes == 'true'
+        working-directory: deploy/infra/demo
+        shell: bash
+        run: |
+          set -euo pipefail
+          tofu apply -input=false -no-color "$RUNNER_TEMP/approved-plan/demo.tfplan"
+
+  configure:
+    name: Reapply Ansible via SSM
+    needs: [plan, apply]
+    if: needs.apply.result == 'success' && needs.plan.outputs.ansible_changed == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: opentofu/setup-opentofu@v2
+        with:
+          tofu_version: "1.13.1"
+          tofu_wrapper: false
+      - name: Use aggregator-admin credentials
+        uses: aws-actions/configure-aws-credentials@v6.3.0
+        with:
+          aws-access-key-id: ${{ secrets.AGGREGATOR_ADMIN_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AGGREGATOR_ADMIN_AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1
+          role-session-name: aggregator-demo-infra-ansible
+      - name: Initialize demo root
+        working-directory: deploy/infra/demo
+        run: tofu init -input=false -lockfile=readonly
+      - name: Discover the K3s instance
+        id: node
+        working-directory: deploy/infra/demo
+        shell: bash
+        run: |
+          set -euo pipefail
+          instance_id="$(tofu output -json k3s_instance_id | jq -r '. // empty')"
+          if [[ -z "$instance_id" ]]; then
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "Ansible skipped: the optional K3s node does not exist." >> "$GITHUB_STEP_SUMMARY"
+          elif [[ "$instance_id" =~ ^i-[a-f0-9]+$ ]]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+            echo "instance_id=$instance_id" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::Invalid instance ID from OpenTofu output."
+            exit 1
+          fi
+      - name: Reconcile node with pinned Git revision
+        if: steps.node.outputs.available == 'true'
+        shell: bash
+        env:
+          SSM_INSTANCE_ID: ${{ steps.node.outputs.instance_id }}
+          CONFIGURATION_SHA: ${{ github.sha }}
+        run: bash deploy/ansible/dispatch-ssm.sh
