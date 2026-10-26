@@ -153,6 +153,7 @@ data "aws_iam_policy_document" "infrastructure_admin_permissions" {
       "ssm:CreateDocument",
       "ssm:UpdateDocument",
       "ssm:UpdateDocumentDefaultVersion",
+      "ssm:DeleteDocument",
       "ssm:GetDocument",
       "ssm:DescribeDocument",
       "ssm:ListDocumentVersions",

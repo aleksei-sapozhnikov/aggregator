@@ -28,7 +28,6 @@ module "aggregator_demo" {
   subnet_id              = data.aws_subnet.default["aggregator_demo"].id
   availability_zone      = var.default_subnet_availability_zones["aggregator_demo"]
   private_ip             = "172.31.47.85"
-  key_name               = "Demo Aggregator"
   cpu_options = {
     core_count       = 1
     threads_per_core = 2
@@ -55,15 +54,10 @@ module "aggregator_demo" {
     { ssm = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore" },
     var.enable_bedrock ? { bedrock = "arn:aws:iam::905418096305:policy/AggregatorCallBedrockModel" } : {}
   )
-  ingress_rules = merge(
-    {
-      public_http  = { cidr_ipv4 = "0.0.0.0/0", from_port = 80, ip_protocol = "tcp", to_port = 80 }
-      public_https = { cidr_ipv4 = "0.0.0.0/0", from_port = 443, ip_protocol = "tcp", to_port = 443 }
-    },
-    var.enable_legacy_ssh ? {
-      public_ssh = { cidr_ipv4 = "0.0.0.0/0", from_port = 22, ip_protocol = "tcp", to_port = 22 }
-    } : {}
-  )
+  ingress_rules = {
+    public_http  = { cidr_ipv4 = "0.0.0.0/0", from_port = 80, ip_protocol = "tcp", to_port = 80 }
+    public_https = { cidr_ipv4 = "0.0.0.0/0", from_port = 443, ip_protocol = "tcp", to_port = 443 }
+  }
   egress_rules = {
     all_ipv4 = { cidr_ipv4 = "0.0.0.0/0", ip_protocol = "-1" }
   }

@@ -10,7 +10,11 @@
         "StringEquals": {
           "aws:RequestTag/Project": "aggregator",
           "aws:RequestTag/Environment": "demo",
-          "ec2:InstanceType": ["t3.medium", "t3.large", "t3.xlarge"]
+          "ec2:InstanceType": [
+            "t3.medium",
+            "t3.large",
+            "t3.xlarge"
+          ]
         }
       }
     },
@@ -66,12 +70,6 @@
       }
     },
     {
-      "Sid": "RunKey",
-      "Effect": "Allow",
-      "Action": "ec2:RunInstances",
-      "Resource": "arn:aws:ec2:eu-central-1:905418096305:key-pair/*"
-    },
-    {
       "Sid": "CreateSG",
       "Effect": "Allow",
       "Action": "ec2:CreateSecurityGroup",
@@ -114,18 +112,6 @@
       }
     },
     {
-      "Sid": "ImportKey",
-      "Effect": "Allow",
-      "Action": "ec2:ImportKeyPair",
-      "Resource": "arn:aws:ec2:eu-central-1:905418096305:key-pair/*",
-      "Condition": {
-        "StringEquals": {
-          "aws:RequestTag/Project": "aggregator",
-          "aws:RequestTag/Environment": "demo"
-        }
-      }
-    },
-    {
       "Sid": "TagsOnCreate",
       "Effect": "Allow",
       "Action": "ec2:CreateTags",
@@ -134,8 +120,7 @@
         "arn:aws:ec2:eu-central-1:905418096305:volume/*",
         "arn:aws:ec2:eu-central-1:905418096305:security-group/*",
         "arn:aws:ec2:eu-central-1:905418096305:security-group-rule/*",
-        "arn:aws:ec2:eu-central-1:905418096305:elastic-ip/*",
-        "arn:aws:ec2:eu-central-1:905418096305:key-pair/*"
+        "arn:aws:ec2:eu-central-1:905418096305:elastic-ip/*"
       ],
       "Condition": {
         "StringEquals": {
@@ -146,8 +131,7 @@
             "AuthorizeSecurityGroupIngress",
             "AuthorizeSecurityGroupEgress",
             "AllocateAddress",
-            "CreateVolume",
-            "ImportKeyPair"
+            "CreateVolume"
           ]
         }
       }
@@ -253,17 +237,6 @@
       }
     },
     {
-      "Sid": "DeleteKey",
-      "Effect": "Allow",
-      "Action": "ec2:DeleteKeyPair",
-      "Resource": "arn:aws:ec2:eu-central-1:905418096305:key-pair/*",
-      "Condition": {
-        "StringEquals": {
-          "aws:ResourceTag/Project": "aggregator"
-        }
-      }
-    },
-    {
       "Sid": "ManageTags",
       "Effect": "Allow",
       "Action": ["ec2:CreateTags", "ec2:DeleteTags"],
@@ -272,8 +245,7 @@
         "arn:aws:ec2:eu-central-1:905418096305:volume/*",
         "arn:aws:ec2:eu-central-1:905418096305:security-group/*",
         "arn:aws:ec2:eu-central-1:905418096305:security-group-rule/*",
-        "arn:aws:ec2:eu-central-1:905418096305:elastic-ip/*",
-        "arn:aws:ec2:eu-central-1:905418096305:key-pair/*"
+        "arn:aws:ec2:eu-central-1:905418096305:elastic-ip/*"
       ],
       "Condition": {
         "StringEquals": {
@@ -288,7 +260,10 @@
       "Resource": "*",
       "Condition": {
         "ForAnyValue:StringEquals": {
-          "aws:TagKeys": ["Project", "Environment"]
+          "aws:TagKeys": [
+            "Project",
+            "Environment"
+          ]
         },
         "Null": {
           "ec2:CreateAction": "true"

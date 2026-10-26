@@ -1,0 +1,9 @@
+{
+  "_capturedFromAWS": false,
+  "schemaVersion": "1.0",
+  "description": "Document to hold regional settings for Session Manager",
+  "sessionType": "Standard_Stream",
+  "inputs": {
+    "runAsEnabled": true
+  }
+}

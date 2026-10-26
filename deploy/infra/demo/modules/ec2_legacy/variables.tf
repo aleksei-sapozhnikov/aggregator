@@ -81,12 +81,6 @@ variable "private_ip" {
   default     = null
 }
 
-variable "key_name" {
-  description = "Existing EC2 SSH key pair name."
-  type        = string
-  default     = null
-}
-
 variable "cpu_options" {
   description = "Optional CPU topology. Omit to use the selected instance type's AWS defaults."
   type = object({

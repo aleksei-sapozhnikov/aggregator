@@ -59,9 +59,9 @@ and the serving instance role receives `AmazonSSMManagedInstanceCore`.
 The serving host must have an online SSM Agent at version 3.3.2746.0 or newer,
 and outbound HTTPS access to Systems Manager.
 
-Keep `enable_legacy_ssh=true` during the cutover. After proving SSM remote
-deployment works, set `enable_legacy_ssh=false` and apply again to remove
-inbound SSH. This does not remove the EC2 key pair or replace the instance.
+Ingress is limited to HTTP/HTTPS. No SSH key, access rule, or compatibility
+switch is configured. Review `tofu plan` before applying to an existing
+instance; an unexpected EC2 replacement must not be approved.
 
 ## Interactive Session Manager access
 

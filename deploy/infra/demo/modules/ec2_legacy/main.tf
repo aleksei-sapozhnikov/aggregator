@@ -60,7 +60,6 @@ resource "aws_vpc_security_group_ingress_rule" "rules" {
   from_port         = each.value.from_port
   ip_protocol       = each.value.ip_protocol
   to_port           = each.value.to_port
-  # Allow intentional ingress removal after the SSM cutover, especially TCP/22.
 }
 
 resource "aws_vpc_security_group_egress_rule" "rules" {
@@ -79,7 +78,6 @@ resource "aws_instance" "this" {
   ami                    = var.ami_id
   instance_type          = var.instance_type
   availability_zone      = var.availability_zone
-  key_name               = var.key_name
   subnet_id              = var.subnet_id
   vpc_security_group_ids = [aws_security_group.instance_access.id]
   iam_instance_profile   = aws_iam_instance_profile.ec2.name

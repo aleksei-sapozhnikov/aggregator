@@ -88,17 +88,16 @@ Session Manager shell only on the tagged `demo-aggregator` or future
 their own sessions.
 
 The IAM user `aggregator-admin` is tagged `SSMSessionRunAs=ec2-user`.
-For this tag to take effect, enable **Run As support for Linux instances**
-under Systems Manager > Session Manager > Preferences in `eu-central-1`.
-Keep existing logging, encryption, and timeout preferences unchanged.
+Regional Run As preferences are defined in
+`session_manager_preferences.tf` and the captured JSON document.
 Session preferences apply to every managed instance in the selected account
-and region. The IAM tag has priority over the account default OS user.
+and region. The IAM tag takes priority over the account default OS user.
 
 Test `whoami` and `id -u` in the browser shell. The expected user is
 `ec2-user` with a nonzero UID. This is not a strict privilege separation:
 `ec2-user` usually has sudo access and the serving demo user has Docker
-access. Do not overwrite `SSM-SessionManagerRunShell` from this stack;
-it might contain existing account-wide logging or encryption settings.
+access. The session document is managed in this root using a snapshot of the
+existing regional settings to preserve session logging and encryption.
 
 Apply this root as `infra-admin`, then sign in to AWS as
 `aggregator-admin` and select EC2 > Instances > demo-aggregator >
@@ -107,26 +106,45 @@ Connect tab: it requires SSH, and the demo security group has closed
 TCP/22. A successfully executed SSM Run Command does not grant the
 console user interactive Session Manager access.
 
-The original EC2 key pairs were deleted manually. Keep the serving EC2
-`key_name` field unchanged: clearing it in Terraform may replace the
-instance, and it has no effect on Session Manager. The future k3s
-module uses no EC2 key pair or SSH ingress.
+The serving EC2 and future k3s module do not specify SSH key pairs
+or expose TCP/22. Administrative access uses Session Manager.
 
-## Regional Session Manager Run As preferences
+## Regional Session Manager preferences as code
 
-The `infra-admin` group may create or update **only**
-`SSM-SessionManagerRunShell` in `eu-central-1`. This account-level
-document may already exist with logging and encryption preferences;
-review and preserve them rather than recreating or overwriting it.
+`session_manager_preferences.tf` manages the actual
+`SSM-SessionManagerRunShell` document using the schema 1.0 Session type.
+Run As is always enabled; `aggregator-admin` is tagged
+`SSMSessionRunAs=ec2-user`.
 
-After applying the admin OpenTofu stack, sign into AWS as `infra-admin`:
-Systems Manager > Session Manager > Preferences > Edit > enable **Run As
-support for Linux instances**. Preserve existing logging, encryption,
-timeouts and optional fallback OS user. The `aggregator-admin` IAM tag
-`SSMSessionRunAs=ec2-user` determines the shell identity on the serving
-and future k3s instances; it overrides the account fallback OS user.
+Before the first apply, **capture the current live document** to preserve
+existing logging, encryption, idle timeouts and shell profiles. The
+checked-in `session-manager-preferences.json` is deliberately marked as
+uncaptured; `tofu plan` must fail until the live snapshot is captured.
 
-If Run As is enabled without a fallback OS user, IAM identities without
-a valid `SSMSessionRunAs` tag can no longer start interactive sessions.
-This is an intentional account-level change that should be reviewed
-before saving. Test as `aggregator-admin` in a new browser session.
+In PowerShell, after pulling `dev`:
+
+```powershell
+cd C:\work\aggregator\deploy\infra\admin
+$env:AWS_PROFILE = "infra-admin"
+.\scripts\capture-session-preferences.ps1
+tofu import aws_ssm_document.session_manager_preferences SSM-SessionManagerRunShell
+tofu plan
+```
+
+Review the captured `session-manager-preferences.json`, then commit it to
+Git when the values are correct. The resource preserves all captured fields
+except its private `_capturedFromAWS` marker and sets
+`inputs.runAsEnabled=true`. The document uses Session schema 1.0, so
+OpenTofu will plan a **replacement of the SSM document** on content
+changes, not an in-place update. Check that *only this SSM document* is
+replaced; no EC2 replacement should appear. Existing interactive sessions
+may need reconnection during the replacement.
+
+Once the plan is reviewed, run `tofu apply`. Subsequent applies use the
+captured declarative JSON, so changes in AWS can be identified as drift.
+The document's IAM management permissions are limited to this named
+document in `eu-central-1`.
+
+Do not manually edit regional Session Manager preferences in the AWS
+Console after they are under OpenTofu management. For future changes,
+edit `session-manager-preferences.json` and review the replacement plan.
