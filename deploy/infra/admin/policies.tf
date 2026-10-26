@@ -158,6 +158,8 @@ data "aws_iam_policy_document" "infrastructure_admin_permissions" {
       "ssm:DescribeDocument",
       "ssm:ListDocumentVersions",
       "ssm:ListTagsForResource",
+      "ssm:AddTagsToResource",
+      "ssm:RemoveTagsFromResource",
     ]
     resources = [
       "arn:aws:ssm:eu-central-1:905418096305:document/SSM-SessionManagerRunShell",

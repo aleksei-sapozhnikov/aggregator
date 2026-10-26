@@ -10,11 +10,3 @@ provider "aws" {
     }
   }
 }
-
-# Session Manager preferences are an account-level document without resource tags.
-# Keep this provider free of default_tags so updates do not require SSM tagging.
-provider "aws" {
-  alias               = "session_preferences"
-  region              = "eu-central-1"
-  allowed_account_ids = ["905418096305"]
-}

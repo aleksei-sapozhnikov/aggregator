@@ -6,7 +6,6 @@ locals {
 }
 
 resource "aws_ssm_document" "session_manager_preferences" {
-  provider        = aws.session_preferences
   name            = "SSM-SessionManagerRunShell"
   document_type   = "Session"
   document_format = "JSON"
