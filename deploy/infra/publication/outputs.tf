@@ -1,3 +1,5 @@
+# Resource identifiers for publication operators and local tools.
+
 output "publication_function_name" {
   description = "Stable name of the publication Lambda function"
   value       = aws_lambda_function.runner.function_name
@@ -66,4 +68,14 @@ output "publication_failure_topic_arn" {
 output "publication_log_group_name" {
   description = "CloudWatch log group used by the publication Lambda"
   value       = aws_cloudwatch_log_group.publication.name
+}
+
+output "github_token_secret_arn" {
+  description = "Secrets Manager ARN read by the publication Lambda for GitHub API access"
+  value       = aws_secretsmanager_secret.github_token.arn
+}
+
+output "project_token_secret_arn" {
+  description = "Secrets Manager ARN read by the publication Lambda for GitHub Projects access"
+  value       = aws_secretsmanager_secret.project_token.arn
 }

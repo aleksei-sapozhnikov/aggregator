@@ -1,0 +1,9 @@
+# Local Python environments, caches, and generated artifacts.
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+build/
+*.zip
+.env

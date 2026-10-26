@@ -1,0 +1,28 @@
+# Local OpenTofu data, plans, and variable values.
+.terraform/
+.tofu/
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.plan
+crash.log
+crash.*.log
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+!*.tfvars.example.json
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.temp/
+.env
+
+# Local Python environments, caches, and Lambda artifacts.
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+build/
+*.zip
