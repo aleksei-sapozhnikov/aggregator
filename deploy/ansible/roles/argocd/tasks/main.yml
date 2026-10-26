@@ -1,0 +1,51 @@
+---
+- name: Create the directory for pinned Argo CD manifests
+  ansible.builtin.file:
+    path: /opt/aggregator-manifests
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Download the pinned Argo CD installation manifest
+  ansible.builtin.get_url:
+    url: "https://raw.githubusercontent.com/argoproj/argo-cd/{{ argocd_version }}/manifests/install.yaml"
+    dest: "/opt/aggregator-manifests/argocd-{{ argocd_version }}.yaml"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Check whether the Argo CD namespace exists
+  ansible.builtin.command: /usr/local/bin/k3s kubectl get namespace argocd
+  register: argocd_namespace
+  changed_when: false
+  failed_when: false
+
+- name: Create the Argo CD namespace
+  ansible.builtin.command: /usr/local/bin/k3s kubectl create namespace argocd
+  when: argocd_namespace.rc != 0
+
+- name: Reconcile the pinned Argo CD installation
+  ansible.builtin.command:
+    argv:
+      - /usr/local/bin/k3s
+      - kubectl
+      - apply
+      - --server-side
+      - --force-conflicts
+      - --namespace=argocd
+      - --filename=/opt/aggregator-manifests/argocd-{{ argocd_version }}.yaml
+  register: argocd_apply
+  changed_when: "'created' in argocd_apply.stdout or 'configured' in argocd_apply.stdout"
+
+- name: Wait for the Argo CD API server rollout
+  ansible.builtin.command:
+    argv:
+      - /usr/local/bin/k3s
+      - kubectl
+      - --namespace=argocd
+      - rollout
+      - status
+      - deployment/argocd-server
+      - --timeout=600s
+  changed_when: false

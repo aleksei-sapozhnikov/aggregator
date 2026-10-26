@@ -1,0 +1,19 @@
+---
+- name: Install node administration and Kubernetes prerequisites
+  ansible.builtin.dnf:
+    name:
+      - curl-minimal
+      - git
+      - tar
+      - gzip
+      - jq
+      - conntrack-tools
+      - iptables
+      - socat
+    state: present
+
+- name: Keep the Amazon SSM Agent enabled
+  ansible.builtin.systemd_service:
+    name: amazon-ssm-agent
+    enabled: true
+    state: started

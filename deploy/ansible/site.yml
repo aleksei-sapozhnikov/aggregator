@@ -1,0 +1,12 @@
+---
+- name: Configure the Aggregator K3s node
+  hosts: localhost
+  connection: local
+  become: true
+  gather_facts: true
+  vars:
+    ansible_python_interpreter: /opt/aggregator-ansible/bin/python
+  roles:
+    - common
+    - k3s
+    - argocd
