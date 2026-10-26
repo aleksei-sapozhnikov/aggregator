@@ -413,6 +413,9 @@ def run_secrets_command(
         print(status, flush=True)
         emit_file_only(f"Checking secrets with Trufflehog.. {status}")
         if parsed:
+            for line in (result.stdout or "").splitlines():
+                if line.startswith("Scan scope: "):
+                    emit(f"  {line}")
             emit(f"  {parsed[1]} secrets found")
         else:
             for line in (result.stdout or "").splitlines():
@@ -549,43 +552,42 @@ def run_code_qa_command(
     out_file: str = "",
     suppress_final_summary: bool = False,
 ) -> int:
-    """Check code and run module tests without modifying source files."""
-    check_rc = run_check_command(
-        modules=modules,
-        out_file=out_file,
-        append_out_file=False,
-        suppress_final_summary=True,
-    )
-    if check_rc != 0:
-        emit, _, close = build_emitter(out_file, append=True)
-        try:
-            if not suppress_final_summary:
-                emit_final_summary(emit, False)
-        finally:
-            close()
-        return 1
+    """Check and test each module before proceeding to the next one."""
+    emit, _, close = build_emitter(out_file)
+    try:
+        root = repo_root()
+        selected = [
+            module for module in MODULES
+            if modules is None or module.name in modules
+        ]
+        failed = False
 
-    test_modules = [
-        name
-        for name in (modules if modules is not None else TEST_MODULE_NAMES)
-        if MODULE_BY_NAME[name].tests
-    ]
-    if not test_modules:
-        emit, _, close = build_emitter(out_file, append=True)
-        try:
-            emit("No unit test suite is registered for the selected modules.")
-            if not suppress_final_summary:
-                emit_final_summary(emit, True)
-        finally:
-            close()
-        return 0
+        for index, module in enumerate(selected):
+            if index:
+                emit("")
+            checks_ok, _ = _run_checks(emit, [module.name])
+            if not checks_ok:
+                failed = True
+                if module.tests is not None:
+                    emit(f"  Testing {module.name}.. SKIPPED (checks failed)")
+                continue
+            if module.tests is None:
+                continue
 
-    return run_test_command(
-        modules=test_modules,
-        out_file=out_file,
-        append_out_file=True,
-        suppress_final_summary=suppress_final_summary,
-    )
+            command = test_command(module, root)
+            status, details = execute_test(command, emit, verbose=False)
+            emit(f"  Testing {module.name}.. {'OK' if status == 0 else 'FAILED'}")
+            if status != 0:
+                failed = True
+                emit(f"    command: {' '.join(command)}")
+                for line in details:
+                    emit(f"    {line}")
+
+        if not suppress_final_summary:
+            emit_final_summary(emit, not failed)
+        return 1 if failed else 0
+    finally:
+        close()
 
 
 def run_qa_command(

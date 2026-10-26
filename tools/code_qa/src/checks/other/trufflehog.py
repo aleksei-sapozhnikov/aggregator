@@ -398,6 +398,14 @@ def main() -> int:
         )
 
     targets = scoped_scan_targets(scan_root, repo_root)
+    if args.summary:
+        if targets is None:
+            print(
+                f"Scan scope: {scan_root} (recursive filesystem; "
+                "excluding .git and Git-ignored paths)"
+            )
+        else:
+            print(f"Scan scope: {len(targets)} selected file(s) under {scan_root}")
     if targets is None:
         targets = [scan_root]
     if not targets:
