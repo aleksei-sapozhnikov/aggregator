@@ -15,15 +15,12 @@ export const DASHBOARDS = {
 export const GRAFANA_FRAME_WRAPPER_REV = "v2026-03-04";
 
 const resolveTimelineDefaultRange = (): string => {
-  const configured = (import.meta.env.VITE_TIMELINE_DEFAULT_RANGE ?? "").trim();
+  const configured = (window.__AGGREGATOR_UI__?.timelineDefaultRange ?? "1d").trim();
   if (!configured) {
-    if (import.meta.env.MODE === "test") return "1d";
-    throw new Error("VITE_TIMELINE_DEFAULT_RANGE is required");
+    throw new Error("TIMELINE_DEFAULT_RANGE is required");
   }
   return configured.startsWith("now-") ? configured.slice(4) : configured;
 };
-
-const TIMELINE_DEFAULT_RANGE = resolveTimelineDefaultRange();
 
 export const resolveGrafanaBaseUrl = (): string => {
   const runtimeConfig = window.__AGGREGATOR_UI__ as
@@ -82,7 +79,7 @@ export const buildDashboardUrl = (
     "var-item_id": itemId,
     "var-app_base_url": appBaseUrl,
     theme,
-    from: `now-${TIMELINE_DEFAULT_RANGE}`,
+    from: `now-${resolveTimelineDefaultRange()}`,
     to: "now",
   });
   if (panelId !== null && panelId !== undefined && panelId !== "") {

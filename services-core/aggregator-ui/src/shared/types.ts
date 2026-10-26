@@ -110,6 +110,8 @@ export interface FailingDependencyEntry {
 }
 
 export interface AggregatorUiRuntimeConfig {
+  appTitle?: string;
+  timelineDefaultRange?: string;
   grafanaUrl?: string;
   prometheusUrl?: string;
 }

@@ -17,6 +17,12 @@
         reverse_proxy prometheus:9090
     }
 
+    handle /config.json {
+        root * /usr/share/caddy
+        header Cache-Control "no-store"
+        file_server
+    }
+
     handle /assets/* {
         root * /usr/share/caddy
         header Cache-Control "public, max-age=31536000, immutable"

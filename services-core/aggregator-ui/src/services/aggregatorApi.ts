@@ -52,7 +52,7 @@ export const resolveBaseUrl = (): string =>
   `${window.location.origin}${resolveBasePath()}`;
 
 export const resolveCatalogTitle = (): string =>
-  (import.meta.env.VITE_APP_TITLE ?? "").trim();
+  (window.__AGGREGATOR_UI__?.appTitle ?? "").trim();
 
 /** Unrecognized wire values become UNKNOWN; request failures are tracked separately. */
 const parseProductHealthStatus = (value: unknown): HealthStatus => {
