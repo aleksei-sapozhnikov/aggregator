@@ -76,7 +76,7 @@ def main() -> int:
     env[SCOPED_FILES_ENV] = scope_file
     try:
         result = subprocess.run(
-            [sys.executable, "tools/code_qa/main.py", "format"],
+            [sys.executable, "tools/code_qa/src/main.py", "format"],
             cwd=repo_root(),
             env=env,
             check=False,

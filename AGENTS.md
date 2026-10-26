@@ -51,8 +51,8 @@ change.
 ## QA and developer tooling
 
 Never invoke repository QA helper scripts under `tools/code_qa` for any reason.
-This includes, but is not limited to, `python tools/code_qa/main.py qa`,
-`python tools/code_qa/main.py lint`, and `python tools/code_qa/main.py format`.
+This includes, but is not limited to, `python tools/code_qa/src/main.py qa`,
+`python tools/code_qa/src/main.py lint`, and `python tools/code_qa/src/main.py format`.
 These scripts are reserved for humans and must not be used by agents, even when
 doing broad repository validation.
 

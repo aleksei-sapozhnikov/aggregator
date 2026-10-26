@@ -8,37 +8,35 @@ or linting workflows.
 From the repository root:
 
 ```shell
-python tools/code_qa/main.py lint
+python tools/code_qa/src/main.py qa
 ```
 
-This is the CI-style check-only path and includes the secrets scan. It finishes
+This checks every module, runs tests, and scans secrets without changing files. It finishes
 with `=== QA: PASSED ===` or `=== QA: FAILED ===`.
 
 ## Manual formatting and checks
 
-Manual `code_qa` requires local tools:
-
-```shell
-python -m pip install --upgrade ruff pyyaml
-npm install --global prettier@3.6.2
-```
+Install Python, Git, and Node.js with npm. The QA runner automatically creates
+`.temp/qa-runtime/venv` for its pinned Python requirements and installs Prettier
+into `.temp/qa-runtime/node_modules`. No activation or global package install
+is needed. The first run needs internet access; subsequent runs reuse local tools.
 
 TypeScript checks run through each npm package's `typecheck` script. When local
 package dependencies are missing, `code_qa` installs them with `npm ci` from the
 package lockfile.
 
-Available commands:
+Select a module for code checks or its registered tests:
 
 ```shell
-make code-qa
-python tools/code_qa/main.py
-python tools/code_qa/main.py format
-python tools/code_qa/main.py format-check-only
-python tools/code_qa/main.py lint
+python tools/code_qa/src/main.py code-qa --module catalog
+python tools/code_qa/src/main.py lint --module infra-publication
+python tools/code_qa/src/main.py format --module publication-tools
+python tools/code_qa/src/main.py test --module lambda-publisher
+python tools/code_qa/src/main.py modules
 ```
 
-`make code-qa` and `python tools/code_qa/main.py` run format-and-lint plus the
-secrets scan.
+Repeat `--module` to select several modules; omit it to check all modules.
+`code-qa` checks code and runs tests. `qa` also scans repository secrets.
 
 `format` runs checks, formats failed check groups such as Prettier, final
 newline, or Java formatting, then re-checks.
@@ -46,7 +44,13 @@ newline, or Java formatting, then re-checks.
 `format-check-only` runs only code checks without formatting and without the
 secrets scan.
 
-`lint` runs check-only code validation plus the secrets scan.
+`lint` runs code checks without changes or secrets scanning.
+
+Infrastructure checks bootstrap OpenTofu 1.13.1 and TFLint 0.65.0 inside
+`.temp/qa-runtime`, with local provider and plugin caches. Each infra root
+has an independent strict TFLint configuration. Catalog tests require Go 1.23+.
+See the
+[QA guide](../tools/code_qa/README.md) for profiles, prerequisites, and CI behavior.
 
 ## Dependency checks
 

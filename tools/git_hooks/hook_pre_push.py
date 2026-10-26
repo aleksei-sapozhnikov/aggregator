@@ -78,10 +78,9 @@ def main() -> int:
     env[SCOPED_FILES_ENV] = scope_file
     cmd = [
         sys.executable,
-        "tools/code_qa/run_trufflehog.py",
+        "tools/code_qa/src/main.py",
+        "secrets",
         "--scan-root=.",
-        "--summary",
-        "--quiet",
     ]
     try:
         return subprocess.run(cmd, cwd=repo_root(), env=env, check=False).returncode

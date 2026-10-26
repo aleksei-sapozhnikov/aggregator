@@ -1,0 +1,150 @@
+"""Declare module paths, code profiles, and test tasks for the orchestrator."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+COMMON_CHECKS = (
+    "json",
+    "yaml",
+    "line-endings",
+    "prettier",
+    "trailing-whitespace",
+    "final-newline",
+)
+CODE_PROFILES = {
+    "common_code": COMMON_CHECKS,
+    "java_code": COMMON_CHECKS + ("java-format",),
+    "python_code": COMMON_CHECKS + ("ruff-lint", "ruff-format"),
+    "typescript_code": COMMON_CHECKS + ("typescript",),
+    "tofu_code": COMMON_CHECKS + ("tofu-format", "tofu-validate", "tflint"),
+}
+
+
+@dataclass(frozen=True)
+class TestSpec:
+    """Select a test executor and its module-relative CLI parameters."""
+
+    kind: str
+    args: tuple[str, ...] = ()
+    verbose_args: tuple[str, ...] | None = None
+
+
+@dataclass(frozen=True)
+class ModuleSpec:
+    """Configure one module; nested modules own their files independently."""
+
+    name: str
+    path: str
+    code: str | None = "common_code"
+    tests: TestSpec | None = None
+    global_checks: tuple[str, ...] = ()
+
+    @property
+    def checks(self) -> tuple[str, ...]:
+        return CODE_PROFILES[self.code] if self.code else ()
+
+
+MODULES = (
+    ModuleSpec(
+        "aggregator", "services-core/aggregator", "java_code", TestSpec("java_tests")
+    ),
+    ModuleSpec(
+        "aggregator-ui",
+        "services-core/aggregator-ui",
+        "typescript_code",
+        TestSpec(
+            "npm_tests",
+            ("--binary", "vitest", "--", "--reporter=dot", "--no-color"),
+            ("--binary", "vitest", "--", "--reporter=verbose", "--no-color"),
+        ),
+    ),
+    ModuleSpec("catalog", "services-core/catalog", tests=TestSpec("go_tests")),
+    ModuleSpec(
+        "ai-agent",
+        "services-core/ai-agent",
+        "python_code",
+        TestSpec(
+            "pytest_tests",
+            (
+                "--requirements",
+                "src/requirements.txt",
+                "--test-directory",
+                "tests",
+                "--require-import",
+                "pytest",
+                "--require-import",
+                "fastapi",
+                "--require-import",
+                "httpx",
+                "--require-import",
+                "boto3",
+                "--require-import",
+                "lingua",
+                "--require-import",
+                "requests",
+            ),
+        ),
+    ),
+    ModuleSpec("chaos-maker", "services-demo/chaos-maker", "python_code"),
+    ModuleSpec("dummy-java", "services-demo/dummy-java", "java_code"),
+    ModuleSpec("dummy-javascript", "services-demo/dummy-javascript"),
+    ModuleSpec("dummy-python", "services-demo/dummy-python", "python_code"),
+    ModuleSpec("grafana", "services-extra/grafana"),
+    ModuleSpec("prometheus", "services-extra/prometheus"),
+    ModuleSpec("infra-admin", "deploy/infra/admin", "tofu_code"),
+    ModuleSpec("infra-demo", "deploy/infra/demo", "tofu_code"),
+    ModuleSpec("infra-publication", "deploy/infra/publication", "tofu_code"),
+    ModuleSpec(
+        "lambda-publisher",
+        "deploy/infra/publication/lambda_publisher",
+        "python_code",
+        TestSpec("unittest_tests", ("--start-directory", "tests")),
+    ),
+    ModuleSpec(
+        "publication-tools",
+        "deploy/infra/publication/tools",
+        "python_code",
+        TestSpec("unittest_tests", ("--start-directory", "tests")),
+    ),
+    ModuleSpec(
+        "code-qa",
+        "tools/code_qa",
+        "python_code",
+        TestSpec(
+            "unittest_tests",
+            (
+                "--start-directory",
+                "tests",
+                "--top-level-directory",
+                "..",
+            ),
+        ),
+    ),
+    ModuleSpec("developer-tools", "tools", "python_code"),
+    ModuleSpec(
+        "repository",
+        ".",
+        "python_code",
+        global_checks=("merge-conflicts", "added-large-files"),
+    ),
+)
+MODULE_BY_NAME = {module.name: module for module in MODULES}
+MODULE_NAMES = tuple(MODULE_BY_NAME)
+TEST_MODULE_NAMES = tuple(module.name for module in MODULES if module.tests)
+
+
+def ci_matrix() -> dict[str, list[dict[str, object]]]:
+    """Derive CI toolchains from task types rather than module names."""
+    return {
+        "include": [
+            {
+                "module": module.name,
+                "java": module.code == "java_code"
+                or bool(module.tests and module.tests.kind == "java_tests"),
+                "go": bool(module.tests and module.tests.kind == "go_tests"),
+                "tofu": module.code == "tofu_code",
+            }
+            for module in MODULES
+        ]
+    }

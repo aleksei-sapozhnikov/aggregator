@@ -239,23 +239,25 @@ clean-svc: info
 	fi
 
 # ---- Code QA commands ----
+QA_MODULE_ARGS = $(foreach module,$(MODULE),--module $(module))
+
 code-qa:
-	python tools/code_qa/main.py code-qa
+	python tools/code_qa/src/main.py code-qa $(QA_MODULE_ARGS)
 
 code-format:
-	python tools/code_qa/main.py format
+	python tools/code_qa/src/main.py format $(QA_MODULE_ARGS)
 
 code-lint:
-	python tools/code_qa/main.py lint
+	python tools/code_qa/src/main.py lint $(QA_MODULE_ARGS)
 
 test:
-	python tools/code_qa/main.py test $(if $(TEST_MODULE),--module $(TEST_MODULE),)
+	python tools/code_qa/src/main.py test $(foreach module,$(if $(MODULE),$(MODULE),$(TEST_MODULE)),--module $(module))
 
 code-secrets:
-	python tools/code_qa/main.py secrets
+	python tools/code_qa/src/main.py secrets
 
 qa:
-	python tools/code_qa/main.py qa
+	python tools/code_qa/src/main.py qa $(QA_MODULE_ARGS)
 
 deps-audit:
 	python tools/dependency_audit/check_npm.py

@@ -1,35 +1,56 @@
 # Code QA
 
-The QA runners are invoked from the repository root through the Makefile.
+Run commands from the repository root with
+`python tools/code_qa/src/main.py <command>`.
 
-| Command                         | Behavior                                                                               |
-| ------------------------------- | -------------------------------------------------------------------------------------- |
-| `make code-format`              | Check formatting and apply supported fixes, then recheck.                              |
-| `make code-lint`                | Check code quality without changing files or scanning secrets.                         |
-| `make test`                     | Run all unit tests, reporting output and status for each module.                       |
-| `make test TEST_MODULE=catalog` | Run one module (also accepts `aggregator`, `aggregator-ui`, `ai-agent`, or `code-qa`). |
-| `make code-qa`                  | Run formatting, then module tests, with no secrets scan.                               |
-| `make code-secrets`             | Run only the TruffleHog secrets scanner.                                               |
-| `make qa`                       | Run formatting, tests, and TruffleHog.                                                 |
+## Layout
 
-## Test modules
+```text
+src/
+  main.py          CLI entrypoint
+  core/            module configuration and QA orchestration
+  checks/
+    format/        formatters, linters, and infrastructure checks
+    other/         repository hygiene, file validation, and secret scanning
+    tests/         executors for a module's configured test command
+  tools/           local tool installation and resolution
+tests/             tests for code_qa itself
+requirements.txt   pinned Python dependencies for local QA tools
+```
 
-- **aggregator:** `mvn -B test` (uses an installed JDK 25 or downloads Eclipse Temurin 25 to `.temp/qa-runtime/jdk`; uses Maven on PATH or downloads and verifies Maven 3.9.11 in `.temp/qa-runtime/maven`).
-- **aggregator-ui:** `npm test -- --reporter=verbose --no-color` (uses the package lock and runs `npm ci` if Vitest is missing). The runner disables ANSI colors and renders test status symbols as ASCII text (PASS/FAIL).
-- **catalog:** `go test -v ./...` (requires Go 1.23 or newer).
-- **ai-agent:** `python -m pytest -v tests` (uses existing Python dependencies or bootstraps the QA virtualenv).
-- **code-qa:** `python -m unittest discover -s tools/code_qa -p "test_*.py" -v`.
+`src/checks/tests` contains command executors, not tests for this tool. An
+executor receives its working directory and parameters from the module
+configuration and runs one test command. `tests/` verifies code_qa behavior.
 
-Each suite runs in its own directory; a failing suite does not prevent other modules from running.
-Command output is shown in full, not truncated to the formatting check failure summary.
-A missing tool, missing module or failed dependency installation fails the test command. Maven is bootstrapped when absent from PATH; an unavailable network or invalid download checksum is reported as a setup failure.
+Configure module paths, check profiles, and test commands in
+[`src/core/modules.py`](src/core/modules.py). A module's test configuration
+selects an executor and passes it module-relative arguments.
 
-Run a single module without Make: `python tools/code_qa/main.py test --module catalog`.
-Pass `--module` more than once for a subset. All supported modules run by default.
-To save the test transcript: `python tools/code_qa/main.py test --out-file test-results.txt`.
+## Commands
 
-Ruff lint and Ruff formatting are reported as separate checks. The format
-command applies fixes only for the Ruff stage that failed.
+| Command   | Purpose                                                      |
+| --------- | ------------------------------------------------------------ |
+| `lint`    | Check configured modules without modifying files.            |
+| `format`  | Format failures, then recheck that module before continuing. |
+| `test`    | Run configured module test commands.                         |
+| `code-qa` | Check modules, then run their tests.                         |
+| `secrets` | Scan the repository with TruffleHog.                         |
+| `qa`      | Run checks, tests, and secret scanning.                      |
+| `modules` | List modules; `--json` prints the CI matrix.                 |
 
-The `code-qa` flow stops if formatting fails. Full `qa` always scans secrets, even when formatting or tests fail.
-The CI workflow runs `make qa` as its single QA entrypoint and separately verifies that formatting did not change any tracked files. The Makefile does not require `.env` or Docker/Podman for QA targets. The Java formatter also uses the cached JDK 25 when needed; `JAVA_HOME` and `PATH` are scoped to each subprocess and do not modify the system installation.
+Use `--module NAME` to select one or more modules. For example:
+
+```shell
+python tools/code_qa/src/main.py lint --module infra-demo
+python tools/code_qa/src/main.py test --module catalog
+```
+
+Python and npm dependencies, tool binaries, and caches are stored under the
+ignored `.temp/qa-runtime` directory. No global Python or npm packages are
+required.
+
+Run code_qa's own tests from the repository root with:
+
+```shell
+python -m unittest discover -s tools/code_qa/tests -t tools -p 'test_*.py'
+```
