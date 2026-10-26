@@ -31,7 +31,7 @@ afterEach(() => {
 });
 
 const showCatalogTooltip = (
-  anchor: DOMRect,
+  anchor: DOMRect | (() => DOMRect),
   tooltipWidth = 200,
   tooltipHeight = 40,
 ) => {
@@ -43,7 +43,7 @@ const showCatalogTooltip = (
         return makeRect(0, 0, tooltipWidth, tooltipHeight);
       }
       if (this.classList.contains("catalog-item-info-button")) {
-        return anchor;
+        return typeof anchor === "function" ? anchor() : anchor;
       }
       return makeRect(0, 0, 0, 0);
     },
@@ -89,7 +89,7 @@ describe("CatalogItemInfo tooltip positioning", () => {
 
   it("repositions the tooltip when the viewport is scrolled", () => {
     let anchor = makeRect(140, 24, 26, 26);
-    const tooltip = showCatalogTooltip(anchor);
+    const tooltip = showCatalogTooltip(() => anchor);
 
     expect(tooltip.style.top).toBe("56px");
 
