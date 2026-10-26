@@ -60,9 +60,7 @@ resource "aws_vpc_security_group_ingress_rule" "rules" {
   from_port         = each.value.from_port
   ip_protocol       = each.value.ip_protocol
   to_port           = each.value.to_port
-  lifecycle {
-    prevent_destroy = true
-  }
+  # Allow intentional ingress removal after the SSM cutover, especially TCP/22.
 }
 
 resource "aws_vpc_security_group_egress_rule" "rules" {
