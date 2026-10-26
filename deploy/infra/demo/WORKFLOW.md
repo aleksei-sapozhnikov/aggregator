@@ -55,7 +55,7 @@ In **Settings → Secrets and variables → Actions → Variables**, configure:
 | Repository variable | `DEMO_ENABLE_BEDROCK` | Explicit `true` or `false`. |
 | Repository variable | `AWS_DEMO_INFRA_PLAN_ROLE_ARN` | IAM role for planning via GitHub OIDC, trust restricted to `demo` branch. |
 | Repository variable | `AWS_DEMO_INFRA_APPLY_ROLE_ARN` | IAM role for apply and SSM, trust restricted to the protected `demo-infra` Environment. |
-| Optional repository variable | `DEMO_K3S_BOOTSTRAP_GIT_REF` | Immutable 40-character SHA or `dev` for new-node cloud-init. Prefer a pinned SHA. |
+| Repository variable when K3s is enabled | `DEMO_K3S_BOOTSTRAP_GIT_REF` | Pinned 40-character SHA from the `demo` branch history for first-boot cloud-init. |
 
 **Do not create AWS access-key secrets.** Existing GitHub OIDC provider is
 reused, but two separate IAM roles must be provisioned by an AWS IAM
@@ -90,8 +90,9 @@ The workflow refuses missing `DEMO_ENABLE_K3S_NODE` and
 defaults. **Setting `DEMO_ENABLE_K3S_NODE=false` after creating the node
 would plan its destruction.** Review the plan before approval.
 
-The optional bootstrap ref must remain stable between runs, since changing
-EC2 user data may cause an EC2 update/restart. For subsequent Ansible changes
+The bootstrap ref is **required as a pinned SHA when K3s is enabled**.
+It must be an ancestor of the current `demo` commit, and must remain stable
+between runs, since changing EC2 user data may cause an EC2 update/restart. For subsequent Ansible changes
 the workflow uses SSM and the immutable triggering revision, not cloud-init.
 
 The saved `demo.tfplan` may include sensitive infrastructure or state data

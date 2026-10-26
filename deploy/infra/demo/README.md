@@ -28,7 +28,7 @@ enabled. Pin the checked-in Ansible configuration to a known commit:
 ```sh
 tofu plan \
   -var='enable_k3s_node=true' \
-  -var="k3s_bootstrap_git_ref=$(git rev-parse dev)"
+  -var="k3s_bootstrap_git_ref=$(git rev-parse demo)"
 ```
 
 Apply only after reviewing a plan with the **same variables and revision**.
