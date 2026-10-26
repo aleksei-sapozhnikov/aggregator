@@ -20,6 +20,11 @@ resource "aws_iam_group_policy_attachment" "demo_demo_iam_management" {
   policy_arn = aws_iam_policy.demo_iam_management.arn
 }
 
+resource "aws_iam_group_policy_attachment" "demo_demo_ssm_management" {
+  group      = aws_iam_group.demo.name
+  policy_arn = aws_iam_policy.demo_ssm_management.arn
+}
+
 resource "aws_iam_group_policy_attachment" "demo_demo_sg_rule_creation" {
   group      = aws_iam_group.demo.name
   policy_arn = aws_iam_policy.demo_sg_rule_creation.arn

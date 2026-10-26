@@ -27,6 +27,20 @@ resource "aws_iam_policy" "demo_ec2_management" {
   }
 }
 
+resource "aws_iam_policy" "demo_ssm_management" {
+  name        = "AggregatorDemoSSMManagement"
+  path        = "/"
+  policy      = file("${path.module}/policies/AggregatorDemoSSMManagement.json")
+  description = "Manage only the Aggregator demo deployment SSM document"
+  tags = {
+    Project = "aggregator"
+  }
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
 resource "aws_iam_policy" "demo_sg_rule_creation" {
   name        = "AggregatorDemoSGRuleCreation"
   path        = "/"

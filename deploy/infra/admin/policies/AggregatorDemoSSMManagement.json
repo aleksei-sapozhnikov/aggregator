@@ -1,0 +1,33 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "CreateTaggedAggregatorDemoDeployDocument",
+      "Effect": "Allow",
+      "Action": "ssm:CreateDocument",
+      "Resource": "arn:aws:ssm:eu-central-1:905418096305:document/AggregatorDemoDeploy",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestTag/Project": "aggregator",
+          "aws:RequestTag/Environment": "demo"
+        }
+      }
+    },
+    {
+      "Sid": "ManageAggregatorDemoDeployDocument",
+      "Effect": "Allow",
+      "Action": [
+        "ssm:UpdateDocument",
+        "ssm:UpdateDocumentDefaultVersion",
+        "ssm:DeleteDocument",
+        "ssm:AddTagsToResource",
+        "ssm:RemoveTagsFromResource",
+        "ssm:DescribeDocument",
+        "ssm:GetDocument",
+        "ssm:ListDocumentVersions",
+        "ssm:ListTagsForResource"
+      ],
+      "Resource": "arn:aws:ssm:eu-central-1:905418096305:document/AggregatorDemoDeploy"
+    }
+  ]
+}

@@ -66,3 +66,14 @@ GitHub environment variable `AWS_DEMO_DEPLOY_ROLE_ARN`.
 OIDC environment subjects do not independently enforce branch restrictions.
 Older repositories typically use the legacy name-based subject; adjust the
 trust subject if immutable OIDC claims have been explicitly enabled.
+
+## Demo SSM document management permission
+
+`AggregatorDemoSSMManagement` grants the `AggregatorDemoAdmins` group
+document lifecycle permissions scoped to `AggregatorDemoDeploy` only.
+Creation requires the `Project=aggregator` and `Environment=demo` request
+tags. Other SSM documents and Run Command execution permissions are not granted.
+
+Apply this IAM change as `infra-admin` before retrying
+`deploy/infra/demo` as `aggregator-admin`. The latter already has its
+EC2 `AmazonSSMManagedInstanceCore` attachment from the previous partial apply.
