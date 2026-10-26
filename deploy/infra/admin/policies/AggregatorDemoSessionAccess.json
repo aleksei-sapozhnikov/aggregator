@@ -10,20 +10,14 @@
         "StringEquals": {
           "ssm:resourceTag/Project": "aggregator",
           "ssm:resourceTag/Environment": "demo",
-          "ssm:resourceTag/Name": [
-            "demo-aggregator",
-            "aggregator-demo-k3s"
-          ]
+          "ssm:resourceTag/Name": ["demo-aggregator", "aggregator-demo-k3s"]
         }
       }
     },
     {
       "Sid": "UseDefaultInteractiveShellDocumentOnly",
       "Effect": "Allow",
-      "Action": [
-        "ssm:StartSession",
-        "ssm:GetDocument"
-      ],
+      "Action": ["ssm:StartSession", "ssm:GetDocument"],
       "Resource": "arn:aws:ssm:eu-central-1:905418096305:document/SSM-SessionManagerRunShell"
     },
     {
