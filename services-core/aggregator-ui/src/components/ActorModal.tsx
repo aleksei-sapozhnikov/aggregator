@@ -1,4 +1,9 @@
-import ContactChipContent from "./ContactChipContent";
+import {
+  resolveContactIconId,
+  resolveContactLabel,
+  resolveContactTypeClass,
+  resolveContactTypeDisplayName,
+} from "../shared/contactUtils";
 import type { CatalogActor, CatalogContact } from "../shared/types";
 import { isPlainLeftClick } from "../shared/catalogUtils";
 import CloseButton from "./CloseButton";
@@ -18,7 +23,6 @@ type ActorModalProps = {
   isOpen: boolean;
   actor: CatalogActor | null;
   contacts: CatalogContact[];
-  primaryContact: CatalogContact | null;
   iconSpriteHref: string;
   onClose: () => void;
   onOpenContact: (contact: CatalogContact) => void;
@@ -28,7 +32,6 @@ export default function ActorModal({
   isOpen,
   actor,
   contacts,
-  primaryContact,
   iconSpriteHref,
   onClose,
   onOpenContact,
@@ -70,30 +73,40 @@ export default function ActorModal({
           <h3 className="actor-modal-subtitle">Contacts</h3>
           {orderedContacts.length > 0 ? (
             <ul className="actor-modal-contacts">
-              {orderedContacts.map((contact) => {
-                const isPrimary = primaryContact?.id === contact.id;
-                return (
-                  <li key={contact.id}>
-                    <a
-                      className="contact-chip contact-surface-chip actor-modal-contact-chip"
-                      href={`/contacts/${contact.id}`}
-                      onClick={(event) => {
-                        if (!isPlainLeftClick(event)) {
-                          return;
-                        }
-                        event.preventDefault();
-                        onOpenContact(contact);
-                      }}
+              {orderedContacts.map((contact) => (
+                <li key={contact.id}>
+                  <a
+                    className="details-text-link actor-modal-contact-link"
+                    href={`/contacts/${contact.id}`}
+                    onClick={(event) => {
+                      if (!isPlainLeftClick(event)) {
+                        return;
+                      }
+                      event.preventDefault();
+                      onOpenContact(contact);
+                    }}
+                  >
+                    <span
+                      className="actor-modal-contact-icon"
+                      title={resolveContactTypeDisplayName(contact.type)}
+                      aria-hidden="true"
                     >
-                      <ContactChipContent
-                        contact={contact}
-                        iconSpriteHref={iconSpriteHref}
-                        prefix={isPrimary ? "Primary contact" : undefined}
-                      />
-                    </a>
-                  </li>
-                );
-              })}
+                      <svg
+                        className={`contact-type-icon ${resolveContactTypeClass(contact.type)}`}
+                        viewBox="0 0 24 24"
+                        focusable="false"
+                      >
+                        <use
+                          href={`${iconSpriteHref}#${resolveContactIconId(contact.type)}`}
+                        />
+                      </svg>
+                    </span>
+                    <span className="actor-modal-contact-name">
+                      {resolveContactLabel(contact)}
+                    </span>
+                  </a>
+                </li>
+              ))}
             </ul>
           ) : (
             <p>No contacts linked to this actor.</p>
