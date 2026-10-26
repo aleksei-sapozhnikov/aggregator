@@ -12,7 +12,6 @@ import stat
 import zipfile
 from pathlib import Path
 
-
 LAMBDA_PACKAGE_NAME = "github_publication_runner"
 DEFAULT_OUTPUT = Path("build/publication-lambda.zip")
 FIXED_ZIP_TIME = (1980, 1, 1, 0, 0, 0)
@@ -40,11 +39,18 @@ def main() -> None:
         raise SystemExit("Refusing to write the ZIP inside the Lambda source tree.")
 
     members = []
-    paths = sorted(source_root.rglob("*"), key=lambda item: item.relative_to(source_root).as_posix())
+    paths = sorted(
+        source_root.rglob("*"),
+        key=lambda item: item.relative_to(source_root).as_posix(),
+    )
     for path in paths:
         if path.is_symlink():
             raise SystemExit(f"Refusing to package a symbolic link: {path}")
-        if not path.is_file() or path.suffix in {".pyc", ".pyo"} or "__pycache__" in path.parts:
+        if (
+            not path.is_file()
+            or path.suffix in {".pyc", ".pyo"}
+            or "__pycache__" in path.parts
+        ):
             continue
         source_name = path.relative_to(source_root).as_posix()
         relative_name = f"{LAMBDA_PACKAGE_NAME}/{source_name}"
@@ -59,11 +65,15 @@ def main() -> None:
             }
         )
 
-    if not members or not any(member["name"] == "github_publication_runner/handler.py" for member in members):
+    if not members or not any(
+        member["name"] == "github_publication_runner/handler.py" for member in members
+    ):
         raise SystemExit(f"Lambda handler source was not found under {source_root}")
 
     archive_buffer = io.BytesIO()
-    with zipfile.ZipFile(archive_buffer, mode="w", compression=zipfile.ZIP_STORED) as archive:
+    with zipfile.ZipFile(
+        archive_buffer, mode="w", compression=zipfile.ZIP_STORED
+    ) as archive:
         archive.comment = b""
         for member in members:
             info = zipfile.ZipInfo(member["name"], date_time=FIXED_ZIP_TIME)
@@ -82,7 +92,9 @@ def main() -> None:
     sha256_hex = digest.hex()
     sha256_base64 = base64.b64encode(digest).decode("ascii")
     checksum_path = output.with_suffix(output.suffix + ".sha256")
-    checksum_path.write_text(f"{sha256_hex}  {output.name}\n", encoding="ascii", newline="\n")
+    checksum_path.write_text(
+        f"{sha256_hex}  {output.name}\n", encoding="ascii", newline="\n"
+    )
     manifest_path = output.with_suffix(output.suffix + ".manifest.json")
     manifest = {
         "artifact": output.name,
@@ -91,8 +103,7 @@ def main() -> None:
         "compression": "stored",
         "fixed_member_timestamp_utc": "1980-01-01T00:00:00Z",
         "members": [
-            {"name": member["name"], "sha256": member["sha256"]}
-            for member in members
+            {"name": member["name"], "sha256": member["sha256"]} for member in members
         ],
     }
     manifest_path.write_text(

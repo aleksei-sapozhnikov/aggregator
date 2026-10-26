@@ -1,4 +1,5 @@
 """Parse and validate pull-request metadata, source paths, and queue CSV plans."""
+
 from __future__ import annotations
 
 import csv
@@ -9,8 +10,26 @@ from datetime import datetime, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-PLAN_COLUMNS = ("id", "branch", "release", "open_at", "merge_at", "pr_file", "entry_mode", "existing_pr_number")
-PR_FIELDS = ("id", "branch", "depends_on", "release", "version_boundary", "expected_source_commits", "outcome", "title")
+PLAN_COLUMNS = (
+    "id",
+    "branch",
+    "release",
+    "open_at",
+    "merge_at",
+    "pr_file",
+    "entry_mode",
+    "existing_pr_number",
+)
+PR_FIELDS = (
+    "id",
+    "branch",
+    "depends_on",
+    "release",
+    "version_boundary",
+    "expected_source_commits",
+    "outcome",
+    "title",
+)
 FORMULA_PREFIXES = ("=", "+", "-", "@")
 SLUG = re.compile(r"^[0-9]{3,}-[a-z0-9][a-z0-9-]*\.md$")
 TAG = re.compile(r"^v\d+\.\d+\.\d+$")
@@ -47,7 +66,7 @@ def read_mapping(path: Path) -> dict:
         for raw_line in raw.splitlines():
             if not raw_line.strip() or raw_line.lstrip().startswith("#"):
                 continue
-            if "\t" in raw_line[:len(raw_line) - len(raw_line.lstrip())]:
+            if "\t" in raw_line[: len(raw_line) - len(raw_line.lstrip())]:
                 raise ValueError("tabs in YAML indentation")
             lines.append((len(raw_line) - len(raw_line.lstrip()), raw_line.strip()))
 
@@ -98,7 +117,7 @@ def read_mapping(path: Path) -> dict:
         if end != len(lines):
             raise ValueError("inconsistent YAML indentation")
     if not isinstance(result, dict):
-        raise ValueError("top-level mapping required")
+        raise TypeError("top-level mapping required")
     return result
 
 
@@ -115,8 +134,7 @@ def read_pr(path: Path) -> dict:
     if not raw.startswith("---\n") or "\n---\n" not in raw[4:]:
         raise ValueError(f"{path}: one YAML front matter block required")
     meta, body = raw[4:].split("\n---\n", 1)
-    if body.startswith("\n"):
-        body = body[1:]
+    body = body.removeprefix("\n")
     body = body.rstrip("\n")
     lines = meta.splitlines()
     if len(lines) != len(PR_FIELDS):
@@ -131,15 +149,31 @@ def read_pr(path: Path) -> dict:
         parsed[key] = _scalar(value)
     if set(parsed) != set(PR_FIELDS):
         raise ValueError(f"{path}: missing metadata")
-    if (not body.startswith("- ") or "\n\n## Result\n- " not in body or
-            body.startswith("Title:") or "\nTitle:" in body or "\n---\n" in body):
+    if (
+        not body.startswith("- ")
+        or "\n\n## Result\n- " not in body
+        or body.startswith("Title:")
+        or "\nTitle:" in body
+        or "\n---\n" in body
+    ):
         raise ValueError(f"{path}: malformed PR body")
-    if not isinstance(parsed["id"], int) or parsed["id"] <= 0 or not isinstance(parsed["version_boundary"], bool):
+    if (
+        not isinstance(parsed["id"], int)
+        or parsed["id"] <= 0
+        or not isinstance(parsed["version_boundary"], bool)
+    ):
         raise ValueError(f"{path}: invalid ID or version flag")
-    if not isinstance(parsed["expected_source_commits"], int) or parsed["expected_source_commits"] <= 0:
+    if (
+        not isinstance(parsed["expected_source_commits"], int)
+        or parsed["expected_source_commits"] <= 0
+    ):
         raise ValueError(f"{path}: invalid expected commit count")
     for key in ("branch", "depends_on", "release", "outcome", "title"):
-        if not isinstance(parsed[key], str) or not parsed[key].strip() or parsed[key][0] in FORMULA_PREFIXES:
+        if (
+            not isinstance(parsed[key], str)
+            or not parsed[key].strip()
+            or parsed[key][0] in FORMULA_PREFIXES
+        ):
             raise ValueError(f"{path}: invalid {key}")
     parsed["body"] = body
     return parsed
@@ -157,13 +191,17 @@ def read_plan(path: Path) -> list[dict]:
     with path.open("r", encoding="utf-8-sig", newline="") as stream:
         reader = csv.DictReader(stream, strict=True)
         if tuple(reader.fieldnames or ()) != PLAN_COLUMNS:
-            raise ValueError("publication plan columns or order differ from required schema")
+            raise ValueError(
+                "publication plan columns or order differ from required schema"
+            )
         rows = list(reader)
     for row in rows:
         if None in row or any(value is None for value in row.values()):
             raise ValueError("publication plan has missing or extra cells")
         for key, value in row.items():
-            if key not in ("open_at", "merge_at") and value.startswith(FORMULA_PREFIXES):
+            if key not in ("open_at", "merge_at") and value.startswith(
+                FORMULA_PREFIXES
+            ):
                 raise ValueError(f"spreadsheet formula prefix in {key}")
     return rows
 
@@ -173,19 +211,37 @@ def _local(value: str, tz: ZoneInfo) -> datetime:
         raise ValueError(f"invalid local ISO timestamp: {value}")
     dt = datetime.fromisoformat(value)
     wall = dt.replace(tzinfo=None)
-    if wall.replace(tzinfo=tz, fold=0).utcoffset() != wall.replace(tzinfo=tz, fold=1).utcoffset():
+    if (
+        wall.replace(tzinfo=tz, fold=0).utcoffset()
+        != wall.replace(tzinfo=tz, fold=1).utcoffset()
+    ):
         raise ValueError(f"ambiguous or nonexistent local wall time: {value}")
-    matches = [fold for fold in (0, 1) if wall.replace(tzinfo=tz, fold=fold).utcoffset() == dt.utcoffset()
-               and wall.replace(tzinfo=tz, fold=fold).astimezone(timezone.utc).astimezone(tz).replace(tzinfo=None) == wall]
+    matches = [
+        fold
+        for fold in (0, 1)
+        if wall.replace(tzinfo=tz, fold=fold).utcoffset() == dt.utcoffset()
+        and wall.replace(tzinfo=tz, fold=fold)
+        .astimezone(timezone.utc)
+        .astimezone(tz)
+        .replace(tzinfo=None)
+        == wall
+    ]
     if not matches:
         raise ValueError(f"ambiguous, nonexistent, or wrong-offset local time: {value}")
     return dt
 
 
 def _safe_pr_path(root: Path, value: str, pr_dir: Path) -> Path:
-    if not value or "\\" in value or Path(value).is_absolute() or ".." in Path(value).parts:
+    if (
+        not value
+        or "\\" in value
+        or Path(value).is_absolute()
+        or ".." in Path(value).parts
+    ):
         raise ValueError(f"unsafe PR path: {value}")
     path = (root / value).resolve()
     if path.parent != pr_dir.resolve() or not SLUG.fullmatch(path.name):
-        raise ValueError(f"PR path outside active source directory or invalid filename: {value}")
+        raise ValueError(
+            f"PR path outside active source directory or invalid filename: {value}"
+        )
     return path

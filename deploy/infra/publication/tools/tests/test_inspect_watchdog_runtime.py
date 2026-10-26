@@ -8,7 +8,6 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-
 SOURCE_TOOLS = Path(__file__).resolve().parent.parent / "src"
 sys.path.insert(0, str(SOURCE_TOOLS))
 
@@ -23,17 +22,41 @@ class WatchdogSummaryTests(unittest.TestCase):
         logs = {
             "events": [
                 {"timestamp": timestamp, "message": "not JSON"},
-                {"timestamp": timestamp, "message": json.dumps({"level": "info", "phase": "end", "status": "disabled"})},
-                {"timestamp": timestamp, "message": json.dumps({"level": "error", "reason": "failed (AccessDenied): private@example.com"})},
+                {
+                    "timestamp": timestamp,
+                    "message": json.dumps(
+                        {"level": "info", "phase": "end", "status": "disabled"}
+                    ),
+                },
+                {
+                    "timestamp": timestamp,
+                    "message": json.dumps(
+                        {
+                            "level": "error",
+                            "reason": "failed (AccessDenied): private@example.com",
+                        }
+                    ),
+                },
             ]
         }
-        with patch.object(inspect_watchdog_runtime, "aws_json", side_effect=[{"Account": inspect_watchdog_runtime.EXPECTED_ACCOUNT}, logs]) as aws:
-            report = inspect_watchdog_runtime.collect_report("test-profile", "eu-central-1", start)
+        with patch.object(
+            inspect_watchdog_runtime,
+            "aws_json",
+            side_effect=[{"Account": inspect_watchdog_runtime.EXPECTED_ACCOUNT}, logs],
+        ) as aws:
+            report = inspect_watchdog_runtime.collect_report(
+                "test-profile", "eu-central-1", start
+            )
 
-        self.assertEqual([call.args[2:4] for call in aws.call_args_list], [("sts", "get-caller-identity"), ("logs", "filter-log-events")])
+        self.assertEqual(
+            [call.args[2:4] for call in aws.call_args_list],
+            [("sts", "get-caller-identity"), ("logs", "filter-log-events")],
+        )
         self.assertEqual(report["log_window_start_utc"], start)
         self.assertEqual(report["completion_events"][0]["status"], "disabled")
-        self.assertEqual(report["safe_error_events"][0]["exception_type"], "AccessDenied")
+        self.assertEqual(
+            report["safe_error_events"][0]["exception_type"], "AccessDenied"
+        )
         self.assertNotIn("private@example.com", json.dumps(report))
 
     def test_utc_timestamp_is_normalized(self):

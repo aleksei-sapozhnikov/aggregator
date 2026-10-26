@@ -11,7 +11,6 @@ from pathlib import Path
 
 from lambda_fixtures import write_source
 
-
 SOURCE_TOOLS = Path(__file__).resolve().parent.parent / "src"
 
 
@@ -30,8 +29,13 @@ class LambdaCodeDeploymentTests(unittest.TestCase):
 
             subprocess.run(
                 [
-                    sys.executable, "-B", str(module / "src" / "build_lambda_zip.py"),
-                    "--source", str(source), "--output", str(package),
+                    sys.executable,
+                    "-B",
+                    str(module / "src" / "build_lambda_zip.py"),
+                    "--source",
+                    str(source),
+                    "--output",
+                    str(package),
                 ],
                 cwd=outside,
                 check=True,
@@ -43,10 +47,14 @@ class LambdaCodeDeploymentTests(unittest.TestCase):
                     sys.executable,
                     "-B",
                     "-c",
-                    "import sys; from pathlib import Path; sys.path.insert(0, sys.argv[1]); "
-                    "import deploy_lambda_code; "
-                    "deploy_lambda_code.run_builder(Path(sys.argv[2]), Path(sys.argv[3]))",
-                    str(module / "src"), str(source), str(package),
+                    (
+                        "import sys; from pathlib import Path; sys.path.insert(0, sys.argv[1]); "
+                        "import deploy_lambda_code; "
+                        "deploy_lambda_code.run_builder(Path(sys.argv[2]), Path(sys.argv[3]))"
+                    ),
+                    str(module / "src"),
+                    str(source),
+                    str(package),
                 ],
                 cwd=outside,
                 check=True,

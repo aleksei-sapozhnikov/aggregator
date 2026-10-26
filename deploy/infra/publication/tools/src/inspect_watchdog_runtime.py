@@ -12,7 +12,6 @@ from typing import Any
 
 from aws_cli import AwsCliError, aws_json
 
-
 EXPECTED_ACCOUNT = "905418096305"
 LOG_GROUP = "/aws/lambda/aggregator-publication-runner"
 ERROR_CODE = re.compile(r"\(([^)]+)\)")
@@ -46,7 +45,9 @@ def collect_report(profile: str, region: str, start_time_utc: str) -> dict[str, 
     """Read sanitized watchdog events after confirming the expected account."""
     identity = aws_json(profile, region, "sts", "get-caller-identity")
     if identity.get("Account") != EXPECTED_ACCOUNT:
-        raise RuntimeError("The selected AWS profile resolved to an unexpected account.")
+        raise RuntimeError(
+            "The selected AWS profile resolved to an unexpected account."
+        )
 
     start_time = parse_utc_timestamp(start_time_utc)
     end_time = datetime.now(timezone.utc)
@@ -75,15 +76,25 @@ def collect_report(profile: str, region: str, start_time_utc: str) -> dict[str, 
         except (json.JSONDecodeError, TypeError):
             continue
         event_time = datetime.fromtimestamp(event["timestamp"] / 1000, timezone.utc)
-        if entry.get("level") == "info" and entry.get("phase") == "start" and entry.get("kind") == "reconcile":
+        if (
+            entry.get("level") == "info"
+            and entry.get("phase") == "start"
+            and entry.get("kind") == "reconcile"
+        ):
             reconcile_start_count += 1
         elif entry.get("level") == "info" and entry.get("phase") == "end":
             completion_events.append(
-                {"timestamp_utc": iso_utc(event_time), "status": str(entry.get("status", ""))}
+                {
+                    "timestamp_utc": iso_utc(event_time),
+                    "status": str(entry.get("status", "")),
+                }
             )
         elif entry.get("level") == "error":
             safe_error_events.append(
-                {"timestamp_utc": iso_utc(event_time), "exception_type": safe_error_type(entry)}
+                {
+                    "timestamp_utc": iso_utc(event_time),
+                    "exception_type": safe_error_type(entry),
+                }
             )
 
     return {

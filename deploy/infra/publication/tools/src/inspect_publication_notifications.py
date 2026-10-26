@@ -10,7 +10,6 @@ from typing import Any
 
 from aws_cli import AwsCliError, aws_json
 
-
 EXPECTED_ACCOUNT = "905418096305"
 TOPIC_NAME = "aggregator-publication-failure"
 QUEUE_NAME = "aggregator-publication-scheduler-dlq"
@@ -55,7 +54,9 @@ def policy_summary(document: Any) -> list[dict[str, Any]]:
     ]
 
 
-def role_policy_summary(profile: str, region: str, role: str, policy: str) -> list[dict[str, Any]]:
+def role_policy_summary(
+    profile: str, region: str, role: str, policy: str
+) -> list[dict[str, Any]]:
     """Read one inline IAM policy and return its redacted statement summary."""
     result = aws_json(
         profile,
@@ -83,13 +84,15 @@ def collect_report(profile: str, region: str) -> dict[str, Any]:
     """Read the named notification resources after verifying the AWS account."""
     identity = aws_json(profile, region, "sts", "get-caller-identity")
     if identity.get("Account") != EXPECTED_ACCOUNT:
-        raise RuntimeError("The selected AWS profile resolved to an unexpected account.")
+        raise RuntimeError(
+            "The selected AWS profile resolved to an unexpected account."
+        )
 
     topic_arn = f"arn:aws:sns:{region}:{EXPECTED_ACCOUNT}:{TOPIC_NAME}"
-    queue_url = (
-        f"https://sqs.{region}.amazonaws.com/{EXPECTED_ACCOUNT}/{QUEUE_NAME}"
+    queue_url = f"https://sqs.{region}.amazonaws.com/{EXPECTED_ACCOUNT}/{QUEUE_NAME}"
+    topic = aws_json(
+        profile, region, "sns", "get-topic-attributes", "--topic-arn", topic_arn
     )
-    topic = aws_json(profile, region, "sns", "get-topic-attributes", "--topic-arn", topic_arn)
     subscriptions_response = aws_json(
         profile,
         region,
@@ -123,7 +126,9 @@ def collect_report(profile: str, region: str) -> dict[str, Any]:
     queue_attributes = queue_response.get("Attributes", {})
     queue_policy = policy_summary(parse_json_attribute(queue_attributes.get("Policy")))
     redrive_policy = parse_json_attribute(queue_attributes.get("RedrivePolicy"))
-    redrive_allow_policy = parse_json_attribute(queue_attributes.get("RedriveAllowPolicy"))
+    redrive_allow_policy = parse_json_attribute(
+        queue_attributes.get("RedriveAllowPolicy")
+    )
 
     alarms_response = aws_json(
         profile,
@@ -175,24 +180,41 @@ def collect_report(profile: str, region: str) -> dict[str, Any]:
         "scheduler_dlq": {
             "arn": queue_attributes.get("QueueArn"),
             "visible": int(queue_attributes.get("ApproximateNumberOfMessages", 0)),
-            "in_flight": int(queue_attributes.get("ApproximateNumberOfMessagesNotVisible", 0)),
-            "delayed": int(queue_attributes.get("ApproximateNumberOfMessagesDelayed", 0)),
-            "visibility_timeout_seconds": int(queue_attributes.get("VisibilityTimeout", 0)),
-            "message_retention_seconds": int(queue_attributes.get("MessageRetentionPeriod", 0)),
+            "in_flight": int(
+                queue_attributes.get("ApproximateNumberOfMessagesNotVisible", 0)
+            ),
+            "delayed": int(
+                queue_attributes.get("ApproximateNumberOfMessagesDelayed", 0)
+            ),
+            "visibility_timeout_seconds": int(
+                queue_attributes.get("VisibilityTimeout", 0)
+            ),
+            "message_retention_seconds": int(
+                queue_attributes.get("MessageRetentionPeriod", 0)
+            ),
             "delay_seconds": int(queue_attributes.get("DelaySeconds", 0)),
-            "maximum_message_size_bytes": int(queue_attributes.get("MaximumMessageSize", 0)),
-            "receive_wait_time_seconds": int(queue_attributes.get("ReceiveMessageWaitTimeSeconds", 0)),
+            "maximum_message_size_bytes": int(
+                queue_attributes.get("MaximumMessageSize", 0)
+            ),
+            "receive_wait_time_seconds": int(
+                queue_attributes.get("ReceiveMessageWaitTimeSeconds", 0)
+            ),
             "sqs_managed_sse_enabled": str(
                 queue_attributes.get("SqsManagedSseEnabled", "false")
-            ).lower() == "true",
+            ).lower()
+            == "true",
             "redrive_policy": redrive_policy,
             "redrive_allow_policy": redrive_allow_policy,
             "policy_statements": queue_policy,
             "message_bodies_read": False,
         },
         "iam": {
-            "scheduler_role_policy": role_policy_summary(profile, region, SCHEDULER_ROLE, "InvokeAndDlq"),
-            "function_runner_policy": role_policy_summary(profile, region, FUNCTION_ROLE, "Runner"),
+            "scheduler_role_policy": role_policy_summary(
+                profile, region, SCHEDULER_ROLE, "InvokeAndDlq"
+            ),
+            "function_runner_policy": role_policy_summary(
+                profile, region, FUNCTION_ROLE, "Runner"
+            ),
             "function_secret_read_policy": role_policy_summary(
                 profile, region, FUNCTION_ROLE, "PublicationSecretRead"
             ),

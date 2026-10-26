@@ -14,7 +14,6 @@ from unittest.mock import patch
 
 from lambda_fixtures import write_source
 
-
 SOURCE_TOOLS = Path(__file__).resolve().parent.parent / "src"
 sys.path.insert(0, str(SOURCE_TOOLS))
 
@@ -27,10 +26,18 @@ class LambdaPackageLayoutTests(unittest.TestCase):
             package_path = Path(temporary_directory) / "candidate.zip"
             source = write_source(Path(temporary_directory) / "source")
             stdout = io.StringIO()
-            arguments = ["build_lambda_zip.py", "--source", str(source), "--output", str(package_path)]
-            with patch.object(sys, "argv", arguments):
-                with redirect_stdout(stdout):
-                    build_lambda_zip.main()
+            arguments = [
+                "build_lambda_zip.py",
+                "--source",
+                str(source),
+                "--output",
+                str(package_path),
+            ]
+            with (
+                patch.object(sys, "argv", arguments),
+                redirect_stdout(stdout),
+            ):
+                build_lambda_zip.main()
 
             with zipfile.ZipFile(package_path) as archive:
                 names = set(archive.namelist())

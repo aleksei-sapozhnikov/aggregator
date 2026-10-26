@@ -26,8 +26,12 @@ def members(path: Path) -> dict[str, str]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("live_zip", type=Path, help="private ZIP downloaded from AWS Lambda")
-    parser.add_argument("candidate_zip", type=Path, help="source-controlled candidate ZIP")
+    parser.add_argument(
+        "live_zip", type=Path, help="private ZIP downloaded from AWS Lambda"
+    )
+    parser.add_argument(
+        "candidate_zip", type=Path, help="source-controlled candidate ZIP"
+    )
     args = parser.parse_args()
 
     try:
@@ -38,7 +42,9 @@ def main() -> int:
 
     only_live = sorted(live.keys() - candidate.keys())
     only_candidate = sorted(candidate.keys() - live.keys())
-    changed = sorted(name for name in live.keys() & candidate.keys() if live[name] != candidate[name])
+    changed = sorted(
+        name for name in live.keys() & candidate.keys() if live[name] != candidate[name]
+    )
     result = {
         "live_member_count": len(live),
         "candidate_member_count": len(candidate),
@@ -46,7 +52,11 @@ def main() -> int:
         "only_in_live": only_live,
         "only_in_candidate": only_candidate,
         "changed_members": [
-            {"name": name, "live_sha256": live[name], "candidate_sha256": candidate[name]}
+            {
+                "name": name,
+                "live_sha256": live[name],
+                "candidate_sha256": candidate[name],
+            }
             for name in changed
         ],
     }

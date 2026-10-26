@@ -1,4 +1,5 @@
 """Attach pull requests to version milestones and close milestones after release."""
+
 from __future__ import annotations
 
 import re
@@ -44,7 +45,10 @@ def attach(client, pr: dict, milestone: dict):
     if not assigned:
         client.patch(f"/issues/{pr['number']}", {"milestone": milestone["number"]})
         confirmed = client.issue(pr["number"])
-        if not confirmed.get("milestone") or confirmed["milestone"]["number"] != milestone["number"]:
+        if (
+            not confirmed.get("milestone")
+            or confirmed["milestone"]["number"] != milestone["number"]
+        ):
             raise RuntimeError("milestone assignment not confirmed")
     return milestone["number"]
 

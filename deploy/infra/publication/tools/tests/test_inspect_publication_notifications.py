@@ -7,7 +7,6 @@ import sys
 import unittest
 from pathlib import Path
 
-
 SOURCE_TOOLS = Path(__file__).resolve().parent.parent / "src"
 sys.path.insert(0, str(SOURCE_TOOLS))
 
