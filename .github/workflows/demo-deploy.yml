@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - demo
+    paths-ignore:
+      - "deploy/infra/demo/**"
+      - "deploy/ansible/**"
+      - ".github/workflows/demo-infra.yml"
   workflow_dispatch:
 
 permissions:
