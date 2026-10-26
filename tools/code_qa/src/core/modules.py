@@ -17,7 +17,9 @@ CODE_PROFILES = {
     "java_code": COMMON_CHECKS + ("java-format",) + FINAL_CHECKS,
     "python_code": COMMON_CHECKS + ("ruff-lint", "ruff-format") + FINAL_CHECKS,
     "typescript_code": COMMON_CHECKS + ("typescript",) + FINAL_CHECKS,
-    "tofu_code": COMMON_CHECKS + ("tofu-format", "tofu-validate", "tflint") + FINAL_CHECKS,
+    "tofu_code": COMMON_CHECKS
+    + ("tofu-format", "tofu-validate", "tflint")
+    + FINAL_CHECKS,
 }
 
 

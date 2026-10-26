@@ -270,7 +270,8 @@ def download_trufflehog_binary(repo_root: Path) -> str | None:
             with tarfile.open(archive_path, "r:gz") as archive:
                 member = next(
                     (
-                        entry for entry in archive.getmembers()
+                        entry
+                        for entry in archive.getmembers()
                         if entry.name in (extracted_name, "./" + extracted_name)
                         and entry.isfile()
                     ),

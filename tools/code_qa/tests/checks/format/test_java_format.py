@@ -64,9 +64,9 @@ class JavaFormatterDownloadTests(unittest.TestCase):
                 patch.object(
                     java_format.urllib.request, "urlretrieve", side_effect=download
                 ),
+                self.assertRaisesRegex(ValueError, "SHA-256"),
             ):
-                with self.assertRaisesRegex(ValueError, "SHA-256"):
-                    java_format.ensure_formatter_jar(root)
+                java_format.ensure_formatter_jar(root)
             self.assertFalse(java_format.formatter_jar_path(root).exists())
 
 

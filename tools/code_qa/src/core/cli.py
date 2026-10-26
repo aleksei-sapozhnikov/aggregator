@@ -723,9 +723,7 @@ def main() -> int:
         )
 
     if args.command == "code-qa":
-        return run_code_qa_command(
-            modules=args.module, out_file=args.out_file
-        )
+        return run_code_qa_command(modules=args.module, out_file=args.out_file)
 
     if args.command == "test":
         return run_test_command(
@@ -743,9 +741,7 @@ def main() -> int:
         )
 
     if args.command == "format":
-        return run_format_command(
-            modules=args.module, out_file=args.out_file
-        )
+        return run_format_command(modules=args.module, out_file=args.out_file)
 
     if args.command == "lint":
         return run_check_command(modules=args.module, out_file=args.out_file)

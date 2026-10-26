@@ -99,9 +99,7 @@ class OpenTofuTests(unittest.TestCase):
                 self.assertEqual(
                     tofu.run(self.directory, self.workspace, "format", manifest), 0
                 )
-            self.assertEqual(
-                run.call_args.args[0], ["tofu", "fmt", "-recursive"]
-            )
+            self.assertEqual(run.call_args.args[0], ["tofu", "fmt", "-recursive"])
 
     def test_initialization_failure_stops_validation(self) -> None:
         with (

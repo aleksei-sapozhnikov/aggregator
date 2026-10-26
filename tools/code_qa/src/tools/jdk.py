@@ -74,7 +74,11 @@ def cached_jdk_root(root: Path) -> Path:
     """Return the persistent cache location for this OS and architecture."""
     os_name, arch = platform_details()
     return (
-        root / ".local" / "qa-runtime" / "jdk" / f"temurin-{JAVA_MAJOR}-{os_name}-{arch}"
+        root
+        / ".local"
+        / "qa-runtime"
+        / "jdk"
+        / f"temurin-{JAVA_MAJOR}-{os_name}-{arch}"
     )
 
 
