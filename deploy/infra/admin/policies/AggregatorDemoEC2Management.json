@@ -10,11 +10,7 @@
         "StringEquals": {
           "aws:RequestTag/Project": "aggregator",
           "aws:RequestTag/Environment": "demo",
-          "ec2:InstanceType": [
-            "t3.medium",
-            "t3.large",
-            "t3.xlarge"
-          ]
+          "ec2:InstanceType": ["t3.medium", "t3.large", "t3.xlarge"]
         }
       }
     },
@@ -260,10 +256,7 @@
       "Resource": "*",
       "Condition": {
         "ForAnyValue:StringEquals": {
-          "aws:TagKeys": [
-            "Project",
-            "Environment"
-          ]
+          "aws:TagKeys": ["Project", "Environment"]
         },
         "Null": {
           "ec2:CreateAction": "true"

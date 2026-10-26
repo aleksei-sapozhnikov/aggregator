@@ -109,42 +109,10 @@ console user interactive Session Manager access.
 The serving EC2 and future k3s module do not specify SSH key pairs
 or expose TCP/22. Administrative access uses Session Manager.
 
-## Regional Session Manager preferences as code
+## Regional Session Manager preferences
 
-`session_manager_preferences.tf` manages the actual
-`SSM-SessionManagerRunShell` document using the schema 1.0 Session type.
-Run As is always enabled; `aggregator-admin` is tagged
-`SSMSessionRunAs=ec2-user`.
-
-Before the first apply, **capture the current live document** to preserve
-existing logging, encryption, idle timeouts and shell profiles. The
-checked-in `session-manager-preferences.json` is deliberately marked as
-uncaptured; `tofu plan` must fail until the live snapshot is captured.
-
-In PowerShell, after pulling `dev`:
-
-```powershell
-cd C:\work\aggregator\deploy\infra\admin
-$env:AWS_PROFILE = "infra-admin"
-.\scripts\capture-session-preferences.ps1
-tofu import aws_ssm_document.session_manager_preferences SSM-SessionManagerRunShell
-tofu plan
-```
-
-Review the captured `session-manager-preferences.json`, then commit it to
-Git when the values are correct. The resource preserves all captured fields
-except its private `_capturedFromAWS` marker and sets
-`inputs.runAsEnabled=true`. The document uses Session schema 1.0, so
-OpenTofu will plan a **replacement of the SSM document** on content
-changes, not an in-place update. Check that *only this SSM document* is
-replaced; no EC2 replacement should appear. Existing interactive sessions
-may need reconnection during the replacement.
-
-Once the plan is reviewed, run `tofu apply`. Subsequent applies use the
-captured declarative JSON, so changes in AWS can be identified as drift.
-The document's IAM management permissions are limited to this named
-document in `eu-central-1`.
-
-Do not manually edit regional Session Manager preferences in the AWS
-Console after they are under OpenTofu management. For future changes,
-edit `session-manager-preferences.json` and review the replacement plan.
+`session_manager_preferences.tf` owns the regional
+`SSM-SessionManagerRunShell` document. Before applying it, run
+`scripts/capture-session-preferences.ps1` to preserve the live settings.
+Import the document into OpenTofu, then review the replacement plan.
+The captured JSON is the declarative source of truth; Run As is enabled.
