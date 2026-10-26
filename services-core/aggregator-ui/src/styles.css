@@ -3235,13 +3235,17 @@ body[data-theme="dark"] .contact-email-reply {
   margin-top: 6px;
 }
 
-.actor-modal-contacts {
+.actor-modal .actor-modal-contacts {
   list-style: none;
   margin: 0;
   padding: 0 0 0 24px;
   display: flex;
   flex-direction: column;
   gap: 2px;
+}
+
+.actor-modal .actor-modal-contacts li {
+  margin: 0;
 }
 
 .actor-modal-contact-link {
