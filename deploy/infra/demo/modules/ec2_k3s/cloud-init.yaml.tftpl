@@ -14,7 +14,11 @@ write_files:
       set -euo pipefail
       umask 077
 
-      REVISION="${1:?Expected a full Git commit SHA}"
+      if [[ $# -ne 1 ]]; then
+        echo "Expected one full Git commit SHA argument" >&2
+        exit 2
+      fi
+      REVISION="$1"
       if [[ ! "$REVISION" =~ ^[a-f0-9]{40}$ ]]; then
         echo "Expected a full lowercase Git commit SHA" >&2
         exit 2
