@@ -268,6 +268,8 @@ jobs:
               echo "**Execution:** The existing K3s node is configured through SSM after approval; the playbook runs with root privileges. A Git diff describes source changes, not a remote Ansible check-mode plan."
               if [[ -s "$RUNNER_TEMP/ansible-changed-files.txt" ]]; then
                 echo
+                echo "Changed source files: $(wc -l < "$RUNNER_TEMP/ansible-changed-files.txt" | tr -d ' '). Expand the Git diff below to review them."
+                echo
                 echo "<details>"
                 echo "<summary>Changed Ansible files and Git diff (expand to inspect)</summary>"
                 echo
