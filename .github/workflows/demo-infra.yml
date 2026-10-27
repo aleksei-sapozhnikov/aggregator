@@ -46,6 +46,7 @@ jobs:
         shell: bash
         env:
           BASE_SHA: ${{ github.event.before }}
+          INFRA_WORKFLOW_ENABLED: ${{ vars.DEMO_INFRA_WORKFLOW_ENABLED }}
         run: |
           set -euo pipefail
           infra_changed=false
@@ -77,7 +78,9 @@ jobs:
           bootstrap_missing=false
           if ! git cat-file -e HEAD:deploy/k8s-live/kustomization.yaml 2>/dev/null; then
             bootstrap_missing=true
-            infra_changed=true
+            if [[ "$INFRA_WORKFLOW_ENABLED" == true ]]; then
+              infra_changed=true
+            fi
           fi
           {
             echo "infra_changed=$infra_changed"
@@ -361,7 +364,7 @@ jobs:
                 echo "</details>"
               else
                 echo
-                echo "No push comparison is available for this reapply. Review the selected commit and playbook before approval."
+                echo "No Ansible file diff is available for this run (manual reapply, unavailable commit range or first-bootstrap reconciliation). Review the selected commit and playbook before approval."
               fi
             elif [[ "$K3S_CREATED" == true ]]; then
               echo "No Ansible source changes detected. Ansible will still configure the newly created or replaced K3s EC2."
