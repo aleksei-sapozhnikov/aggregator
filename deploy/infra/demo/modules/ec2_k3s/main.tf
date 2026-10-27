@@ -129,9 +129,9 @@ resource "aws_instance" "this" {
   subnet_id                   = var.subnet_id
   associate_public_ip_address = true
   # No SSH key pair; the SSM instance profile enables remote access.
-  iam_instance_profile   = aws_iam_instance_profile.ec2.name
-  vpc_security_group_ids = [aws_security_group.instance_access.id]
-  source_dest_check      = true
+  iam_instance_profile        = aws_iam_instance_profile.ec2.name
+  vpc_security_group_ids      = [aws_security_group.instance_access.id]
+  source_dest_check           = true
   user_data                   = templatefile("${path.module}/cloud-init.yaml.tftpl", {})
   user_data_replace_on_change = true
 
