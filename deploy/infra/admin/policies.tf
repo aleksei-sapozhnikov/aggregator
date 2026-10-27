@@ -135,6 +135,8 @@ data "aws_iam_policy_document" "infrastructure_admin_permissions" {
       "arn:aws:iam::905418096305:group/Aggregator*",
       "arn:aws:iam::905418096305:policy/Aggregator*",
       "arn:aws:iam::905418096305:role/AggregatorDemoDeployGithub",
+      "arn:aws:iam::905418096305:role/AggregatorDemoInfraPlanGithub",
+      "arn:aws:iam::905418096305:role/AggregatorDemoInfraApplyGithub",
       "arn:aws:iam::905418096305:oidc-provider/token.actions.githubusercontent.com",
     ]
   }
@@ -187,5 +189,41 @@ resource "aws_iam_policy" "infrastructure_admin_management" {
 
   lifecycle {
     prevent_destroy = true
+  }
+}
+
+# IAM policies for GitHub demo infrastructure roles. All policy definitions
+# live in the central administration root, not inside the demo workload root.
+
+resource "aws_iam_policy" "demo_infra_read" {
+  name        = "AggregatorDemoInfraRead"
+  description = "Read demo infrastructure for OpenTofu planning and application"
+  policy      = file("${path.module}/policies/AggregatorDemoInfraRead.json")
+
+  tags = {
+    Project     = "aggregator"
+    Environment = "demo"
+  }
+}
+
+resource "aws_iam_policy" "demo_infra_plan_state" {
+  name        = "AggregatorDemoInfraPlanState"
+  description = "Read the demo OpenTofu state and manage only its plan lock"
+  policy      = file("${path.module}/policies/AggregatorDemoInfraPlanState.json")
+
+  tags = {
+    Project     = "aggregator"
+    Environment = "demo"
+  }
+}
+
+resource "aws_iam_policy" "demo_infra_k3s_run_command" {
+  name        = "AggregatorDemoK3sRunCommand"
+  description = "Run SSM configuration only on the Aggregator K3s demo instance"
+  policy      = file("${path.module}/policies/AggregatorDemoK3sRunCommand.json")
+
+  tags = {
+    Project     = "aggregator"
+    Environment = "demo"
   }
 }
