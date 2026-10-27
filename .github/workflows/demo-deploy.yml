@@ -139,6 +139,11 @@ jobs:
           # The manifest snapshot must come from the same source SHA as the images.
           git rm -qr --ignore-unmatch deploy/k8s
           git checkout "$RELEASE_SHA" -- deploy/k8s
+          # Keep K3s provisioning files in sync with the Compose demo sources.
+          git show "$RELEASE_SHA:services-extra/grafana/dashboards/item_health_state.json" > deploy/k8s/item_health_state.json
+          git show "$RELEASE_SHA:services-extra/grafana/provisioning/dashboards/dashboards.yaml" > deploy/k8s/dashboards.yaml
+          git show "$RELEASE_SHA:services-extra/grafana/provisioning/datasources/prometheus.yaml" > deploy/k8s/prometheus.yaml
+          git show "$RELEASE_SHA:services-extra/prometheus/prometheus.yml" > deploy/k8s/prometheus.yml
           python3 - "$RELEASE_SHA" <<'PY'
           from pathlib import Path
           import re

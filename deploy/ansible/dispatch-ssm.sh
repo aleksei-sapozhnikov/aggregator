@@ -82,6 +82,9 @@ if [ "\$sync" != Synced ] || [ "\$health" != Healthy ]; then
 fi
 # Check the real HTTP entrypoint, not merely the in-cluster Kubernetes Service.
 curl --fail --silent --show-error --retry 20 --retry-delay 3 http://127.0.0.1/config.json >/dev/null
+curl --fail --silent --show-error --retry 20 --retry-delay 3 http://127.0.0.1/catalog/api/catalog/items >/dev/null
+curl --fail --silent --show-error --retry 20 --retry-delay 3 http://127.0.0.1/api/product-health/items >/dev/null
+curl --fail --silent --show-error --retry 20 --retry-delay 3 http://127.0.0.1/grafana/api/health >/dev/null
 echo "K3s, Traefik, Argo CD and Aggregator healthy at revision $CONFIGURATION_SHA"
 SCRIPT
 )"

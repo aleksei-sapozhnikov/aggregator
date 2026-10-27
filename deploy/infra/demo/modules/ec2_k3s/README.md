@@ -34,4 +34,4 @@ is t3.large to leave room for Argo CD, Prometheus, Grafana and the application.
 
 The public HTTP address is available from OpenTofu output `k3s_public_ip`
 after a successful reviewed deployment. The full release pipeline and
-security limitations are described in [the K3s deployment README](../../../k8s/README.md).
+security limitations are described in [the K3s deployment README](../../../../k8s/README.md).

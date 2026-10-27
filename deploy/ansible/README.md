@@ -68,4 +68,4 @@ containers directly. The Application follows `k3s-demo`, published after
 successful GHCR image builds from `demo`. The SSM verification waits for
 Synced/Healthy status and checks the HTTP endpoint on localhost. The
 Kubernetes resources and release procedures are documented in
-[deploy/k8s/README.md](../../k8s/README.md).
+[deploy/k8s/README.md](../k8s/README.md).

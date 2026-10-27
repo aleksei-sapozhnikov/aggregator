@@ -10,7 +10,8 @@ Docker Compose EC2 and its public DNS are not modified.
    publishes each to GHCR with an immutable 40-character Git commit tag.
 3. The `publish-k3s-release` job snapshots `deploy/k8s` from that exact
    source commit, validates it with `kubectl kustomize`, pins all eight image
-   tags to the same commit, and pushes the result to the `k3s-demo` branch.
+   tags to the same commit, and pushes the result to the `k3s-demo` branch. The Grafana and Prometheus
+provisioning files are copied from the same source revision to avoid drift.
 4. Ansible's `gitops` role creates Argo CD Application `aggregator-demo`,
    watching `k3s-demo:deploy/k8s`. Automatic sync and self-healing reconcile
    manifests; Kubernetes pulls images from GHCR.
