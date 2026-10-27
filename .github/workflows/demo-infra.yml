@@ -35,7 +35,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - uses: opentofu/setup-opentofu@v2
@@ -102,7 +102,7 @@ jobs:
       ansible_changed: ${{ steps.changes.outputs.ansible_changed }}
       k3s_created: ${{ steps.plan.outputs.k3s_created }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -200,7 +200,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Upload the exact plan for approval and apply
         if: steps.plan.outputs.has_changes == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: demo-tofu-plan-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/demo.tfplan
@@ -227,7 +227,7 @@ jobs:
             echo "::error::Configure required reviewers for demo-infra-apply, then set its environment variable MANUAL_APPROVAL_CONFIGURED=true."
             exit 1
           }
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - name: Assume write-scoped demo OIDC role after approval
@@ -250,7 +250,7 @@ jobs:
         run: tofu init -input=false -lockfile=readonly
       - name: Download the reviewed saved plan
         if: needs.plan.outputs.has_changes == 'true'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: demo-tofu-plan-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/approved-plan
