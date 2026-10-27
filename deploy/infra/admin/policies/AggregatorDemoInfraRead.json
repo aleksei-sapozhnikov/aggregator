@@ -4,7 +4,9 @@
     {
       "Sid": "DescribeDemoEc2ForOpenTofu",
       "Effect": "Allow",
-      "Action": ["ec2:Describe*"],
+      "Action": [
+        "ec2:Describe*"
+      ],
       "Resource": "*"
     },
     {
@@ -47,6 +49,7 @@
       "Action": [
         "ssm:GetDocument",
         "ssm:DescribeDocument",
+        "ssm:DescribeDocumentPermission",
         "ssm:ListTagsForResource"
       ],
       "Resource": "arn:aws:ssm:eu-central-1:905418096305:document/AggregatorDemoDeploy"
