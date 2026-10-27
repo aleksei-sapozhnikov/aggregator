@@ -4,8 +4,9 @@ on:
   push:
     branches: [demo]
     paths-ignore:
-      - "deploy/infra/demo/**"
+      - "deploy/infra/**"
       - "deploy/ansible/**"
+      - "deploy/k8s/README.md"
       - "deploy/k8s-live/**"
       - ".github/workflows/demo-infra.yml"
   workflow_dispatch:
