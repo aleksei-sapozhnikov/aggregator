@@ -10,7 +10,11 @@
         "StringEquals": {
           "aws:RequestTag/Project": "aggregator",
           "aws:RequestTag/Environment": "demo",
-          "ec2:InstanceType": ["t3.medium", "t3.large", "t3.xlarge"]
+          "ec2:InstanceType": [
+            "t3.medium",
+            "t3.large",
+            "t3.xlarge"
+          ]
         }
       }
     },
@@ -235,7 +239,10 @@
     {
       "Sid": "ManageTags",
       "Effect": "Allow",
-      "Action": ["ec2:CreateTags", "ec2:DeleteTags"],
+      "Action": [
+        "ec2:CreateTags",
+        "ec2:DeleteTags"
+      ],
       "Resource": [
         "arn:aws:ec2:eu-central-1:905418096305:instance/*",
         "arn:aws:ec2:eu-central-1:905418096305:volume/*",
@@ -252,11 +259,17 @@
     {
       "Sid": "ProtectTags",
       "Effect": "Deny",
-      "Action": ["ec2:CreateTags", "ec2:DeleteTags"],
+      "Action": [
+        "ec2:CreateTags",
+        "ec2:DeleteTags"
+      ],
       "Resource": "*",
       "Condition": {
         "ForAnyValue:StringEquals": {
-          "aws:TagKeys": ["Project", "Environment"]
+          "aws:TagKeys": [
+            "Project",
+            "Environment"
+          ]
         },
         "Null": {
           "ec2:CreateAction": "true"
@@ -271,9 +284,13 @@
         "logs:DeleteLogGroup",
         "logs:PutRetentionPolicy",
         "logs:TagResource",
+        "logs:TagLogGroup",
         "logs:UntagResource"
       ],
-      "Resource": "arn:aws:logs:eu-central-1:905418096305:log-group:/aws/ssm/aggregator-demo-k3s"
+      "Resource": [
+        "arn:aws:logs:eu-central-1:905418096305:log-group:/aws/ssm/aggregator-demo-k3s",
+        "arn:aws:logs:eu-central-1:905418096305:log-group:/aws/ssm/aggregator-demo-k3s:*"
+      ]
     }
   ]
 }
