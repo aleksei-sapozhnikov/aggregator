@@ -5,7 +5,9 @@ Docker Compose EC2 and its public DNS are not modified.
 
 ## Deployment pipeline
 
-1. A push to `demo` triggers `.github/workflows/demo-deploy.yml`.
+1. A relevant push to `demo` triggers `.github/workflows/demo-deploy.yml`.
+   After first K3s creation, `demo-infra.yml` also dispatches this workflow
+   if `deploy/k8s-live` has not been published.
 2. Code quality must pass; the workflow builds all eight application images
    and publishes each to GHCR with the 40-character source commit SHA.
 3. After all images are available, `publish-k3s-release` copies the candidate
@@ -40,26 +42,26 @@ which are **not** durable if the EC2 instance is deleted.
   authorized `infra-admin` identity; do not change IAM manually.
 - Verify that all eight GHCR images allow **anonymous pulls**, since K3s has
   no image pull secret.
-- Merge `dev` into `demo`, push, and confirm that
-  `publish-k3s-release` created `deploy/k8s-live` in `demo`.
-  **Known prerequisite:** the repository currently has active branch
-  ruleset `demo` (ID 25923458) with `restrict updates`. The default
-  `GITHUB_TOKEN` does **not** have an established bypass, so automatic
-  promotion is expected to fail with the current settings. An explicitly
-  authorized GitHub App/bypass or another reviewed publication mechanism
-  must be configured before enabling the pipeline. Do not disable branch
-  protection or infrastructure approvals as a workaround.
+- Merge `dev` into `demo`, push, and confirm that `demo-deploy.yml`
+  publishes `deploy/k8s-live`. The workflow must be permitted to update
+  that generated directory with `GITHUB_TOKEN`. If the branch protection
+  ruleset is re-enabled, arrange authorized promotion access rather than
+  changing infrastructure approvals.
 - For K3s provisioning, set `DEMO_INFRA_WORKFLOW_ENABLED=true`,
   `ENABLE_K3S_NODE=true`, and the existing `ENABLE_BEDROCK` value.
   The infrastructure workflow automatically passes its own Git SHA to
   the SSM-driven Ansible bootstrap; no SHA variable is needed.
 - Review the OpenTofu plan and manually approve `demo-infra-apply`.
-- Once the job succeeds, use OpenTofu output `k3s_public_ip` and open
+- Once infrastructure is ready, check the **separate** `Demo deploy`
+  workflow for image publication and `demo:deploy/k8s-live` promotion.
+  Verify Argo CD becomes Synced/Healthy and then open
   `http://<k3s_public_ip>/`. No DNS cutover is performed.
 
-The infrastructure workflow waits for cloud-init/Ansible, K3s, Traefik,
-Argo CD and its Aggregator Application to be healthy, and checks the HTTP
-entrypoint and important APIs. SSM output is sent to CloudWatch Logs.
+Infrastructure verification ends when cloud-init/Ansible, K3s, Traefik
+and Argo CD are configured and ready. It does not check application
+workloads or HTTP endpoints. SSM output is sent to CloudWatch Logs.
+Before the first published release, Argo CD can temporarily report
+`ComparisonError` because `deploy/k8s-live` does not exist yet.
 
 ## Subsequent updates and rollback
 
@@ -89,9 +91,10 @@ by image rollback.
 - The default node is **t3.medium (4 GiB)**. It has **not** been proven
   sufficient for the entire stack. Watch pod OOMKills, node memory,
   CPU and scheduling; switch to a larger size if required.
-- The first boot requires an already-published `deploy/k8s-live` manifest
-  snapshot, public GHCR packages, outbound GitHub/GHCR connectivity and
-  working containers. No AWS end-to-end K3s deployment has been tested yet.
+- First application publication needs public GHCR packages, outbound
+  GitHub/GHCR connectivity and working containers. Infrastructure can
+  complete before `deploy/k8s-live` exists; the first release runs as
+  an independent `demo-deploy` workflow.
 
 ## Diagnostics
 

@@ -29,9 +29,14 @@ Both `dev` and `demo` are watched for infrastructure changes:
      OpenTofu plan JSON. After successful apply, execute the same Ansible
      wrapper via SSM as for ordinary Ansible revisions. Supply the exact
      workflow commit SHA, not a separately maintained bootstrap variable.
-  6. Ansible configures K3s, Traefik, Argo CD and its Application. The SSM
-     command checks the applied revision, Kubernetes/API readiness and
-     published application health. An error fails the approved job.
+  6. Ansible configures K3s, Traefik and Argo CD, and registers its
+     Application. SSM checks the applied revision, Kubernetes API, Traefik
+     and Argo CD readiness, and the Application resource's existence. It
+     does **not** wait for application manifests or HTTP routes.
+  7. After successful K3s configuration, `publish-first-k3s-release`
+     checks whether `demo:deploy/k8s-live` exists. If not, it dispatches
+     the existing `demo-deploy.yml` workflow, which owns image builds,
+     application publication and GitOps promotion.
 
 Cloud-init only installs OS prerequisites and the root-owned Ansible wrapper.
 It does **not** fetch the repository or run the playbook on its own.
@@ -43,7 +48,9 @@ Changes under `deploy/ansible/**` reconfigure the existing EC2 through SSM,
 without Terraform resource updates. Ordinary application changes use GitHub
 image publication and Argo CD, without running Ansible. With no relevant
 changes, the workflow can skip apply altogether. On first provisioning,
-`deploy/k8s-live` must already be published in the `demo` branch.
+the Argo CD Application may temporarily report `ComparisonError` until
+`demo-deploy.yml` publishes `deploy/k8s-live`. That does not fail
+infrastructure configuration. App release failures are tracked separately.
 To retry failed configuration without replacing EC2, run a fresh
 `workflow_dispatch` with `reapply_ansible=true` once the workflow exists on
 the repository's default branch. This produces a fresh Terraform plan, usually
@@ -59,10 +66,17 @@ SSM Run Command streams stdout and stderr to CloudWatch Logs group
 records complete logs on the instance at
 `/var/log/aggregator-node-configure.log`.
 
-This workflow does not modify the existing application deploy workflow
-(`demo-deploy.yml`) and does not run any infrastructure steps for ordinary
-application code changes. A push to `demo` is required before infrastructure
-can be applied; changes in `dev` alone never deploy.
+This workflow never builds or publishes application images. It can trigger
+the existing `demo-deploy.yml` after successful K3s configuration if no
+published GitOps release exists. The separate dispatch job holds
+`actions: write`, while the approved Terraform/SSM job retains the
+narrower permissions it previously used. The dispatched workflow runs
+independently: infrastructure success does not imply application
+deployment success. GitHub `workflow_dispatch` is available because
+`demo-deploy.yml` exists on `main` (the repository default branch).
+
+A push to `demo` is required before infrastructure can be applied;
+changes in `dev` alone never deploy.
 
 The workflow serializes itself with a concurrency group, and OpenTofu locks
 its remote S3 state while running. External/manual changes can still cause

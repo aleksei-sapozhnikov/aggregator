@@ -36,8 +36,9 @@ sudo /usr/local/sbin/aggregator-node-configure <40-character-git-commit-sha>
 
 K3s is reinstalled only if the installed pinned version differs. The
 Argo CD manifest is reapplied to reconcile drift. On a new node, the
-GitHub SSM job waits for cloud-init and checks K3s, Traefik, Argo CD,
-and the public HTTP entrypoint after configuration.
+GitHub SSM job waits for cloud-init and checks K3s, Traefik, Argo CD and
+the registered Application resource after configuration. It does not
+wait for application sync or HTTP endpoints.
 
 The K3s installer comes from the official `get.k3s.io` endpoint, with
 `INSTALL_K3S_VERSION` pinned. The installer script itself is not pinned
@@ -69,7 +70,8 @@ Ingress. Neither Argo CD nor the Kubernetes API is publicly exposed.
 
 The `gitops` role creates the Argo CD Application; it does not deploy
 containers directly. The Application watches `demo:deploy/k8s-live`, generated after
-successful GHCR image builds from `demo`. The SSM verification waits for
-Synced/Healthy status and checks the HTTP endpoint on localhost. The
-Kubernetes resources and release procedures are documented in
+successful GHCR image builds from `demo`. SSM verifies infrastructure
+only; when no published manifests exist, the infrastructure workflow
+dispatches `demo-deploy` after Ansible succeeds. The Kubernetes resources
+and release procedures are documented in
 [deploy/k8s/README.md](../k8s/README.md).
