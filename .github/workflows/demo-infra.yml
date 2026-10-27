@@ -47,50 +47,7 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.before }}
           INFRA_WORKFLOW_ENABLED: ${{ vars.DEMO_INFRA_WORKFLOW_ENABLED }}
-        run: |
-          set -euo pipefail
-          infra_changed=false
-          deploy_changed=false
-          if [[ "$GITHUB_EVENT_NAME" == workflow_dispatch ]]; then
-            # Manual runs are infrastructure reconciliations, not forced image rebuilds.
-            infra_changed=true
-          elif [[ -z "$BASE_SHA" || "$BASE_SHA" =~ ^0+$ ]] || ! git cat-file -e "$BASE_SHA^{commit}"; then
-            # Fail safe when the push range is unavailable.
-            infra_changed=true
-            deploy_changed=true
-          else
-            while IFS= read -r path; do
-              case "$path" in
-                deploy/infra/demo/*|deploy/ansible/*|.github/workflows/demo-infra.yml)
-                  infra_changed=true
-                  ;;
-                deploy/infra/*|deploy/k8s/README.md|deploy/k8s-live/*|.github/workflows/demo-deploy.yml)
-                  # Infrastructure administration, generated releases and docs do not build images.
-                  ;;
-                ?*)
-                  deploy_changed=true
-                  ;;
-              esac
-            done < <(git diff --name-only "$BASE_SHA" "$GITHUB_SHA")
-          fi
-          # A missing first release means cluster bootstrap must be reconciled
-          # before an application deploy, even on a code-only push.
-          bootstrap_missing=false
-          if ! git cat-file -e HEAD:deploy/k8s-live/kustomization.yaml 2>/dev/null; then
-            bootstrap_missing=true
-            if [[ "$INFRA_WORKFLOW_ENABLED" == true ]]; then
-              infra_changed=true
-            fi
-          fi
-          {
-            echo "infra_changed=$infra_changed"
-            echo "deploy_changed=$deploy_changed"
-            echo "bootstrap_missing=$bootstrap_missing"
-          } >> "$GITHUB_OUTPUT"
-          echo "Infrastructure changes or first bootstrap needed: $infra_changed"
-          echo "Application changes: $deploy_changed"
-          echo "Initial GitOps release missing: $bootstrap_missing"
-
+        run: bash .github/scripts/demo-infra-route-changes.sh
   validate:
     name: Validate demo OpenTofu and Ansible (no AWS access)
     needs: detect
@@ -117,41 +74,7 @@ jobs:
           tofu validate
       - name: Check Ansible syntax without an EC2 connection
         shell: bash
-        run: |
-          set -euo pipefail
-          python3 -m venv "$RUNNER_TEMP/ansible"
-          "$RUNNER_TEMP/ansible/bin/pip" install --disable-pip-version-check ansible-core==2.21.0
-          cd deploy/ansible
-          "$RUNNER_TEMP/ansible/bin/ansible-playbook" -i localhost, -c local --syntax-check site.yml
-          cd ../..
-          bash -n deploy/ansible/dispatch-ssm.sh
-          # The cloud-init wrapper must be valid Bash and never execute Ansible at boot.
-          "$RUNNER_TEMP/ansible/bin/python" - <<'PY'
-          import os
-          from pathlib import Path
-
-          import yaml
-
-          cloud_init = yaml.safe_load(
-              Path("deploy/infra/demo/modules/ec2_k3s/cloud-init.yaml.tftpl").read_text(
-                  encoding="utf-8"
-              )
-          )
-          if "runcmd" in cloud_init:
-              raise SystemExit("K3s cloud-init must not run Ansible at boot")
-          wrappers = [
-              item
-              for item in cloud_init.get("write_files", [])
-              if item.get("path") == "/usr/local/sbin/aggregator-node-configure"
-          ]
-          if len(wrappers) != 1:
-              raise SystemExit("K3s cloud-init must install exactly one Ansible wrapper")
-          Path(os.environ["RUNNER_TEMP"], "aggregator-node-configure.sh").write_text(
-              wrappers[0]["content"], encoding="utf-8"
-          )
-          PY
-          bash -n "$RUNNER_TEMP/aggregator-node-configure.sh"
-
+        run: bash .github/scripts/demo-infra-check-ansible.sh
   plan:
     name: Plan changes to demo only
     needs: [detect, validate]
@@ -176,20 +99,7 @@ jobs:
         env:
           ENABLE_K3S_NODE: ${{ vars.ENABLE_K3S_NODE }}
           ENABLE_BEDROCK: ${{ vars.ENABLE_BEDROCK }}
-        run: |
-          set -euo pipefail
-          [[ "$ENABLE_K3S_NODE" == true || "$ENABLE_K3S_NODE" == false ]] || {
-            echo "::error::ENABLE_K3S_NODE must be explicitly true or false."
-            exit 1
-          }
-          [[ "$ENABLE_BEDROCK" == true || "$ENABLE_BEDROCK" == false ]] || {
-            echo "::error::ENABLE_BEDROCK must be explicitly true or false."
-            exit 1
-          }
-          {
-            echo "TF_VAR_enable_k3s_node=$ENABLE_K3S_NODE"
-            echo "TF_VAR_enable_bedrock=$ENABLE_BEDROCK"
-          } >> "$GITHUB_ENV"
+        run: bash .github/scripts/demo-infra-check-flags.sh
       - name: Detect Ansible changes in demo
         id: changes
         shell: bash
@@ -198,37 +108,7 @@ jobs:
           MANUAL_REAPPLY: ${{ inputs.reapply_ansible }}
           BOOTSTRAP_MISSING: ${{ needs.detect.outputs.bootstrap_missing }}
           K3S_ENABLED: ${{ vars.ENABLE_K3S_NODE }}
-        run: |
-          set -euo pipefail
-          changed=false
-          reason="No Ansible source changes detected."
-          : > "$RUNNER_TEMP/ansible-changed-files.txt"
-          : > "$RUNNER_TEMP/ansible-diff.patch"
-
-          if [[ "$GITHUB_EVENT_NAME" == workflow_dispatch ]]; then
-            if [[ "$MANUAL_REAPPLY" == true ]]; then
-              changed=true
-              reason="Manual Ansible reapply requested; this run has no push-to-push Git diff."
-            fi
-          elif [[ -z "$BASE_SHA" || "$BASE_SHA" =~ ^0+$ ]] || ! git cat-file -e "$BASE_SHA^{commit}"; then
-            changed=true
-            reason="Previous commit unavailable for comparison; conservatively reapplying Ansible."
-          else
-            git diff --name-status "$BASE_SHA" "$GITHUB_SHA" -- deploy/ansible/ > "$RUNNER_TEMP/ansible-changed-files.txt"
-            if [[ -s "$RUNNER_TEMP/ansible-changed-files.txt" ]]; then
-              changed=true
-              reason="Ansible sources changed between $BASE_SHA and $GITHUB_SHA."
-              git diff --no-ext-diff --no-color "$BASE_SHA" "$GITHUB_SHA" -- deploy/ansible/ > "$RUNNER_TEMP/ansible-diff.patch"
-            fi
-          fi
-
-          if [[ "$BOOTSTRAP_MISSING" == true && "$K3S_ENABLED" == true && "$changed" != true ]]; then
-            changed=true
-            reason="No published K3s release exists yet; reapplying Ansible to verify or complete cluster bootstrap."
-          fi
-
-          printf '%s\n' "$reason" > "$RUNNER_TEMP/ansible-change-reason.txt"
-          echo "ansible_changed=$changed" >> "$GITHUB_OUTPUT"
+        run: bash .github/scripts/demo-infra-detect-ansible-changes.sh
       - name: Use read-only OIDC role for planning
         uses: aws-actions/configure-aws-credentials@v6.3.0
         with:
@@ -251,127 +131,14 @@ jobs:
         id: plan
         working-directory: deploy/infra/demo
         shell: bash
-        run: |
-          set -euo pipefail
-          set +e
-          tofu plan -input=false -no-color -detailed-exitcode -out="$RUNNER_TEMP/demo.tfplan" > "$RUNNER_TEMP/plan.log" 2>&1
-          status=$?
-          set -e
-          cat "$RUNNER_TEMP/plan.log"
-          if [[ "$status" != 0 && "$status" != 2 ]]; then exit "$status"; fi
-          if [[ "$status" == 2 ]]; then
-            echo "has_changes=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "has_changes=false" >> "$GITHUB_OUTPUT"
-          fi
-          # Detect both first-time creation and replacement using the saved plan.
-          k3s_created="$(tofu show -json "$RUNNER_TEMP/demo.tfplan" | jq -r '
-            [.resource_changes[]?
-              | select(.address == "module.aggregator_demo_k3s[0].aws_instance.this")
-              | .change.actions[]?
-              | select(. == "create")]
-            | length > 0
-          ')"
-          echo "k3s_created=$k3s_created" >> "$GITHUB_OUTPUT"
-          tofu show -no-color "$RUNNER_TEMP/demo.tfplan" > "$RUNNER_TEMP/plan.txt"
-
+        run: bash "$GITHUB_WORKSPACE/.github/scripts/demo-infra-plan.sh"
       - name: Explain Terraform and Ansible actions for approval
         shell: bash
         env:
           TERRAFORM_CHANGED: ${{ steps.plan.outputs.has_changes }}
           ANSIBLE_CHANGED: ${{ steps.changes.outputs.ansible_changed }}
           K3S_CREATED: ${{ steps.plan.outputs.k3s_created }}
-        run: |
-          set -euo pipefail
-          {
-            echo "## Demo infrastructure - approval review"
-            echo
-            echo "Commit: \`$GITHUB_SHA\`"
-            echo
-            echo "### What happens after approval"
-            if [[ "$TERRAFORM_CHANGED" == true ]]; then
-              echo "- **Terraform:** Apply the exact saved plan displayed below."
-            else
-              echo "- **Terraform:** No infrastructure changes. Terraform Apply will be skipped."
-            fi
-            if [[ "$ANSIBLE_CHANGED" == true || "$K3S_CREATED" == true ]]; then
-              echo "- **Ansible:** Reapply the playbook over AWS SSM to the K3s EC2 (if provisioned). This can change packages, services and Kubernetes configuration."
-            else
-              echo "- **Ansible:** No run required; the K3s EC2 is not being created or reconfigured."
-            fi
-            if [[ "$ANSIBLE_CHANGED" == true || "$K3S_CREATED" == true ]]; then
-              echo "- **Initial application release:** After Ansible succeeds, request the existing \`demo-deploy\` workflow only if published K3s manifests are missing."
-            fi
-            echo
-            if [[ "$TERRAFORM_CHANGED" == true && "$ANSIBLE_CHANGED" == true ]]; then
-              echo "**Why approval is required:** Both Terraform and Ansible changes were detected."
-            elif [[ "$TERRAFORM_CHANGED" == true ]]; then
-              echo "**Why approval is required:** Terraform plans infrastructure changes."
-            elif [[ "$ANSIBLE_CHANGED" == true ]]; then
-              echo "**Why approval is required:** Ansible will be reapplied, even though Terraform has no changes."
-            else
-              echo "**No approval required:** Neither Terraform nor Ansible changes were detected."
-            fi
-            echo
-            echo "### Terraform"
-            if [[ "$TERRAFORM_CHANGED" == true ]]; then
-              echo "Infrastructure changes are planned. Review the details before approving."
-            else
-              echo "No changes. The saved Terraform plan will not be applied."
-            fi
-            echo
-            echo "<details>"
-            echo "<summary>Terraform plan (expand to inspect)</summary>"
-            echo
-            echo '~~~terraform'
-            head -c 120000 "$RUNNER_TEMP/plan.txt"
-            echo
-            if [[ $(wc -c < "$RUNNER_TEMP/plan.txt") -gt 120000 ]]; then
-              echo '# Preview truncated at 120 KB. Review the complete plan in the job log.'
-            fi
-            echo '~~~'
-            echo
-            echo "</details>"
-            echo
-            echo "### Ansible"
-            if [[ "$ANSIBLE_CHANGED" == true ]]; then
-              cat "$RUNNER_TEMP/ansible-change-reason.txt"
-              echo
-              echo "**Execution:** The existing K3s node is configured through SSM after approval; the playbook runs with root privileges. A Git diff describes source changes, not a remote Ansible check-mode plan."
-              if [[ -s "$RUNNER_TEMP/ansible-changed-files.txt" ]]; then
-                echo
-                echo "Changed source files: $(wc -l < "$RUNNER_TEMP/ansible-changed-files.txt" | tr -d ' '). Expand the Git diff below to review them."
-                echo
-                echo "<details>"
-                echo "<summary>Changed Ansible files and Git diff (expand to inspect)</summary>"
-                echo
-                echo "**Changed files:**"
-                echo
-                echo '~~~text'
-                cat "$RUNNER_TEMP/ansible-changed-files.txt"
-                echo '~~~'
-                echo
-                echo "**Git diff:**"
-                echo
-                echo '~~~diff'
-                head -c 120000 "$RUNNER_TEMP/ansible-diff.patch"
-                echo
-                if [[ $(wc -c < "$RUNNER_TEMP/ansible-diff.patch") -gt 120000 ]]; then
-                  echo '# Preview truncated at 120 KB. Inspect the full Git diff for the commit range.'
-                fi
-                echo '~~~'
-                echo
-                echo "</details>"
-              else
-                echo
-                echo "No Ansible file diff is available for this run (manual reapply, unavailable commit range or first-bootstrap reconciliation). Review the selected commit and playbook before approval."
-              fi
-            elif [[ "$K3S_CREATED" == true ]]; then
-              echo "No Ansible source changes detected. Ansible will still configure the newly created or replaced K3s EC2."
-            else
-              echo "No Ansible changes detected. Ansible will not be run."
-            fi
-          } >> "$GITHUB_STEP_SUMMARY"
+        run: bash .github/scripts/demo-infra-approval-summary.sh
       - name: Upload the exact plan for approval and apply
         if: steps.plan.outputs.has_changes == 'true'
         uses: actions/upload-artifact@v7
@@ -442,19 +209,7 @@ jobs:
         id: node
         working-directory: deploy/infra/demo
         shell: bash
-        run: |
-          set -euo pipefail
-          instance_id="$(tofu output -json k3s_instance_id | jq -r '. // empty')"
-          if [[ -z "$instance_id" ]]; then
-            echo "available=false" >> "$GITHUB_OUTPUT"
-            echo "Ansible skipped: optional K3s node is not provisioned." >> "$GITHUB_STEP_SUMMARY"
-          elif [[ "$instance_id" =~ ^i-[a-f0-9]+$ ]]; then
-            echo "available=true" >> "$GITHUB_OUTPUT"
-            echo "instance_id=$instance_id" >> "$GITHUB_OUTPUT"
-          else
-            echo "::error::Unexpected K3s instance ID in OpenTofu output."
-            exit 1
-          fi
+        run: bash "$GITHUB_WORKSPACE/.github/scripts/demo-infra-find-k3s-node.sh"
       - name: Apply Ansible and verify K3s using SSM
         if: steps.node.outputs.available == 'true'
         env:
@@ -494,20 +249,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           APP_CHANGED: ${{ needs.detect.outputs.deploy_changed }}
           INFRA_CHANGED: ${{ needs.detect.outputs.infra_changed }}
-        run: |
-          set -euo pipefail
-          # Read the latest demo branch, including any previously promoted manifests.
-          git fetch --no-tags --depth=1 origin refs/heads/demo
-          release_missing=false
-          if ! git cat-file -e FETCH_HEAD:deploy/k8s-live/kustomization.yaml 2>/dev/null; then
-            release_missing=true
-          fi
-          if [[ "$APP_CHANGED" != true && "$release_missing" != true ]]; then
-            echo "No application changes and a K3s release already exists; no demo-deploy needed." >> "$GITHUB_STEP_SUMMARY"
-            exit 0
-          fi
-
-          # All builds, Compose deploys and K3s release promotion stay in demo-deploy.
-          gh api --method POST "repos/${GITHUB_REPOSITORY}/actions/workflows/demo-deploy.yml/dispatches" -f ref=demo
-          echo "Requested demo-deploy after infrastructure stage (infra changed: $INFRA_CHANGED, app changed: $APP_CHANGED, initial release missing: $release_missing)." >> "$GITHUB_STEP_SUMMARY"
-          echo "The dispatched workflow reports application deployment success separately." >> "$GITHUB_STEP_SUMMARY"
+        run: bash .github/scripts/demo-infra-dispatch-deploy.sh

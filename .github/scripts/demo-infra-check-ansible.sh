@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+set -euo pipefail
+python3 -m venv "$RUNNER_TEMP/ansible"
+"$RUNNER_TEMP/ansible/bin/pip" install --disable-pip-version-check ansible-core==2.21.0
+cd deploy/ansible
+"$RUNNER_TEMP/ansible/bin/ansible-playbook" -i localhost, -c local --syntax-check site.yml
+cd ../..
+bash -n deploy/ansible/dispatch-ssm.sh
+bash -n .github/scripts/*.sh
+# The cloud-init wrapper must be valid Bash and never execute Ansible at boot.
+"$RUNNER_TEMP/ansible/bin/python" - <<'PY'
+import os
+from pathlib import Path
+
+import yaml
+
+cloud_init = yaml.safe_load(
+    Path("deploy/infra/demo/modules/ec2_k3s/cloud-init.yaml.tftpl").read_text(
+        encoding="utf-8"
+    )
+)
+if "runcmd" in cloud_init:
+    raise SystemExit("K3s cloud-init must not run Ansible at boot")
+wrappers = [
+    item
+    for item in cloud_init.get("write_files", [])
+    if item.get("path") == "/usr/local/sbin/aggregator-node-configure"
+]
+if len(wrappers) != 1:
+    raise SystemExit("K3s cloud-init must install exactly one Ansible wrapper")
+Path(os.environ["RUNNER_TEMP"], "aggregator-node-configure.sh").write_text(
+    wrappers[0]["content"], encoding="utf-8"
+)
+PY
+bash -n "$RUNNER_TEMP/aggregator-node-configure.sh"
