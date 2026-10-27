@@ -10,3 +10,4 @@
     - common
     - k3s
     - argocd
+    - gitops

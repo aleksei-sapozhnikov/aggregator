@@ -15,9 +15,7 @@
     mode: "0600"
     content: |
       write-kubeconfig-mode: "0600"
-      disable:
-        - traefik
-        - servicelb
+      # Keep the bundled Traefik and ServiceLB enabled for IP-based HTTP ingress.
   notify: Restart K3s
 
 - name: Download the official K3s installer

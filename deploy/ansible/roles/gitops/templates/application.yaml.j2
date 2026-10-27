@@ -1,0 +1,22 @@
+# Reviewed Kubernetes definitions are pulled from the dedicated release branch.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: aggregator-demo
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/aleksei-sapozhnikov/aggregator.git
+    targetRevision: k3s-demo
+    path: deploy/k8s
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: aggregator
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - PruneLast=true
