@@ -6,7 +6,10 @@ cd deploy/ansible
 "$RUNNER_TEMP/ansible/bin/ansible-playbook" -i localhost, -c local --syntax-check site.yml
 cd ../..
 bash -n deploy/ansible/dispatch-ssm.sh
-bash -n .github/scripts/*.sh
+# Validate each workflow script independently; bash -n with multiple paths checks only the first.
+for script in .github/scripts/demo-infra/*.sh .github/scripts/demo-deploy/*.sh; do
+  bash -n "$script"
+done
 # The cloud-init wrapper must be valid Bash and never execute Ansible at boot.
 "$RUNNER_TEMP/ansible/bin/python" - <<'PY'
 import os

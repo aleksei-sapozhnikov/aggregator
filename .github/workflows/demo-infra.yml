@@ -47,7 +47,7 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.before }}
           INFRA_WORKFLOW_ENABLED: ${{ vars.DEMO_INFRA_WORKFLOW_ENABLED }}
-        run: bash .github/scripts/demo-infra-route-changes.sh
+        run: bash .github/scripts/demo-infra/route-changes.sh
   validate:
     name: Validate demo OpenTofu and Ansible (no AWS access)
     needs: detect
@@ -74,7 +74,7 @@ jobs:
           tofu validate
       - name: Check Ansible syntax without an EC2 connection
         shell: bash
-        run: bash .github/scripts/demo-infra-check-ansible.sh
+        run: bash .github/scripts/demo-infra/check-ansible.sh
   plan:
     name: Plan changes to demo only
     needs: [detect, validate]
@@ -99,7 +99,7 @@ jobs:
         env:
           ENABLE_K3S_NODE: ${{ vars.ENABLE_K3S_NODE }}
           ENABLE_BEDROCK: ${{ vars.ENABLE_BEDROCK }}
-        run: bash .github/scripts/demo-infra-check-flags.sh
+        run: bash .github/scripts/demo-infra/check-flags.sh
       - name: Detect Ansible changes in demo
         id: changes
         shell: bash
@@ -108,7 +108,7 @@ jobs:
           MANUAL_REAPPLY: ${{ inputs.reapply_ansible }}
           BOOTSTRAP_MISSING: ${{ needs.detect.outputs.bootstrap_missing }}
           K3S_ENABLED: ${{ vars.ENABLE_K3S_NODE }}
-        run: bash .github/scripts/demo-infra-detect-ansible-changes.sh
+        run: bash .github/scripts/demo-infra/detect-ansible-changes.sh
       - name: Use read-only OIDC role for planning
         uses: aws-actions/configure-aws-credentials@v6.3.0
         with:
@@ -131,14 +131,14 @@ jobs:
         id: plan
         working-directory: deploy/infra/demo
         shell: bash
-        run: bash "$GITHUB_WORKSPACE/.github/scripts/demo-infra-plan.sh"
+        run: bash "$GITHUB_WORKSPACE/.github/scripts/demo-infra/plan.sh"
       - name: Explain Terraform and Ansible actions for approval
         shell: bash
         env:
           TERRAFORM_CHANGED: ${{ steps.plan.outputs.has_changes }}
           ANSIBLE_CHANGED: ${{ steps.changes.outputs.ansible_changed }}
           K3S_CREATED: ${{ steps.plan.outputs.k3s_created }}
-        run: bash .github/scripts/demo-infra-approval-summary.sh
+        run: bash .github/scripts/demo-infra/approval-summary.sh
       - name: Upload the exact plan for approval and apply
         if: steps.plan.outputs.has_changes == 'true'
         uses: actions/upload-artifact@v7
@@ -209,7 +209,7 @@ jobs:
         id: node
         working-directory: deploy/infra/demo
         shell: bash
-        run: bash "$GITHUB_WORKSPACE/.github/scripts/demo-infra-find-k3s-node.sh"
+        run: bash "$GITHUB_WORKSPACE/.github/scripts/demo-infra/find-k3s-node.sh"
       - name: Apply Ansible and verify K3s using SSM
         if: steps.node.outputs.available == 'true'
         env:
@@ -249,4 +249,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           APP_CHANGED: ${{ needs.detect.outputs.deploy_changed }}
           INFRA_CHANGED: ${{ needs.detect.outputs.infra_changed }}
-        run: bash .github/scripts/demo-infra-dispatch-deploy.sh
+        run: bash .github/scripts/demo-infra/dispatch-deploy.sh

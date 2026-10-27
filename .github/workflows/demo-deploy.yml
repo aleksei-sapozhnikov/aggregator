@@ -121,4 +121,4 @@ jobs:
         shell: bash
         env:
           RELEASE_SHA: ${{ github.sha }}
-        run: bash .github/scripts/publish-k3s-release.sh
+        run: bash .github/scripts/demo-deploy/publish-k3s-release.sh
