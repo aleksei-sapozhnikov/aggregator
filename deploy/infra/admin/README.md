@@ -95,6 +95,15 @@ required. Apply this administrative root first with the authorized
 role ARN. The first Environment requires no approval but must allow only the
 `demo` branch. The second requires approval and also allows only `demo`. The roles are not applied merely by committing these files.
 
+When enabling K3s, apply changes to the admin root **before** the demo root.
+This includes `logs:TagResource` on
+`/aws/ssm/aggregator-demo-k3s` in `AggregatorDemoEC2Management`, and the
+narrowly scoped SSM/Bedrock policy attachments allowed on the existing
+`AggregatorDemoEC2Role` in `AggregatorDemoIAMManagement`. A successful
+GitHub infrastructure plan cannot install missing IAM permissions by itself.
+After an AccessDenied failure, create a fresh demo plan based on the updated
+state; do not apply the original artifact again.
+
 The existing `AggregatorDemoDeployGithub` role is intentionally separate:
 it is limited to serving-demo application deployment. Workload EC2 IAM
 roles and instance profiles remain in `demo`, since they belong to the

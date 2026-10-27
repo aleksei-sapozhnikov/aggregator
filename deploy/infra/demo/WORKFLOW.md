@@ -135,6 +135,34 @@ Artifacts are retained seven days. If an approval cannot finish within that
 period, rerun planning and review the new plan rather than applying a stale
 one. Approval must be based on the actual plan, not only the status of checks.
 
+## Recovering from a partially applied infrastructure plan
+
+OpenTofu can create some resources before a later AWS API operation fails.
+A failed `tofu apply` is **not** a transaction rollback. Do not delete
+the created K3s IAM role, instance profile, security group or rules manually.
+Those resources are expected to remain in the demo state.
+
+Before retrying a failure caused by `AccessDenied`:
+
+1. Apply the `deploy/infra/admin` root with the authorized `infra-admin`
+   identity. The `AggregatorDemoEC2Management` policy already includes
+   `logs:TagResource` for the dedicated K3s SSM log group. The
+   `AggregatorDemoIAMManagement` policy must also permit attaching the
+   approved Bedrock model policy to the existing `AggregatorDemoEC2Role`
+   when `ENABLE_BEDROCK=true`. Commits do not deploy these IAM policies.
+2. Trigger **a fresh** `demo-infra-plan` job against the updated remote
+   state. A subsequent reviewed push affecting `deploy/infra/demo/**` will
+   trigger the workflow. Do not reuse the previous saved plan artifact.
+3. Examine the complete new plan, including any pending modifications to
+   the *serving* demo EC2 or its IAM role, before approving `demo-infra-apply`.
+   Previously created resources should appear in state rather than being
+   created again.
+4. Apply the reviewed plan, then let the workflow configure the new EC2
+   through SSM and Ansible if an instance was created.
+
+Never force-unlock state, remove resources from state or bypass IAM policy
+boundaries as a workaround for these errors.
+
 ## SSM and troubleshooting
 
 The approved write role must allow `ssm:SendCommand` on the K3s node and
