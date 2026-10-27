@@ -168,7 +168,7 @@ Before retrying a failure caused by `AccessDenied`:
    state. A subsequent reviewed push affecting `deploy/infra/demo/**` will
    trigger the workflow. Do not reuse the previous saved plan artifact.
 3. Examine the complete new plan, including any pending modifications to
-   the *serving* demo EC2 or its IAM role, before approving `demo-infra-apply`.
+   the _serving_ demo EC2 or its IAM role, before approving `demo-infra-apply`.
    Previously created resources should appear in state rather than being
    created again.
 4. Apply the reviewed plan, then let the workflow configure the new EC2
@@ -181,7 +181,7 @@ boundaries as a workaround for these errors.
 
 The K3s Log Group is created **with tags**, so CloudWatch Logs authorizes
 both `logs:CreateLogGroup` and a tagging action. If
-`CreateLogGroup with Tags` is denied, first compare the *deployed*
+`CreateLogGroup with Tags` is denied, first compare the _deployed_
 managed policy with the source JSON; an updated Git file is not proof
 that AWS has received the new policy version.
 
