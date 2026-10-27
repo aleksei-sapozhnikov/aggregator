@@ -21,7 +21,11 @@ Both `dev` and `demo` are watched for infrastructure changes:
      artifact for seven days if it has changes.
   3. Request human approval through the `demo-infra-apply` Environment when there
      are Terraform changes or Ansible changes. The job fails closed without
-     `MANUAL_APPROVAL_CONFIGURED=true` in that environment.
+     `MANUAL_APPROVAL_CONFIGURED=true` in that environment. The planning job
+     explains **why** approval is needed even when Terraform reports no changes.
+     Its GitHub Actions job summary shows the intended Terraform/Ansible actions,
+     with a collapsed Terraform plan and a collapsed Git diff of changed Ansible
+     sources. The Git diff is not an Ansible dry-run of the remote EC2.
   4. After approval, assume the **write OIDC apply role**, download and
      apply the _same saved plan_. Never generate a different plan during
      apply. When there are no Terraform changes, skip `tofu apply`.
