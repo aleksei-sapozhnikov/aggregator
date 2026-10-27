@@ -39,8 +39,9 @@ First-boot Ansible runs from cloud-init and is not launched twice. The
 workflow waits for cloud-init to complete and checks the recorded revision
 and service health. This includes waiting for the `aggregator-demo`
 GitOps Application to become Synced and Healthy and checking HTTP on port 80.
-On first provisioning the images must have been published to the `k3s-demo`
-branch by `demo-deploy.yml`; otherwise verification fails explicitly.
+On first provisioning the images and `deploy/k8s-live` manifests must
+have been published by `demo-deploy.yml` to the same `demo` branch;
+otherwise verification fails explicitly.
 If K3s is disabled, SSM is skipped. Terraform-only
 updates to existing nodes do not automatically re-run Ansible.
 
@@ -153,7 +154,7 @@ on-node `/var/log/cloud-init-output.log` or
 ## Public K3s application deployment
 
 The new node is bootstrapped with K3s, bundled Traefik/ServiceLB and an
-Argo CD Application following the immutable-image `k3s-demo` GitOps release
-branch. See [the K3s GitOps README](../../k8s/README.md) for prerequisites,
+Argo CD Application following `demo:deploy/k8s-live`, containing only
+image versions published after the corresponding GHCR build. See [the K3s GitOps README](../../k8s/README.md) for prerequisites,
 public HTTP-by-IP behaviour, image publication, rollback and limitations.
 No DNS cutover is performed.

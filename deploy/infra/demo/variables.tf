@@ -23,7 +23,7 @@ variable "enable_k3s_node" {
 variable "k3s_instance_type" {
   description = "EC2 instance size for the optional K3s node."
   type        = string
-  default     = "t3.large"
+  default     = "t3.medium"
 }
 
 variable "k3s_root_volume_size" {

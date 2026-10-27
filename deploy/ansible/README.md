@@ -9,7 +9,7 @@ instance. It does not modify the currently serving Docker Compose demo.
 - `argocd` applies a pinned upstream Argo CD manifest in the `argocd`
   namespace with server-side apply and waits for the server rollout.
 - `gitops` registers the `aggregator-demo` Argo CD Application, tracking
-  the dedicated `k3s-demo` release branch.
+  the `demo` branch's published `deploy/k8s-live` directory.
 
 Pinned versions are in [group_vars/all.yml](group_vars/all.yml). Argo CD manages
 the applications defined in `deploy/k8s`, while Ansible manages cluster
@@ -64,7 +64,7 @@ Ingress. Neither Argo CD nor the Kubernetes API is publicly exposed.
 ## GitOps workload bootstrap
 
 The `gitops` role creates the Argo CD Application; it does not deploy
-containers directly. The Application follows `k3s-demo`, published after
+containers directly. The Application watches `demo:deploy/k8s-live`, generated after
 successful GHCR image builds from `demo`. The SSM verification waits for
 Synced/Healthy status and checks the HTTP endpoint on localhost. The
 Kubernetes resources and release procedures are documented in

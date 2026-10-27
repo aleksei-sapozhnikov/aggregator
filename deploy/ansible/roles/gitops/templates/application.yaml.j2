@@ -1,4 +1,4 @@
-# Reviewed Kubernetes definitions are pulled from the dedicated release branch.
+# Argo CD reads only the published manifests from the demo branch.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -8,8 +8,8 @@ spec:
   project: default
   source:
     repoURL: https://github.com/aleksei-sapozhnikov/aggregator.git
-    targetRevision: k3s-demo
-    path: deploy/k8s
+    targetRevision: demo
+    path: deploy/k8s-live
   destination:
     server: https://kubernetes.default.svc
     namespace: aggregator

@@ -6,6 +6,7 @@ on:
     paths-ignore:
       - "deploy/infra/demo/**"
       - "deploy/ansible/**"
+      - "deploy/k8s-live/**"
       - ".github/workflows/demo-infra.yml"
   workflow_dispatch:
 
@@ -107,7 +108,7 @@ jobs:
           DEPLOY_SHA: ${{ github.sha }}
 
   publish-k3s-release:
-    name: Publish immutable K3s GitOps release
+    name: Publish K3s release in demo
     if: github.ref == 'refs/heads/demo'
     needs: build-and-publish
     runs-on: ubuntu-latest
@@ -118,11 +119,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
       - uses: azure/setup-kubectl@v4
         with:
           version: v1.33.3
 
-      - name: Publish exactly the already-built image tags
+      - name: Promote the tested manifests and image tags
         shell: bash
         env:
           RELEASE_SHA: ${{ github.sha }}
@@ -131,27 +133,34 @@ jobs:
           [[ "$RELEASE_SHA" =~ ^[a-f0-9]{40}$ ]]
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if git fetch origin refs/heads/k3s-demo:refs/remotes/origin/k3s-demo; then
-            git switch --create k3s-demo --track origin/k3s-demo
-          else
-            git switch --create k3s-demo
+
+          # Reject stale builds: do not promote a release after demo has advanced.
+          current_demo_sha="$(git ls-remote origin refs/heads/demo | cut -f1)"
+          if [[ "$current_demo_sha" != "$RELEASE_SHA" ]]; then
+            echo "::error::demo advanced to $current_demo_sha; refusing to publish stale build $RELEASE_SHA."
+            exit 1
           fi
-          # The manifest snapshot must come from the same source SHA as the images.
-          git rm -qr --ignore-unmatch deploy/k8s
-          git checkout "$RELEASE_SHA" -- deploy/k8s
-          # Keep K3s provisioning files in sync with the Compose demo sources.
-          git show "$RELEASE_SHA:services-extra/grafana/dashboards/item_health_state.json" > deploy/k8s/item_health_state.json
-          git show "$RELEASE_SHA:services-extra/grafana/provisioning/dashboards/dashboards.yaml" > deploy/k8s/dashboards.yaml
-          git show "$RELEASE_SHA:services-extra/grafana/provisioning/datasources/prometheus.yaml" > deploy/k8s/prometheus.yaml
-          git show "$RELEASE_SHA:services-extra/prometheus/prometheus.yml" > deploy/k8s/prometheus.yml
+
+          # Argo CD watches only this generated directory, not the candidate manifests.
+          # Copy from the exact revision used to build all eight GHCR images.
+          git switch --create published-k3s "$RELEASE_SHA"
+          rm -rf deploy/k8s-live
+          cp -a deploy/k8s deploy/k8s-live
+
+          # Match Grafana/Prometheus provisioning to the same source revision.
+          cp services-extra/grafana/dashboards/item_health_state.json deploy/k8s-live/item_health_state.json
+          cp services-extra/grafana/provisioning/dashboards/dashboards.yaml deploy/k8s-live/dashboards.yaml
+          cp services-extra/grafana/provisioning/datasources/prometheus.yaml deploy/k8s-live/prometheus.yaml
+          cp services-extra/prometheus/prometheus.yml deploy/k8s-live/prometheus.yml
+
           python3 - "$RELEASE_SHA" <<'PY'
           from pathlib import Path
           import re
           import sys
 
           revision = sys.argv[1]
-          path = Path("deploy/k8s/kustomization.yaml")
-          content = path.read_text(encoding="utf-8")
+          manifest = Path("deploy/k8s-live/kustomization.yaml")
+          content = manifest.read_text(encoding="utf-8")
           updated, count = re.subn(
               r"(?m)^(\s*newTag: )[^\s]+$",
               lambda match: match.group(1) + revision,
@@ -159,15 +168,21 @@ jobs:
           )
           if count != 8:
               raise SystemExit(f"Expected 8 image tags, found {count}")
-          path.write_text(updated, encoding="utf-8")
+          manifest.write_text(updated, encoding="utf-8")
           PY
-          # Fail before publishing a broken GitOps revision.
-          kubectl kustomize deploy/k8s > "$RUNNER_TEMP/k3s-rendered.yaml"
+
+          kubectl kustomize deploy/k8s-live > "$RUNNER_TEMP/k3s-rendered.yaml"
           if grep -q ':unpublished' "$RUNNER_TEMP/k3s-rendered.yaml"; then
-            echo "::error::The GitOps release contains unpublished image tags."
+            echo "::error::Unpublished image tags in the GitOps release."
             exit 1
           fi
-          git add deploy/k8s
-          git diff --cached --quiet || git commit -m "Deploy K3s images from $RELEASE_SHA"
-          git push origin HEAD:refs/heads/k3s-demo
-          echo "GitOps K3s release: $RELEASE_SHA" >> "$GITHUB_STEP_SUMMARY"
+
+          git add -A deploy/k8s-live
+          if git diff --cached --quiet; then
+            echo "Published K3s manifests already match $RELEASE_SHA." >> "$GITHUB_STEP_SUMMARY"
+          else
+            git commit -m "Publish K3s manifests for $RELEASE_SHA"
+            # A non-fast-forward push must fail rather than overwrite a newer release.
+            git push origin HEAD:refs/heads/demo
+            echo "K3s release $RELEASE_SHA published to demo:deploy/k8s-live." >> "$GITHUB_STEP_SUMMARY"
+          fi
