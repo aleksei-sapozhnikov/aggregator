@@ -9,6 +9,7 @@ on:
       - "deploy/k8s/README.md"
       - "deploy/k8s-live/**"
       - ".github/workflows/demo-infra.yml"
+      - ".github/workflows/demo-deploy.yml"
   workflow_dispatch:
 
 permissions:
