@@ -102,13 +102,11 @@ jobs:
               echo "::error::The K3s bootstrap SHA must belong to the published demo branch history."
               exit 2
             }
-          elif [[ -n "$BOOTSTRAP_REF" ]]; then
-            [[ "$BOOTSTRAP_REF" == dev || "$BOOTSTRAP_REF" =~ ^[a-f0-9]{40}$ ]] || exit 2
           fi
           {
             echo "TF_VAR_enable_k3s_node=$ENABLE_K3S_NODE"
             echo "TF_VAR_enable_bedrock=$ENABLE_BEDROCK"
-            if [[ -n "$BOOTSTRAP_REF" ]]; then
+            if [[ "$ENABLE_K3S_NODE" == true ]]; then
               echo "TF_VAR_k3s_bootstrap_git_ref=$BOOTSTRAP_REF"
             fi
           } >> "$GITHUB_ENV"

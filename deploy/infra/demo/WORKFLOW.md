@@ -99,12 +99,15 @@ reapply input becomes useful once that requirement is met.
 
 The workflow refuses missing `ENABLE_K3S_NODE` and
 `ENABLE_BEDROCK` variables rather than silently selecting Terraform
-defaults. **Setting `DEMO_ENABLE_K3S_NODE=false` after creating the node
+defaults. **Setting `ENABLE_K3S_NODE=false` after creating the node
 would plan its destruction.** Review the plan before approval.
 
 The bootstrap ref is **required as a pinned SHA when K3s is enabled**.
 It must be an ancestor of the current `demo` commit, and must remain stable
 between runs, since changing EC2 user data may cause an EC2 update/restart.
+When `ENABLE_K3S_NODE=false`, `K3S_BOOTSTRAP_GIT_REF` is ignored entirely,
+including placeholder values such as `-`; it is neither validated nor passed
+to OpenTofu.
 For subsequent Ansible changes the workflow uses SSM and the immutable triggering revision, not cloud-init.
 
 The saved `demo.tfplan` may include sensitive infrastructure or state data
