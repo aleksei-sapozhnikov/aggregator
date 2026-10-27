@@ -47,7 +47,10 @@ def main() -> int:
         if path.suffix.lower() not in {".yaml", ".yml"}:
             continue
         try:
-            yaml.safe_load(path.read_text(encoding="utf-8"))
+            # Kubernetes manifest bundles may contain multiple YAML documents.
+            # Exhaust the iterator so syntax errors in later documents are caught.
+            for _ in yaml.safe_load_all(path.read_text(encoding="utf-8")):
+                pass
         except (OSError, UnicodeDecodeError, yaml.YAMLError) as exc:
             print(f"{path.relative_to(root)}: {exc}")
             failed = True

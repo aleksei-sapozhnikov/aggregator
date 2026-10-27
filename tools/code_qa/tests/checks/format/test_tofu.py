@@ -64,7 +64,7 @@ class OpenTofuTests(unittest.TestCase):
         ):
             self.assertEqual(tofu.run(self.directory, self.workspace, "check"), 2)
         self.assertEqual(
-            run.call_args.args[0], ["tofu", "fmt", "-recursive", "-check", "-diff"]
+            run.call_args.args[0], ["tofu", "fmt", "-recursive", "-check"]
         )
 
     def test_hook_scope_skips_docs_and_keeps_deleted_tf_files(self) -> None:

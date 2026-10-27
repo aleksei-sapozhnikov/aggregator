@@ -59,7 +59,9 @@ def run(
     else:
         commands = [[binary, "fmt", "-recursive"]]
         if mode == "check":
-            commands[0].extend(["-check", "-diff"])
+            # -diff requires an external "diff" executable on Windows.
+            # -check already fails when formatting changes are needed.
+            commands[0].append("-check")
 
     runtime_dir(workspace).mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(

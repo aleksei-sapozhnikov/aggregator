@@ -48,11 +48,11 @@ To retry failed configuration without replacing EC2, run a fresh
 `workflow_dispatch` with `reapply_ansible=true` once the workflow exists on
 the repository's default branch. This produces a fresh Terraform plan, usually
 with no infrastructure changes, and reruns Ansible through SSM after approval.
-Until the manual trigger is available, use an explicitly authorized SSM run
-or a reviewed Ansible-only update in `demo`. Do not blindly reapply an old
-saved Terraform plan: it can be stale after a successful infrastructure apply
-followed by a failed Ansible run. Automatic retry of failed configurations
-without a new workflow trigger is not implemented for this demo.
+Until the manual trigger is available, use an explicitly authorized SSM run or
+a reviewed Ansible-only update in `demo`. Do not blindly reapply an old saved
+Terraform plan: it can be stale after a successful infrastructure apply followed
+by a failed Ansible run. Automatic retry of failed configurations without a new
+workflow trigger is not implemented for this demo.
 
 SSM Run Command streams stdout and stderr to CloudWatch Logs group
 `/aws/ssm/aggregator-demo-k3s` with 14-day retention. The wrapper also
@@ -160,7 +160,8 @@ on-node `/var/log/cloud-init-output.log` or
 ## Public K3s application deployment
 
 The new node is bootstrapped with K3s, bundled Traefik/ServiceLB and an
-Argo CD Application following `demo:deploy/k8s-live`, containing only
-image versions published after the corresponding GHCR build. See [the K3s GitOps README](../../k8s/README.md) for prerequisites,
+Argo CD Application following `demo:deploy/k8s-live`, containing only image
+versions published after the corresponding GHCR build. See
+[the K3s GitOps README](../../k8s/README.md) for prerequisites,
 public HTTP-by-IP behaviour, image publication, rollback and limitations.
 No DNS cutover is performed.
