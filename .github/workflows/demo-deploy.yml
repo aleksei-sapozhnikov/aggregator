@@ -118,6 +118,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - uses: azure/setup-kubectl@v4
+        with:
+          version: v1.33.3
+
       - name: Publish exactly the already-built image tags
         shell: bash
         env:
@@ -133,6 +137,7 @@ jobs:
             git switch --create k3s-demo
           fi
           # The manifest snapshot must come from the same source SHA as the images.
+          git rm -qr --ignore-unmatch deploy/k8s
           git checkout "$RELEASE_SHA" -- deploy/k8s
           python3 - "$RELEASE_SHA" <<'PY'
           from pathlib import Path
@@ -151,6 +156,12 @@ jobs:
               raise SystemExit(f"Expected 8 image tags, found {count}")
           path.write_text(updated, encoding="utf-8")
           PY
+          # Fail before publishing a broken GitOps revision.
+          kubectl kustomize deploy/k8s > "$RUNNER_TEMP/k3s-rendered.yaml"
+          if grep -q ':unpublished' "$RUNNER_TEMP/k3s-rendered.yaml"; then
+            echo "::error::The GitOps release contains unpublished image tags."
+            exit 1
+          fi
           git add deploy/k8s
           git diff --cached --quiet || git commit -m "Deploy K3s images from $RELEASE_SHA"
           git push origin HEAD:refs/heads/k3s-demo

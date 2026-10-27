@@ -40,8 +40,7 @@ locals {
 
   # Only public application ports; use Session Manager for administration.
   ingress = {
-    http  = { port = 80, cidr = "0.0.0.0/0", description = "Public HTTP" }
-    https = { port = 443, cidr = "0.0.0.0/0", description = "Public HTTPS" }
+    http = { port = 80, cidr = "0.0.0.0/0", description = "Public HTTP" }
   }
 }
 

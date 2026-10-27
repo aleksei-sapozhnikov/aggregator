@@ -455,9 +455,13 @@ spec:
       labels:
         app: grafana
     spec:
+      securityContext:
+        fsGroup: 472
       initContainers:
       - name: configure-public-url
         image: curlimages/curl:8.12.1
+        securityContext:
+          runAsUser: 0
         command: [/bin/sh, -ec]
         args:
         - |
