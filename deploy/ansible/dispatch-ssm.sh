@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Reapply a reviewed Ansible revision to the dedicated K3s node through SSM.
+# Verify K3s first boot or reapply a reviewed Ansible revision using SSM.
 set -euo pipefail
 
 : "${SSM_INSTANCE_ID:?SSM_INSTANCE_ID is required}"
@@ -110,7 +110,7 @@ aws ssm get-command-invocation \
   --output json || true
 
 if [[ "$final_status" != Success ]]; then
-  echo "Ansible reconciliation failed or timed out (SSM status: ${final_status:-unknown})" >&2
+  echo "K3s $SSM_MODE failed or timed out (SSM status: ${final_status:-unknown})" >&2
   exit 1
 fi
 
