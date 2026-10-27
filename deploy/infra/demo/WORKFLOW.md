@@ -163,6 +163,48 @@ Before retrying a failure caused by `AccessDenied`:
 Never force-unlock state, remove resources from state or bypass IAM policy
 boundaries as a workaround for these errors.
 
+### Verifying CloudWatch Logs tag permissions after AccessDenied
+
+The K3s Log Group is created **with tags**, so CloudWatch Logs authorizes
+both `logs:CreateLogGroup` and a tagging action. If
+`CreateLogGroup with Tags` is denied, first compare the *deployed*
+managed policy with the source JSON; an updated Git file is not proof
+that AWS has received the new policy version.
+
+Using an administrative AWS identity with IAM read and simulation permissions:
+
+```sh
+aws iam list-attached-role-policies \
+  --role-name AggregatorDemoInfraApplyGithub \
+  --query 'AttachedPolicies[?PolicyName==`AggregatorDemoEC2Management`]'
+
+aws iam get-policy \
+  --policy-arn arn:aws:iam::905418096305:policy/AggregatorDemoEC2Management \
+  --query 'Policy.DefaultVersionId' --output text
+
+aws iam get-policy-version \
+  --policy-arn arn:aws:iam::905418096305:policy/AggregatorDemoEC2Management \
+  --version-id "$(aws iam get-policy \
+    --policy-arn arn:aws:iam::905418096305:policy/AggregatorDemoEC2Management \
+    --query 'Policy.DefaultVersionId' --output text)" \
+  --query 'PolicyVersion.Document.Statement[?Sid==`ManageK3sSsmLogGroup`]'
+
+aws iam simulate-principal-policy \
+  --policy-source-arn arn:aws:iam::905418096305:role/AggregatorDemoInfraApplyGithub \
+  --action-names logs:CreateLogGroup logs:TagResource logs:TagLogGroup \
+  --resource-arns arn:aws:logs:eu-central-1:905418096305:log-group:/aws/ssm/aggregator-demo-k3s \
+  --query 'EvaluationResults[].{Action:EvalActionName,Decision:EvalDecision}'
+```
+
+The policy allows the exact named log group and its `:* ` ARN form,
+including the tagging actions needed at creation. If the simulation
+shows `implicitDeny`, check the default policy version, attachment,
+or additional IAM/SCP restrictions before another demo apply. The
+simulation is diagnostic; if it says `allowed` but the actual API
+still denies the call, inspect CloudTrail or open an AWS support case
+with the CloudWatch Logs request ID. Do not broaden access to
+`Resource: "*"` to bypass the error.
+
 ## SSM and troubleshooting
 
 The approved write role must allow `ssm:SendCommand` on the K3s node and
