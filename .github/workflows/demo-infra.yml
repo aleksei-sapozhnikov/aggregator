@@ -3,10 +3,8 @@ name: Demo infrastructure
 on:
   push:
     branches: [demo]
-    paths:
-      - ".github/workflows/demo-infra.yml"
-      - "deploy/infra/demo/**"
-      - "deploy/ansible/**"
+    paths-ignore:
+      - "deploy/k8s-live/**"
   workflow_dispatch:
     inputs:
       reapply_ansible:
@@ -28,8 +26,62 @@ env:
   TF_INPUT: "0"
 
 jobs:
+  detect:
+    name: Route demo changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      infra_changed: ${{ steps.route.outputs.infra_changed }}
+      deploy_changed: ${{ steps.route.outputs.deploy_changed }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Determine which stages are required
+        id: route
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          infra_changed=false
+          deploy_changed=false
+          if [[ "$GITHUB_EVENT_NAME" == workflow_dispatch ]]; then
+            # Manual runs are infrastructure reconciliations, not forced image rebuilds.
+            infra_changed=true
+          elif [[ -z "$BASE_SHA" || "$BASE_SHA" =~ ^0+$ ]] || ! git cat-file -e "$BASE_SHA^{commit}"; then
+            # Fail safe when the push range is unavailable.
+            infra_changed=true
+            deploy_changed=true
+          else
+            while IFS= read -r path; do
+              case "$path" in
+                deploy/infra/demo/*|deploy/ansible/*|.github/workflows/demo-infra.yml)
+                  infra_changed=true
+                  ;;
+                deploy/infra/*|deploy/k8s/README.md|deploy/k8s-live/*|.github/workflows/demo-deploy.yml)
+                  # Infrastructure administration, generated releases and docs do not build images.
+                  ;;
+                ?*)
+                  deploy_changed=true
+                  ;;
+              esac
+            done < <(git diff --name-only "$BASE_SHA" "$GITHUB_SHA")
+          fi
+          {
+            echo "infra_changed=$infra_changed"
+            echo "deploy_changed=$deploy_changed"
+          } >> "$GITHUB_OUTPUT"
+          echo "Infrastructure changes: $infra_changed"
+          echo "Application changes: $deploy_changed"
+
   validate:
     name: Validate demo OpenTofu and Ansible (no AWS access)
+    needs: detect
+    if: needs.detect.outputs.infra_changed == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -89,8 +141,8 @@ jobs:
 
   plan:
     name: Plan changes to demo only
-    needs: validate
-    if: github.ref == 'refs/heads/demo' && vars.DEMO_INFRA_WORKFLOW_ENABLED == 'true'
+    needs: [detect, validate]
+    if: github.ref == 'refs/heads/demo' && needs.detect.outputs.infra_changed == 'true' && vars.DEMO_INFRA_WORKFLOW_ENABLED == 'true'
     environment: demo-infra-plan
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -391,10 +443,22 @@ jobs:
         shell: bash
         run: bash deploy/ansible/dispatch-ssm.sh
 
-  publish-first-k3s-release:
-    name: Request initial K3s application release
-    needs: apply
-    if: needs.apply.result == 'success' && needs.apply.outputs.k3s_configured == 'true'
+  request-demo-deploy:
+    name: Request demo application deployment
+    needs: [detect, validate, plan, apply]
+    if: |
+      always() && github.ref == 'refs/heads/demo' &&
+      needs.detect.result == 'success' &&
+      (
+        (needs.detect.outputs.infra_changed == 'false' &&
+         needs.validate.result == 'skipped' &&
+         needs.plan.result == 'skipped' &&
+         needs.apply.result == 'skipped') ||
+        (needs.detect.outputs.infra_changed == 'true' &&
+         needs.validate.result == 'success' &&
+         needs.plan.result == 'success' &&
+         (needs.apply.result == 'success' || needs.apply.result == 'skipped'))
+      )
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -404,20 +468,26 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - name: Dispatch demo-deploy only if published GitOps manifests are missing
+      - name: Dispatch the existing demo-deploy workflow
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
+          APP_CHANGED: ${{ needs.detect.outputs.deploy_changed }}
+          INFRA_CHANGED: ${{ needs.detect.outputs.infra_changed }}
         run: |
           set -euo pipefail
-          # Check the current remote branch, not the older infra checkout.
+          # Read the latest demo branch, including any previously promoted manifests.
           git fetch --no-tags --depth=1 origin refs/heads/demo
-          if git cat-file -e FETCH_HEAD:deploy/k8s-live/kustomization.yaml 2>/dev/null; then
-            echo "K3s release already exists; Argo CD reconciles it independently." >> "$GITHUB_STEP_SUMMARY"
+          release_missing=false
+          if ! git cat-file -e FETCH_HEAD:deploy/k8s-live/kustomization.yaml 2>/dev/null; then
+            release_missing=true
+          fi
+          if [[ "$APP_CHANGED" != true && "$release_missing" != true ]]; then
+            echo "No application changes and a K3s release already exists; no demo-deploy needed." >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
 
-          # Only orchestrate the handoff. All builds and publication stay in demo-deploy.
+          # All builds, Compose deploys and K3s release promotion stay in demo-deploy.
           gh api --method POST "repos/${GITHUB_REPOSITORY}/actions/workflows/demo-deploy.yml/dispatches" -f ref=demo
-          echo "Requested demo-deploy to build and publish the initial K3s release." >> "$GITHUB_STEP_SUMMARY"
-          echo "Monitor the separate Demo deploy workflow for the application rollout." >> "$GITHUB_STEP_SUMMARY"
+          echo "Requested demo-deploy after infrastructure stage (infra changed: $INFRA_CHANGED, app changed: $APP_CHANGED, initial release missing: $release_missing)." >> "$GITHUB_STEP_SUMMARY"
+          echo "The dispatched workflow reports application deployment success separately." >> "$GITHUB_STEP_SUMMARY"

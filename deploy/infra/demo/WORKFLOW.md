@@ -1,8 +1,13 @@
 # Demo infrastructure workflow
 
-[demo-infra.yml](../../../.github/workflows/demo-infra.yml) is scoped to
-`deploy/infra/demo` and `deploy/ansible` only. The `admin` and `publication`
-OpenTofu roots are deliberately excluded.
+[demo-infra.yml](../../../.github/workflows/demo-infra.yml) is the **only
+automatic entry point** for pushes to `demo`. Its lightweight `detect` job
+routes changes without AWS access. Terraform/Ansible validation and planning
+run only when `deploy/infra/demo/**`, `deploy/ansible/**`, or the
+infrastructure workflow changes. Otherwise, application updates dispatch
+the existing `demo-deploy.yml` directly without running Terraform.
+Generated `deploy/k8s-live/**`-only promotion commits are excluded.
+The `admin` and `publication` OpenTofu roots remain outside demo state.
 
 ## Branches and execution
 
@@ -11,7 +16,7 @@ Both `dev` and `demo` are watched for infrastructure changes:
 - **`dev` — validate only:** `tofu fmt -check`, `tofu init -backend=false`,
   `tofu validate` and `ansible-playbook --syntax-check`. No AWS credentials
   are requested, and nothing is applied.
-- **`demo` — validate → plan → approval → apply → Ansible:**
+- **`demo` — detect → optional validate/plan/approval/apply/Ansible → demo-deploy:**
   1. Validate the checked-out revision as above.
   2. Use unprotected, `demo`-branch-only Environment `demo-infra-plan`
      to assume the **read-only OIDC plan role** and access the demo infrastructure
@@ -37,10 +42,12 @@ Both `dev` and `demo` are watched for infrastructure changes:
      Application. SSM checks the applied revision, Kubernetes API, Traefik
      and Argo CD readiness, and the Application resource's existence. It
      does **not** wait for application manifests or HTTP routes.
-  7. After successful K3s configuration, `publish-first-k3s-release`
-     checks whether `demo:deploy/k8s-live` exists. If not, it dispatches
-     the existing `demo-deploy.yml` workflow, which owns image builds,
-     application publication and GitOps promotion.
+  7. The `request-demo-deploy` job executes only after the required
+     infrastructure stages have succeeded. It dispatches the existing
+     `demo-deploy.yml` if application files changed or
+     `demo:deploy/k8s-live` has not yet been published. Deployment logic
+     stays exclusively in `demo-deploy`. For application-only pushes,
+     all Terraform/Ansible jobs are skipped, not merely no-op applied.
 
 Cloud-init only installs OS prerequisites and the root-owned Ansible wrapper.
 It does **not** fetch the repository or run the playbook on its own.
@@ -51,7 +58,8 @@ restarting an instance without re-running cloud-init.
 Changes under `deploy/ansible/**` reconfigure the existing EC2 through SSM,
 without Terraform resource updates. Ordinary application changes use GitHub
 image publication and Argo CD, without running Ansible. With no relevant
-changes, the workflow can skip apply altogether. On first provisioning,
+infrastructure changes, the workflow skips validation, planning and apply.
+On first provisioning,
 the Argo CD Application may temporarily report `ComparisonError` until
 `demo-deploy.yml` publishes `deploy/k8s-live`. That does not fail
 infrastructure configuration. App release failures are tracked separately.
@@ -70,12 +78,13 @@ SSM Run Command streams stdout and stderr to CloudWatch Logs group
 records complete logs on the instance at
 `/var/log/aggregator-node-configure.log`.
 
-This workflow never builds or publishes application images. It can trigger
-the existing `demo-deploy.yml` after successful K3s configuration if no
-published GitOps release exists. The separate dispatch job holds
-`actions: write`, while the approved Terraform/SSM job retains the
-narrower permissions it previously used. The dispatched workflow runs
-independently: infrastructure success does not imply application
+This workflow never builds or publishes application images. Every
+`demo` push enters a single ordering workflow; infrastructure changes
+must pass Terraform/Ansible before the dispatch stage is reached.
+Application-only changes bypass Terraform and proceed to `demo-deploy`.
+The dispatch job holds `actions: write`, while the approved Terraform/SSM
+job retains narrower permissions. A dispatched `demo-deploy` workflow
+runs independently: infrastructure success does not imply application
 deployment success. GitHub `workflow_dispatch` is available because
 `demo-deploy.yml` exists on `main` (the repository default branch).
 

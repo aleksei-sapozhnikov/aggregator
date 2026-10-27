@@ -1,15 +1,6 @@
 name: Demo deploy
 
 on:
-  push:
-    branches: [demo]
-    paths-ignore:
-      - "deploy/infra/**"
-      - "deploy/ansible/**"
-      - "deploy/k8s/README.md"
-      - "deploy/k8s-live/**"
-      - ".github/workflows/demo-infra.yml"
-      - ".github/workflows/demo-deploy.yml"
   workflow_dispatch:
 
 permissions:

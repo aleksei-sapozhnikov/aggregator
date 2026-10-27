@@ -5,9 +5,12 @@ Docker Compose EC2 and its public DNS are not modified.
 
 ## Deployment pipeline
 
-1. A relevant push to `demo` triggers `.github/workflows/demo-deploy.yml`.
-   After first K3s creation, `demo-infra.yml` also dispatches this workflow
-   if `deploy/k8s-live` has not been published.
+1. A push to `demo` enters `.github/workflows/demo-infra.yml`. Its
+   change detection runs Terraform/Ansible only when necessary, and dispatches
+   `.github/workflows/demo-deploy.yml` after the infrastructure stage is
+   complete or safely skipped. `demo-deploy` is **not** triggered directly
+   by pushes. An initial release is also requested when
+   `deploy/k8s-live` has not yet been published.
 2. Code quality must pass; the workflow builds all eight application images
    and publishes each to GHCR with the 40-character source commit SHA.
 3. After all images are available, `publish-k3s-release` copies the candidate
