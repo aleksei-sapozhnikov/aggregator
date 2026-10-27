@@ -50,8 +50,13 @@ const renderActorModal = (overrides = {}) => {
 
 describe("ActorModal contact list", () => {
   it("shows compact icon-and-link rows without chips or extra labels", () => {
-    const { container } = renderActorModal();
-    const list = container.querySelector(".actor-modal-contacts");
+    renderActorModal();
+    expect(
+      screen
+        .getByRole("dialog", { name: "Actor details" })
+        .classList.contains("modal-window"),
+    ).toBe(true);
+    const list = document.querySelector(".actor-modal-contacts");
     const links = Array.from(list?.querySelectorAll("a") || []);
 
     expect(links.map((link) => link.textContent?.trim())).toEqual([
@@ -85,9 +90,9 @@ describe("ActorModal contact list", () => {
   });
 
   it("labels the designated primary contact rather than assuming the first item", () => {
-    const { container } = renderActorModal({ primaryContact: contacts[2] });
+    renderActorModal({ primaryContact: contacts[2] });
     const rows = Array.from(
-      container.querySelectorAll(".actor-modal-contact-row"),
+      document.querySelectorAll(".actor-modal-contact-row"),
     );
 
     expect(rows[0].querySelector(".actor-role")).toBeNull();
@@ -96,9 +101,9 @@ describe("ActorModal contact list", () => {
   });
 
   it("omits the primary label when no contact is designated", () => {
-    const { container } = renderActorModal({ primaryContact: null });
+    renderActorModal({ primaryContact: null });
 
-    expect(container.querySelector(".actor-role")).toBeNull();
+    expect(document.querySelector(".actor-role")).toBeNull();
   });
 
   it("opens contact details on a plain click but preserves modified links", async () => {
@@ -115,11 +120,11 @@ describe("ActorModal contact list", () => {
   });
 
   it("keeps an empty-contact message", () => {
-    const { container } = renderActorModal({ contacts: [] });
+    renderActorModal({ contacts: [] });
 
     expect(
       screen.getByText("No contacts linked to this actor."),
     ).not.toBeNull();
-    expect(container.querySelector(".actor-modal-contacts")).toBeNull();
+    expect(document.querySelector(".actor-modal-contacts")).toBeNull();
   });
 });
