@@ -63,8 +63,8 @@ Configure Repository and Environment variables under **Settings → Secrets and 
 | Environment `demo-infra-plan`                  | `ENABLE_K3S_NODE`             | Explicit `true` or `false`.                               |
 | Environment `demo-infra-plan`                  | `ENABLE_BEDROCK`              | Explicit `true` or `false`.                               |
 | Environment `demo-infra-plan` when K3s enabled | `K3S_BOOTSTRAP_GIT_REF`       | Full pinned commit SHA from `demo` history.               |
-| Environment `demo-infra-apply`                | `AWS_ROLE_ARN`                | Apply role ARN from the admin OpenTofu outputs.           |
-| Environment `demo-infra-apply`                | `MANUAL_APPROVAL_CONFIGURED`  | `true`, after Required reviewers are configured.          |
+| Environment `demo-infra-apply`                 | `AWS_ROLE_ARN`                | Apply role ARN from the admin OpenTofu outputs.           |
+| Environment `demo-infra-apply`                 | `MANUAL_APPROVAL_CONFIGURED`  | `true`, after Required reviewers are configured.          |
 
 **Do not create AWS access-key secrets.** Existing GitHub OIDC provider is
 reused. Both infrastructure IAM roles, their trust policies, and their

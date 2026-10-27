@@ -4,9 +4,7 @@
     {
       "Sid": "DescribeDemoEc2ForOpenTofu",
       "Effect": "Allow",
-      "Action": [
-        "ec2:Describe*"
-      ],
+      "Action": ["ec2:Describe*"],
       "Resource": "*"
     },
     {
