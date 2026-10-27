@@ -2,6 +2,9 @@
 
 OpenTofu root for shared IAM users, groups, policies, permissions boundaries,
 and S3 state storage. Workload roles belong to their respective stacks.
+This directory contains shared administration for the Aggregator project,
+not a global AWS-account administration root. Environment-specific EC2
+resources and their workload roles belong to their environment stacks.
 This directory can be used as a standalone repository.
 
 ## Contents
@@ -9,6 +12,9 @@ This directory can be used as a standalone repository.
 - `main.tf`: users, groups, and memberships.
 - `permissions.tf`: group policy attachments.
 - `policies.tf` and `policies/`: delegated permissions and workload boundaries.
+- `github_demo_deploy.tf`: the shared GitHub OIDC provider and demo application deploy role.
+- `github_demo_infra.tf`: OIDC plan/apply roles for demo infrastructure;
+  existing managed policies are reused instead of duplicated.
 - `session_manager.tf`: regional Session Manager settings for interactive shells.
 - `state.tf`: protected, encrypted, versioned S3 state bucket.
 - `state_access.tf`: workload access to state keys and lock files.
@@ -67,6 +73,31 @@ GitHub environment variable `AWS_DEMO_DEPLOY_ROLE_ARN`.
 OIDC environment subjects do not independently enforce branch restrictions.
 Older repositories typically use the legacy name-based subject; adjust the
 trust subject if immutable OIDC claims have been explicitly enabled.
+
+## Demo infrastructure GitHub OIDC roles
+
+The two infrastructure roles and their attachments are defined in
+`github_demo_infra.tf`:
+
+- `AggregatorDemoInfraPlanGithub` can read demo infrastructure and state
+  and write/delete only its OpenTofu lock file.
+- `AggregatorDemoInfraApplyGithub` runs after GitHub Environment
+  `demo-infra` approval. It reuses the existing
+  `AggregatorDemoStateAccess`, `AggregatorDemoEC2Management`,
+  `AggregatorDemoIAMManagement`, `AggregatorDemoSGRuleCreation` and
+  `AggregatorDemoSSMManagement` policies.
+
+The additional plan-only state access, resource reads and K3s Run Command
+permissions are defined in `policies/`. No manual IAM role creation is
+required. Apply this administrative root first with the authorized
+`infra-admin` identity, then configure GitHub repository variables
+`AWS_DEMO_INFRA_PLAN_ROLE_ARN` and `AWS_DEMO_INFRA_APPLY_ROLE_ARN` from
+the outputs. The roles are not applied merely by committing these files.
+
+The existing `AggregatorDemoDeployGithub` role is intentionally separate:
+it is limited to serving-demo application deployment. Workload EC2 IAM
+roles and instance profiles remain in `demo`, since they belong to the
+corresponding EC2 instances.
 
 ## Demo SSM document management permission
 

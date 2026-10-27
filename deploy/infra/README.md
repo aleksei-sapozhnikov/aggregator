@@ -5,9 +5,11 @@ The roots can be maintained separately in source control, but depend on shared
 AWS resources and delegated permissions. Do not apply them as if they were
 disposable environments.
 
-- [admin](admin/): IAM identities, delegated policies, permissions
-  boundaries, and the protected state bucket (`admin/tofu.tfstate`).
-- [demo](demo/): Public serving demo EC2, IAM, network and Elastic IP; optional
+- [admin](admin/): Aggregator-wide IAM identities, shared policies,
+  GitHub OIDC roles, permissions boundaries, and protected state bucket
+  (`admin/tofu.tfstate`). Not global AWS account administration.
+- [demo](demo/): Public serving demo EC2, workload IAM roles/profiles,
+  network and Elastic IP; optional
   separately bootstrapped K3s and Argo CD EC2 (`demo/tofu.tfstate`).
 - [publication](publication/): GitHub publication Lambda, Scheduler watchdog,
   DynamoDB, snapshots, secrets containers, and notifications

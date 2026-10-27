@@ -58,9 +58,11 @@ In **Settings → Secrets and variables → Actions → Variables**, configure:
 | Repository variable when K3s is enabled | `DEMO_K3S_BOOTSTRAP_GIT_REF` | Pinned 40-character SHA from the `demo` branch history for first-boot cloud-init. |
 
 **Do not create AWS access-key secrets.** Existing GitHub OIDC provider is
-reused, but two separate IAM roles must be provisioned by an AWS IAM
-administrator before enabling the workflow. See [OIDC setup](oidc/README.md)
-for ready-to-use trust and permission policies. The OIDC plan role must not
+reused. Both infrastructure IAM roles, their trust policies, and their
+managed permission policies are defined as IaC in
+[the admin OpenTofu root](../admin/README.md). Apply `admin` first with
+the authorized `infra-admin` identity and use its outputs for the GitHub
+role ARN variables; do not create the roles manually. The OIDC plan role must not
 have infrastructure write privileges, because planning occurs **before**
 manual approval. The existing `AggregatorDemoDeployGithub` role is
 restricted to the old application deployment and is **not** reused.
@@ -92,8 +94,8 @@ would plan its destruction.** Review the plan before approval.
 
 The bootstrap ref is **required as a pinned SHA when K3s is enabled**.
 It must be an ancestor of the current `demo` commit, and must remain stable
-between runs, since changing EC2 user data may cause an EC2 update/restart. For subsequent Ansible changes
-the workflow uses SSM and the immutable triggering revision, not cloud-init.
+between runs, since changing EC2 user data may cause an EC2 update/restart.
+For subsequent Ansible changes the workflow uses SSM and the immutable triggering revision, not cloud-init.
 
 The saved `demo.tfplan` may include sensitive infrastructure or state data
 even when the rendered plan redacts it; treat Actions artifacts as sensitive.
@@ -111,10 +113,9 @@ the workflow to initiate commands.
 
 The new role's SSM scope should be restricted to
 `Name=aggregator-demo-k3s`, `Project=aggregator`, `Environment=demo`.
-The role and SSM permissions are **not yet provisioned in AWS** by this
-repository change. They belong to separately administered IAM resources
-and require a bootstrap by an IAM administrator. The shared `admin` root
-has not been modified.
+The role and SSM permissions are declared in `deploy/infra/admin` and
+become available only after an approved OpenTofu apply of that root.
+This demo workflow must not try to create or modify the admin root.
 
 To debug, inspect the plan/apply job summaries, SSM command output, and
 on-node `/var/log/cloud-init-output.log` or

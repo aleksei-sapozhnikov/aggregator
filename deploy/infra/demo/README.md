@@ -3,6 +3,12 @@
 See [the demo infrastructure GitHub Actions workflow](WORKFLOW.md) for
 dev validation, demo-only plan/apply, OIDC, manual approval, and SSM setup.
 
+The [shared Aggregator administration root](../admin/README.md) owns IAM
+users, groups, OIDC roles and reusable policies. This root consumes those
+permissions and manages only demo infrastructure. IAM roles and instance
+profiles attached to the demo EC2 nodes remain here because they belong to
+those workloads. Apply `admin` first, then `demo`.
+
 This OpenTofu root manages the protected serving EC2 demo (including its
 Elastic IP) and an **optional, separate K3s EC2 node**. The serving instance
 remains untouched by the new bootstrap; application deployment and traffic
