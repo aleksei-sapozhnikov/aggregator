@@ -23,10 +23,7 @@
     {
       "Sid": "ReadCommandAndConnectionStatus",
       "Effect": "Allow",
-      "Action": [
-        "ssm:GetConnectionStatus",
-        "ssm:GetCommandInvocation"
-      ],
+      "Action": ["ssm:GetConnectionStatus", "ssm:GetCommandInvocation"],
       "Resource": "*"
     }
   ]

@@ -6,6 +6,7 @@ it installs the Ansible control environment and applies
 [deploy/ansible](../../../../ansible/README.md) to install K3s and Argo CD.
 
 Security and networking:
+
 - IMDSv2 is required, the gp3 root volume is encrypted, and the IAM role
   grants SSM and Bedrock access within its permissions boundary.
 - Only inbound HTTP/HTTPS (80/443) is configured for future applications.

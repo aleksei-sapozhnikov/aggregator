@@ -29,7 +29,7 @@ class JavaTests(unittest.TestCase):
                 "mvn.cmd",
                 "-q",
                 "-B",
-                f"-Dmaven.repo.local={workspace / '.temp/qa-runtime/maven-repository'}",
+                f"-Dmaven.repo.local={workspace / '.local/qa-runtime/maven-repository'}",
                 "test",
             ],
         )

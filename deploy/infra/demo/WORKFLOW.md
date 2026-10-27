@@ -23,7 +23,7 @@ Both `dev` and `demo` are watched for infrastructure changes:
      are Terraform changes or Ansible changes. The job fails closed without
      `MANUAL_APPROVAL_CONFIGURED=true` in that environment.
   4. After approval, assume the **write OIDC apply role**, download and
-     apply the *same saved plan*. Never generate a different plan during
+     apply the _same saved plan_. Never generate a different plan during
      apply. When there are no Terraform changes, skip `tofu apply`.
   5. If `deploy/ansible/**` changed (or a manual reapply is requested),
      find the optional K3s instance from OpenTofu outputs and call the
@@ -49,15 +49,15 @@ stale plans to fail.
 
 Configure Repository and Environment variables under **Settings → Secrets and variables → Actions → Variables** and **Settings → Environments**:
 
-| Type | Name | Meaning |
-| --- | --- | --- |
-| Repository | `DEMO_INFRA_WORKFLOW_ENABLED` | `true` enables AWS planning; validation works without it. |
-| Environment `demo-infra-plan` | `AWS_ROLE_ARN` | Plan role ARN from the admin OpenTofu outputs. |
-| Environment `demo-infra-plan` | `ENABLE_K3S_NODE` | Explicit `true` or `false`. |
-| Environment `demo-infra-plan` | `ENABLE_BEDROCK` | Explicit `true` or `false`. |
-| Environment `demo-infra-plan` when K3s enabled | `K3S_BOOTSTRAP_GIT_REF` | Full pinned commit SHA from `demo` history. |
-| Environment `demo-infra-deploy` | `AWS_ROLE_ARN` | Apply role ARN from the admin OpenTofu outputs. |
-| Environment `demo-infra-deploy` | `MANUAL_APPROVAL_CONFIGURED` | `true`, after Required reviewers are configured. |
+| Type                                           | Name                          | Meaning                                                   |
+| ---------------------------------------------- | ----------------------------- | --------------------------------------------------------- |
+| Repository                                     | `DEMO_INFRA_WORKFLOW_ENABLED` | `true` enables AWS planning; validation works without it. |
+| Environment `demo-infra-plan`                  | `AWS_ROLE_ARN`                | Plan role ARN from the admin OpenTofu outputs.            |
+| Environment `demo-infra-plan`                  | `ENABLE_K3S_NODE`             | Explicit `true` or `false`.                               |
+| Environment `demo-infra-plan`                  | `ENABLE_BEDROCK`              | Explicit `true` or `false`.                               |
+| Environment `demo-infra-plan` when K3s enabled | `K3S_BOOTSTRAP_GIT_REF`       | Full pinned commit SHA from `demo` history.               |
+| Environment `demo-infra-deploy`                | `AWS_ROLE_ARN`                | Apply role ARN from the admin OpenTofu outputs.           |
+| Environment `demo-infra-deploy`                | `MANUAL_APPROVAL_CONFIGURED`  | `true`, after Required reviewers are configured.          |
 
 **Do not create AWS access-key secrets.** Existing GitHub OIDC provider is
 reused. Both infrastructure IAM roles, their trust policies, and their
