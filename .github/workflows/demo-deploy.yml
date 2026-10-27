@@ -30,8 +30,5 @@ jobs:
           SSH_USER: ec2-user
           REPO_PATH: /home/ec2-user/aggregator-demo/repo
           DEPLOY_BRANCH: ${{ github.ref_name }}
-          ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
-          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
-          FEEDBACK_STORAGE_CONFIG: '{"type":"dynamo","dynamo":{"table_name":"aggregator_feedback","aws_region":"eu-central-1"}}'
           AGENT_AI_ENABLED: "true"
           AGENT_AI_CONFIG: '{"provider":"bedrock","max_tool_rounds":2,"bedrock":{"model_id":"eu.amazon.nova-lite-v1:0","aws_region":"eu-central-1","temperature":0.00001,"max_tokens":300}}'

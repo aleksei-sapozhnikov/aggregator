@@ -1,9 +1,6 @@
 services:
   aggregator:
     environment:
-      FEEDBACK_STORAGE_CONFIG: ${FEEDBACK_STORAGE_CONFIG:?Missing FEEDBACK_STORAGE_CONFIG}
-      ADMIN_USERNAME: ${ADMIN_USERNAME:?Missing ADMIN_USERNAME}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Missing ADMIN_PASSWORD}
       CATALOG_BASE_URL: http://catalog:8080
   aggregator-ui:
     build:

@@ -56,17 +56,6 @@ set -euo pipefail
 #   or:
 #     DEPLOY_BRANCH=release/demo
 #
-# ADMIN_USERNAME
-#   Admin username for protected application endpoints.
-#
-# ADMIN_PASSWORD
-#   Admin password for protected application endpoints.
-#
-# FEEDBACK_STORAGE_CONFIG
-#   Feedback storage configuration as JSON.
-#   Example for demo:
-#     {"type":"dynamo","dynamo":{"table_name":"aggregator_feedback","aws_region":"eu-central-1"}}
-#
 # AGENT_AI_ENABLED
 #   Enables or disables the AI agent.
 #   Example:
@@ -86,15 +75,9 @@ set -euo pipefail
 : "${SSH_HOST_KEY:?Missing SSH_HOST_KEY}"
 : "${REPO_PATH:?Missing REPO_PATH}"
 : "${DEPLOY_BRANCH:?Missing DEPLOY_BRANCH}"
-: "${ADMIN_USERNAME:?Missing ADMIN_USERNAME}"
-: "${ADMIN_PASSWORD:?Missing ADMIN_PASSWORD}"
-: "${FEEDBACK_STORAGE_CONFIG:?Missing FEEDBACK_STORAGE_CONFIG}"
 : "${AGENT_AI_ENABLED:?Missing AGENT_AI_ENABLED}"
 : "${AGENT_AI_CONFIG:?Missing AGENT_AI_CONFIG}"
 
-ADMIN_USERNAME_ESCAPED="$(printf '%q' "${ADMIN_USERNAME}")"
-ADMIN_PASSWORD_ESCAPED="$(printf '%q' "${ADMIN_PASSWORD}")"
-FEEDBACK_STORAGE_CONFIG_ESCAPED="$(printf '%q' "${FEEDBACK_STORAGE_CONFIG}")"
 AGENT_AI_ENABLED_ESCAPED="$(printf '%q' "${AGENT_AI_ENABLED}")"
 AGENT_AI_CONFIG_ESCAPED="$(printf '%q' "${AGENT_AI_CONFIG}")"
 
@@ -130,9 +113,6 @@ ssh -i ~/.ssh/demo_key \
    sudo -n journalctl --vacuum-time=7d || true; \
    docker image prune -f || true; \
    docker builder prune -af --keep-storage 500m || true; \
-   ADMIN_USERNAME=${ADMIN_USERNAME_ESCAPED} \
-   ADMIN_PASSWORD=${ADMIN_PASSWORD_ESCAPED} \
-   FEEDBACK_STORAGE_CONFIG=${FEEDBACK_STORAGE_CONFIG_ESCAPED} \
    AGENT_AI_ENABLED=${AGENT_AI_ENABLED_ESCAPED} \
    AGENT_AI_CONFIG=${AGENT_AI_CONFIG_ESCAPED} \
    make rebuild-recreate ENV=demo; \

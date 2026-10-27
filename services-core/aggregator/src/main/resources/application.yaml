@@ -10,8 +10,3 @@ management:
 
 catalog:
   base-url: ${CATALOG_BASE_URL:http://catalog:8080}
-
-feedback:
-  admin:
-    username: ${ADMIN_USERNAME}
-    password: ${ADMIN_PASSWORD}
