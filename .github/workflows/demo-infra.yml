@@ -89,12 +89,14 @@ jobs:
       has_changes: ${{ steps.plan.outputs.has_changes }}
       ansible_changed: ${{ steps.changes.outputs.ansible_changed }}
       k3s_created: ${{ steps.plan.outputs.k3s_created }}
+      k3s_enabled: ${{ steps.flags.outputs.k3s_enabled }}
     steps:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           persist-credentials: false
       - name: Require explicitly configured demo flags
+        id: flags
         shell: bash
         env:
           ENABLE_K3S_NODE: ${{ vars.ENABLE_K3S_NODE }}
@@ -256,4 +258,5 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           APP_CHANGED: ${{ needs.detect.outputs.deploy_changed }}
           INFRA_CHANGED: ${{ needs.detect.outputs.infra_changed }}
+          K3S_ENABLED: ${{ needs.plan.outputs.k3s_enabled }}
         run: bash .github/scripts/demo-infra/dispatch-deploy.sh

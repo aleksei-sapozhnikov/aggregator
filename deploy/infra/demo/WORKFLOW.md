@@ -51,10 +51,12 @@ local checks or pull-request validation:
      does **not** wait for application manifests or HTTP routes.
   7. The `request-demo-deploy` job executes only after the required
      infrastructure stages have succeeded. It dispatches the existing
-     `demo-deploy.yml` if application files changed or
-     `demo:deploy/k8s-live` has not yet been published. Deployment logic
-     stays exclusively in `demo-deploy`. For application-only pushes,
-     all Terraform/Ansible jobs are skipped, not merely no-op applied.
+     `demo-deploy.yml` if application files changed or an initial GitOps
+     release is missing while K3s is enabled. When K3s is explicitly
+     disabled and there are no application changes, teardown ends without
+     requesting a new K3s release. Deployment logic stays exclusively
+     in `demo-deploy`. For application-only pushes with a published
+     release, all Terraform/Ansible jobs are skipped.
 
 Cloud-init only installs OS prerequisites and the root-owned Ansible wrapper.
 It does **not** fetch the repository or run the playbook on its own.
@@ -101,6 +103,23 @@ deployment success. GitHub `workflow_dispatch` is available because
 
 A push to `demo` is required before infrastructure can be applied;
 changes in `dev` alone never deploy.
+
+The workflow serializes itself with a concurrency group, and OpenTofu locks
+its remote S3 state while running. External/manual changes can still cause
+stale plans to fail.
+
+### Disabling or destroying the optional K3s node
+
+Set `ENABLE_K3S_NODE=false` in `demo-infra-plan`, trigger a new
+infrastructure plan, and approve only if it destroys the resources under
+`module.aggregator_demo_k3s[0]` without modifying the serving demo EC2.
+When K3s is removed, OpenTofu may omit the `k3s_instance_id` root output
+instead of returning JSON `null`. The node lookup treats both as
+`available=false` and skips Ansible; it still fails if OpenTofu itself
+cannot read the state. The workflow also skips an initial K3s release
+when the node is disabled and no application sources changed. Restoring
+`ENABLE_K3S_NODE=true` and running a new reviewed plan creates the
+node again.
 
 The workflow serializes itself with a concurrency group, and OpenTofu locks
 its remote S3 state while running. External/manual changes can still cause

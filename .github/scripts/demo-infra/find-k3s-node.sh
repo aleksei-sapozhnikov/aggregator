@@ -2,9 +2,12 @@
 # Find the optional K3s EC2 instance in OpenTofu outputs after apply.
 # Validates its instance ID and sets available/instance_id in GITHUB_OUTPUT
 # so the workflow knows whether to run Ansible through SSM.
+# A disabled or destroyed K3s node is an expected absent output, not an error.
 
 set -euo pipefail
-instance_id="$(tofu output -json k3s_instance_id | jq -r '. // empty')"
+# Query all outputs: a named output disappears when its value is null.
+# A failing tofu command must still fail the workflow (pipefail is enabled).
+instance_id="$(tofu output -json | jq -r '.k3s_instance_id.value // empty')"
 if [[ -z "$instance_id" ]]; then
   echo "available=false" >> "$GITHUB_OUTPUT"
   echo "Ansible skipped: optional K3s node is not provisioned." >> "$GITHUB_STEP_SUMMARY"

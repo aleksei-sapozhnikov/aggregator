@@ -16,3 +16,4 @@ set -euo pipefail
   echo "TF_VAR_enable_k3s_node=$ENABLE_K3S_NODE"
   echo "TF_VAR_enable_bedrock=$ENABLE_BEDROCK"
 } >> "$GITHUB_ENV"
+echo "k3s_enabled=$ENABLE_K3S_NODE" >> "$GITHUB_OUTPUT"
