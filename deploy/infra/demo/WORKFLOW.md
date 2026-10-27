@@ -72,14 +72,14 @@ stale plans to fail.
 
 Configure Repository and Environment variables under **Settings → Secrets and variables → Actions → Variables** and **Settings → Environments**:
 
-| Type                                           | Name                          | Meaning                                                   |
-| ---------------------------------------------- | ----------------------------- | --------------------------------------------------------- |
-| Repository                                     | `DEMO_INFRA_WORKFLOW_ENABLED` | `true` enables AWS planning; validation works without it. |
-| Environment `demo-infra-plan`                  | `AWS_ROLE_ARN`                | Plan role ARN from the admin OpenTofu outputs.            |
-| Environment `demo-infra-plan`                  | `ENABLE_K3S_NODE`             | Explicit `true` or `false`.                               |
-| Environment `demo-infra-plan`                  | `ENABLE_BEDROCK`              | Explicit `true` or `false`.                               |
-| Environment `demo-infra-apply`                 | `AWS_ROLE_ARN`                | Apply role ARN from the admin OpenTofu outputs.           |
-| Environment `demo-infra-apply`                 | `MANUAL_APPROVAL_CONFIGURED`  | `true`, after Required reviewers are configured.          |
+| Type                           | Name                          | Meaning                                                   |
+| ------------------------------ | ----------------------------- | --------------------------------------------------------- |
+| Repository                     | `DEMO_INFRA_WORKFLOW_ENABLED` | `true` enables AWS planning; validation works without it. |
+| Environment `demo-infra-plan`  | `AWS_ROLE_ARN`                | Plan role ARN from the admin OpenTofu outputs.            |
+| Environment `demo-infra-plan`  | `ENABLE_K3S_NODE`             | Explicit `true` or `false`.                               |
+| Environment `demo-infra-plan`  | `ENABLE_BEDROCK`              | Explicit `true` or `false`.                               |
+| Environment `demo-infra-apply` | `AWS_ROLE_ARN`                | Apply role ARN from the admin OpenTofu outputs.           |
+| Environment `demo-infra-apply` | `MANUAL_APPROVAL_CONFIGURED`  | `true`, after Required reviewers are configured.          |
 
 **Do not create AWS access-key secrets.** Existing GitHub OIDC provider is
 reused. Both infrastructure IAM roles, their trust policies, and their

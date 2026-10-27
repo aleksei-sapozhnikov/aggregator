@@ -80,9 +80,9 @@ module "aggregator_demo_k3s" {
   count  = var.enable_k3s_node ? 1 : 0
   source = "./modules/ec2_k3s"
 
-  ami_id            = "ami-03054abaec0c63e6e"
-  instance_type     = var.k3s_instance_type
-  root_volume_size  = var.k3s_root_volume_size
-  vpc_id            = data.aws_vpc.default.id
-  subnet_id         = data.aws_subnet.default["aggregator_demo"].id
+  ami_id           = "ami-03054abaec0c63e6e"
+  instance_type    = var.k3s_instance_type
+  root_volume_size = var.k3s_root_volume_size
+  vpc_id           = data.aws_vpc.default.id
+  subnet_id        = data.aws_subnet.default["aggregator_demo"].id
 }

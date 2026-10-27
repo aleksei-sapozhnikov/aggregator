@@ -50,8 +50,7 @@ class YamlFilesTests(unittest.TestCase):
 
     def test_invalid_second_document_is_reported(self) -> None:
         result, output = self.run_check(
-            "apiVersion: v1\nkind: Service\n"
-            "---\nmetadata: [unterminated\n"
+            "apiVersion: v1\nkind: Service\n---\nmetadata: [unterminated\n"
         )
         self.assertEqual(result, 1)
         self.assertIn("manifest.yaml", output)
