@@ -17,23 +17,27 @@ bootstrapping. The existing Docker Compose demo remains unchanged.
 
 ## Execution and reconciliation
 
-Cloud-init installs Git and Python 3.12, creates
-`/opt/aggregator-ansible` (an isolated Ansible environment), fetches the
-specified revision and runs the local `site.yml` playbook as root.
-The root-owned wrapper `/usr/local/sbin/aggregator-node-configure` is
-installed for subsequent configuration runs. For example, in an SSM session:
+On first boot, cloud-init installs Git and Python 3.12 and writes a
+root-owned wrapper, but does **not** run Ansible. After Terraform apply,
+GitHub Actions invokes that wrapper through AWS SSM using the triggering
+commit SHA. The same SSM command is used for later Ansible revisions.
+
+The wrapper `/usr/local/sbin/aggregator-node-configure` accepts only
+an exact 40-character lowercase Git SHA. It creates the isolated Ansible
+virtual environment when necessary, fetches that commit, executes
+`site.yml` as root, and records success in
+`/var/lib/aggregator-node/last-configured-revision`. A lock prevents
+overlapping playbooks. A failed run can be retried against the same VM
+without recreating it. For example, via SSM:
 
 ```sh
 sudo /usr/local/sbin/aggregator-node-configure <40-character-git-commit-sha>
 ```
 
-Only `dev` or an exact lowercase Git SHA is accepted. Use a reviewed SHA
-rather than a mutable branch for predictable, auditable reruns. The wrapper
-serializes executions, checks out the requested revision, applies Ansible,
-then records success in
-`/var/lib/aggregator-node/last-configured-revision`. K3s is reinstalled only
-if the installed version differs; the Argo CD manifest is reapplied to
-reconcile drift.
+K3s is reinstalled only if the installed pinned version differs. The
+Argo CD manifest is reapplied to reconcile drift. On a new node, the
+GitHub SSM job waits for cloud-init and checks K3s, Traefik, Argo CD,
+and the public HTTP entrypoint after configuration.
 
 The K3s installer comes from the official `get.k3s.io` endpoint, with
 `INSTALL_K3S_VERSION` pinned. The installer script itself is not pinned
@@ -53,8 +57,8 @@ sudo tail -100 /var/log/aggregator-node-configure.log
 ```
 
 On first-boot failure, also inspect `/var/log/cloud-init-output.log`.
-The GitHub infrastructure workflow waits for cloud-init, validates the pinned
-revision, and checks K3s and Argo CD readiness using SSM. Full output is
+The GitHub infrastructure workflow waits for cloud-init, applies the exact
+workflow revision and checks K3s and Argo CD readiness using SSM. Full output is
 forwarded to CloudWatch Logs group `/aws/ssm/aggregator-demo-k3s` and retained
 for 14 days.
 Argo CD remains reachable only inside the cluster (ClusterIP service).

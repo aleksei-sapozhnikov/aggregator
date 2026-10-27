@@ -15,7 +15,7 @@ variable "default_subnet_availability_zones" {
 }
 
 variable "enable_k3s_node" {
-  description = "Opt in to provisioning the separate K3s EC2 instance and running its first-boot Ansible configuration."
+  description = "Opt in to provisioning the separate K3s EC2 instance. Its Ansible configuration runs through SSM after apply."
   type        = bool
   default     = false
 }
@@ -30,10 +30,4 @@ variable "k3s_root_volume_size" {
   description = "Encrypted gp3 root volume size for the optional K3s node, in GiB."
   type        = number
   default     = 50
-}
-
-variable "k3s_bootstrap_git_ref" {
-  description = "Git revision from which the K3s node runs its Ansible playbook. Prefer a full SHA for reproducibility."
-  type        = string
-  default     = "dev"
 }

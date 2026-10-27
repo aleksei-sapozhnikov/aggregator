@@ -51,8 +51,8 @@ which are **not** durable if the EC2 instance is deleted.
   protection or infrastructure approvals as a workaround.
 - For K3s provisioning, set `DEMO_INFRA_WORKFLOW_ENABLED=true`,
   `ENABLE_K3S_NODE=true`, and the existing `ENABLE_BEDROCK` value.
-  Set `K3S_BOOTSTRAP_GIT_REF` to a **full SHA from demo history** that
-  includes the new Ansible configuration.
+  The infrastructure workflow automatically passes its own Git SHA to
+  the SSM-driven Ansible bootstrap; no SHA variable is needed.
 - Review the OpenTofu plan and manually approve `demo-infra-apply`.
 - Once the job succeeds, use OpenTofu output `k3s_public_ip` and open
   `http://<k3s_public_ip>/`. No DNS cutover is performed.

@@ -1,5 +1,5 @@
 #cloud-config
-# Runs only on first boot; rerun configuration through SSM with the installed script.
+# First-boot preparation only. GitHub Actions invokes this wrapper using SSM.
 package_update: true
 packages:
   - git
@@ -14,9 +14,9 @@ write_files:
       set -euo pipefail
       umask 077
 
-      REVISION="$${1:-dev}"
-      if [[ "$REVISION" != "dev" && ! "$REVISION" =~ ^[a-f0-9]{40}$ ]]; then
-        echo "Expected dev or a full lowercase Git commit SHA" >&2
+      REVISION="${1:?Expected a full Git commit SHA}"
+      if [[ ! "$REVISION" =~ ^[a-f0-9]{40}$ ]]; then
+        echo "Expected a full lowercase Git commit SHA" >&2
         exit 2
       fi
 
@@ -31,7 +31,9 @@ write_files:
       echo "Configuring Aggregator node from $REVISION"
       mkdir -p /opt/aggregator-node
       if [[ ! -d "$REPO_DIR/.git" ]]; then
-        git clone --depth 1 --branch dev --no-checkout "$REPO_URL" "$REPO_DIR"
+        mkdir -p "$REPO_DIR"
+        git -C "$REPO_DIR" init -q
+        git -C "$REPO_DIR" remote add origin "$REPO_URL"
       fi
       git -C "$REPO_DIR" fetch --depth 1 origin "$REVISION"
       git -C "$REPO_DIR" checkout --force --detach FETCH_HEAD
@@ -46,5 +48,3 @@ write_files:
       mkdir -p /var/lib/aggregator-node
       git -C "$REPO_DIR" rev-parse HEAD > /var/lib/aggregator-node/last-configured-revision
       echo "Node configuration completed"
-runcmd:
-  - [ /usr/local/sbin/aggregator-node-configure, "${bootstrap_git_ref}" ]

@@ -25,29 +25,33 @@ Both `dev` and `demo` are watched for infrastructure changes:
   4. After approval, assume the **write OIDC apply role**, download and
      apply the _same saved plan_. Never generate a different plan during
      apply. When there are no Terraform changes, skip `tofu apply`.
-  5. Detect first-time creation or replacement of the K3s EC2 from the saved
-     OpenTofu plan JSON. After apply, use SSM to wait for cloud-init, verify
-     the pinned bootstrap revision and check K3s and Argo CD readiness,
-     Traefik and the application health.
-     A failed bootstrap fails the GitHub job; it does not reinstall Ansible.
-  6. When Ansible changes (or a manual reapply is requested) without EC2
-     creation, use SSM to run the root-owned Ansible wrapper at the triggering
-     Git SHA and verify K3s and Argo CD afterwards. Both cases use the same
-     approval job.
+  5. Detect creation or replacement of the K3s EC2 from the saved
+     OpenTofu plan JSON. After successful apply, execute the same Ansible
+     wrapper via SSM as for ordinary Ansible revisions. Supply the exact
+     workflow commit SHA, not a separately maintained bootstrap variable.
+  6. Ansible configures K3s, Traefik, Argo CD and its Application. The SSM
+     command checks the applied revision, Kubernetes/API readiness and
+     published application health. An error fails the approved job.
 
-First-boot Ansible runs from cloud-init and is not launched twice. The
-workflow waits for cloud-init to complete and checks the recorded revision
-and service health. This includes waiting for the `aggregator-demo`
-GitOps Application to become Synced and Healthy and checking HTTP on port 80.
-On first provisioning the images and `deploy/k8s-live` manifests must
-have been published by `demo-deploy.yml` to the same `demo` branch;
-otherwise verification fails explicitly.
-If K3s is disabled, SSM is skipped. Terraform-only
-updates to existing nodes do not automatically re-run Ansible.
+Cloud-init only installs OS prerequisites and the root-owned Ansible wrapper.
+It does **not** fetch the repository or run the playbook on its own.
+Terraform owns the cloud-init template; changing that template intentionally
+replaces the K3s EC2 (subject to the reviewed Terraform plan), rather than
+restarting an instance without re-running cloud-init.
+
+Changes under `deploy/ansible/**` reconfigure the existing EC2 through SSM,
+without Terraform resource updates. Ordinary application changes use GitHub
+image publication and Argo CD, without running Ansible. With no relevant
+changes, the workflow can skip apply altogether. On first provisioning,
+`deploy/k8s-live` must already be published in the `demo` branch.
+To retry failed configuration without replacing EC2, request a manual
+`reapply_ansible` run when the workflow is available on the default branch,
+or retrigger the failed job while its saved plan remains usable.
 
 SSM Run Command streams stdout and stderr to CloudWatch Logs group
-`/aws/ssm/aggregator-demo-k3s` with 14-day retention. First-boot verification
-forwards the full local Ansible log to this group.
+`/aws/ssm/aggregator-demo-k3s` with 14-day retention. The wrapper also
+records complete logs on the instance at
+`/var/log/aggregator-node-configure.log`.
 
 This workflow does not modify the existing application deploy workflow
 (`demo-deploy.yml`) and does not run any infrastructure steps for ordinary
@@ -68,7 +72,6 @@ Configure Repository and Environment variables under **Settings → Secrets and 
 | Environment `demo-infra-plan`                  | `AWS_ROLE_ARN`                | Plan role ARN from the admin OpenTofu outputs.            |
 | Environment `demo-infra-plan`                  | `ENABLE_K3S_NODE`             | Explicit `true` or `false`.                               |
 | Environment `demo-infra-plan`                  | `ENABLE_BEDROCK`              | Explicit `true` or `false`.                               |
-| Environment `demo-infra-plan` when K3s enabled | `K3S_BOOTSTRAP_GIT_REF`       | Full pinned commit SHA from `demo` history.               |
 | Environment `demo-infra-apply`                 | `AWS_ROLE_ARN`                | Apply role ARN from the admin OpenTofu outputs.           |
 | Environment `demo-infra-apply`                 | `MANUAL_APPROVAL_CONFIGURED`  | `true`, after Required reviewers are configured.          |
 
@@ -115,13 +118,10 @@ The workflow refuses missing `ENABLE_K3S_NODE` and
 defaults. **Setting `ENABLE_K3S_NODE=false` after creating the node
 would plan its destruction.** Review the plan before approval.
 
-The bootstrap ref is **required as a pinned SHA when K3s is enabled**.
-It must be an ancestor of the current `demo` commit, and must remain stable
-between runs, since changing EC2 user data may cause an EC2 update/restart.
-When `ENABLE_K3S_NODE=false`, `K3S_BOOTSTRAP_GIT_REF` is ignored entirely,
-including placeholder values such as `-`; it is neither validated nor passed
-to OpenTofu.
-For subsequent Ansible changes the workflow uses SSM and the immutable triggering revision, not cloud-init.
+No `K3S_BOOTSTRAP_GIT_REF` is needed. The workflow runs the precise
+`github.sha` through SSM after apply. Changing the Ansible playbook alone
+never changes EC2 `user_data`; cloud-init revisions intentionally require
+a reviewed instance replacement.
 
 The saved `demo.tfplan` may include sensitive infrastructure or state data
 even when the rendered plan redacts it; treat Actions artifacts as sensitive.

@@ -1,4 +1,4 @@
-# Inputs for instance sizing, networking, access, and bootstrap revision.
+# Inputs for instance sizing, networking, and access.
 
 variable "ami_id" {
   description = "Pinned Amazon Linux 2023 x86_64 AMI ID for eu-central-1."
@@ -39,16 +39,5 @@ variable "root_volume_size" {
   validation {
     condition     = var.root_volume_size >= 40 && var.root_volume_size <= 200 && floor(var.root_volume_size) == var.root_volume_size
     error_message = "root_volume_size must be an integer between 40 and 200 GiB."
-  }
-}
-
-variable "bootstrap_git_ref" {
-  description = "Revision used by cloud-init to fetch the Ansible configuration. Prefer a reviewed full commit SHA."
-  type        = string
-  default     = "dev"
-
-  validation {
-    condition     = can(regex("^(dev|[a-f0-9]{40})$", var.bootstrap_git_ref))
-    error_message = "bootstrap_git_ref must be dev or a 40-character lowercase commit SHA."
   }
 }

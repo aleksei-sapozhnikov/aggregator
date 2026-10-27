@@ -1,9 +1,10 @@
 # EC2 node for K3s
 
 This opt-in Terraform module creates a separate Amazon Linux 2023 EC2 node,
-instance profile, and security group. Cloud-init runs during **first boot**:
-it installs the Ansible control environment and applies
-[deploy/ansible](../../../../ansible/README.md) to install K3s and Argo CD.
+instance profile, and security group. Cloud-init runs during **first boot**
+to install minimal prerequisites and a root-owned wrapper. After Terraform
+apply, GitHub Actions uses SSM to invoke the wrapper, install Ansible and
+apply [deploy/ansible](../../../../ansible/README.md) for K3s and Argo CD.
 
 Security and networking:
 
@@ -17,13 +18,11 @@ Security and networking:
 - Session Manager provides interactive access as `ec2-user`, with sudo
   for node configuration.
 
-`bootstrap_git_ref` must be `dev` or a full lowercase Git commit SHA. It
-defaults to `dev` for development. Prefer a reviewed immutable SHA: the
-bootstrapped repository playbook is executed as root.
-
-Cloud-init does not run automatically again when user data changes on an
-existing node. Reapply with the wrapper over SSM, as documented in the
-[demo root](../../README.md).
+There is no bootstrap Git variable: the SSM command receives the exact
+GitHub workflow commit SHA. The cloud-init template does not depend on
+application or Ansible revisions. A cloud-init template change is a
+reviewed EC2 replacement so first-boot initialization is applied reliably.
+Subsequent Ansible changes run on the existing node through SSM.
 
 The K3s and Argo CD versions are pinned inside the Ansible configuration.
 Changing them is a deliberate upgrade, not a Terraform replacement.

@@ -1,4 +1,4 @@
-# EC2 node configured on first boot by cloud-init and Ansible.
+# EC2 node prepared on first boot by cloud-init; Ansible is invoked through SSM.
 
 data "aws_caller_identity" "current" {}
 
@@ -132,7 +132,8 @@ resource "aws_instance" "this" {
   iam_instance_profile   = aws_iam_instance_profile.ec2.name
   vpc_security_group_ids = [aws_security_group.instance_access.id]
   source_dest_check      = true
-  user_data              = templatefile("${path.module}/cloud-init.yaml.tftpl", { bootstrap_git_ref = var.bootstrap_git_ref })
+  user_data                   = templatefile("${path.module}/cloud-init.yaml.tftpl", {})
+  user_data_replace_on_change = true
 
   metadata_options {
     http_endpoint               = "enabled"

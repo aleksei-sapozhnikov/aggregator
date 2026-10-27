@@ -85,5 +85,4 @@ module "aggregator_demo_k3s" {
   root_volume_size  = var.k3s_root_volume_size
   vpc_id            = data.aws_vpc.default.id
   subnet_id         = data.aws_subnet.default["aggregator_demo"].id
-  bootstrap_git_ref = var.k3s_bootstrap_git_ref
 }

@@ -1,15 +1,9 @@
 #!/usr/bin/env bash
-# Verify K3s first boot or reapply a reviewed Ansible revision using SSM.
+# Apply a reviewed Ansible revision to a new or existing K3s EC2 using SSM.
 set -euo pipefail
 
 : "${SSM_INSTANCE_ID:?SSM_INSTANCE_ID is required}"
 : "${CONFIGURATION_SHA:?CONFIGURATION_SHA is required}"
-SSM_MODE="${SSM_MODE:-reconcile}"
-[[ "$SSM_MODE" == verify || "$SSM_MODE" == reconcile ]] || {
-  echo "SSM_MODE must be verify or reconcile" >&2
-  exit 2
-}
-
 [[ "$SSM_INSTANCE_ID" =~ ^i-[0-9a-f]+$ ]] || {
   echo "Invalid EC2 instance ID" >&2
   exit 2
@@ -39,30 +33,23 @@ if [[ "$connected" != true ]]; then
   exit 1
 fi
 
-# Wait for cloud-init to complete and fail on bootstrap errors.
-# New instances are verified without reinstalling Ansible a second time.
-# The revision and mode interpolated here were validated above.
+# Cloud-init provides only prerequisites and the reusable wrapper.
+# The same Ansible command is used for a new node and subsequent changes.
 command_line="$(cat <<SCRIPT
 #!/bin/sh
 set -eu
 if ! cloud-init status --wait; then
   cloud-init status --long || true
-  test ! -f /var/log/aggregator-node-configure.log || cat /var/log/aggregator-node-configure.log
   exit 1
 fi
-if [ "$SSM_MODE" = verify ]; then
-  test -f /var/lib/aggregator-node/last-configured-revision
-  test "\$(cat /var/lib/aggregator-node/last-configured-revision)" = "$CONFIGURATION_SHA"
-  cat /var/log/aggregator-node-configure.log
-else
-  test -x /usr/local/sbin/aggregator-node-configure
-  /usr/local/sbin/aggregator-node-configure "$CONFIGURATION_SHA"
-fi
+test -x /usr/local/sbin/aggregator-node-configure
+/usr/local/sbin/aggregator-node-configure "$CONFIGURATION_SHA"
+test "\$(cat /var/lib/aggregator-node/last-configured-revision)" = "$CONFIGURATION_SHA"
 systemctl is-active --quiet k3s
 /usr/local/bin/k3s kubectl get --raw=/readyz
 /usr/local/bin/k3s kubectl --namespace argocd rollout status deployment/argocd-server --timeout=180s
 /usr/local/bin/k3s kubectl --namespace kube-system rollout status deployment/traefik --timeout=300s
-# The release branch may be published while a new VM is still bootstrapping.
+# The published manifest directory may be updated while a new VM is being configured.
 # Argo CD reconciles it independently; wait for the full application to become healthy.
 sync=""
 health=""
@@ -97,7 +84,7 @@ command_id="$(aws ssm send-command \
   --document-name AWS-RunShellScript \
   --parameters "$parameters" \
   --cloud-watch-output-config 'CloudWatchOutputEnabled=true,CloudWatchLogGroupName=/aws/ssm/aggregator-demo-k3s' \
-  --comment "$SSM_MODE Aggregator K3s node at $CONFIGURATION_SHA" \
+  --comment "Configure Aggregator K3s node at $CONFIGURATION_SHA" \
   --timeout-seconds 600 \
   --query Command.CommandId --output text)"
 
@@ -105,7 +92,7 @@ command_id="$(aws ssm send-command \
   echo "SSM did not return a command ID" >&2
   exit 1
 }
-echo "Started SSM command $command_id ($SSM_MODE)"
+echo "Started SSM Ansible command $command_id"
 echo "Full SSM output: CloudWatch Logs group /aws/ssm/aggregator-demo-k3s (command $command_id)"
 
 final_status=""
@@ -134,12 +121,12 @@ aws ssm get-command-invocation \
   --output json || true
 
 if [[ "$final_status" != Success ]]; then
-  echo "K3s $SSM_MODE failed or timed out (SSM status: ${final_status:-unknown})" >&2
+  echo "K3s configuration failed or timed out (SSM status: ${final_status:-unknown})" >&2
   exit 1
 fi
 
-echo "Verified node $SSM_INSTANCE_ID at $CONFIGURATION_SHA ($SSM_MODE)"
+echo "Configured and verified K3s node $SSM_INSTANCE_ID at $CONFIGURATION_SHA"
 if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
-  echo "K3s $SSM_MODE succeeded at commit \`$CONFIGURATION_SHA\` using SSM command \`$command_id\`." >> "$GITHUB_STEP_SUMMARY"
+  echo "K3s configuration succeeded at commit \`$CONFIGURATION_SHA\` using SSM command \`$command_id\`." >> "$GITHUB_STEP_SUMMARY"
   echo "Full SSM output: CloudWatch Logs group \`/aws/ssm/aggregator-demo-k3s\`." >> "$GITHUB_STEP_SUMMARY"
 fi

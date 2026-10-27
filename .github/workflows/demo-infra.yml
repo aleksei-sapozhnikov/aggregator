@@ -75,17 +75,14 @@ jobs:
       has_changes: ${{ steps.plan.outputs.has_changes }}
       ansible_changed: ${{ steps.changes.outputs.ansible_changed }}
       k3s_created: ${{ steps.plan.outputs.k3s_created }}
-      bootstrap_ref: ${{ steps.flags.outputs.bootstrap_ref }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           persist-credentials: false
       - name: Require explicitly configured demo flags
-        id: flags
         shell: bash
         env:
-          BOOTSTRAP_REF: ${{ vars.K3S_BOOTSTRAP_GIT_REF }}
           ENABLE_K3S_NODE: ${{ vars.ENABLE_K3S_NODE }}
           ENABLE_BEDROCK: ${{ vars.ENABLE_BEDROCK }}
         run: |
@@ -98,26 +95,10 @@ jobs:
             echo "::error::ENABLE_BEDROCK must be explicitly true or false."
             exit 1
           }
-          if [[ "$ENABLE_K3S_NODE" == true ]]; then
-            [[ "$BOOTSTRAP_REF" =~ ^[a-f0-9]{40}$ ]] || {
-              echo "::error::Enabled K3s nodes require a pinned K3S_BOOTSTRAP_GIT_REF commit SHA."
-              exit 2
-            }
-            git merge-base --is-ancestor "$BOOTSTRAP_REF" "$GITHUB_SHA" || {
-              echo "::error::The K3s bootstrap SHA must belong to the published demo branch history."
-              exit 2
-            }
-          fi
           {
             echo "TF_VAR_enable_k3s_node=$ENABLE_K3S_NODE"
             echo "TF_VAR_enable_bedrock=$ENABLE_BEDROCK"
-            if [[ "$ENABLE_K3S_NODE" == true ]]; then
-              echo "TF_VAR_k3s_bootstrap_git_ref=$BOOTSTRAP_REF"
-            fi
           } >> "$GITHUB_ENV"
-          if [[ "$ENABLE_K3S_NODE" == true ]]; then
-            echo "bootstrap_ref=$BOOTSTRAP_REF" >> "$GITHUB_OUTPUT"
-          fi
       - name: Detect Ansible changes in demo
         id: changes
         shell: bash
@@ -201,7 +182,7 @@ jobs:
           retention-days: 7
 
   apply:
-    name: Approve, apply and reconcile K3s
+    name: Approve, apply and configure K3s
     needs: [validate, plan]
     if: github.ref == 'refs/heads/demo' && needs.plan.result == 'success' && (needs.plan.outputs.has_changes == 'true' || needs.plan.outputs.ansible_changed == 'true')
     environment: demo-infra-apply
@@ -272,11 +253,10 @@ jobs:
             echo "::error::Unexpected K3s instance ID in OpenTofu output."
             exit 1
           fi
-      - name: Verify first boot or reconcile Ansible using SSM
+      - name: Apply Ansible and verify K3s using SSM
         if: steps.node.outputs.available == 'true'
         env:
           SSM_INSTANCE_ID: ${{ steps.node.outputs.instance_id }}
-          SSM_MODE: ${{ needs.plan.outputs.k3s_created == 'true' && 'verify' || 'reconcile' }}
-          CONFIGURATION_SHA: ${{ needs.plan.outputs.k3s_created == 'true' && needs.plan.outputs.bootstrap_ref || github.sha }}
+          CONFIGURATION_SHA: ${{ github.sha }}
         shell: bash
         run: bash deploy/ansible/dispatch-ssm.sh
