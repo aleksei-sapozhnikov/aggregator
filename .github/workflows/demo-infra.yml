@@ -35,6 +35,7 @@ jobs:
     outputs:
       infra_changed: ${{ steps.route.outputs.infra_changed }}
       deploy_changed: ${{ steps.route.outputs.deploy_changed }}
+      bootstrap_missing: ${{ steps.route.outputs.bootstrap_missing }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -71,12 +72,21 @@ jobs:
               esac
             done < <(git diff --name-only "$BASE_SHA" "$GITHUB_SHA")
           fi
+          # A missing first release means cluster bootstrap must be reconciled
+          # before an application deploy, even on a code-only push.
+          bootstrap_missing=false
+          if ! git cat-file -e HEAD:deploy/k8s-live/kustomization.yaml 2>/dev/null; then
+            bootstrap_missing=true
+            infra_changed=true
+          fi
           {
             echo "infra_changed=$infra_changed"
             echo "deploy_changed=$deploy_changed"
+            echo "bootstrap_missing=$bootstrap_missing"
           } >> "$GITHUB_OUTPUT"
-          echo "Infrastructure changes: $infra_changed"
+          echo "Infrastructure changes or first bootstrap needed: $infra_changed"
           echo "Application changes: $deploy_changed"
+          echo "Initial GitOps release missing: $bootstrap_missing"
 
   validate:
     name: Validate demo OpenTofu and Ansible (no AWS access)
@@ -183,6 +193,8 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.before }}
           MANUAL_REAPPLY: ${{ inputs.reapply_ansible }}
+          BOOTSTRAP_MISSING: ${{ needs.detect.outputs.bootstrap_missing }}
+          K3S_ENABLED: ${{ vars.ENABLE_K3S_NODE }}
         run: |
           set -euo pipefail
           changed=false
@@ -205,6 +217,11 @@ jobs:
               reason="Ansible sources changed between $BASE_SHA and $GITHUB_SHA."
               git diff --no-ext-diff --no-color "$BASE_SHA" "$GITHUB_SHA" -- deploy/ansible/ > "$RUNNER_TEMP/ansible-diff.patch"
             fi
+          fi
+
+          if [[ "$BOOTSTRAP_MISSING" == true && "$K3S_ENABLED" == true && "$changed" != true ]]; then
+            changed=true
+            reason="No published K3s release exists yet; reapplying Ansible to verify or complete cluster bootstrap."
           fi
 
           printf '%s\n' "$reason" > "$RUNNER_TEMP/ansible-change-reason.txt"
