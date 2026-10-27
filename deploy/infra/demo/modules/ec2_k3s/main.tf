@@ -69,6 +69,35 @@ resource "aws_iam_role_policy_attachment" "ssm" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
+# SSM command output is retained for two weeks, including first-boot Ansible logs.
+resource "aws_cloudwatch_log_group" "ssm" {
+  name              = "/aws/ssm/aggregator-demo-k3s"
+  retention_in_days = 14
+  tags              = local.base_tags
+}
+
+data "aws_iam_policy_document" "ssm_logs" {
+  statement {
+    actions   = ["logs:DescribeLogGroups"]
+    resources = ["*"]
+  }
+
+  statement {
+    actions = [
+      "logs:CreateLogStream",
+      "logs:DescribeLogStreams",
+      "logs:PutLogEvents",
+    ]
+    resources = ["${aws_cloudwatch_log_group.ssm.arn}:*"]
+  }
+}
+
+resource "aws_iam_role_policy" "ssm_logs" {
+  name   = "AggregatorDemoK3sSsmLogs"
+  role   = aws_iam_role.ec2.name
+  policy = data.aws_iam_policy_document.ssm_logs.json
+}
+
 resource "aws_security_group" "instance_access" {
   name        = "${local.name}-sg"
   description = "Ingress and egress for the Aggregator demo k3s node"
@@ -125,4 +154,7 @@ resource "aws_instance" "this" {
 
   # Creation-time EBS tags are required for IAM ABAC; do not use root_block_device.tags.
   volume_tags = merge(local.base_tags, { Name = "${local.name}-root" })
+
+  # CloudWatch permissions must exist before SSM first runs during cloud-init.
+  depends_on = [aws_iam_role_policy.ssm_logs]
 }

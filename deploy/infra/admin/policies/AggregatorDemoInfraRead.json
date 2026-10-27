@@ -4,7 +4,9 @@
     {
       "Sid": "DescribeDemoEc2ForOpenTofu",
       "Effect": "Allow",
-      "Action": ["ec2:Describe*"],
+      "Action": [
+        "ec2:Describe*"
+      ],
       "Resource": "*"
     },
     {
@@ -51,6 +53,18 @@
         "ssm:ListTagsForResource"
       ],
       "Resource": "arn:aws:ssm:eu-central-1:905418096305:document/AggregatorDemoDeploy"
+    },
+    {
+      "Sid": "DescribeK3sSsmLogGroups",
+      "Effect": "Allow",
+      "Action": "logs:DescribeLogGroups",
+      "Resource": "*"
+    },
+    {
+      "Sid": "ReadK3sSsmLogGroupTags",
+      "Effect": "Allow",
+      "Action": "logs:ListTagsForResource",
+      "Resource": "arn:aws:logs:eu-central-1:905418096305:log-group:/aws/ssm/aggregator-demo-k3s"
     }
   ]
 }

@@ -50,4 +50,8 @@ sudo tail -100 /var/log/aggregator-node-configure.log
 ```
 
 On first-boot failure, also inspect `/var/log/cloud-init-output.log`.
+The GitHub infrastructure workflow waits for cloud-init, validates the pinned
+revision, and checks K3s and Argo CD readiness using SSM. Full output is
+forwarded to CloudWatch Logs group `/aws/ssm/aggregator-demo-k3s` and retained
+for 14 days.
 Argo CD remains reachable only inside the cluster (ClusterIP service).

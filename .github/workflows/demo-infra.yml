@@ -72,12 +72,15 @@ jobs:
     outputs:
       has_changes: ${{ steps.plan.outputs.has_changes }}
       ansible_changed: ${{ steps.changes.outputs.ansible_changed }}
+      k3s_created: ${{ steps.plan.outputs.k3s_created }}
+      bootstrap_ref: ${{ steps.flags.outputs.bootstrap_ref }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           persist-credentials: false
       - name: Require explicitly configured demo flags
+        id: flags
         shell: bash
         env:
           BOOTSTRAP_REF: ${{ vars.K3S_BOOTSTRAP_GIT_REF }}
@@ -110,6 +113,9 @@ jobs:
               echo "TF_VAR_k3s_bootstrap_git_ref=$BOOTSTRAP_REF"
             fi
           } >> "$GITHUB_ENV"
+          if [[ "$ENABLE_K3S_NODE" == true ]]; then
+            echo "bootstrap_ref=$BOOTSTRAP_REF" >> "$GITHUB_OUTPUT"
+          fi
       - name: Detect Ansible changes in demo
         id: changes
         shell: bash
@@ -162,6 +168,15 @@ jobs:
           else
             echo "has_changes=false" >> "$GITHUB_OUTPUT"
           fi
+          # Detect both first-time creation and replacement using the saved plan.
+          k3s_created="$(tofu show -json "$RUNNER_TEMP/demo.tfplan" | jq -r '
+            [.resource_changes[]?
+              | select(.address == "module.aggregator_demo_k3s[0].aws_instance.this")
+              | .change.actions[]?
+              | select(. == "create")]
+            | length > 0
+          ')"
+          echo "k3s_created=$k3s_created" >> "$GITHUB_OUTPUT"
           tofu show -no-color "$RUNNER_TEMP/demo.tfplan" > "$RUNNER_TEMP/plan.txt"
           {
             echo "## Demo infrastructure plan"
@@ -238,7 +253,7 @@ jobs:
           set -euo pipefail
           tofu apply -input=false -no-color "$RUNNER_TEMP/approved-plan/demo.tfplan"
       - name: Find the optional K3s node after successful apply
-        if: needs.plan.outputs.ansible_changed == 'true'
+        if: needs.plan.outputs.k3s_created == 'true' || needs.plan.outputs.ansible_changed == 'true'
         id: node
         working-directory: deploy/infra/demo
         shell: bash
@@ -255,10 +270,11 @@ jobs:
             echo "::error::Unexpected K3s instance ID in OpenTofu output."
             exit 1
           fi
-      - name: Reconcile Ansible using SSM
-        if: needs.plan.outputs.ansible_changed == 'true' && steps.node.outputs.available == 'true'
+      - name: Verify first boot or reconcile Ansible using SSM
+        if: steps.node.outputs.available == 'true'
         env:
           SSM_INSTANCE_ID: ${{ steps.node.outputs.instance_id }}
-          CONFIGURATION_SHA: ${{ github.sha }}
+          SSM_MODE: ${{ needs.plan.outputs.k3s_created == 'true' && 'verify' || 'reconcile' }}
+          CONFIGURATION_SHA: ${{ needs.plan.outputs.k3s_created == 'true' && needs.plan.outputs.bootstrap_ref || github.sha }}
         shell: bash
         run: bash deploy/ansible/dispatch-ssm.sh

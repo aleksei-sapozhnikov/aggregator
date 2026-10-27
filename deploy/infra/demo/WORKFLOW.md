@@ -25,16 +25,23 @@ Both `dev` and `demo` are watched for infrastructure changes:
   4. After approval, assume the **write OIDC apply role**, download and
      apply the _same saved plan_. Never generate a different plan during
      apply. When there are no Terraform changes, skip `tofu apply`.
-  5. If `deploy/ansible/**` changed (or a manual reapply is requested),
-     find the optional K3s instance from OpenTofu outputs and call the
-     instance's root-owned Ansible wrapper through AWS SSM using the exact
-     triggering Git SHA. Ansible runs **only after successful apply**,
-     and runs in the same approval job so there is just one approval.
+  5. Detect first-time creation or replacement of the K3s EC2 from the saved
+     OpenTofu plan JSON. After apply, use SSM to wait for cloud-init, verify
+     the pinned bootstrap revision and check K3s and Argo CD readiness.
+     A failed bootstrap fails the GitHub job; it does not reinstall Ansible.
+  6. When Ansible changes (or a manual reapply is requested) without EC2
+     creation, use SSM to run the root-owned Ansible wrapper at the triggering
+     Git SHA and verify K3s and Argo CD afterwards. Both cases use the same
+     approval job.
 
-A newly created K3s node also runs Ansible on first boot via cloud-init. On
-first-boot runs the SSM command waits for cloud-init before reapplying. When
-the optional K3s node is not provisioned, Ansible is explicitly skipped.
-A Terraform-only update of an existing node does not require Ansible.
+First-boot Ansible runs from cloud-init and is not launched twice. The
+workflow waits for cloud-init to complete and checks the recorded revision
+and service health. If K3s is disabled, SSM is skipped. Terraform-only
+updates to existing nodes do not automatically re-run Ansible.
+
+SSM Run Command streams stdout and stderr to CloudWatch Logs group
+`/aws/ssm/aggregator-demo-k3s` with 14-day retention. First-boot verification
+forwards the full local Ansible log to this group.
 
 This workflow does not modify the existing application deploy workflow
 (`demo-deploy.yml`) and does not run any infrastructure steps for ordinary
@@ -130,6 +137,10 @@ The role and SSM permissions are declared in `deploy/infra/admin` and
 become available only after an approved OpenTofu apply of that root.
 This demo workflow must not try to create or modify the admin root.
 
-To debug, inspect the plan/apply job summaries, SSM command output, and
+CloudWatch log permissions and the instance role boundary are defined in
+`admin`. Apply `admin` before enabling K3s, then review and apply the demo
+root through GitHub. The CloudWatch log group is created only if K3s is enabled.
+
+To debug, inspect the plan/apply job summaries, CloudWatch SSM output, and
 on-node `/var/log/cloud-init-output.log` or
 `/var/log/aggregator-node-configure.log`.

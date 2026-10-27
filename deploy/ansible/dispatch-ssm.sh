@@ -4,6 +4,11 @@ set -euo pipefail
 
 : "${SSM_INSTANCE_ID:?SSM_INSTANCE_ID is required}"
 : "${CONFIGURATION_SHA:?CONFIGURATION_SHA is required}"
+SSM_MODE="${SSM_MODE:-reconcile}"
+[[ "$SSM_MODE" == verify || "$SSM_MODE" == reconcile ]] || {
+  echo "SSM_MODE must be verify or reconcile" >&2
+  exit 2
+}
 
 [[ "$SSM_INSTANCE_ID" =~ ^i-[0-9a-f]+$ ]] || {
   echo "Invalid EC2 instance ID" >&2
@@ -34,9 +39,31 @@ if [[ "$connected" != true ]]; then
   exit 1
 fi
 
-# Wait for first-boot cloud-init before running the root-owned wrapper.
-# Quote and validate the immutable SHA before embedding it in a shell command.
-command_line="cloud-init status --wait || true; test -x /usr/local/sbin/aggregator-node-configure && /usr/local/sbin/aggregator-node-configure $CONFIGURATION_SHA"
+# Wait for cloud-init to complete and fail on bootstrap errors.
+# New instances are verified without reinstalling Ansible a second time.
+# The revision and mode interpolated here were validated above.
+command_line="$(cat <<SCRIPT
+#!/bin/sh
+set -eu
+if ! cloud-init status --wait; then
+  cloud-init status --long || true
+  test ! -f /var/log/aggregator-node-configure.log || cat /var/log/aggregator-node-configure.log
+  exit 1
+fi
+if [ "$SSM_MODE" = verify ]; then
+  test -f /var/lib/aggregator-node/last-configured-revision
+  test "\$(cat /var/lib/aggregator-node/last-configured-revision)" = "$CONFIGURATION_SHA"
+  cat /var/log/aggregator-node-configure.log
+else
+  test -x /usr/local/sbin/aggregator-node-configure
+  /usr/local/sbin/aggregator-node-configure "$CONFIGURATION_SHA"
+fi
+systemctl is-active --quiet k3s
+/usr/local/bin/k3s kubectl get --raw=/readyz
+/usr/local/bin/k3s kubectl --namespace argocd rollout status deployment/argocd-server --timeout=180s
+echo "K3s and Argo CD healthy at revision $CONFIGURATION_SHA"
+SCRIPT
+)"
 parameters="$(jq -nc --arg command "$command_line" \
   '{commands: [$command], executionTimeout: ["2400"]}')"
 
@@ -45,7 +72,8 @@ command_id="$(aws ssm send-command \
   --instance-ids "$SSM_INSTANCE_ID" \
   --document-name AWS-RunShellScript \
   --parameters "$parameters" \
-  --comment "Reconcile Aggregator K3s node at $CONFIGURATION_SHA" \
+  --cloud-watch-output-config 'CloudWatchOutputEnabled=true,CloudWatchLogGroupName=/aws/ssm/aggregator-demo-k3s' \
+  --comment "$SSM_MODE Aggregator K3s node at $CONFIGURATION_SHA" \
   --timeout-seconds 600 \
   --query Command.CommandId --output text)"
 
@@ -53,7 +81,8 @@ command_id="$(aws ssm send-command \
   echo "SSM did not return a command ID" >&2
   exit 1
 }
-echo "Started SSM command $command_id"
+echo "Started SSM command $command_id ($SSM_MODE)"
+echo "Full SSM output: CloudWatch Logs group /aws/ssm/aggregator-demo-k3s (command $command_id)"
 
 final_status=""
 for attempt in $(seq 1 240); do
@@ -85,7 +114,8 @@ if [[ "$final_status" != Success ]]; then
   exit 1
 fi
 
-echo "Reconciled node $SSM_INSTANCE_ID at $CONFIGURATION_SHA"
+echo "Verified node $SSM_INSTANCE_ID at $CONFIGURATION_SHA ($SSM_MODE)"
 if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
-  echo "Ansible reconciled K3s node at commit \`$CONFIGURATION_SHA\` using SSM command \`$command_id\`." >> "$GITHUB_STEP_SUMMARY"
+  echo "K3s $SSM_MODE succeeded at commit \`$CONFIGURATION_SHA\` using SSM command \`$command_id\`." >> "$GITHUB_STEP_SUMMARY"
+  echo "Full SSM output: CloudWatch Logs group \`/aws/ssm/aggregator-demo-k3s\`." >> "$GITHUB_STEP_SUMMARY"
 fi
