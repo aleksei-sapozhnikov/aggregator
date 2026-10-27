@@ -58,6 +58,8 @@ jobs:
           "$RUNNER_TEMP/ansible/bin/pip" install --disable-pip-version-check ansible-core==2.21.0
           cd deploy/ansible
           "$RUNNER_TEMP/ansible/bin/ansible-playbook" -i localhost, -c local --syntax-check site.yml
+          cd ../..
+          bash -n deploy/ansible/dispatch-ssm.sh
 
   plan:
     name: Plan changes to demo only
