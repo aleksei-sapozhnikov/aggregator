@@ -31,3 +31,7 @@ The default K3s Traefik/ServiceLB serves the application on the instance public
 IP over plain HTTP. No DNS or TLS certificate is provisioned, and 443 should
 remain closed until HTTPS is explicitly configured. The default K3s instance
 is t3.large to leave room for Argo CD, Prometheus, Grafana and the application.
+
+The public HTTP address is available from OpenTofu output `k3s_public_ip`
+after a successful reviewed deployment. The full release pipeline and
+security limitations are described in [the K3s deployment README](../../../k8s/README.md).

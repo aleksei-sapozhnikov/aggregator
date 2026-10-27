@@ -149,3 +149,11 @@ root through GitHub. The CloudWatch log group is created only if K3s is enabled.
 To debug, inspect the plan/apply job summaries, CloudWatch SSM output, and
 on-node `/var/log/cloud-init-output.log` or
 `/var/log/aggregator-node-configure.log`.
+
+## Public K3s application deployment
+
+The new node is bootstrapped with K3s, bundled Traefik/ServiceLB and an
+Argo CD Application following the immutable-image `k3s-demo` GitOps release
+branch. See [the K3s GitOps README](../../k8s/README.md) for prerequisites,
+public HTTP-by-IP behaviour, image publication, rollback and limitations.
+No DNS cutover is performed.

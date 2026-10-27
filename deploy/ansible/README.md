@@ -60,3 +60,12 @@ for 14 days.
 Argo CD remains reachable only inside the cluster (ClusterIP service).
 The public entrypoint is Traefik port 80, serving the UI Caddy via a hostless
 Ingress. Neither Argo CD nor the Kubernetes API is publicly exposed.
+
+## GitOps workload bootstrap
+
+The `gitops` role creates the Argo CD Application; it does not deploy
+containers directly. The Application follows `k3s-demo`, published after
+successful GHCR image builds from `demo`. The SSM verification waits for
+Synced/Healthy status and checks the HTTP endpoint on localhost. The
+Kubernetes resources and release procedures are documented in
+[deploy/k8s/README.md](../../k8s/README.md).
