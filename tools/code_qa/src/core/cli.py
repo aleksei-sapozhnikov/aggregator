@@ -398,7 +398,8 @@ def run_secrets_command(
         cmd.extend(["--summary", "--quiet"])
 
     emit, emit_file_only, close = build_emitter(out_file, append=append_out_file)
-    print("Checking secrets with Trufflehog.. ", end="", flush=True)
+    emit("Secrets scan")
+    print("  Checking secrets with Trufflehog.. ", end="", flush=True)
     result = subprocess.run(
         cmd,
         cwd=repo_root(),
@@ -411,7 +412,7 @@ def run_secrets_command(
         parsed = parse_secrets_summary(result.stdout or "")
         status = parsed[0] if parsed else ("OK" if result.returncode == 0 else "FAILED")
         print(status, flush=True)
-        emit_file_only(f"Checking secrets with Trufflehog.. {status}")
+        emit_file_only(f"  Checking secrets with Trufflehog.. {status}")
         if parsed:
             for line in (result.stdout or "").splitlines():
                 if line.startswith("Scan scope: "):
@@ -608,11 +609,19 @@ def run_qa_command(
     if code_qa_rc != 0:
         emit, _, close = build_emitter(out_file, append=True)
         try:
-            emit("Skipping secrets scan: code checks or tests failed.")
+            emit("")
+            emit("Secrets scan")
+            emit("  Skipping secrets scan: code checks or tests failed.")
             emit_final_summary(emit, False)
         finally:
             close()
         return 1
+
+    emit, _, close = build_emitter(out_file, append=True)
+    try:
+        emit("")
+    finally:
+        close()
 
     secrets_rc = run_secrets_command(
         scan_root=scan_root,

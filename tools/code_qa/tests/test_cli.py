@@ -184,6 +184,36 @@ class OrchestratorFlowTests(unittest.TestCase):
         formatter.assert_not_called()
         secrets.assert_called_once()
 
+    def test_secrets_are_printed_as_a_separate_block_after_modules(self) -> None:
+        result = main.subprocess.CompletedProcess(
+            [],
+            0,
+            stdout="Scan scope: /repo (recursive filesystem)\\nOK: 0 secrets found\\n",
+            stderr="",
+        )
+
+        def previous_checks(**_kwargs):
+            print("Module: repository")
+            print("  Checking final newline.. OK")
+            return 0
+
+        with (
+            patch.object(main, "run_code_qa_command", side_effect=previous_checks),
+            patch.object(main.subprocess, "run", return_value=result),
+            redirect_stdout(StringIO()) as output,
+        ):
+            self.assertEqual(main.run_qa_command(), 0)
+
+        self.assertIn(
+            "  Checking final newline.. OK\\n"
+            "\\nSecrets scan\\n"
+            "  Checking secrets with Trufflehog.. OK\\n"
+            "  Scan scope: /repo (recursive filesystem)\\n"
+            "  0 secrets found",
+            output.getvalue(),
+        )
+        self.assertIn("=== QA: PASSED ===", output.getvalue())
+
     def test_secret_scan_scope_is_preserved_in_compact_output(self) -> None:
         result = main.subprocess.CompletedProcess(
             [],
