@@ -36,22 +36,22 @@ class YamlFilesTests(unittest.TestCase):
         return result, output.getvalue()
 
     def test_single_yaml_document(self) -> None:
-        result, output = self.run_check("name: catalog\\n")
+        result, output = self.run_check("name: catalog\n")
         self.assertEqual(result, 0)
         self.assertEqual(output, "")
 
     def test_multiple_yaml_documents(self) -> None:
         result, output = self.run_check(
-            "apiVersion: apps/v1\\nkind: Deployment\\n"
-            "---\\napiVersion: v1\\nkind: Service\\n"
+            "apiVersion: apps/v1\nkind: Deployment\n"
+            "---\napiVersion: v1\nkind: Service\n"
         )
         self.assertEqual(result, 0)
         self.assertEqual(output, "")
 
     def test_invalid_second_document_is_reported(self) -> None:
         result, output = self.run_check(
-            "apiVersion: v1\\nkind: Service\\n"
-            "---\\nmetadata: [unterminated\\n"
+            "apiVersion: v1\nkind: Service\n"
+            "---\nmetadata: [unterminated\n"
         )
         self.assertEqual(result, 1)
         self.assertIn("manifest.yaml", output)
