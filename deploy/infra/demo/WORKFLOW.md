@@ -19,7 +19,7 @@ Both `dev` and `demo` are watched for infrastructure changes:
      `tofu plan -detailed-exitcode`. Render the plan in a
      `terraform` code block in the job summary and retain the exact plan
      artifact for seven days if it has changes.
-  3. Request human approval through the `demo-infra` Environment when there
+  3. Request human approval through the `demo-infra-deploy` Environment when there
      are Terraform changes or Ansible changes. The job fails closed without
      `MANUAL_APPROVAL_CONFIGURED=true` in that environment.
   4. After approval, assume the **write OIDC apply role**, download and
@@ -56,8 +56,8 @@ Configure Repository and Environment variables under **Settings → Secrets and 
 | Environment `demo-infra-plan` | `ENABLE_K3S_NODE` | Explicit `true` or `false`. |
 | Environment `demo-infra-plan` | `ENABLE_BEDROCK` | Explicit `true` or `false`. |
 | Environment `demo-infra-plan` when K3s enabled | `K3S_BOOTSTRAP_GIT_REF` | Full pinned commit SHA from `demo` history. |
-| Environment `demo-infra` | `AWS_ROLE_ARN` | Apply role ARN from the admin OpenTofu outputs. |
-| Environment `demo-infra` | `MANUAL_APPROVAL_CONFIGURED` | `true`, after Required reviewers are configured. |
+| Environment `demo-infra-deploy` | `AWS_ROLE_ARN` | Apply role ARN from the admin OpenTofu outputs. |
+| Environment `demo-infra-deploy` | `MANUAL_APPROVAL_CONFIGURED` | `true`, after Required reviewers are configured. |
 
 **Do not create AWS access-key secrets.** Existing GitHub OIDC provider is
 reused. Both infrastructure IAM roles, their trust policies, and their
@@ -75,7 +75,7 @@ restricted to the old application deployment and is **not** reused.
 Environment `demo-infra-plan` must allow only `demo` and have no Required
 reviewers, so plan runs without manual confirmation.
 
-GitHub Environment `demo-infra` must be configured under
+GitHub Environment `demo-infra-deploy` must be configured under
 **Settings → Environments**:
 
 1. Add **Required reviewers** (allow self-review if you intend to approve

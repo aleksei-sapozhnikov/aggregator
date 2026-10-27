@@ -11,6 +11,6 @@ output "github_demo_infra_plan_role_arn" {
 }
 
 output "github_demo_infra_apply_role_arn" {
-  description = "Set as AWS_ROLE_ARN in the demo-infra GitHub Environment."
+  description = "Set as AWS_ROLE_ARN in the demo-infra-deploy GitHub Environment."
   value       = aws_iam_role.github_demo_infra_apply.arn
 }

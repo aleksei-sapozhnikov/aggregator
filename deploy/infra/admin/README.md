@@ -82,7 +82,7 @@ The two infrastructure roles and their attachments are defined in
 - `AggregatorDemoInfraPlanGithub` can read demo infrastructure and state
   and write/delete only its OpenTofu lock file.
 - `AggregatorDemoInfraApplyGithub` runs after GitHub Environment
-  `demo-infra` approval. It reuses the existing
+  `demo-infra-deploy` approval. It reuses the existing
   `AggregatorDemoStateAccess`, `AggregatorDemoEC2Management`,
   `AggregatorDemoIAMManagement`, `AggregatorDemoSGRuleCreation` and
   `AggregatorDemoSSMManagement` policies.
@@ -91,7 +91,7 @@ The additional plan-only state access, resource reads and K3s Run Command
 permissions are defined in `policies/`. No manual IAM role creation is
 required. Apply this administrative root first with the authorized
 `infra-admin` identity, then configure `AWS_ROLE_ARN` in both GitHub Environments:
-`demo-infra-plan` receives the plan role ARN; `demo-infra` receives the apply
+`demo-infra-plan` receives the plan role ARN; `demo-infra-deploy` receives the apply
 role ARN. The first Environment requires no approval but must allow only the
 `demo` branch. The second requires approval and also allows only `demo`. The roles are not applied merely by committing these files.
 
