@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Request the existing demo-deploy workflow after infrastructure is ready.
+# Checks the latest demo branch for a published K3s release and dispatches
+# an application build only if sources changed or the first release is missing.
+# Requires GH_TOKEN, APP_CHANGED, and GitHub Actions repository context.
+
 set -euo pipefail
 # Read the latest demo branch, including any previously promoted manifests.
 git fetch --no-tags --depth=1 origin refs/heads/demo

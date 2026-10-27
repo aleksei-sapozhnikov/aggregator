@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Write the infrastructure approval review to the GitHub Actions job summary.
+# Explains Terraform and Ansible actions and shows collapsible plan and Git diff.
+# Reads TERRAFORM_CHANGED, ANSIBLE_CHANGED, K3S_CREATED, and RUNNER_TEMP;
+# appends the review to GITHUB_STEP_SUMMARY.
+
 set -euo pipefail
 {
   echo "## Demo infrastructure - approval review"

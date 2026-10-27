@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Validate the K3s Ansible playbook and all demo workflow Bash scripts.
+# Also checks the cloud-init wrapper syntax and ensures cloud-init does not
+# run Ansible directly. Performs no AWS operations or remote configuration.
+# Uses RUNNER_TEMP for its temporary Ansible environment.
+
 set -euo pipefail
 python3 -m venv "$RUNNER_TEMP/ansible"
 "$RUNNER_TEMP/ansible/bin/pip" install --disable-pip-version-check ansible-core==2.21.0

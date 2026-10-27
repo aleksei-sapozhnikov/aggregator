@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Promote a fully built demo release to the GitOps directory watched by Argo CD.
+# Copies candidate manifests, pins eight GHCR image tags to RELEASE_SHA,
+# validates Kustomize output, and pushes a new commit to the demo branch.
+# Requires RELEASE_SHA, RUNNER_TEMP, and GITHUB_STEP_SUMMARY from GitHub Actions.
+
 set -euo pipefail
 [[ "$RELEASE_SHA" =~ ^[a-f0-9]{40}$ ]]
 git config user.name "github-actions[bot]"

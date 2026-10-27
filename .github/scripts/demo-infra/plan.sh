@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Create the reviewed OpenTofu plan for demo infrastructure.
+# Stores the saved plan and readable output under RUNNER_TEMP, detects
+# instance creation/replacement, and exports has_changes and k3s_created
+# through GITHUB_OUTPUT. Run from deploy/infra/demo.
+
 set -euo pipefail
 set +e
 tofu plan -input=false -no-color -detailed-exitcode -out="$RUNNER_TEMP/demo.tfplan" > "$RUNNER_TEMP/plan.log" 2>&1

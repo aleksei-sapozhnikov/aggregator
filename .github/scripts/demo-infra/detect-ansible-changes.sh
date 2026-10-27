@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Decide whether the existing K3s node must be reconfigured with Ansible.
+# Compares the pushed Git range or handles manual/first-release reconciliation.
+# Writes changed-file and diff previews to RUNNER_TEMP and the decision to
+# GITHUB_OUTPUT for later approval and apply jobs.
+
 set -euo pipefail
 changed=false
 reason="No Ansible source changes detected."

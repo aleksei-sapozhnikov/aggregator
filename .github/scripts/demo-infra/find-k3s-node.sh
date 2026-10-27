@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# Find the optional K3s EC2 instance in OpenTofu outputs after apply.
+# Validates its instance ID and sets available/instance_id in GITHUB_OUTPUT
+# so the workflow knows whether to run Ansible through SSM.
+
 set -euo pipefail
 instance_id="$(tofu output -json k3s_instance_id | jq -r '. // empty')"
 if [[ -z "$instance_id" ]]; then

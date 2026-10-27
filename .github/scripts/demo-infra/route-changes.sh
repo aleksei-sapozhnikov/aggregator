@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Route a demo push to infrastructure and/or application deployment stages.
+# Compares the Git push range and checks for a missing initial GitOps release.
+# Outputs infra_changed, deploy_changed, and bootstrap_missing through
+# GITHUB_OUTPUT; uses BASE_SHA and INFRA_WORKFLOW_ENABLED when applicable.
+
 set -euo pipefail
 infra_changed=false
 deploy_changed=false
