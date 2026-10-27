@@ -90,9 +90,10 @@ The two infrastructure roles and their attachments are defined in
 The additional plan-only state access, resource reads and K3s Run Command
 permissions are defined in `policies/`. No manual IAM role creation is
 required. Apply this administrative root first with the authorized
-`infra-admin` identity, then configure GitHub repository variables
-`AWS_DEMO_INFRA_PLAN_ROLE_ARN` and `AWS_DEMO_INFRA_APPLY_ROLE_ARN` from
-the outputs. The roles are not applied merely by committing these files.
+`infra-admin` identity, then configure `AWS_ROLE_ARN` in both GitHub Environments:
+`demo-infra-plan` receives the plan role ARN; `demo-infra` receives the apply
+role ARN. The first Environment requires no approval but must allow only the
+`demo` branch. The second requires approval and also allows only `demo`. The roles are not applied merely by committing these files.
 
 The existing `AggregatorDemoDeployGithub` role is intentionally separate:
 it is limited to serving-demo application deployment. Workload EC2 IAM

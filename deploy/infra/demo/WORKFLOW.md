@@ -13,14 +13,15 @@ Both `dev` and `demo` are watched for infrastructure changes:
   are requested, and nothing is applied.
 - **`demo` — validate → plan → approval → apply → Ansible:**
   1. Validate the checked-out revision as above.
-  2. Assume the **read-only OIDC plan role** to access the demo infrastructure
+  2. Use unprotected, `demo`-branch-only Environment `demo-infra-plan`
+     to assume the **read-only OIDC plan role** and access the demo infrastructure
      and its remote state. Generate `demo.tfplan` with
      `tofu plan -detailed-exitcode`. Render the plan in a
      `terraform` code block in the job summary and retain the exact plan
      artifact for seven days if it has changes.
   3. Request human approval through the `demo-infra` Environment when there
      are Terraform changes or Ansible changes. The job fails closed without
-     `MANUAL_APPROVAL_CONFIGURED=yes` in that environment.
+     `MANUAL_APPROVAL_CONFIGURED=true` in that environment.
   4. After approval, assume the **write OIDC apply role**, download and
      apply the *same saved plan*. Never generate a different plan during
      apply. When there are no Terraform changes, skip `tofu apply`.
@@ -46,26 +47,33 @@ stale plans to fail.
 
 ## GitHub setup (required before enabling)
 
-In **Settings → Secrets and variables → Actions → Variables**, configure:
+Configure Repository and Environment variables under **Settings → Secrets and variables → Actions → Variables** and **Settings → Environments**:
 
 | Type | Name | Meaning |
 | --- | --- | --- |
-| Repository variable | `DEMO_INFRA_WORKFLOW_ENABLED` | `true` enables the AWS jobs on `demo`. Validation works without it. |
-| Repository variable | `DEMO_ENABLE_K3S_NODE` | Explicit `true` or `false`, matching the intended deployed resources. |
-| Repository variable | `DEMO_ENABLE_BEDROCK` | Explicit `true` or `false`. |
-| Repository variable | `AWS_DEMO_INFRA_PLAN_ROLE_ARN` | IAM role for planning via GitHub OIDC, trust restricted to `demo` branch. |
-| Repository variable | `AWS_DEMO_INFRA_APPLY_ROLE_ARN` | IAM role for apply and SSM, trust restricted to the protected `demo-infra` Environment. |
-| Repository variable when K3s is enabled | `DEMO_K3S_BOOTSTRAP_GIT_REF` | Pinned 40-character SHA from the `demo` branch history for first-boot cloud-init. |
+| Repository | `DEMO_INFRA_WORKFLOW_ENABLED` | `true` enables AWS planning; validation works without it. |
+| Environment `demo-infra-plan` | `AWS_ROLE_ARN` | Plan role ARN from the admin OpenTofu outputs. |
+| Environment `demo-infra-plan` | `ENABLE_K3S_NODE` | Explicit `true` or `false`. |
+| Environment `demo-infra-plan` | `ENABLE_BEDROCK` | Explicit `true` or `false`. |
+| Environment `demo-infra-plan` when K3s enabled | `K3S_BOOTSTRAP_GIT_REF` | Full pinned commit SHA from `demo` history. |
+| Environment `demo-infra` | `AWS_ROLE_ARN` | Apply role ARN from the admin OpenTofu outputs. |
+| Environment `demo-infra` | `MANUAL_APPROVAL_CONFIGURED` | `true`, after Required reviewers are configured. |
 
 **Do not create AWS access-key secrets.** Existing GitHub OIDC provider is
 reused. Both infrastructure IAM roles, their trust policies, and their
 managed permission policies are defined as IaC in
 [the admin OpenTofu root](../admin/README.md). Apply `admin` first with
 the authorized `infra-admin` identity and use its outputs for the GitHub
-role ARN variables; do not create the roles manually. The OIDC plan role must not
+Environment-scoped `AWS_ROLE_ARN` values; do not create the roles manually.
+The plan role's IAM trust now uses the subject `environment:demo-infra-plan`
+instead of `ref:refs/heads/demo`; **apply admin again** before activating
+this workflow. Each job resolves `AWS_ROLE_ARN` from its own Environment. The OIDC plan role must not
 have infrastructure write privileges, because planning occurs **before**
 manual approval. The existing `AggregatorDemoDeployGithub` role is
 restricted to the old application deployment and is **not** reused.
+
+Environment `demo-infra-plan` must allow only `demo` and have no Required
+reviewers, so plan runs without manual confirmation.
 
 GitHub Environment `demo-infra` must be configured under
 **Settings → Environments**:
@@ -74,9 +82,11 @@ GitHub Environment `demo-infra` must be configured under
    your own pushes; do not enable Prevent self-review in that case).
 2. Allow deployments from **only the `demo` branch**.
 3. Only after both rules are saved, set the Environment variable
-   `MANUAL_APPROVAL_CONFIGURED=yes`.
+   `MANUAL_APPROVAL_CONFIGURED=true`.
 
-Do not set `MANUAL_APPROVAL_CONFIGURED` as a repository variable. The flag
+Do not set `MANUAL_APPROVAL_CONFIGURED` as a repository variable.
+The only Repository-level switch is `DEMO_INFRA_WORKFLOW_ENABLED` because
+its job-level condition is checked before Environment variables are available. The flag
 is an additional configuration guard, **not** a replacement for Environment
 required-reviewer rules. Apply and Ansible share the same Environment approval.
 
@@ -87,8 +97,8 @@ reapply input becomes useful once that requirement is met.
 
 ## Infrastructure flags and review risks
 
-The workflow refuses missing `DEMO_ENABLE_K3S_NODE` and
-`DEMO_ENABLE_BEDROCK` variables rather than silently selecting Terraform
+The workflow refuses missing `ENABLE_K3S_NODE` and
+`ENABLE_BEDROCK` variables rather than silently selecting Terraform
 defaults. **Setting `DEMO_ENABLE_K3S_NODE=false` after creating the node
 would plan its destruction.** Review the plan before approval.
 

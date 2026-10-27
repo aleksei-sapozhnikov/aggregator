@@ -17,7 +17,7 @@ data "aws_iam_policy_document" "github_demo_infra_plan_trust" {
     condition {
       test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:aleksei-sapozhnikov/aggregator:ref:refs/heads/demo"]
+      values   = ["repo:aleksei-sapozhnikov/aggregator:environment:demo-infra-plan"]
     }
   }
 }
