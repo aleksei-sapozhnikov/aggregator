@@ -217,6 +217,8 @@ jobs:
     permissions:
       contents: read
       id-token: write
+    outputs:
+      k3s_configured: ${{ steps.node.outputs.available }}
     steps:
       - name: Refuse an unconfigured manual approval environment
         shell: bash
@@ -286,3 +288,34 @@ jobs:
           CONFIGURATION_SHA: ${{ github.sha }}
         shell: bash
         run: bash deploy/ansible/dispatch-ssm.sh
+
+  publish-first-k3s-release:
+    name: Request initial K3s application release
+    needs: apply
+    if: needs.apply.result == 'success' && needs.apply.outputs.k3s_configured == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Dispatch demo-deploy only if published GitOps manifests are missing
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # Check the current remote branch, not the older infra checkout.
+          git fetch --no-tags --depth=1 origin refs/heads/demo
+          if git cat-file -e FETCH_HEAD:deploy/k8s-live/kustomization.yaml 2>/dev/null; then
+            echo "K3s release already exists; Argo CD reconciles it independently." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          # Only orchestrate the handoff. All builds and publication stay in demo-deploy.
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/actions/workflows/demo-deploy.yml/dispatches" -f ref=demo
+          echo "Requested demo-deploy to build and publish the initial K3s release." >> "$GITHUB_STEP_SUMMARY"
+          echo "Monitor the separate Demo deploy workflow for the application rollout." >> "$GITHUB_STEP_SUMMARY"
