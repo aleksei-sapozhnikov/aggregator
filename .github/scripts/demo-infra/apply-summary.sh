@@ -41,19 +41,19 @@ outputs_text="$(tofu output -no-color)"
   echo "### Connection details"
   echo
   if [[ -n "$k3s_ip" ]]; then
-    echo "- **K3s public IP:** `$k3s_ip`"
-    echo "- **K3s HTTP address:** `http://$k3s_ip/` (available after application deployment)"
+    printf -- '- **K3s public IP:** `%s`\n' "$k3s_ip"
+    printf -- '- **K3s HTTP address:** `http://%s/` (available after application deployment)\n' "$k3s_ip"
   else
     echo "- **K3s public IP:** Not provisioned or not available."
   fi
   if [[ -n "$k3s_instance" ]]; then
-    echo "- **K3s EC2 instance:** `$k3s_instance`"
+    printf -- '- **K3s EC2 instance:** `%s`\n' "$k3s_instance"
   fi
   if [[ -n "$legacy_ip" ]]; then
-    echo "- **Existing demo Elastic IP:** `$legacy_ip`"
+    printf -- '- **Existing demo Elastic IP:** `%s`\n' "$legacy_ip"
   fi
   if [[ -n "$legacy_instance" ]]; then
-    echo "- **Existing demo EC2 instance:** `$legacy_instance`"
+    printf -- '- **Existing demo EC2 instance:** `%s`\n' "$legacy_instance"
   fi
   echo
   echo "<details>"
