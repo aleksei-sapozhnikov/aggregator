@@ -35,6 +35,12 @@ local checks or pull-request validation:
   4. After approval, assume the **write OIDC apply role**, download and
      apply the _same saved plan_. Never generate a different plan during
      apply. When there are no Terraform changes, skip `tofu apply`.
+     The apply job publishes a **separate GitHub Actions summary** after
+     successful Terraform Apply (or an Ansible-only run): K3s and existing
+     demo public IP addresses and EC2 IDs appear immediately, while all
+     root OpenTofu outputs are in a collapsed `<details>` block. The full
+     list uses `tofu output -no-color`, which redacts sensitive outputs;
+     only explicitly non-sensitive connection fields are highlighted.
   5. Detect creation or replacement of the K3s EC2 from the saved
      OpenTofu plan JSON. After successful apply, execute the same Ansible
      wrapper via SSM as for ordinary Ansible revisions. Supply the exact

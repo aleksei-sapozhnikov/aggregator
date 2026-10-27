@@ -204,6 +204,13 @@ jobs:
         run: |
           set -euo pipefail
           tofu apply -input=false -no-color "$RUNNER_TEMP/approved-plan/demo.tfplan"
+
+      - name: Show infrastructure outputs in GitHub Summary
+        working-directory: deploy/infra/demo
+        shell: bash
+        env:
+          TERRAFORM_CHANGED: ${{ needs.plan.outputs.has_changes }}
+        run: bash "$GITHUB_WORKSPACE/.github/scripts/demo-infra/apply-summary.sh"
       - name: Find the optional K3s node after successful apply
         if: needs.plan.outputs.k3s_created == 'true' || needs.plan.outputs.ansible_changed == 'true'
         id: node
