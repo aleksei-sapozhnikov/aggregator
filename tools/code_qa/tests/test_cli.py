@@ -188,7 +188,7 @@ class OrchestratorFlowTests(unittest.TestCase):
         result = main.subprocess.CompletedProcess(
             [],
             0,
-            stdout="Scan scope: /repo (recursive filesystem)\\nOK: 0 secrets found\\n",
+            stdout="Scan scope: /repo (recursive filesystem)\nOK: 0 secrets found\n",
             stderr="",
         )
 
@@ -205,10 +205,10 @@ class OrchestratorFlowTests(unittest.TestCase):
             self.assertEqual(main.run_qa_command(), 0)
 
         self.assertIn(
-            "  Checking final newline.. OK\\n"
-            "\\nSecrets scan\\n"
-            "  Checking secrets with Trufflehog.. OK\\n"
-            "  Scan scope: /repo (recursive filesystem)\\n"
+            "  Checking final newline.. OK\n"
+            "\nSecrets scan\n"
+            "  Checking secrets with Trufflehog.. OK\n"
+            "  Scan scope: /repo (recursive filesystem)\n"
             "  0 secrets found",
             output.getvalue(),
         )
