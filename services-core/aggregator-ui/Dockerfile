@@ -1,5 +1,5 @@
 # -------- Build stage --------
-FROM node:20-alpine AS build
+FROM node:22-alpine AS build
 
 ARG VITE_APP_TITLE
 ARG VITE_TIMELINE_DEFAULT_RANGE
