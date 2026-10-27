@@ -187,7 +187,7 @@ jobs:
     name: Approve, apply and reconcile K3s
     needs: [validate, plan]
     if: github.ref == 'refs/heads/demo' && needs.plan.result == 'success' && (needs.plan.outputs.has_changes == 'true' || needs.plan.outputs.ansible_changed == 'true')
-    environment: demo-infra-deploy
+    environment: demo-infra-apply
     runs-on: ubuntu-latest
     timeout-minutes: 85
     permissions:
@@ -200,7 +200,7 @@ jobs:
           APPROVAL_CONFIGURED: ${{ vars.MANUAL_APPROVAL_CONFIGURED }}
         run: |
           [[ "$APPROVAL_CONFIGURED" == true ]] || {
-            echo "::error::Configure required reviewers for demo-infra-deploy, then set its environment variable MANUAL_APPROVAL_CONFIGURED=true."
+            echo "::error::Configure required reviewers for demo-infra-apply, then set its environment variable MANUAL_APPROVAL_CONFIGURED=true."
             exit 1
           }
       - uses: actions/checkout@v4

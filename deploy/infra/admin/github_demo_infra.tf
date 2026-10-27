@@ -38,7 +38,7 @@ data "aws_iam_policy_document" "github_demo_infra_apply_trust" {
     condition {
       test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:aleksei-sapozhnikov/aggregator:environment:demo-infra-deploy"]
+      values   = ["repo:aleksei-sapozhnikov/aggregator:environment:demo-infra-apply"]
     }
   }
 }
@@ -71,7 +71,7 @@ resource "aws_iam_role" "github_demo_infra_apply" {
     Environment = "demo"
   }
 
-  # This role can be assumed only through the protected demo-infra-deploy Environment.
+  # This role can be assumed only through the protected demo-infra-apply Environment.
   depends_on = [aws_iam_policy.infrastructure_admin_management]
 
   lifecycle {
