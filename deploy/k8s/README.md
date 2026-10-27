@@ -42,9 +42,13 @@ which are **not** durable if the EC2 instance is deleted.
   no image pull secret.
 - Merge `dev` into `demo`, push, and confirm that
   `publish-k3s-release` created `deploy/k8s-live` in `demo`.
-  Repository branch rules must permit the `GITHUB_TOKEN` to commit to
-  `demo`. If not, publication fails until the rules/approved write
-  mechanism are resolved. Do not weaken infrastructure approvals.
+  **Known prerequisite:** the repository currently has active branch
+  ruleset `demo` (ID 25923458) with `restrict updates`. The default
+  `GITHUB_TOKEN` does **not** have an established bypass, so automatic
+  promotion is expected to fail with the current settings. An explicitly
+  authorized GitHub App/bypass or another reviewed publication mechanism
+  must be configured before enabling the pipeline. Do not disable branch
+  protection or infrastructure approvals as a workaround.
 - For K3s provisioning, set `DEMO_INFRA_WORKFLOW_ENABLED=true`,
   `ENABLE_K3S_NODE=true`, and the existing `ENABLE_BEDROCK` value.
   Set `K3S_BOOTSTRAP_GIT_REF` to a **full SHA from demo history** that
