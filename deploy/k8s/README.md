@@ -9,8 +9,9 @@ Docker Compose EC2 and its public DNS are not modified.
    change detection runs Terraform/Ansible only when necessary, and dispatches
    `.github/workflows/demo-deploy.yml` after the infrastructure stage is
    complete or safely skipped. `demo-deploy` is **not** triggered directly
-   by pushes. An initial release is also requested when
-   `deploy/k8s-live` has not yet been published.
+   by pushes. If the initial `deploy/k8s-live` release is absent and
+   infrastructure automation is enabled, the infrastructure stage
+   reconciles K3s before dispatching the first application release.
 2. Code quality must pass; the workflow builds all eight application images
    and publishes each to GHCR with the 40-character source commit SHA.
 3. After all images are available, `publish-k3s-release` copies the candidate

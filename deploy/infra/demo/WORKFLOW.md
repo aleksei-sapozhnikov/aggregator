@@ -1,21 +1,22 @@
 # Demo infrastructure workflow
 
-[demo-infra.yml](../../../.github/workflows/demo-infra.yml) is the **only
-automatic entry point** for pushes to `demo`. Its lightweight `detect` job
-routes changes without AWS access. Terraform/Ansible validation and planning
-run only when `deploy/infra/demo/**`, `deploy/ansible/**`, or the
-infrastructure workflow changes. Otherwise, application updates dispatch
-the existing `demo-deploy.yml` directly without running Terraform.
+[demo-infra.yml](../../../.github/workflows/demo-infra.yml) is the
+**only automatic entry point** for pushes to `demo`. Its lightweight
+`detect` job routes changes without AWS access. Terraform/Ansible
+validation and planning run for infrastructure changes or whenever the
+initial K3s GitOps release is missing and infrastructure automation is
+enabled. Otherwise, application updates dispatch the existing
+`demo-deploy.yml` directly without running Terraform.
 Generated `deploy/k8s-live/**`-only promotion commits are excluded.
 The `admin` and `publication` OpenTofu roots remain outside demo state.
 
 ## Branches and execution
 
-Both `dev` and `demo` are watched for infrastructure changes:
+Only `demo` pushes start this pipeline. Use `dev` for development and
+local checks or pull-request validation:
 
-- **`dev` — validate only:** `tofu fmt -check`, `tofu init -backend=false`,
-  `tofu validate` and `ansible-playbook --syntax-check`. No AWS credentials
-  are requested, and nothing is applied.
+- **`dev` — development only:** validate Terraform and Ansible locally
+  or in review without applying AWS infrastructure.
 - **`demo` — detect → optional validate/plan/approval/apply/Ansible → demo-deploy:**
   1. Validate the checked-out revision as above.
   2. Use unprotected, `demo`-branch-only Environment `demo-infra-plan`
@@ -57,10 +58,14 @@ restarting an instance without re-running cloud-init.
 
 Changes under `deploy/ansible/**` reconfigure the existing EC2 through SSM,
 without Terraform resource updates. Ordinary application changes use GitHub
-image publication and Argo CD, without running Ansible. With no relevant
-infrastructure changes, the workflow skips validation, planning and apply.
-On first provisioning,
-the Argo CD Application may temporarily report `ComparisonError` until
+image publication and Argo CD, without running Ansible. Once a GitOps release
+exists, application-only pushes skip Terraform/Ansible entirely.
+Before the first release, if `DEMO_INFRA_WORKFLOW_ENABLED=true`, even an
+application-only push runs a Terraform Plan and, when K3s is enabled,
+requires approval to reapply Ansible before deploying. This prevents
+deploying to a cluster whose initial setup may have failed. On first
+provisioning, the Argo CD Application can temporarily report
+`ComparisonError` until
 `demo-deploy.yml` publishes `deploy/k8s-live`. That does not fail
 infrastructure configuration. App release failures are tracked separately.
 To retry failed configuration without replacing EC2, run a fresh

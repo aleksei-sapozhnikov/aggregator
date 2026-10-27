@@ -1,4 +1,4 @@
-name: Demo infrastructure
+name: Demo pipeline
 
 on:
   push:
