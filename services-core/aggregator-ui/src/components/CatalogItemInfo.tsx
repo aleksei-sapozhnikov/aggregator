@@ -8,7 +8,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import type { CatalogItem } from "../shared/types";
-import CloseButton from "./CloseButton";
+import ModalWindow from "./ModalWindow";
 
 type CatalogItemInfoProps = {
   item: CatalogItem;
@@ -176,42 +176,31 @@ export default function CatalogItemInfo({ item }: CatalogItemInfoProps) {
           </span>,
           document.body,
         )}
-      {isModalOpen &&
-        isEnabled &&
-        createPortal(
-          <div
-            className="about-overlay info-help-overlay"
-            role="dialog"
-            aria-modal="true"
-            aria-label={`Catalog information for ${item.title || item.id}`}
-            onClick={() => setIsModalOpen(false)}
-          >
-            <article
-              className="about-modal info-help-modal catalog-item-info-modal"
-              onClick={(event) => event.stopPropagation()}
-            >
-              <CloseButton
-                ariaLabel="Close catalog information"
-                onClick={() => setIsModalOpen(false)}
-              />
-              <header className="info-help-modal-header">
-                <h2>{item.title || item.id}</h2>
-              </header>
-              <div className="catalog-item-info-content">
-                {hasShortDescription && <p>{shortDescription}</p>}
-                {paragraphs.map((paragraph, index) => (
-                  <p key={index}>{paragraph}</p>
-                ))}
-                {!hasFullDescription && hasShortDescription && (
-                  <p className="catalog-item-info-missing-detail">
-                    <em>{missingDetailNotice}</em>
-                  </p>
-                )}
-              </div>
-            </article>
-          </div>,
-          document.body,
-        )}
+      {isEnabled && (
+        <ModalWindow
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          ariaLabel={`Catalog information for ${item.title || item.id}`}
+          closeLabel="Close catalog information"
+        >
+          <div className="info-help-modal catalog-item-info-modal">
+            <header className="info-help-modal-header">
+              <h2>{item.title || item.id}</h2>
+            </header>
+            <div className="catalog-item-info-content modal-text-flow">
+              {hasShortDescription && <p>{shortDescription}</p>}
+              {paragraphs.map((paragraph, index) => (
+                <p key={index}>{paragraph}</p>
+              ))}
+              {!hasFullDescription && hasShortDescription && (
+                <p className="catalog-item-info-missing-detail">
+                  <em>{missingDetailNotice}</em>
+                </p>
+              )}
+            </div>
+          </div>
+        </ModalWindow>
+      )}
     </span>
   );
 }

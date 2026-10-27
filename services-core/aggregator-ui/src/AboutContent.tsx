@@ -7,7 +7,7 @@
  */
 export default function AboutContent() {
   return (
-    <>
+    <div className="about-content modal-text-flow">
       <div className="about-header">
         <h2>About</h2>
         <div className="about-social-links">
@@ -119,6 +119,6 @@ export default function AboutContent() {
         </a>
         .
       </p>
-    </>
+    </div>
   );
 }
