@@ -54,7 +54,10 @@ local checks or pull-request validation:
      `demo-deploy.yml` if application files changed or an initial GitOps
      release is missing while K3s is enabled. When K3s is explicitly
      disabled and there are no application changes, teardown ends without
-     requesting a new K3s release. Deployment logic stays exclusively
+     requesting a new K3s release. If the reviewed plan actually destroys
+     the K3s node, no application deployment is dispatched in that run,
+     even if source changes were pushed alongside the infrastructure change.
+     Deployment logic stays exclusively
      in `demo-deploy`. For application-only pushes with a published
      release, all Terraform/Ansible jobs are skipped.
 
@@ -117,7 +120,9 @@ When K3s is removed, OpenTofu may omit the `k3s_instance_id` root output
 instead of returning JSON `null`. The node lookup treats both as
 `available=false` and skips Ansible; it still fails if OpenTofu itself
 cannot read the state. The workflow also skips an initial K3s release
-when the node is disabled and no application sources changed. Restoring
+when the node is disabled and no application sources changed. An actual
+K3s teardown is detected from the saved plan, so the same pipeline run
+never dispatches the app deployment after deleting the node. Restoring
 `ENABLE_K3S_NODE=true` and running a new reviewed plan creates the
 node again.
 

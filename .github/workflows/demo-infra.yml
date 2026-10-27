@@ -89,6 +89,7 @@ jobs:
       has_changes: ${{ steps.plan.outputs.has_changes }}
       ansible_changed: ${{ steps.changes.outputs.ansible_changed }}
       k3s_created: ${{ steps.plan.outputs.k3s_created }}
+      k3s_destroyed: ${{ steps.plan.outputs.k3s_destroyed }}
       k3s_enabled: ${{ steps.flags.outputs.k3s_enabled }}
     steps:
       - uses: actions/checkout@v7
@@ -259,4 +260,5 @@ jobs:
           APP_CHANGED: ${{ needs.detect.outputs.deploy_changed }}
           INFRA_CHANGED: ${{ needs.detect.outputs.infra_changed }}
           K3S_ENABLED: ${{ needs.plan.outputs.k3s_enabled }}
+          K3S_DESTROYED: ${{ needs.plan.outputs.k3s_destroyed }}
         run: bash .github/scripts/demo-infra/dispatch-deploy.sh

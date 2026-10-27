@@ -5,8 +5,14 @@
 # Requires GH_TOKEN, APP_CHANGED, and GitHub Actions repository context.
 # K3S_ENABLED (from the reviewed plan) suppresses initial K3s deployment
 # after an intentional teardown, without blocking application code updates.
+# K3S_DESTROYED stops all automatic application deployments in a teardown run.
 
 set -euo pipefail
+if [[ "$K3S_DESTROYED" == true ]]; then
+  echo "K3s was destroyed by this plan; not dispatching application deployment during teardown." >> "$GITHUB_STEP_SUMMARY"
+  exit 0
+fi
+
 # Read the latest demo branch, including any previously promoted manifests.
 git fetch --no-tags --depth=1 origin refs/heads/demo
 release_missing=false
