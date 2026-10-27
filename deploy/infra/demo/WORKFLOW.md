@@ -196,7 +196,7 @@ aws iam simulate-principal-policy \
   --query 'EvaluationResults[].{Action:EvalActionName,Decision:EvalDecision}'
 ```
 
-The policy allows the exact named log group and its `:* ` ARN form,
+The policy allows the exact named log group and its `:*` ARN form,
 including the tagging actions needed at creation. If the simulation
 shows `implicitDeny`, check the default policy version, attachment,
 or additional IAM/SCP restrictions before another demo apply. The
