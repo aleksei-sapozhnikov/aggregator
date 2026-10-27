@@ -50,7 +50,6 @@ const renderDetailsPanel = (
     onCloseAiChat: vi.fn(),
     onToggleAiChat: vi.fn(),
     onToggleTheme: vi.fn(),
-    onOpenFeedback: vi.fn(),
     onOpenAbout: vi.fn(),
     selectedItem: { id: "checkout", title: "Checkout" },
     selectedStatus: "down" as const,

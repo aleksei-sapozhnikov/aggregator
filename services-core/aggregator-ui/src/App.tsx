@@ -7,7 +7,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import SidebarPanel from "./components/SidebarPanel";
 import DetailsPanel from "./components/DetailsPanel";
 import AboutModal from "./components/AboutModal";
-import FeedbackModal from "./components/FeedbackModal";
 import ContactModal from "./components/ContactModal";
 import ActorModal from "./components/ActorModal";
 import {
@@ -41,7 +40,6 @@ import {
   resolveBaseUrl,
   resolveGrafanaBaseUrl,
   resolveSidebarTitle,
-  submitFeedback,
 } from "./services/aggregatorApi";
 import { sortContactsWithPrimaryFirst } from "./shared/contactUtils";
 import { isUnhealthyHealthStatus } from "./shared/healthPresentation";
@@ -67,7 +65,6 @@ const TREE_SCROLL_SMOOTH_SEGMENT_PX = 360;
 const MOBILE_SWIPE_OPEN_DISTANCE_PX = 96;
 const MOBILE_SWIPE_CLOSE_DISTANCE_PX = 96;
 const MOBILE_SWIPE_MAX_VERTICAL_DRIFT_PX = 48;
-const FEEDBACK_DRAFT_STORAGE_KEY = "aggregator-ui-feedback-draft";
 const TEMP_AI_CHAT_STORAGE_KEY = "aggregator-ui-ai-chat-enabled";
 type RouteUpdateOptions = { replace?: boolean };
 type LocationSelectionOptions = {
@@ -170,25 +167,10 @@ export default function App() {
   const [isGrafanaOpen, setIsGrafanaOpen] = useState(true);
   const [isAiChatOpen, setIsAiChatOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
-  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [openedContact, setOpenedContact] = useState<CatalogContact | null>(
     null,
   );
   const [openedActorId, setOpenedActorId] = useState("");
-  const [feedbackDraft, setFeedbackDraft] = useState(
-    () => localStorage.getItem(FEEDBACK_DRAFT_STORAGE_KEY) || "",
-  );
-  const [feedbackError, setFeedbackError] = useState("");
-  const [isFeedbackSending, setIsFeedbackSending] = useState(false);
-  const [notification, setNotification] = useState<{
-    id: number;
-    message: string;
-    phase: "hidden" | "visible" | "exiting";
-  }>({
-    id: 0,
-    message: "",
-    phase: "hidden",
-  });
   const [isTitlePrimaryBelowControls, setIsTitlePrimaryBelowControls] =
     useState(false);
   const [grafanaHeight, setGrafanaHeight] = useState(0);
@@ -363,32 +345,6 @@ export default function App() {
     document.body.dataset.theme = theme;
     localStorage.setItem("aggregator-ui-theme", theme);
   }, [theme]);
-
-  useEffect(() => {
-    localStorage.setItem(FEEDBACK_DRAFT_STORAGE_KEY, feedbackDraft);
-  }, [feedbackDraft]);
-
-  useEffect(() => {
-    if (!notification.message || !notification.id) {
-      return undefined;
-    }
-    const startExitTimeoutId = window.setTimeout(() => {
-      setNotification((prev) =>
-        prev.id === notification.id ? { ...prev, phase: "exiting" } : prev,
-      );
-    }, 3000);
-    const clearTimeoutId = window.setTimeout(() => {
-      setNotification((prev) =>
-        prev.id === notification.id
-          ? { id: 0, message: "", phase: "hidden" }
-          : prev,
-      );
-    }, 3200);
-    return () => {
-      window.clearTimeout(startExitTimeoutId);
-      window.clearTimeout(clearTimeoutId);
-    };
-  }, [notification.id, notification.message]);
 
   /**
    * Keep the Grafana wrapper iframe in sync with the current app theme
@@ -1313,22 +1269,6 @@ export default function App() {
   }, [isAboutOpen]);
 
   useEffect(() => {
-    if (!isFeedbackOpen) {
-      return undefined;
-    }
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        setIsFeedbackOpen(false);
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [isFeedbackOpen]);
-
-  useEffect(() => {
     if (!openedContact) {
       return undefined;
     }
@@ -1531,33 +1471,6 @@ export default function App() {
     }
   }, [appBaseUrl, grafanaBaseUrl, selectedItem, theme]);
 
-  const handleSendFeedback = useCallback(async () => {
-    if (!feedbackDraft.trim()) {
-      setFeedbackError("Please enter feedback text before sending.");
-      return;
-    }
-    setFeedbackError("");
-    setIsFeedbackSending(true);
-    try {
-      await submitFeedback(feedbackDraft);
-      setFeedbackDraft("");
-      setIsFeedbackOpen(false);
-      setNotification({
-        id: Date.now(),
-        message: "Feedback received.\nThank you for your time!",
-        phase: "visible",
-      });
-    } catch (submitError) {
-      const nextError =
-        submitError instanceof Error
-          ? submitError.message
-          : "Failed to send feedback";
-      setFeedbackError(nextError);
-    } finally {
-      setIsFeedbackSending(false);
-    }
-  }, [feedbackDraft]);
-
   return (
     <div
       className={`app ${isMobileLayout ? "is-mobile" : "is-desktop"} ${
@@ -1634,10 +1547,6 @@ export default function App() {
         onToggleTheme={() =>
           setTheme((prev) => (prev === "dark" ? "light" : "dark"))
         }
-        onOpenFeedback={() => {
-          setFeedbackError("");
-          setIsFeedbackOpen(true);
-        }}
         onOpenAbout={() => setIsAboutOpen(true)}
         selectedItem={selectedItem}
         selectedStatus={selectedStatus}
@@ -1664,18 +1573,6 @@ export default function App() {
         grafanaFrameUrl={grafanaFrameUrl}
       />
       <AboutModal isOpen={isAboutOpen} onClose={() => setIsAboutOpen(false)} />
-      <FeedbackModal
-        isOpen={isFeedbackOpen}
-        value={feedbackDraft}
-        isSending={isFeedbackSending}
-        error={feedbackError}
-        onClose={() => setIsFeedbackOpen(false)}
-        onChange={(nextValue) => {
-          setFeedbackError("");
-          setFeedbackDraft(nextValue);
-        }}
-        onSend={handleSendFeedback}
-      />
       <ContactModal
         isOpen={Boolean(openedContact)}
         contact={openedContact}
@@ -1695,19 +1592,6 @@ export default function App() {
         onClose={() => setOpenedActorId("")}
         onOpenContact={(contact) => setOpenedContact(contact)}
       />
-      {notification.message && (
-        <div
-          className={`app-notification ${notification.phase === "exiting" ? "is-exiting" : ""}`}
-          role="status"
-          aria-live="polite"
-        >
-          <span className="app-notification-icon" aria-hidden="true">
-            ✔
-          </span>
-          <span className="app-notification-text">{notification.message}</span>
-          <span className="app-notification-progress" aria-hidden="true" />
-        </div>
-      )}
     </div>
   );
 }

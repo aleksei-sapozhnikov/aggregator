@@ -7,7 +7,6 @@ type TopBarActionsProps = {
   isAiChatOpen: boolean;
   onToggleAiChat: () => void;
   onToggleTheme: () => void;
-  onOpenFeedback: () => void;
   onOpenAbout: () => void;
 };
 
@@ -20,7 +19,6 @@ export default function TopBarActions({
   isAiChatOpen,
   onToggleAiChat,
   onToggleTheme,
-  onOpenFeedback,
   onOpenAbout,
 }: TopBarActionsProps) {
   return (
@@ -50,18 +48,6 @@ export default function TopBarActions({
         <span className="theme-toggle-text">
           {theme === "dark" ? "Go light" : "Go dark"}
         </span>
-      </button>
-      <button
-        type="button"
-        className="feedback-toggle top-control top-control-button top-control-pill top-control-surface"
-        onClick={onOpenFeedback}
-      >
-        <span className="theme-toggle-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="14" height="14" focusable="false">
-            <use href="/icons.svg#feedback-mark" />
-          </svg>
-        </span>
-        <span className="theme-toggle-text">Feedback</span>
       </button>
       <button
         type="button"

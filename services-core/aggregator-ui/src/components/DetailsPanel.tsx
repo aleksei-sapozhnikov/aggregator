@@ -46,7 +46,6 @@ type DetailsPanelProps = {
   onCloseAiChat: () => void;
   onToggleAiChat: () => void;
   onToggleTheme: () => void;
-  onOpenFeedback: () => void;
   onOpenAbout: () => void;
   selectedItem: CatalogItem | undefined;
   selectedStatus: HealthStatus;
@@ -210,7 +209,6 @@ export default function DetailsPanel({
   onCloseAiChat,
   onToggleAiChat,
   onToggleTheme,
-  onOpenFeedback,
   onOpenAbout,
   selectedItem,
   selectedStatus,
@@ -432,7 +430,6 @@ export default function DetailsPanel({
             isAiChatOpen={isAiChatOpen}
             onToggleAiChat={onToggleAiChat}
             onToggleTheme={onToggleTheme}
-            onOpenFeedback={onOpenFeedback}
             onOpenAbout={onOpenAbout}
           />
         </div>
