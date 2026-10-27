@@ -27,7 +27,8 @@ Both `dev` and `demo` are watched for infrastructure changes:
      apply. When there are no Terraform changes, skip `tofu apply`.
   5. Detect first-time creation or replacement of the K3s EC2 from the saved
      OpenTofu plan JSON. After apply, use SSM to wait for cloud-init, verify
-     the pinned bootstrap revision and check K3s and Argo CD readiness.
+     the pinned bootstrap revision and check K3s and Argo CD readiness,
+     Traefik and the application health.
      A failed bootstrap fails the GitHub job; it does not reinstall Ansible.
   6. When Ansible changes (or a manual reapply is requested) without EC2
      creation, use SSM to run the root-owned Ansible wrapper at the triggering
@@ -36,7 +37,11 @@ Both `dev` and `demo` are watched for infrastructure changes:
 
 First-boot Ansible runs from cloud-init and is not launched twice. The
 workflow waits for cloud-init to complete and checks the recorded revision
-and service health. If K3s is disabled, SSM is skipped. Terraform-only
+and service health. This includes waiting for the `aggregator-demo`
+GitOps Application to become Synced and Healthy and checking HTTP on port 80.
+On first provisioning the images must have been published to the `k3s-demo`
+branch by `demo-deploy.yml`; otherwise verification fails explicitly.
+If K3s is disabled, SSM is skipped. Terraform-only
 updates to existing nodes do not automatically re-run Ansible.
 
 SSM Run Command streams stdout and stderr to CloudWatch Logs group

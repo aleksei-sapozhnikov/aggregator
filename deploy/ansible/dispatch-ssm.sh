@@ -61,7 +61,28 @@ fi
 systemctl is-active --quiet k3s
 /usr/local/bin/k3s kubectl get --raw=/readyz
 /usr/local/bin/k3s kubectl --namespace argocd rollout status deployment/argocd-server --timeout=180s
-echo "K3s and Argo CD healthy at revision $CONFIGURATION_SHA"
+/usr/local/bin/k3s kubectl --namespace kube-system rollout status deployment/traefik --timeout=300s
+# The release branch may be published while a new VM is still bootstrapping.
+# Argo CD reconciles it independently; wait for the full application to become healthy.
+sync=""
+health=""
+for attempt in \$(seq 1 150); do
+  sync="\$(/usr/local/bin/k3s kubectl -n argocd get application aggregator-demo -o jsonpath='{.status.sync.status}' 2>/dev/null || true)"
+  health="\$(/usr/local/bin/k3s kubectl -n argocd get application aggregator-demo -o jsonpath='{.status.health.status}' 2>/dev/null || true)"
+  if [ "\$sync" = Synced ] && [ "\$health" = Healthy ]; then
+    break
+  fi
+  sleep 10
+done
+if [ "\$sync" != Synced ] || [ "\$health" != Healthy ]; then
+  /usr/local/bin/k3s kubectl -n argocd get application aggregator-demo -o yaml || true
+  /usr/local/bin/k3s kubectl -n aggregator get pods -o wide || true
+  echo "GitOps application is not healthy (sync=\$sync health=\$health)" >&2
+  exit 1
+fi
+# Check the real HTTP entrypoint, not merely the in-cluster Kubernetes Service.
+curl --fail --silent --show-error --retry 20 --retry-delay 3 http://127.0.0.1/config.json >/dev/null
+echo "K3s, Traefik, Argo CD and Aggregator healthy at revision $CONFIGURATION_SHA"
 SCRIPT
 )"
 parameters="$(jq -nc --arg command "$command_line" \

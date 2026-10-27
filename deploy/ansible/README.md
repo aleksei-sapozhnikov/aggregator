@@ -5,12 +5,15 @@ instance. It does not modify the currently serving Docker Compose demo.
 
 - `common` installs node administration/network packages and enables SSM Agent.
 - `k3s` configures the server, installs a pinned K3s version, and waits for the
-  Kubernetes API. The default Traefik and ServiceLB addons are disabled.
+  Kubernetes API. The bundled Traefik ingress and ServiceLB are enabled.
 - `argocd` applies a pinned upstream Argo CD manifest in the `argocd`
   namespace with server-side apply and waits for the server rollout.
+- `gitops` registers the `aggregator-demo` Argo CD Application, tracking
+  the dedicated `k3s-demo` release branch.
 
-Pinned versions are in [group_vars/all.yml](group_vars/all.yml). No Aggregator
-workload, Argo CD Application, public ingress or DNS entry is created.
+Pinned versions are in [group_vars/all.yml](group_vars/all.yml). Argo CD manages
+the applications defined in `deploy/k8s`, while Ansible manages cluster
+bootstrapping. The existing Docker Compose demo remains unchanged.
 
 ## Execution and reconciliation
 
@@ -55,3 +58,5 @@ revision, and checks K3s and Argo CD readiness using SSM. Full output is
 forwarded to CloudWatch Logs group `/aws/ssm/aggregator-demo-k3s` and retained
 for 14 days.
 Argo CD remains reachable only inside the cluster (ClusterIP service).
+The public entrypoint is Traefik port 80, serving the UI Caddy via a hostless
+Ingress. Neither Argo CD nor the Kubernetes API is publicly exposed.

@@ -105,3 +105,53 @@ jobs:
         env:
           SSM_INSTANCE_ID: ${{ vars.SSM_INSTANCE_ID }}
           DEPLOY_SHA: ${{ github.sha }}
+
+  publish-k3s-release:
+    name: Publish immutable K3s GitOps release
+    if: github.ref == 'refs/heads/demo'
+    needs: build-and-publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Publish exactly the already-built image tags
+        shell: bash
+        env:
+          RELEASE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          [[ "$RELEASE_SHA" =~ ^[a-f0-9]{40}$ ]]
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git fetch origin refs/heads/k3s-demo:refs/remotes/origin/k3s-demo; then
+            git switch --create k3s-demo --track origin/k3s-demo
+          else
+            git switch --create k3s-demo
+          fi
+          # The manifest snapshot must come from the same source SHA as the images.
+          git checkout "$RELEASE_SHA" -- deploy/k8s
+          python3 - "$RELEASE_SHA" <<'PY'
+          from pathlib import Path
+          import re
+          import sys
+
+          revision = sys.argv[1]
+          path = Path("deploy/k8s/kustomization.yaml")
+          content = path.read_text(encoding="utf-8")
+          updated, count = re.subn(
+              r"(?m)^(\s*newTag: )[^\s]+$",
+              lambda match: match.group(1) + revision,
+              content,
+          )
+          if count != 8:
+              raise SystemExit(f"Expected 8 image tags, found {count}")
+          path.write_text(updated, encoding="utf-8")
+          PY
+          git add deploy/k8s
+          git diff --cached --quiet || git commit -m "Deploy K3s images from $RELEASE_SHA"
+          git push origin HEAD:refs/heads/k3s-demo
+          echo "GitOps K3s release: $RELEASE_SHA" >> "$GITHUB_STEP_SUMMARY"

@@ -9,7 +9,7 @@ Security and networking:
 
 - IMDSv2 is required, the gp3 root volume is encrypted, and the IAM role
   grants SSM and Bedrock access within its permissions boundary.
-- Only inbound HTTP/HTTPS (80/443) is configured for future applications.
+- Inbound HTTP (80) serves the demo through K3s Traefik and ServiceLB.
   There is no SSH key pair, port 22, public Kubernetes API port, or public
   Argo CD endpoint.
 - The instance gets an ephemeral public IPv4 address, **not** an Elastic IP.
@@ -26,5 +26,8 @@ existing node. Reapply with the wrapper over SSM, as documented in the
 [demo root](../../README.md).
 
 The K3s and Argo CD versions are pinned inside the Ansible configuration.
-Changing them is a deliberate upgrade, not a Terraform replacement. No
-Kubernetes workloads or ingress controller are deployed at this stage.
+Changing them is a deliberate upgrade, not a Terraform replacement.
+The default K3s Traefik/ServiceLB serves the application on the instance public
+IP over plain HTTP. No DNS or TLS certificate is provisioned, and 443 should
+remain closed until HTTPS is explicitly configured. The default K3s instance
+is t3.large to leave room for Argo CD, Prometheus, Grafana and the application.
