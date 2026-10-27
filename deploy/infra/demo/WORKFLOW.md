@@ -44,9 +44,15 @@ without Terraform resource updates. Ordinary application changes use GitHub
 image publication and Argo CD, without running Ansible. With no relevant
 changes, the workflow can skip apply altogether. On first provisioning,
 `deploy/k8s-live` must already be published in the `demo` branch.
-To retry failed configuration without replacing EC2, request a manual
-`reapply_ansible` run when the workflow is available on the default branch,
-or retrigger the failed job while its saved plan remains usable.
+To retry failed configuration without replacing EC2, run a fresh
+`workflow_dispatch` with `reapply_ansible=true` once the workflow exists on
+the repository's default branch. This produces a fresh Terraform plan, usually
+with no infrastructure changes, and reruns Ansible through SSM after approval.
+Until the manual trigger is available, use an explicitly authorized SSM run
+or a reviewed Ansible-only update in `demo`. Do not blindly reapply an old
+saved Terraform plan: it can be stale after a successful infrastructure apply
+followed by a failed Ansible run. Automatic retry of failed configurations
+without a new workflow trigger is not implemented for this demo.
 
 SSM Run Command streams stdout and stderr to CloudWatch Logs group
 `/aws/ssm/aggregator-demo-k3s` with 14-day retention. The wrapper also
