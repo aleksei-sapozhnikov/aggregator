@@ -179,6 +179,12 @@ spec:
           value: '{"provider":"bedrock","max_tool_rounds":2,"bedrock":{"model_id":"eu.amazon.nova-lite-v1:0","aws_region":"eu-central-1","temperature":0.00001,"max_tokens":300}}'
         - name: AWS_REGION
           value: eu-central-1
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 3
+          periodSeconds: 10
         resources:
           requests:
             memory: 48Mi
