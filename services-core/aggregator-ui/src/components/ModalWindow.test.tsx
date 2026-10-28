@@ -55,9 +55,47 @@ describe("ModalWindow", () => {
 
     expect(dialog.classList.contains("modal-window")).toBe(true);
     expect(dialog.querySelector(".modal-content")).not.toBeNull();
+    expect(dialog.querySelector(".modal-header .about-close")).not.toBeNull();
+    expect(dialog.querySelector(".modal-content .about-close")).toBeNull();
     expect(
       screen.getByRole("button", { name: "Close shared shell" }).classList,
     ).toContain("about-close");
+  });
+
+  it("renders JSX header content beside the fixed close button", () => {
+    render(
+      <ModalWindow
+        isOpen={true}
+        onClose={vi.fn()}
+        ariaLabel="Header slot"
+        header={
+          <div>
+            <h2>About</h2>
+            <a href="https://example.com">Project link</a>
+          </div>
+        }
+      >
+        <p>Scrollable body</p>
+      </ModalWindow>,
+    );
+
+    const dialog = screen.getByRole("dialog", { name: "Header slot" });
+    const header = dialog.querySelector(".modal-header");
+    const body = dialog.querySelector(".modal-content");
+
+    expect(
+      header?.contains(screen.getByRole("heading", { name: "About" })),
+    ).toBe(true);
+    expect(
+      header?.contains(screen.getByRole("link", { name: "Project link" })),
+    ).toBe(true);
+    expect(
+      header?.contains(screen.getByRole("button", { name: "Close dialog" })),
+    ).toBe(true);
+    expect(body?.contains(screen.getByText("Scrollable body"))).toBe(true);
+    expect(body?.contains(screen.getByRole("heading", { name: "About" }))).toBe(
+      false,
+    );
   });
 
   it("closes on backdrop clicks but not content clicks", () => {
