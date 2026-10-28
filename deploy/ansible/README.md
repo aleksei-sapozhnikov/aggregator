@@ -80,7 +80,7 @@ plugin and IAM permission to start interactive SSM sessions on this instance.
 1. Open an interactive SSM shell on the K3s instance:
 
    ```sh
-   aws ssm start-session --region eu-central-1 --target <k3s-instance-id>
+   aws ssm start-session --region eu-central-1 --target i-REPLACE_WITH_K3S_INSTANCE_ID
    ```
 
    In that **remote** shell, run and keep this foreground process running:
@@ -95,7 +95,7 @@ plugin and IAM permission to start interactive SSM sessions on this instance.
 
    ```powershell
    aws ssm start-session --region eu-central-1 `
-     --target <k3s-instance-id> `
+     --target i-REPLACE_WITH_K3S_INSTANCE_ID `
      --document-name AWS-StartPortForwardingSession `
      --parameters portNumber="18080",localPortNumber="8080"
    ```
