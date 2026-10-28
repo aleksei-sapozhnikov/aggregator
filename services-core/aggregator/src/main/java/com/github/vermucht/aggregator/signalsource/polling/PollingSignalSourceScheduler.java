@@ -42,7 +42,7 @@ public class PollingSignalSourceScheduler {
   private final HealthSignalStateStore signalStateStore;
   private final Object schedulingLock = new Object();
   private final List<ScheduledPoll> scheduledPolls = new ArrayList<>();
-  private boolean stopped;
+  private volatile boolean stopped;
 
   public PollingSignalSourceScheduler(
       @Nonnull PollingSignalSourceRegistry signalSourceRegistry,
