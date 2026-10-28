@@ -163,7 +163,7 @@ resource "aws_instance" "this" {
 # in Terraform variables, state, or Kubernetes manifests committed to Git.
 data "aws_iam_policy_document" "argocd_admin_secret_read" {
   statement {
-    actions = ["secretsmanager:GetSecretValue"]
+    actions   = ["secretsmanager:GetSecretValue"]
     resources = [
       "arn:aws:secretsmanager:eu-central-1:${data.aws_caller_identity.current.account_id}:secret:aggregator/demo/argocd-admin-??????",
     ]

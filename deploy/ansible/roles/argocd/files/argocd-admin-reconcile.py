@@ -39,7 +39,9 @@ def reconcile() -> None:
     if not isinstance(plaintext, str):
         raise ValueError("Argo CD AWS secret must be a plain-text password")
     password = plaintext.encode("utf-8")
-    if not 16 <= len(password) <= 72 or any(char in password for char in (0, 10, 13)):
+    if not 16 <= len(password) <= 72 or any(
+        char in password for char in (0, 10, 13)
+    ):
         raise ValueError("Argo CD AWS secret must be 16-72 UTF-8 bytes without line breaks")
 
     kubernetes_secret = json.loads(kubectl("get", "secret", "argocd-secret", "-o", "json"))
@@ -55,16 +57,22 @@ def reconcile() -> None:
 
     patch = {
         "stringData": {
-            "admin.password": bcrypt.hashpw(password, bcrypt.gensalt(rounds=12)).decode("ascii"),
+            "admin.password": bcrypt.hashpw(
+                password, bcrypt.gensalt(rounds=12)
+            ).decode("ascii"),
             "admin.passwordMtime": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         }
     }
     # The temporary file holds only the bcrypt hash, never the cleartext password.
-    descriptor, path = tempfile.mkstemp(prefix="argocd-admin-", suffix=".json", dir="/run")
+    descriptor, path = tempfile.mkstemp(
+        prefix="argocd-admin-", suffix=".json", dir="/run"
+    )
     try:
         with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
             json.dump(patch, handle)
-        kubectl("patch", "secret", "argocd-secret", "--type=merge", f"--patch-file={path}")
+        kubectl(
+            "patch", "secret", "argocd-secret", "--type=merge", f"--patch-file={path}"
+        )
     finally:
         Path(path).unlink(missing_ok=True)
 

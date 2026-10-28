@@ -44,7 +44,9 @@ class ReconcileTests(unittest.TestCase):
         self_test = self
         fake_aws = ModuleType("boto3")
         fake_aws.client = lambda *_args, **_kwargs: FakeSecretsClient()
-        module_spec = importlib.util.spec_from_file_location("argocd_reconcile", SCRIPT_PATH)
+        module_spec = importlib.util.spec_from_file_location(
+            "argocd_reconcile", SCRIPT_PATH
+        )
         assert module_spec and module_spec.loader
 
         with patch.dict(sys.modules, {"boto3": fake_aws, "bcrypt": fake_bcrypt()}):
@@ -67,7 +69,11 @@ class ReconcileTests(unittest.TestCase):
                         args,
                         0,
                         stdout=json.dumps(
-                            {"data": {"admin.password": base64.b64encode(existing).decode()}}
+                            {
+                                "data": {
+                                    "admin.password": base64.b64encode(existing).decode()
+                                }
+                            }
                         ),
                         stderr="",
                     )
