@@ -6,7 +6,7 @@ import {
 } from "../shared/contactUtils";
 import type { CatalogActor, CatalogContact } from "../shared/types";
 import { isPlainLeftClick } from "../shared/catalogUtils";
-import CloseButton from "./CloseButton";
+import ModalWindow from "./ModalWindow";
 
 const resolveActorLabel = (actor?: CatalogActor | null): string => {
   if (!actor) {
@@ -49,18 +49,13 @@ export default function ActorModal({
     .filter((line) => Boolean(line));
 
   return (
-    <div
-      className="about-overlay actor-overlay"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Actor details"
-      onClick={onClose}
+    <ModalWindow
+      isOpen={isOpen}
+      onClose={onClose}
+      ariaLabel="Actor details"
+      closeLabel="Close actor details"
     >
-      <article
-        className="about-modal actor-modal"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <CloseButton ariaLabel="Close actor details" onClick={onClose} />
+      <div className="actor-modal">
         <header className="actor-modal-header">
           <h2>{resolveActorLabel(actor)}</h2>
         </header>
@@ -117,7 +112,7 @@ export default function ActorModal({
             <p>No contacts linked to this actor.</p>
           )}
         </div>
-      </article>
-    </div>
+      </div>
+    </ModalWindow>
   );
 }

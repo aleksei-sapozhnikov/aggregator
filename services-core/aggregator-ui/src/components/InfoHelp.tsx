@@ -1,7 +1,7 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { InfoHelpTopic } from "../shared/infoHelpTopics";
-import CloseButton from "./CloseButton";
+import ModalWindow from "./ModalWindow";
 
 type InfoHelpProps = {
   topic: InfoHelpTopic;
@@ -28,24 +28,6 @@ export default function InfoHelp({ topic }: InfoHelpProps) {
     }
     setIsTooltipVisible(true);
   };
-
-  useEffect(() => {
-    if (!isModalOpen) {
-      return undefined;
-    }
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        setIsModalOpen(false);
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [isModalOpen]);
 
   return (
     <span className="info-help">
@@ -82,71 +64,58 @@ export default function InfoHelp({ topic }: InfoHelpProps) {
           </span>,
           document.body,
         )}
-      {isModalOpen &&
-        createPortal(
-          <div
-            className="about-overlay info-help-overlay"
-            role="dialog"
-            aria-modal="true"
-            aria-label={`About ${topic.title}`}
-            onClick={() => setIsModalOpen(false)}
-          >
-            <article
-              className="about-modal info-help-modal"
-              onClick={(event) => event.stopPropagation()}
-            >
-              <CloseButton
-                ariaLabel="Close contextual help"
-                onClick={() => setIsModalOpen(false)}
-              />
-              <header className="info-help-modal-header">
-                <h2>{topic.title}</h2>
-              </header>
-              <p>{topic.description}</p>
-              {topic.sections && topic.sections.length > 0 && (
-                <div className="info-help-sections">
-                  {topic.sections.map((section) => (
-                    <section
-                      key={section.heading}
-                      className="info-help-section"
-                    >
-                      <h3>{section.heading}</h3>
-                      {section.paragraphs?.map((paragraph) => (
-                        <p key={paragraph}>{paragraph}</p>
+      <ModalWindow
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        ariaLabel={`About ${topic.title}`}
+        closeLabel="Close contextual help"
+      >
+        <div className="info-help-modal">
+          <header className="info-help-modal-header">
+            <h2>{topic.title}</h2>
+          </header>
+          <div className="info-help-description modal-text-flow">
+            <p>{topic.description}</p>
+          </div>
+          {topic.sections && topic.sections.length > 0 && (
+            <div className="info-help-sections">
+              {topic.sections.map((section) => (
+                <section key={section.heading} className="info-help-section">
+                  <h3>{section.heading}</h3>
+                  {section.paragraphs?.map((paragraph) => (
+                    <p key={paragraph}>{paragraph}</p>
+                  ))}
+                  {section.items && section.items.length > 0 && (
+                    <dl className="info-help-section-list">
+                      {section.items.map((entry) => (
+                        <div
+                          key={`${section.heading}:${entry.label}`}
+                          className="info-help-section-row"
+                        >
+                          <dt>{entry.label}</dt>
+                          <dd>{entry.text}</dd>
+                        </div>
                       ))}
-                      {section.items && section.items.length > 0 && (
-                        <dl className="info-help-section-list">
-                          {section.items.map((entry) => (
-                            <div
-                              key={`${section.heading}:${entry.label}`}
-                              className="info-help-section-row"
-                            >
-                              <dt>{entry.label}</dt>
-                              <dd>{entry.text}</dd>
-                            </div>
-                          ))}
-                        </dl>
-                      )}
-                    </section>
-                  ))}
+                    </dl>
+                  )}
+                </section>
+              ))}
+            </div>
+          )}
+          {topic.details && topic.details.length > 0 && (
+            <dl className="info-help-detail-list">
+              {topic.details.map((entry) => (
+                <div key={entry.label} className="info-help-detail-row">
+                  <dt>{entry.label}</dt>
+                  <dd>
+                    <code>{entry.value}</code>
+                  </dd>
                 </div>
-              )}
-              {topic.details && topic.details.length > 0 && (
-                <dl className="info-help-detail-list">
-                  {topic.details.map((entry) => (
-                    <div key={entry.label} className="info-help-detail-row">
-                      <dt>{entry.label}</dt>
-                      <dd>
-                        <code>{entry.value}</code>
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
-              )}
-            </article>
-          </div>,
-          document.body,
-        )}
+              ))}
+            </dl>
+          )}
+        </div>
+      </ModalWindow>
     </span>
   );
 }

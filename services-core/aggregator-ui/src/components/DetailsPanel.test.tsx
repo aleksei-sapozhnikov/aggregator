@@ -330,6 +330,11 @@ describe("DetailsPanel contextual help", () => {
 
     const dialog = screen.getByRole("dialog", { name: "About Actors" });
     await user.click(dialog);
+    expect(
+      screen.queryByRole("dialog", { name: "About Actors" }),
+    ).not.toBeNull();
+
+    await user.click(document.querySelector(".modal-overlay") as Element);
 
     expect(screen.queryByRole("dialog", { name: "About Actors" })).toBeNull();
   });
