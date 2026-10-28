@@ -110,6 +110,7 @@ by tags if `SSM_INSTANCE_ID` is not set. An AWS profile with only
 Session Manager tunnel permissions (such as `aggregator-admin`) is **not**
 sufficient for the local password rotation. The GitHub workflow is the
 recommended route because its write role is gated by approval.
+
 ### Connect to the dashboard
 
 Ansible runs a local `kubectl port-forward` service on the EC2 instance,

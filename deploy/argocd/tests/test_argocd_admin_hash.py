@@ -8,7 +8,6 @@ import importlib.util
 import io
 import json
 import subprocess
-import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -31,14 +30,16 @@ class ArgoCDHashTests(unittest.TestCase):
     def test_read_existing_hash(self) -> None:
         module = load_module()
         response = subprocess.CompletedProcess(
-            args=[], returncode=0,
+            args=[],
+            returncode=0,
             stdout=json.dumps(
                 {
                     "data": {
                         "admin.password": base64.b64encode(VALID_HASH).decode("ascii")
                     }
                 }
-            ), stderr=""
+            ),
+            stderr="",
         )
         with patch.object(module.subprocess, "run", return_value=response):
             self.assertEqual(module.current_hash(), VALID_HASH)
@@ -58,6 +59,7 @@ class ArgoCDHashTests(unittest.TestCase):
         calls = []
         real_mkstemp = tempfile.mkstemp
         with tempfile.TemporaryDirectory() as folder:
+
             def temporary_file(**kwargs):
                 return real_mkstemp(
                     prefix=kwargs["prefix"], suffix=kwargs["suffix"], dir=folder
@@ -68,7 +70,8 @@ class ArgoCDHashTests(unittest.TestCase):
                 if "patch" in args:
                     filename = next(
                         part.removeprefix("--patch-file=")
-                        for part in args if part.startswith("--patch-file=")
+                        for part in args
+                        if part.startswith("--patch-file=")
                     )
                     payload = json.loads(Path(filename).read_text(encoding="utf-8"))
                     self.assertEqual(
@@ -88,9 +91,7 @@ class ArgoCDHashTests(unittest.TestCase):
             self.assertEqual(list(Path(folder).glob("*")), [])
 
         self.assertTrue(any("patch" in call for call in calls))
-        self.assertTrue(
-            any("argocd-initial-admin-secret" in call for call in calls)
-        )
+        self.assertTrue(any("argocd-initial-admin-secret" in call for call in calls))
 
     def test_rejects_plaintext_and_malformed_hash(self) -> None:
         module = load_module()

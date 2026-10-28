@@ -43,9 +43,7 @@ def resolve_instance_id() -> str:
         for instance in reservation["Instances"]
     ]
     if len(matches) != 1 or not re.fullmatch(r"i-[0-9a-f]{8,17}", matches[0]):
-        raise RuntimeError(
-            f"Expected one running K3s instance, found {len(matches)}"
-        )
+        raise RuntimeError(f"Expected one running K3s instance, found {len(matches)}")
     return matches[0]
 
 
@@ -132,8 +130,7 @@ def reconcile() -> bool:
     # The only value in AWS Run Command parameters is the bcrypt verifier.
     # Restrictive regex validation ensures safe single-quote shell escaping.
     script = (
-        f"printf '%s' '{new_hash}' | "
-        "/usr/local/sbin/aggregator-argocd-admin-hash apply"
+        f"printf '%s' '{new_hash}' | /usr/local/sbin/aggregator-argocd-admin-hash apply"
     )
     apply_id = send_command(client, instance_id, script)
     wait_for_invocation(client, instance_id, apply_id)

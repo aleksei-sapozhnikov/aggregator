@@ -40,8 +40,12 @@ def load_module():
     assert spec is not None and spec.loader is not None
     with patch.dict(
         sys.modules,
-        {"bcrypt": bcrypt, "boto3": boto3, "botocore": botocore,
-         "botocore.exceptions": exceptions},
+        {
+            "bcrypt": bcrypt,
+            "boto3": boto3,
+            "botocore": botocore,
+            "botocore.exceptions": exceptions,
+        },
     ):
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
@@ -55,8 +59,10 @@ class PasswordSyncTests(unittest.TestCase):
         with (
             patch.dict(
                 os.environ,
-                {"SSM_INSTANCE_ID": "i-0eb7ef332aa95e884",
-                 "ARGOCD_PASSWORD": "example-strong-password"},
+                {
+                    "SSM_INSTANCE_ID": "i-0eb7ef332aa95e884",
+                    "ARGOCD_PASSWORD": "example-strong-password",
+                },
             ),
             patch.object(
                 module, "resolve_instance_id", return_value="i-0eb7ef332aa95e884"
@@ -75,8 +81,10 @@ class PasswordSyncTests(unittest.TestCase):
         with (
             patch.dict(
                 os.environ,
-                {"SSM_INSTANCE_ID": "i-0eb7ef332aa95e884",
-                 "ARGOCD_PASSWORD": "example-strong-password"},
+                {
+                    "SSM_INSTANCE_ID": "i-0eb7ef332aa95e884",
+                    "ARGOCD_PASSWORD": "example-strong-password",
+                },
             ),
             patch.object(
                 module, "resolve_instance_id", return_value="i-0eb7ef332aa95e884"
@@ -84,8 +92,7 @@ class PasswordSyncTests(unittest.TestCase):
             patch.object(module.boto3, "client", return_value=Mock()),
             patch.object(module, "send_command", side_effect=["read", "write"]) as send,
             patch.object(
-                module, "wait_for_invocation",
-                return_value=BCRYPT_HASH.decode("ascii")
+                module, "wait_for_invocation", return_value=BCRYPT_HASH.decode("ascii")
             ),
             contextlib.redirect_stdout(io.StringIO()),
         ):
@@ -98,8 +105,10 @@ class PasswordSyncTests(unittest.TestCase):
     def test_missing_password_fails_closed_without_ssm(self) -> None:
         module = load_module()
         with (
-            patch.dict(os.environ, {"SSM_INSTANCE_ID": "i-0eb7ef332aa95e884",
-                                  "ARGOCD_PASSWORD": ""}),
+            patch.dict(
+                os.environ,
+                {"SSM_INSTANCE_ID": "i-0eb7ef332aa95e884", "ARGOCD_PASSWORD": ""},
+            ),
             patch.object(module, "send_command") as send,
             self.assertRaisesRegex(ValueError, "ARGOCD_PASSWORD"),
         ):

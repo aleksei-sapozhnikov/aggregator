@@ -225,7 +225,6 @@ Configure Repository and Environment variables under **Settings → Secrets and 
 | Environment `demo-infra-apply` | `AWS_ROLE_ARN`                | Apply role ARN from the admin OpenTofu outputs.           |
 | Environment `demo-infra-apply` | `MANUAL_APPROVAL_CONFIGURED`  | `true`, after Required reviewers are configured.          |
 
-
 In the **Environment secrets** section of `demo-infra-apply`, create
 `ARGOCD_PASSWORD` with a strong password (16-72 UTF-8 bytes).
 The value is available only after required-reviewer approval and never
