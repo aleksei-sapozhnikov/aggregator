@@ -29,6 +29,9 @@ const removeModalId = (id: number) => {
 
 const getStackIndex = (id: number): number => openModalIds.indexOf(id);
 
+const isTopmostModal = (id: number): boolean =>
+  openModalIds[openModalIds.length - 1] === id;
+
 export default function ModalWindow({
   isOpen,
   onClose,
@@ -47,9 +50,6 @@ export default function ModalWindow({
   }
 
   const modalId = idRef.current;
-  const isTopmost =
-    stackIndex >= 0 && openModalIds[openModalIds.length - 1] === modalId;
-
   useEffect(() => {
     if (!isOpen) {
       return undefined;
@@ -89,7 +89,7 @@ export default function ModalWindow({
     }
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && isTopmost) {
+      if (event.key === "Escape" && isTopmostModal(modalId)) {
         event.preventDefault();
         onClose();
       }
@@ -99,7 +99,7 @@ export default function ModalWindow({
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isOpen, isTopmost, onClose]);
+  }, [isOpen, modalId, onClose]);
 
   if (!isOpen) {
     return null;
@@ -112,7 +112,7 @@ export default function ModalWindow({
       className="modal-overlay"
       style={{ zIndex }}
       onClick={(event) => {
-        if (event.target === event.currentTarget && isTopmost) {
+        if (event.target === event.currentTarget && isTopmostModal(modalId)) {
           onClose();
         }
       }}
