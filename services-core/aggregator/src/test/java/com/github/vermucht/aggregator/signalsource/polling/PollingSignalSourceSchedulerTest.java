@@ -8,6 +8,7 @@ import com.github.vermucht.aggregator.signal.model.HealthSignal;
 import com.github.vermucht.aggregator.signal.model.HealthStatus;
 import com.github.vermucht.aggregator.signal.state.HealthSignalStateStore;
 import com.github.vermucht.aggregator.signal.state.ItemHealthStateStore;
+import jakarta.annotation.Nonnull;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -108,9 +109,12 @@ class PollingSignalSourceSchedulerTest {
             () -> {
               oldStarted.countDown();
               try {
-                releaseOld.await(5, TimeUnit.SECONDS);
+                if (!releaseOld.await(5, TimeUnit.SECONDS)) {
+                  throw new IllegalStateException("Timed out waiting to release the old poll");
+                }
               } catch (InterruptedException ex) {
                 Thread.currentThread().interrupt();
+                throw new IllegalStateException("Old poll interrupted", ex);
               }
               return new HealthSignal(
                   itemId, "old", HealthStatus.UP, Instant.now(), "http", null, Map.of());
@@ -166,26 +170,31 @@ class PollingSignalSourceSchedulerTest {
       String id, Duration interval, java.util.function.Supplier<HealthSignal> operation)
       implements PollingSignalSource {
 
+    @Nonnull
     @Override
     public String title() {
       return id;
     }
 
+    @Nonnull
     @Override
     public ItemId itemId() {
       return ItemId.of("test-service");
     }
 
+    @Nonnull
     @Override
     public Duration getInterval() {
       return interval;
     }
 
+    @Nonnull
     @Override
     public String source() {
       return "http";
     }
 
+    @Nonnull
     @Override
     public HealthSignal poll() {
       return operation.get();
