@@ -4,10 +4,10 @@
 import argparse
 import json
 import os
-from pathlib import Path
 import re
 import subprocess
 import sys
+from pathlib import Path
 
 SERVICES = {
     "aggregator": "services-core/aggregator",
@@ -59,7 +59,9 @@ def update_kustomization(content: str, images: list[dict[str, str]]) -> str:
 
     result = pattern.sub(replace, content)
     if matched != expected.keys():
-        raise ValueError(f"Expected image entries {sorted(expected)}, found {sorted(matched)}")
+        raise ValueError(
+            f"Expected image entries {sorted(expected)}, found {sorted(matched)}"
+        )
     return result
 
 
@@ -87,7 +89,9 @@ def plan_missing(images: list[dict[str, str]], owner: str) -> list[dict[str, str
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=["plan", "compose-env", "update-kustomization", "list"])
+    parser.add_argument(
+        "command", choices=["plan", "compose-env", "update-kustomization", "list"]
+    )
     parser.add_argument("--revision", default="HEAD")
     parser.add_argument("--manifest", type=Path)
     args = parser.parse_args()
@@ -100,7 +104,9 @@ def main() -> None:
         if not args.manifest:
             parser.error("--manifest is required")
         content = args.manifest.read_text(encoding="utf-8")
-        args.manifest.write_text(update_kustomization(content, images), encoding="utf-8")
+        args.manifest.write_text(
+            update_kustomization(content, images), encoding="utf-8"
+        )
     else:
         missing = plan_missing(images, os.environ["GITHUB_REPOSITORY_OWNER"])
         matrix = json.dumps({"include": missing}, separators=(",", ":"))
@@ -111,7 +117,9 @@ def main() -> None:
         summary = os.environ.get("GITHUB_STEP_SUMMARY")
         if summary:
             with open(summary, "a", encoding="utf-8") as handle:
-                handle.write(f"Published images reused: {len(images) - len(missing)} / {len(images)}.\n\n")
+                handle.write(
+                    f"Published images reused: {len(images) - len(missing)} / {len(images)}.\n\n"
+                )
                 handle.write(f"Images to build and push: {len(missing)}.\n")
 
 
