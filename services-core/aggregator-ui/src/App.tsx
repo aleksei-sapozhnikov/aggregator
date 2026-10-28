@@ -1252,54 +1252,6 @@ export default function App() {
     };
   }, [handleClearSearch, isSearchActive]);
 
-  useEffect(() => {
-    if (!isAboutOpen) {
-      return undefined;
-    }
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        setIsAboutOpen(false);
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [isAboutOpen]);
-
-  useEffect(() => {
-    if (!openedContact) {
-      return undefined;
-    }
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        setOpenedContact(null);
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [openedContact]);
-
-  useEffect(() => {
-    if (!openedActorId) {
-      return undefined;
-    }
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        setOpenedActorId("");
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [openedActorId]);
-
   /**
    * Scrolls the tree container to a node once it is rendered and measurable.
    */

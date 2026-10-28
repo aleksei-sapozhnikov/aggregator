@@ -1,11 +1,4 @@
-import {
-  useEffect,
-  useId,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { CatalogItem } from "../shared/types";
 import ModalWindow from "./ModalWindow";
@@ -116,24 +109,6 @@ export default function CatalogItemInfo({ item }: CatalogItemInfoProps) {
       window.removeEventListener("scroll", updateTooltipPosition, true);
     };
   }, [isTooltipVisible, tooltip]);
-
-  useEffect(() => {
-    if (!isModalOpen) {
-      return undefined;
-    }
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        setIsModalOpen(false);
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [isModalOpen]);
 
   return (
     <span className="catalog-item-info">
