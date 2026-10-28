@@ -106,9 +106,7 @@ public class PollingSignalSourceScheduler {
       if (stopped || poll.cancelled) {
         return;
       }
-      poll.future =
-          scheduler.schedule(
-              () -> dispatch(poll), Instant.now().plus(delay));
+      poll.future = scheduler.schedule(() -> dispatch(poll), Instant.now().plus(delay));
     }
   }
 
