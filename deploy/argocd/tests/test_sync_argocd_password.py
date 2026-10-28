@@ -119,7 +119,9 @@ class PasswordSyncTests(unittest.TestCase):
         module = load_module()
         for password in ("A" * 16, "A" * 72, "П" * 16, "П" * 36, "🌿" * 16):
             with (
-                self.subTest(characters=len(password), bytes=len(password.encode("utf-8"))),
+                self.subTest(
+                    characters=len(password), bytes=len(password.encode("utf-8"))
+                ),
                 patch.dict(os.environ, {"ARGOCD_PASSWORD": password}),
                 patch.object(
                     module, "resolve_instance_id", return_value="i-0eb7ef332aa95e884"
@@ -127,7 +129,9 @@ class PasswordSyncTests(unittest.TestCase):
                 patch.object(module.boto3, "client", return_value=Mock()),
                 patch.object(module, "send_command", return_value="read"),
                 patch.object(
-                    module, "wait_for_invocation", return_value=BCRYPT_HASH.decode("ascii")
+                    module,
+                    "wait_for_invocation",
+                    return_value=BCRYPT_HASH.decode("ascii"),
                 ),
                 contextlib.redirect_stdout(io.StringIO()),
             ):
