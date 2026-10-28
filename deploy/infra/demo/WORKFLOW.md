@@ -44,8 +44,7 @@ local checks or pull-request validation:
      It also prints a copyable one-line SSM tunnel command with the actual
      K3s instance ID, and includes a link to the `demo-infra-apply` GitHub
      Environment secret settings and rotation instructions.
-     `run-tools.py argocd connect` can
-     instead find the current running EC2 instance automatically.
+     the SSM tunnel command can be copied from the Apply Summary.
   5. Detect creation or replacement of the K3s EC2 from the saved
      OpenTofu plan JSON. After successful apply, execute the same Ansible
      wrapper via SSM as for ordinary Ansible revisions. Supply the exact
@@ -135,30 +134,83 @@ The workflow serializes itself with a concurrency group, and OpenTofu locks
 its remote S3 state while running. External/manual changes can still cause
 stale plans to fail.
 
-## Argo CD dashboard and password prerequisites
+## Argo CD administrator password: setup and rotation
 
-Before K3s provisioning, set `ARGOCD_ADMIN_PASSWORD` as a GitHub
-**Environment Secret** under `demo-infra-apply`. The password must be
-16-72 UTF-8 bytes and remains outside Terraform state and saved plans.
-The approved Apply job reads it after infrastructure reconciliation,
-compares against Argo CD's existing bcrypt verifier via SSM, and updates
-the Kubernetes `argocd-secret` only when the password differs. The
-plaintext is never passed to AWS SSM or Ansible.
+Store the administrator password in the protected GitHub Environment
+`demo-infra-apply` as the secret **`ARGOCD_PASSWORD`**. It must contain
+16-72 UTF-8 bytes without line breaks. Do not put plaintext or a password
+fingerprint in Git, Terraform variables, state, or plan artifacts.
 
-To rotate, update the Environment Secret and trigger a new approved
-infrastructure run. Secret updates do not trigger GitHub Actions; when
-the manual workflow is on `main`, use `sync_argocd_password=true`
-and `reapply_ansible=false` to reconcile without reinstalling Ansible.
-Until the workflow can be manually dispatched, an explicitly reviewed
-Ansible-only push is a supported trigger. The password is not
-automatically updated on application-only deployments.
+During an approved infrastructure Apply, the script
+`.github/scripts/demo-infra/sync-argocd-password.py` reads the bcrypt
+verifier currently stored in the Kubernetes `argocd-secret` through
+AWS SSM and checks the requested password with `bcrypt.checkpw`.
+If it matches, the Secret stays unchanged. Otherwise the runner generates
+a fresh bcrypt verifier with a random salt and sends only that verifier
+through SSM to update `argocd-secret`. This does not require a separate
+unsalted fingerprint or persistent comparison state.
 
-The Apply Summary includes the current EC2 ID and a copyable SSM tunnel
-command as well as a link to the protected GitHub Environment settings.
-The local `run-tools.py argocd connect` command also resolves the active
-EC2 instance automatically. See [the Ansible README](../../ansible/README.md)
-for setup and operation.
+### Rotate through GitHub Actions
 
+1. Edit the Environment Secret `ARGOCD_PASSWORD` under
+   **Settings → Environments → `demo-infra-apply`**.
+2. Open **Actions → Demo pipeline → Run workflow** and select `demo`.
+   Keep `sync_argocd_password=true` and `reapply_ansible=false`.
+3. Review the infrastructure plan and approve `demo-infra-apply`.
+   If there are no infrastructure or Ansible changes, only the password
+   synchronization step changes the cluster. An unchanged password
+   does not cause a Kubernetes Secret update.
+
+Changing a GitHub secret does not itself start a workflow. The
+`workflow_dispatch` trigger already exists and is also used for manual
+Ansible reapplication. **GitHub requires the workflow file to exist on
+the repository's default branch (`main`) to enable manual dispatch.**
+Until it is promoted there, `dev` commits do not run a deployment, and
+an eligible `demo` push is the available automatic trigger. Do not
+assume the manual button is available merely because the YAML in `dev`
+contains `workflow_dispatch`.
+
+### Rotate from a local machine
+
+Check out the relevant repository code and configure an AWS identity
+authorized for `ssm:SendCommand` (`AWS-RunShellScript`) and
+`ssm:GetCommandInvocation` against the demo K3s node, plus EC2 describe
+permissions if you want automatic node discovery. The usual
+`aggregator-admin` Session Manager tunnel access alone does not grant
+these write permissions; do not expand that role just to support
+routine password rotation.
+
+Set `ARGOCD_PASSWORD` in the local process environment rather than
+putting it in a shell command argument or a repository file. For
+PowerShell, one way to avoid displaying the password when entering it is:
+
+```powershell
+$secure = Read-Host "New Argo CD password" -AsSecureString
+$ptr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure)
+try {
+    $env:ARGOCD_PASSWORD = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($ptr)
+    python -m pip install boto3==1.40.53 bcrypt==4.3.0
+    python .github/scripts/demo-infra/sync-argocd-password.py
+} finally {
+    Remove-Item Env:ARGOCD_PASSWORD -ErrorAction SilentlyContinue
+    [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ptr)
+}
+```
+
+Set `AWS_PROFILE` beforehand to an authorized profile. The script
+verifies the target AWS account and resolves the unique running K3s
+instance by EC2 tags, or accepts an explicit `SSM_INSTANCE_ID`.
+The plaintext password remains local to the Python process; only a
+bcrypt verifier is sent to AWS SSM. Use the approved workflow when
+a suitable local AWS identity is not available.
+
+### Connect to the Argo CD dashboard
+
+The Apply Summary includes the current K3s EC2 ID and a copyable
+one-line SSM tunnel command. Use AWS CLI and the Session Manager
+plugin, then open `https://localhost:8080` and sign in as `admin`.
+See [the Ansible README](../../ansible/README.md) for verification
+and access details.
 ## GitHub setup (required before enabling)
 
 Configure Repository and Environment variables under **Settings → Secrets and variables → Actions → Variables** and **Settings → Environments**:
@@ -174,7 +226,7 @@ Configure Repository and Environment variables under **Settings → Secrets and 
 
 
 In the **Environment secrets** section of `demo-infra-apply`, create
-`ARGOCD_ADMIN_PASSWORD` with a strong password (16-72 UTF-8 bytes).
+`ARGOCD_PASSWORD` with a strong password (16-72 UTF-8 bytes).
 The value is available only after required-reviewer approval and never
 becomes an OpenTofu input. Keep it in the protected Environment, not
 `demo-infra-plan` or repository-level secrets.
