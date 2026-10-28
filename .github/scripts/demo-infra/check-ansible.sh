@@ -16,6 +16,7 @@ for script in .github/scripts/demo-infra/*.sh .github/scripts/demo-deploy/*.sh; 
   bash -n "$script"
 done
 python3 -m py_compile deploy/ansible/roles/argocd/files/argocd-admin-reconcile.py
+python3 -m unittest discover -s deploy/ansible/tests -p 'test_*.py'
 # The cloud-init wrapper must be valid Bash and never execute Ansible at boot.
 "$RUNNER_TEMP/ansible/bin/python" - <<'PY'
 import os

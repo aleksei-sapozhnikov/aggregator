@@ -36,9 +36,11 @@ def reconcile() -> None:
         SecretId=secret_id
     )
     plaintext = response.get("SecretString")
-    if not isinstance(plaintext, str) or len(plaintext) < 16:
-        raise ValueError("Argo CD AWS secret must be plain text with at least 16 characters")
+    if not isinstance(plaintext, str):
+        raise ValueError("Argo CD AWS secret must be a plain-text password")
     password = plaintext.encode("utf-8")
+    if not 16 <= len(password) <= 72 or any(char in password for char in (0, 10, 13)):
+        raise ValueError("Argo CD AWS secret must be 16-72 UTF-8 bytes without line breaks")
 
     kubernetes_secret = json.loads(kubectl("get", "secret", "argocd-secret", "-o", "json"))
     current_encoded = kubernetes_secret.get("data", {}).get("admin.password", "")
