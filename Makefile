@@ -160,7 +160,7 @@ else
 	$(COMPOSE_CMD) up --detach --wait --remove-orphans
 endif
 
-# Published demo artifacts are immutable per Git commit.
+# Published demo artifacts use immutable per-service Git build-context tags.
 pull: info
 	$(if $(filter demo,$(ENV)),,$(error pull requires ENV=demo))
 	$(COMPOSE_CMD) pull
