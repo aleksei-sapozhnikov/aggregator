@@ -66,16 +66,15 @@ outputs_text="$(tofu output -no-color)"
     echo '~~~'
     echo
     echo "Open **https://localhost:8080** while the session is active. The same single-line command works in PowerShell, Bash and cmd.exe."
-    echo "Alternatively, run `python run-tools.py argocd connect --profile aggregator-admin` locally to resolve the current instance and start the tunnel."
   else
     echo "No active K3s instance exists in the current infrastructure state; no tunnel command is available."
   fi
   echo
   echo "### Argo CD administrator password"
   echo
-  echo "The \`admin\` password is defined in the protected GitHub Environment \`demo-infra-apply\`, secret \`ARGOCD_ADMIN_PASSWORD\`."
+  echo "The \`admin\` password is defined in the protected GitHub Environment \`demo-infra-apply\`, secret \`ARGOCD_PASSWORD\`."
   echo "[Open the environment settings](https://github.com/aleksei-sapozhnikov/aggregator/settings/environments/demo-infra-apply)"
-  echo "Change the secret there and run a new approved infrastructure configuration to synchronize Argo CD."
+  echo "Change the secret there and manually run Demo pipeline on demo with password sync enabled (once the workflow exists on main)."
   echo "The password never enters OpenTofu plans or state; only the bcrypt verifier crosses SSM."
   echo
   echo "<details>"
