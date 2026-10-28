@@ -106,7 +106,7 @@ def reconcile() -> bool:
     if not 16 <= len(password) <= 72 or any(char in password for char in (0, 10, 13)):
         raise ValueError(
             "Set ARGOCD_PASSWORD to 16-72 UTF-8 bytes without line breaks "
-            "in the demo-infra-apply GitHub Environment secrets."
+            "in the protected GitHub Environment or local environment."
         )
 
     instance_id = resolve_instance_id()
@@ -118,7 +118,7 @@ def reconcile() -> bool:
         if not HASH_PATTERN.fullmatch(old_hash):
             raise ValueError("The current Argo CD bcrypt verifier is malformed")
         if bcrypt.checkpw(password, old_hash):
-            print("Argo CD administrator password already matches the GitHub secret.")
+            print("Argo CD administrator password already matches the supplied password.")
             return False
 
     new_hash = bcrypt.hashpw(password, bcrypt.gensalt(rounds=12)).decode("ascii")
@@ -146,7 +146,7 @@ def main() -> None:
             summary.write(
                 "Argo CD administrator password: "
                 + ("**updated**" if changed else "**unchanged**")
-                + " from the protected GitHub Environment secret.\n"
+                + " from the configured password.\n"
             )
 
 
