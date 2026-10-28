@@ -103,11 +103,12 @@ def reconcile() -> bool:
     """Update the current bcrypt verifier only when the password changed."""
     plaintext = os.environ.get("ARGOCD_PASSWORD", "")
     password = plaintext.encode("utf-8")
-    if not 16 <= len(password) <= 72 or any(char in password for char in (0, 10, 13)):
-        raise ValueError(
-            "Set ARGOCD_PASSWORD to 16-72 UTF-8 bytes without line breaks "
-            "in the protected GitHub Environment or local environment."
-        )
+    if len(plaintext) < 16:
+        raise ValueError("ARGOCD_PASSWORD must contain at least 16 characters")
+    if len(password) > 72:
+        raise ValueError("ARGOCD_PASSWORD must not exceed 72 UTF-8 bytes")
+    if any(char in password for char in (0, 10, 13)):
+        raise ValueError("ARGOCD_PASSWORD must not contain null bytes or line breaks")
 
     instance_id = resolve_instance_id()
     client = boto3.client("ssm", region_name=REGION)

@@ -115,6 +115,46 @@ class PasswordSyncTests(unittest.TestCase):
             module.reconcile()
         send.assert_not_called()
 
+    def test_password_length_boundaries(self) -> None:
+        module = load_module()
+        for password in ("A" * 16, "A" * 72, "П" * 16, "П" * 36, "🌿" * 16):
+            with (
+                self.subTest(characters=len(password), bytes=len(password.encode("utf-8"))),
+                patch.dict(os.environ, {"ARGOCD_PASSWORD": password}),
+                patch.object(
+                    module, "resolve_instance_id", return_value="i-0eb7ef332aa95e884"
+                ),
+                patch.object(module.boto3, "client", return_value=Mock()),
+                patch.object(module, "send_command", return_value="read"),
+                patch.object(
+                    module, "wait_for_invocation", return_value=BCRYPT_HASH.decode("ascii")
+                ),
+                contextlib.redirect_stdout(io.StringIO()),
+            ):
+                self.assertFalse(module.reconcile())
+
+    def test_password_length_and_control_character_rejection(self) -> None:
+        module = load_module()
+        cases = (
+            ("A" * 15, "at least 16 characters"),
+            ("П" * 15, "at least 16 characters"),
+            ("A" * 73, "72 UTF-8 bytes"),
+            ("П" * 37, "72 UTF-8 bytes"),
+            ("🌿" * 19, "72 UTF-8 bytes"),
+            ("A" * 16 + "\n", "line breaks"),
+            ("A" * 16 + "\r", "line breaks"),
+            ("A" * 16 + "\x00", "null bytes"),
+        )
+        for password, message in cases:
+            with (
+                self.subTest(password_length=len(password), error=message),
+                patch.dict(os.environ, {"ARGOCD_PASSWORD": password}),
+                patch.object(module, "resolve_instance_id") as resolve_instance,
+                self.assertRaisesRegex(ValueError, message),
+            ):
+                module.reconcile()
+            resolve_instance.assert_not_called()
+
     def test_local_node_lookup_uses_running_tags(self) -> None:
         module = load_module()
         sts = Mock()

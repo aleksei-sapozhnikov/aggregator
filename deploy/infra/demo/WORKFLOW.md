@@ -138,7 +138,8 @@ stale plans to fail.
 
 Store the administrator password in the protected GitHub Environment
 `demo-infra-apply` as the secret **`ARGOCD_PASSWORD`**. It must contain
-16-72 UTF-8 bytes without line breaks. Do not put plaintext or a password
+at least 16 characters and no more than 72 UTF-8 bytes, without null bytes
+or line breaks. Do not put plaintext or a password
 fingerprint in Git, Terraform variables, state, or plan artifacts.
 
 During an approved infrastructure Apply, the script
@@ -226,7 +227,8 @@ Configure Repository and Environment variables under **Settings → Secrets and 
 | Environment `demo-infra-apply` | `MANUAL_APPROVAL_CONFIGURED`  | `true`, after Required reviewers are configured.          |
 
 In the **Environment secrets** section of `demo-infra-apply`, create
-`ARGOCD_PASSWORD` with a strong password (16-72 UTF-8 bytes).
+`ARGOCD_PASSWORD` with a strong password (at least 16 characters and at most
+72 UTF-8 bytes).
 The value is available only after required-reviewer approval and never
 becomes an OpenTofu input. Keep it in the protected Environment, not
 `demo-infra-plan` or repository-level secrets.

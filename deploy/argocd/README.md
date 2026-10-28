@@ -13,6 +13,14 @@ scripts are deployment utilities, not GitHub Actions or Ansible implementations.
 Changes to the node-side helper trigger an Ansible reapply through the demo
 infrastructure workflow so the installed copy stays current.
 
+## Password requirements
+
+`ARGOCD_PASSWORD` must contain at least 16 Unicode characters and must
+not exceed 72 bytes when encoded as UTF-8 (the bcrypt input limit).
+Null bytes and line breaks are not allowed. Non-ASCII characters may
+occupy multiple bytes: for example, 16 Cyrillic letters are valid, while
+37 Cyrillic letters exceed the byte limit.
+
 ## Tests
 
 Run the tests and code quality checks for both utilities:

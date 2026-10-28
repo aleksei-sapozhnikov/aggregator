@@ -75,8 +75,8 @@ ingress, LoadBalancer, SSH port, or Kubernetes API port is exposed.
 ### Administrator password in GitHub Environment
 
 Set `ARGOCD_PASSWORD` as an **Environment Secret** in the protected
-`demo-infra-apply` GitHub Environment. It must contain 16-72 UTF-8 bytes
-without line breaks. Keep the Environment's required-reviewer protection.
+`demo-infra-apply` GitHub Environment. It must contain at least 16 characters
+and no more than 72 UTF-8 bytes, without null bytes or line breaks. Keep the Environment's required-reviewer protection.
 
 The approved infrastructure Apply job verifies the password against the
 current bcrypt hash from `argocd-secret` over AWS SSM. An unchanged password
