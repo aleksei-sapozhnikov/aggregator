@@ -49,3 +49,69 @@
       - deployment/argocd-server
       - --timeout=600s
   changed_when: false
+
+- name: Install pinned AWS SDK and bcrypt in the isolated Ansible environment
+  ansible.builtin.pip:
+    name:
+      - boto3==1.40.53
+      - bcrypt==4.3.0
+    executable: /opt/aggregator-ansible/bin/pip
+
+- name: Install the Argo CD password reconciliation script
+  ansible.builtin.copy:
+    src: argocd-admin-reconcile.py
+    dest: /usr/local/sbin/aggregator-argocd-admin-reconcile
+    owner: root
+    group: root
+    mode: "0700"
+
+- name: Install loopback-only Argo CD UI port forward service
+  ansible.builtin.copy:
+    src: argocd-ui-forward.service
+    dest: /etc/systemd/system/aggregator-argocd-ui-forward.service
+    owner: root
+    group: root
+    mode: "0644"
+  register: argocd_forward_unit
+
+- name: Enable and start loopback-only Argo CD UI port forward
+  ansible.builtin.systemd_service:
+    name: aggregator-argocd-ui-forward.service
+    daemon_reload: true
+    enabled: true
+    state: "{{ 'restarted' if argocd_forward_unit.changed else 'started' }}"
+
+- name: Install Argo CD admin password reconciliation service
+  ansible.builtin.template:
+    src: argocd-admin-reconcile.service.j2
+    dest: /etc/systemd/system/aggregator-argocd-admin-reconcile.service
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Install Argo CD admin password reconciliation timer
+  ansible.builtin.copy:
+    src: argocd-admin-reconcile.timer
+    dest: /etc/systemd/system/aggregator-argocd-admin-reconcile.timer
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Reconcile admin password from AWS Secrets Manager immediately
+  ansible.builtin.command:
+    argv:
+      - /opt/aggregator-ansible/bin/python
+      - /usr/local/sbin/aggregator-argocd-admin-reconcile
+  environment:
+    AWS_REGION: "{{ argocd_aws_region }}"
+    ARGOCD_ADMIN_SECRET_ID: "{{ argocd_admin_secret_id }}"
+  register: argocd_password_reconciliation
+  changed_when: "'Argo CD admin password synchronized' in argocd_password_reconciliation.stdout"
+  no_log: true
+
+- name: Enable periodic Argo CD password reconciliation
+  ansible.builtin.systemd_service:
+    name: aggregator-argocd-admin-reconcile.timer
+    daemon_reload: true
+    enabled: true
+    state: started

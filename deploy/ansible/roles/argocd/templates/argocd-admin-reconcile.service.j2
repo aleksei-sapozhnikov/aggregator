@@ -1,0 +1,12 @@
+[Unit]
+Description=Reconcile Argo CD admin password from AWS Secrets Manager
+Wants=network-online.target
+After=network-online.target k3s.service
+Requires=k3s.service
+
+[Service]
+Type=oneshot
+Environment="AWS_REGION={{ argocd_aws_region }}"
+Environment="ARGOCD_ADMIN_SECRET_ID={{ argocd_admin_secret_id }}"
+ExecStart=/opt/aggregator-ansible/bin/python /usr/local/sbin/aggregator-argocd-admin-reconcile
+NoNewPrivileges=true

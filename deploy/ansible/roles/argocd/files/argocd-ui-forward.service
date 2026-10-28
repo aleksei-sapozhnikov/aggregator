@@ -1,0 +1,15 @@
+[Unit]
+Description=Local-only Argo CD dashboard tunnel target
+Wants=network-online.target
+After=network-online.target k3s.service
+Requires=k3s.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/k3s kubectl -n argocd port-forward svc/argocd-server 18080:443 --address 127.0.0.1
+Restart=always
+RestartSec=5s
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

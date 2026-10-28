@@ -158,3 +158,20 @@ resource "aws_instance" "this" {
   # CloudWatch permissions must exist before SSM first runs during cloud-init.
   depends_on = [aws_iam_role_policy.ssm_logs]
 }
+
+# The administrator password itself lives only in AWS Secrets Manager, never
+# in Terraform variables, state, or Kubernetes manifests committed to Git.
+data "aws_iam_policy_document" "argocd_admin_secret_read" {
+  statement {
+    actions = ["secretsmanager:GetSecretValue"]
+    resources = [
+      "arn:aws:secretsmanager:eu-central-1:${data.aws_caller_identity.current.account_id}:secret:aggregator/demo/argocd-admin-??????",
+    ]
+  }
+}
+
+resource "aws_iam_role_policy" "argocd_admin_secret_read" {
+  name   = "AggregatorDemoK3sArgoCDAdminSecretRead"
+  role   = aws_iam_role.ec2.name
+  policy = data.aws_iam_policy_document.argocd_admin_secret_read.json
+}

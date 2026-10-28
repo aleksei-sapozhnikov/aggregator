@@ -1,0 +1,11 @@
+[Unit]
+Description=Periodically reconcile Argo CD admin password
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+AccuracySec=30s
+Unit=aggregator-argocd-admin-reconcile.service
+
+[Install]
+WantedBy=timers.target
