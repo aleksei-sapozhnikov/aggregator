@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Reconcile the Argo CD admin password from an approved GitHub environment.
+"""Reconcile the Argo CD admin password from GitHub or a local environment.
 
 Only a bcrypt verifier crosses AWS SSM. Neither the plaintext password nor
 the hash is printed in GitHub Actions logs or placed in Terraform state.
@@ -45,6 +45,8 @@ def resolve_instance_id() -> str:
     if len(matches) != 1 or not re.fullmatch(r"i-[0-9a-f]{8,17}", matches[0]):
         raise RuntimeError(f"Expected one running K3s instance, found {len(matches)}")
     return matches[0]
+
+
 HASH_PATTERN = re.compile(rb"^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$")
 TERMINAL_STATUSES = {
     "Success",
