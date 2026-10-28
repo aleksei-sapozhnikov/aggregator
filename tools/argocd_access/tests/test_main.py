@@ -37,7 +37,8 @@ class ArgoCDToolTests(unittest.TestCase):
         for ids in ([], ["i-0123456789abcdef0", "i-0123456789abcdef1"]):
             with self.subTest(ids=ids):
                 with patch.object(
-                    access, "aws_output", side_effect=[access.ACCOUNT_ID, json.dumps(ids)]
+                    access, "aws_output",
+                    side_effect=[access.ACCOUNT_ID, json.dumps(ids)]
                 ):
                     with self.assertRaisesRegex(RuntimeError, "Expected one"):
                         access.resolve_instance_id(options())

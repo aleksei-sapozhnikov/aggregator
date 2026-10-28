@@ -43,7 +43,8 @@ local checks or pull-request validation:
      only explicitly non-sensitive connection fields are highlighted.
      It also prints a copyable one-line SSM tunnel command with the actual
      K3s instance ID, and includes a link to the `demo-infra-apply` GitHub
-     Environment secret settings and rotation instructions. `run-tools.py argocd connect` can
+     Environment secret settings and rotation instructions.
+     `run-tools.py argocd connect` can
      instead find the current running EC2 instance automatically.
   5. Detect creation or replacement of the K3s EC2 from the saved
      OpenTofu plan JSON. After successful apply, execute the same Ansible
@@ -170,7 +171,13 @@ Configure Repository and Environment variables under **Settings → Secrets and 
 | Environment `demo-infra-plan`  | `ENABLE_BEDROCK`              | Explicit `true` or `false`.                               |
 | Environment `demo-infra-apply` | `AWS_ROLE_ARN`                | Apply role ARN from the admin OpenTofu outputs.           |
 | Environment `demo-infra-apply` | `MANUAL_APPROVAL_CONFIGURED`  | `true`, after Required reviewers are configured.          |
-| Environment secret `demo-infra-apply` | `ARGOCD_ADMIN_PASSWORD` | Strong admin password, 16-72 UTF-8 bytes, used after approval only. |
+
+
+In the **Environment secrets** section of `demo-infra-apply`, create
+`ARGOCD_ADMIN_PASSWORD` with a strong password (16-72 UTF-8 bytes).
+The value is available only after required-reviewer approval and never
+becomes an OpenTofu input. Keep it in the protected Environment, not
+`demo-infra-plan` or repository-level secrets.
 
 **Do not create AWS access-key secrets.** Existing GitHub OIDC provider is
 reused. Both infrastructure IAM roles, their trust policies, and their

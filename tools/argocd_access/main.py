@@ -115,7 +115,9 @@ def main(argv: list[str] | None = None) -> int:
     parser = make_parser()
     args = parser.parse_args(argv)
     if args.profile and not PROFILE_PATTERN.fullmatch(args.profile):
-        parser.error("Invalid --profile: use letters, digits, underscores, dots, hyphens")
+        parser.error(
+            "Invalid --profile: use letters, digits, underscores, dots, hyphens"
+        )
     if not 1 <= args.local_port <= 65535:
         parser.error("--local-port must be between 1 and 65535")
 

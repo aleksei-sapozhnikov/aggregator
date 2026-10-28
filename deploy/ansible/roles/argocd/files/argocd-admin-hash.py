@@ -68,7 +68,10 @@ def apply_hash(digest: bytes) -> None:
     finally:
         Path(path).unlink(missing_ok=True)
 
-    kubectl("delete", "secret", "argocd-initial-admin-secret", "--ignore-not-found=true")
+    kubectl(
+        "delete", "secret", "argocd-initial-admin-secret",
+        "--ignore-not-found=true"
+    )
     print("Argo CD admin password hash updated")
 
 

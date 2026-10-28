@@ -159,7 +159,12 @@ jobs:
   apply:
     name: Approve, apply and configure K3s
     needs: [validate, plan]
-    if: github.ref == 'refs/heads/demo' && needs.plan.result == 'success' && (needs.plan.outputs.has_changes == 'true' || needs.plan.outputs.ansible_changed == 'true' || inputs.sync_argocd_password == true)
+    if: |
+      github.ref == 'refs/heads/demo' &&
+      needs.plan.result == 'success' &&
+      (needs.plan.outputs.has_changes == 'true' ||
+       needs.plan.outputs.ansible_changed == 'true' ||
+       inputs.sync_argocd_password == true)
     environment: demo-infra-apply
     runs-on: ubuntu-latest
     timeout-minutes: 85
@@ -220,7 +225,10 @@ jobs:
           TERRAFORM_CHANGED: ${{ needs.plan.outputs.has_changes }}
         run: bash "$GITHUB_WORKSPACE/.github/scripts/demo-infra/apply-summary.sh"
       - name: Find the optional K3s node after successful apply
-        if: needs.plan.outputs.k3s_created == 'true' || needs.plan.outputs.ansible_changed == 'true' || inputs.sync_argocd_password == true
+        if: |
+          needs.plan.outputs.k3s_created == 'true' ||
+          needs.plan.outputs.ansible_changed == 'true' ||
+          inputs.sync_argocd_password == true
         id: node
         working-directory: deploy/infra/demo
         shell: bash
@@ -240,7 +248,8 @@ jobs:
           ARGOCD_ADMIN_PASSWORD: ${{ secrets.ARGOCD_ADMIN_PASSWORD }}
         run: |
           set -euo pipefail
-          python3 -m pip install --disable-pip-version-check --no-input boto3==1.40.53 bcrypt==4.3.0
+          python3 -m pip install --disable-pip-version-check --no-input \
+            boto3==1.40.53 bcrypt==4.3.0
           python3 .github/scripts/demo-infra/sync-argocd-password.py
 
   request-demo-deploy:

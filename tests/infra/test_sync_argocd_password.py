@@ -80,7 +80,10 @@ class PasswordSyncTests(unittest.TestCase):
             ),
             patch.object(module.boto3, "client", return_value=Mock()),
             patch.object(module, "send_command", side_effect=["read", "write"]) as send,
-            patch.object(module, "wait_for_invocation", return_value=BCRYPT_HASH.decode("ascii")),
+            patch.object(
+                module, "wait_for_invocation",
+                return_value=BCRYPT_HASH.decode("ascii")
+            ),
             contextlib.redirect_stdout(io.StringIO()),
         ):
             self.assertTrue(module.reconcile())
