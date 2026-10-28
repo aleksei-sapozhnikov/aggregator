@@ -10,6 +10,7 @@ import sys
 import types
 import unittest
 from pathlib import Path
+from typing import ClassVar
 from unittest.mock import Mock, patch
 
 SCRIPT = (
@@ -35,7 +36,9 @@ def load_module():
     exceptions = types.ModuleType("botocore.exceptions")
 
     class ClientError(Exception):
-        response = {"Error": {"Code": "InvocationDoesNotExist"}}
+        response: ClassVar[dict[str, dict[str, str]]] = {
+            "Error": {"Code": "InvocationDoesNotExist"}
+        }
 
     exceptions.ClientError = ClientError
 
@@ -104,9 +107,9 @@ class PasswordSyncTests(unittest.TestCase):
             patch.dict(os.environ, {"SSM_INSTANCE_ID": "i-0eb7ef332aa95e884",
                                   "ARGOCD_PASSWORD": ""}),
             patch.object(module, "send_command") as send,
+            self.assertRaisesRegex(ValueError, "ARGOCD_PASSWORD"),
         ):
-            with self.assertRaisesRegex(ValueError, "ARGOCD_PASSWORD"):
-                module.reconcile()
+            module.reconcile()
         send.assert_not_called()
 
     def test_local_node_lookup_uses_running_tags(self) -> None:
@@ -130,9 +133,9 @@ class PasswordSyncTests(unittest.TestCase):
         with (
             patch.dict(os.environ, {"SSM_INSTANCE_ID": ""}),
             patch.object(module.boto3, "client", return_value=sts) as client,
+            self.assertRaisesRegex(RuntimeError, "Expected AWS account"),
         ):
-            with self.assertRaisesRegex(RuntimeError, "Expected AWS account"):
-                module.resolve_instance_id()
+            module.resolve_instance_id()
         self.assertEqual(client.call_count, 1)
 
 
