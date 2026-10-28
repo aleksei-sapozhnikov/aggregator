@@ -2,7 +2,7 @@
  * @file About dialog wrapper for static application description content.
  */
 
-import AboutContent from "../AboutContent";
+import AboutContent, { AboutHeader } from "../AboutContent";
 import ModalWindow from "./ModalWindow";
 
 type AboutModalProps = {
@@ -21,6 +21,7 @@ export default function AboutModal({ isOpen, onClose }: AboutModalProps) {
       onClose={onClose}
       ariaLabel="About Catalog Health Aggregator"
       closeLabel="Close about page"
+      header={<AboutHeader />}
     >
       <AboutContent />
     </ModalWindow>

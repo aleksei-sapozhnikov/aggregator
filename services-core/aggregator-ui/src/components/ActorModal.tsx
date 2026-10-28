@@ -54,11 +54,9 @@ export default function ActorModal({
       onClose={onClose}
       ariaLabel="Actor details"
       closeLabel="Close actor details"
+      header={<h2>{resolveActorLabel(actor)}</h2>}
     >
       <div className="actor-modal">
-        <header className="actor-modal-header">
-          <h2>{resolveActorLabel(actor)}</h2>
-        </header>
         <div className="actor-modal-body">
           {descriptionParagraphs.length > 0 && (
             <div className="actor-modal-description">

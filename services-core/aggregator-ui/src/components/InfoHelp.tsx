@@ -69,11 +69,9 @@ export default function InfoHelp({ topic }: InfoHelpProps) {
         onClose={() => setIsModalOpen(false)}
         ariaLabel={`About ${topic.title}`}
         closeLabel="Close contextual help"
+        header={<h2>{topic.title}</h2>}
       >
         <div className="info-help-modal">
-          <header className="info-help-modal-header">
-            <h2>{topic.title}</h2>
-          </header>
           <div className="info-help-description modal-text-flow">
             <p>{topic.description}</p>
           </div>

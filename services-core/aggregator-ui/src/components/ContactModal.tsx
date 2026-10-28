@@ -319,7 +319,9 @@ const ContactDemoWindowBar = ({
   helpTopic: InfoHelpTopic;
   title: string;
 }) => (
-  <div className="contact-demo-window-bar">
+  <div
+    className={`contact-demo-window-bar contact-client-${details.clientClass}`}
+  >
     <span className="contact-window-title">
       <span className="contact-window-icon">{details.iconLabel}</span>
       <span>{details.appName}</span>
@@ -367,7 +369,6 @@ const renderContactDemo = (
   onCallStage: OnCallStage,
   onCallFormLength: number,
   copy: ContactDemoCopy,
-  helpTopic: InfoHelpTopic,
 ) => {
   if (details.kind === "email") {
     const isComposing =
@@ -381,11 +382,6 @@ const renderContactDemo = (
         className={`contact-demo contact-demo-email contact-client-${details.clientClass}`}
         aria-label="Email client preview"
       >
-        <ContactDemoWindowBar
-          details={details}
-          helpTopic={helpTopic}
-          title="New message"
-        />
         <div className="contact-email-fields">
           <div>
             <span>To</span>
@@ -454,11 +450,6 @@ const renderContactDemo = (
         className={`contact-demo contact-demo-phone contact-client-${details.clientClass}`}
         aria-label="Phone app preview"
       >
-        <ContactDemoWindowBar
-          details={details}
-          helpTopic={helpTopic}
-          title={isConnected ? "Connected" : "Calling"}
-        />
         <div className="contact-phone-screen">
           <span className="contact-phone-icon" aria-hidden="true">
             {details.iconLabel}
@@ -501,11 +492,6 @@ const renderContactDemo = (
         className={`contact-demo contact-demo-chat contact-client-${details.clientClass}`}
         aria-label="Messages preview"
       >
-        <ContactDemoWindowBar
-          details={details}
-          helpTopic={helpTopic}
-          title={label}
-        />
         <div className="contact-chat-thread">
           {isMessageSent && (
             <p className="contact-chat-bubble contact-chat-bubble-out">
@@ -555,11 +541,6 @@ const renderContactDemo = (
         className={`contact-demo contact-demo-oncall contact-client-${details.clientClass}`}
         aria-label="On-call profile preview"
       >
-        <ContactDemoWindowBar
-          details={details}
-          helpTopic={helpTopic}
-          title="Escalation"
-        />
         <div
           className={`contact-oncall-layout ${
             isInitial || isForm ? "is-preparing" : ""
@@ -707,11 +688,6 @@ const renderContactDemo = (
         className={`contact-demo contact-demo-generic contact-client-${details.clientClass}`}
         aria-label="Contact application preview"
       >
-        <ContactDemoWindowBar
-          details={details}
-          helpTopic={helpTopic}
-          title="Contact destination"
-        />
         <div className="contact-generic-card">
           <strong>{label}</strong>
           <span>
@@ -727,11 +703,6 @@ const renderContactDemo = (
       className={`contact-demo contact-demo-chat contact-client-${details.clientClass}`}
       aria-label="Team chat preview"
     >
-      <ContactDemoWindowBar
-        details={details}
-        helpTopic={helpTopic}
-        title={label}
-      />
       <div className="contact-chat-thread">
         {isMessageSent && (
           <p className="contact-chat-bubble contact-chat-bubble-out">
@@ -916,6 +887,18 @@ export default function ContactModal({
   const typedText = outgoingText.slice(0, typedLength);
   const isMessageSent = typedLength >= outgoingText.length;
   const ellipsis = ".".repeat(ellipsisStep);
+  const headerTitle =
+    demoDetails.kind === "email"
+      ? "New message"
+      : demoDetails.kind === "phone"
+        ? phoneStep >= 1
+          ? "Connected"
+          : "Calling"
+        : demoDetails.kind === "oncall"
+          ? "Escalation"
+          : demoDetails.kind === "generic"
+            ? "Contact destination"
+            : contactLabel;
 
   return (
     <ModalWindow
@@ -923,6 +906,13 @@ export default function ContactModal({
       onClose={onClose}
       ariaLabel="Contact details"
       closeLabel="Close contact details"
+      header={
+        <ContactDemoWindowBar
+          details={demoDetails}
+          helpTopic={helpTopic}
+          title={headerTitle}
+        />
+      }
     >
       <div className="contact-modal-body">
         {renderContactDemo(
@@ -938,7 +928,6 @@ export default function ContactModal({
           onCallStage,
           onCallFormLength,
           activeDemoCopy,
-          helpTopic,
         )}
       </div>
     </ModalWindow>

@@ -8,6 +8,7 @@ type ModalWindowProps = {
   onClose: () => void;
   ariaLabel: string;
   closeLabel?: string;
+  header?: ReactNode;
   children: ReactNode;
 };
 
@@ -37,6 +38,7 @@ export default function ModalWindow({
   onClose,
   ariaLabel,
   closeLabel = "Close dialog",
+  header,
   children,
 }: ModalWindowProps) {
   const idRef = useRef<number>(0);
@@ -125,7 +127,10 @@ export default function ModalWindow({
         aria-label={ariaLabel}
         tabIndex={-1}
       >
-        <CloseButton ariaLabel={closeLabel} onClick={onClose} />
+        <header className="modal-header">
+          <div className="modal-header-content">{header}</div>
+          <CloseButton ariaLabel={closeLabel} onClick={onClose} />
+        </header>
         <div className="modal-content">{children}</div>
       </article>
     </div>,
