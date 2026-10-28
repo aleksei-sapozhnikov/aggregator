@@ -5,40 +5,44 @@
 /**
  * Renders descriptive text shown inside the About modal.
  */
+export function AboutHeader() {
+  return (
+    <div className="about-header">
+      <h2>About</h2>
+      <div className="about-social-links">
+        <a
+          className="about-social-link"
+          href="https://www.linkedin.com/in/aleksei-v-sapozhnikov/"
+          target="_blank"
+          rel="noreferrer"
+        >
+          <svg
+            className="about-social-icon about-social-icon-linkedin"
+            aria-hidden="true"
+          >
+            <use href="/icons.svg#linkedin-mark" />
+          </svg>
+          <span>LinkedIn</span>
+        </a>
+        <a
+          className="about-social-link"
+          href="https://github.com/aleksei-sapozhnikov/aggregator"
+          target="_blank"
+          rel="noreferrer"
+        >
+          <svg className="about-social-icon" aria-hidden="true">
+            <use href="/icons.svg#github-mark" />
+          </svg>
+          <span>GitHub</span>
+        </a>
+      </div>
+    </div>
+  );
+}
+
 export default function AboutContent() {
   return (
     <div className="about-content modal-text-flow">
-      <div className="about-header">
-        <h2>About</h2>
-        <div className="about-social-links">
-          <a
-            className="about-social-link"
-            href="https://www.linkedin.com/in/aleksei-v-sapozhnikov/"
-            target="_blank"
-            rel="noreferrer"
-          >
-            <svg
-              className="about-social-icon about-social-icon-linkedin"
-              aria-hidden="true"
-            >
-              <use href="/icons.svg#linkedin-mark" />
-            </svg>
-            <span>LinkedIn</span>
-          </a>
-          <a
-            className="about-social-link"
-            href="https://github.com/aleksei-sapozhnikov/aggregator"
-            target="_blank"
-            rel="noreferrer"
-          >
-            <svg className="about-social-icon" aria-hidden="true">
-              <use href="/icons.svg#github-mark" />
-            </svg>
-            <span>GitHub</span>
-          </a>
-        </div>
-      </div>
-      <div aria-hidden="true" className="about-divider" />
       <p>
         This demo shows the current health of products and the technical
         services they depend on. It also helps trace a product problem back to

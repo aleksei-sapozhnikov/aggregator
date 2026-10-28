@@ -157,11 +157,9 @@ export default function CatalogItemInfo({ item }: CatalogItemInfoProps) {
           onClose={() => setIsModalOpen(false)}
           ariaLabel={`Catalog information for ${item.title || item.id}`}
           closeLabel="Close catalog information"
+          header={<h2>{item.title || item.id}</h2>}
         >
           <div className="info-help-modal catalog-item-info-modal">
-            <header className="info-help-modal-header">
-              <h2>{item.title || item.id}</h2>
-            </header>
             <div className="catalog-item-info-content modal-text-flow">
               {hasShortDescription && <p>{shortDescription}</p>}
               {paragraphs.map((paragraph, index) => (
