@@ -95,16 +95,10 @@ MODULES = (
     ModuleSpec("grafana", "services-extra/grafana"),
     ModuleSpec("prometheus", "services-extra/prometheus"),
     ModuleSpec(
-        "ansible",
-        "deploy/ansible",
+        "argocd",
+        "deploy/argocd",
         "python_code",
         TestSpec("unittest_tests", ("--start-directory", "tests")),
-    ),
-    ModuleSpec(
-        "demo-infra-scripts",
-        ".github/scripts/demo-infra",
-        "python_code",
-        TestSpec("unittest_tests", ("--start-directory", ".")),
     ),
     ModuleSpec("infra-admin", "deploy/infra/admin", "tofu_code"),
     ModuleSpec("infra-demo", "deploy/infra/demo", "tofu_code"),

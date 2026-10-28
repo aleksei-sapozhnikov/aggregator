@@ -14,13 +14,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-SCRIPT = (
-    Path(__file__).resolve().parents[1]
-    / "roles"
-    / "argocd"
-    / "files"
-    / "argocd-admin-hash.py"
-)
+SCRIPT = Path(__file__).resolve().parents[1] / "argocd-admin-hash.py"
 VALID_HASH = b"$2b$12$" + b"." * 53
 
 

@@ -71,7 +71,7 @@ Terraform owns the cloud-init template; changing that template intentionally
 replaces the K3s EC2 (subject to the reviewed Terraform plan), rather than
 restarting an instance without re-running cloud-init.
 
-Changes under `deploy/ansible/**` reconfigure the existing EC2 through SSM,
+Changes under `deploy/ansible/**` or to `deploy/argocd/argocd-admin-hash.py` reconfigure the existing EC2 through SSM,
 without Terraform resource updates. Ordinary application changes use GitHub
 image publication and Argo CD, without running Ansible. Once a GitOps release
 exists, application-only pushes skip Terraform/Ansible entirely.
@@ -142,7 +142,7 @@ Store the administrator password in the protected GitHub Environment
 fingerprint in Git, Terraform variables, state, or plan artifacts.
 
 During an approved infrastructure Apply, the script
-`.github/scripts/demo-infra/sync-argocd-password.py` reads the bcrypt
+`deploy/argocd/sync-argocd-password.py` reads the bcrypt
 verifier currently stored in the Kubernetes `argocd-secret` through
 AWS SSM and checks the requested password with `bcrypt.checkpw`.
 If it matches, the Secret stays unchanged. Otherwise the runner generates
@@ -190,7 +190,7 @@ $ptr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure)
 try {
     $env:ARGOCD_PASSWORD = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($ptr)
     python -m pip install boto3==1.40.53 bcrypt==4.3.0
-    python .github/scripts/demo-infra/sync-argocd-password.py
+    python deploy/argocd/sync-argocd-password.py
 } finally {
     Remove-Item Env:ARGOCD_PASSWORD -ErrorAction SilentlyContinue
     [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ptr)

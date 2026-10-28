@@ -102,7 +102,7 @@ profile authorized for SSM Run Command on the K3s instance, then run:
 
 ```sh
 python -m pip install boto3==1.40.53 bcrypt==4.3.0
-python .github/scripts/demo-infra/sync-argocd-password.py
+python deploy/argocd/sync-argocd-password.py
 ```
 
 The script checks the AWS account and locates the single running K3s EC2

@@ -256,7 +256,7 @@ jobs:
           set -euo pipefail
           python3 -m pip install --disable-pip-version-check --no-input \
             boto3==1.40.53 bcrypt==4.3.0
-          python3 .github/scripts/demo-infra/sync-argocd-password.py
+          python3 deploy/argocd/sync-argocd-password.py
 
   request-demo-deploy:
     name: Request demo application deployment

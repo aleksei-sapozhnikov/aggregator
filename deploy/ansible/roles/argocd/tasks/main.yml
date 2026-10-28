@@ -68,7 +68,7 @@
 
 - name: Install local Argo CD admin bcrypt-hash helper
   ansible.builtin.copy:
-    src: argocd-admin-hash.py
+    src: "{{ playbook_dir }}/../argocd/argocd-admin-hash.py"
     dest: /usr/local/sbin/aggregator-argocd-admin-hash
     owner: root
     group: root
