@@ -66,6 +66,62 @@ Argo CD remains reachable only inside the cluster (ClusterIP service).
 The public entrypoint is Traefik port 80, serving the UI Caddy via a hostless
 Ingress. Neither Argo CD nor the Kubernetes API is publicly exposed.
 
+## Accessing the Argo CD web UI privately
+
+The pinned `install.yaml` is the **full non-HA Argo CD installation**, not
+`core-install.yaml`. It already includes the `argocd-server` Web UI and
+API. The `argocd-server` Service is `ClusterIP` and is deliberately not
+published through Traefik, the EC2 security group or a public LoadBalancer.
+
+Once the K3s instance is recreated, use **two local terminal windows** to
+access the dashboard from a workstation with AWS CLI, the Session Manager
+plugin and IAM permission to start interactive SSM sessions on this instance.
+
+1. Open an interactive SSM shell on the K3s instance:
+
+   ```sh
+   aws ssm start-session --region eu-central-1 --target <k3s-instance-id>
+   ```
+
+   In that **remote** shell, run and keep this foreground process running:
+
+   ```sh
+   sudo /usr/local/bin/k3s kubectl -n argocd port-forward \
+     svc/argocd-server 18080:443 --address 127.0.0.1
+   ```
+
+2. From a **second local terminal**, forward your workstation's port 8080
+   to port 18080 on the same instance. On Windows PowerShell:
+
+   ```powershell
+   aws ssm start-session --region eu-central-1 `
+     --target <k3s-instance-id> `
+     --document-name AWS-StartPortForwardingSession `
+     --parameters portNumber="18080",localPortNumber="8080"
+   ```
+
+3. Open `https://localhost:8080` in your browser. The default Argo CD
+   certificate is self-signed, so the browser may display a certificate
+   warning. Use the `admin` username. To retrieve the initial password,
+   open another trusted SSM shell and run (do **not** print it in CI logs):
+
+   ```sh
+   sudo /usr/local/bin/k3s kubectl -n argocd \
+     get secret argocd-initial-admin-secret \
+     -o jsonpath='{.data.password}' | base64 --decode
+   echo
+   ```
+
+   Change the initial password after the first login. If it was already
+   changed, use your current credentials rather than the initial secret.
+
+Both port forwards end when their sessions close. No inbound Argo CD port
+needs to be opened. Keep the Web UI private: exposing the administrator
+interface over this demo's public plain-HTTP ingress would put credentials
+and cluster management access at risk. The dashboard displays the
+`aggregator-demo` Application with sync/health status once a GitOps release
+has been published.
+
 ## GitOps workload bootstrap
 
 The `gitops` role creates the Argo CD Application; it does not deploy
