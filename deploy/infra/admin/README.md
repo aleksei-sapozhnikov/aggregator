@@ -162,4 +162,21 @@ change to account-wide session preferences.
 
 ## Argo CD administrator access
 
-Apply this admin root first to update the K3s role boundary with narrowly scoped `secretsmanager:GetSecretValue` on `aggregator/demo/argocd-admin` and authorize SSM local port forwarding. Create the secret value separately in AWS Secrets Manager before deploying K3s; never place it in Terraform state.
+Apply this admin root **before K3s provisioning**. It gives the EC2
+permissions boundary narrowly scoped `secretsmanager:GetSecretValue`
+for `aggregator/demo/argocd-admin`, allows the demo administrators to
+use Session Manager local port forwarding, and attaches
+`AggregatorDemoArgoCDSecretManagement` to the `AggregatorDemoAdmins`
+group.
+
+The `aggregator-admin` identity can then create the plain-text secret
+`aggregator/demo/argocd-admin` in AWS Secrets Manager and update its
+value. On creation, specify the tags `Project=aggregator` and
+`Environment=demo`; the scoped IAM policy requires both request tags.
+The demo administrators can change the secret value but cannot list or
+modify unrelated passwords with this policy.
+
+Secret *contents* are never created by OpenTofu, stored in its state,
+passed to GitHub Actions, or printed in logs. This root provisions only
+the IAM boundaries and permissions; the one-time secret value is entered
+directly in AWS Secrets Manager.

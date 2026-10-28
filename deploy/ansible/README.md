@@ -82,8 +82,11 @@ LoadBalancer.
    This permission boundary is not updated by the demo workflow.
 2. In AWS Secrets Manager (region `eu-central-1`), create a **plain-text**
    secret named `aggregator/demo/argocd-admin`. Choose a strong random
-   password (at least 16 characters), without storing it in Git, Terraform
+   password (16–72 UTF-8 bytes), without storing it in Git, Terraform
    variables, CI secrets, instance user-data, or a shell command argument.
+   Sign in as `aggregator-admin` and add the tags `Project=aggregator`
+   and `Environment=demo` when creating the secret; its scoped IAM policy
+   requires these tags.
    Use the default `aws/secretsmanager` encryption key. This secret's
    **value is managed in Secrets Manager**, not Terraform, so changing it
    must not be reverted by an infrastructure apply.
