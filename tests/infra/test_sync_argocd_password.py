@@ -59,8 +59,9 @@ class PasswordSyncTests(unittest.TestCase):
             patch.dict(
                 os.environ,
                 {"SSM_INSTANCE_ID": "i-0eb7ef332aa95e884",
-                 "ARGOCD_ADMIN_PASSWORD": "example-strong-password"},
+                 "ARGOCD_PASSWORD": "example-strong-password"},
             ),
+            patch.object(module, "resolve_instance_id", return_value="i-0eb7ef332aa95e884"),
             patch.object(module.boto3, "client", return_value=Mock()),
             patch.object(module, "send_command", return_value="ssm-read") as send,
             patch.object(module, "wait_for_invocation", return_value=existing),
@@ -76,8 +77,9 @@ class PasswordSyncTests(unittest.TestCase):
             patch.dict(
                 os.environ,
                 {"SSM_INSTANCE_ID": "i-0eb7ef332aa95e884",
-                 "ARGOCD_ADMIN_PASSWORD": "example-strong-password"},
+                 "ARGOCD_PASSWORD": "example-strong-password"},
             ),
+            patch.object(module, "resolve_instance_id", return_value="i-0eb7ef332aa95e884"),
             patch.object(module.boto3, "client", return_value=Mock()),
             patch.object(module, "send_command", side_effect=["read", "write"]) as send,
             patch.object(
@@ -96,12 +98,38 @@ class PasswordSyncTests(unittest.TestCase):
         module = load_module()
         with (
             patch.dict(os.environ, {"SSM_INSTANCE_ID": "i-0eb7ef332aa95e884",
-                                  "ARGOCD_ADMIN_PASSWORD": ""}),
+                                  "ARGOCD_PASSWORD": ""}),
             patch.object(module, "send_command") as send,
         ):
-            with self.assertRaisesRegex(ValueError, "ARGOCD_ADMIN_PASSWORD"):
+            with self.assertRaisesRegex(ValueError, "ARGOCD_PASSWORD"):
                 module.reconcile()
         send.assert_not_called()
+
+    def test_local_node_lookup_uses_running_tags(self) -> None:
+        module = load_module()
+        sts = Mock()
+        sts.get_caller_identity.return_value = {"Account": module.ACCOUNT_ID}
+        ec2 = Mock()
+        ec2.describe_instances.return_value = {
+            "Reservations": [{"Instances": [{"InstanceId": "i-0eb7ef332aa95e884"}]}]
+        }
+        with (
+            patch.dict(os.environ, {"SSM_INSTANCE_ID": ""}),
+            patch.object(module.boto3, "client", side_effect=[sts, ec2]),
+        ):
+            self.assertEqual(module.resolve_instance_id(), "i-0eb7ef332aa95e884")
+
+    def test_local_node_lookup_rejects_wrong_account(self) -> None:
+        module = load_module()
+        sts = Mock()
+        sts.get_caller_identity.return_value = {"Account": "000000000000"}
+        with (
+            patch.dict(os.environ, {"SSM_INSTANCE_ID": ""}),
+            patch.object(module.boto3, "client", return_value=sts) as client,
+        ):
+            with self.assertRaisesRegex(RuntimeError, "Expected AWS account"):
+                module.resolve_instance_id()
+        self.assertEqual(client.call_count, 1)
 
 
 if __name__ == "__main__":
