@@ -83,7 +83,7 @@ class PollingSignalSourceSchedulerTest {
       assertThat(maxActive.get()).isEqualTo(2);
       release.countDown();
       assertThat(completed.await(5, TimeUnit.SECONDS)).isTrue();
-      assertThat(allVirtual).hasValue(true);
+      assertThat(allVirtual.get()).isTrue();
       assertThat(maxActive.get()).isEqualTo(2);
     } finally {
       release.countDown();
