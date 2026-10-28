@@ -44,11 +44,11 @@ class PollingSignalSourceFactoryTest {
       for (int index = 0; index < 256; index++) {
         definitions.add(
             new HttpPollingSignalConfiguration(
-                "signal-" + index, "Health check", itemId.value(), url, "GET", null, null));
+                "signal-" + index, "Health check", itemId.getValue(), url, "GET", null, null));
       }
       definitions.add(
           new HttpPollingSignalConfiguration(
-              "slow-signal", "Health check", itemId.value(), url, "GET",
+              "slow-signal", "Health check", itemId.getValue(), url, "GET",
               Duration.ofSeconds(5), Duration.ofSeconds(30)));
 
       List<PollingSignalSource> sources = factory.buildSources(definitions, catalog);
