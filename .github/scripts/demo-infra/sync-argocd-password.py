@@ -43,7 +43,9 @@ def resolve_instance_id() -> str:
         for instance in reservation["Instances"]
     ]
     if len(matches) != 1 or not re.fullmatch(r"i-[0-9a-f]{8,17}", matches[0]):
-        raise RuntimeError(f"Expected one running K3s instance, found {len(matches)}")
+        raise RuntimeError(
+            f"Expected one running K3s instance, found {len(matches)}"
+        )
     return matches[0]
 
 
@@ -118,7 +120,9 @@ def reconcile() -> bool:
         if not HASH_PATTERN.fullmatch(old_hash):
             raise ValueError("The current Argo CD bcrypt verifier is malformed")
         if bcrypt.checkpw(password, old_hash):
-            print("Argo CD administrator password already matches the supplied password.")
+            print(
+                "Argo CD administrator password already matches the supplied password."
+            )
             return False
 
     new_hash = bcrypt.hashpw(password, bcrypt.gensalt(rounds=12)).decode("ascii")
