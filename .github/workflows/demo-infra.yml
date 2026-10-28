@@ -10,12 +10,12 @@ on:
       reapply_ansible:
         description: "Reapply Ansible after the infrastructure check"
         type: boolean
-        default: true
+        default: false
         required: true
       sync_argocd_password:
         description: "Sync Argo CD password from the protected environment secret"
         type: boolean
-        default: false
+        default: true
         required: false
 
 permissions:
@@ -234,8 +234,13 @@ jobs:
         working-directory: deploy/infra/demo
         shell: bash
         run: bash "$GITHUB_WORKSPACE/.github/scripts/demo-infra/find-k3s-node.sh"
+      - name: Require a K3s node for manual password sync
+        if: inputs.sync_argocd_password == true && steps.node.outputs.available != 'true'
+        run: |
+          echo "::error::Cannot sync Argo CD password: K3s is not provisioned."
+          exit 1
       - name: Apply Ansible and verify K3s using SSM
-        if: steps.node.outputs.available == 'true'
+        if: steps.node.outputs.available == 'true' && (needs.plan.outputs.k3s_created == 'true' || needs.plan.outputs.ansible_changed == 'true')
         env:
           SSM_INSTANCE_ID: ${{ steps.node.outputs.instance_id }}
           CONFIGURATION_SHA: ${{ github.sha }}
@@ -246,7 +251,7 @@ jobs:
         shell: bash
         env:
           SSM_INSTANCE_ID: ${{ steps.node.outputs.instance_id }}
-          ARGOCD_ADMIN_PASSWORD: ${{ secrets.ARGOCD_ADMIN_PASSWORD }}
+          ARGOCD_PASSWORD: ${{ secrets.ARGOCD_PASSWORD }}
         run: |
           set -euo pipefail
           python3 -m pip install --disable-pip-version-check --no-input \
