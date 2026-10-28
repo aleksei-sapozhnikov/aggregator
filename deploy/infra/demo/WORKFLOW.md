@@ -41,6 +41,10 @@ local checks or pull-request validation:
      root OpenTofu outputs are in a collapsed `<details>` block. The full
      list uses `tofu output -no-color`, which redacts sensitive outputs;
      only explicitly non-sensitive connection fields are highlighted.
+     It also prints a copyable one-line SSM tunnel command with the actual
+     K3s instance ID, and includes a direct Secrets Manager link plus password
+     creation/rotation instructions. `run-tools.py argocd connect` can
+     instead find the current running EC2 instance automatically.
   5. Detect creation or replacement of the K3s EC2 from the saved
      OpenTofu plan JSON. After successful apply, execute the same Ansible
      wrapper via SSM as for ordinary Ansible revisions. Supply the exact

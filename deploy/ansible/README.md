@@ -119,8 +119,23 @@ systemd service, bound **only** to `127.0.0.1:18080` on the EC2 instance.
 It is restarted automatically if the Kubernetes connection drops. Port
 18080 is **not** opened in the EC2 security group.
 
-With AWS CLI, Session Manager plugin, and a demo IAM identity permitted to
-start SSM port-forwarding sessions, run this on your **local Windows PC**:
+From the repository root on Windows or Linux, prefer:
+
+```sh
+python run-tools.py argocd connect --profile aggregator-admin
+```
+
+The tool resolves the currently running K3s EC2 from AWS tags. To print a
+one-line connection command rather than start the tunnel, use
+`python run-tools.py argocd instructions --profile aggregator-admin`.
+To create or update the AWS password secret securely via a hidden input
+prompt, run `python run-tools.py argocd password set --profile aggregator-admin`
+(requires local `boto3`); `python run-tools.py argocd password` prints
+the secret's AWS Console link without retrieving its value. See
+[the Argo CD CLI README](../../tools/argocd_access/README.md).
+
+Alternatively, with AWS CLI, Session Manager plugin, and a demo IAM identity
+permitted to start SSM port-forwarding sessions, run on a **local Windows PC**:
 
 ```powershell
 aws ssm start-session --region eu-central-1 `

@@ -56,6 +56,29 @@ outputs_text="$(tofu output -no-color)"
     printf -- '- **Existing demo EC2 instance:** `%s`\n' "$legacy_instance"
   fi
   echo
+  echo "### Private Argo CD dashboard"
+  echo
+  if [[ -n "$k3s_instance" ]]; then
+    echo "Argo CD is accessible privately through AWS Systems Manager. AWS CLI and the Session Manager plugin are required."
+    echo
+    echo '~~~sh'
+    printf 'aws ssm start-session --region eu-central-1 --target %s --document-name AWS-StartPortForwardingSession --parameters portNumber=18080,localPortNumber=8080\n' "$k3s_instance"
+    echo '~~~'
+    echo
+    echo "Open **https://localhost:8080** while the session is active. The same single-line command works in PowerShell, Bash and cmd.exe."
+    echo "Alternatively, run `python run-tools.py argocd connect --profile aggregator-admin` locally to resolve the current instance and start the tunnel."
+  else
+    echo "No active K3s instance exists in the current infrastructure state; no tunnel command is available."
+  fi
+  echo
+  echo "### Argo CD password"
+  echo
+  echo "Username: `admin`. Password source: AWS Secrets Manager secret `aggregator/demo/argocd-admin` in `eu-central-1`."
+  echo "[Open the password secret in AWS Console](https://eu-central-1.console.aws.amazon.com/secretsmanager/secret?name=aggregator%2Fdemo%2Fargocd-admin&region=eu-central-1)"
+  echo "To create or update it locally: `python run-tools.py argocd password set --profile aggregator-admin` (requires boto3)."
+  echo "Or edit its plain-text value in AWS Console. Enter 16-72 UTF-8 bytes; never include it in logs or Terraform variables."
+  echo "The EC2 timer reconciles changes to Argo CD within approximately five minutes while K3s is running."
+  echo
   echo "<details>"
   echo "<summary>All OpenTofu outputs (expand to inspect)</summary>"
   echo
