@@ -101,9 +101,11 @@ class ArgoCDHashTests(unittest.TestCase):
     def test_rejects_plaintext_and_malformed_hash(self) -> None:
         module = load_module()
         for digest in (b"plaintext-password", b"$2b$12$short"):
-            with self.subTest(digest=digest):
-                with self.assertRaisesRegex(ValueError, "bcrypt"):
-                    module.apply_hash(digest)
+            with (
+                self.subTest(digest=digest),
+                self.assertRaisesRegex(ValueError, "bcrypt"),
+            ):
+                module.apply_hash(digest)
 
 
 if __name__ == "__main__":
