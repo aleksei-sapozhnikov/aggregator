@@ -25,11 +25,6 @@ resource "aws_iam_group_policy_attachment" "demo_demo_ssm_management" {
   policy_arn = aws_iam_policy.demo_ssm_management.arn
 }
 
-resource "aws_iam_group_policy_attachment" "demo_argocd_secret_management" {
-  group      = aws_iam_group.demo.name
-  policy_arn = aws_iam_policy.demo_argocd_secret_management.arn
-}
-
 resource "aws_iam_group_policy_attachment" "demo_session_access" {
   group      = aws_iam_group.demo.name
   policy_arn = aws_iam_policy.demo_session_access.arn

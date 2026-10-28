@@ -41,18 +41,6 @@ resource "aws_iam_policy" "demo_ssm_management" {
   }
 }
 
-
-resource "aws_iam_policy" "demo_argocd_secret_management" {
-  name        = "AggregatorDemoArgoCDSecretManagement"
-  description = "Create and rotate only the demo Argo CD admin password secret"
-  policy      = file("${path.module}/policies/AggregatorDemoArgoCDSecretManagement.json")
-
-  tags = {
-    Project     = "aggregator"
-    Environment = "demo"
-  }
-}
-
 resource "aws_iam_policy" "demo_session_access" {
   name        = "AggregatorDemoSessionAccess"
   path        = "/"
