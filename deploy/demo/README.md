@@ -1,5 +1,9 @@
 # Aggregator Demo Deployment
 
+The original one-off VM bootstrap scripts have been retired from the repository.
+The existing serving Docker Compose EC2 remains unchanged. The separate K3s
+node is provisioned through cloud-init and Ansible instead.
+
 The hosted demo is deployed only from the `demo` branch. GitHub Actions runs
 the code checks, builds and publishes eight GHCR images tagged with the full
 commit SHA, and then dispatches the deployment with AWS Systems Manager.
