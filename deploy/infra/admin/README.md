@@ -127,7 +127,10 @@ The `AggregatorDemoSessionAccess` policy allows members of
 Session Manager shell only on the tagged `demo-aggregator` or future
 `aggregator-demo-k3s` instances. The permitted session document is
 `SSM-SessionManagerRunShell`; users can resume or terminate only
-their own sessions.
+their own sessions. For direct IAM users, Session Manager uses the username
+in session ARNs; `aws:username` must therefore be permitted for session
+termination and resume. The policy also retains `aws:userid` for
+Session Manager data-channel compatibility.
 
 The IAM user `aggregator-admin` is tagged `SSMSessionRunAs=ec2-user`.
 Regional Run As preferences are defined directly in
