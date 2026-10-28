@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Assign immutable GHCR tags from each demo service's Git build-context tree."""
 
 import argparse
