@@ -1,17 +1,17 @@
 services:
   catalog:
-    image: ghcr.io/aleksei-sapozhnikov/catalog:${IMAGE_TAG:?Missing IMAGE_TAG}
+    image: ghcr.io/aleksei-sapozhnikov/catalog:${IMAGE_TAG_CATALOG:?Missing IMAGE_TAG_CATALOG}
   aggregator:
-    image: ghcr.io/aleksei-sapozhnikov/aggregator:${IMAGE_TAG:?Missing IMAGE_TAG}
+    image: ghcr.io/aleksei-sapozhnikov/aggregator:${IMAGE_TAG_AGGREGATOR:?Missing IMAGE_TAG_AGGREGATOR}
   ai-agent:
-    image: ghcr.io/aleksei-sapozhnikov/ai-agent:${IMAGE_TAG:?Missing IMAGE_TAG}
+    image: ghcr.io/aleksei-sapozhnikov/ai-agent:${IMAGE_TAG_AI_AGENT:?Missing IMAGE_TAG_AI_AGENT}
   aggregator-ui:
-    image: ghcr.io/aleksei-sapozhnikov/aggregator-ui:${IMAGE_TAG:?Missing IMAGE_TAG}
+    image: ghcr.io/aleksei-sapozhnikov/aggregator-ui:${IMAGE_TAG_AGGREGATOR_UI:?Missing IMAGE_TAG_AGGREGATOR_UI}
   chaos-maker:
-    image: ghcr.io/aleksei-sapozhnikov/chaos-maker:${IMAGE_TAG:?Missing IMAGE_TAG}
+    image: ghcr.io/aleksei-sapozhnikov/chaos-maker:${IMAGE_TAG_CHAOS_MAKER:?Missing IMAGE_TAG_CHAOS_MAKER}
   dummy-java:
-    image: ghcr.io/aleksei-sapozhnikov/dummy-java:${IMAGE_TAG:?Missing IMAGE_TAG}
+    image: ghcr.io/aleksei-sapozhnikov/dummy-java:${IMAGE_TAG_DUMMY_JAVA:?Missing IMAGE_TAG_DUMMY_JAVA}
   dummy-python:
-    image: ghcr.io/aleksei-sapozhnikov/dummy-python:${IMAGE_TAG:?Missing IMAGE_TAG}
+    image: ghcr.io/aleksei-sapozhnikov/dummy-python:${IMAGE_TAG_DUMMY_PYTHON:?Missing IMAGE_TAG_DUMMY_PYTHON}
   dummy-javascript:
-    image: ghcr.io/aleksei-sapozhnikov/dummy-javascript:${IMAGE_TAG:?Missing IMAGE_TAG}
+    image: ghcr.io/aleksei-sapozhnikov/dummy-javascript:${IMAGE_TAG_DUMMY_JAVASCRIPT:?Missing IMAGE_TAG_DUMMY_JAVASCRIPT}
