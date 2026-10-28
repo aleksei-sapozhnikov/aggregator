@@ -68,100 +68,73 @@ Ingress. Neither Argo CD nor the Kubernetes API is publicly exposed.
 
 ## Argo CD credentials and private dashboard access
 
-The pinned `install.yaml` is the **full non-HA Argo CD installation**, not
-`core-install.yaml`. It already provides the web dashboard and API. The
-`argocd-server` Service remains `ClusterIP`, never a public Ingress or
-LoadBalancer.
+The pinned `install.yaml` is the **full Argo CD installation**, including
+its Web UI. The `argocd-server` Service is ClusterIP; no public Argo CD
+ingress, LoadBalancer, SSH port, or Kubernetes API port is exposed.
 
-### One-time AWS setup (required before enabling the new Ansible role)
+### Administrator password in GitHub Environment
 
-1. Apply `deploy/infra/admin` as `infra-admin` **first**. This deploys
-   an updated permission boundary for the K3s EC2 instance, permitting only
-   `secretsmanager:GetSecretValue` on the fixed Argo CD password secret,
-   and lets the demo IAM group use the standard SSM port-forwarding document.
-   This permission boundary is not updated by the demo workflow.
-2. In AWS Secrets Manager (region `eu-central-1`), create a **plain-text**
-   secret named `aggregator/demo/argocd-admin`. Choose a strong random
-   password (16–72 UTF-8 bytes), without storing it in Git, Terraform
-   variables, CI secrets, instance user-data, or a shell command argument.
-   Sign in as `aggregator-admin` and add the tags `Project=aggregator`
-   and `Environment=demo` when creating the secret; its scoped IAM policy
-   requires these tags.
-   Use the default `aws/secretsmanager` encryption key. This secret's
-   **value is managed in Secrets Manager**, not Terraform, so changing it
-   must not be reverted by an infrastructure apply.
-3. Apply `deploy/infra/demo` through the reviewed workflow. The K3s EC2
-   role now has permission to **read only this named secret**, not all AWS
-   secrets. The secret must already have a value before Ansible runs.
+Set one environment secret before the first K3s deployment:
 
-The Ansible `argocd` role installs an isolated reconciliation program,
-root-owned systemd service, and a timer which checks Secrets Manager around
-every five minutes. On the first run, and whenever the AWS password differs
-from the bcrypt hash stored in Kubernetes `argocd-secret`, it updates
-`admin.password` and `admin.passwordMtime` in Kubernetes. The initial
-generated password secret is deleted after successful rotation. The password
-is **never** passed to Ansible as a variable or stored in a Terraform state
-file. Only a bcrypt hash is written to a temporary root-only patch file.
+- GitHub **Settings → Environments → `demo-infra-apply` → Environment
+  secrets → Add secret**, named `ARGOCD_ADMIN_PASSWORD`.
+- Enter a strong password of 16-72 UTF-8 bytes, without line breaks.
+- Keep the existing required-reviewer protection on that environment.
 
-Changing the AWS secret does not require a new Git commit, a new EC2, or
-manually restarting Ansible: the systemd timer applies it automatically,
-normally within five minutes. Failures appear via
-`sudo journalctl -u aggregator-argocd-admin-reconcile.service` on the node.
-The timer requires the instance profile to be able to reach the AWS
-Secrets Manager endpoint and the Argo CD Kubernetes API. A custom KMS key
-would require additional specifically scoped KMS permissions and is not
-configured here.
+The plaintext is available only to the **approved** `apply` job and is
+**not** passed to OpenTofu during plan/apply, written to Terraform state,
+saved in workflow artifacts, or uploaded to the EC2 instance. After Ansible
+installs Argo CD, a dedicated GitHub Actions step reads the current bcrypt
+hash from `argocd-secret` over AWS SSM, then verifies the GitHub password
+with `bcrypt.checkpw`. If they match, no change is made. If they differ,
+the runner generates a new bcrypt hash, sends **only that hash** using
+SSM Run Command, and updates `admin.password` and
+`admin.passwordMtime`. The installer-generated initial secret is removed
+after the first successful update.
 
-### Open the dashboard using one SSM session
+This is not a Terraform resource: the password stays separate from the
+saved infrastructure plan for security. Changing the GitHub Environment
+secret does **not** trigger a workflow by itself. To rotate the password,
+edit the secret and start a fresh **approved** demo-infra run (after
+`workflow_dispatch` is available on the default branch, select
+`sync_argocd_password=true` and `reapply_ansible=false`). Until
+then, a reviewed update to the Ansible configuration and push to `demo`
+can trigger the same Apply job. Only runs that execute the approved Apply
+job reconcile the password; application-only deploys do not.
 
-Ansible keeps a `kubectl port-forward` process running as a root-owned
-systemd service, bound **only** to `127.0.0.1:18080` on the EC2 instance.
-It is restarted automatically if the Kubernetes connection drops. Port
-18080 is **not** opened in the EC2 security group.
+Only the bcrypt verifier is exposed to the AWS SSM Run Command API
+and Kubernetes. It must still be handled carefully because password hashes
+can be brute-forced offline. The helper never prints that verifier in
+GitHub Actions logs.
 
-From the repository root on Windows or Linux, prefer:
+### Connect to the dashboard
+
+Ansible runs a local `kubectl port-forward` service on the EC2 instance,
+bound to `127.0.0.1:18080` and restarted by systemd. To connect from
+Windows or Linux, install AWS CLI and the Session Manager plugin, then use
+the repository's portable command:
 
 ```sh
 python run-tools.py argocd connect --profile aggregator-admin
 ```
 
-The tool resolves the currently running K3s EC2 from AWS tags. To print a
-one-line connection command rather than start the tunnel, use
+It finds the current K3s instance through AWS EC2 tags and opens one
+local SSM tunnel; browse to `https://localhost:8080`, accept the
+development self-signed certificate and use `admin` with the password
+from the GitHub Environment. To print the concrete AWS CLI command
+without connecting, run
 `python run-tools.py argocd instructions --profile aggregator-admin`.
-To create or update the AWS password secret securely via a hidden input
-prompt, run `python run-tools.py argocd password set --profile aggregator-admin`
-(requires local `boto3`); `python run-tools.py argocd password` prints
-the secret's AWS Console link without retrieving its value. See
-[the Argo CD CLI README](../../tools/argocd_access/README.md).
 
-Alternatively, with AWS CLI, Session Manager plugin, and a demo IAM identity
-permitted to start SSM port-forwarding sessions, run on a **local Windows PC**:
+Alternatively, use the one-line command printed in the infrastructure
+Apply Summary, including the actual current instance ID. Access is still
+restricted by AWS IAM and no inbound EC2 security-group port is needed.
 
-```powershell
-aws ssm start-session --region eu-central-1 `
-  --target i-REPLACE_WITH_K3S_INSTANCE_ID `
-  --document-name AWS-StartPortForwardingSession `
-  --parameters portNumber="18080",localPortNumber="8080"
-```
-
-Then browse to `https://localhost:8080` (the default certificate is
-self-signed). Log in as `admin` with the value of the AWS Secrets Manager
-secret. The tunnel ends when the local SSM session closes. The EC2 side is
-managed by Ansible; no additional terminal or persistent workstation process
-is required.
-
-Useful instance checks:
+Checks on the node:
 
 ```sh
 sudo systemctl status aggregator-argocd-ui-forward.service
-sudo systemctl status aggregator-argocd-admin-reconcile.timer
-sudo journalctl -u aggregator-argocd-admin-reconcile.service --no-pager -n 30
+sudo /usr/local/bin/k3s kubectl -n argocd get deployment argocd-server
 ```
-
-This protects the control-plane dashboard while letting you inspect the
-`aggregator-demo` Application, health, sync status, history, and resource
-tree. Never expose the admin dashboard through the public HTTP-only
-Aggregator ingress.
 
 ## GitOps workload bootstrap
 

@@ -42,8 +42,8 @@ local checks or pull-request validation:
      list uses `tofu output -no-color`, which redacts sensitive outputs;
      only explicitly non-sensitive connection fields are highlighted.
      It also prints a copyable one-line SSM tunnel command with the actual
-     K3s instance ID, and includes a direct Secrets Manager link plus password
-     creation/rotation instructions. `run-tools.py argocd connect` can
+     K3s instance ID, and includes a link to the `demo-infra-apply` GitHub
+     Environment secret settings and rotation instructions. `run-tools.py argocd connect` can
      instead find the current running EC2 instance automatically.
   5. Detect creation or replacement of the K3s EC2 from the saved
      OpenTofu plan JSON. After successful apply, execute the same Ansible
@@ -136,15 +136,27 @@ stale plans to fail.
 
 ## Argo CD dashboard and password prerequisites
 
-Before rebuilding the K3s EC2, apply `deploy/infra/admin` with the authorized
-administrative identity to update the K3s role boundary and SSM session
-permissions. Then create a plain-text strong password in AWS Secrets Manager
-as `aggregator/demo/argocd-admin` in `eu-central-1`. Its value stays
-outside Terraform state. Ansible needs that pre-existing password to
-complete. It installs a local-only Argo CD port forward and a systemd timer
-that reconciles subsequent password changes every five minutes. Details
-and the one-command SSM connection are in
-[the Ansible README](../../ansible/README.md).
+Before K3s provisioning, set `ARGOCD_ADMIN_PASSWORD` as a GitHub
+**Environment Secret** under `demo-infra-apply`. The password must be
+16-72 UTF-8 bytes and remains outside Terraform state and saved plans.
+The approved Apply job reads it after infrastructure reconciliation,
+compares against Argo CD's existing bcrypt verifier via SSM, and updates
+the Kubernetes `argocd-secret` only when the password differs. The
+plaintext is never passed to AWS SSM or Ansible.
+
+To rotate, update the Environment Secret and trigger a new approved
+infrastructure run. Secret updates do not trigger GitHub Actions; when
+the manual workflow is on `main`, use `sync_argocd_password=true`
+and `reapply_ansible=false` to reconcile without reinstalling Ansible.
+Until the workflow can be manually dispatched, an explicitly reviewed
+Ansible-only push is a supported trigger. The password is not
+automatically updated on application-only deployments.
+
+The Apply Summary includes the current EC2 ID and a copyable SSM tunnel
+command as well as a link to the protected GitHub Environment settings.
+The local `run-tools.py argocd connect` command also resolves the active
+EC2 instance automatically. See [the Ansible README](../../ansible/README.md)
+for setup and operation.
 
 ## GitHub setup (required before enabling)
 
@@ -158,6 +170,7 @@ Configure Repository and Environment variables under **Settings → Secrets and 
 | Environment `demo-infra-plan`  | `ENABLE_BEDROCK`              | Explicit `true` or `false`.                               |
 | Environment `demo-infra-apply` | `AWS_ROLE_ARN`                | Apply role ARN from the admin OpenTofu outputs.           |
 | Environment `demo-infra-apply` | `MANUAL_APPROVAL_CONFIGURED`  | `true`, after Required reviewers are configured.          |
+| Environment secret `demo-infra-apply` | `ARGOCD_ADMIN_PASSWORD` | Strong admin password, 16-72 UTF-8 bytes, used after approval only. |
 
 **Do not create AWS access-key secrets.** Existing GitHub OIDC provider is
 reused. Both infrastructure IAM roles, their trust policies, and their

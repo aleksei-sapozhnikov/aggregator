@@ -5,8 +5,7 @@ Managed policy documents loaded by `policies.tf` in this root.
 - `AggregatorDemoEC2Management.json`: manage tagged demo compute and networking.
 - `AggregatorDemoIAMManagement.json`: manage demo workload roles and profiles.
 - `AggregatorDemoSSMManagement.json`: manage the named demo SSM deployment document.
-- `AggregatorDemoSessionAccess.json`: open Session Manager shells and local-only port-forwarding sessions on tagged demo instances; users manage their own sessions.
-- `AggregatorDemoArgoCDSecretManagement.json`: create and rotate only the tagged `aggregator/demo/argocd-admin` Secrets Manager secret.
+- `AggregatorDemoSessionAccess.json`: open Session Manager shells and private port-forwarding sessions on tagged demo EC2 instances, and manage the caller's own sessions.
 - `AggregatorDemoSGRuleCreation.json`: create tagged security group rules.
 - `AggregatorDemoRoleBoundary.json`: limit demo workload role permissions.
 - `AggregatorPublicationManagement.json`: manage publication infrastructure.
