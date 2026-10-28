@@ -148,7 +148,7 @@ class PasswordSyncTests(unittest.TestCase):
         for password, message in cases:
             with (
                 self.subTest(password_length=len(password), error=message),
-                patch.dict(os.environ, {"ARGOCD_PASSWORD": password}),
+                patch.object(module.os, "environ", {"ARGOCD_PASSWORD": password}),
                 patch.object(module, "resolve_instance_id") as resolve_instance,
                 self.assertRaisesRegex(ValueError, message),
             ):
