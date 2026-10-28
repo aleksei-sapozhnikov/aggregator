@@ -10,11 +10,13 @@ set -euo pipefail
 
 cd /home/ec2-user/aggregator-demo/repo
 [[ "$(git rev-parse HEAD)" == "$DEPLOY_SHA" ]] || {
-  echo "Checkout does not match the published image SHA" >&2
+  echo "Checkout does not match the requested release SHA" >&2
   exit 1
 }
 
-export IMAGE_TAG="$DEPLOY_SHA"
+# Each service keeps the same image reference until its Docker build context changes.
+image_exports="$(python3 deploy/demo/image_tags.py compose-env --revision "$DEPLOY_SHA")"
+eval "$image_exports"
 export AGENT_AI_ENABLED="true"
 export AGENT_AI_CONFIG='{"provider":"bedrock","max_tool_rounds":2,"bedrock":{"model_id":"eu.amazon.nova-lite-v1:0","aws_region":"eu-central-1","temperature":0.00001,"max_tokens":300}}'
 
