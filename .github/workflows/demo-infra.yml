@@ -146,6 +146,7 @@ jobs:
           TERRAFORM_CHANGED: ${{ steps.plan.outputs.has_changes }}
           ANSIBLE_CHANGED: ${{ steps.changes.outputs.ansible_changed }}
           K3S_CREATED: ${{ steps.plan.outputs.k3s_created }}
+          PASSWORD_SYNC_REQUESTED: ${{ inputs.sync_argocd_password }}
         run: bash .github/scripts/demo-infra/approval-summary.sh
       - name: Upload the exact plan for approval and apply
         if: steps.plan.outputs.has_changes == 'true'

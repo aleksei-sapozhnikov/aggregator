@@ -24,8 +24,15 @@ set -euo pipefail
   if [[ "$ANSIBLE_CHANGED" == true || "$K3S_CREATED" == true ]]; then
     echo "- **Initial application release:** After Ansible succeeds, request the existing \`demo-deploy\` workflow only if published K3s manifests are missing."
   fi
+  if [[ "$PASSWORD_SYNC_REQUESTED" == true ]]; then
+    echo "- **Argo CD password:** Reconcile the protected GitHub Environment secret without exposing plaintext to Terraform or AWS SSM."
+  elif [[ "$ANSIBLE_CHANGED" == true || "$K3S_CREATED" == true ]]; then
+    echo "- **Argo CD password:** After configuration, verify the bcrypt hash against the protected GitHub Environment secret and update only when needed."
+  fi
   echo
-  if [[ "$TERRAFORM_CHANGED" == true && "$ANSIBLE_CHANGED" == true ]]; then
+  if [[ "$PASSWORD_SYNC_REQUESTED" == true ]]; then
+    echo "**Why approval is required:** Argo CD administrator password reconciliation was explicitly requested (alongside any infrastructure changes above)."
+  elif [[ "$TERRAFORM_CHANGED" == true && "$ANSIBLE_CHANGED" == true ]]; then
     echo "**Why approval is required:** Both Terraform and Ansible changes were detected."
   elif [[ "$TERRAFORM_CHANGED" == true ]]; then
     echo "**Why approval is required:** Terraform plans infrastructure changes."

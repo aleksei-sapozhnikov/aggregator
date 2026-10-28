@@ -79,6 +79,8 @@ Set one environment secret before the first K3s deployment:
 - GitHub **Settings → Environments → `demo-infra-apply` → Environment
   secrets → Add secret**, named `ARGOCD_ADMIN_PASSWORD`.
 - Enter a strong password of 16-72 UTF-8 bytes, without line breaks.
+  GitHub does not let you retrieve the saved value later; retain it in
+  your password manager for interactive Argo CD login.
 - Keep the existing required-reviewer protection on that environment.
 
 The plaintext is available only to the **approved** `apply` job and is
