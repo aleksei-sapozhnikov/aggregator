@@ -1,0 +1,578 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalog
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: catalog
+  template:
+    metadata:
+      labels:
+        app: catalog
+    spec:
+      containers:
+        - name: catalog
+          image: ghcr.io/aleksei-sapozhnikov/catalog:unpublished
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: CATALOG_DIR
+              value: ./catalog/demo
+          resources:
+            requests:
+              memory: 48Mi
+              cpu: 10m
+            limits:
+              memory: 192Mi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: catalog
+spec:
+  selector:
+    app: catalog
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aggregator
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: aggregator
+  template:
+    metadata:
+      labels:
+        app: aggregator
+    spec:
+      containers:
+        - name: aggregator
+          image: ghcr.io/aleksei-sapozhnikov/aggregator:unpublished
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: CATALOG_BASE_URL
+              value: http://catalog:8080
+          resources:
+            requests:
+              memory: 256Mi
+              cpu: 10m
+            limits:
+              memory: 768Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aggregator
+spec:
+  selector:
+    app: aggregator
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aggregator-ui
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: aggregator-ui
+  template:
+    metadata:
+      labels:
+        app: aggregator-ui
+    spec:
+      containers:
+        - name: aggregator-ui
+          image: ghcr.io/aleksei-sapozhnikov/aggregator-ui:unpublished
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+              name: http
+          env:
+            - name: APP_TITLE
+              value: "Health Aggregator K3s demo"
+            - name: TIMELINE_DEFAULT_RANGE
+              value: "1d"
+          resources:
+            requests:
+              memory: 48Mi
+              cpu: 10m
+            limits:
+              memory: 128Mi
+          readinessProbe:
+            httpGet:
+              path: /config.json
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aggregator-ui
+spec:
+  selector:
+    app: aggregator-ui
+  ports:
+    - name: http
+      port: 3000
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-agent
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: ai-agent
+  template:
+    metadata:
+      labels:
+        app: ai-agent
+    spec:
+      containers:
+        - name: ai-agent
+          image: ghcr.io/aleksei-sapozhnikov/ai-agent:unpublished
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: PRODUCT_HEALTH_BASE_URL
+              value: http://aggregator:8080
+            - name: AGENT_AI_ENABLED
+              value: "true"
+            - name: AGENT_AI_CONFIG
+              value: '{"provider":"bedrock","max_tool_rounds":2,"bedrock":{"model_id":"eu.amazon.nova-lite-v1:0","aws_region":"eu-central-1","temperature":0.00001,"max_tokens":300}}'
+            - name: AWS_REGION
+              value: eu-central-1
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: 48Mi
+              cpu: 10m
+            limits:
+              memory: 384Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-agent
+spec:
+  selector:
+    app: ai-agent
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chaos-maker
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: chaos-maker
+  template:
+    metadata:
+      labels:
+        app: chaos-maker
+    spec:
+      containers:
+        - name: chaos-maker
+          image: ghcr.io/aleksei-sapozhnikov/chaos-maker:unpublished
+          imagePullPolicy: IfNotPresent
+
+          env:
+            - name: CHAOS_ENABLED
+              value: "true"
+            - name: CHAOS_ALWAYS_BROKEN
+              value: "true"
+            - name: CHAOS_MIN_INTERVAL
+              value: "30m"
+            - name: CHAOS_MAX_INTERVAL
+              value: "120m"
+            - name: CHAOS_MIN_DURATION
+              value: "5m"
+            - name: CHAOS_MAX_DURATION
+              value: "60m"
+            - name: CHAOS_MAX_CONCURRENT
+              value: "2"
+            - name: CATALOG_SIGNALS_URL
+              value: http://catalog:8080/api/signals/http-poll
+          resources:
+            requests:
+              memory: 48Mi
+              cpu: 10m
+            limits:
+              memory: 192Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dummy-java
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: dummy-java
+  template:
+    metadata:
+      labels:
+        app: dummy-java
+    spec:
+      containers:
+        - name: dummy-java
+          image: ghcr.io/aleksei-sapozhnikov/dummy-java:unpublished
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              name: http
+          resources:
+            requests:
+              memory: 48Mi
+              cpu: 10m
+            limits:
+              memory: 192Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dummy-java
+spec:
+  selector:
+    app: dummy-java
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dummy-python
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: dummy-python
+  template:
+    metadata:
+      labels:
+        app: dummy-python
+    spec:
+      containers:
+        - name: dummy-python
+          image: ghcr.io/aleksei-sapozhnikov/dummy-python:unpublished
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              name: http
+          resources:
+            requests:
+              memory: 48Mi
+              cpu: 10m
+            limits:
+              memory: 192Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dummy-python
+spec:
+  selector:
+    app: dummy-python
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dummy-javascript
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: dummy-javascript
+  template:
+    metadata:
+      labels:
+        app: dummy-javascript
+    spec:
+      containers:
+        - name: dummy-javascript
+          image: ghcr.io/aleksei-sapozhnikov/dummy-javascript:unpublished
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              name: http
+          resources:
+            requests:
+              memory: 48Mi
+              cpu: 10m
+            limits:
+              memory: 192Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dummy-javascript
+spec:
+  selector:
+    app: dummy-javascript
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      containers:
+        - name: prometheus
+          image: prom/prometheus:v2.54.1
+          args:
+            - --config.file=/etc/prometheus/prometheus.yml
+            - --storage.tsdb.path=/prometheus
+            - --storage.tsdb.retention.time=7d
+            - --storage.tsdb.retention.size=1GB
+          ports:
+            - containerPort: 9090
+              name: http
+          resources:
+            requests:
+              memory: 128Mi
+              cpu: 10m
+            limits:
+              memory: 512Mi
+          volumeMounts:
+            - name: config
+              mountPath: /etc/prometheus/prometheus.yml
+              subPath: prometheus.yml
+              readOnly: true
+            - name: data
+              mountPath: /prometheus
+      volumes:
+        - name: config
+          configMap:
+            name: prometheus-config
+        - name: data
+          persistentVolumeClaim:
+            claimName: prometheus-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+spec:
+  selector:
+    app: prometheus
+  ports:
+    - name: http
+      port: 9090
+      targetPort: http
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: prometheus-data
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      securityContext:
+        fsGroup: 472
+      initContainers:
+        - name: configure-public-url
+          image: curlimages/curl:8.12.1
+          securityContext:
+            runAsUser: 0
+          command: [/bin/sh, -ec]
+          args:
+            - |
+              token="$(curl -fsS --retry 5 -X PUT -H 'X-aws-ec2-metadata-token-ttl-seconds: 300' http://169.254.169.254/latest/api/token)"
+              address="$(curl -fsS -H "X-aws-ec2-metadata-token: $token" http://169.254.169.254/latest/meta-data/public-ipv4)"
+              printf '[server]\nroot_url = http://%s/grafana/\nserve_from_sub_path = true\n' "$address" > /runtime/grafana.ini
+          volumeMounts:
+            - name: runtime
+              mountPath: /runtime
+      containers:
+        - name: grafana
+          image: grafana/grafana:12.3.1
+          ports:
+            - containerPort: 3000
+              name: http
+          env:
+            - name: GF_PATHS_CONFIG
+              value: /runtime/grafana.ini
+            - name: GF_AUTH_ANONYMOUS_ENABLED
+              value: "true"
+            - name: GF_AUTH_ANONYMOUS_ORG_ROLE
+              value: Viewer
+            - name: GF_AUTH_DISABLE_LOGIN_FORM
+              value: "true"
+            - name: GF_AUTH_BASIC_ENABLED
+              value: "false"
+            - name: GF_USERS_ALLOW_SIGN_UP
+              value: "false"
+            - name: GF_SECURITY_ALLOW_EMBEDDING
+              value: "true"
+            - name: GF_PLUGINS_PREINSTALL_DISABLED
+              value: "true"
+          resources:
+            requests:
+              memory: 96Mi
+              cpu: 10m
+            limits:
+              memory: 512Mi
+          volumeMounts:
+            - name: runtime
+              mountPath: /runtime
+            - name: datasource
+              mountPath: /etc/grafana/provisioning/datasources/prometheus.yaml
+              subPath: prometheus.yaml
+              readOnly: true
+            - name: dashboards-provider
+              mountPath: /etc/grafana/provisioning/dashboards/dashboards.yaml
+              subPath: dashboards.yaml
+              readOnly: true
+            - name: dashboards
+              mountPath: /var/lib/grafana/dashboards
+              readOnly: true
+            - name: data
+              mountPath: /var/lib/grafana
+      volumes:
+        - name: runtime
+          emptyDir: {}
+        - name: datasource
+          configMap:
+            name: grafana-datasource
+        - name: dashboards-provider
+          configMap:
+            name: grafana-dashboards-provider
+        - name: dashboards
+          configMap:
+            name: grafana-dashboard-data
+        - name: data
+          persistentVolumeClaim:
+            claimName: grafana-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+spec:
+  selector:
+    app: grafana
+  ports:
+    - name: http
+      port: 3000
+      targetPort: http
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: grafana-data
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: aggregator-web
+spec:
+  ingressClassName: traefik
+  rules:
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: aggregator-ui
+                port:
+                  name: http

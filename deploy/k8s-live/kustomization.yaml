@@ -1,0 +1,36 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: aggregator
+resources:
+  - namespace.yaml
+  - workloads.yaml
+configMapGenerator:
+  - name: prometheus-config
+    files:
+      - prometheus.yml
+  - name: grafana-datasource
+    files:
+      - prometheus.yaml
+  - name: grafana-dashboards-provider
+    files:
+      - dashboards.yaml
+  - name: grafana-dashboard-data
+    files:
+      - item_health_state.json
+images:
+  - name: ghcr.io/aleksei-sapozhnikov/catalog
+    newTag: 93c49c2cae10e1b45a276f0b9991ff465c088db1
+  - name: ghcr.io/aleksei-sapozhnikov/aggregator
+    newTag: 93c49c2cae10e1b45a276f0b9991ff465c088db1
+  - name: ghcr.io/aleksei-sapozhnikov/aggregator-ui
+    newTag: 93c49c2cae10e1b45a276f0b9991ff465c088db1
+  - name: ghcr.io/aleksei-sapozhnikov/ai-agent
+    newTag: 93c49c2cae10e1b45a276f0b9991ff465c088db1
+  - name: ghcr.io/aleksei-sapozhnikov/chaos-maker
+    newTag: 93c49c2cae10e1b45a276f0b9991ff465c088db1
+  - name: ghcr.io/aleksei-sapozhnikov/dummy-java
+    newTag: 93c49c2cae10e1b45a276f0b9991ff465c088db1
+  - name: ghcr.io/aleksei-sapozhnikov/dummy-python
+    newTag: 93c49c2cae10e1b45a276f0b9991ff465c088db1
+  - name: ghcr.io/aleksei-sapozhnikov/dummy-javascript
+    newTag: 93c49c2cae10e1b45a276f0b9991ff465c088db1
