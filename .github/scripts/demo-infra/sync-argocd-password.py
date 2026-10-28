@@ -16,6 +16,35 @@ import boto3
 from botocore.exceptions import ClientError
 
 REGION = "eu-central-1"
+ACCOUNT_ID = "905418096305"
+
+
+def resolve_instance_id() -> str:
+    """Check the AWS account and locate the current K3s node when running locally."""
+    account = boto3.client("sts", region_name=REGION).get_caller_identity()["Account"]
+    if account != ACCOUNT_ID:
+        raise RuntimeError(f"Expected AWS account {ACCOUNT_ID}, got {account!r}")
+    supplied = os.environ.get("SSM_INSTANCE_ID", "")
+    if supplied:
+        if not re.fullmatch(r"i-[0-9a-f]{8,17}", supplied):
+            raise ValueError("Invalid K3s instance ID")
+        return supplied
+    response = boto3.client("ec2", region_name=REGION).describe_instances(
+        Filters=[
+            {"Name": "tag:Name", "Values": ["aggregator-demo-k3s"]},
+            {"Name": "tag:Project", "Values": ["aggregator"]},
+            {"Name": "tag:Environment", "Values": ["demo"]},
+            {"Name": "instance-state-name", "Values": ["running"]},
+        ]
+    )
+    matches = [
+        instance["InstanceId"]
+        for reservation in response["Reservations"]
+        for instance in reservation["Instances"]
+    ]
+    if len(matches) != 1 or not re.fullmatch(r"i-[0-9a-f]{8,17}", matches[0]):
+        raise RuntimeError(f"Expected one running K3s instance, found {len(matches)}")
+    return matches[0]
 HASH_PATTERN = re.compile(rb"^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$")
 TERMINAL_STATUSES = {
     "Success",
@@ -70,18 +99,15 @@ def wait_for_invocation(client, instance_id: str, command_id: str) -> str:
 
 def reconcile() -> bool:
     """Update the current bcrypt verifier only when the password changed."""
-    instance_id = os.environ["SSM_INSTANCE_ID"]
-    if not re.fullmatch(r"i-[0-9a-f]{8,17}", instance_id):
-        raise ValueError("Invalid K3s instance ID")
-
-    plaintext = os.environ.get("ARGOCD_ADMIN_PASSWORD", "")
+    plaintext = os.environ.get("ARGOCD_PASSWORD", "")
     password = plaintext.encode("utf-8")
     if not 16 <= len(password) <= 72 or any(char in password for char in (0, 10, 13)):
         raise ValueError(
-            "Set ARGOCD_ADMIN_PASSWORD to 16-72 UTF-8 bytes without line breaks "
+            "Set ARGOCD_PASSWORD to 16-72 UTF-8 bytes without line breaks "
             "in the demo-infra-apply GitHub Environment secrets."
         )
 
+    instance_id = resolve_instance_id()
     client = boto3.client("ssm", region_name=REGION)
     read_id = send_command(client, instance_id, READ_COMMAND)
     old_hash_text = wait_for_invocation(client, instance_id, read_id)
