@@ -32,12 +32,10 @@ REPO_ROOT = Path(__file__).resolve().parent
 COMMANDS: dict[str, CommandSpec] = {
     "argocd": CommandSpec(
         script=Path("tools/argocd_access/main.py"),
-        description="Connect to Argo CD or manage its AWS Secrets Manager password.",
+        description="Open the private Argo CD dashboard via AWS SSM.",
         examples=(
             f"{RUNNER} argocd instructions --profile aggregator-admin",
             f"{RUNNER} argocd connect --profile aggregator-admin",
-            f"{RUNNER} argocd password",
-            f"{RUNNER} argocd password set --profile aggregator-admin",
         ),
     ),
     "prune-squashed-branches": CommandSpec(

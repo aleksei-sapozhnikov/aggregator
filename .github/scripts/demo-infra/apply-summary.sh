@@ -71,13 +71,12 @@ outputs_text="$(tofu output -no-color)"
     echo "No active K3s instance exists in the current infrastructure state; no tunnel command is available."
   fi
   echo
-  echo "### Argo CD password"
+  echo "### Argo CD administrator password"
   echo
-  echo "Username: `admin`. Password source: AWS Secrets Manager secret `aggregator/demo/argocd-admin` in `eu-central-1`."
-  echo "[Open the password secret in AWS Console](https://eu-central-1.console.aws.amazon.com/secretsmanager/secret?name=aggregator%2Fdemo%2Fargocd-admin&region=eu-central-1)"
-  echo "To create or update it locally: `python run-tools.py argocd password set --profile aggregator-admin` (requires boto3)."
-  echo "Or edit its plain-text value in AWS Console. Enter 16-72 UTF-8 bytes; never include it in logs or Terraform variables."
-  echo "The EC2 timer reconciles changes to Argo CD within approximately five minutes while K3s is running."
+  echo "The \`admin\` password is defined in the protected GitHub Environment \`demo-infra-apply\`, secret \`ARGOCD_ADMIN_PASSWORD\`."
+  echo "[Open the environment settings](https://github.com/aleksei-sapozhnikov/aggregator/settings/environments/demo-infra-apply)"
+  echo "Change the secret there and run a new approved infrastructure configuration to synchronize Argo CD."
+  echo "The password never enters OpenTofu plans or state; only the bcrypt verifier crosses SSM."
   echo
   echo "<details>"
   echo "<summary>All OpenTofu outputs (expand to inspect)</summary>"
