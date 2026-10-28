@@ -19,32 +19,50 @@ jobs:
     permissions:
       contents: read
 
-  build-and-publish:
-    name: Build & publish / ${{ matrix.service }}
+  plan-images:
+    name: Select images missing from GHCR
     if: github.ref == 'refs/heads/demo'
     needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      has_changes: ${{ steps.plan.outputs.has_changes }}
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: docker/setup-buildx-action@v4
+
+      - name: Login to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Calculate image tags and select unpublished images
+        id: plan
+        env:
+          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+        run: python3 deploy/demo/image_tags.py plan
+
+  build-and-publish:
+    name: Build & publish / ${{ matrix.service }}
+    if: github.ref == 'refs/heads/demo' && needs.plan-images.outputs.has_changes == 'true'
+    needs: plan-images
     runs-on: ubuntu-latest
     timeout-minutes: 45
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - service: aggregator
-            context: services-core/aggregator
-          - service: aggregator-ui
-            context: services-core/aggregator-ui
-          - service: catalog
-            context: services-core/catalog
-          - service: ai-agent
-            context: services-core/ai-agent
-          - service: chaos-maker
-            context: services-demo/chaos-maker
-          - service: dummy-java
-            context: services-demo/dummy-java
-          - service: dummy-python
-            context: services-demo/dummy-python
-          - service: dummy-javascript
-            context: services-demo/dummy-javascript
+      matrix: ${{ fromJSON(needs.plan-images.outputs.matrix) }}
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v7
         with:
@@ -65,7 +83,7 @@ jobs:
           context: ./${{ matrix.context }}
           platforms: linux/amd64
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/${{ matrix.service }}:${{ github.sha }}
+          tags: ghcr.io/${{ github.repository_owner }}/${{ matrix.service }}:${{ matrix.tag }}
           cache-from: type=gha,scope=${{ matrix.service }}
           cache-to: type=gha,mode=max,scope=${{ matrix.service }}
           labels: |
@@ -74,8 +92,12 @@ jobs:
 
   deploy:
     name: Deploy published images using SSM
-    if: github.ref == 'refs/heads/demo'
-    needs: build-and-publish
+    if: >-
+      always() && github.ref == 'refs/heads/demo' &&
+      needs.plan-images.result == 'success' &&
+      (needs.build-and-publish.result == 'success' ||
+      (needs.plan-images.outputs.has_changes == 'false' && needs.build-and-publish.result == 'skipped'))
+    needs: [plan-images, build-and-publish]
     runs-on: ubuntu-latest
     environment: demo
     timeout-minutes: 25
@@ -102,8 +124,12 @@ jobs:
 
   publish-k3s-release:
     name: Publish K3s release in demo
-    if: github.ref == 'refs/heads/demo'
-    needs: build-and-publish
+    if: >-
+      always() && github.ref == 'refs/heads/demo' &&
+      needs.plan-images.result == 'success' &&
+      (needs.build-and-publish.result == 'success' ||
+      (needs.plan-images.outputs.has_changes == 'false' && needs.build-and-publish.result == 'skipped'))
+    needs: [plan-images, build-and-publish]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
