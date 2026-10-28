@@ -64,6 +64,30 @@ class ImageTagsTests(unittest.TestCase):
         images = [{"service": "ai-agent", "context": "x", "tag": "a" * 40}]
         self.assertEqual(compose_exports(images), "export IMAGE_TAG_AI_AGENT=" + "a" * 40)
 
+    def test_compose_image_tag_contract_matches_service_mapping(self):
+        root = Path(__file__).resolve().parents[2]
+        compose = (root / "compose/compose.images.demo.yaml").read_text(encoding="utf-8")
+        for service in SERVICES:
+            variable = "IMAGE_TAG_" + service.upper().replace("-", "_")
+            expected = (
+                f"image: ghcr.io/aleksei-sapozhnikov/{service}:"
+                + "${"
+                + f"{variable}:?Missing {variable}"
+                + "}"
+            )
+            self.assertIn(expected, compose)
+
+    def test_real_kustomization_contains_all_expected_images(self):
+        root = Path(__file__).resolve().parents[2]
+        manifest = (root / "deploy/k8s/kustomization.yaml").read_text(encoding="utf-8")
+        images = [
+            {"service": service, "context": context, "tag": "a" * 40}
+            for service, context in SERVICES.items()
+        ]
+        updated = update_kustomization(manifest, images)
+        self.assertEqual(updated.count("newTag: " + "a" * 40), 8)
+        self.assertNotIn("newTag: unpublished", updated)
+
     def test_plan_only_builds_missing_images(self):
         images = [
             {"service": "aggregator", "tag": "a" * 40},
