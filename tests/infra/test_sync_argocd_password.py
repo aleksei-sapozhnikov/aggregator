@@ -61,7 +61,9 @@ class PasswordSyncTests(unittest.TestCase):
                 {"SSM_INSTANCE_ID": "i-0eb7ef332aa95e884",
                  "ARGOCD_PASSWORD": "example-strong-password"},
             ),
-            patch.object(module, "resolve_instance_id", return_value="i-0eb7ef332aa95e884"),
+            patch.object(
+                module, "resolve_instance_id", return_value="i-0eb7ef332aa95e884"
+            ),
             patch.object(module.boto3, "client", return_value=Mock()),
             patch.object(module, "send_command", return_value="ssm-read") as send,
             patch.object(module, "wait_for_invocation", return_value=existing),
@@ -79,7 +81,9 @@ class PasswordSyncTests(unittest.TestCase):
                 {"SSM_INSTANCE_ID": "i-0eb7ef332aa95e884",
                  "ARGOCD_PASSWORD": "example-strong-password"},
             ),
-            patch.object(module, "resolve_instance_id", return_value="i-0eb7ef332aa95e884"),
+            patch.object(
+                module, "resolve_instance_id", return_value="i-0eb7ef332aa95e884"
+            ),
             patch.object(module.boto3, "client", return_value=Mock()),
             patch.object(module, "send_command", side_effect=["read", "write"]) as send,
             patch.object(
