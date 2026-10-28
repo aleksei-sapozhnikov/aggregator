@@ -15,6 +15,7 @@ bash -n deploy/ansible/dispatch-ssm.sh
 for script in .github/scripts/demo-infra/*.sh .github/scripts/demo-deploy/*.sh; do
   bash -n "$script"
 done
+python3 -m py_compile deploy/ansible/roles/argocd/files/argocd-admin-reconcile.py
 # The cloud-init wrapper must be valid Bash and never execute Ansible at boot.
 "$RUNNER_TEMP/ansible/bin/python" - <<'PY'
 import os

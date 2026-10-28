@@ -130,6 +130,18 @@ The workflow serializes itself with a concurrency group, and OpenTofu locks
 its remote S3 state while running. External/manual changes can still cause
 stale plans to fail.
 
+## Argo CD dashboard and password prerequisites
+
+Before rebuilding the K3s EC2, apply `deploy/infra/admin` with the authorized
+administrative identity to update the K3s role boundary and SSM session
+permissions. Then create a plain-text strong password in AWS Secrets Manager
+as `aggregator/demo/argocd-admin` in `eu-central-1`. Its value stays
+outside Terraform state. Ansible needs that pre-existing password to
+complete. It installs a local-only Argo CD port forward and a systemd timer
+that reconciles subsequent password changes every five minutes. Details
+and the one-command SSM connection are in
+[the Ansible README](../../ansible/README.md).
+
 ## GitHub setup (required before enabling)
 
 Configure Repository and Environment variables under **Settings → Secrets and variables → Actions → Variables** and **Settings → Environments**:

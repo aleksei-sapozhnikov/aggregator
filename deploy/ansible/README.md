@@ -66,61 +66,84 @@ Argo CD remains reachable only inside the cluster (ClusterIP service).
 The public entrypoint is Traefik port 80, serving the UI Caddy via a hostless
 Ingress. Neither Argo CD nor the Kubernetes API is publicly exposed.
 
-## Accessing the Argo CD web UI privately
+## Argo CD credentials and private dashboard access
 
 The pinned `install.yaml` is the **full non-HA Argo CD installation**, not
-`core-install.yaml`. It already includes the `argocd-server` Web UI and
-API. The `argocd-server` Service is `ClusterIP` and is deliberately not
-published through Traefik, the EC2 security group or a public LoadBalancer.
+`core-install.yaml`. It already provides the web dashboard and API. The
+`argocd-server` Service remains `ClusterIP`, never a public Ingress or
+LoadBalancer.
 
-Once the K3s instance is recreated, use **two local terminal windows** to
-access the dashboard from a workstation with AWS CLI, the Session Manager
-plugin and IAM permission to start interactive SSM sessions on this instance.
+### One-time AWS setup (required before enabling the new Ansible role)
 
-1. Open an interactive SSM shell on the K3s instance:
+1. Apply `deploy/infra/admin` as `infra-admin` **first**. This deploys
+   an updated permission boundary for the K3s EC2 instance, permitting only
+   `secretsmanager:GetSecretValue` on the fixed Argo CD password secret,
+   and lets the demo IAM group use the standard SSM port-forwarding document.
+   This permission boundary is not updated by the demo workflow.
+2. In AWS Secrets Manager (region `eu-central-1`), create a **plain-text**
+   secret named `aggregator/demo/argocd-admin`. Choose a strong random
+   password (at least 16 characters), without storing it in Git, Terraform
+   variables, CI secrets, instance user-data, or a shell command argument.
+   Use the default `aws/secretsmanager` encryption key. This secret's
+   **value is managed in Secrets Manager**, not Terraform, so changing it
+   must not be reverted by an infrastructure apply.
+3. Apply `deploy/infra/demo` through the reviewed workflow. The K3s EC2
+   role now has permission to **read only this named secret**, not all AWS
+   secrets. The secret must already have a value before Ansible runs.
 
-   ```sh
-   aws ssm start-session --region eu-central-1 --target i-REPLACE_WITH_K3S_INSTANCE_ID
-   ```
+The Ansible `argocd` role installs an isolated reconciliation program,
+root-owned systemd service, and a timer which checks Secrets Manager around
+every five minutes. On the first run, and whenever the AWS password differs
+from the bcrypt hash stored in Kubernetes `argocd-secret`, it updates
+`admin.password` and `admin.passwordMtime` in Kubernetes. The initial
+generated password secret is deleted after successful rotation. The password
+is **never** passed to Ansible as a variable or stored in a Terraform state
+file. Only a bcrypt hash is written to a temporary root-only patch file.
 
-   In that **remote** shell, run and keep this foreground process running:
+Changing the AWS secret does not require a new Git commit, a new EC2, or
+manually restarting Ansible: the systemd timer applies it automatically,
+normally within five minutes. Failures appear via
+`sudo journalctl -u aggregator-argocd-admin-reconcile.service` on the node.
+The timer requires the instance profile to be able to reach the AWS
+Secrets Manager endpoint and the Argo CD Kubernetes API. A custom KMS key
+would require additional specifically scoped KMS permissions and is not
+configured here.
 
-   ```sh
-   sudo /usr/local/bin/k3s kubectl -n argocd port-forward \
-     svc/argocd-server 18080:443 --address 127.0.0.1
-   ```
+### Open the dashboard using one SSM session
 
-2. From a **second local terminal**, forward your workstation's port 8080
-   to port 18080 on the same instance. On Windows PowerShell:
+Ansible keeps a `kubectl port-forward` process running as a root-owned
+systemd service, bound **only** to `127.0.0.1:18080` on the EC2 instance.
+It is restarted automatically if the Kubernetes connection drops. Port
+18080 is **not** opened in the EC2 security group.
 
-   ```powershell
-   aws ssm start-session --region eu-central-1 `
-     --target i-REPLACE_WITH_K3S_INSTANCE_ID `
-     --document-name AWS-StartPortForwardingSession `
-     --parameters portNumber="18080",localPortNumber="8080"
-   ```
+With AWS CLI, Session Manager plugin, and a demo IAM identity permitted to
+start SSM port-forwarding sessions, run this on your **local Windows PC**:
 
-3. Open `https://localhost:8080` in your browser. The default Argo CD
-   certificate is self-signed, so the browser may display a certificate
-   warning. Use the `admin` username. To retrieve the initial password,
-   open another trusted SSM shell and run (do **not** print it in CI logs):
+```powershell
+aws ssm start-session --region eu-central-1 `
+  --target i-REPLACE_WITH_K3S_INSTANCE_ID `
+  --document-name AWS-StartPortForwardingSession `
+  --parameters portNumber="18080",localPortNumber="8080"
+```
 
-   ```sh
-   sudo /usr/local/bin/k3s kubectl -n argocd \
-     get secret argocd-initial-admin-secret \
-     -o jsonpath='{.data.password}' | base64 --decode
-   echo
-   ```
+Then browse to `https://localhost:8080` (the default certificate is
+self-signed). Log in as `admin` with the value of the AWS Secrets Manager
+secret. The tunnel ends when the local SSM session closes. The EC2 side is
+managed by Ansible; no additional terminal or persistent workstation process
+is required.
 
-   Change the initial password after the first login. If it was already
-   changed, use your current credentials rather than the initial secret.
+Useful instance checks:
 
-Both port forwards end when their sessions close. No inbound Argo CD port
-needs to be opened. Keep the Web UI private: exposing the administrator
-interface over this demo's public plain-HTTP ingress would put credentials
-and cluster management access at risk. The dashboard displays the
-`aggregator-demo` Application with sync/health status once a GitOps release
-has been published.
+```sh
+sudo systemctl status aggregator-argocd-ui-forward.service
+sudo systemctl status aggregator-argocd-admin-reconcile.timer
+sudo journalctl -u aggregator-argocd-admin-reconcile.service --no-pager -n 30
+```
+
+This protects the control-plane dashboard while letting you inspect the
+`aggregator-demo` Application, health, sync status, history, and resource
+tree. Never expose the admin dashboard through the public HTTP-only
+Aggregator ingress.
 
 ## GitOps workload bootstrap
 

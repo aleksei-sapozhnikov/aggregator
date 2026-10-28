@@ -159,3 +159,7 @@ inline. Run As is enabled for IAM identities tagged with
 `SSMSessionRunAs`. Existing documents must be imported once before
 OpenTofu can manage them. Review `tofu plan` before applying any
 change to account-wide session preferences.
+
+## Argo CD administrator access
+
+Apply this admin root first to update the K3s role boundary with narrowly scoped `secretsmanager:GetSecretValue` on `aggregator/demo/argocd-admin` and authorize SSM local port forwarding. Create the secret value separately in AWS Secrets Manager before deploying K3s; never place it in Terraform state.
