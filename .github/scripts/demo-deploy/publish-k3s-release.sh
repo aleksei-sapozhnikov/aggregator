@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Promote a fully built demo release to the GitOps directory watched by Argo CD.
-# Copies candidate manifests, pins eight GHCR image tags to RELEASE_SHA,
+# Copies candidate manifests, pins eight GHCR image tags to their build-context tree IDs,
 # validates Kustomize output, and pushes a new commit to the demo branch.
 # Requires RELEASE_SHA, RUNNER_TEMP, and GITHUB_STEP_SUMMARY from GitHub Actions.
 
@@ -17,7 +17,7 @@ if [[ "$current_demo_sha" != "$RELEASE_SHA" ]]; then
 fi
 
 # Argo CD watches only this generated directory, not the candidate manifests.
-# Copy from the exact revision used to build all eight GHCR images.
+# Copy the exact source revision; images are selected by their individual context tree IDs.
 git switch --create published-k3s "$RELEASE_SHA"
 rm -rf deploy/k8s-live
 cp -a deploy/k8s deploy/k8s-live
@@ -28,23 +28,8 @@ cp services-extra/grafana/provisioning/dashboards/dashboards.yaml deploy/k8s-liv
 cp services-extra/grafana/provisioning/datasources/prometheus.yaml deploy/k8s-live/prometheus.yaml
 cp services-extra/prometheus/prometheus.yml deploy/k8s-live/prometheus.yml
 
-python3 - "$RELEASE_SHA" <<'PY'
-from pathlib import Path
-import re
-import sys
-
-revision = sys.argv[1]
-manifest = Path("deploy/k8s-live/kustomization.yaml")
-content = manifest.read_text(encoding="utf-8")
-updated, count = re.subn(
-    r"(?m)^(\s*newTag: )[^\s]+$",
-    lambda match: match.group(1) + revision,
-    content,
-)
-if count != 8:
-    raise SystemExit(f"Expected 8 image tags, found {count}")
-manifest.write_text(updated, encoding="utf-8")
-PY
+python3 deploy/demo/image_tags.py update-kustomization \
+  --revision "$RELEASE_SHA" --manifest deploy/k8s-live/kustomization.yaml
 
 kubectl kustomize deploy/k8s-live > "$RUNNER_TEMP/k3s-rendered.yaml"
 if grep -q ':unpublished' "$RUNNER_TEMP/k3s-rendered.yaml"; then
