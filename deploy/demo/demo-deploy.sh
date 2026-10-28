@@ -15,7 +15,8 @@ cd /home/ec2-user/aggregator-demo/repo
 }
 
 # Each service keeps the same image reference until its Docker build context changes.
-eval "$(python3 deploy/demo/image_tags.py compose-env --revision "$DEPLOY_SHA")"
+image_exports="$(python3 deploy/demo/image_tags.py compose-env --revision "$DEPLOY_SHA")"
+eval "$image_exports"
 export AGENT_AI_ENABLED="true"
 export AGENT_AI_CONFIG='{"provider":"bedrock","max_tool_rounds":2,"bedrock":{"model_id":"eu.amazon.nova-lite-v1:0","aws_region":"eu-central-1","temperature":0.00001,"max_tokens":300}}'
 
