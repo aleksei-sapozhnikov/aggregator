@@ -12,12 +12,15 @@ Docker Compose EC2 and its public DNS are not modified.
    by pushes. If the initial `deploy/k8s-live` release is absent and
    infrastructure automation is enabled, the infrastructure stage
    reconciles K3s before dispatching the first application release.
-2. Code quality must pass; the workflow builds all eight application images
-   and publishes each to GHCR with the 40-character source commit SHA.
-3. After all images are available, `publish-k3s-release` copies the candidate
-   manifests from `deploy/k8s` to **`deploy/k8s-live` in the same `demo`
-   branch**, copies the monitoring provisioning files, updates eight image
-   tags to that source SHA, and validates the rendered manifests.
+2. Code quality must pass. The workflow computes a separate 40-character
+   Git tree ID from each service's Docker build context, checks GHCR, and
+   builds/pushes only images that do not already exist under those tags.
+3. After all required images are available, `publish-k3s-release` copies the
+   candidate manifests from `deploy/k8s` to **`deploy/k8s-live` in the
+   same `demo` branch**, copies monitoring provisioning files, replaces each
+   of the eight image tags with that service's Git tree ID, and validates the
+   rendered manifests. Unchanged image tags do not trigger application
+   rollouts merely because another service changed.
 4. Argo CD watches **`demo:deploy/k8s-live`**. It automatically syncs and
    self-heals these already-published Kubernetes manifests.
 5. K3s ships with Traefik and ServiceLB enabled. A hostless HTTP Ingress
@@ -69,9 +72,16 @@ Before the first published release, Argo CD can temporarily report
 
 ## Subsequent updates and rollback
 
-Each successful `demo` image build publishes a new generated
-`deploy/k8s-live` snapshot in the **same branch**. Argo CD sees only
-the published state, so no re-running Ansible or direct SSH is required.
+Each successful `demo` deployment publishes the generated
+`deploy/k8s-live` snapshot in the **same branch**, including releases where
+all images were reused. Argo CD sees only the published state, so no
+re-running Ansible or direct SSH is required.
+
+The first run after switching from commit-wide image tags may publish eight
+new tags once. Subsequent runs do not re-upload unchanged images. To refresh
+an otherwise unchanged image when upstream dependencies or base images change,
+modify its Dockerfile or another build-context file; build inputs are tracked
+by the Git tree hash.
 The `deploy` job in `demo-deploy.yml` still updates the separate Docker
 Compose demo using SSM.
 
