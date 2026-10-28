@@ -211,6 +211,7 @@ one-line SSM tunnel command. Use AWS CLI and the Session Manager
 plugin, then open `https://localhost:8080` and sign in as `admin`.
 See [the Ansible README](../../ansible/README.md) for verification
 and access details.
+
 ## GitHub setup (required before enabling)
 
 Configure Repository and Environment variables under **Settings → Secrets and variables → Actions → Variables** and **Settings → Environments**:
