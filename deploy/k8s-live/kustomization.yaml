@@ -19,18 +19,18 @@ configMapGenerator:
       - item_health_state.json
 images:
   - name: ghcr.io/aleksei-sapozhnikov/catalog
-    newTag: 93c49c2cae10e1b45a276f0b9991ff465c088db1
+    newTag: 3dd390055e6e3827af281dc4506e365745a8f710
   - name: ghcr.io/aleksei-sapozhnikov/aggregator
-    newTag: 93c49c2cae10e1b45a276f0b9991ff465c088db1
+    newTag: 3dd390055e6e3827af281dc4506e365745a8f710
   - name: ghcr.io/aleksei-sapozhnikov/aggregator-ui
-    newTag: 93c49c2cae10e1b45a276f0b9991ff465c088db1
+    newTag: 3dd390055e6e3827af281dc4506e365745a8f710
   - name: ghcr.io/aleksei-sapozhnikov/ai-agent
-    newTag: 93c49c2cae10e1b45a276f0b9991ff465c088db1
+    newTag: 3dd390055e6e3827af281dc4506e365745a8f710
   - name: ghcr.io/aleksei-sapozhnikov/chaos-maker
-    newTag: 93c49c2cae10e1b45a276f0b9991ff465c088db1
+    newTag: 3dd390055e6e3827af281dc4506e365745a8f710
   - name: ghcr.io/aleksei-sapozhnikov/dummy-java
-    newTag: 93c49c2cae10e1b45a276f0b9991ff465c088db1
+    newTag: 3dd390055e6e3827af281dc4506e365745a8f710
   - name: ghcr.io/aleksei-sapozhnikov/dummy-python
-    newTag: 93c49c2cae10e1b45a276f0b9991ff465c088db1
+    newTag: 3dd390055e6e3827af281dc4506e365745a8f710
   - name: ghcr.io/aleksei-sapozhnikov/dummy-javascript
-    newTag: 93c49c2cae10e1b45a276f0b9991ff465c088db1
+    newTag: 3dd390055e6e3827af281dc4506e365745a8f710
