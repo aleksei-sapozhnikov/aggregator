@@ -57,8 +57,18 @@ describe("InfoHelp tooltip lifecycle", () => {
       await waitFor(() => expect(document.activeElement).toBe(trigger));
       expect(screen.queryByRole("tooltip")).toBeNull();
 
-      fireEvent.mouseLeave(trigger);
+      // The first new hover must work without an extra leave/enter cycle.
       fireEvent.mouseEnter(trigger);
+      expect(screen.getByRole("tooltip")).not.toBeNull();
+
+      fireEvent.mouseLeave(trigger);
+      expect(screen.queryByRole("tooltip")).toBeNull();
+
+      // Keyboard focus works again after the restored-focus event.
+      trigger.blur();
+      fireEvent.blur(trigger);
+      trigger.focus();
+      fireEvent.focus(trigger);
       expect(screen.getByRole("tooltip")).not.toBeNull();
     },
   );

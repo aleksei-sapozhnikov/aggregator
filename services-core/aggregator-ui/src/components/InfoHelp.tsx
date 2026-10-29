@@ -10,7 +10,7 @@ type InfoHelpProps = {
 export default function InfoHelp({ topic }: InfoHelpProps) {
   const tooltipId = useId();
   const buttonRef = useRef<HTMLButtonElement | null>(null);
-  const suppressTooltipRef = useRef(false);
+  const suppressRestoredFocusRef = useRef(false);
   const [isTooltipVisible, setIsTooltipVisible] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState({
@@ -19,7 +19,7 @@ export default function InfoHelp({ topic }: InfoHelpProps) {
   });
 
   const showTooltip = () => {
-    if (isModalOpen || suppressTooltipRef.current) {
+    if (isModalOpen) {
       return;
     }
 
@@ -44,24 +44,23 @@ export default function InfoHelp({ topic }: InfoHelpProps) {
         aria-describedby={isTooltipVisible ? tooltipId : undefined}
         onClick={(event) => {
           event.stopPropagation();
-          suppressTooltipRef.current = true;
+          suppressRestoredFocusRef.current = true;
           setIsTooltipVisible(false);
           setIsModalOpen(true);
         }}
-        onFocus={showTooltip}
-        onBlur={() => {
-          setIsTooltipVisible(false);
-          if (!isModalOpen) {
-            suppressTooltipRef.current = false;
+        onFocus={() => {
+          if (suppressRestoredFocusRef.current) {
+            suppressRestoredFocusRef.current = false;
+            return;
           }
+          showTooltip();
         }}
-        onMouseEnter={showTooltip}
-        onMouseLeave={() => {
-          setIsTooltipVisible(false);
-          if (!isModalOpen) {
-            suppressTooltipRef.current = false;
-          }
+        onBlur={() => setIsTooltipVisible(false)}
+        onMouseEnter={() => {
+          suppressRestoredFocusRef.current = false;
+          showTooltip();
         }}
+        onMouseLeave={() => setIsTooltipVisible(false)}
       >
         ?
       </button>
