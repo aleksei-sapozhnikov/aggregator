@@ -6,6 +6,7 @@ import TopBarActions from "./TopBarActions";
 import AiChatPanel from "./AiChatPanel";
 import CatalogItemInfo from "./CatalogItemInfo";
 import InfoHelp from "./InfoHelp";
+import SecondaryLabel from "./SecondaryLabel";
 import { isPlainLeftClick } from "../shared/catalogUtils";
 import { infoHelpTopics } from "../shared/infoHelpTopics";
 import { buildStatusText } from "../shared/statusText";
@@ -589,9 +590,7 @@ export default function DetailsPanel({
                                 >
                                   {entry.actor.title || entry.actor.id}
                                 </a>
-                                <span className="actor-role">
-                                  {entry.typeLabel}
-                                </span>
+                                <SecondaryLabel text={entry.typeLabel} />
                               </div>
                             </li>
                           ))}
@@ -680,6 +679,7 @@ export default function DetailsPanel({
                               >
                                 {row.title}
                               </a>
+                              <SecondaryLabel text="Dependency" />
                             </div>
                             <ul className="signals-incident-signal-list">
                               {row.signals.map((signal) => (

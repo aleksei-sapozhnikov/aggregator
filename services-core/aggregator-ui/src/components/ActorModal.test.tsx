@@ -77,14 +77,14 @@ describe("ActorModal contact list", () => {
     expect(list?.querySelectorAll(".contact-chip")).toHaveLength(0);
     expect(list?.querySelectorAll(".chip-prefix")).toHaveLength(0);
     expect(
-      Array.from(list?.querySelectorAll(".actor-role") || [], (role) =>
+      Array.from(list?.querySelectorAll(".secondary-label") || [], (role) =>
         role.textContent?.trim(),
       ),
     ).toEqual(["Primary"]);
     expect(
-      links[0]?.parentElement?.querySelector(".actor-role")?.textContent,
+      links[0]?.parentElement?.querySelector(".secondary-label")?.textContent,
     ).toBe("Primary");
-    expect(links[0]?.querySelector(".actor-role")).toBeNull();
+    expect(links[0]?.querySelector(".secondary-label")).toBeNull();
     expect(
       links.map((link) => link.querySelector("svg use")?.getAttribute("href")),
     ).toEqual([
@@ -100,15 +100,17 @@ describe("ActorModal contact list", () => {
       document.querySelectorAll(".actor-modal-contact-row"),
     );
 
-    expect(rows[0].querySelector(".actor-role")).toBeNull();
-    expect(rows[1].querySelector(".actor-role")).toBeNull();
-    expect(rows[2].querySelector(".actor-role")?.textContent).toBe("Primary");
+    expect(rows[0].querySelector(".secondary-label")).toBeNull();
+    expect(rows[1].querySelector(".secondary-label")).toBeNull();
+    expect(rows[2].querySelector(".secondary-label")?.textContent).toBe(
+      "Primary",
+    );
   });
 
   it("omits the primary label when no contact is designated", () => {
     renderActorModal({ primaryContact: null });
 
-    expect(document.querySelector(".actor-role")).toBeNull();
+    expect(document.querySelector(".secondary-label")).toBeNull();
   });
 
   it("opens contact details on a plain click but preserves modified links", async () => {
