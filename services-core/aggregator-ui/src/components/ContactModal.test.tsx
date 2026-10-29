@@ -92,6 +92,9 @@ describe("ContactModal demo help", () => {
   it("keeps contact preview sizing free of obsolete fixed heights", () => {
     const styles = readFileSync(resolve("src", "styles.css"), "utf8");
 
+    expect(styles).toMatch(
+      /\.contact-demo\s*\{[^}]*overflow-x:\s*hidden;[^}]*overflow-y:\s*auto;[^}]*overscroll-behavior:\s*contain;/s,
+    );
     expect(styles).not.toMatch(
       /\.contact-demo-email\s*{[^}]*height:\s*min\(460px/s,
     );
