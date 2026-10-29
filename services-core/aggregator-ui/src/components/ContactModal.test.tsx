@@ -176,9 +176,7 @@ describe("ContactModal demo help", () => {
       )?.[1];
       expect(declaration).toContain("min-height: max-content;");
     }
-    expect(styles).toMatch(
-      /\\.contact-phone-line\\s*\\{\\s*flex:\\s*0 0 auto;/s,
-    );
+    expect(styles).toMatch(/\.contact-phone-line\s*\{\s*flex:\s*0 0 auto;/s);
   });
 
   it.each([
