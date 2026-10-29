@@ -2462,12 +2462,11 @@ body[data-theme="dark"] .contact-chip:hover {
 
 .contact-email-compose.is-sent,
 .contact-email-compose.is-reply {
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   padding: 14px 16px 0;
 }
 
 .contact-email-sent-state {
-  height: 100%;
   min-height: 74px;
   display: flex;
   align-items: center;
