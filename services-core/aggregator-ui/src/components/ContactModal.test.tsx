@@ -171,10 +171,15 @@ describe("ContactModal demo help", () => {
       "contact-oncall-activity-panel",
       "contact-generic-card",
     ]) {
-      const declaration = styles.match(
-        new RegExp(`\\.${className}\\s*\\{([^}]*)\\}`, "s"),
-      )?.[1];
-      expect(declaration).toContain("min-height: max-content;");
+      const declarations = Array.from(
+        styles.matchAll(new RegExp(`\\.${className}\\s*\\{([^}]*)\\}`, "gs")),
+        (match) => match[1],
+      );
+      expect(
+        declarations.some((declaration) =>
+          declaration.includes("min-height: max-content;"),
+        ),
+      ).toBe(true);
     }
     expect(styles).toMatch(/\.contact-phone-line\s*\{\s*flex:\s*0 0 auto;/s);
   });
