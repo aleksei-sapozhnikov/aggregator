@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { RefObject } from "react";
 import type { CatalogContact } from "../shared/types";
 import {
@@ -371,6 +371,7 @@ const renderContactDemo = (
   onCallFormLength: number,
   copy: ContactDemoCopy,
   chatThreadRef: RefObject<HTMLDivElement | null>,
+  previewRef: RefObject<HTMLElement | null>,
 ) => {
   if (details.kind === "email") {
     const isComposing =
@@ -381,6 +382,7 @@ const renderContactDemo = (
 
     return (
       <section
+        ref={previewRef}
         className={`contact-demo contact-demo-email contact-client-${details.clientClass}`}
         aria-label="Email client preview"
       >
@@ -449,6 +451,7 @@ const renderContactDemo = (
     const isConnected = phoneStep >= 1;
     return (
       <section
+        ref={previewRef}
         className={`contact-demo contact-demo-phone contact-client-${details.clientClass}`}
         aria-label="Phone app preview"
       >
@@ -542,6 +545,7 @@ const renderContactDemo = (
 
     return (
       <section
+        ref={previewRef}
         className={`contact-demo contact-demo-oncall contact-client-${details.clientClass}`}
         aria-label="On-call profile preview"
       >
@@ -689,6 +693,7 @@ const renderContactDemo = (
   if (details.kind === "generic") {
     return (
       <section
+        ref={previewRef}
         className={`contact-demo contact-demo-generic contact-client-${details.clientClass}`}
         aria-label="Contact application preview"
       >
@@ -735,6 +740,7 @@ export default function ContactModal({
   onClose,
 }: ContactModalProps) {
   const chatThreadRef = useRef<HTMLDivElement | null>(null);
+  const previewRef = useRef<HTMLElement | null>(null);
   const [typedLength, setTypedLength] = useState(0);
   const [showResponse, setShowResponse] = useState(false);
   const [onCallStep, setOnCallStep] = useState(0);
@@ -885,6 +891,64 @@ export default function ContactModal({
     }
   }, [showResponse]);
 
+  // Keep the current mockup step visible without scrolling the modal header.
+  useLayoutEffect(() => {
+    if (!isOpen || !contact || !previewRef.current) {
+      return;
+    }
+
+    const preview = previewRef.current;
+    let target: HTMLElement | null = null;
+
+    if (contact.type === "email") {
+      if (mailStage === "sent") {
+        preview.scrollTop = 0;
+      }
+      target = preview.querySelector<HTMLElement>(
+        mailStage === "reply"
+          ? ".contact-email-reply"
+          : mailStage === "sent"
+            ? ".contact-email-sent-state"
+            : ".contact-email-actions",
+      );
+    } else if (contact.type === "phone") {
+      const dialogue = preview.querySelectorAll<HTMLElement>(
+        ".contact-phone-line",
+      );
+      target = dialogue[dialogue.length - 1] ?? null;
+    } else if (contact.type === "opsgenie" || contact.type === "pagerduty") {
+      if (onCallStage === "incident-created") {
+        preview.scrollTop = 0;
+      }
+      const visibleSteps = preview.querySelectorAll<HTMLElement>(
+        ".contact-oncall-activity-item.is-visible",
+      );
+      target =
+        visibleSteps[visibleSteps.length - 1] ??
+        preview.querySelector<HTMLElement>(".contact-oncall-actions");
+    }
+
+    if (!target) {
+      return;
+    }
+
+    const overflow =
+      target.getBoundingClientRect().bottom -
+      preview.getBoundingClientRect().bottom;
+    if (overflow > 0) {
+      preview.scrollTop += overflow + 12;
+    }
+  }, [
+    contact,
+    isOpen,
+    typedLength,
+    mailStage,
+    phoneStep,
+    onCallStage,
+    onCallFormLength,
+    onCallStep,
+  ]);
+
   if (!isOpen || !contact) {
     return null;
   }
@@ -942,6 +1006,7 @@ export default function ContactModal({
           onCallFormLength,
           activeDemoCopy,
           chatThreadRef,
+          previewRef,
         )}
       </div>
     </ModalWindow>

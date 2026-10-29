@@ -2416,6 +2416,7 @@ body[data-theme="dark"] .contact-chip:hover {
 }
 
 .contact-email-fields {
+  flex: 0 0 auto;
   display: grid;
   gap: 2px;
   padding: 8px 16px 4px;
@@ -2443,7 +2444,7 @@ body[data-theme="dark"] .contact-chip:hover {
 
 .contact-email-compose {
   flex: 1 1 auto;
-  min-height: 0;
+  min-height: max-content;
   display: flex;
   flex-direction: column;
   background: var(--client-surface);
@@ -2455,7 +2456,7 @@ body[data-theme="dark"] .contact-chip:hover {
 .contact-email-body {
   margin: 0;
   flex: 1 1 auto;
-  min-height: 0;
+  min-height: max-content;
   padding: 14px 16px 12px;
   background: var(--client-surface);
   line-height: 1.55;
@@ -2590,7 +2591,7 @@ body[data-theme="dark"] .contact-chip:hover {
 
 .contact-phone-screen {
   flex: 1 1 auto;
-  min-height: 0;
+  min-height: max-content;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2603,6 +2604,7 @@ body[data-theme="dark"] .contact-chip:hover {
 .contact-phone-icon {
   width: 48px;
   height: 48px;
+  flex: 0 0 48px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2638,6 +2640,7 @@ body[data-theme="dark"] .contact-chip:hover {
 }
 
 .contact-phone-line {
+  flex: 0 0 auto;
   margin: 0;
   max-width: 82%;
   padding: 8px 11px;
@@ -2686,7 +2689,7 @@ body[data-theme="dark"] .contact-chip:hover {
   justify-content: flex-start;
   gap: 16px;
   flex: 1 1 auto;
-  min-height: 0;
+  min-height: max-content;
   padding: 18px;
   background: var(--oncall-panel-bg);
   border-radius: 8px;
@@ -2715,7 +2718,7 @@ body[data-theme="dark"] .contact-chip:hover {
   grid-template-columns: minmax(250px, 0.46fr) minmax(290px, 0.54fr);
   gap: 16px;
   flex: 1 1 auto;
-  min-height: 0;
+  min-height: max-content;
   padding: 16px 0 18px;
 }
 
@@ -2742,7 +2745,7 @@ body[data-theme="dark"] .contact-chip:hover {
 
 .contact-generic-card {
   flex: 1 1 auto;
-  min-height: 0;
+  min-height: max-content;
   display: flex;
   align-items: center;
   gap: 14px;
@@ -2863,7 +2866,7 @@ body[data-theme="dark"] .contact-chip:hover {
 
 .contact-oncall-activity-panel {
   min-width: 0;
-  min-height: 0;
+  min-height: max-content;
   display: flex;
   flex-direction: column;
   padding: 18px;

@@ -12,6 +12,7 @@ import type { CatalogContact } from "../shared/types";
 
 afterEach(() => {
   cleanup();
+  vi.restoreAllMocks();
   vi.useRealTimers();
 });
 
@@ -156,6 +157,62 @@ describe("ContactModal demo help", () => {
       expect(thread?.querySelector(".contact-chat-bubble-in")).not.toBeNull();
       expect(document.querySelector(".contact-chat-composer")).toBeNull();
       expect((thread as HTMLElement).scrollTop).toBe(300);
+    },
+  );
+
+  it("lets animated non-chat previews overflow instead of squeezing content", () => {
+    const styles = readFileSync(resolve("src", "styles.css"), "utf8");
+
+    for (const className of [
+      "contact-email-compose",
+      "contact-email-body",
+      "contact-phone-screen",
+      "contact-oncall-layout",
+      "contact-oncall-activity-panel",
+      "contact-generic-card",
+    ]) {
+      const declaration = styles.match(
+        new RegExp(`\\.${className}\\s*\\{([^}]*)\\}`, "s"),
+      )?.[1];
+      expect(declaration).toContain("min-height: max-content;");
+    }
+    expect(styles).toMatch(
+      /\\.contact-phone-line\\s*\\{\\s*flex:\\s*0 0 auto;/s,
+    );
+  });
+
+  it.each([
+    { type: "email", label: "ops@demo.email" },
+    { type: "phone", label: "+1 555 0112" },
+    { type: "opsgenie", label: "Production On Call" },
+    { type: "pagerduty", label: "Escalation" },
+  ] as const)(
+    "reveals the latest $type step when the preview overflows",
+    ({ type, label }) => {
+      vi.useFakeTimers();
+      render(
+        <ContactModal
+          isOpen={true}
+          contact={{ id: `test-${type}`, title: label, type }}
+          onClose={vi.fn()}
+        />,
+      );
+      const preview = document.querySelector<HTMLElement>(".contact-demo");
+      expect(preview).not.toBeNull();
+
+      vi.spyOn(
+        HTMLElement.prototype,
+        "getBoundingClientRect",
+      ).mockImplementation(function (this: HTMLElement) {
+        const bottom = this === preview ? 180 : 260;
+        return { bottom } as DOMRect;
+      });
+
+      act(() => {
+        vi.advanceTimersByTime(20000);
+      });
+
+      expect(preview?.scrollTop).toBeGreaterThan(0);
     },
   );
 
