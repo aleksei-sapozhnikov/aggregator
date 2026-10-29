@@ -2376,6 +2376,7 @@ body[data-theme="dark"] .contact-chip:hover {
 }
 
 .contact-chat-bubble {
+  flex: 0 0 auto;
   margin: 0;
   max-width: min(76%, 430px);
   padding: 11px 14px;
