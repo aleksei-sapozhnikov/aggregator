@@ -2,7 +2,7 @@
  * @vitest-environment jsdom
  */
 
-import { cleanup, render, screen } from "@testing-library/react";
+import { act, cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -12,6 +12,7 @@ import type { CatalogContact } from "../shared/types";
 
 afterEach(() => {
   cleanup();
+  vi.useRealTimers();
 });
 
 const renderContactModal = (contact: CatalogContact) => ({
@@ -110,6 +111,52 @@ describe("ContactModal demo help", () => {
     expect(styles).not.toMatch(/padding:\s*24px\s+76px\s+20px\s+24px/);
     expect(styles).not.toMatch(/padding:\s*18px\s+64px\s+18px\s+18px/);
   });
+
+  it("keeps chat messages in their own scrollable area above the composer", () => {
+    const styles = readFileSync(resolve("src", "styles.css"), "utf8");
+
+    expect(styles).toMatch(/\.contact-demo-chat\s*\{[^}]*overflow:\s*hidden;/s);
+    expect(styles).toMatch(
+      /\.contact-chat-thread\s*\{[^}]*min-height:\s*0;[^}]*overflow-y:\s*auto;/s,
+    );
+  });
+
+  it.each([
+    { type: "slack", label: "#alerts" },
+    { type: "teams", label: "Operations Team" },
+    { type: "sms", label: "+1 555 0101" },
+  ] as const)(
+    "removes the $type chat composer after the response appears",
+    ({ type, label }) => {
+      vi.useFakeTimers();
+      render(
+        <ContactModal
+          isOpen={true}
+          contact={{ id: `test-${type}`, title: label, type }}
+          onClose={vi.fn()}
+        />,
+      );
+
+      const thread = document.querySelector(".contact-chat-thread");
+      expect(thread).not.toBeNull();
+      expect(document.querySelector(".contact-chat-composer")).not.toBeNull();
+      expect(thread?.querySelector(".contact-chat-bubble-in")).toBeNull();
+
+      Object.defineProperty(thread, "scrollHeight", {
+        configurable: true,
+        value: 300,
+      });
+
+      act(() => {
+        vi.advanceTimersByTime(20000);
+      });
+
+      expect(thread?.querySelector(".contact-chat-bubble-out")).not.toBeNull();
+      expect(thread?.querySelector(".contact-chat-bubble-in")).not.toBeNull();
+      expect(document.querySelector(".contact-chat-composer")).toBeNull();
+      expect((thread as HTMLElement).scrollTop).toBe(300);
+    },
+  );
 
   it("keeps sent and reply messages at the top of the email preview", () => {
     const styles = readFileSync(resolve("src", "styles.css"), "utf8");
