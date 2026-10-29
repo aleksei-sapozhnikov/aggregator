@@ -484,8 +484,9 @@ describe("DetailsPanel contextual help", () => {
 
     expect(dependencyRows).toHaveLength(1);
     expect(
-      dependencyRows?.[0].querySelector(".signals-dependency-row .secondary-label")
-        ?.textContent,
+      dependencyRows?.[0].querySelector(
+        ".signals-dependency-row .secondary-label",
+      )?.textContent,
     ).toBe("Dependency");
     expect(
       dependencyRows?.[0].querySelector(".signals-dependency-row a")
@@ -505,7 +506,9 @@ describe("DetailsPanel contextual help", () => {
 
     expect(list?.querySelectorAll(".signals-incident-row")).toHaveLength(0);
     expect(list?.querySelectorAll(".secondary-label")).toHaveLength(0);
-    expect(list?.querySelectorAll(".signals-unhealthy-own-row")).toHaveLength(1);
+    expect(list?.querySelectorAll(".signals-unhealthy-own-row")).toHaveLength(
+      1,
+    );
   });
 
   it("keeps unknown unhealthy states explicitly visible", () => {

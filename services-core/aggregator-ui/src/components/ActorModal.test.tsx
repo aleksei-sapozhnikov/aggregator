@@ -102,7 +102,9 @@ describe("ActorModal contact list", () => {
 
     expect(rows[0].querySelector(".secondary-label")).toBeNull();
     expect(rows[1].querySelector(".secondary-label")).toBeNull();
-    expect(rows[2].querySelector(".secondary-label")?.textContent).toBe("Primary");
+    expect(rows[2].querySelector(".secondary-label")?.textContent).toBe(
+      "Primary",
+    );
   });
 
   it("omits the primary label when no contact is designated", () => {
