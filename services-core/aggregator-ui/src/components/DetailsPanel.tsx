@@ -680,6 +680,7 @@ export default function DetailsPanel({
                               >
                                 {row.title}
                               </a>
+                              <span className="actor-role">Dependency</span>
                             </div>
                             <ul className="signals-incident-signal-list">
                               {row.signals.map((signal) => (
