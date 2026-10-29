@@ -10,6 +10,7 @@ type InfoHelpProps = {
 export default function InfoHelp({ topic }: InfoHelpProps) {
   const tooltipId = useId();
   const buttonRef = useRef<HTMLButtonElement | null>(null);
+  const suppressTooltipRef = useRef(false);
   const [isTooltipVisible, setIsTooltipVisible] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState({
@@ -18,6 +19,10 @@ export default function InfoHelp({ topic }: InfoHelpProps) {
   });
 
   const showTooltip = () => {
+    if (isModalOpen || suppressTooltipRef.current) {
+      return;
+    }
+
     const button = buttonRef.current;
     if (button) {
       const rect = button.getBoundingClientRect();
@@ -39,13 +44,24 @@ export default function InfoHelp({ topic }: InfoHelpProps) {
         aria-describedby={isTooltipVisible ? tooltipId : undefined}
         onClick={(event) => {
           event.stopPropagation();
+          suppressTooltipRef.current = true;
           setIsTooltipVisible(false);
           setIsModalOpen(true);
         }}
         onFocus={showTooltip}
-        onBlur={() => setIsTooltipVisible(false)}
+        onBlur={() => {
+          setIsTooltipVisible(false);
+          if (!isModalOpen) {
+            suppressTooltipRef.current = false;
+          }
+        }}
         onMouseEnter={showTooltip}
-        onMouseLeave={() => setIsTooltipVisible(false)}
+        onMouseLeave={() => {
+          setIsTooltipVisible(false);
+          if (!isModalOpen) {
+            suppressTooltipRef.current = false;
+          }
+        }}
       >
         ?
       </button>
