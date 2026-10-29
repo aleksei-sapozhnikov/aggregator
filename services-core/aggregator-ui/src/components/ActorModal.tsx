@@ -7,6 +7,7 @@ import {
 import type { CatalogActor, CatalogContact } from "../shared/types";
 import { isPlainLeftClick } from "../shared/catalogUtils";
 import ModalWindow from "./ModalWindow";
+import SecondaryLabel from "./SecondaryLabel";
 
 const resolveActorLabel = (actor?: CatalogActor | null): string => {
   if (!actor) {
@@ -101,7 +102,7 @@ export default function ActorModal({
                     </span>
                   </a>
                   {primaryContact?.id === contact.id && (
-                    <span className="actor-role">Primary</span>
+                    <SecondaryLabel text="Primary" />
                   )}
                 </li>
               ))}
