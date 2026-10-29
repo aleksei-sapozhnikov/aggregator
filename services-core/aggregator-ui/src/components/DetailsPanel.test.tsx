@@ -134,7 +134,7 @@ describe("DetailsPanel contextual help", () => {
     ).not.toBeNull();
   });
 
-  it("shows the correct tooltip for a focused help control", async () => {
+  it("shows the correct tooltip for a hovered help control", async () => {
     const { user } = renderDetailsPanel();
     const helpButton = screen.getByRole("button", {
       name: "About Unhealthy signals",
@@ -142,6 +142,9 @@ describe("DetailsPanel contextual help", () => {
 
     await user.tab();
     fireEvent.focus(helpButton);
+    expect(screen.queryByRole("tooltip")).toBeNull();
+
+    fireEvent.mouseEnter(helpButton);
 
     const tooltip = screen.getByRole("tooltip");
     expect(tooltip.textContent).toBe(

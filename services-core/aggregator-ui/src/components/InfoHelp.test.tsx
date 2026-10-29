@@ -32,7 +32,9 @@ describe("InfoHelp tooltip lifecycle", () => {
 
       const trigger = screen.getByRole("button", { name: "About Timeline" });
       trigger.focus();
-      fireEvent.focus(trigger);
+      expect(screen.queryByRole("tooltip")).toBeNull();
+
+      fireEvent.mouseEnter(trigger);
       expect(screen.getByRole("tooltip")).not.toBeNull();
 
       fireEvent.click(trigger);
@@ -57,19 +59,17 @@ describe("InfoHelp tooltip lifecycle", () => {
       await waitFor(() => expect(document.activeElement).toBe(trigger));
       expect(screen.queryByRole("tooltip")).toBeNull();
 
-      // The first new hover must work without an extra leave/enter cycle.
+      // Focus restoration and subsequent refocusing must not show hover help.
+      trigger.blur();
+      trigger.focus();
+      expect(screen.queryByRole("tooltip")).toBeNull();
+
+      // A new mouse hover must show the tooltip on its first entry.
       fireEvent.mouseEnter(trigger);
       expect(screen.getByRole("tooltip")).not.toBeNull();
 
       fireEvent.mouseLeave(trigger);
       expect(screen.queryByRole("tooltip")).toBeNull();
-
-      // Keyboard focus works again after the restored-focus event.
-      trigger.blur();
-      fireEvent.blur(trigger);
-      trigger.focus();
-      fireEvent.focus(trigger);
-      expect(screen.getByRole("tooltip")).not.toBeNull();
     },
   );
 });
