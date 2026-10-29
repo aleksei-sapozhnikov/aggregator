@@ -49,6 +49,10 @@ export default function CatalogItemInfo({ item }: CatalogItemInfoProps) {
   );
 
   const showTooltip = () => {
+    if (isModalOpen) {
+      return;
+    }
+
     if (!isTooltipVisible) {
       setTooltipPosition(null);
     }
@@ -126,7 +130,6 @@ export default function CatalogItemInfo({ item }: CatalogItemInfoProps) {
             setIsModalOpen(true);
           }
         }}
-        onFocus={showTooltip}
         onBlur={() => setIsTooltipVisible(false)}
         onMouseEnter={showTooltip}
         onMouseLeave={() => setIsTooltipVisible(false)}

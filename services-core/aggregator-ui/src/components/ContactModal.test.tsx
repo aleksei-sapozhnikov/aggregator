@@ -2,7 +2,7 @@
  * @vitest-environment jsdom
  */
 
-import { cleanup, render, screen } from "@testing-library/react";
+import { act, cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -12,6 +12,8 @@ import type { CatalogContact } from "../shared/types";
 
 afterEach(() => {
   cleanup();
+  vi.restoreAllMocks();
+  vi.useRealTimers();
 });
 
 const renderContactModal = (contact: CatalogContact) => ({
@@ -92,6 +94,9 @@ describe("ContactModal demo help", () => {
   it("keeps contact preview sizing free of obsolete fixed heights", () => {
     const styles = readFileSync(resolve("src", "styles.css"), "utf8");
 
+    expect(styles).toMatch(
+      /\.contact-demo\s*\{[^}]*overflow-x:\s*hidden;[^}]*overflow-y:\s*auto;[^}]*overscroll-behavior:\s*contain;/s,
+    );
     expect(styles).not.toMatch(
       /\.contact-demo-email\s*{[^}]*height:\s*min\(460px/s,
     );
@@ -107,6 +112,112 @@ describe("ContactModal demo help", () => {
     expect(styles).not.toMatch(/padding:\s*24px\s+76px\s+20px\s+24px/);
     expect(styles).not.toMatch(/padding:\s*18px\s+64px\s+18px\s+18px/);
   });
+
+  it("keeps chat messages in their own scrollable area above the composer", () => {
+    const styles = readFileSync(resolve("src", "styles.css"), "utf8");
+
+    expect(styles).toMatch(/\.contact-demo-chat\s*\{[^}]*overflow:\s*hidden;/s);
+    expect(styles).toMatch(
+      /\.contact-chat-thread\s*\{[^}]*min-height:\s*0;[^}]*overflow-y:\s*auto;/s,
+    );
+    expect(styles).toMatch(/\.contact-chat-bubble\s*\{[^}]*flex:\s*0 0 auto;/s);
+  });
+
+  it.each([
+    { type: "slack", label: "#alerts" },
+    { type: "teams", label: "Operations Team" },
+    { type: "sms", label: "+1 555 0101" },
+  ] as const)(
+    "removes the $type chat composer after the response appears",
+    ({ type, label }) => {
+      vi.useFakeTimers();
+      render(
+        <ContactModal
+          isOpen={true}
+          contact={{ id: `test-${type}`, title: label, type }}
+          onClose={vi.fn()}
+        />,
+      );
+
+      const thread = document.querySelector(".contact-chat-thread");
+      expect(thread).not.toBeNull();
+      expect(document.querySelector(".contact-chat-composer")).not.toBeNull();
+      expect(thread?.querySelector(".contact-chat-bubble-in")).toBeNull();
+
+      Object.defineProperty(thread, "scrollHeight", {
+        configurable: true,
+        value: 300,
+      });
+
+      act(() => {
+        vi.advanceTimersByTime(20000);
+      });
+
+      expect(thread?.querySelector(".contact-chat-bubble-out")).not.toBeNull();
+      expect(thread?.querySelector(".contact-chat-bubble-in")).not.toBeNull();
+      expect(document.querySelector(".contact-chat-composer")).toBeNull();
+      expect((thread as HTMLElement).scrollTop).toBe(300);
+    },
+  );
+
+  it("lets animated non-chat previews overflow instead of squeezing content", () => {
+    const styles = readFileSync(resolve("src", "styles.css"), "utf8");
+
+    for (const className of [
+      "contact-email-compose",
+      "contact-email-body",
+      "contact-phone-screen",
+      "contact-oncall-layout",
+      "contact-oncall-activity-panel",
+      "contact-generic-card",
+    ]) {
+      const declarations = Array.from(
+        styles.matchAll(new RegExp(`\\.${className}\\s*\\{([^}]*)\\}`, "gs")),
+        (match) => match[1],
+      );
+      expect(
+        declarations.some((declaration) =>
+          declaration.includes("min-height: max-content;"),
+        ),
+      ).toBe(true);
+    }
+    expect(styles).toMatch(/\.contact-phone-line\s*\{\s*flex:\s*0 0 auto;/s);
+  });
+
+  it.each([
+    { type: "email", label: "ops@demo.email" },
+    { type: "phone", label: "+1 555 0112" },
+    { type: "opsgenie", label: "Production On Call" },
+    { type: "pagerduty", label: "Escalation" },
+  ] as const)(
+    "reveals the latest $type step when the preview overflows",
+    ({ type, label }) => {
+      vi.useFakeTimers();
+      render(
+        <ContactModal
+          isOpen={true}
+          contact={{ id: `test-${type}`, title: label, type }}
+          onClose={vi.fn()}
+        />,
+      );
+      const preview = document.querySelector<HTMLElement>(".contact-demo");
+      expect(preview).not.toBeNull();
+
+      vi.spyOn(
+        HTMLElement.prototype,
+        "getBoundingClientRect",
+      ).mockImplementation(function (this: HTMLElement) {
+        const bottom = this === preview ? 180 : 260;
+        return { bottom } as DOMRect;
+      });
+
+      act(() => {
+        vi.advanceTimersByTime(20000);
+      });
+
+      expect(preview?.scrollTop).toBeGreaterThan(0);
+    },
+  );
 
   it("keeps sent and reply messages at the top of the email preview", () => {
     const styles = readFileSync(resolve("src", "styles.css"), "utf8");

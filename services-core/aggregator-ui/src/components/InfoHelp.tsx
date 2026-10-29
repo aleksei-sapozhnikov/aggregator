@@ -18,6 +18,10 @@ export default function InfoHelp({ topic }: InfoHelpProps) {
   });
 
   const showTooltip = () => {
+    if (isModalOpen) {
+      return;
+    }
+
     const button = buttonRef.current;
     if (button) {
       const rect = button.getBoundingClientRect();
@@ -42,7 +46,6 @@ export default function InfoHelp({ topic }: InfoHelpProps) {
           setIsTooltipVisible(false);
           setIsModalOpen(true);
         }}
-        onFocus={showTooltip}
         onBlur={() => setIsTooltipVisible(false)}
         onMouseEnter={showTooltip}
         onMouseLeave={() => setIsTooltipVisible(false)}

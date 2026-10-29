@@ -2,7 +2,13 @@
  * @vitest-environment jsdom
  */
 
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import CatalogItemInfo from "./CatalogItemInfo";
 
@@ -97,5 +103,55 @@ describe("CatalogItemInfo tooltip positioning", () => {
     fireEvent.scroll(window);
 
     expect(tooltip.style.top).toBe("514px");
+  });
+});
+
+describe("CatalogItemInfo modal tooltip lifecycle", () => {
+  it("shows tooltip on hover only, not after modal Escape restores focus", async () => {
+    render(
+      <CatalogItemInfo
+        item={{
+          id: "stock",
+          title: "Stock",
+          shortDescription: "Reserves stock.",
+        }}
+      />,
+    );
+
+    const trigger = screen.getByRole("button", {
+      name: "Catalog information for Stock",
+    });
+
+    trigger.focus();
+    expect(screen.queryByRole("tooltip")).toBeNull();
+
+    fireEvent.mouseEnter(trigger);
+    expect(screen.getByRole("tooltip")).not.toBeNull();
+
+    fireEvent.click(trigger);
+    expect(screen.queryByRole("tooltip")).toBeNull();
+
+    const dialog = screen.getByRole("dialog", {
+      name: "Catalog information for Stock",
+    });
+    await waitFor(() => expect(document.activeElement).toBe(dialog));
+
+    fireEvent.keyDown(window, { key: "Escape" });
+
+    expect(screen.queryByRole("dialog")).toBeNull();
+    await waitFor(() => expect(document.activeElement).toBe(trigger));
+    expect(screen.queryByRole("tooltip")).toBeNull();
+
+    // Automatic focus restoration and subsequent focus do not show the tooltip.
+    trigger.blur();
+    trigger.focus();
+    expect(screen.queryByRole("tooltip")).toBeNull();
+
+    // The first new hover does show it without an extra leave/enter cycle.
+    fireEvent.mouseEnter(trigger);
+    expect(screen.getByRole("tooltip")).not.toBeNull();
+
+    fireEvent.mouseLeave(trigger);
+    expect(screen.queryByRole("tooltip")).toBeNull();
   });
 });
