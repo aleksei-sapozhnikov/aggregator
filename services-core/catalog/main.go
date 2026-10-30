@@ -178,6 +178,11 @@ func (s *service) fileHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *service) handleAPI(w http.ResponseWriter, r *http.Request, endpoint string) {
+	if _, isCollection := apiToFile[endpoint]; !isCollection &&
+		strings.HasPrefix(endpoint, "signals/") {
+		s.handleSignalByID(w, r, strings.TrimPrefix(endpoint, "signals/"))
+		return
+	}
 	if endpoint == "catalog" {
 		writeJSON(w, r, http.StatusOK, s.catalogAll)
 		return
@@ -193,6 +198,38 @@ func (s *service) handleAPI(w http.ResponseWriter, r *http.Request, endpoint str
 		return
 	}
 	writeJSON(w, r, http.StatusOK, payload)
+}
+
+// handleSignalByID resolves a signal definition across catalog signal sources.
+func (s *service) handleSignalByID(w http.ResponseWriter, r *http.Request, id string) {
+	if id == "" || strings.Contains(id, "/") {
+		http.NotFound(w, r)
+		return
+	}
+	for endpoint, fileName := range apiToFile {
+		if !strings.HasPrefix(endpoint, "signals/") {
+			continue
+		}
+		payload := s.parsed[fileName]
+		signals, ok := payload["signals"].([]any)
+		if !ok {
+			continue
+		}
+		for _, value := range signals {
+			signal, ok := value.(map[string]any)
+			if !ok || signal["id"] != id {
+				continue
+			}
+			details := make(map[string]any, len(signal)+1)
+			for key, value := range signal {
+				details[key] = value
+			}
+			details["type"] = strings.TrimPrefix(endpoint, "signals/")
+			writeJSON(w, r, http.StatusOK, details)
+			return
+		}
+	}
+	http.NotFound(w, r)
 }
 
 func writeJSON(w http.ResponseWriter, r *http.Request, status int, payload any) {
