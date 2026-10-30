@@ -6,6 +6,7 @@ import TopBarActions from "./TopBarActions";
 import AiChatPanel from "./AiChatPanel";
 import CatalogItemInfo from "./CatalogItemInfo";
 import InfoHelp from "./InfoHelp";
+import HealthSignalModal from "./HealthSignalModal";
 import SecondaryLabel from "./SecondaryLabel";
 import { isPlainLeftClick } from "../shared/catalogUtils";
 import { infoHelpTopics } from "../shared/infoHelpTopics";
@@ -49,6 +50,7 @@ type DetailsPanelProps = {
   onToggleTheme: () => void;
   onOpenAbout: () => void;
   selectedItem: CatalogItem | undefined;
+  catalogItems: CatalogItem[];
   selectedStatus: HealthStatus;
   lastUpdated: string;
   selectedTitleFirstWord: string;
@@ -78,6 +80,22 @@ type DetailsPanelProps = {
   onGrafanaLoad: () => void;
   grafanaFrameUrl: string;
 };
+
+// Signal deep links use a URL fragment so the selected item route stays intact.
+const signalIdFromHash = (): string => {
+  const match = /^#signal\/([^/]+)$/.exec(window.location.hash);
+  if (!match) {
+    return "";
+  }
+  try {
+    return decodeURIComponent(match[1]);
+  } catch {
+    return "";
+  }
+};
+
+const buildSignalLink = (id: string): string =>
+  `#signal/${encodeURIComponent(id)}`;
 
 type DetailsDisclosureState = {
   isHealthyOpen: boolean;
@@ -212,6 +230,7 @@ export default function DetailsPanel({
   onToggleTheme,
   onOpenAbout,
   selectedItem,
+  catalogItems,
   selectedStatus,
   lastUpdated,
   selectedTitleFirstWord,
@@ -237,10 +256,54 @@ export default function DetailsPanel({
 }: DetailsPanelProps) {
   const selectedStatusText = buildStatusText(selectedStatus, { lastUpdated });
   const selectedItemId = selectedItem?.id || "";
+  const [openedSignalId, setOpenedSignalId] = useState(signalIdFromHash);
+  const [openedSignalTitle, setOpenedSignalTitle] = useState("");
   const [disclosureByItemId, setDisclosureByItemId] = useState<
     Record<string, DetailsDisclosureState>
   >({});
   const disclosurePointerState = useRef<DisclosurePointerState | null>(null);
+
+  useEffect(() => {
+    const syncSignalWithLocation = () => {
+      setOpenedSignalId(signalIdFromHash());
+      setOpenedSignalTitle("");
+    };
+    window.addEventListener("hashchange", syncSignalWithLocation);
+    window.addEventListener("popstate", syncSignalWithLocation);
+    return () => {
+      window.removeEventListener("hashchange", syncSignalWithLocation);
+      window.removeEventListener("popstate", syncSignalWithLocation);
+    };
+  }, []);
+
+  const openSignal = (signal: ItemSignal) => {
+    const url = new URL(window.location.href);
+    url.hash = `signal/${encodeURIComponent(signal.id)}`;
+    window.history.pushState(window.history.state, "", url);
+    setOpenedSignalId(signal.id);
+    setOpenedSignalTitle(signal.title || signal.id);
+  };
+
+  const closeSignal = () => {
+    setOpenedSignalId("");
+    setOpenedSignalTitle("");
+    if (signalIdFromHash()) {
+      const url = new URL(window.location.href);
+      url.hash = "";
+      window.history.replaceState(window.history.state, "", url);
+    }
+  };
+
+  const handleSignalClick = (
+    event: MouseEvent<HTMLAnchorElement>,
+    signal: ItemSignal,
+  ) => {
+    if (!isPlainLeftClick(event)) {
+      return;
+    }
+    event.preventDefault();
+    openSignal(signal);
+  };
 
   const ownerActorForContacts =
     selectedItemActors?.owner || selectedItemActors?.otherActors?.[0] || null;
@@ -653,12 +716,16 @@ export default function DetailsPanel({
                             aria-label={`${entry.title || entry.id}, ${buildStatusText(entry.status)}`}
                           >
                             <div className="signal-row signal-status-row">
-                              <span
-                                className="signal-name"
+                              <a
+                                className="details-text-link signal-name signal-link"
                                 title={entry.title || entry.id}
+                                href={buildSignalLink(entry.id)}
+                                onClick={(event) =>
+                                  handleSignalClick(event, entry)
+                                }
                               >
                                 {entry.title || entry.id}
-                              </span>
+                              </a>
                               {entry.status === "unknown" && (
                                 <span className="signal-unknown-label">
                                   UNKNOWN
@@ -689,9 +756,15 @@ export default function DetailsPanel({
                                   title={signal.title || signal.id}
                                   aria-label={`${signal.title || signal.id}, ${buildStatusText(signal.status)}`}
                                 >
-                                  <span className="signal-name">
+                                  <a
+                                    className="details-text-link signal-name signal-link"
+                                    href={buildSignalLink(signal.id)}
+                                    onClick={(event) =>
+                                      handleSignalClick(event, signal)
+                                    }
+                                  >
                                     {signal.title || signal.id}
-                                  </span>
+                                  </a>
                                   {signal.status === "unknown" && (
                                     <span className="signal-unknown-label">
                                       UNKNOWN
@@ -760,12 +833,16 @@ export default function DetailsPanel({
                             aria-label={`${entry.title || entry.id}, ${buildStatusText(entry.status)}`}
                           >
                             <div className="signal-row signal-status-row">
-                              <span
-                                className="signal-name"
+                              <a
+                                className="details-text-link signal-name signal-link"
                                 title={entry.title || entry.id}
+                                href={buildSignalLink(entry.id)}
+                                onClick={(event) =>
+                                  handleSignalClick(event, entry)
+                                }
                               >
                                 {entry.title || entry.id}
-                              </span>
+                              </a>
                             </div>
                           </li>
                         ))}
@@ -832,6 +909,15 @@ export default function DetailsPanel({
             </>
           )}
         </div>
+        <HealthSignalModal
+          isOpen={Boolean(openedSignalId)}
+          signalId={openedSignalId}
+          fallbackTitle={openedSignalTitle}
+          items={catalogItems}
+          buildItemLink={buildItemLink}
+          onSelectItemById={onSelectItemById}
+          onClose={closeSignal}
+        />
         <AiChatPanel
           isOpen={isAiChatOpen}
           buildItemLink={buildItemLink}

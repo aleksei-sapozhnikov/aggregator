@@ -4511,6 +4511,10 @@ body[data-theme="dark"] .about-social-icon-linkedin {
   border-radius: 3px;
 }
 
+.signal-link {
+  font-size: inherit;
+}
+
 .signals-incident-signal-list {
   margin: 2px 0 2px 11px;
   padding: 0 0 0 17px;
@@ -4531,6 +4535,31 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 
 .signals-incident-signal::before {
   display: none;
+}
+
+.health-signal-details-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.health-signal-details-table th,
+.health-signal-details-table td {
+  padding: 11px 12px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+.health-signal-details-table th {
+  width: 24%;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.health-signal-field-value {
+  white-space: pre-wrap;
 }
 
 .signals-group-list {
