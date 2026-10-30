@@ -521,35 +521,43 @@ describe("DetailsPanel contextual help", () => {
     const { container } = renderDetailsPanel();
 
     expect(
-      container.querySelector(".signals-unhealthy-own-row a.signal-link")
+      container
+        .querySelector(".signals-unhealthy-own-row a.signal-link")
         ?.getAttribute("href"),
     ).toBe("#signal/latency");
     expect(
-      container.querySelector(".signals-incident-signal a.signal-link")
+      container
+        .querySelector(".signals-incident-signal a.signal-link")
         ?.getAttribute("href"),
     ).toBe("#signal/errors");
     expect(
-      container.querySelector(".signals-healthy-row a.signal-link")
+      container
+        .querySelector(".signals-healthy-row a.signal-link")
         ?.getAttribute("href"),
     ).toBe("#signal/availability");
   });
 
   it("opens signal details on click and keeps the current item route", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => ({
-        id: "latency",
-        title: "Latency",
-        type: "http-poll",
-        itemId: "checkout",
-        url: "http://demo/health/latency",
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          id: "latency",
+          title: "Latency",
+          type: "http-poll",
+          itemId: "checkout",
+          url: "http://demo/health/latency",
+        }),
       }),
-    }));
+    );
     const { user } = renderDetailsPanel();
     await user.click(screen.getByRole("link", { name: "Latency" }));
 
-    const dialog = screen.getByRole("dialog", { name: "Health signal details" });
+    const dialog = screen.getByRole("dialog", {
+      name: "Health signal details",
+    });
     expect(dialog.querySelector(".modal-header h2")?.textContent).toBe(
       "Latency",
     );
@@ -559,7 +567,9 @@ describe("DetailsPanel contextual help", () => {
     await user.click(
       screen.getByRole("button", { name: "Close health signal details" }),
     );
-    expect(screen.queryByRole("dialog", { name: "Health signal details" })).toBeNull();
+    expect(
+      screen.queryByRole("dialog", { name: "Health signal details" }),
+    ).toBeNull();
     expect(window.location.hash).toBe("");
   });
 

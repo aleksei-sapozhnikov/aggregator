@@ -720,7 +720,9 @@ export default function DetailsPanel({
                                 className="details-text-link signal-name signal-link"
                                 title={entry.title || entry.id}
                                 href={buildSignalLink(entry.id)}
-                                onClick={(event) => handleSignalClick(event, entry)}
+                                onClick={(event) =>
+                                  handleSignalClick(event, entry)
+                                }
                               >
                                 {entry.title || entry.id}
                               </a>
@@ -757,7 +759,9 @@ export default function DetailsPanel({
                                   <a
                                     className="details-text-link signal-name signal-link"
                                     href={buildSignalLink(signal.id)}
-                                    onClick={(event) => handleSignalClick(event, signal)}
+                                    onClick={(event) =>
+                                      handleSignalClick(event, signal)
+                                    }
                                   >
                                     {signal.title || signal.id}
                                   </a>
@@ -833,7 +837,9 @@ export default function DetailsPanel({
                                 className="details-text-link signal-name signal-link"
                                 title={entry.title || entry.id}
                                 href={buildSignalLink(entry.id)}
-                                onClick={(event) => handleSignalClick(event, entry)}
+                                onClick={(event) =>
+                                  handleSignalClick(event, entry)
+                                }
                               >
                                 {entry.title || entry.id}
                               </a>

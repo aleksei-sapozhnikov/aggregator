@@ -2,7 +2,13 @@
  * @vitest-environment jsdom
  */
 
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import HealthSignalModal from "./HealthSignalModal";
 
@@ -60,7 +66,9 @@ describe("HealthSignalModal", () => {
       ),
       expect.objectContaining({ signal: expect.any(AbortSignal) }),
     );
-    const dialog = screen.getByRole("dialog", { name: "Health signal details" });
+    const dialog = screen.getByRole("dialog", {
+      name: "Health signal details",
+    });
     expect(dialog.querySelector(".modal-header h2")?.textContent).toBe(
       "Availability heartbeat responds",
     );
@@ -80,9 +88,11 @@ describe("HealthSignalModal", () => {
       "extraConfiguration",
     ]);
     expect(dialog.textContent).toContain('"threshold": 2');
-    expect(screen.getByRole("link", { name: "Payments Service" }).getAttribute("href")).toBe(
-      "/item/payments",
-    );
+    expect(
+      screen
+        .getByRole("link", { name: "Payments Service" })
+        .getAttribute("href"),
+    ).toBe("/item/payments");
   });
 
   it("opens the linked catalog item and closes the signal dialog", async () => {
