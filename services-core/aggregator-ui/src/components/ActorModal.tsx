@@ -5,8 +5,8 @@ import {
   resolveContactTypeDisplayName,
 } from "../shared/contactUtils";
 import type { CatalogActor, CatalogContact } from "../shared/types";
-import { isPlainLeftClick } from "../shared/catalogUtils";
 import ModalWindow from "./ModalWindow";
+import EntityInfoAction from "./EntityInfoAction";
 import SecondaryLabel from "./SecondaryLabel";
 
 const resolveActorLabel = (actor?: CatalogActor | null): string => {
@@ -71,17 +71,7 @@ export default function ActorModal({
             <ul className="actor-modal-contacts">
               {orderedContacts.map((contact) => (
                 <li key={contact.id} className="actor-modal-contact-row">
-                  <a
-                    className="details-text-link actor-modal-contact-link"
-                    href={`/contacts/${contact.id}`}
-                    onClick={(event) => {
-                      if (!isPlainLeftClick(event)) {
-                        return;
-                      }
-                      event.preventDefault();
-                      onOpenContact(contact);
-                    }}
-                  >
+                  <span className="actor-modal-contact-details">
                     <span
                       className="actor-modal-contact-icon"
                       title={resolveContactTypeDisplayName(contact.type)}
@@ -100,7 +90,11 @@ export default function ActorModal({
                     <span className="actor-modal-contact-name">
                       {resolveContactLabel(contact)}
                     </span>
-                  </a>
+                  </span>
+                  <EntityInfoAction
+                    label={`Details for contact: ${resolveContactLabel(contact)}`}
+                    onClick={() => onOpenContact(contact)}
+                  />
                   {primaryContact?.id === contact.id && (
                     <SecondaryLabel text="Primary" />
                   )}
