@@ -563,6 +563,41 @@ describe("DetailsPanel contextual help", () => {
     expect(window.location.hash).toBe("");
   });
 
+  it("restores a signal modal from a direct signal ID link", async () => {
+    window.history.replaceState({}, "", "/item/checkout#signal/errors");
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        id: "errors",
+        title: "Error rate",
+        itemId: "payments",
+        type: "http-poll",
+        url: "http://demo/health/errors",
+      }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    renderDetailsPanel();
+    expect(
+      screen.getByRole("dialog", { name: "Health signal details" }),
+    ).not.toBeNull();
+    await screen.findByRole("link", { name: "Payments Service" });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("preserves modified clicks on signal links", () => {
+    const { container } = renderDetailsPanel();
+    const link = container.querySelector<HTMLAnchorElement>(
+      ".signals-unhealthy-own-row a.signal-link",
+    );
+    expect(link).not.toBeNull();
+
+    fireEvent.click(link as HTMLAnchorElement, { ctrlKey: true });
+    expect(window.location.hash).toBe("");
+    expect(screen.queryByRole("dialog", { name: "Health signal details" })).toBeNull();
+  });
+
   it("keeps unknown unhealthy states explicitly visible", () => {
     const { container } = renderDetailsPanel({
       selectedFailingSignals: [
