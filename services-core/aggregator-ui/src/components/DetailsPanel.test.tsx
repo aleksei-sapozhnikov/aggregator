@@ -449,16 +449,30 @@ describe("DetailsPanel contextual help", () => {
     expect(container.querySelectorAll(".details-row-meta")).toHaveLength(0);
   });
 
-  it("groups actor links and healthy signals without redundant icons", () => {
+  it("shows persistent modal info icons for actors and healthy signals", () => {
     const { container } = renderDetailsPanel();
     const actors = container.querySelector(".ownership-extra-list");
     const healthy = container.querySelector(".signals-healthy-list");
 
-    expect(actors?.querySelectorAll(".actor-summary-icon")).toHaveLength(0);
-    expect(actors?.querySelector(".actor-summary-link")?.textContent).toBe(
+    expect(actors?.querySelector(".actor-summary-name")?.textContent).toBe(
       "Checkout Team",
     );
+    expect(actors?.querySelector("a")).toBeNull();
+    expect(
+      actors
+        ?.querySelector("button.entity-info-action")
+        ?.getAttribute("aria-label"),
+    ).toBe("Details for actor: Checkout Team");
+
     expect(healthy?.querySelectorAll(".status-indicator")).toHaveLength(0);
+    expect(
+      healthy
+        ?.querySelector(".signals-healthy-row a.entity-info-action")
+        ?.getAttribute("aria-label"),
+    ).toBe("Details for signal: Availability");
+    expect(
+      healthy?.querySelector(".signals-healthy-row .signal-name")?.textContent,
+    ).toBe("Availability");
     expect(
       healthy
         ?.querySelector(".signals-healthy-row")
@@ -517,24 +531,35 @@ describe("DetailsPanel contextual help", () => {
     );
   });
 
-  it("links each own, dependency, and healthy signal to its catalog ID", () => {
+  it("keeps deep links on visible info icons for all signal groups", () => {
     const { container } = renderDetailsPanel();
 
+    for (const [selector, id] of [
+      [".signals-unhealthy-own-row", "latency"],
+      [".signals-incident-signal", "errors"],
+      [".signals-healthy-row", "availability"],
+    ]) {
+      const row = container.querySelector(selector);
+      expect(row?.querySelector(".signal-name")?.tagName).toBe("SPAN");
+      expect(row?.querySelectorAll(".entity-info-action")).toHaveLength(1);
+      expect(
+        row?.querySelector("a.entity-info-action")?.getAttribute("href"),
+      ).toBe(`#signal/${id}`);
+    }
     expect(
-      container
-        .querySelector(".signals-unhealthy-own-row a.signal-link")
-        ?.getAttribute("href"),
-    ).toBe("#signal/latency");
-    expect(
-      container
-        .querySelector(".signals-incident-signal a.signal-link")
-        ?.getAttribute("href"),
-    ).toBe("#signal/errors");
-    expect(
-      container
-        .querySelector(".signals-healthy-row a.signal-link")
-        ?.getAttribute("href"),
-    ).toBe("#signal/availability");
+      container.querySelector(".signals-dependency-row a.details-text-link")
+        ?.textContent,
+    ).toBe("Payments");
+  });
+
+  it("opens an Actor modal from its info icon", async () => {
+    const { user, props } = renderDetailsPanel();
+
+    await user.click(
+      screen.getByRole("button", { name: "Details for actor: Checkout Team" }),
+    );
+
+    expect(props.onOpenActor).toHaveBeenCalledWith(ownerActor);
   });
 
   it("opens signal details on click and keeps the current item route", async () => {
@@ -553,7 +578,9 @@ describe("DetailsPanel contextual help", () => {
       }),
     );
     const { user } = renderDetailsPanel();
-    await user.click(screen.getByRole("link", { name: "Latency" }));
+    await user.click(
+      screen.getByRole("link", { name: "Details for signal: Latency" }),
+    );
 
     const dialog = screen.getByRole("dialog", {
       name: "Health signal details",
