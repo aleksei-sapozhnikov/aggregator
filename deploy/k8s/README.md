@@ -42,10 +42,13 @@ The application stack includes Aggregator, Catalog, UI, AI Agent, Chaos
 Maker, three dummy services, Prometheus and Grafana. Grafana contains the
 demo timeline dashboard. Prometheus/Grafana data uses K3s local-path PVCs,
 which are **not** durable if the EC2 instance is deleted.
+Prometheus retains up to 30 days or 5 GB of TSDB blocks (whichever
+limit applies first); its PVC requests 8 GiB to leave room for
+compaction and WAL. The EC2 root volume remains 50 GiB by default.
 
 ## First deployment
 
-- Review and apply policy updates in `deploy/infra/admin` using the
+- Review and apply policy updates in `infra/bootstrap` using the
   authorized `infra-admin` identity; do not change IAM manually.
 - Verify that all eight GHCR images allow **anonymous pulls**, since K3s has
   no image pull secret.

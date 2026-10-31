@@ -17,13 +17,12 @@ bootstrapping. The existing Docker Compose demo remains unchanged.
 
 ## Execution and reconciliation
 
-Cloud-init installs Git and Python 3.12 and retains the original on-node
-wrapper for compatibility, but it does not run Ansible. The reviewed GitHub
-workflow uses `infra/demo/ansible/dispatch-ssm.sh` to submit the versioned
+Cloud-init installs Git and Python 3.12 only; it contains no embedded
+Ansible wrapper. The reviewed GitHub workflow uses `infra/demo/ansible/dispatch-ssm.sh` to submit the versioned
 `infra/demo/ssm-node-configure.sh` through SSM. This launcher:
 
 1. Waits for cloud-init and takes the same node configuration lock as the
-   original wrapper, preventing concurrent checkouts or playbook execution.
+   configuration process, preventing concurrent checkouts or playbook execution.
 2. Fetches and verifies the exact triggering commit SHA.
 3. Runs `infra/demo/node-configure.sh` **from that checkout**.
 4. Checks K3s, Traefik, Argo CD and the registered Application.
@@ -42,10 +41,9 @@ authorized SSM Run Command running the checked-out revision's
 `ssm-node-configure.sh`. Do not call `node-configure.sh` directly on a
 running node; it assumes the caller owns the shared checkout lock.
 
-The old `/usr/local/sbin/aggregator-node-configure` is not deleted, and the
-legacy `deploy/ansible` Git symlink remains available for rollback.
-The Terraform cloud-init file is unchanged, so this migration does not
-replace the EC2 instance.
+The replacement K3s EC2 is initialized from the minimal cloud-init
+template. No legacy wrapper or `deploy/ansible` compatibility symlink is
+needed. Existing local-path PVC contents are intentionally not migrated.
 
 K3s is reinstalled only if its installed pinned version differs. The
 Argo CD manifest is reapplied to reconcile drift. Configuration does not
@@ -152,11 +150,3 @@ only; when no published manifests exist, the infrastructure workflow
 dispatches `demo-deploy` after Ansible succeeds. The Kubernetes resources
 and release procedures are documented in
 [deploy/k8s/README.md](../../../deploy/k8s/README.md).
-
-## Compatibility with existing EC2 nodes
-
-The original cloud-init wrapper remains on existing EC2 nodes and still
-references `deploy/ansible`. Git retains that path as a symlink to
-`infra/demo/ansible` for rollback. The approved SSM workflow does not call
-this wrapper and does not require the symlink; only the legacy wrapper does.
-No user-data changes or EC2 replacement are part of this stage.

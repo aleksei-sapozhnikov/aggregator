@@ -2,11 +2,11 @@
 
 This opt-in Terraform module creates a separate Amazon Linux 2023 EC2 node,
 instance profile, and security group. Cloud-init runs during **first boot**
-to install minimal prerequisites and a compatibility wrapper. After Terraform
+to install only minimal prerequisites. After Terraform
 apply, GitHub Actions uses the versioned `infra/demo/ssm-node-configure.sh`
 over SSM to fetch the approved commit and run its `infra/demo/node-configure.sh`
-entrypoint with [Ansible](../../ansible/README.md). The existing EC2 wrapper
-is not invoked by the current workflow.
+entrypoint with [Ansible](../../ansible/README.md). There is no on-node wrapper in the new cloud-init; all configuration
+logic is maintained in Git and invoked over SSM.
 
 Security and networking:
 

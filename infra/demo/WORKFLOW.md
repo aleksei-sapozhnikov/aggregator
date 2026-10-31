@@ -65,13 +65,13 @@ local checks or pull-request validation:
      in `demo-deploy`. For application-only pushes with a published
      release, all Terraform/Ansible jobs are skipped.
 
-Cloud-init only installs OS prerequisites and leaves the original root-owned
-wrapper for compatibility. The approved SSM launcher fetches the exact
-revision and runs the version-owned Ansible entrypoint independently of the
-old wrapper. Cloud-init does **not** fetch or run Ansible on its own.
-Terraform owns the cloud-init template; changing that template intentionally
-replaces the K3s EC2 (subject to the reviewed Terraform plan), rather than
-restarting an instance without re-running cloud-init.
+Cloud-init installs only OS prerequisites; it does not embed a shell
+wrapper or reference repository paths. The approved SSM launcher fetches
+the exact revision and runs the version-owned Ansible entrypoint.
+Terraform owns the cloud-init template. The transition to a minimal template
+intentionally replaces **only the K3s EC2** via
+`user_data_replace_on_change = true`; its local-path PVC data is discarded.
+The legacy serving demo must not be replaced.
 
 Changes under `infra/demo/ansible/**`, either of the versioned
 `infra/demo/{ssm-node-configure,node-configure}.sh` scripts, or

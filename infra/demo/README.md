@@ -31,7 +31,9 @@ By default `enable_k3s_node = false` to avoid unexpected EC2 charges.
 To provision the K3s node, set `enable_k3s_node = true` and review the
 full OpenTofu plan using the same values as the GitHub demo Environment.
 Keep `enable_bedrock` consistent with the running legacy instance.
-Do not apply plans that unexpectedly remove or replace existing instances.
+A reviewed replacement of only `module.aggregator_demo_k3s[0].aws_instance.this`
+is expected when adopting the minimal cloud-init. Never replace the serving
+`module.aggregator_demo` EC2 instance.
 
 The exact Ansible revision is provided later by the GitHub workflow through
 SSM as a Git commit SHA; it is not an OpenTofu variable.
@@ -40,13 +42,12 @@ security group, a 50 GiB encrypted root volume by default, and an automatically
 assigned public IP. It does not take the serving demo's Elastic IP.
 
 The selected pinned AL2023 AMI must remain available in `eu-central-1`.
-First-boot cloud-init installs Python 3.12 and Git and provides a
-legacy compatibility wrapper. After an approved infrastructure apply, SSM
-fetches the exact Git revision and invokes the version-owned
-`infra/demo/node-configure.sh`, which runs Ansible to configure K3s and
-Argo CD; egress to AWS Systems Manager, GitHub, PyPI, K3s releases,
-and container registries must work. K3s has Traefik and ServiceLB disabled
-until a separately configured ingress solution is added.
+First-boot cloud-init only installs Python 3.12 and Git. It contains no
+repository paths, shell wrapper or Ansible execution. After an approved
+infrastructure apply, SSM fetches the exact Git revision and invokes
+`infra/demo/node-configure.sh` to configure K3s and Argo CD. Egress to
+AWS Systems Manager, GitHub, PyPI, K3s releases and container registries
+must work. K3s uses its bundled Traefik and ServiceLB.
 
 ## Reapply and inspect with SSM
 
@@ -62,8 +63,8 @@ aws ssm start-session \
 ```
 
 For normal configuration, use the approved GitHub demo workflow. Its
-SSM command serializes Git checkout and Ansible execution using the same lock
-as the old EC2 wrapper. Inside an SSM session, inspect the result:
+SSM command serializes Git checkout and Ansible execution using a lock.
+Inside an SSM session, inspect the result:
 
 ```sh
 sudo /usr/local/bin/k3s kubectl get nodes
@@ -73,15 +74,15 @@ sudo tail -100 /var/log/aggregator-node-configure.log
 ```
 
 The versioned scripts are `infra/demo/ssm-node-configure.sh` (SSM command)
-and `infra/demo/node-configure.sh` (Ansible runner). The old on-node wrapper
-is kept only for compatibility and rollback.
+and `infra/demo/node-configure.sh` (Ansible runner). No persistent
+configuration wrapper is installed by the new EC2 cloud-init.
 First-boot logs are also in `/var/log/cloud-init-output.log`.
 Updating Terraform user data on an existing instance does **not**
 reinvoke the playbook; use SSM for subsequent reconciliation. A separate
 `infra/demo/ansible/README.md` describes role behavior and checks.
 
-Argo CD is initially a **ClusterIP-only** service. Its UI is not publicly
-exposed and no Aggregator application manifests are installed.
+Argo CD is a **ClusterIP-only** service. Its UI is not publicly
+exposed; application manifests are published separately by the demo workflow.
 
 ## Checks and safeguards
 
@@ -95,6 +96,8 @@ tflint --recursive --config="$PWD/.tflint.hcl" --minimum-failure-severity=notice
 ```
 
 Review every plan that might affect the currently serving legacy instance.
+Replacing the K3s EC2 discards its local-path PVC data (Prometheus and Grafana).
+This is intentional for the rebuild, not a data migration.
 It remains protected by `prevent_destroy`. Turning off the K3s flag after
 enabling it would plan removal of the **new** node; preserve its data first.
 Keep state, saved plans, credentials and local variables out of Git.

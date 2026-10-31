@@ -20,8 +20,9 @@ were checked using clean `tofu plan` results after the migration.
 No IAM identities, AWS object names or S3 state keys were renamed during the
 ownership transfer. The demo OpenTofu root was relocated from `deploy/infra/demo` to
 `infra/demo` with the same backend key `demo/tofu.tfstate` and unchanged module
-addresses. Ansible now lives in `infra/demo/ansible`; the legacy path is a
-Git symbolic link for compatibility with existing EC2 cloud-init wrappers.
+addresses. Ansible now lives in `infra/demo/ansible`. A temporary compatibility
+symlink was used during relocation and retired when the K3s EC2 cloud-init
+was simplified for a planned replacement.
 The project-specific IAM root was previously relocated
 in source control from `deploy/infra/admin` to `infra/bootstrap` without
 moving its S3 state.
