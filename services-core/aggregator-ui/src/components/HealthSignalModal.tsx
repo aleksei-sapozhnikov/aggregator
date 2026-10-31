@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { CatalogItem } from "../shared/types";
 import { isPlainLeftClick } from "../shared/catalogUtils";
 import ModalWindow from "./ModalWindow";
+import ItemNavigationLink from "./ItemNavigationLink";
 
 type HealthSignalDetails = Record<string, unknown> & {
   id: string;
@@ -137,8 +138,7 @@ export default function HealthSignalModal({
             <tr>
               <th scope="row">item</th>
               <td>
-                <a
-                  className="details-text-link"
+                <ItemNavigationLink
                   href={buildItemLink(itemId)}
                   onClick={(event) => {
                     if (!isPlainLeftClick(event)) {
@@ -150,7 +150,7 @@ export default function HealthSignalModal({
                   }}
                 >
                   {itemTitle}
-                </a>
+                </ItemNavigationLink>
               </td>
             </tr>
             <tr>
