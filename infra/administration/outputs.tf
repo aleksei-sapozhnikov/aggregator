@@ -14,8 +14,3 @@ output "github_demo_infra_apply_role_arn" {
   description = "Set as AWS_ROLE_ARN in the demo-infra-apply GitHub Environment."
   value       = aws_iam_role.github_demo_infra_apply.arn
 }
-
-output "aggregator_state_bucket_name" {
-  description = "Aggregator-owned private bucket for project OpenTofu state and saved plans."
-  value       = aws_s3_bucket.aggregator_state.id
-}

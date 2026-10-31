@@ -1,6 +1,6 @@
-# Aggregator-owned state bucket, independently managed from aws_foundation.
-# Create this in the existing infra/bootstrap state before migrating backends.
-# Never attempt to create the bucket by pointing an uninitialized backend at it.
+# Aggregator workload-state bucket, provisioned by the delegated
+# aggregator-admin identity using an initially local OpenTofu state.
+# Move this root state into the new S3 bucket after first creation.
 
 resource "aws_s3_bucket" "aggregator_state" {
   bucket        = "aggregator-project-tofu-state-905418096305-eu-central-1"
@@ -56,7 +56,7 @@ resource "aws_s3_bucket_ownership_controls" "aggregator_state" {
   }
 }
 
-# Only saved plans are temporary. All admin/demo/publication state history
+# Only saved plans are temporary. All state/demo/publication state history
 # and OpenTofu lock files remain outside these lifecycle rules.
 resource "aws_s3_bucket_lifecycle_configuration" "aggregator_demo_plans" {
   bucket = aws_s3_bucket.aggregator_state.id
@@ -117,21 +117,6 @@ data "aws_iam_policy_document" "aggregator_state_bucket" {
       test     = "Bool"
       variable = "aws:SecureTransport"
       values   = ["false"]
-    }
-  }
-
-  # The delegated user may manage workload state but not the IAM bootstrap.
-  statement {
-    sid       = "DenyDelegatedUserAdminStateAccess"
-    effect    = "Deny"
-    actions   = ["s3:*"]
-    resources = [
-      "${aws_s3_bucket.aggregator_state.arn}/admin/*",
-    ]
-
-    principals {
-      type        = "AWS"
-      identifiers = [aws_iam_user.aggregator_admin.arn]
     }
   }
 
