@@ -45,3 +45,4 @@ if not {"git", "python3.12", "python3.12-pip"}.issubset(
     raise SystemExit("K3s cloud-init is missing required packages")
 PY
 python3 -m unittest discover -s infra/demo/ansible/tests -p 'test_*.py'
+python3 -m unittest discover -s .github/scripts/demo-infra/tests -p 'test_*.py'
