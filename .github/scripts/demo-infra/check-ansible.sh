@@ -58,3 +58,4 @@ Path(os.environ["RUNNER_TEMP"], "aggregator-node-configure.sh").write_text(
 )
 PY
 bash -n "$RUNNER_TEMP/aggregator-node-configure.sh"
+python3 -m unittest discover -s infra/demo/ansible/tests -p 'test_*.py'
