@@ -21,12 +21,14 @@ args = sys.argv[1:]
 if args[:2] == ["s3api", "put-object"]:
     assert args[args.index("--if-none-match") + 1] == "*", args
     assert args[args.index("--key") + 1] == os.environ["EXPECTED_KEY"], args
+    assert args[args.index("--bucket") + 1] == os.environ["EXPECTED_BUCKET"], args
     object_path = Path(os.environ["FAKE_S3_OBJECT"])
     if object_path.exists():
         sys.exit(41)
     shutil.copyfile(args[args.index("--body") + 1], object_path)
 elif args[:2] == ["s3api", "get-object"]:
     assert args[args.index("--key") + 1] == os.environ["EXPECTED_KEY"], args
+    assert args[args.index("--bucket") + 1] == os.environ["EXPECTED_BUCKET"], args
     shutil.copyfile(os.environ["FAKE_S3_OBJECT"], args[-1])
 else:
     sys.exit(42)
@@ -61,6 +63,7 @@ class SavedPlanS3TransferTests(unittest.TestCase):
                 "AWS_REGION": "eu-central-1",
                 "FAKE_S3_OBJECT": str(self.artifact),
                 "EXPECTED_KEY": "plans/demo/123456/2/demo.tfplan",
+                "EXPECTED_BUCKET": "aggregator-project-tofu-state-905418096305-eu-central-1",
             }
         )
 

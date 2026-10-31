@@ -14,7 +14,7 @@ umask 077
   exit 2
 }
 
-bucket="aggregator-tofu-state-905418096305-eu-central-1"
+bucket="aggregator-project-tofu-state-905418096305-eu-central-1"
 key="plans/demo/${GITHUB_RUN_ID}/${GITHUB_RUN_ATTEMPT}/demo.tfplan"
 export AWS_PAGER=""
 

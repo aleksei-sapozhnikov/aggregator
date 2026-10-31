@@ -17,3 +17,6 @@ override.tf.json
 *_override.tf.json
 .local/
 .env
+
+# The initial root is local; the private backend is activated after bucket creation.
+backend.tf
