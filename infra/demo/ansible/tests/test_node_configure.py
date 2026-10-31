@@ -30,6 +30,24 @@ class NodeConfigurationContractTests(unittest.TestCase):
         self.assertIn('export AGGREGATOR_REPO_ROOT="$repo_dir"', runner)
         self.assertNotIn("deploy/ansible", runner)
 
+    def test_minimal_cloud_init_and_prometheus_retention(self) -> None:
+        cloud_init = (
+            DEMO / "modules/ec2_k3s/cloud-init.yaml.tftpl"
+        ).read_text(encoding="utf-8")
+        self.assertIn("python3.12", cloud_init)
+        self.assertNotIn("write_files:", cloud_init)
+        self.assertNotIn("aggregator-node-configure", cloud_init)
+        self.assertNotIn("deploy/ansible", cloud_init)
+        self.assertFalse((REPO / "deploy/ansible").exists())
+
+        manifests = (REPO / "deploy/k8s/workloads.yaml").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("--storage.tsdb.retention.time=30d", manifests)
+        self.assertIn("--storage.tsdb.retention.size=5GB", manifests)
+        prometheus_pvc = manifests.split("name: prometheus-data", 1)[1]
+        self.assertIn("storage: 8Gi", prometheus_pvc.split("---", 1)[0])
+
     def test_argocd_helper_path_matches_relocated_checkout(self) -> None:
         path = DEMO / "ansible" / "roles" / "argocd" / "tasks" / "main.yml"
         task = path.read_text(encoding="utf-8")

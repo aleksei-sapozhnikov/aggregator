@@ -11,7 +11,7 @@ if ! cloud-init status --wait; then
   exit 1
 fi
 
-# This lock is shared with the original EC2 cloud-init wrapper.
+# Serialize Git checkouts, Ansible execution, and K3s readiness checks.
 exec 9>/run/lock/aggregator-node-configure.lock
 flock -n 9 || { echo "Configuration is already running" >&2; exit 1; }
 
