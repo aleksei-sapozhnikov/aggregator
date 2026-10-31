@@ -8,7 +8,6 @@ type CatalogItemInfoProps = {
 };
 
 const missingTooltip = "No description in catalog";
-const viewDescriptionTooltip = "View item description";
 const missingDetailNotice = "No detailed description in catalog.";
 const tooltipGap = 6;
 const viewportPadding = 8;
@@ -41,7 +40,7 @@ export default function CatalogItemInfo({ item }: CatalogItemInfoProps) {
   const tooltip = hasShortDescription
     ? shortDescription
     : hasFullDescription
-      ? viewDescriptionTooltip
+      ? "Click for details"
       : missingTooltip;
   const paragraphs = useMemo(
     () => splitParagraphs(fullDescription),
@@ -151,7 +150,7 @@ export default function CatalogItemInfo({ item }: CatalogItemInfoProps) {
             }}
           >
             <span>{tooltip}</span>
-            {isEnabled && (
+            {hasShortDescription && (
               <span className="catalog-item-info-tooltip-action">
                 Click for details
               </span>
