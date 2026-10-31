@@ -62,4 +62,3 @@ resource "aws_iam_user_group_membership" "aggregator_admin" {
     prevent_destroy = true
   }
 }
-

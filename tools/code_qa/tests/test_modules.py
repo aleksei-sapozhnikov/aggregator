@@ -109,7 +109,9 @@ class ModuleConfigurationTests(unittest.TestCase):
         root = repo_root()
         changed = module_path(root, "infra-bootstrap", "removed.tf")
         check = next(
-            check for check in cli.CHECKS if check.check_id == "infra-bootstrap/tofu-format"
+            check
+            for check in cli.CHECKS
+            if check.check_id == "infra-bootstrap/tofu-format"
         )
 
         def inspect(runner: str, args: list[str]) -> tuple[bool, list[str]]:

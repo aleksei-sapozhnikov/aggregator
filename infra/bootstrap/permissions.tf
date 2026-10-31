@@ -54,5 +54,3 @@ resource "aws_iam_group_policy_attachment" "publication_publication_state_access
   group      = aws_iam_group.publication.name
   policy_arn = aws_iam_policy.publication_state_access.arn
 }
-
-
