@@ -204,7 +204,8 @@ More detail:
   hooks.
 - [deploy/demo/README.md](deploy/demo/README.md) covers the hosted demo stack.
 - [infra/bootstrap/README.md](infra/bootstrap/README.md) documents project IAM
-  administration. [deploy/infra/README.md](deploy/infra/README.md) explains
-  workload infrastructure, state separation, and safe operational boundaries.
+  administration. [infra/demo/README.md](infra/demo/README.md) covers demo
+  infrastructure and Ansible. [deploy/infra/README.md](deploy/infra/README.md)
+  covers remaining workload infrastructure and state separation.
 - [tools/code_qa/README.md](tools/code_qa/README.md) describes the repository
   QA runner and available module-level checks.

@@ -67,6 +67,16 @@ class ModuleConfigurationTests(unittest.TestCase):
             inputs.files_in_module(root, "publication-tools", paths), [paths[1]]
         )
 
+    def test_demo_ansible_is_a_nested_module(self) -> None:
+        root = Path(tempfile.gettempdir()).resolve() / "qa-demo-module-paths"
+        tofu_file = module_path(root, "infra-demo", "main.tf")
+        playbook = module_path(root, "infra-demo-ansible", "site.yml")
+        paths = [tofu_file, playbook]
+        self.assertEqual(inputs.files_in_module(root, "infra-demo", paths), [tofu_file])
+        self.assertEqual(
+            inputs.files_in_module(root, "infra-demo-ansible", paths), [playbook]
+        )
+
     def test_file_checks_receive_only_the_configured_module_directory(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

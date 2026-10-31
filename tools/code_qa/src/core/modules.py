@@ -101,7 +101,8 @@ MODULES = (
         TestSpec("unittest_tests", ("--start-directory", "tests")),
     ),
     ModuleSpec("infra-bootstrap", "infra/bootstrap", "tofu_code"),
-    ModuleSpec("infra-demo", "deploy/infra/demo", "tofu_code"),
+    ModuleSpec("infra-demo", "infra/demo", "tofu_code"),
+    ModuleSpec("infra-demo-ansible", "infra/demo/ansible"),
     ModuleSpec("infra-publication", "deploy/infra/publication", "tofu_code"),
     ModuleSpec(
         "lambda-publisher",
