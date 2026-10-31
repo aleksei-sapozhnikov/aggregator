@@ -14,7 +14,7 @@ Project-specific IAM administration remains **in this repository**.
 Only account-wide GitHub OIDC provider and Session Manager preferences live
 in Foundation. `infra/administration` runs using centrally granted rights
 but is versioned next to the Aggregator workloads. Its S3 state key is
-`aggregator/tofu.tfstate` in the central Administration state bucket,
+`projects/aggregator/tofu.tfstate` in the central Administration state bucket,
 which is inaccessible to `aggregator-admin`.
 
 **Migration is staged.** Do not initialize the changed backends against

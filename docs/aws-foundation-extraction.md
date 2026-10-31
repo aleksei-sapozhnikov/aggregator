@@ -4,7 +4,7 @@
 
 On October 31, 2026, account-wide GitHub OIDC, Session Manager settings
 and shared S3 configuration were separated into
-`aws_foundation/aws_account`. The Foundation state key was subsequently
+`aws_foundation/administration/aws_account`. The Foundation state key was subsequently
 renamed to `foundation/aws_account/tofu.tfstate` in the original bucket,
 without changing the bucket or destroying resources.
 
@@ -15,9 +15,9 @@ its resource addresses and `demo/tofu.tfstate` key.
 
 | Root | Ownership | Intended state |
 | --- | --- | --- |
-| `aws_foundation/bootstrap` | AWS root | Isolated bootstrap bucket |
-| `aws_foundation/aws_account` | Central `infra-admin` | Dedicated Foundation bucket, `foundation/aws_account/tofu.tfstate` |
-| `aggregator/infra/administration` | Central `infra-admin`, code in Aggregator | Protected Administration bucket, `aggregator/tofu.tfstate` |
+| `aws_foundation/foundation` | AWS root | Existing root-protected Foundation state bucket, `foundation/tofu.tfstate` |
+| `aws_foundation/administration/aws_account` | Central `infra-admin` | Administration bucket, `aws_account/tofu.tfstate` |
+| `aggregator/infra/administration` | Central `infra-admin`, code in Aggregator | Protected Administration bucket, `projects/aggregator/tofu.tfstate` |
 | `aggregator/infra/state` | Delegated `aggregator-admin` | Project bucket, `state/tofu.tfstate` |
 | `aggregator/infra/demo` | Delegated / approved OIDC | Project bucket, `demo/tofu.tfstate` |
 | `aggregator/deploy/infra/publication` | Delegated `aggregator-admin` | Project bucket, `publication/tofu.tfstate` |
@@ -29,7 +29,7 @@ is presently named `infra-admin`; the IAM user is *not* renamed
 automatically by these changes.
 
 The original shared bucket is retained intact for migration and for
-historical privileged state versions. The Foundation root's `removed`
+historical privileged state versions. The account Administration root's `removed`
 blocks deliberately **forget** it rather than destroy it; S3 historical
 cleanup is a separate, security-sensitive decision.
 
@@ -39,7 +39,7 @@ before applying IAM changes, state backends or GitHub CI changes.
 
 ## Security
 
-AWS root controls only the root-protected bootstrap root. The central
+AWS root controls only the root-protected Foundation root. The central
 administrator can change account-level infrastructure and project IAM;
 the delegated project admin can change its own workload resources
 and S3 state bucket, but cannot read central administrative state.

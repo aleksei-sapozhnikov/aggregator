@@ -5,13 +5,13 @@ and delegation to `aggregator-admin`. This OpenTofu root lives in the
 Aggregator repository but is executed **only by the central AWS administrator**,
 currently IAM user `infra-admin`. Foundation does not contain project IAM.
 
-Its state is stored in the Foundation-created, administrator-only bucket
+Its state is stored in the administrator-owned, access-restricted bucket
 `aws-administration-state-905418096305-eu-central-1` at
-`aggregator/tofu.tfstate`. The delegated `aggregator-admin` cannot
+`projects/aggregator/tofu.tfstate`. The delegated `aggregator-admin` cannot
 read, update or destroy this privileged state.
 
 The shared GitHub OIDC provider and SSM session preferences belong to
-`aws_foundation/aws_account`; project GitHub roles remain here.
+`aws_foundation/administration/aws_account`; project GitHub roles remain here.
 
 ## Owned resources
 
@@ -54,7 +54,7 @@ workflow or other operators still use it.
 
 `github_demo_deploy.tf` creates the role
 `AggregatorDemoDeployGithub`. It trusts the existing GitHub OIDC provider
-owned by `aws_foundation/aws_account`. The role can only run the dedicated SSM
+owned by `aws_foundation/administration/aws_account`. The role can only run the dedicated SSM
 document on the tagged serving demo EC2 and read its result.
 
 Apply this root using `infra-admin`. Set the resulting `github_demo_deploy_role_arn` output in the `demo`
@@ -124,14 +124,14 @@ termination and resume. The policy also retains `aws:userid` for
 Session Manager data-channel compatibility.
 
 The IAM user `aggregator-admin` is tagged `SSMSessionRunAs=ec2-user`.
-Regional Run As preferences are managed by `aws_foundation/aws_account`.
+Regional Run As preferences are managed by `aws_foundation/administration/aws_account`.
 Session preferences apply to every managed instance in the selected account
 and region. The IAM tag takes priority over the account default OS user.
 
 Test `whoami` and `id -u` in the browser shell. The expected user is
 `ec2-user` with a nonzero UID. This is not a strict privilege separation:
 `ec2-user` usually has sudo access and the serving demo user has Docker
-access. The regional session document is managed by `aws_foundation/aws_account` with
+access. The regional session document is managed by `aws_foundation/administration/aws_account` with
 explicit settings for session logging, encryption, and timeouts.
 
 Apply this root as `infra-admin`, then sign in to AWS as
@@ -147,7 +147,7 @@ or expose TCP/22. Administrative access uses Session Manager.
 ## Regional Session Manager preferences
 
 The account-wide `SSM-SessionManagerRunShell` document is owned by
-`aws_foundation/aws_account`. Do not reintroduce it as a managed resource here.
+`aws_foundation/administration/aws_account`. Do not reintroduce it as a managed resource here.
 
 ## Argo CD private dashboard
 

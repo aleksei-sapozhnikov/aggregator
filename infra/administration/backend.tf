@@ -3,7 +3,7 @@
 terraform {
   backend "s3" {
     bucket       = "aws-administration-state-905418096305-eu-central-1"
-    key          = "aggregator/tofu.tfstate"
+    key          = "projects/aggregator/tofu.tfstate"
     region       = "eu-central-1"
     encrypt      = true
     use_lockfile = true
