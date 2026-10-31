@@ -1,47 +1,39 @@
-# AWS access administration
+# Aggregator AWS administration
 
-OpenTofu root for Aggregator IAM users, groups, policies, permissions boundaries,
-and delegated access to the shared S3 state bucket. Workload roles belong to their respective stacks.
-This directory contains project-specific administration for Aggregator,
-not a global AWS-account administration root. Environment-specific EC2
-resources and their workload roles belong to their environment stacks.
-Account-wide shared resources are managed in `aws_foundation/aws_account`.
+Project-specific IAM users, groups, permissions boundaries, GitHub OIDC roles,
+and delegation to `aggregator-admin`. This OpenTofu root lives in the
+Aggregator repository but is executed **only by the central AWS administrator**,
+currently IAM user `infra-admin`. Foundation does not contain project IAM.
 
-## Contents
+Its state is stored in the Foundation-created, administrator-only bucket
+`aws-administration-state-905418096305-eu-central-1` at
+`aggregator/tofu.tfstate`. The delegated `aggregator-admin` cannot
+read, update or destroy this privileged state.
 
-`infra-admin` is an external operator managed exclusively by
-`aws_foundation/bootstrap`. This root does not manage its IAM user,
-group memberships, policies or attachments.
+The shared GitHub OIDC provider and SSM session preferences belong to
+`aws_foundation/aws_account`; project GitHub roles remain here.
 
-- `main.tf`: users, groups, and memberships.
-- `permissions.tf`: group policy attachments.
-- `policies.tf` and `policies/`: delegated permissions and workload boundaries.
-- `github_demo_deploy.tf`: demo application deploy role trusting the shared GitHub OIDC provider.
-- `github_demo_infra.tf`: OIDC plan/apply roles for demo infrastructure;
-  existing managed policies are reused instead of duplicated.
-- `plan_artifacts.tf`: isolated S3 permissions for private saved plans.
-  The planning role can only conditionally upload new `plans/demo/*` objects,
-  while the protected apply role can only download them. Neither permission
-  grants access to additional OpenTofu state keys.
-- `state.tf`: stable ARN of the shared state bucket managed by `aws_foundation/aws_account`.
-- `state_access.tf`: workload access to state keys and lock files.
-- `backend.tf`, `providers.tf`, `versions.tf`: state, AWS account, and tool versions.
+## Owned resources
 
-## Project-owned OpenTofu state
+- `main.tf`: existing `aggregator-admin`, groups, membership.
+- `permissions.tf`, `policies.tf`, `policies/`: managed policies and
+  attachments, including tightly scoped project-state bucket provisioning.
+- `github_demo_*.tf`: repository-specific OIDC plan/apply/deploy roles.
+- `state_access.tf`: demo/publication backend permissions. Old-bucket
+  permissions remain **temporarily** for state migration.
+- `plan_artifacts.tf`: separate plan-upload and approved-plan-read grants.
+- `project_state_bucket_management.tf`: allows the delegated project admin
+  to create and maintain its bucket. The bucket resource itself is in
+  `../state/`, never in this administration root.
 
-The new Aggregator-owned bucket and its S3 security controls are defined in
-`state_bucket.tf`. The migration is staged to avoid breaking any existing
-OpenTofu roots: **all active backends still point to the old shared bucket**
-until the first bucket creation and permissions migration are approved.
-See [state migration procedure](MIGRATE-STATE.md) before applying or
-switching any backend. The old bucket remains owned by
-`aws_foundation/aws_account` because Foundation keeps its own state there.
+## State migration and usage
 
-## Usage
+**Before using the changed backend or applying IAM**, follow the ordered
+[transition runbook](../MIGRATE-STATE.md). The existing administration
+resources retain their OpenTofu addresses and physical IAM names despite
+the directory move from `infra/bootstrap`.
 
-Use OpenTofu 1.12 or newer within the 1.x series and AWS credentials for
-`infra-admin` or an equivalent administrative identity. Set `AWS_PROFILE` for
-your shell, then run from this directory:
+After migration, with the central operator's credentials:
 
 ```sh
 tofu init
@@ -49,36 +41,14 @@ tofu validate
 tofu plan
 ```
 
-The configured account is `905418096305`, region `eu-central-1`.
-The S3 backend key deliberately remains `admin/tofu.tfstate` despite moving
-this root to `infra/bootstrap`. The bucket and other shared account
-infrastructure are managed separately by `aws_foundation/aws_account`.
+Do not approve any replacement of existing IAM identities. The new
+project-state bucket is owned by `aggregator-admin`, so this root must
+not create or import `aws_s3_bucket.aggregator_state`.
 
-## Checks
-
-Use TFLint 0.65.0 with this directory's `.tflint.hcl`. These static checks
-require no AWS credentials:
-
-```sh
-tofu fmt -check -recursive
-tflint --init
-tflint --recursive --config="$PWD/.tflint.hcl" --minimum-failure-severity=notice
-```
-
-## Operations
-
-Review privilege changes before applying them. The `aggregator-admin` user
-cannot administer this root or read its state. Demo and publication permissions
-refer to AWS resource names and ARNs; they do not load files or state from other
-roots.
-
-Keep state, saved plans, variable values, and credentials out of Git.
-Before running the updated demo workflow, apply `aws_foundation/aws_account`
-as `infra-admin` to enable the private plan prefix's S3 Lifecycle and
-conditional-write bucket policy. Then apply this `infra/bootstrap` root
-to install the separate plan upload/download policies. Review both plans;
-the workload's `demo/tofu.tfstate` object must not be moved or deleted.
-Commit `.terraform.lock.hcl` to preserve provider selections.
+Read/write state grants on the **legacy** bucket are intentionally retained
+only until demo/publication migrations are verified. Remove them in a
+separate follow-up IAM change; do not retire the old bucket while the
+workflow or other operators still use it.
 
 ## GitHub OIDC deploy identity
 
@@ -138,7 +108,7 @@ Creation requires the `Project=aggregator` and `Environment=demo` request
 tags. Other SSM documents and Run Command execution permissions are not granted.
 
 Apply this IAM change as `infra-admin` before retrying
-`deploy/infra/demo` as `aggregator-admin`. The latter already has its
+`infra/demo` as `aggregator-admin`. The latter already has its
 EC2 `AmazonSSMManagedInstanceCore` attachment from the previous partial apply.
 
 ## Browser access without inbound SSH
