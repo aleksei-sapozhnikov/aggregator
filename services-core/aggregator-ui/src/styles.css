@@ -4531,7 +4531,7 @@ body[data-theme="dark"] .about-social-icon-linkedin {
 .item-navigation-link-arrow {
   flex: 0 0 auto;
   font-size: 0.9em;
-  color: var(--muted);
+  color: var(--link);
   text-decoration: none;
 }
 
