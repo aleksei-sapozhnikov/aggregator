@@ -5,10 +5,15 @@
       "Sid": "ListOnlyDemoStatePrefix",
       "Effect": "Allow",
       "Action": "s3:ListBucket",
-      "Resource": "arn:aws:s3:::aggregator-tofu-state-905418096305-eu-central-1",
+      "Resource": [
+        "arn:aws:s3:::aggregator-tofu-state-905418096305-eu-central-1",
+        "arn:aws:s3:::aggregator-project-tofu-state-905418096305-eu-central-1"
+      ],
       "Condition": {
         "StringLike": {
-          "s3:prefix": ["demo/*"]
+          "s3:prefix": [
+            "demo/*"
+          ]
         }
       }
     },
@@ -16,13 +21,23 @@
       "Sid": "ReadDemoState",
       "Effect": "Allow",
       "Action": "s3:GetObject",
-      "Resource": "arn:aws:s3:::aggregator-tofu-state-905418096305-eu-central-1/demo/tofu.tfstate"
+      "Resource": [
+        "arn:aws:s3:::aggregator-tofu-state-905418096305-eu-central-1/demo/tofu.tfstate",
+        "arn:aws:s3:::aggregator-project-tofu-state-905418096305-eu-central-1/demo/tofu.tfstate"
+      ]
     },
     {
       "Sid": "LockDemoStateForPlan",
       "Effect": "Allow",
-      "Action": ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"],
-      "Resource": "arn:aws:s3:::aggregator-tofu-state-905418096305-eu-central-1/demo/tofu.tfstate.tflock"
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject"
+      ],
+      "Resource": [
+        "arn:aws:s3:::aggregator-tofu-state-905418096305-eu-central-1/demo/tofu.tfstate.tflock",
+        "arn:aws:s3:::aggregator-project-tofu-state-905418096305-eu-central-1/demo/tofu.tfstate.tflock"
+      ]
     }
   ]
 }

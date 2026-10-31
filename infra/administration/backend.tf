@@ -1,9 +1,9 @@
-# Remote state location and S3 lock-file configuration.
-
+# Project-specific IAM is operated by the central administrator.
+# Before migration, retain the old backend through an explicit init override.
 terraform {
   backend "s3" {
-    bucket       = "aggregator-tofu-state-905418096305-eu-central-1"
-    key          = "admin/tofu.tfstate"
+    bucket       = "aws-administration-state-905418096305-eu-central-1"
+    key          = "aggregator/tofu.tfstate"
     region       = "eu-central-1"
     encrypt      = true
     use_lockfile = true

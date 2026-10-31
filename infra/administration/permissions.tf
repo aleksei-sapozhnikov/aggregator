@@ -54,3 +54,9 @@ resource "aws_iam_group_policy_attachment" "publication_publication_state_access
   group      = aws_iam_group.publication.name
   policy_arn = aws_iam_policy.publication_state_access.arn
 }
+
+# Only the delegated project administrator may provision its project-state bucket.
+resource "aws_iam_group_policy_attachment" "base_project_state_bucket_management" {
+  group      = aws_iam_group.base.name
+  policy_arn = aws_iam_policy.project_state_bucket_management.arn
+}

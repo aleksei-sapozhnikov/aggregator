@@ -1,5 +1,5 @@
 # Project-specific roles trust the shared account-level GitHub OIDC provider.
-# Ownership moves to aws_foundation/account; do not recreate the AWS provider.
+# Owned by aws_foundation/aws_account; do not recreate the AWS provider.
 locals {
   github_oidc_provider_arn = "arn:aws:iam::905418096305:oidc-provider/token.actions.githubusercontent.com"
 }
