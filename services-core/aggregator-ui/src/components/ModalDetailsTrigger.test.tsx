@@ -43,7 +43,7 @@ describe("ModalDetailsTrigger", () => {
     const css = readFileSync(resolve("src", "styles.css"), "utf8");
 
     expect(css).toMatch(
-      /button\\.modal-details-trigger\\s*\\{[^}]*appearance:\\s*none;[^}]*border:\\s*0;[^}]*background:\\s*transparent;[^}]*padding:\\s*0;/s,
+      /button\.modal-details-trigger\s*\{[^}]*appearance:\s*none;[^}]*border:\s*0;[^}]*background:\s*transparent;[^}]*padding:\s*0;/s,
     );
     expect(css).not.toContain(".entity-info-action {");
   });

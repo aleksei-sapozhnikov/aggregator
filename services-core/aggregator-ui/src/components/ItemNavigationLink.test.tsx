@@ -35,10 +35,10 @@ describe("ItemNavigationLink", () => {
     const css = readFileSync(resolve("src", "styles.css"), "utf8");
 
     expect(css).toMatch(
-      /\\.item-navigation-link\\s*\\{[^}]*gap:\\s*5px;/s,
+      /\.item-navigation-link\s*\{[^}]*gap:\s*5px;/s,
     );
     expect(css).toMatch(
-      /\\.item-navigation-link-arrow\\s*\\{[^}]*color:\\s*var\\(--link\\);/s,
+      /\.item-navigation-link-arrow\s*\{[^}]*color:\s*var\(--link\);/s,
     );
   });
 });
