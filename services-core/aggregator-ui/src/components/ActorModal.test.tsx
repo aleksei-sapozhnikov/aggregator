@@ -49,57 +49,43 @@ const renderActorModal = (overrides = {}) => {
 };
 
 describe("ActorModal contact list", () => {
-  it("shows contact names as text with persistent info buttons, contact icons, and Primary label", () => {
+  it("shows contact names as modal triggers with contact icons and Primary label", () => {
     renderActorModal();
-    expect(
-      screen
-        .getByRole("dialog", { name: "Actor details" })
-        .classList.contains("modal-window"),
-    ).toBe(true);
     const dialog = screen.getByRole("dialog", { name: "Actor details" });
+    expect(dialog.classList.contains("modal-window")).toBe(true);
     expect(dialog.querySelector(".modal-header h2")?.textContent).toBe(
       actor.title,
     );
     expect(dialog.querySelector(".modal-content h2")).toBeNull();
-    const list = document.querySelector(".actor-modal-contacts");
+
+    const list = dialog.querySelector(".actor-modal-contacts");
     const rows = Array.from(
       list?.querySelectorAll(".actor-modal-contact-row") || [],
     );
+    const triggers = rows.map((row) =>
+      row.querySelector<HTMLButtonElement>("button.modal-details-trigger"),
+    );
 
     expect(list?.querySelectorAll("a")).toHaveLength(0);
-    expect(
-      rows.map((row) =>
-        row.querySelector(".actor-modal-contact-name")?.textContent?.trim(),
-      ),
-    ).toEqual([
+    expect(triggers.map((button) => button?.textContent?.trim())).toEqual([
       "profile-team@demo.email",
       "Campaign Operations",
       "Customer Hub",
     ]);
     expect(
-      rows.map((row) =>
-        row
-          .querySelector("button.entity-info-action")
-          ?.getAttribute("aria-label"),
+      triggers.every(
+        (button) => button?.getAttribute("aria-haspopup") === "dialog",
       ),
-    ).toEqual([
-      "Details for contact: profile-team@demo.email",
-      "Details for contact: Campaign Operations",
-      "Details for contact: Customer Hub",
-    ]);
-    expect(list?.querySelectorAll(".contact-chip")).toHaveLength(0);
-    expect(list?.querySelectorAll(".chip-prefix")).toHaveLength(0);
+    ).toBe(true);
+    expect(list?.querySelector(".entity-info-action")).toBeNull();
     expect(
       Array.from(list?.querySelectorAll(".secondary-label") || [], (role) =>
         role.textContent?.trim(),
       ),
     ).toEqual(["Primary"]);
-    expect(rows[0]?.querySelector(".secondary-label")?.textContent).toBe(
+    expect(rows[0].querySelector(".secondary-label")?.textContent).toBe(
       "Primary",
     );
-    expect(
-      rows[0]?.querySelector(".actor-modal-contact-details .secondary-label"),
-    ).toBeNull();
     expect(
       rows.map((row) => row.querySelector("svg use")?.getAttribute("href")),
     ).toEqual([
@@ -128,16 +114,11 @@ describe("ActorModal contact list", () => {
     expect(document.querySelector(".secondary-label")).toBeNull();
   });
 
-  it("opens contact details only from the information icon", async () => {
+  it("opens contact details from the contact name", async () => {
     const { user, onOpenContact } = renderActorModal();
 
-    await user.click(screen.getByText("Campaign Operations"));
-    expect(onOpenContact).not.toHaveBeenCalled();
-
     await user.click(
-      screen.getByRole("button", {
-        name: "Details for contact: Campaign Operations",
-      }),
+      screen.getByRole("button", { name: "Campaign Operations" }),
     );
     expect(onOpenContact).toHaveBeenCalledExactlyOnceWith(contacts[1]);
   });

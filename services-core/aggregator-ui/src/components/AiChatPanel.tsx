@@ -5,6 +5,7 @@ import { isPlainLeftClick } from "../shared/catalogUtils";
 import { isUnhealthyHealthStatus } from "../shared/healthPresentation";
 import { buildStatusText } from "../shared/statusText";
 import CloseButton from "./CloseButton";
+import ItemNavigationLink from "./ItemNavigationLink";
 import type {
   AgentHealthDependencyContent,
   AgentHealthItemContent,
@@ -353,11 +354,11 @@ function HealthItemLink({
   };
 
   return (
-    <a
+    <ItemNavigationLink
       href={buildItemLink(itemId)}
       onClick={handleClick}
       className={className}
-      aria-label={`${title}. ${statusText}`}
+      ariaLabel={`${title}. ${statusText}. Open item`}
       title={`${title}. ${statusText}`}
     >
       <span className="ai-health-link-text">{title}</span>
@@ -369,6 +370,6 @@ function HealthItemLink({
           {state.toUpperCase()}
         </span>
       )}
-    </a>
+    </ItemNavigationLink>
   );
 }

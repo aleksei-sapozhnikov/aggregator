@@ -6,7 +6,7 @@ import {
 } from "../shared/contactUtils";
 import type { CatalogActor, CatalogContact } from "../shared/types";
 import ModalWindow from "./ModalWindow";
-import EntityInfoAction from "./EntityInfoAction";
+import ModalDetailsTrigger from "./ModalDetailsTrigger";
 import SecondaryLabel from "./SecondaryLabel";
 
 const resolveActorLabel = (actor?: CatalogActor | null): string => {
@@ -71,7 +71,11 @@ export default function ActorModal({
             <ul className="actor-modal-contacts">
               {orderedContacts.map((contact) => (
                 <li key={contact.id} className="actor-modal-contact-row">
-                  <span className="actor-modal-contact-details">
+                  <ModalDetailsTrigger
+                    className="actor-modal-contact-trigger"
+                    onClick={() => onOpenContact(contact)}
+                    title={resolveContactLabel(contact)}
+                  >
                     <span
                       className="actor-modal-contact-icon"
                       title={resolveContactTypeDisplayName(contact.type)}
@@ -90,11 +94,7 @@ export default function ActorModal({
                     <span className="actor-modal-contact-name">
                       {resolveContactLabel(contact)}
                     </span>
-                  </span>
-                  <EntityInfoAction
-                    label={`Details for contact: ${resolveContactLabel(contact)}`}
-                    onClick={() => onOpenContact(contact)}
-                  />
+                  </ModalDetailsTrigger>
                   {primaryContact?.id === contact.id && (
                     <SecondaryLabel text="Primary" />
                   )}
