@@ -6,7 +6,7 @@
 
 set -euo pipefail
 changed=false
-reason="No Ansible source changes detected."
+reason="No node configuration source changes detected."
 : > "$RUNNER_TEMP/ansible-changed-files.txt"
 : > "$RUNNER_TEMP/ansible-diff.patch"
 
@@ -19,11 +19,11 @@ elif [[ -z "$BASE_SHA" || "$BASE_SHA" =~ ^0+$ ]] || ! git cat-file -e "$BASE_SHA
   changed=true
   reason="Previous commit unavailable for comparison; conservatively reapplying Ansible."
 else
-  git diff --name-status "$BASE_SHA" "$GITHUB_SHA" -- infra/demo/ansible/ deploy/argocd/argocd-admin-hash.py > "$RUNNER_TEMP/ansible-changed-files.txt"
+  git diff --name-status "$BASE_SHA" "$GITHUB_SHA" -- infra/demo/ansible/ infra/demo/node-configure.sh infra/demo/ssm-node-configure.sh deploy/argocd/argocd-admin-hash.py > "$RUNNER_TEMP/ansible-changed-files.txt"
   if [[ -s "$RUNNER_TEMP/ansible-changed-files.txt" ]]; then
     changed=true
-    reason="Ansible sources or the Argo CD node helper changed between $BASE_SHA and $GITHUB_SHA."
-    git diff --no-ext-diff --no-color "$BASE_SHA" "$GITHUB_SHA" -- infra/demo/ansible/ deploy/argocd/argocd-admin-hash.py > "$RUNNER_TEMP/ansible-diff.patch"
+    reason="Node configuration or Argo CD helper changed between $BASE_SHA and $GITHUB_SHA."
+    git diff --no-ext-diff --no-color "$BASE_SHA" "$GITHUB_SHA" -- infra/demo/ansible/ infra/demo/node-configure.sh infra/demo/ssm-node-configure.sh deploy/argocd/argocd-admin-hash.py > "$RUNNER_TEMP/ansible-diff.patch"
   fi
 fi
 

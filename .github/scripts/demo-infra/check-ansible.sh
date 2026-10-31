@@ -17,6 +17,14 @@ cd infra/demo/ansible
 "$RUNNER_TEMP/ansible/bin/ansible-playbook" -i localhost, -c local --syntax-check site.yml
 cd ../../..
 bash -n infra/demo/ansible/dispatch-ssm.sh
+bash -n infra/demo/node-configure.sh
+sh -n infra/demo/ssm-node-configure.sh
+# The remote script must invoke the version-owned entrypoint, not the installed legacy wrapper.
+grep -Fq 'bash "$repo_dir/infra/demo/node-configure.sh" "$revision"' infra/demo/ssm-node-configure.sh
+if grep -Fq '/usr/local/sbin/aggregator-node-configure' infra/demo/ssm-node-configure.sh; then
+  echo "The SSM launcher must not depend on the cloud-init wrapper" >&2
+  exit 1
+fi
 # Validate each workflow script independently; bash -n with multiple paths checks only the first.
 for script in .github/scripts/demo-infra/*.sh .github/scripts/demo-deploy/*.sh; do
   bash -n "$script"
