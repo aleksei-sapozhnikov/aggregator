@@ -156,10 +156,9 @@ describe("CatalogItemInfo description presentation", () => {
       name: "Catalog information for Payments",
     });
     fireEvent.mouseEnter(button);
-    expect(
-      screen.getByRole("tooltip").querySelector(".catalog-item-info-tooltip-action")
-        ?.textContent?.trim(),
-    ).toBe("Click for details");
+    const tooltip = screen.getByRole("tooltip");
+    expect(tooltip.textContent).toBe("Click for details");
+    expect(tooltip.querySelector(".catalog-item-info-tooltip-action")).toBeNull();
 
     fireEvent.click(button);
     expect(screen.getByRole("dialog", { name: "Catalog information for Payments" }).textContent)
