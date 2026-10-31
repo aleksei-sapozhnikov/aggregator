@@ -17,28 +17,38 @@ bootstrapping. The existing Docker Compose demo remains unchanged.
 
 ## Execution and reconciliation
 
-On first boot, cloud-init installs Git and Python 3.12 and writes a
-root-owned wrapper, but does **not** run Ansible. After Terraform apply,
-GitHub Actions invokes that wrapper through AWS SSM using the triggering
-commit SHA. The same SSM command is used for later Ansible revisions.
+Cloud-init installs Git and Python 3.12 and retains the original on-node
+wrapper for compatibility, but it does not run Ansible. The reviewed GitHub
+workflow uses `infra/demo/ansible/dispatch-ssm.sh` to submit the versioned
+`infra/demo/ssm-node-configure.sh` through SSM. This launcher:
 
-The wrapper `/usr/local/sbin/aggregator-node-configure` accepts only
-an exact 40-character lowercase Git SHA. It creates the isolated Ansible
-virtual environment when necessary, fetches that commit, executes
-`site.yml` as root, and records success in
-`/var/lib/aggregator-node/last-configured-revision`. A lock prevents
-overlapping playbooks. A failed run can be retried against the same VM
-without recreating it. For example, via SSM:
+1. Waits for cloud-init and takes the same node configuration lock as the
+   original wrapper, preventing concurrent checkouts or playbook execution.
+2. Fetches and verifies the exact triggering commit SHA.
+3. Runs `infra/demo/node-configure.sh` **from that checkout**.
+4. Checks K3s, Traefik, Argo CD and the registered Application.
+5. Records the successful revision only after all checks pass.
 
-```sh
-sudo /usr/local/sbin/aggregator-node-configure <40-character-git-commit-sha>
-```
+The versioned `node-configure.sh` installs the isolated Ansible environment
+as needed and resolves its `ansible/site.yml` relative to its own location.
+Repository layout and Ansible execution are no longer hard-coded in the EC2
+cloud-init wrapper. Logs are sent to CloudWatch and appended to
+`/var/log/aggregator-node-configure.log`.
 
-K3s is reinstalled only if the installed pinned version differs. The
-Argo CD manifest is reapplied to reconcile drift. On a new node, the
-GitHub SSM job waits for cloud-init and checks K3s, Traefik, Argo CD and
-the registered Application resource after configuration. It does not
-wait for application sync or HTTP endpoints.
+To retry, rerun the reviewed demo infrastructure workflow with
+`reapply_ansible=true` once available on the default branch, or use an
+authorized SSM Run Command running the checked-out revision's
+`ssm-node-configure.sh`. Do not call `node-configure.sh` directly on a
+running node; it assumes the caller owns the shared checkout lock.
+
+The old `/usr/local/sbin/aggregator-node-configure` is not deleted, and the
+legacy `deploy/ansible` Git symlink remains available for rollback.
+The Terraform cloud-init file is unchanged, so this migration does not
+replace the EC2 instance.
+
+K3s is reinstalled only if its installed pinned version differs. The
+Argo CD manifest is reapplied to reconcile drift. Configuration does not
+wait for application sync or public HTTP endpoints.
 
 The K3s installer comes from the official `get.k3s.io` endpoint, with
 `INSTALL_K3S_VERSION` pinned. The installer script itself is not pinned
@@ -144,11 +154,8 @@ and release procedures are documented in
 
 ## Compatibility with existing EC2 nodes
 
-Existing K3s nodes use a cloud-init wrapper that runs the Ansible playbook
-from `deploy/ansible`. That path is retained as a Git symbolic link to
-`infra/demo/ansible`, so these nodes continue to work without replacement.
-The cloud-init template remains byte-for-byte unchanged: updating it would
-trigger EC2 replacement due to `user_data_replace_on_change = true`.
-
-On Windows, enable Git symlink support when following the compatibility path.
-CI and EC2 use Linux checkouts; normal tooling uses `infra/demo/ansible`.
+The original cloud-init wrapper remains on existing EC2 nodes and still
+references `deploy/ansible`. Git retains that path as a symlink to
+`infra/demo/ansible` for rollback. The approved SSM workflow does not call
+this wrapper and does not require the symlink; only the legacy wrapper does.
+No user-data changes or EC2 replacement are part of this stage.
