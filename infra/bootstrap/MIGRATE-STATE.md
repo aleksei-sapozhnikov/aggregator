@@ -4,7 +4,7 @@ This is a staged migration. **Committing these files does not create a bucket,
 move any state, or switch any remote backend.** The current
 `aggregator-tofu-state-905418096305-eu-central-1` bucket is owned by
 `aws_foundation/aws_account`, which also uses it for
-`foundation/account/tofu.tfstate`. Never remove that bucket as part of the
+`foundation/aws_account/tofu.tfstate`. Never remove that bucket as part of the
 Aggregator migration.
 
 The new, Aggregator-owned bucket is
