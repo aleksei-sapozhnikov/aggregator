@@ -37,39 +37,51 @@ There is no project-specific resource definition in Foundation.
 5. No `tofu apply` should be performed just to 'fix' an empty state.
    An empty state at a previously managed backend is a **hard stop**.
 
-## 1 — Create generic Foundation and Administration buckets
+## 1 — Root creates the Foundation state bucket
 
-In `aws_foundation/aws_account`, use the already initialized
-`foundation/aws_account/tofu.tfstate` state in the **legacy** shared
-`aggregator-tofu-state-905418096305-eu-central-1` bucket.
-
-The new checked-in backend points at a bucket which does not yet exist.
-Explicitly retain the old backend for the creation step:
+In `aws_foundation/bootstrap`, using the **existing protected bootstrap
+state** and an authorized AWS root session, review the new root-controlled
+`aws-foundation-state-905418096305-eu-central-1` bucket.
 
 ```powershell
+cd C:\work\aws_foundation\bootstrap
+tofu state list
+tofu plan
+```
+
+Inspect current `infra-admin` IAM user and bootstrap bucket state. The
+root plan must not destroy or replace either. The Foundation bucket policy
+permits `infra-admin` to use the state and lock but denies bucket security
+changes to all non-root principals. The root provider may also update
+preexisting tags; review these before any apply.
+
+After a reviewed root-run `tofu apply`, verify the Foundation bucket and
+security settings exist. Do not run `aws_account` against its new remote
+backend until the root-owned bucket has been created.
+
+## 2 — infra-admin creates the Administration state bucket
+
+In `aws_foundation/aws_account`, use the initialized
+`foundation/aws_account/tofu.tfstate` in the **legacy shared bucket** to
+create the administrator-managed bucket:
+
+```powershell
+cd C:\work\aws_foundation\aws_account
 $env:AWS_PROFILE = "infra-admin"
 tofu init -migrate-state -backend-config="bucket=aggregator-tofu-state-905418096305-eu-central-1"
 tofu state list
 tofu plan
 ```
 
-Review the full plan. New buckets:
-- `aws-foundation-state-905418096305-eu-central-1`
-- `aws-administration-state-905418096305-eu-central-1`
+The reviewed plan should create only the
+`aws-administration-state-905418096305-eu-central-1` bucket and its
+associated security resources, *not* the Foundation bucket. Legacy bucket
+resources must appear as **forget**, never destroy, using the
+non-destructive `removed` blocks. The existing bucket's deny policy,
+contents and historical versions remain intact.
 
-Existing legacy bucket resources must appear as **forget**, **never destroy**,
-through explicit `removed { lifecycle { destroy = false } }` blocks.
-The old S3 bucket, its version history, and its deny policy must remain intact.
-Also inspect the account-wide GitHub OIDC tagging change.
-
-Only when the plan matches these conditions may the operator run
-`tofu apply`. Inspect both new buckets and their policies. Do not
-apply `aws_foundation/bootstrap` merely for this migration.
-
-## 2 — Move Foundation state to its own bucket
-
-From the *same initialized* `aws_account` directory, after a confidential
-state backup and successful creation:
+After an approved `tofu apply`, back up state and migrate the
+`aws_account` root to the new **root-owned** Foundation bucket:
 
 ```powershell
 tofu init -migrate-state -backend-config="bucket=aws-foundation-state-905418096305-eu-central-1"
@@ -77,9 +89,8 @@ tofu state list
 tofu plan
 ```
 
-Verify the cached `.terraform/terraform.tfstate` backend bucket equals
-`aws-foundation-state-905418096305-eu-central-1`, and the key equals
-`foundation/aws_account/tofu.tfstate`. Do not delete the old versions.
+Verify the cached backend bucket/key, check the current state and plan,
+and do not delete old versions or lock objects.
 
 ## 3 — Transfer Aggregator IAM state, preserving IAM identities
 
