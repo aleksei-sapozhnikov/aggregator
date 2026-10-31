@@ -49,6 +49,21 @@ infrastructure apply, SSM fetches the exact Git revision and invokes
 AWS Systems Manager, GitHub, PyPI, K3s releases and container registries
 must work. K3s uses its bundled Traefik and ServiceLB.
 
+## Private saved plans
+
+The approved demo workflow stores binary OpenTofu plans in the private,
+versioned shared state bucket under `plans/demo/<run-id>/<attempt>/demo.tfplan`.
+The `plan` job conditionally uploads with `If-None-Match: *`, then
+passes the SHA-256 through a GitHub job output. After Environment approval,
+the `apply` job downloads the plan and verifies its checksum before running
+`tofu apply`. No binary plan is uploaded as a GitHub Actions artifact.
+
+S3 Lifecycle expires these temporary files after seven days (with
+noncurrent-version cleanup). The bucket and Lifecycle are owned by
+`aws_foundation/account`; role permissions belong to `infra/bootstrap`.
+Apply those roots in that order before enabling the new workflow. State and
+lock objects are outside the expiration prefix.
+
 ## Reapply and inspect with SSM
 
 The new instance role has `AmazonSSMManagedInstanceCore`. Administrators

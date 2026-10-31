@@ -20,11 +20,13 @@ local checks or pull-request validation:
 - **`demo` — detect → optional validate/plan/approval/apply/Ansible → demo-deploy:**
   1. Validate the checked-out revision as above.
   2. Use unprotected, `demo`-branch-only Environment `demo-infra-plan`
-     to assume the **read-only OIDC plan role** and access the demo infrastructure
-     and its remote state. Generate `demo.tfplan` with
-     `tofu plan -detailed-exitcode`. Render the plan in a
-     `terraform` code block in the job summary and retain the exact plan
-     artifact for seven days if it has changes.
+     to assume the **read-only infrastructure OIDC plan role** (with narrowly
+     scoped conditional `s3:PutObject` access to the private plan prefix)
+     and access the demo infrastructure and its remote state. Generate
+     `demo.tfplan` with `tofu plan -detailed-exitcode`. Render the plan in a
+     `terraform` code block in the job summary and upload the exact binary
+     plan to private S3 under `plans/demo/<run-id>/<attempt>/demo.tfplan`.
+     Publish its SHA-256 as a GitHub job output.
   3. Request human approval through the `demo-infra-apply` Environment when there
      are Terraform changes or Ansible changes. The job fails closed without
      `MANUAL_APPROVAL_CONFIGURED=true` in that environment. The planning job
@@ -32,9 +34,11 @@ local checks or pull-request validation:
      Its GitHub Actions job summary shows the intended Terraform/Ansible actions,
      with a collapsed Terraform plan and a collapsed Git diff of changed Ansible
      sources. The Git diff is not an Ansible dry-run of the remote EC2.
-  4. After approval, assume the **write OIDC apply role**, download and
-     apply the _same saved plan_. Never generate a different plan during
-     apply. When there are no Terraform changes, skip `tofu apply`.
+  4. After approval, assume the **write OIDC apply role**, download the saved
+     plan from private S3, verify its SHA-256 against the planning job output,
+     then apply the _same saved plan_. Abort on checksum mismatch or absent
+     S3 object. Never generate a different plan during apply. When there
+     are no Terraform changes, skip `tofu apply`.
      The apply job publishes a **separate GitHub Actions summary** after
      successful Terraform Apply (or an Ansible-only run): K3s and existing
      demo public IP addresses and EC2 IDs appear immediately, while all
@@ -286,11 +290,28 @@ No `K3S_BOOTSTRAP_GIT_REF` is needed. The workflow runs the precise
 never changes EC2 `user_data`; cloud-init revisions intentionally require
 a reviewed instance replacement.
 
-The saved `demo.tfplan` may include sensitive infrastructure or state data
-even when the rendered plan redacts it; treat Actions artifacts as sensitive.
-Artifacts are retained seven days. If an approval cannot finish within that
-period, rerun planning and review the new plan rather than applying a stale
-one. Approval must be based on the actual plan, not only the status of checks.
+The binary `demo.tfplan` may include sensitive infrastructure or state data
+even when the rendered plan redacts it. **Never use public GitHub Actions
+artifacts for saved plans.** The plan is stored in the private shared
+S3 bucket `aggregator-tofu-state-905418096305-eu-central-1` under the
+dedicated `plans/demo/` prefix. S3 Lifecycle expires current versions
+after 7 days, noncurrent versions after one further day and removes expired
+delete markers. S3 processing is asynchronous. If approval takes too long
+and the plan is gone, create and approve a fresh plan instead.
+
+The S3 bucket policy enforces conditional uploads (`If-None-Match: *`);
+the unapproved plan role has only conditional `PutObject` for this prefix,
+and the approved apply role has only `GetObject`. The plan job passes
+its SHA-256 via GitHub job output; the apply job refuses mismatches.
+Object keys include `github.run_id` and `github.run_attempt` so retries
+cannot silently overwrite an earlier plan.
+
+**Prerequisites:** first apply `aws_foundation/account` as `infra-admin`
+to install lifecycle and the bucket policy, then apply
+`aggregator/infra/bootstrap` to attach the new GitHub IAM permissions.
+Only after both apply successfully should the new `demo` workflow run.
+The textual plan and review summary are still shown in public Actions
+logs; continue treating those as public information. Approval must be based on the actual plan, not only the status of checks.
 
 ## Recovering from a partially applied infrastructure plan
 

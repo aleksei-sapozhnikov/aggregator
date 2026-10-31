@@ -19,6 +19,10 @@ group memberships, policies or attachments.
 - `github_demo_deploy.tf`: demo application deploy role trusting the shared GitHub OIDC provider.
 - `github_demo_infra.tf`: OIDC plan/apply roles for demo infrastructure;
   existing managed policies are reused instead of duplicated.
+- `plan_artifacts.tf`: isolated S3 permissions for private saved plans.
+  The planning role can only conditionally upload new `plans/demo/*` objects,
+  while the protected apply role can only download them. Neither permission
+  grants access to additional OpenTofu state keys.
 - `state.tf`: stable ARN of the shared state bucket managed by `aws_foundation/account`.
 - `state_access.tf`: workload access to state keys and lock files.
 - `backend.tf`, `providers.tf`, `versions.tf`: state, AWS account, and tool versions.
@@ -59,6 +63,11 @@ refer to AWS resource names and ARNs; they do not load files or state from other
 roots.
 
 Keep state, saved plans, variable values, and credentials out of Git.
+Before running the updated demo workflow, apply `aws_foundation/account`
+as `infra-admin` to enable the private plan prefix's S3 Lifecycle and
+conditional-write bucket policy. Then apply this `infra/bootstrap` root
+to install the separate plan upload/download policies. Review both plans;
+the workload's `demo/tofu.tfstate` object must not be moved or deleted.
 Commit `.terraform.lock.hcl` to preserve provider selections.
 
 ## GitHub OIDC deploy identity
