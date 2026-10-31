@@ -96,6 +96,7 @@ jobs:
       k3s_created: ${{ steps.plan.outputs.k3s_created }}
       k3s_destroyed: ${{ steps.plan.outputs.k3s_destroyed }}
       k3s_enabled: ${{ steps.flags.outputs.k3s_enabled }}
+      plan_sha256: ${{ steps.saved_plan.outputs.plan_sha256 }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -148,14 +149,11 @@ jobs:
           K3S_CREATED: ${{ steps.plan.outputs.k3s_created }}
           PASSWORD_SYNC_REQUESTED: ${{ inputs.sync_argocd_password }}
         run: bash .github/scripts/demo-infra/approval-summary.sh
-      - name: Upload the exact plan for approval and apply
+      - name: Save exact plan privately in S3 and publish SHA-256
+        id: saved_plan
         if: steps.plan.outputs.has_changes == 'true'
-        uses: actions/upload-artifact@v7
-        with:
-          name: demo-tofu-plan-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ${{ runner.temp }}/demo.tfplan
-          if-no-files-found: error
-          retention-days: 7
+        shell: bash
+        run: bash .github/scripts/demo-infra/s3-plan.sh upload
 
   apply:
     name: Approve, apply and configure K3s
@@ -205,12 +203,12 @@ jobs:
       - name: Initialize demo backend
         working-directory: infra/demo
         run: tofu init -input=false -lockfile=readonly
-      - name: Download the reviewed saved plan
+      - name: Download and verify approved S3 plan checksum
         if: needs.plan.outputs.has_changes == 'true'
-        uses: actions/download-artifact@v8
-        with:
-          name: demo-tofu-plan-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ${{ runner.temp }}/approved-plan
+        shell: bash
+        env:
+          EXPECTED_PLAN_SHA256: ${{ needs.plan.outputs.plan_sha256 }}
+        run: bash .github/scripts/demo-infra/s3-plan.sh download
       - name: Apply the exact saved plan
         if: needs.plan.outputs.has_changes == 'true'
         working-directory: infra/demo
