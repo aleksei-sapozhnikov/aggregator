@@ -909,6 +909,13 @@ body {
   color: var(--muted);
 }
 
+.catalog-item-info-tooltip-action {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-weight: 400;
+}
+
 .content-workspace {
   flex: 1 1 auto;
   min-height: 0;
