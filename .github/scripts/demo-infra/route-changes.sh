@@ -17,7 +17,7 @@ elif [[ -z "$BASE_SHA" || "$BASE_SHA" =~ ^0+$ ]] || ! git cat-file -e "$BASE_SHA
 else
   while IFS= read -r path; do
     case "$path" in
-      infra/demo/*|deploy/argocd/*|.github/workflows/demo-infra.yml|.github/scripts/demo-infra/*|.github/scripts/demo-infra-*.sh)
+      infra/demo/*|deploy/ansible|deploy/argocd/*|.github/workflows/demo-infra.yml|.github/scripts/demo-infra/*|.github/scripts/demo-infra-*.sh)
         infra_changed=true
         ;;
       deploy/infra/*|infra/bootstrap/*|deploy/k8s/README.md|deploy/k8s-live/*|.github/workflows/demo-deploy.yml)

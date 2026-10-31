@@ -5,6 +5,12 @@
 # Uses RUNNER_TEMP for its temporary Ansible environment.
 
 set -euo pipefail
+
+# Existing cloud-init wrappers still use the historical Ansible checkout path.
+if [[ ! -L deploy/ansible ]] || [[ "$(readlink deploy/ansible)" != "../infra/demo/ansible" ]] || [[ ! -f deploy/ansible/site.yml ]]; then
+  echo "The legacy Ansible symlink is missing or invalid" >&2
+  exit 1
+fi
 python3 -m venv "$RUNNER_TEMP/ansible"
 "$RUNNER_TEMP/ansible/bin/pip" install --disable-pip-version-check ansible-core==2.21.0
 cd infra/demo/ansible
