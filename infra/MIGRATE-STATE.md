@@ -99,6 +99,20 @@ ownership transfer first. If it already tracks
 `aws_s3_bucket.aggregator_state`, STOP; the interim design was applied
 and the bucket's state needs a separate non-destructive transfer.
 
+Before migrating, verify that the target key is not already occupied by
+another state or an earlier partial migration. With `infra-admin`:
+
+```powershell
+aws s3api head-object `
+  --bucket aws-administration-state-905418096305-eu-central-1 `
+  --key aggregator/tofu.tfstate
+```
+
+A `404 Not Found` is expected on the first migration. If the object
+exists, **stop** and inspect its lineage and resource addresses; do not
+overwrite it. A `403 Access Denied` is also a blocker, not evidence that
+the key is absent.
+
 Next change the backend to the new, existing administrative bucket:
 
 ```powershell
