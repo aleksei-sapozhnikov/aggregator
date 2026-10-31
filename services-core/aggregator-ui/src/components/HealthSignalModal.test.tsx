@@ -70,7 +70,7 @@ describe("HealthSignalModal", () => {
       name: "Health signal details",
     });
     expect(dialog.querySelector(".modal-header h2")?.textContent).toBe(
-      "Availability heartbeat responds",
+      "Health signal",
     );
     const rows = Array.from(
       dialog.querySelectorAll<HTMLTableRowElement>(
@@ -78,14 +78,20 @@ describe("HealthSignalModal", () => {
       ),
     );
     expect(rows.map((row) => row.querySelector("th")?.textContent)).toEqual([
+      "title",
       "item",
       "type",
-      "title",
       "url",
       "method",
       "interval",
       "extraConfiguration",
     ]);
+    expect(rows[0].querySelector("td")?.textContent?.trim()).toBe(
+      "Availability heartbeat responds",
+    );
+    expect(dialog.querySelectorAll(".health-signal-details-table th")).toHaveLength(
+      7,
+    );
     expect(dialog.textContent).toContain('"threshold": 2');
     expect(
       screen

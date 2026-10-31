@@ -111,7 +111,7 @@ export default function HealthSignalModal({
   const itemTitle = items.find((item) => item.id === itemId)?.title || itemId;
   const otherFields = signal
     ? Object.entries(signal).filter(
-        ([key]) => key !== "id" && key !== "itemId" && key !== "type",
+        ([key]) => key !== "id" && key !== "title" && key !== "itemId" && key !== "type",
       )
     : [];
 
@@ -121,13 +121,19 @@ export default function HealthSignalModal({
       onClose={onClose}
       ariaLabel="Health signal details"
       closeLabel="Close health signal details"
-      header={<h2>{signal?.title || fallbackTitle || signalId}</h2>}
+      header={<h2>Health signal</h2>}
     >
       {isLoading && <p role="status">Loading signal details...</p>}
       {error && <p role="alert">{error}</p>}
       {signal && (
         <table className="health-signal-details-table">
           <tbody>
+            <tr>
+              <th scope="row">title</th>
+              <td className="health-signal-field-value">
+                {signal.title || fallbackTitle || signal.id}
+              </td>
+            </tr>
             <tr>
               <th scope="row">item</th>
               <td>
