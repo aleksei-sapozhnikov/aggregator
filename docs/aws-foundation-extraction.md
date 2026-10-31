@@ -14,11 +14,15 @@ were checked using clean `tofu plan` results after the migration.
 | `aws_foundation/bootstrap` | Shared `infra-admin` IAM user, `AdministratorAccess` attachment, protected root-only S3 bucket | `foundation/bootstrap/tofu.tfstate` in its dedicated bucket |
 | `aws_foundation/account` | Shared state S3 bucket and policy, GitHub OIDC provider, regional Session Manager document | `foundation/account/tofu.tfstate` in the shared bucket |
 | `aggregator/infra/bootstrap` | Project-specific `aggregator-admin`, Aggregator IAM groups, policies and GitHub OIDC roles | Existing `admin/tofu.tfstate` in the shared bucket |
-| `aggregator/deploy/infra/demo` | Demo cloud infrastructure | Existing `demo/tofu.tfstate` |
+| `aggregator/infra/demo` | Demo cloud infrastructure | Existing `demo/tofu.tfstate` |
 | `aggregator/deploy/infra/publication` | Publication runner cloud infrastructure | Existing `publication/tofu.tfstate` |
 
 No IAM identities, AWS object names or S3 state keys were renamed during the
-ownership transfer. The project-specific IAM root was subsequently relocated
+ownership transfer. The demo OpenTofu root was relocated from `deploy/infra/demo` to
+`infra/demo` with the same backend key `demo/tofu.tfstate` and unchanged module
+addresses. Ansible now lives in `infra/demo/ansible`; the legacy path is a
+Git symbolic link for compatibility with existing EC2 cloud-init wrappers.
+The project-specific IAM root was previously relocated
 in source control from `deploy/infra/admin` to `infra/bootstrap` without
 moving its S3 state.
 

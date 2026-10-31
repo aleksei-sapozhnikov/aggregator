@@ -30,5 +30,5 @@ python tools/code_qa/src/main.py code-qa --module argocd
 ```
 
 Tests mock AWS and Kubernetes access and do not need a live cluster.
-See [Ansible credentials and access](../ansible/README.md#argo-cd-credentials-and-private-dashboard-access)
-for rotation and [demo workflow](../infra/demo/WORKFLOW.md) for deployment details.
+See [Ansible credentials and access](../../infra/demo/ansible/README.md#argo-cd-credentials-and-private-dashboard-access)
+for rotation and [demo workflow](../../infra/demo/WORKFLOW.md) for deployment details.

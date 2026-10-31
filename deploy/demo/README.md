@@ -43,7 +43,7 @@ only a 40-character hexadecimal Git SHA, then:
 1. In `infra/bootstrap`, review and apply the restricted GitHub deployment
    IAM role with `infra-admin`. The existing GitHub OIDC provider is already
    managed by `aws_foundation/account`; do not create a duplicate.
-2. In `deploy/infra/demo`, review and apply the SSM document and
+2. In `infra/demo`, review and apply the SSM document and
    `AmazonSSMManagedInstanceCore` role attachment. Reject any unrelated
    destructive or EC2 replacement plans.
 3. Confirm the serving instance is **Online** in AWS Systems Manager and

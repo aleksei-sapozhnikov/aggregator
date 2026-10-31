@@ -140,4 +140,15 @@ successful GHCR image builds from `demo`. SSM verifies infrastructure
 only; when no published manifests exist, the infrastructure workflow
 dispatches `demo-deploy` after Ansible succeeds. The Kubernetes resources
 and release procedures are documented in
-[deploy/k8s/README.md](../k8s/README.md).
+[deploy/k8s/README.md](../../../deploy/k8s/README.md).
+
+## Compatibility with existing EC2 nodes
+
+Existing K3s nodes use a cloud-init wrapper that runs the Ansible playbook
+from `deploy/ansible`. That path is retained as a Git symbolic link to
+`infra/demo/ansible`, so these nodes continue to work without replacement.
+The cloud-init template remains byte-for-byte unchanged: updating it would
+trigger EC2 replacement due to `user_data_replace_on_change = true`.
+
+On Windows, enable Git symlink support when following the compatibility path.
+CI and EC2 use Linux checkouts; normal tooling uses `infra/demo/ansible`.

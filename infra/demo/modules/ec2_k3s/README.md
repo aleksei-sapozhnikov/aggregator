@@ -4,7 +4,7 @@ This opt-in Terraform module creates a separate Amazon Linux 2023 EC2 node,
 instance profile, and security group. Cloud-init runs during **first boot**
 to install minimal prerequisites and a root-owned wrapper. After Terraform
 apply, GitHub Actions uses SSM to invoke the wrapper, install Ansible and
-apply [deploy/ansible](../../../../ansible/README.md) for K3s and Argo CD.
+apply [Ansible](../../ansible/README.md) for K3s and Argo CD.
 
 Security and networking:
 
@@ -34,4 +34,4 @@ and OOMKilled pods; a larger size may still be required.
 
 The public HTTP address is available from OpenTofu output `k3s_public_ip`
 after a successful reviewed deployment. The full release pipeline and
-security limitations are described in [the K3s deployment README](../../../../k8s/README.md).
+security limitations are described in [the K3s deployment README](../../../../deploy/k8s/README.md).

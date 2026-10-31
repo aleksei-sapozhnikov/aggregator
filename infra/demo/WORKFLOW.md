@@ -71,7 +71,7 @@ Terraform owns the cloud-init template; changing that template intentionally
 replaces the K3s EC2 (subject to the reviewed Terraform plan), rather than
 restarting an instance without re-running cloud-init.
 
-Changes under `deploy/ansible/**` or to `deploy/argocd/argocd-admin-hash.py` reconfigure the existing EC2 through SSM,
+Changes under `infra/demo/ansible/**` or to `deploy/argocd/argocd-admin-hash.py` reconfigure the existing EC2 through SSM,
 without Terraform resource updates. Ordinary application changes use GitHub
 image publication and Argo CD, without running Ansible. Once a GitOps release
 exists, application-only pushes skip Terraform/Ansible entirely.
@@ -210,7 +210,7 @@ a suitable local AWS identity is not available.
 The Apply Summary includes the current K3s EC2 ID and a copyable
 one-line SSM tunnel command. Use AWS CLI and the Session Manager
 plugin, then open `https://localhost:8080` and sign in as `admin`.
-See [the Ansible README](../../ansible/README.md) for verification
+See [the Ansible README](ansible/README.md) for verification
 and access details.
 
 ## GitHub setup (required before enabling)
@@ -303,7 +303,7 @@ Before retrying a failure caused by `AccessDenied`:
    approved Bedrock model policy to the existing `AggregatorDemoEC2Role`
    when `ENABLE_BEDROCK=true`. Commits do not deploy these IAM policies.
 2. Trigger **a fresh** `demo-infra-plan` job against the updated remote
-   state. A subsequent reviewed push affecting `deploy/infra/demo/**` will
+   state. A subsequent reviewed push affecting `infra/demo/**` will
    trigger the workflow. Do not reuse the previous saved plan artifact.
 3. Examine the complete new plan, including any pending modifications to
    the _serving_ demo EC2 or its IAM role, before approving `demo-infra-apply`.

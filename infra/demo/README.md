@@ -3,11 +3,11 @@
 See [the demo infrastructure GitHub Actions workflow](WORKFLOW.md) for
 dev validation, demo-only plan/apply, OIDC, manual approval, and SSM setup.
 
-The [shared Aggregator administration root](../admin/README.md) owns IAM
+The [Aggregator project IAM bootstrap](../bootstrap/README.md) owns IAM
 users, groups, OIDC roles and reusable policies. This root consumes those
 permissions and manages only demo infrastructure. IAM roles and instance
 profiles attached to the demo EC2 nodes remain here because they belong to
-those workloads. Apply `admin` first, then `demo`.
+those workloads. Apply `infra/bootstrap` first, then `infra/demo`.
 
 This OpenTofu root manages the protected serving EC2 demo (including its
 Elastic IP) and an **optional, separate K3s EC2 node**. The serving instance
@@ -53,7 +53,7 @@ until a separately configured ingress solution is added.
 
 The new instance role has `AmazonSSMManagedInstanceCore`. Administrators
 with the existing `AggregatorDemoSessionAccess` policy can start Session
-Manager sessions; Run As must be enabled in the admin root preferences.
+Manager sessions; Run As is managed by `aws_foundation/account`.
 There is no inbound TCP/22 or Kubernetes API access.
 
 ```sh
@@ -76,7 +76,7 @@ and writes `/var/log/aggregator-node-configure.log`.
 First-boot logs are also in `/var/log/cloud-init-output.log`.
 Updating Terraform user data on an existing instance does **not**
 reinvoke the playbook; use SSM for subsequent reconciliation. A separate
-`deploy/ansible/README.md` describes role behavior and checks.
+`infra/demo/ansible/README.md` describes role behavior and checks.
 
 Argo CD is initially a **ClusterIP-only** service. Its UI is not publicly
 exposed and no Aggregator application manifests are installed.
