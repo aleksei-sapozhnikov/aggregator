@@ -1,15 +1,14 @@
-# GitHub Actions OIDC identity for the demo environment only.
+# Project-specific roles trust the shared account-level GitHub OIDC provider.
+# Ownership moves to aws_foundation/account; do not recreate the AWS provider.
+locals {
+  github_oidc_provider_arn = "arn:aws:iam::905418096305:oidc-provider/token.actions.githubusercontent.com"
+}
 
-resource "aws_iam_openid_connect_provider" "github_actions" {
-  url            = "https://token.actions.githubusercontent.com"
-  client_id_list = ["sts.amazonaws.com"]
+removed {
+  from = aws_iam_openid_connect_provider.github_actions
 
-  # Bootstrap the administrator permission update before creating the provider.
-  # IAM propagation is eventually consistent, so a retry may still be necessary.
-  depends_on = [aws_iam_policy.infrastructure_admin_management]
-
-  tags = {
-    Project = "aggregator"
+  lifecycle {
+    destroy = false
   }
 }
 
@@ -19,7 +18,7 @@ data "aws_iam_policy_document" "github_demo_deploy_trust" {
     actions = ["sts:AssumeRoleWithWebIdentity"]
     principals {
       type        = "Federated"
-      identifiers = [aws_iam_openid_connect_provider.github_actions.arn]
+      identifiers = [local.github_oidc_provider_arn]
     }
     condition {
       test     = "StringEquals"

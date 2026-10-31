@@ -5,7 +5,7 @@ data "aws_iam_policy_document" "demo_state_access" {
     sid       = "ListDemoStateOnly"
     effect    = "Allow"
     actions   = ["s3:ListBucket"]
-    resources = [aws_s3_bucket.tofu_state.arn]
+    resources = [local.state_bucket_arn]
 
     condition {
       test     = "StringLike"
@@ -19,7 +19,7 @@ data "aws_iam_policy_document" "demo_state_access" {
     effect  = "Allow"
     actions = ["s3:GetObject", "s3:PutObject"]
     resources = [
-      "${aws_s3_bucket.tofu_state.arn}/demo/tofu.tfstate",
+      "${local.state_bucket_arn}/demo/tofu.tfstate",
     ]
   }
 
@@ -28,7 +28,7 @@ data "aws_iam_policy_document" "demo_state_access" {
     effect  = "Allow"
     actions = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
     resources = [
-      "${aws_s3_bucket.tofu_state.arn}/demo/tofu.tfstate.tflock",
+      "${local.state_bucket_arn}/demo/tofu.tfstate.tflock",
     ]
   }
 }
@@ -51,7 +51,7 @@ data "aws_iam_policy_document" "publication_state_access" {
   statement {
     sid       = "ListPublicationStateOnly"
     actions   = ["s3:ListBucket"]
-    resources = [aws_s3_bucket.tofu_state.arn]
+    resources = [local.state_bucket_arn]
 
     condition {
       test     = "StringLike"
@@ -64,7 +64,7 @@ data "aws_iam_policy_document" "publication_state_access" {
     sid     = "ReadWritePublicationState"
     actions = ["s3:GetObject", "s3:PutObject"]
     resources = [
-      "${aws_s3_bucket.tofu_state.arn}/publication/tofu.tfstate",
+      "${local.state_bucket_arn}/publication/tofu.tfstate",
     ]
   }
 
@@ -72,7 +72,7 @@ data "aws_iam_policy_document" "publication_state_access" {
     sid     = "ManagePublicationStateLock"
     actions = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
     resources = [
-      "${aws_s3_bucket.tofu_state.arn}/publication/tofu.tfstate.tflock",
+      "${local.state_bucket_arn}/publication/tofu.tfstate.tflock",
     ]
   }
 }

@@ -172,8 +172,8 @@ data "aws_iam_policy_document" "infrastructure_admin_permissions" {
     sid     = "ManageOpenTofuStateBucket"
     actions = ["s3:*"]
     resources = [
-      aws_s3_bucket.tofu_state.arn,
-      "${aws_s3_bucket.tofu_state.arn}/*",
+      local.state_bucket_arn,
+      "${local.state_bucket_arn}/*",
     ]
   }
 }
