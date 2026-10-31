@@ -245,7 +245,7 @@ becomes an OpenTofu input. Keep it in the protected Environment, not
 **Do not create AWS access-key secrets.** Existing GitHub OIDC provider is
 reused. Both infrastructure IAM roles, their trust policies, and their
 managed permission policies are defined as IaC in
-[the admin OpenTofu root](../bootstrap/README.md). Apply `admin` first with
+[the admin OpenTofu root](../administration/README.md). Apply `infra/administration` first with
 the authorized `infra-admin` identity and use its outputs for the GitHub
 Environment-scoped `AWS_ROLE_ARN` values; do not create the roles manually.
 The plan role's IAM trust now uses the subject `environment:demo-infra-plan`
@@ -292,8 +292,8 @@ a reviewed instance replacement.
 
 The binary `demo.tfplan` may include sensitive infrastructure or state data
 even when the rendered plan redacts it. **Never use public GitHub Actions
-artifacts for saved plans.** The plan is stored in the private shared
-S3 bucket `aggregator-tofu-state-905418096305-eu-central-1` under the
+artifacts for saved plans.** The plan is stored in the private project-owned
+S3 bucket `aggregator-project-tofu-state-905418096305-eu-central-1` under the
 dedicated `plans/demo/` prefix. S3 Lifecycle expires current versions
 after 7 days, noncurrent versions after one further day and removes expired
 delete markers. S3 processing is asynchronous. If approval takes too long
@@ -306,10 +306,12 @@ its SHA-256 via GitHub job output; the apply job refuses mismatches.
 Object keys include `github.run_id` and `github.run_attempt` so retries
 cannot silently overwrite an earlier plan.
 
-**Prerequisites:** first apply `aws_foundation/aws_account` as `infra-admin`
-to install lifecycle and the bucket policy, then apply
-`aggregator/infra/bootstrap` to attach the new GitHub IAM permissions.
-Only after both apply successfully should the new `demo` workflow run.
+**Prerequisites:** complete the [state migration](../MIGRATE-STATE.md):
+create protected Foundation/Administration buckets; migrate the privileged
+administration state; apply project IAM delegation; create the project bucket
+through `aggregator-admin`; and migrate demo/publication backends. The
+plan lifecycle and conditional-write policy are owned by `infra/state`,
+not by Foundation. Only then promote the updated workflow to `demo`.
 The textual plan and review summary are still shown in public Actions
 logs; continue treating those as public information. Approval must be based on the actual plan, not only the status of checks.
 
@@ -322,7 +324,7 @@ Those resources are expected to remain in the demo state.
 
 Before retrying a failure caused by `AccessDenied`:
 
-1. Apply the `infra/bootstrap` root with the authorized `infra-admin`
+1. Apply the `infra/administration` root with the authorized `infra-admin`
    identity. The `AggregatorDemoEC2Management` policy already includes
    `logs:TagResource` for the dedicated K3s SSM log group. The
    `AggregatorDemoIAMManagement` policy must also permit attaching the
@@ -393,12 +395,12 @@ the workflow to initiate commands.
 
 The new role's SSM scope should be restricted to
 `Name=aggregator-demo-k3s`, `Project=aggregator`, `Environment=demo`.
-The role and SSM permissions are declared in `infra/bootstrap` and
+The role and SSM permissions are declared in `infra/administration` and
 become available only after an approved OpenTofu apply of that root.
 This demo workflow must not try to create or modify the admin root.
 
 CloudWatch log permissions and the instance role boundary are defined in
-`admin`. Apply `admin` before enabling K3s, then review and apply the demo
+`infra/administration`. Apply `infra/administration` before enabling K3s, then review and apply the demo
 root through GitHub. The CloudWatch log group is created only if K3s is enabled.
 
 To debug, inspect the plan/apply job summaries, CloudWatch SSM output, and

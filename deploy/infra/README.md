@@ -1,30 +1,27 @@
 # AWS workload infrastructure
 
-OpenTofu roots are managed independently. The shared AWS account foundation
-is maintained in [aws_foundation](https://github.com/aleksei-sapozhnikov/aws_foundation).
+The AWS-account foundation is maintained separately in
+[aws_foundation](https://github.com/aleksei-sapozhnikov/aws_foundation).
+Project-specific IAM administration remains **in this repository**.
 
-- [Project IAM bootstrap](../../infra/bootstrap/): Aggregator IAM users,
-  groups, policies, permission boundaries, and GitHub OIDC roles. Run with
-  `infra-admin`. Its existing S3 key remains `admin/tofu.tfstate`.
-- [Demo](../../infra/demo/): EC2 demo, workload IAM resources, network infrastructure and
-  optional K3s with Ansible (`demo/tofu.tfstate`).
-- [Publication](publication/): Lambda publication runner and supporting
-  cloud resources (`publication/tofu.tfstate`).
+| Root | Operator | Purpose |
+| --- | --- | --- |
+| [`infra/administration`](../../infra/administration/) | `infra-admin` (central administrator) | Creates `aggregator-admin`, groups, policies, and GitHub OIDC roles; protected administration state |
+| [`infra/state`](../../infra/state/) | `aggregator-admin` | Project-owned S3 bucket with lifecycle for sensitive saved plans |
+| [`infra/demo`](../../infra/demo/) | Delegated user / approved OIDC | Demo EC2 and K3s; project-owned `demo/tofu.tfstate` |
+| [`deploy/infra/publication`](publication/) | `aggregator-admin` | Publication runner; project-owned `publication/tofu.tfstate` |
 
-The shared S3 bucket, account GitHub OIDC provider and regional Session Manager
-preferences are owned by `aws_foundation/account`. Root-only administration
-of the `infra-admin` user is owned by `aws_foundation/bootstrap`.
+Only account-wide GitHub OIDC provider and Session Manager preferences live
+in Foundation. `infra/administration` runs using centrally granted rights
+but is versioned next to the Aggregator workloads. Its S3 state key is
+`aggregator/tofu.tfstate` in the central Administration state bucket,
+which is inaccessible to `aggregator-admin`.
 
-## Safe operations
+**Migration is staged.** Do not initialize the changed backends against
+empty destinations, and do not promote the new demo workflow until the
+ordered [state migration runbook](../../infra/MIGRATE-STATE.md) has been
+completed and validated.
 
-Apply project IAM changes through `infra/bootstrap` before relying on new
-permissions from `demo` or `publication`. Review all plans before applying.
-Do not rename IAM identities, buckets or S3 state keys as part of source-layout
-changes. The demo root continues using its existing backend key, while publication
-remains in `deploy/infra/publication` until its separate extraction.
-
-Application deployments, Lambda code releases and GitHub publication schedules
-have separate execution paths. Secrets, state, saved plans and credentials must
-not be committed to Git.
-
-See the corresponding root README files for detailed operating instructions.
+Never commit credentials, saved plans or OpenTofu state. Existing
+application deployment and publication schedules have independent release
+paths; protect the running legacy demo while migrating.

@@ -1,55 +1,48 @@
-# AWS foundation extraction
+# AWS Foundation extraction and subsequent state separation
 
-## Status
+## Previously completed
 
-The account-level infrastructure was separated from Aggregator on
-October 31, 2026. Existing AWS resources were transferred between OpenTofu
-states without deleting or recreating them. Live ownership and configuration
-were checked using clean `tofu plan` results after the migration.
+On October 31, 2026, account-wide GitHub OIDC, Session Manager settings
+and shared S3 configuration were separated into
+`aws_foundation/aws_account`. The Foundation state key was subsequently
+renamed to `foundation/aws_account/tofu.tfstate` in the original bucket,
+without changing the bucket or destroying resources.
 
-## Ownership
+The demo root was previously relocated to `infra/demo` while keeping
+its resource addresses and `demo/tofu.tfstate` key.
 
-| OpenTofu root                         | Managed infrastructure                                                                         | State                                                       |
-| ------------------------------------- | ---------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| `aws_foundation/bootstrap`            | Shared `infra-admin` IAM user, `AdministratorAccess` attachment, protected root-only S3 bucket | `foundation/bootstrap/tofu.tfstate` in its dedicated bucket |
-| `aws_foundation/aws_account`              | Shared state S3 bucket and policy, GitHub OIDC provider, regional Session Manager document     | `foundation/aws_account/tofu.tfstate` in the shared bucket      |
-| `aggregator/infra/bootstrap`          | Project-specific `aggregator-admin`, Aggregator IAM groups, policies and GitHub OIDC roles     | Existing `admin/tofu.tfstate` in the shared bucket          |
-| `aggregator/infra/demo`               | Demo cloud infrastructure                                                                      | Existing `demo/tofu.tfstate`                                |
-| `aggregator/deploy/infra/publication` | Publication runner cloud infrastructure                                                        | Existing `publication/tofu.tfstate`                         |
+## New architecture — staged, not yet applied in AWS
 
-No IAM identities, AWS object names or S3 state keys were renamed during the
-ownership transfer. The demo OpenTofu root was relocated from `deploy/infra/demo` to
-`infra/demo` with the same backend key `demo/tofu.tfstate` and unchanged module
-addresses. Ansible now lives in `infra/demo/ansible`. A temporary compatibility
-symlink was used during relocation and retired when the K3s EC2 cloud-init
-was simplified for a planned replacement.
-The project-specific IAM root was previously relocated
-in source control from `deploy/infra/admin` to `infra/bootstrap` without
-moving its S3 state.
+| Root | Ownership | Intended state |
+| --- | --- | --- |
+| `aws_foundation/bootstrap` | AWS root | Isolated bootstrap bucket |
+| `aws_foundation/aws_account` | Central `infra-admin` | Dedicated Foundation bucket, `foundation/aws_account/tofu.tfstate` |
+| `aggregator/infra/administration` | Central `infra-admin`, code in Aggregator | Protected Administration bucket, `aggregator/tofu.tfstate` |
+| `aggregator/infra/state` | Delegated `aggregator-admin` | Project bucket, `state/tofu.tfstate` |
+| `aggregator/infra/demo` | Delegated / approved OIDC | Project bucket, `demo/tofu.tfstate` |
+| `aggregator/deploy/infra/publication` | Delegated `aggregator-admin` | Project bucket, `publication/tofu.tfstate` |
 
-## Access boundaries
+The account-wide OIDC provider is reused by project GitHub roles; the
+roles and all Aggregator-specific IAM users/policies live only in
+`aggregator/infra/administration`. The central Administrator identity
+is presently named `infra-admin`; the IAM user is *not* renamed
+automatically by these changes.
 
-- AWS root operates only `aws_foundation/bootstrap` through OpenTofu.
-- `infra-admin` has `AdministratorAccess` and manages
-  `aws_foundation/aws_account` and Aggregator project IAM.
-- `aggregator-admin` retains narrowly delegated permissions for project
-  workloads and is denied access to the shared bucket's `admin/*` and
-  `foundation/*` object prefixes.
-- The dedicated bootstrap state bucket policy explicitly denies non-root
-  principal access. The shared bucket and bootstrap bucket are separate.
+The original shared bucket is retained intact for migration and for
+historical privileged state versions. The Foundation root's `removed`
+blocks deliberately **forget** it rather than destroy it; S3 historical
+cleanup is a separate, security-sensitive decision.
 
-The project bootstrap no longer manages the `infra-admin` user's group
-membership. Its former Aggregator-only infrastructure administrators group,
-policy and attachments have been retired. The user retains
-`AdministratorAccess` from `aws_foundation/bootstrap`.
+The current `dev` source definitions are not proof of AWS migration.
+Follow [the ordered migration runbook](../infra/MIGRATE-STATE.md)
+before applying IAM changes, state backends or GitHub CI changes.
 
-Before applying this cleanup, confirm `AggregatorInfrastructureAdmins` has
-no members other than `infra-admin`, and review the OpenTofu destroy plan.
-No `infra-admin` IAM user or direct policy attachment is to be deleted.
+## Security
 
-## Operational precautions
-
-Review `tofu plan` before each apply. Do not add the same existing AWS object
-to two states, alter protected state keys, or manually create AWS resources.
-All resource creation and modification should be performed through OpenTofu.
-Keep state, saved plans, credentials and private backend config out of Git.
+AWS root controls only the root-protected bootstrap root. The central
+administrator can change account-level infrastructure and project IAM;
+the delegated project admin can change its own workload resources
+and S3 state bucket, but cannot read central administrative state.
+Never track one AWS resource in two OpenTofu states, and never apply
+a plan that proposes recreation of the existing IAM user or the
+serving Docker Compose EC2 instance.

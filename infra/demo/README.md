@@ -3,16 +3,16 @@
 See [the demo infrastructure GitHub Actions workflow](WORKFLOW.md) for
 dev validation, demo-only plan/apply, OIDC, manual approval, and SSM setup.
 
-The [Aggregator project IAM bootstrap](../bootstrap/README.md) owns IAM
+The [Aggregator project IAM administration](../administration/README.md) owns IAM
 users, groups, OIDC roles and reusable policies. This root consumes those
 permissions and manages only demo infrastructure. IAM roles and instance
 profiles attached to the demo EC2 nodes remain here because they belong to
-those workloads. Apply `infra/bootstrap` first, then `infra/demo`.
+those workloads. Apply `infra/administration` first, then `infra/demo`.
 
 This OpenTofu root manages the protected serving EC2 demo (including its
 Elastic IP) and an **optional, separate K3s EC2 node**. The serving instance
 remains untouched by the new bootstrap; application deployment and traffic
-cutover are separate future steps. The shared state key is `demo/tofu.tfstate`
+cutover are separate future steps. The project-owned state key is `demo/tofu.tfstate`
 in AWS account `905418096305`, region `eu-central-1`.
 
 ## Provisioning
@@ -52,17 +52,19 @@ must work. K3s uses its bundled Traefik and ServiceLB.
 ## Private saved plans
 
 The approved demo workflow stores binary OpenTofu plans in the private,
-versioned shared state bucket under `plans/demo/<run-id>/<attempt>/demo.tfplan`.
+versioned Aggregator state bucket (`aggregator-project-tofu-state-905418096305-eu-central-1`) under
+`plans/demo/<run-id>/<attempt>/demo.tfplan`.
 The `plan` job conditionally uploads with `If-None-Match: *`, then
 passes the SHA-256 through a GitHub job output. After Environment approval,
 the `apply` job downloads the plan and verifies its checksum before running
 `tofu apply`. No binary plan is uploaded as a GitHub Actions artifact.
 
 S3 Lifecycle expires these temporary files after seven days (with
-noncurrent-version cleanup). The bucket and Lifecycle are owned by
-`aws_foundation/aws_account`; role permissions belong to `infra/bootstrap`.
-Apply those roots in that order before enabling the new workflow. State and
-lock objects are outside the expiration prefix.
+noncurrent-version cleanup). The project bucket and Lifecycle are owned
+by `infra/state`, executed with `aggregator-admin`; role permissions
+are managed in `infra/administration` by the central AWS administrator.
+Complete [state migration](../MIGRATE-STATE.md) before promoting the
+new workflow to `demo`. State and lock objects are outside the expiry prefix.
 
 ## Reapply and inspect with SSM
 
