@@ -112,7 +112,8 @@ export default function HealthSignalModal({
   const itemTitle = items.find((item) => item.id === itemId)?.title || itemId;
   const otherFields = signal
     ? Object.entries(signal).filter(
-        ([key]) => key !== "id" && key !== "title" && key !== "itemId" && key !== "type",
+        ([key]) =>
+          key !== "id" && key !== "title" && key !== "itemId" && key !== "type",
       )
     : [];
 

@@ -24,7 +24,9 @@ describe("ItemNavigationLink", () => {
 
     const link = screen.getByRole("link", { name: "Payments" });
     expect(link.getAttribute("href")).toBe("/item/payments");
-    expect(link.querySelector(".item-navigation-link-text")?.textContent).toBe("Payments");
+    expect(link.querySelector(".item-navigation-link-text")?.textContent).toBe(
+      "Payments",
+    );
     const arrow = link.querySelector(".item-navigation-link-arrow");
     expect(arrow?.textContent?.trim()).toBe("→");
     expect(arrow?.getAttribute("aria-hidden")).toBe("true");
@@ -34,9 +36,7 @@ describe("ItemNavigationLink", () => {
   it("keeps item navigation arrows separated from the text", () => {
     const css = readFileSync(resolve("src", "styles.css"), "utf8");
 
-    expect(css).toMatch(
-      /\.item-navigation-link\s*\{[^}]*gap:\s*5px;/s,
-    );
+    expect(css).toMatch(/\.item-navigation-link\s*\{[^}]*gap:\s*5px;/s);
     expect(css).toMatch(
       /\.item-navigation-link-arrow\s*\{[^}]*color:\s*var\(--link\);/s,
     );

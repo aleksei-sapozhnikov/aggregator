@@ -14,7 +14,11 @@ afterEach(cleanup);
 describe("ModalDetailsTrigger", () => {
   it("renders button semantics for modal-only entities", () => {
     const onClick = vi.fn();
-    render(<ModalDetailsTrigger onClick={onClick}>Ownership Team</ModalDetailsTrigger>);
+    render(
+      <ModalDetailsTrigger onClick={onClick}>
+        Ownership Team
+      </ModalDetailsTrigger>,
+    );
 
     const trigger = screen.getByRole("button", { name: "Ownership Team" });
     expect(trigger.getAttribute("aria-haspopup")).toBe("dialog");
