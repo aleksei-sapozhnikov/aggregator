@@ -1,22 +1,21 @@
 # AWS access administration
 
 OpenTofu root for shared IAM users, groups, policies, permissions boundaries,
-and S3 state storage. Workload roles belong to their respective stacks.
-This directory contains shared administration for the Aggregator project,
+and delegated access to the shared S3 state bucket. Workload roles belong to their respective stacks.
+This directory contains project-specific administration for Aggregator,
 not a global AWS-account administration root. Environment-specific EC2
 resources and their workload roles belong to their environment stacks.
-This directory can be used as a standalone repository.
+Account-wide shared resources are managed in `aws_foundation/account`.
 
 ## Contents
 
 - `main.tf`: users, groups, and memberships.
 - `permissions.tf`: group policy attachments.
 - `policies.tf` and `policies/`: delegated permissions and workload boundaries.
-- `github_demo_deploy.tf`: the shared GitHub OIDC provider and demo application deploy role.
+- `github_demo_deploy.tf`: demo application deploy role trusting the shared GitHub OIDC provider.
 - `github_demo_infra.tf`: OIDC plan/apply roles for demo infrastructure;
   existing managed policies are reused instead of duplicated.
-- `session_manager.tf`: regional Session Manager settings for interactive shells.
-- `state.tf`: protected, encrypted, versioned S3 state bucket.
+- `state.tf`: stable ARN of the shared state bucket managed by `aws_foundation/account`.
 - `state_access.tf`: workload access to state keys and lock files.
 - `backend.tf`, `providers.tf`, `versions.tf`: state, AWS account, and tool versions.
 
@@ -33,8 +32,9 @@ tofu plan
 ```
 
 The configured account is `905418096305`, region `eu-central-1`.
-State is stored under `admin/tofu.tfstate`. The backend bucket must exist
-before initialization.
+The S3 backend key deliberately remains `admin/tofu.tfstate` despite moving
+this root to `infra/bootstrap`. The bucket and other shared account
+infrastructure are managed separately by `aws_foundation/account`.
 
 ## Checks
 
@@ -59,14 +59,12 @@ Commit `.terraform.lock.hcl` to preserve provider selections.
 
 ## GitHub OIDC deploy identity
 
-`github_demo_deploy.tf` creates the GitHub OIDC provider and role
-`AggregatorDemoDeployGithub`. The role can only run the dedicated SSM
+`github_demo_deploy.tf` creates the role
+`AggregatorDemoDeployGithub`. It trusts the existing GitHub OIDC provider
+owned by `aws_foundation/account`. The role can only run the dedicated SSM
 document on the tagged serving demo EC2 and read its result.
 
-Apply this root using an administrator who can create the OIDC provider and
-role. If an OIDC provider already exists, import it into
-`aws_iam_openid_connect_provider.github_actions` before applying.
-Set the resulting `github_demo_deploy_role_arn` output in the `demo`
+Apply this root using `infra-admin`. Set the resulting `github_demo_deploy_role_arn` output in the `demo`
 GitHub environment variable `AWS_DEMO_DEPLOY_ROLE_ARN`.
 
 **Important:** Restrict GitHub's `demo` environment to the `demo` branch.
@@ -133,16 +131,15 @@ termination and resume. The policy also retains `aws:userid` for
 Session Manager data-channel compatibility.
 
 The IAM user `aggregator-admin` is tagged `SSMSessionRunAs=ec2-user`.
-Regional Run As preferences are defined directly in
-`session_manager.tf`.
+Regional Run As preferences are managed by `aws_foundation/account`.
 Session preferences apply to every managed instance in the selected account
 and region. The IAM tag takes priority over the account default OS user.
 
 Test `whoami` and `id -u` in the browser shell. The expected user is
 `ec2-user` with a nonzero UID. This is not a strict privilege separation:
 `ec2-user` usually has sudo access and the serving demo user has Docker
-access. The session document is managed in this root with explicit settings for
-session logging, encryption, and timeouts.
+access. The regional session document is managed by `aws_foundation/account` with
+explicit settings for session logging, encryption, and timeouts.
 
 Apply this root as `infra-admin`, then sign in to AWS as
 `aggregator-admin` and select EC2 > Instances > demo-aggregator >
@@ -156,12 +153,15 @@ or expose TCP/22. Administrative access uses Session Manager.
 
 ## Regional Session Manager preferences
 
-`session_manager.tf` owns the regional
-`SSM-SessionManagerRunShell` document and declares its full contents
-inline. Run As is enabled for IAM identities tagged with
-`SSMSessionRunAs`. Existing documents must be imported once before
-OpenTofu can manage them. Review `tofu plan` before applying any
-change to account-wide session preferences.
+The account-wide `SSM-SessionManagerRunShell` document is owned by
+`aws_foundation/account`. Do not reintroduce it as a managed resource here.
+
+## Infra-admin group membership
+
+The existing `aws_iam_user_group_membership.infra_admin` resource controls the
+complete IAM group membership of the shared `infra-admin` user. Do not add
+groups in other projects until this resource has been refactored to avoid
+overwriting unrelated memberships.
 
 ## Argo CD private dashboard
 

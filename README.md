@@ -203,7 +203,8 @@ More detail:
 - [docs/development.md](docs/development.md) covers formatting, linting, and git
   hooks.
 - [deploy/demo/README.md](deploy/demo/README.md) covers the hosted demo stack.
-- [deploy/infra/README.md](deploy/infra/README.md) explains AWS infrastructure
-  ownership, state separation, and safe operational boundaries.
+- [infra/bootstrap/README.md](infra/bootstrap/README.md) documents project IAM
+  administration. [deploy/infra/README.md](deploy/infra/README.md) explains
+  workload infrastructure, state separation, and safe operational boundaries.
 - [tools/code_qa/README.md](tools/code_qa/README.md) describes the repository
   QA runner and available module-level checks.

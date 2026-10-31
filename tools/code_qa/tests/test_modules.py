@@ -97,16 +97,16 @@ class ModuleConfigurationTests(unittest.TestCase):
 
     def test_changed_paths_are_passed_to_project_checks(self) -> None:
         root = repo_root()
-        changed = module_path(root, "infra-admin", "removed.tf")
+        changed = module_path(root, "infra-bootstrap", "removed.tf")
         check = next(
-            check for check in cli.CHECKS if check.check_id == "infra-admin/tofu-format"
+            check for check in cli.CHECKS if check.check_id == "infra-bootstrap/tofu-format"
         )
 
         def inspect(runner: str, args: list[str]) -> tuple[bool, list[str]]:
             self.assertEqual(runner, "code_qa.src.checks.format.tofu")
             self.assertEqual(
                 args[args.index("--directory") + 1],
-                str(root / modules.MODULE_BY_NAME["infra-admin"].path),
+                str(root / modules.MODULE_BY_NAME["infra-bootstrap"].path),
             )
             self.assertEqual(args[args.index("--workspace-root") + 1], str(root))
             manifest = Path(args[args.index("--changed-files-from") + 1])

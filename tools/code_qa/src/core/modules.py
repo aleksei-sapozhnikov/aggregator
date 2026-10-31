@@ -100,7 +100,7 @@ MODULES = (
         "python_code",
         TestSpec("unittest_tests", ("--start-directory", "tests")),
     ),
-    ModuleSpec("infra-admin", "deploy/infra/admin", "tofu_code"),
+    ModuleSpec("infra-bootstrap", "infra/bootstrap", "tofu_code"),
     ModuleSpec("infra-demo", "deploy/infra/demo", "tofu_code"),
     ModuleSpec("infra-publication", "deploy/infra/publication", "tofu_code"),
     ModuleSpec(

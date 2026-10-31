@@ -72,15 +72,6 @@ resource "aws_iam_user_group_membership" "aggregator_admin" {
   }
 }
 
-# The IAM user is transferred to aws_foundation/bootstrap.
-removed {
-  from = aws_iam_user.infra_admin
-
-  lifecycle {
-    destroy = false
-  }
-}
-
 resource "aws_iam_user_group_membership" "infra_admin" {
   user = "infra-admin"
   groups = [

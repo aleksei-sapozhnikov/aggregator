@@ -296,7 +296,7 @@ Those resources are expected to remain in the demo state.
 
 Before retrying a failure caused by `AccessDenied`:
 
-1. Apply the `deploy/infra/admin` root with the authorized `infra-admin`
+1. Apply the `infra/bootstrap` root with the authorized `infra-admin`
    identity. The `AggregatorDemoEC2Management` policy already includes
    `logs:TagResource` for the dedicated K3s SSM log group. The
    `AggregatorDemoIAMManagement` policy must also permit attaching the
@@ -367,7 +367,7 @@ the workflow to initiate commands.
 
 The new role's SSM scope should be restricted to
 `Name=aggregator-demo-k3s`, `Project=aggregator`, `Environment=demo`.
-The role and SSM permissions are declared in `deploy/infra/admin` and
+The role and SSM permissions are declared in `infra/bootstrap` and
 become available only after an approved OpenTofu apply of that root.
 This demo workflow must not try to create or modify the admin root.
 

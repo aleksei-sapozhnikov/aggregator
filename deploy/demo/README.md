@@ -40,10 +40,9 @@ only a 40-character hexadecimal Git SHA, then:
 
 ## Cutover preparation (before updating the demo branch)
 
-1. In `deploy/infra/admin`, review and apply the new GitHub OIDC provider and
-   restricted IAM role with appropriate IAM administrator credentials. If the
-   account already has an OIDC provider for GitHub, **import** that provider
-   into Terraform instead of creating a duplicate.
+1. In `infra/bootstrap`, review and apply the restricted GitHub deployment
+   IAM role with `infra-admin`. The existing GitHub OIDC provider is already
+   managed by `aws_foundation/account`; do not create a duplicate.
 2. In `deploy/infra/demo`, review and apply the SSM document and
    `AmazonSSMManagedInstanceCore` role attachment. Reject any unrelated
    destructive or EC2 replacement plans.

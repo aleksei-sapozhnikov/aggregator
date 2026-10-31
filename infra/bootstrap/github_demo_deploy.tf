@@ -4,14 +4,6 @@ locals {
   github_oidc_provider_arn = "arn:aws:iam::905418096305:oidc-provider/token.actions.githubusercontent.com"
 }
 
-removed {
-  from = aws_iam_openid_connect_provider.github_actions
-
-  lifecycle {
-    destroy = false
-  }
-}
-
 data "aws_iam_policy_document" "github_demo_deploy_trust" {
   statement {
     effect  = "Allow"
