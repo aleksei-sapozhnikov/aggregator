@@ -31,8 +31,9 @@ workflow uses `infra/demo/ansible/dispatch-ssm.sh` to submit the versioned
 
 The versioned `node-configure.sh` installs the isolated Ansible environment
 as needed and resolves its `ansible/site.yml` relative to its own location.
-Repository layout and Ansible execution are no longer hard-coded in the EC2
-cloud-init wrapper. Logs are sent to CloudWatch and appended to
+The active SSM path is no longer coupled to the historical
+`deploy/ansible` path baked into the unchanged cloud-init wrapper.
+Logs are sent to CloudWatch and appended to
 `/var/log/aggregator-node-configure.log`.
 
 To retry, rerun the reviewed demo infrastructure workflow with

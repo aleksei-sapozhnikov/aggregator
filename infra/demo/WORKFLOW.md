@@ -46,9 +46,9 @@ local checks or pull-request validation:
      Environment secret settings and rotation instructions.
      the SSM tunnel command can be copied from the Apply Summary.
   5. Detect creation or replacement of the K3s EC2 from the saved
-     OpenTofu plan JSON. After successful apply, execute the same Ansible
-     wrapper via SSM as for ordinary Ansible revisions. Supply the exact
-     workflow commit SHA, not a separately maintained bootstrap variable.
+     OpenTofu plan JSON. After successful apply, execute the versioned SSM launcher,
+     which fetches the exact workflow commit SHA and calls that revision's
+     `infra/demo/node-configure.sh` rather than the old EC2 wrapper.
   6. Ansible configures K3s, Traefik and Argo CD, and registers its
      Application. SSM checks the applied revision, Kubernetes API, Traefik
      and Argo CD readiness, and the Application resource's existence. It
@@ -65,13 +65,17 @@ local checks or pull-request validation:
      in `demo-deploy`. For application-only pushes with a published
      release, all Terraform/Ansible jobs are skipped.
 
-Cloud-init only installs OS prerequisites and the root-owned Ansible wrapper.
-It does **not** fetch the repository or run the playbook on its own.
+Cloud-init only installs OS prerequisites and leaves the original root-owned
+wrapper for compatibility. The approved SSM launcher fetches the exact
+revision and runs the version-owned Ansible entrypoint independently of the
+old wrapper. Cloud-init does **not** fetch or run Ansible on its own.
 Terraform owns the cloud-init template; changing that template intentionally
 replaces the K3s EC2 (subject to the reviewed Terraform plan), rather than
 restarting an instance without re-running cloud-init.
 
-Changes under `infra/demo/ansible/**` or to `deploy/argocd/argocd-admin-hash.py` reconfigure the existing EC2 through SSM,
+Changes under `infra/demo/ansible/**`, either of the versioned
+`infra/demo/{ssm-node-configure,node-configure}.sh` scripts, or
+`deploy/argocd/argocd-admin-hash.py` reconfigure the existing EC2 through SSM,
 without Terraform resource updates. Ordinary application changes use GitHub
 image publication and Argo CD, without running Ansible. Once a GitOps release
 exists, application-only pushes skip Terraform/Ansible entirely.
@@ -94,9 +98,10 @@ by a failed Ansible run. Automatic retry of failed configurations without a new
 workflow trigger is not implemented for this demo.
 
 SSM Run Command streams stdout and stderr to CloudWatch Logs group
-`/aws/ssm/aggregator-demo-k3s` with 14-day retention. The wrapper also
-records complete logs on the instance at
-`/var/log/aggregator-node-configure.log`.
+`/aws/ssm/aggregator-demo-k3s` with 14-day retention. The versioned Ansible
+runner also appends its output to `/var/log/aggregator-node-configure.log`.
+The shared lock covers checkout, playbook and readiness checks. The
+successful Git revision is recorded only after those checks pass.
 
 This workflow never builds or publishes application images. Every
 `demo` push enters a single ordering workflow; infrastructure changes
