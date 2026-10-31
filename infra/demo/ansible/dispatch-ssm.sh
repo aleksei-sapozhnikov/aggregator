@@ -33,28 +33,17 @@ if [[ "$connected" != true ]]; then
   exit 1
 fi
 
-# Cloud-init provides only prerequisites and the reusable wrapper.
-# The same Ansible command is used for a new node and subsequent changes.
-command_line="$(cat <<SCRIPT
-#!/bin/sh
-set -eu
-if ! cloud-init status --wait; then
-  cloud-init status --long || true
+# The submitted launcher is versioned in Git rather than baked into EC2 user_data.
+# The only substituted input is a previously validated 40-character Git SHA.
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
+launcher_path="$script_dir/../ssm-node-configure.sh"
+[[ -f "$launcher_path" ]] || { echo "SSM launcher is missing: $launcher_path" >&2; exit 1; }
+command_line="$(cat "$launcher_path")"
+[[ "$command_line" == *"__CONFIGURATION_SHA__"* ]] || {
+  echo "SSM launcher revision placeholder is missing" >&2
   exit 1
-fi
-test -x /usr/local/sbin/aggregator-node-configure
-/usr/local/sbin/aggregator-node-configure "$CONFIGURATION_SHA"
-test "\$(cat /var/lib/aggregator-node/last-configured-revision)" = "$CONFIGURATION_SHA"
-systemctl is-active --quiet k3s
-/usr/local/bin/k3s kubectl get --raw=/readyz
-/usr/local/bin/k3s kubectl --namespace argocd rollout status deployment/argocd-server --timeout=180s
-/usr/local/bin/k3s kubectl --namespace kube-system rollout status deployment/traefik --timeout=300s
-# Ansible owns cluster bootstrap, not application deployment or GitOps health.
-# The Application is registered; demo-deploy publishes its manifests later.
-/usr/local/bin/k3s kubectl -n argocd get application aggregator-demo >/dev/null
-echo "K3s, Traefik and Argo CD bootstrapped at revision $CONFIGURATION_SHA"
-SCRIPT
-)"
+}
+command_line="${command_line//__CONFIGURATION_SHA__/$CONFIGURATION_SHA}"
 parameters="$(jq -nc --arg command "$command_line" \
   '{commands: [$command], executionTimeout: ["2400"]}')"
 
