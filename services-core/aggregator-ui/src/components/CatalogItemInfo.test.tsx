@@ -106,6 +106,84 @@ describe("CatalogItemInfo tooltip positioning", () => {
   });
 });
 
+describe("CatalogItemInfo description presentation", () => {
+  it("adds an action hint to a short-description tooltip and emphasizes it in the modal", () => {
+    render(
+      <CatalogItemInfo
+        item={{
+          id: "commerce",
+          title: "Commerce Platform",
+          shortDescription: "Coordinates customer ordering.",
+          fullDescription: "The platform connects the commerce services.",
+        }}
+      />,
+    );
+
+    const button = screen.getByRole("button", {
+      name: "Catalog information for Commerce Platform",
+    });
+    fireEvent.mouseEnter(button);
+    const tooltip = screen.getByRole("tooltip");
+
+    expect(tooltip.textContent).toContain("Coordinates customer ordering.");
+    expect(
+      tooltip.querySelector(".catalog-item-info-tooltip-action")?.textContent?.trim(),
+    ).toBe("Click for details");
+
+    fireEvent.click(button);
+    const dialog = screen.getByRole("dialog", {
+      name: "Catalog information for Commerce Platform",
+    });
+    expect(dialog.querySelector(".catalog-item-info-content p:first-child strong")?.textContent).toBe(
+      "Coordinates customer ordering.",
+    );
+    expect(dialog.querySelectorAll(".catalog-item-info-content strong")).toHaveLength(1);
+    expect(dialog.textContent).toContain("The platform connects the commerce services.");
+  });
+
+  it("shows an action hint when only the full description is available", () => {
+    render(
+      <CatalogItemInfo
+        item={{
+          id: "payments",
+          title: "Payments",
+          fullDescription: "Details about payments.",
+        }}
+      />,
+    );
+
+    const button = screen.getByRole("button", {
+      name: "Catalog information for Payments",
+    });
+    fireEvent.mouseEnter(button);
+    expect(
+      screen.getByRole("tooltip").querySelector(".catalog-item-info-tooltip-action")
+        ?.textContent?.trim(),
+    ).toBe("Click for details");
+
+    fireEvent.click(button);
+    expect(screen.getByRole("dialog", { name: "Catalog information for Payments" }).textContent)
+      .toContain("Details about payments.");
+    expect(document.querySelector(".catalog-item-info-content strong")).toBeNull();
+  });
+
+  it("does not suggest opening details when no description exists", () => {
+    render(<CatalogItemInfo item={{ id: "empty", title: "Empty" }} />);
+
+    const button = screen.getByRole("button", {
+      name: "Catalog information for Empty",
+    });
+    expect(button.getAttribute("aria-disabled")).toBe("true");
+    fireEvent.mouseEnter(button);
+    const tooltip = screen.getByRole("tooltip");
+    expect(tooltip.textContent).toBe("No description in catalog");
+    expect(tooltip.textContent).not.toContain("Click for details");
+
+    fireEvent.click(button);
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+});
+
 describe("CatalogItemInfo modal tooltip lifecycle", () => {
   it("shows tooltip on hover only, not after modal Escape restores focus", async () => {
     render(
