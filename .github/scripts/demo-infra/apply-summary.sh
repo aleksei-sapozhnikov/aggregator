@@ -2,7 +2,7 @@
 # Summarize the current demo infrastructure outputs after a successful apply.
 # Highlights public EC2 addresses and instance IDs, then lists all root outputs
 # in a collapsed GitHub Actions summary. Sensitive outputs remain redacted.
-# Run from deploy/infra/demo; requires GITHUB_STEP_SUMMARY and TERRAFORM_CHANGED.
+# Run from infra/demo; requires GITHUB_STEP_SUMMARY and TERRAFORM_CHANGED.
 
 set -euo pipefail
 

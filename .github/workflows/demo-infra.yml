@@ -70,7 +70,7 @@ jobs:
           tofu_version: "1.13.1"
           tofu_wrapper: false
       - name: Check OpenTofu formatting and syntax without AWS credentials
-        working-directory: deploy/infra/demo
+        working-directory: infra/demo
         shell: bash
         run: |
           set -euo pipefail
@@ -133,11 +133,11 @@ jobs:
           tofu_version: "1.13.1"
           tofu_wrapper: false
       - name: Initialize demo backend
-        working-directory: deploy/infra/demo
+        working-directory: infra/demo
         run: tofu init -input=false -lockfile=readonly
       - name: Save plan and render Terraform summary
         id: plan
-        working-directory: deploy/infra/demo
+        working-directory: infra/demo
         shell: bash
         run: bash "$GITHUB_WORKSPACE/.github/scripts/demo-infra/plan.sh"
       - name: Explain Terraform and Ansible actions for approval
@@ -203,7 +203,7 @@ jobs:
           tofu_version: "1.13.1"
           tofu_wrapper: false
       - name: Initialize demo backend
-        working-directory: deploy/infra/demo
+        working-directory: infra/demo
         run: tofu init -input=false -lockfile=readonly
       - name: Download the reviewed saved plan
         if: needs.plan.outputs.has_changes == 'true'
@@ -213,14 +213,14 @@ jobs:
           path: ${{ runner.temp }}/approved-plan
       - name: Apply the exact saved plan
         if: needs.plan.outputs.has_changes == 'true'
-        working-directory: deploy/infra/demo
+        working-directory: infra/demo
         shell: bash
         run: |
           set -euo pipefail
           tofu apply -input=false -no-color "$RUNNER_TEMP/approved-plan/demo.tfplan"
 
       - name: Show infrastructure outputs in GitHub Summary
-        working-directory: deploy/infra/demo
+        working-directory: infra/demo
         shell: bash
         env:
           TERRAFORM_CHANGED: ${{ needs.plan.outputs.has_changes }}
@@ -231,7 +231,7 @@ jobs:
           needs.plan.outputs.ansible_changed == 'true' ||
           inputs.sync_argocd_password == true
         id: node
-        working-directory: deploy/infra/demo
+        working-directory: infra/demo
         shell: bash
         run: bash "$GITHUB_WORKSPACE/.github/scripts/demo-infra/find-k3s-node.sh"
       - name: Require a K3s node for manual password sync
@@ -245,7 +245,7 @@ jobs:
           SSM_INSTANCE_ID: ${{ steps.node.outputs.instance_id }}
           CONFIGURATION_SHA: ${{ github.sha }}
         shell: bash
-        run: bash deploy/ansible/dispatch-ssm.sh
+        run: bash infra/demo/ansible/dispatch-ssm.sh
       - name: Reconcile Argo CD admin password from protected GitHub secret
         if: steps.node.outputs.available == 'true'
         shell: bash

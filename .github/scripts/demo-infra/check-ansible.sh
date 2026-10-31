@@ -7,10 +7,10 @@
 set -euo pipefail
 python3 -m venv "$RUNNER_TEMP/ansible"
 "$RUNNER_TEMP/ansible/bin/pip" install --disable-pip-version-check ansible-core==2.21.0
-cd deploy/ansible
+cd infra/demo/ansible
 "$RUNNER_TEMP/ansible/bin/ansible-playbook" -i localhost, -c local --syntax-check site.yml
-cd ../..
-bash -n deploy/ansible/dispatch-ssm.sh
+cd ../../..
+bash -n infra/demo/ansible/dispatch-ssm.sh
 # Validate each workflow script independently; bash -n with multiple paths checks only the first.
 for script in .github/scripts/demo-infra/*.sh .github/scripts/demo-deploy/*.sh; do
   bash -n "$script"
@@ -26,7 +26,7 @@ from pathlib import Path
 import yaml
 
 cloud_init = yaml.safe_load(
-    Path("deploy/infra/demo/modules/ec2_k3s/cloud-init.yaml.tftpl").read_text(
+    Path("infra/demo/modules/ec2_k3s/cloud-init.yaml.tftpl").read_text(
         encoding="utf-8"
     )
 )
