@@ -3221,13 +3221,10 @@ body[data-theme="dark"] .contact-email-reply {
   gap: 8px;
 }
 
-.actor-modal-contact-details {
-  display: inline-flex;
-  align-items: center;
+.actor-modal-contact-trigger {
   gap: 8px;
   max-width: 100%;
   min-height: 34px;
-  padding: 0;
 }
 
 .actor-modal-contact-icon {
@@ -4513,35 +4510,37 @@ body[data-theme="dark"] .about-social-icon-linkedin {
   border-radius: 3px;
 }
 
-.entity-info-action {
-  flex: 0 0 26px;
-  width: 26px;
-  height: 26px;
-  border: 0;
-  border-radius: 50%;
-  background: transparent;
-  color: var(--muted);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  font: inherit;
-  font-size: 17px;
-  line-height: 1;
-  text-decoration: none;
+.modal-details-trigger {
   cursor: pointer;
+  text-align: left;
 }
 
-.entity-info-action:hover {
+button.modal-details-trigger {
+  appearance: none;
+  -webkit-appearance: none;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  margin: 0;
+  font-family: inherit;
+}
+
+.item-navigation-link {
+  gap: 5px;
+}
+
+.item-navigation-link-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.item-navigation-link-arrow {
+  flex: 0 0 auto;
+  font-size: 0.9em;
   color: var(--link);
-  background: color-mix(in srgb, var(--link) 8%, transparent);
   text-decoration: none;
-}
-
-.entity-info-action:focus-visible {
-  color: var(--link);
-  outline: 2px solid var(--link);
-  outline-offset: 2px;
 }
 
 .signals-incident-signal-list {
