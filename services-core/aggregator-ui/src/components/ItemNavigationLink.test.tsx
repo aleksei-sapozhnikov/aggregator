@@ -2,6 +2,8 @@
  * @vitest-environment jsdom
  */
 
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import type { MouseEvent } from "react";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -28,5 +30,15 @@ describe("ItemNavigationLink", () => {
     expect(arrow?.getAttribute("aria-hidden")).toBe("true");
     fireEvent.click(link);
     expect(onClick).toHaveBeenCalledTimes(1);
+  });
+  it("keeps item navigation arrows separated from the text", () => {
+    const css = readFileSync(resolve("src", "styles.css"), "utf8");
+
+    expect(css).toMatch(
+      /\\.item-navigation-link\\s*\\{[^}]*gap:\\s*5px;/s,
+    );
+    expect(css).toMatch(
+      /\\.item-navigation-link-arrow\\s*\\{[^}]*color:\\s*var\\(--link\\);/s,
+    );
   });
 });
