@@ -72,21 +72,17 @@ resource "aws_iam_user_group_membership" "aggregator_admin" {
   }
 }
 
-resource "aws_iam_user" "infra_admin" {
-  name = "infra-admin"
-  path = "/"
-
-  tags = {
-    Project = "aggregator"
-  }
+# The IAM user is transferred to aws_foundation/bootstrap.
+removed {
+  from = aws_iam_user.infra_admin
 
   lifecycle {
-    prevent_destroy = true
+    destroy = false
   }
 }
 
 resource "aws_iam_user_group_membership" "infra_admin" {
-  user = aws_iam_user.infra_admin.name
+  user = "infra-admin"
   groups = [
     aws_iam_group.base.name,
     aws_iam_group.infrastructure.name,
