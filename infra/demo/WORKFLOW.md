@@ -306,7 +306,7 @@ its SHA-256 via GitHub job output; the apply job refuses mismatches.
 Object keys include `github.run_id` and `github.run_attempt` so retries
 cannot silently overwrite an earlier plan.
 
-**Prerequisites:** first apply `aws_foundation/account` as `infra-admin`
+**Prerequisites:** first apply `aws_foundation/aws_account` as `infra-admin`
 to install lifecycle and the bucket policy, then apply
 `aggregator/infra/bootstrap` to attach the new GitHub IAM permissions.
 Only after both apply successfully should the new `demo` workflow run.

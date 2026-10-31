@@ -12,7 +12,7 @@ were checked using clean `tofu plan` results after the migration.
 | OpenTofu root                         | Managed infrastructure                                                                         | State                                                       |
 | ------------------------------------- | ---------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
 | `aws_foundation/bootstrap`            | Shared `infra-admin` IAM user, `AdministratorAccess` attachment, protected root-only S3 bucket | `foundation/bootstrap/tofu.tfstate` in its dedicated bucket |
-| `aws_foundation/account`              | Shared state S3 bucket and policy, GitHub OIDC provider, regional Session Manager document     | `foundation/account/tofu.tfstate` in the shared bucket      |
+| `aws_foundation/aws_account`              | Shared state S3 bucket and policy, GitHub OIDC provider, regional Session Manager document     | `foundation/account/tofu.tfstate` in the shared bucket      |
 | `aggregator/infra/bootstrap`          | Project-specific `aggregator-admin`, Aggregator IAM groups, policies and GitHub OIDC roles     | Existing `admin/tofu.tfstate` in the shared bucket          |
 | `aggregator/infra/demo`               | Demo cloud infrastructure                                                                      | Existing `demo/tofu.tfstate`                                |
 | `aggregator/deploy/infra/publication` | Publication runner cloud infrastructure                                                        | Existing `publication/tofu.tfstate`                         |
@@ -31,7 +31,7 @@ moving its S3 state.
 
 - AWS root operates only `aws_foundation/bootstrap` through OpenTofu.
 - `infra-admin` has `AdministratorAccess` and manages
-  `aws_foundation/account` and Aggregator project IAM.
+  `aws_foundation/aws_account` and Aggregator project IAM.
 - `aggregator-admin` retains narrowly delegated permissions for project
   workloads and is denied access to the shared bucket's `admin/*` and
   `foundation/*` object prefixes.

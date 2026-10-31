@@ -60,7 +60,7 @@ the `apply` job downloads the plan and verifies its checksum before running
 
 S3 Lifecycle expires these temporary files after seven days (with
 noncurrent-version cleanup). The bucket and Lifecycle are owned by
-`aws_foundation/account`; role permissions belong to `infra/bootstrap`.
+`aws_foundation/aws_account`; role permissions belong to `infra/bootstrap`.
 Apply those roots in that order before enabling the new workflow. State and
 lock objects are outside the expiration prefix.
 
@@ -68,7 +68,7 @@ lock objects are outside the expiration prefix.
 
 The new instance role has `AmazonSSMManagedInstanceCore`. Administrators
 with the existing `AggregatorDemoSessionAccess` policy can start Session
-Manager sessions; Run As is managed by `aws_foundation/account`.
+Manager sessions; Run As is managed by `aws_foundation/aws_account`.
 There is no inbound TCP/22 or Kubernetes API access.
 
 ```sh

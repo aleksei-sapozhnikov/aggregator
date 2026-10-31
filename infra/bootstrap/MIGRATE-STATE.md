@@ -3,7 +3,7 @@
 This is a staged migration. **Committing these files does not create a bucket,
 move any state, or switch any remote backend.** The current
 `aggregator-tofu-state-905418096305-eu-central-1` bucket is owned by
-`aws_foundation/account`, which also uses it for
+`aws_foundation/aws_account`, which also uses it for
 `foundation/account/tofu.tfstate`. Never remove that bucket as part of the
 Aggregator migration.
 
@@ -50,7 +50,7 @@ This stage requires a separate reviewed change after the new bucket exists:
 - Temporarily stop all `demo`, publication, and project-bootstrap applies,
   scheduled jobs, and in-flight approvals. Avoid concurrent writers during
   backend migration.
-- Keep `aws_foundation/account` managing the **old** bucket because its
+- Keep `aws_foundation/aws_account` managing the **old** bucket because its
   own state is stored there; do not move Foundation state unless a separate
   decision is made.
 
@@ -90,7 +90,7 @@ Only after all state migrations pass:
 - Remove temporary permissions to the old Aggregator state keys from
   Aggregator IAM, leaving only permissions to the new bucket.
 - Remove the now-obsolete `plans/demo/` Lifecycle and conditional-write
-  guard from `aws_foundation/account`. It **continues to own its original
+  guard from `aws_foundation/aws_account`. It **continues to own its original
   bucket**, because that bucket still contains Foundation state.
 - Verify all active workflows and interactive OpenTofu operations use the
   new bucket. Historical copies of Aggregator state may remain versioned

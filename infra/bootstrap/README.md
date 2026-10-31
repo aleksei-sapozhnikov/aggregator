@@ -5,7 +5,7 @@ and delegated access to the shared S3 state bucket. Workload roles belong to the
 This directory contains project-specific administration for Aggregator,
 not a global AWS-account administration root. Environment-specific EC2
 resources and their workload roles belong to their environment stacks.
-Account-wide shared resources are managed in `aws_foundation/account`.
+Account-wide shared resources are managed in `aws_foundation/aws_account`.
 
 ## Contents
 
@@ -23,7 +23,7 @@ group memberships, policies or attachments.
   The planning role can only conditionally upload new `plans/demo/*` objects,
   while the protected apply role can only download them. Neither permission
   grants access to additional OpenTofu state keys.
-- `state.tf`: stable ARN of the shared state bucket managed by `aws_foundation/account`.
+- `state.tf`: stable ARN of the shared state bucket managed by `aws_foundation/aws_account`.
 - `state_access.tf`: workload access to state keys and lock files.
 - `backend.tf`, `providers.tf`, `versions.tf`: state, AWS account, and tool versions.
 
@@ -35,7 +35,7 @@ OpenTofu roots: **all active backends still point to the old shared bucket**
 until the first bucket creation and permissions migration are approved.
 See [state migration procedure](MIGRATE-STATE.md) before applying or
 switching any backend. The old bucket remains owned by
-`aws_foundation/account` because Foundation keeps its own state there.
+`aws_foundation/aws_account` because Foundation keeps its own state there.
 
 ## Usage
 
@@ -52,7 +52,7 @@ tofu plan
 The configured account is `905418096305`, region `eu-central-1`.
 The S3 backend key deliberately remains `admin/tofu.tfstate` despite moving
 this root to `infra/bootstrap`. The bucket and other shared account
-infrastructure are managed separately by `aws_foundation/account`.
+infrastructure are managed separately by `aws_foundation/aws_account`.
 
 ## Checks
 
@@ -73,7 +73,7 @@ refer to AWS resource names and ARNs; they do not load files or state from other
 roots.
 
 Keep state, saved plans, variable values, and credentials out of Git.
-Before running the updated demo workflow, apply `aws_foundation/account`
+Before running the updated demo workflow, apply `aws_foundation/aws_account`
 as `infra-admin` to enable the private plan prefix's S3 Lifecycle and
 conditional-write bucket policy. Then apply this `infra/bootstrap` root
 to install the separate plan upload/download policies. Review both plans;
@@ -84,7 +84,7 @@ Commit `.terraform.lock.hcl` to preserve provider selections.
 
 `github_demo_deploy.tf` creates the role
 `AggregatorDemoDeployGithub`. It trusts the existing GitHub OIDC provider
-owned by `aws_foundation/account`. The role can only run the dedicated SSM
+owned by `aws_foundation/aws_account`. The role can only run the dedicated SSM
 document on the tagged serving demo EC2 and read its result.
 
 Apply this root using `infra-admin`. Set the resulting `github_demo_deploy_role_arn` output in the `demo`
@@ -154,14 +154,14 @@ termination and resume. The policy also retains `aws:userid` for
 Session Manager data-channel compatibility.
 
 The IAM user `aggregator-admin` is tagged `SSMSessionRunAs=ec2-user`.
-Regional Run As preferences are managed by `aws_foundation/account`.
+Regional Run As preferences are managed by `aws_foundation/aws_account`.
 Session preferences apply to every managed instance in the selected account
 and region. The IAM tag takes priority over the account default OS user.
 
 Test `whoami` and `id -u` in the browser shell. The expected user is
 `ec2-user` with a nonzero UID. This is not a strict privilege separation:
 `ec2-user` usually has sudo access and the serving demo user has Docker
-access. The regional session document is managed by `aws_foundation/account` with
+access. The regional session document is managed by `aws_foundation/aws_account` with
 explicit settings for session logging, encryption, and timeouts.
 
 Apply this root as `infra-admin`, then sign in to AWS as
@@ -177,7 +177,7 @@ or expose TCP/22. Administrative access uses Session Manager.
 ## Regional Session Manager preferences
 
 The account-wide `SSM-SessionManagerRunShell` document is owned by
-`aws_foundation/account`. Do not reintroduce it as a managed resource here.
+`aws_foundation/aws_account`. Do not reintroduce it as a managed resource here.
 
 ## Argo CD private dashboard
 
