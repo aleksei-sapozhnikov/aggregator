@@ -27,6 +27,16 @@ group memberships, policies or attachments.
 - `state_access.tf`: workload access to state keys and lock files.
 - `backend.tf`, `providers.tf`, `versions.tf`: state, AWS account, and tool versions.
 
+## Project-owned OpenTofu state
+
+The new Aggregator-owned bucket and its S3 security controls are defined in
+`state_bucket.tf`. The migration is staged to avoid breaking any existing
+OpenTofu roots: **all active backends still point to the old shared bucket**
+until the first bucket creation and permissions migration are approved.
+See [state migration procedure](MIGRATE-STATE.md) before applying or
+switching any backend. The old bucket remains owned by
+`aws_foundation/account` because Foundation keeps its own state there.
+
 ## Usage
 
 Use OpenTofu 1.12 or newer within the 1.x series and AWS credentials for
