@@ -1,6 +1,6 @@
 # AWS access administration
 
-OpenTofu root for shared IAM users, groups, policies, permissions boundaries,
+OpenTofu root for Aggregator IAM users, groups, policies, permissions boundaries,
 and delegated access to the shared S3 state bucket. Workload roles belong to their respective stacks.
 This directory contains project-specific administration for Aggregator,
 not a global AWS-account administration root. Environment-specific EC2
@@ -8,6 +8,10 @@ resources and their workload roles belong to their environment stacks.
 Account-wide shared resources are managed in `aws_foundation/account`.
 
 ## Contents
+
+`infra-admin` is an external operator managed exclusively by
+`aws_foundation/bootstrap`. This root does not manage its IAM user,
+group memberships, policies or attachments.
 
 - `main.tf`: users, groups, and memberships.
 - `permissions.tf`: group policy attachments.
@@ -155,13 +159,6 @@ or expose TCP/22. Administrative access uses Session Manager.
 
 The account-wide `SSM-SessionManagerRunShell` document is owned by
 `aws_foundation/account`. Do not reintroduce it as a managed resource here.
-
-## Infra-admin group membership
-
-The existing `aws_iam_user_group_membership.infra_admin` resource controls the
-complete IAM group membership of the shared `infra-admin` user. Do not add
-groups in other projects until this resource has been refactored to avoid
-overwriting unrelated memberships.
 
 ## Argo CD private dashboard
 

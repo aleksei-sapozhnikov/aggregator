@@ -27,15 +27,6 @@ resource "aws_iam_group" "publication" {
   }
 }
 
-resource "aws_iam_group" "infrastructure" {
-  name = "AggregatorInfrastructureAdmins"
-  path = "/"
-
-  lifecycle {
-    prevent_destroy = true
-  }
-}
-
 resource "aws_iam_group" "bedrock_developers" {
   name = "AggregatorBedrockDevelopers"
   path = "/"
@@ -72,14 +63,3 @@ resource "aws_iam_user_group_membership" "aggregator_admin" {
   }
 }
 
-resource "aws_iam_user_group_membership" "infra_admin" {
-  user = "infra-admin"
-  groups = [
-    aws_iam_group.base.name,
-    aws_iam_group.infrastructure.name,
-  ]
-
-  lifecycle {
-    prevent_destroy = true
-  }
-}

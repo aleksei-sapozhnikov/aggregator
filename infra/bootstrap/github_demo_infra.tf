@@ -53,9 +53,6 @@ resource "aws_iam_role" "github_demo_infra_plan" {
     Environment = "demo"
   }
 
-  # Self-managed administrative permissions need to be updated before role creation.
-  depends_on = [aws_iam_policy.infrastructure_admin_management]
-
   lifecycle {
     prevent_destroy = true
   }
@@ -72,8 +69,6 @@ resource "aws_iam_role" "github_demo_infra_apply" {
   }
 
   # This role can be assumed only through the protected demo-infra-apply Environment.
-  depends_on = [aws_iam_policy.infrastructure_admin_management]
-
   lifecycle {
     prevent_destroy = true
   }

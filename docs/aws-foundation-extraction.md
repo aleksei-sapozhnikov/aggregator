@@ -33,9 +33,14 @@ moving its S3 state.
 - The dedicated bootstrap state bucket policy explicitly denies non-root
   principal access. The shared bucket and bootstrap bucket are separate.
 
-The project-specific `aws_iam_user_group_membership.infra_admin` resource
-still manages the full group list for `infra-admin`. Refactor it before
-adding independently managed IAM group memberships in other projects.
+The project bootstrap no longer manages the `infra-admin` user's group
+membership. Its former Aggregator-only infrastructure administrators group,
+policy and attachments have been retired. The user retains
+`AdministratorAccess` from `aws_foundation/bootstrap`.
+
+Before applying this cleanup, confirm `AggregatorInfrastructureAdmins` has
+no members other than `infra-admin`, and review the OpenTofu destroy plan.
+No `infra-admin` IAM user or direct policy attachment is to be deleted.
 
 ## Operational precautions
 
