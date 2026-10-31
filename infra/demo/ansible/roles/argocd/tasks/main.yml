@@ -68,16 +68,7 @@
 
 - name: Install local Argo CD admin bcrypt-hash helper
   ansible.builtin.copy:
-    # Prefer the repository root supplied by the versioned node launcher.
-    # Fallbacks keep the old cloud-init wrapper usable during migration.
-    src: >-
-      {{ lookup('ansible.builtin.first_found', {
-        'files': [
-          (lookup('ansible.builtin.env', 'AGGREGATOR_REPO_ROOT') ~ '/deploy/argocd/argocd-admin-hash.py'),
-          (playbook_dir ~ '/../../../deploy/argocd/argocd-admin-hash.py'),
-          (playbook_dir ~ '/../argocd/argocd-admin-hash.py')
-        ]
-      }) }}
+    src: "{{ lookup('ansible.builtin.env', 'AGGREGATOR_REPO_ROOT') }}/deploy/argocd/argocd-admin-hash.py"
     dest: /usr/local/sbin/aggregator-argocd-admin-hash
     owner: root
     group: root

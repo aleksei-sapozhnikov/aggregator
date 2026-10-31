@@ -34,7 +34,7 @@ class NodeConfigurationContractTests(unittest.TestCase):
         path = DEMO / "ansible" / "roles" / "argocd" / "tasks" / "main.yml"
         task = path.read_text(encoding="utf-8")
         self.assertIn("AGGREGATOR_REPO_ROOT", task)
-        self.assertIn("ansible.builtin.first_found", task)
+        self.assertNotIn("ansible.builtin.first_found", task)
         self.assertTrue((REPO / "deploy/argocd/argocd-admin-hash.py").is_file())
 
 

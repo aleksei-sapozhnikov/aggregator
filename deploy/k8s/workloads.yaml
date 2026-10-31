@@ -397,8 +397,8 @@ spec:
           args:
             - --config.file=/etc/prometheus/prometheus.yml
             - --storage.tsdb.path=/prometheus
-            - --storage.tsdb.retention.time=7d
-            - --storage.tsdb.retention.size=1GB
+            - --storage.tsdb.retention.time=30d
+            - --storage.tsdb.retention.size=5GB
           ports:
             - containerPort: 9090
               name: http
@@ -443,7 +443,7 @@ spec:
   accessModes: [ReadWriteOnce]
   resources:
     requests:
-      storage: 2Gi
+      storage: 8Gi
 ---
 apiVersion: apps/v1
 kind: Deployment
