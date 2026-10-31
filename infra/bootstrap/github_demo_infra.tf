@@ -45,7 +45,7 @@ data "aws_iam_policy_document" "github_demo_infra_apply_trust" {
 
 resource "aws_iam_role" "github_demo_infra_plan" {
   name               = "AggregatorDemoInfraPlanGithub"
-  description        = "Read-only GitHub OIDC role for demo infrastructure plans"
+  description        = "GitHub OIDC role for read-only demo planning and write-once S3 plan uploads"
   assume_role_policy = data.aws_iam_policy_document.github_demo_infra_plan_trust.json
 
   tags = {
@@ -77,7 +77,8 @@ resource "aws_iam_role" "github_demo_infra_apply" {
 resource "aws_iam_role_policy_attachment" "github_demo_infra_plan" {
   for_each = {
     read       = aws_iam_policy.demo_infra_read.arn
-    plan_state = aws_iam_policy.demo_infra_plan_state.arn
+    plan_state    = aws_iam_policy.demo_infra_plan_state.arn
+    plan_artifacts = aws_iam_policy.demo_plan_artifacts_write.arn
   }
 
   role       = aws_iam_role.github_demo_infra_plan.name
@@ -88,6 +89,7 @@ resource "aws_iam_role_policy_attachment" "github_demo_infra_apply" {
   for_each = {
     read        = aws_iam_policy.demo_infra_read.arn
     state       = aws_iam_policy.demo_state_access.arn
+    plan_artifacts = aws_iam_policy.demo_plan_artifacts_read.arn
     ec2         = aws_iam_policy.demo_ec2_management.arn
     iam         = aws_iam_policy.demo_iam_management.arn
     sg_rules    = aws_iam_policy.demo_sg_rule_creation.arn
