@@ -236,7 +236,7 @@ becomes an OpenTofu input. Keep it in the protected Environment, not
 **Do not create AWS access-key secrets.** Existing GitHub OIDC provider is
 reused. Both infrastructure IAM roles, their trust policies, and their
 managed permission policies are defined as IaC in
-[the admin OpenTofu root](../admin/README.md). Apply `admin` first with
+[the admin OpenTofu root](../bootstrap/README.md). Apply `admin` first with
 the authorized `infra-admin` identity and use its outputs for the GitHub
 Environment-scoped `AWS_ROLE_ARN` values; do not create the roles manually.
 The plan role's IAM trust now uses the subject `environment:demo-infra-plan`
@@ -384,6 +384,6 @@ on-node `/var/log/cloud-init-output.log` or
 The new node is bootstrapped with K3s, bundled Traefik/ServiceLB and an
 Argo CD Application following `demo:deploy/k8s-live`, containing only image
 versions published after the corresponding GHCR build. See
-[the K3s GitOps README](../../k8s/README.md) for prerequisites,
+[the K3s GitOps README](../../deploy/k8s/README.md) for prerequisites,
 public HTTP-by-IP behaviour, image publication, rollback and limitations.
 No DNS cutover is performed.
