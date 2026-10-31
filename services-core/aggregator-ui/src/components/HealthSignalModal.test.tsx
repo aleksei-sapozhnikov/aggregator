@@ -78,7 +78,6 @@ describe("HealthSignalModal", () => {
       ),
     );
     expect(rows.map((row) => row.querySelector("th")?.textContent)).toEqual([
-      "id",
       "item",
       "type",
       "title",

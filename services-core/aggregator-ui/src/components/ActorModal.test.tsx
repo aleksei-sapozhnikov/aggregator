@@ -2,7 +2,7 @@
  * @vitest-environment jsdom
  */
 
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import ActorModal from "./ActorModal";
@@ -49,7 +49,7 @@ const renderActorModal = (overrides = {}) => {
 };
 
 describe("ActorModal contact list", () => {
-  it("shows compact icon-and-link rows without chips or extra labels", () => {
+  it("shows contact names as text with persistent info buttons, contact icons, and Primary label", () => {
     renderActorModal();
     expect(
       screen
@@ -62,17 +62,30 @@ describe("ActorModal contact list", () => {
     );
     expect(dialog.querySelector(".modal-content h2")).toBeNull();
     const list = document.querySelector(".actor-modal-contacts");
-    const links = Array.from(list?.querySelectorAll("a") || []);
+    const rows = Array.from(
+      list?.querySelectorAll(".actor-modal-contact-row") || [],
+    );
 
-    expect(links.map((link) => link.textContent?.trim())).toEqual([
+    expect(list?.querySelectorAll("a")).toHaveLength(0);
+    expect(
+      rows.map((row) =>
+        row.querySelector(".actor-modal-contact-name")?.textContent?.trim(),
+      ),
+    ).toEqual([
       "profile-team@demo.email",
       "Campaign Operations",
       "Customer Hub",
     ]);
-    expect(links.map((link) => link.getAttribute("href"))).toEqual([
-      "/contacts/mail",
-      "/contacts/teams",
-      "/contacts/discord",
+    expect(
+      rows.map((row) =>
+        row
+          .querySelector("button.entity-info-action")
+          ?.getAttribute("aria-label"),
+      ),
+    ).toEqual([
+      "Details for contact: profile-team@demo.email",
+      "Details for contact: Campaign Operations",
+      "Details for contact: Customer Hub",
     ]);
     expect(list?.querySelectorAll(".contact-chip")).toHaveLength(0);
     expect(list?.querySelectorAll(".chip-prefix")).toHaveLength(0);
@@ -81,12 +94,14 @@ describe("ActorModal contact list", () => {
         role.textContent?.trim(),
       ),
     ).toEqual(["Primary"]);
+    expect(rows[0]?.querySelector(".secondary-label")?.textContent).toBe(
+      "Primary",
+    );
     expect(
-      links[0]?.parentElement?.querySelector(".secondary-label")?.textContent,
-    ).toBe("Primary");
-    expect(links[0]?.querySelector(".secondary-label")).toBeNull();
+      rows[0]?.querySelector(".actor-modal-contact-details .secondary-label"),
+    ).toBeNull();
     expect(
-      links.map((link) => link.querySelector("svg use")?.getAttribute("href")),
+      rows.map((row) => row.querySelector("svg use")?.getAttribute("href")),
     ).toEqual([
       "/icons.svg#icon-contact-email",
       "/icons.svg#icon-contact-teams",
@@ -113,17 +128,18 @@ describe("ActorModal contact list", () => {
     expect(document.querySelector(".secondary-label")).toBeNull();
   });
 
-  it("opens contact details on a plain click but preserves modified links", async () => {
+  it("opens contact details only from the information icon", async () => {
     const { user, onOpenContact } = renderActorModal();
-    const contactLink = screen.getByRole("link", {
-      name: "Campaign Operations",
-    });
 
-    await user.click(contactLink);
+    await user.click(screen.getByText("Campaign Operations"));
+    expect(onOpenContact).not.toHaveBeenCalled();
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Details for contact: Campaign Operations",
+      }),
+    );
     expect(onOpenContact).toHaveBeenCalledExactlyOnceWith(contacts[1]);
-
-    fireEvent.click(contactLink, { ctrlKey: true });
-    expect(onOpenContact).toHaveBeenCalledTimes(1);
   });
 
   it("keeps an empty-contact message", () => {

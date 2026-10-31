@@ -129,10 +129,6 @@ export default function HealthSignalModal({
         <table className="health-signal-details-table">
           <tbody>
             <tr>
-              <th scope="row">id</th>
-              <td>{signal.id}</td>
-            </tr>
-            <tr>
               <th scope="row">item</th>
               <td>
                 <a
