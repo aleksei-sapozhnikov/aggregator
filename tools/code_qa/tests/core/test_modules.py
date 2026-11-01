@@ -270,7 +270,7 @@ class ModuleConfigurationTests(unittest.TestCase):
             )
         run.assert_called_once()
 
-    def test_administration_module_uses_the_current_directory(self) -> None:
+    def test_shared_module_uses_the_current_directory(self) -> None:
         module = modules.MODULE_BY_NAME["shared"]
         self.assertEqual(module.path, "environments/shared")
         self.assertTrue((repo_root() / module.path).is_dir())

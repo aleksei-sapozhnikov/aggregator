@@ -141,7 +141,7 @@ def check() -> None:
     reason_path = Path(os.environ["RUNNER_TEMP"]) / "ansible-change-reason.txt"
     reason_path.write_text(reason + "\n", encoding="utf-8")
     (Path(os.environ["RUNNER_TEMP"]) / "ansible-changed-files.txt").write_text(
-        "Fingerprint covers environments/demo/ansible, node launch scripts and Argo CD helper.\n"
+        "Fingerprint covers demo Ansible, node launch scripts and Argo CD helper.\n"
         if changed
         else "",
         encoding="utf-8",

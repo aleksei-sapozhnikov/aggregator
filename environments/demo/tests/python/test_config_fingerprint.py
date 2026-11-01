@@ -10,7 +10,9 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-MODULE_FILE = Path(__file__).resolve().parents[2] / "src" / "python" / "config_fingerprint.py"
+MODULE_FILE = (
+    Path(__file__).resolve().parents[2] / "src" / "python" / "config_fingerprint.py"
+)
 SPEC = importlib.util.spec_from_file_location("config_fingerprint", MODULE_FILE)
 assert SPEC is not None and SPEC.loader is not None
 module = importlib.util.module_from_spec(SPEC)
@@ -30,7 +32,8 @@ class FingerprintTests(unittest.TestCase):
         self.write("environments/demo/ansible/site.yml", "---\n- hosts: localhost\n")
         self.write("environments/demo/ansible/group_vars/all.yml", "k3s_version: v1\n")
         self.write(
-            "environments/demo/ansible/roles/k3s/tasks/main.yml", "---\n- name: Check node\n"
+            "environments/demo/ansible/roles/k3s/tasks/main.yml",
+            "---\n- name: Check node\n",
         )
         self.write("environments/demo/src/sh/node-configure.sh", "#!/bin/bash\n")
         self.write("environments/demo/src/sh/ssm-node-configure.sh", "#!/bin/sh\n")

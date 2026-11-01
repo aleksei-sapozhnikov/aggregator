@@ -97,7 +97,9 @@ class ImageTagsTests(unittest.TestCase):
 
     def test_real_kustomization_contains_all_expected_images(self):
         root = Path(__file__).resolve().parents[4]
-        manifest = (root / "deploy/kubernetes/kustomization.yaml").read_text(encoding="utf-8")
+        manifest = (root / "deploy/kubernetes/kustomization.yaml").read_text(
+            encoding="utf-8"
+        )
         images = [
             {"service": service, "context": context, "tag": "a" * 40}
             for service, context in SERVICES.items()

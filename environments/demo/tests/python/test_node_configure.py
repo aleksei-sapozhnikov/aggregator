@@ -16,7 +16,10 @@ class NodeConfigurationContractTests(unittest.TestCase):
         self.assertIn("flock -n 9", launcher)
         self.assertIn("git -C \"$repo_dir\" checkout --force --detach FETCH_HEAD", launcher)
         self.assertIn('git -C "$repo_dir" rev-parse HEAD', launcher)
-        self.assertIn('bash "$repo_dir/environments/demo/src/sh/node-configure.sh" "$revision"', launcher)
+        self.assertIn(
+            'bash "$repo_dir/environments/demo/src/sh/node-configure.sh" "$revision"',
+            launcher,
+        )
         self.assertNotIn("/usr/local/sbin/aggregator-node-configure", launcher)
 
         readiness = launcher.index("systemctl is-active --quiet k3s")
