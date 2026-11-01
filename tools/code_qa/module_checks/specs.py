@@ -50,7 +50,7 @@ class ModuleSpec:
 
     name: str
     path: str
-    code: str = "common_code"
+    code: str | None = "common_code"
     tests: TestSpec | None = None
     global_checks: tuple[str, ...] = ()
     scoped_checks: tuple[ScopedChecks, ...] = ()
@@ -58,7 +58,7 @@ class ModuleSpec:
 
     @property
     def checks(self) -> tuple[str, ...]:
-        return CODE_PROFILES[self.code]
+        return CODE_PROFILES[self.code] if self.code else ()
 
     @property
     def has_tests(self) -> bool:
