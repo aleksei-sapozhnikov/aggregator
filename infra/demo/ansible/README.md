@@ -75,7 +75,7 @@ stores plaintext in Git or OpenTofu state.
 To rotate: change the GitHub secret, dispatch `Demo pipeline` on
 `deploy/demo` with `sync_argocd_password=true`, and approve the apply
 environment. See [password tooling](../../../deploy/argocd/README.md).
-A local alternative is `python deploy/argocd/sync-argocd-password.py`,
+A local alternative is `python deploy/argocd/sync_argocd_password.py`,
 using an AWS identity authorized for `ssm:SendCommand` and a process-only
 `ARGOCD_PASSWORD` variable; tunnel-only privileges are insufficient.
 

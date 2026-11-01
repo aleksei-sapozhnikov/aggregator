@@ -10,7 +10,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-MODULE_FILE = Path(__file__).resolve().parents[1] / "config-fingerprint.py"
+MODULE_FILE = Path(__file__).resolve().parents[1] / "config_fingerprint.py"
 SPEC = importlib.util.spec_from_file_location("config_fingerprint", MODULE_FILE)
 assert SPEC is not None and SPEC.loader is not None
 module = importlib.util.module_from_spec(SPEC)
@@ -34,7 +34,7 @@ class FingerprintTests(unittest.TestCase):
         )
         self.write("infra/demo/node-configure.sh", "#!/bin/bash\n")
         self.write("infra/demo/ssm-node-configure.sh", "#!/bin/sh\n")
-        self.write("deploy/argocd/argocd-admin-hash.py", "pass\n")
+        self.write("deploy/argocd/argocd_admin_hash.py", "pass\n")
         self.write("services/catalog/README.md", "initial\n")
         self.write("infra/demo/ansible/README.md", "documentation\n")
         self.commit("Initial configuration")

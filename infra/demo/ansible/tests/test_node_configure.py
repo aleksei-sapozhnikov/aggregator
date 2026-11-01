@@ -53,7 +53,7 @@ class NodeConfigurationContractTests(unittest.TestCase):
         task = path.read_text(encoding="utf-8")
         self.assertIn("AGGREGATOR_REPO_ROOT", task)
         self.assertNotIn("ansible.builtin.first_found", task)
-        self.assertTrue((REPO / "deploy/argocd/argocd-admin-hash.py").is_file())
+        self.assertTrue((REPO / "deploy/argocd/argocd_admin_hash.py").is_file())
 
 
 if __name__ == "__main__":
