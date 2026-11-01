@@ -1,0 +1,3 @@
+# Isolated Ansible QA environment (not installed for other modules).
+ansible-core==2.21.0
+ansible-lint==26.10.1
