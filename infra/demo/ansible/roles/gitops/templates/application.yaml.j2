@@ -1,4 +1,4 @@
-# Argo CD reads only the published manifests from the demo branch.
+# Argo CD reads published manifests from the independent protected GitOps branch.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -8,7 +8,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/aleksei-sapozhnikov/aggregator.git
-    targetRevision: demo
+    targetRevision: deploy/demo-gitops
     path: deploy/k8s-live
   destination:
     server: https://kubernetes.default.svc
