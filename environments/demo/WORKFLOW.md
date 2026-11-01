@@ -22,7 +22,7 @@ Restrict deployment Environments to `deploy/demo`.
 1. **Detect and validate.** Determine source/infrastructure changes, validate
    OpenTofu and Ansible without AWS credentials.
 2. **Plan (read-only OIDC).** Use `demo-infra-plan` to check AWS account
-   `905418096305`, plan `infra/demo`, render the plan in the Actions Summary
+   `905418096305`, plan `environments/demo/infra`, render the plan in the Actions Summary
    and save its exact binary form privately under
    `plans/demo/<run-id>/<attempt>/demo.tfplan` in the project state bucket.
    Pass a SHA-256 checksum to the apply job.
@@ -53,7 +53,7 @@ workflow or Argo CD sync succeeded. Check both Actions runs.
 | `demo-infra-apply` | `AWS_ROLE_ARN`, secret `ARGOCD_PASSWORD`, `MANUAL_APPROVAL_CONFIGURED=true` | Only `deploy/demo`; **required reviewers**    |
 | `demo`             | `AWS_DEMO_DEPLOY_ROLE_ARN`, `SSM_INSTANCE_ID`                               | Only `deploy/demo`                            |
 
-Use IAM role ARNs from `infra/administration`. The OIDC trust uses
+Use IAM role ARNs from `environments/shared/administration`. The OIDC trust uses
 Environment subjects, so the allowed-branch restrictions above are
 mandatory. Do not store AWS access keys in GitHub.
 
@@ -87,7 +87,7 @@ the protected apply environment.
 - Inspect both workflow job summaries, AWS account identity, planned
   resource actions and saved-plan checksum before approval.
 - If apply fails, **do not reuse the saved plan**: investigate, refresh IAM
-  through `infra/administration` if required, and plan again against
+  through `environments/shared/administration` if required, and plan again against
   current state. Do not force-unlock or manually delete partly created resources.
 - Inspect SSM Run Command output in CloudWatch
   `/aws/ssm/aggregator-demo-k3s` (14-day retention), or on the node at
@@ -97,5 +97,5 @@ the protected apply environment.
 - No inbound SSH, public Kubernetes API or public Argo CD UI is required.
   Use the private SSM tunnel documented in [Ansible](ansible/README.md).
 
-See [demo infrastructure](README.md), [Compose deployment](../../deploy/demo/README.md),
+See [demo infrastructure](infra/README.md), [Compose deployment](README.md),
 and [K3s GitOps](../../deploy/kubernetes/README.md).

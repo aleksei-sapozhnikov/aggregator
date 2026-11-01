@@ -15,10 +15,10 @@ Versions live in [group_vars/all.yml](group_vars/all.yml).
 ## How configuration runs
 
 The approved [Demo pipeline](../WORKFLOW.md) invokes
-`infra/demo/ansible/dispatch-ssm.sh`, which runs the versioned
-`infra/demo/ssm-node-configure.sh` on the EC2 through AWS SSM.
+`environments/demo/src/sh/dispatch-ansible-ssm.sh`, which runs the versioned
+`environments/demo/src/sh/ssm-node-configure.sh` on the EC2 through AWS SSM.
 The launcher locks the shared checkout, checks out the exact source
-commit, runs `infra/demo/node-configure.sh` and verifies K3s, Traefik,
+commit, runs `environments/demo/src/sh/node-configure.sh` and verifies K3s, Traefik,
 Argo CD and the Application resource. The successful revision and
 content-based configuration fingerprint are recorded only after success.
 
@@ -38,7 +38,7 @@ offline `ansible-lint` (basic profile), YAML/format checks and node
 configuration contract tests:
 
 ```sh
-make qa-check MODULE=infra-demo QA_SCAN_SECRETS=false
+make qa-check MODULE=demo QA_SCAN_SECRETS=false
 ```
 
 Run this on Linux or through WSL on Windows. QA installs pinned Ansible tools

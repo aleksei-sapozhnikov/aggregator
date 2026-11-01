@@ -1,9 +1,10 @@
-# Hosted Docker Compose demo
+# Demo environment
 
 The serving EC2 runs the Compose demo at [aggregator.alivion.cc](https://aggregator.alivion.cc).
-Its application source is `deploy/demo`; it is separate from the K3s
-GitOps demo. Deployment is performed by [Demo deploy](../../.github/workflows/demo-deploy.yml)
-after [Demo pipeline](../../infra/demo/WORKFLOW.md) succeeds.
+This environment supports both the public Docker Compose deployment and a
+separate K3s GitOps deployment. GitHub Actions runs [Demo deploy](../../.github/workflows/demo-deploy.yml)
+after [Demo pipeline](WORKFLOW.md) succeeds. Infrastructure lives in [infra/](infra/README.md),
+Ansible in [ansible/](ansible/README.md), and deployment scripts in `src/sh/`.
 
 ## Image publication and deployment
 
@@ -22,7 +23,7 @@ command result. No inbound SSH or deploy SSH keys are required.
 
 In GitHub Settings → Environments, `demo` must allow **only**
 `deploy/demo`. It needs `AWS_DEMO_DEPLOY_ROLE_ARN` (from
-`infra/administration`) and `SSM_INSTANCE_ID` (from `infra/demo`).
+`environments/shared/administration`) and `SSM_INSTANCE_ID` (from `environments/demo/infra`).
 GitHub OIDC Environment subjects do not independently restrict branches.
 
 ## Diagnostics
@@ -38,12 +39,12 @@ revision may also be deployed manually:
 
 ```sh
 cd ~/aggregator-demo/repo
-DEPLOY_SHA="$(git rev-parse HEAD)" bash ./deploy/demo/demo-deploy.sh
+DEPLOY_SHA="$(git rev-parse HEAD)" bash ./environments/demo/src/sh/demo-deploy.sh
 ```
 
-Run `python3 deploy/demo/src/image_tags.py list` to inspect content-based
+Run `python3 environments/demo/src/python/image_tags.py list` to inspect content-based
 image tags. The UI entrypoint writes public `/config.json` from
 `APP_TITLE` and `TIMELINE_DEFAULT_RANGE`; do not put secrets in it.
 
-See [K3s GitOps](../k8s/README.md) for the independently published
+See [K3s GitOps](../../deploy/kubernetes/README.md) for the independently published
 Kubernetes demo and its rollback procedure.

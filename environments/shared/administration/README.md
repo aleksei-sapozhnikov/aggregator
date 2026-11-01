@@ -13,7 +13,7 @@ access this state.
 
 ## Apply changes
 
-From `infra/administration` with authorized central credentials:
+From `environments/shared/administration` with authorized central credentials:
 
 ```sh
 aws sts get-caller-identity
@@ -49,17 +49,17 @@ The infrastructure workflow never applies this administrator root.
 
 - `policies/` contains scoped demo compute, IAM, SSM, Session Manager and
   publication permissions. IAM roles/instance profiles attached to EC2
-  workloads are managed in `infra/demo`.
+  workloads are managed in `environments/demo/infra`.
 - Plan and apply roles use different policies for the SSM parameter
   `/aggregator/demo/ansible/last-successful-config-sha256`.
 - `AggregatorDemoSessionAccess` permits interactive Session Manager and
   private Argo CD port-forwarding on tagged instances. The IAM user
   `aggregator-admin` runs as `ec2-user`. No inbound SSH is required.
 - Project state bucket provisioning is delegated to `aggregator-admin`;
-  the bucket itself belongs to `infra/state`.
+  the bucket itself belongs to `environments/shared/state`.
 
 State access in this root is restricted to the project-owned bucket.
 Removing an unused S3 bucket is a separate, explicitly reviewed AWS action:
 verify active backends, object versions and lock files first.
 
-For the approval workflow and troubleshooting, see [Demo pipeline](../demo/WORKFLOW.md).
+For the approval workflow and troubleshooting, see [Demo pipeline](../../demo/WORKFLOW.md).

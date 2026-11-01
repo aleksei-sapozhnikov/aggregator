@@ -202,10 +202,10 @@ More detail:
   interaction diagrams.
 - [docs/development.md](docs/development.md) covers formatting, linting, and git
   hooks.
-- [deploy/demo/README.md](deploy/demo/README.md) covers the hosted demo stack.
-- [infra/administration/README.md](infra/administration/README.md) documents project IAM
-  administration. [infra/demo/README.md](infra/demo/README.md) covers demo
-  infrastructure and Ansible. [infra/README.md](infra/README.md)
+- [environments/demo/README.md](environments/demo/README.md) covers the hosted demo stack.
+- [environments/shared/administration/README.md](environments/shared/administration/README.md) documents project IAM
+  administration. [environments/demo/infra/README.md](environments/demo/infra/README.md) covers demo
+  infrastructure and Ansible. [environments/shared/README.md](environments/shared/README.md)
   covers workload infrastructure and state separation. Publication automation
   lives in [tools/publisher](tools/publisher/README.md).
 - [tools/code_qa/README.md](tools/code_qa/README.md) describes the repository

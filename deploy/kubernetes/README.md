@@ -8,7 +8,7 @@ production Kubernetes configuration.
 
 ## Release flow
 
-1. A `deploy/demo` push starts [Demo pipeline](../../infra/demo/WORKFLOW.md).
+1. A `deploy/demo` push starts [Demo pipeline](../../environments/demo/WORKFLOW.md).
    It plans infrastructure, checks the Ansible fingerprint, and requires
    reviewer approval only when infrastructure or node configuration changes.
 2. Once ready, `Demo deploy` runs QA, checks GHCR for eight content-tagged
@@ -19,7 +19,17 @@ production Kubernetes configuration.
 4. Argo CD's `aggregator-demo` Application follows
    `deploy/demo-gitops:deploy/k8s-live`, auto-syncs and self-heals.
 
-Edit the source `deploy/kubernetes` manifests, **not** the generated
+The monitoring JSON/YAML sources are owned by `services/grafana` and
+`services/prometheus`, not duplicated here. The release pipeline stages them
+into the Kustomize directory before building ConfigMaps. To render locally:
+
+```sh
+bash environments/demo/src/sh/stage-kubernetes.sh /tmp/aggregator-k8s
+kubectl kustomize /tmp/aggregator-k8s
+```
+
+The staging destination must not already exist. Edit the source
+`deploy/kubernetes` manifests, **not** the generated
 `deploy/k8s-live` snapshot. GitOps publication must be fast-forward;
 do not force-push or delete the GitOps branch. Rewriting the source
 branch must not erase the published configuration.
@@ -43,7 +53,7 @@ curl -i http://127.0.0.1/config.json
 
 Metrics Server must be ready for `kubectl top`. The relevant SSM log group
 is `/aws/ssm/aggregator-demo-k3s`. For a private Argo CD dashboard
-tunnel, see [Ansible](../../infra/demo/ansible/README.md).
+tunnel, see [Ansible](../../environments/demo/ansible/README.md).
 
 ## Rollback and limits
 

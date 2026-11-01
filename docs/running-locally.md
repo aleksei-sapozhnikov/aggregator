@@ -175,4 +175,4 @@ the same JSON endpoint using the dev server process environment.
 
 `local` and `local-demo` still build from the local Dockerfiles, while
 `demo` uses only published GHCR images. Deployment instructions are in
-[deploy/demo/README.md](../deploy/demo/README.md).
+[demo environment](../environments/demo/README.md).
