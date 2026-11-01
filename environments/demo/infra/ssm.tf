@@ -41,7 +41,7 @@ resource "aws_ssm_document" "aggregator_demo_deploy" {
                 git cat-file -e "$DEPLOY_SHA"
                 git merge-base --is-ancestor "$DEPLOY_SHA" origin/deploy/demo
                 git checkout -B deploy/demo "$DEPLOY_SHA"
-                bash ./deploy/demo/demo-deploy.sh
+                bash ./environments/demo/src/sh/demo-deploy.sh
               '
             SCRIPT
           ]

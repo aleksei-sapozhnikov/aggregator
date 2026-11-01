@@ -18,11 +18,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[4]
 PARAMETER = "/aggregator/demo/ansible/last-successful-config-sha256"
 CONFIG_SOURCES = (
-    "infra/demo/ansible/site.yml",
-    "infra/demo/ansible/group_vars",
-    "infra/demo/ansible/roles",
-    "infra/demo/node-configure.sh",
-    "infra/demo/ssm-node-configure.sh",
+    "environments/demo/ansible/site.yml",
+    "environments/demo/ansible/group_vars",
+    "environments/demo/ansible/roles",
+    "environments/demo/src/sh/node-configure.sh",
+    "environments/demo/src/sh/ssm-node-configure.sh",
     "tools/argocd/src/argocd_admin_hash.py",
 )
 INSTANCE_ID = re.compile(r"i-[0-9a-f]{8,17}\Z")
@@ -55,9 +55,9 @@ def fingerprint() -> str:
         raise ValueError("No tracked node configuration files found")
     included = {path.decode("utf-8") for path, _, _ in entries}
     for required in (
-        "infra/demo/ansible/site.yml",
-        "infra/demo/node-configure.sh",
-        "infra/demo/ssm-node-configure.sh",
+        "environments/demo/ansible/site.yml",
+        "environments/demo/src/sh/node-configure.sh",
+        "environments/demo/src/sh/ssm-node-configure.sh",
         "tools/argocd/src/argocd_admin_hash.py",
     ):
         if required not in included:
@@ -69,7 +69,7 @@ def fingerprint() -> str:
 
 
 def state_instance_id() -> str | None:
-    result = command("tofu", "output", "-json", cwd=ROOT / "infra/demo")
+    result = command("tofu", "output", "-json", cwd=ROOT / "environments/demo/infra")
     if result.returncode:
         raise RuntimeError(f"Unable to read OpenTofu outputs: {result.stderr.strip()}")
     values = json.loads(result.stdout)
@@ -141,7 +141,7 @@ def check() -> None:
     reason_path = Path(os.environ["RUNNER_TEMP"]) / "ansible-change-reason.txt"
     reason_path.write_text(reason + "\n", encoding="utf-8")
     (Path(os.environ["RUNNER_TEMP"]) / "ansible-changed-files.txt").write_text(
-        "Fingerprint covers infra/demo/ansible, node launch scripts and Argo CD helper.\n"
+        "Fingerprint covers environments/demo/ansible, node launch scripts and Argo CD helper.\n"
         if changed
         else "",
         encoding="utf-8",

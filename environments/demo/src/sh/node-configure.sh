@@ -10,12 +10,13 @@ if [[ $# -ne 1 || ! "$1" =~ ^[a-f0-9]{40}$ ]]; then
 fi
 revision="$1"
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
+demo_dir="$(cd -- "$script_dir/../.." && pwd -P)"
 repo_dir="$(git -C "$script_dir" rev-parse --show-toplevel)"
 if [[ "$(git -C "$repo_dir" rev-parse HEAD)" != "$revision" ]]; then
   echo "Checked-out repository revision does not match requested SHA" >&2
   exit 1
 fi
-if [[ ! -f "$script_dir/ansible/site.yml" ]]; then
+if [[ ! -f "$demo_dir/ansible/site.yml" ]]; then
   echo "Ansible playbook is missing from the checked-out revision" >&2
   exit 1
 fi
@@ -30,6 +31,6 @@ if [[ ! -x "$ansible_env/bin/ansible-playbook" ]]; then
 fi
 
 export AGGREGATOR_REPO_ROOT="$repo_dir"
-cd "$script_dir/ansible"
+cd "$demo_dir/ansible"
 "$ansible_env/bin/ansible-playbook" --inventory localhost, --connection local site.yml
 echo "Ansible completed for $revision"

@@ -34,8 +34,8 @@ if [ "$(git -C "$repo_dir" rev-parse HEAD)" != "$revision" ]; then
 fi
 
 # Everything tied to repository layout or Ansible is in the fetched revision.
-test -f "$repo_dir/infra/demo/node-configure.sh"
-bash "$repo_dir/infra/demo/node-configure.sh" "$revision"
+test -f "$repo_dir/environments/demo/src/sh/node-configure.sh"
+bash "$repo_dir/environments/demo/src/sh/node-configure.sh" "$revision"
 
 systemctl is-active --quiet k3s
 /usr/local/bin/k3s kubectl get --raw=/readyz

@@ -17,10 +17,10 @@ elif [[ -z "$BASE_SHA" || "$BASE_SHA" =~ ^0+$ ]] || ! git cat-file -e "$BASE_SHA
 else
   while IFS= read -r path; do
     case "$path" in
-      infra/demo/*|deploy/ansible|tools/argocd/*|.github/workflows/demo-infra.yml|.github/scripts/demo-infra/*|.github/scripts/demo-infra-*.sh)
+      environments/demo/infra/*|environments/demo/ansible/*|environments/demo/src/sh/node-configure.sh|environments/demo/src/sh/ssm-node-configure.sh|environments/demo/src/sh/dispatch-ansible-ssm.sh|environments/demo/src/sh/route-changes.sh|environments/demo/src/sh/plan.sh|environments/demo/src/sh/check-ansible.sh|environments/demo/src/sh/s3-plan.sh|environments/demo/src/sh/check-flags.sh|environments/demo/src/sh/detect-ansible-changes.sh|environments/demo/src/sh/apply-summary.sh|environments/demo/src/sh/approval-summary.sh|environments/demo/src/sh/find-k3s-node.sh|environments/demo/src/python/config_fingerprint.py|tools/argocd/*|.github/workflows/demo-infra.yml)
         infra_changed=true
         ;;
-      deploy/infra/*|infra/*|docs/*|README.md|deploy/kubernetes/README.md|deploy/k8s-live/*|.github/workflows/demo-deploy.yml)
+      environments/shared/*|environments/demo/README.md|environments/demo/WORKFLOW.md|environments/demo/infra/README.md|environments/demo/ansible/README.md|docs/*|README.md|deploy/kubernetes/README.md|deploy/k8s-live/*|.github/workflows/demo-deploy.yml)
         # Non-demo infrastructure, generated releases, and documentation do not build images.
         ;;
       ?*)

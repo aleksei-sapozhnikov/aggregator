@@ -36,7 +36,7 @@ fi
 # The submitted launcher is versioned in Git rather than baked into EC2 user_data.
 # The only substituted input is a previously validated 40-character Git SHA.
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
-launcher_path="$script_dir/../ssm-node-configure.sh"
+launcher_path="$script_dir/ssm-node-configure.sh"
 [[ -f "$launcher_path" ]] || { echo "SSM launcher is missing: $launcher_path" >&2; exit 1; }
 command_line="$(cat "$launcher_path")"
 [[ "$command_line" == *"__CONFIGURATION_SHA__"* ]] || {

@@ -51,7 +51,7 @@ jobs:
         shell: bash
         env:
           BASE_SHA: ${{ github.event.before }}
-        run: bash .github/scripts/demo-infra/route-changes.sh
+        run: bash environments/demo/src/sh/route-changes.sh
   validate:
     name: Validate demo OpenTofu and Ansible (no AWS access)
     needs: detect
@@ -73,7 +73,7 @@ jobs:
         run: make qa-check MODULE=infra-demo QA_SCAN_SECRETS=false
       - name: Validate bootstrap scripts and node contracts
         shell: bash
-        run: bash .github/scripts/demo-infra/check-ansible.sh
+        run: bash environments/demo/src/sh/check-ansible.sh
   plan:
     name: Plan changes to demo only
     needs: [detect, validate]
@@ -103,7 +103,7 @@ jobs:
         env:
           ENABLE_K3S_NODE: ${{ vars.ENABLE_K3S_NODE }}
           ENABLE_BEDROCK: ${{ vars.ENABLE_BEDROCK }}
-        run: bash .github/scripts/demo-infra/check-flags.sh
+        run: bash environments/demo/src/sh/check-flags.sh
       - name: Use read-only OIDC role for planning
         uses: aws-actions/configure-aws-credentials@v6.3.0
         with:
@@ -120,22 +120,22 @@ jobs:
           tofu_version: "1.13.1"
           tofu_wrapper: false
       - name: Initialize demo backend
-        working-directory: infra/demo
+        working-directory: environments/demo/infra
         run: tofu init -input=false -lockfile=readonly
       - name: Save plan and render Terraform summary
         id: plan
-        working-directory: infra/demo
+        working-directory: environments/demo/infra
         shell: bash
-        run: bash "$GITHUB_WORKSPACE/.github/scripts/demo-infra/plan.sh"
+        run: bash "$GITHUB_WORKSPACE/environments/demo/src/sh/plan.sh"
       - name: Compare node configuration against last successful SSM fingerprint
         id: changes
-        working-directory: infra/demo
+        working-directory: environments/demo/infra
         shell: bash
         env:
           MANUAL_REAPPLY: ${{ inputs.reapply_ansible }}
           K3S_ENABLED: ${{ steps.flags.outputs.k3s_enabled }}
           K3S_CREATED: ${{ steps.plan.outputs.k3s_created }}
-        run: bash "$GITHUB_WORKSPACE/.github/scripts/demo-infra/detect-ansible-changes.sh"
+        run: bash "$GITHUB_WORKSPACE/environments/demo/src/sh/detect-ansible-changes.sh"
       - name: Explain Terraform and Ansible actions for approval
         shell: bash
         env:
@@ -143,12 +143,12 @@ jobs:
           ANSIBLE_CHANGED: ${{ steps.changes.outputs.ansible_changed }}
           K3S_CREATED: ${{ steps.plan.outputs.k3s_created }}
           PASSWORD_SYNC_REQUESTED: ${{ inputs.sync_argocd_password }}
-        run: bash .github/scripts/demo-infra/approval-summary.sh
+        run: bash environments/demo/src/sh/approval-summary.sh
       - name: Save exact plan privately in S3 and publish SHA-256
         id: saved_plan
         if: steps.plan.outputs.has_changes == 'true'
         shell: bash
-        run: bash .github/scripts/demo-infra/s3-plan.sh upload
+        run: bash environments/demo/src/sh/s3-plan.sh upload
 
   apply:
     name: Approve, apply and configure K3s
@@ -196,37 +196,37 @@ jobs:
           tofu_version: "1.13.1"
           tofu_wrapper: false
       - name: Initialize demo backend
-        working-directory: infra/demo
+        working-directory: environments/demo/infra
         run: tofu init -input=false -lockfile=readonly
       - name: Download and verify approved S3 plan checksum
         if: needs.plan.outputs.has_changes == 'true'
         shell: bash
         env:
           EXPECTED_PLAN_SHA256: ${{ needs.plan.outputs.plan_sha256 }}
-        run: bash .github/scripts/demo-infra/s3-plan.sh download
+        run: bash environments/demo/src/sh/s3-plan.sh download
       - name: Apply the exact saved plan
         if: needs.plan.outputs.has_changes == 'true'
-        working-directory: infra/demo
+        working-directory: environments/demo/infra
         shell: bash
         run: |
           set -euo pipefail
           tofu apply -input=false -no-color "$RUNNER_TEMP/approved-plan/demo.tfplan"
 
       - name: Show infrastructure outputs in GitHub Summary
-        working-directory: infra/demo
+        working-directory: environments/demo/infra
         shell: bash
         env:
           TERRAFORM_CHANGED: ${{ needs.plan.outputs.has_changes }}
-        run: bash "$GITHUB_WORKSPACE/.github/scripts/demo-infra/apply-summary.sh"
+        run: bash "$GITHUB_WORKSPACE/environments/demo/src/sh/apply-summary.sh"
       - name: Find the optional K3s node after successful apply
         if: |
           needs.plan.outputs.k3s_created == 'true' ||
           needs.plan.outputs.ansible_changed == 'true' ||
           inputs.sync_argocd_password == true
         id: node
-        working-directory: infra/demo
+        working-directory: environments/demo/infra
         shell: bash
-        run: bash "$GITHUB_WORKSPACE/.github/scripts/demo-infra/find-k3s-node.sh"
+        run: bash "$GITHUB_WORKSPACE/environments/demo/src/sh/find-k3s-node.sh"
       - name: Require a K3s node for manual password sync
         if: inputs.sync_argocd_password == true && steps.node.outputs.available != 'true'
         run: |
@@ -238,14 +238,14 @@ jobs:
           SSM_INSTANCE_ID: ${{ steps.node.outputs.instance_id }}
           CONFIGURATION_SHA: ${{ github.sha }}
         shell: bash
-        run: bash infra/demo/ansible/dispatch-ssm.sh
+        run: bash environments/demo/src/sh/dispatch-ansible-ssm.sh
       - name: Record successful node configuration fingerprint
         if: steps.node.outputs.available == 'true' && (needs.plan.outputs.k3s_created == 'true' || needs.plan.outputs.ansible_changed == 'true')
         shell: bash
         env:
           SSM_INSTANCE_ID: ${{ steps.node.outputs.instance_id }}
           EXPECTED_FINGERPRINT: ${{ needs.plan.outputs.config_fingerprint }}
-        run: python3 .github/scripts/demo-infra/src/config_fingerprint.py record
+        run: python3 environments/demo/src/python/config_fingerprint.py record
       - name: Reconcile Argo CD admin password from protected GitHub secret
         if: steps.node.outputs.available == 'true'
         shell: bash
@@ -291,4 +291,4 @@ jobs:
           INFRA_CHANGED: ${{ needs.detect.outputs.infra_changed }}
           K3S_ENABLED: ${{ needs.plan.outputs.k3s_enabled }}
           K3S_DESTROYED: ${{ needs.plan.outputs.k3s_destroyed }}
-        run: bash .github/scripts/demo-infra/dispatch-deploy.sh
+        run: bash environments/demo/src/sh/dispatch-deploy.sh

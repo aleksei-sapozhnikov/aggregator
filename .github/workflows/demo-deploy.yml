@@ -53,7 +53,7 @@ jobs:
         id: plan
         env:
           GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
-        run: python3 deploy/demo/src/image_tags.py plan
+        run: python3 environments/demo/src/python/image_tags.py plan
 
   build-and-publish:
     name: Build & publish / ${{ matrix.service }}
@@ -121,7 +121,7 @@ jobs:
           role-session-name: aggregator-demo-deploy
 
       - name: Trigger and verify deployment
-        run: bash ./deploy/demo/dispatch-ssm.sh
+        run: bash ./environments/demo/src/sh/dispatch-ssm.sh
         env:
           SSM_INSTANCE_ID: ${{ vars.SSM_INSTANCE_ID }}
           DEPLOY_SHA: ${{ github.sha }}
@@ -151,4 +151,4 @@ jobs:
         shell: bash
         env:
           RELEASE_SHA: ${{ github.sha }}
-        run: bash .github/scripts/demo-deploy/publish-k3s-release.sh
+        run: bash environments/demo/src/sh/publish-k3s-release.sh

@@ -8,17 +8,17 @@ set -euo pipefail
 # Shared code_qa has already prepared the pinned Ansible environment.
 ansible_python=".local/qa-runtime/ansible/venv/bin/python"
 test -x "$ansible_python"
-bash -n infra/demo/ansible/dispatch-ssm.sh
-bash -n infra/demo/node-configure.sh
-sh -n infra/demo/ssm-node-configure.sh
+bash -n environments/demo/src/sh/dispatch-ansible-ssm.sh
+bash -n environments/demo/src/sh/node-configure.sh
+sh -n environments/demo/src/sh/ssm-node-configure.sh
 # The remote script must invoke the version-owned entrypoint, not the installed legacy wrapper.
-grep -Fq 'bash "$repo_dir/infra/demo/node-configure.sh" "$revision"' infra/demo/ssm-node-configure.sh
-if grep -Fq '/usr/local/sbin/aggregator-node-configure' infra/demo/ssm-node-configure.sh; then
+grep -Fq 'bash "$repo_dir/environments/demo/src/sh/node-configure.sh" "$revision"' environments/demo/src/sh/ssm-node-configure.sh
+if grep -Fq '/usr/local/sbin/aggregator-node-configure' environments/demo/src/sh/ssm-node-configure.sh; then
   echo "The SSM launcher must not depend on the cloud-init wrapper" >&2
   exit 1
 fi
 # Validate each workflow script independently; bash -n with multiple paths checks only the first.
-for script in .github/scripts/demo-infra/*.sh .github/scripts/demo-deploy/*.sh; do
+for script in environments/demo/src/sh/*.sh; do
   bash -n "$script"
 done
 python3 -m py_compile tools/argocd/src/argocd_admin_hash.py
@@ -31,7 +31,7 @@ from pathlib import Path
 import yaml
 
 cloud_init = yaml.safe_load(
-    Path("infra/demo/modules/ec2_k3s/cloud-init.yaml.tftpl").read_text(
+    Path("environments/demo/infra/modules/ec2_k3s/cloud-init.yaml.tftpl").read_text(
         encoding="utf-8"
     )
 )
@@ -43,4 +43,4 @@ if not {"git", "python3.12", "python3.12-pip"}.issubset(
     raise SystemExit("K3s cloud-init is missing required packages")
 PY
 # Shared code_qa runs the Ansible contract tests.
-python3 -m unittest discover -s .github/scripts/demo-infra/tests -p 'test_*.py'
+python3 -m unittest discover -s environments/demo/src/sh/tests -p 'test_*.py'
