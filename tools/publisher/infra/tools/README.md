@@ -25,9 +25,9 @@ Run from this directory:
 ```sh
 python -m pip install -r requirements.txt
 python -B -m unittest discover -s tests -p 'test_*.py'
-python src/build_lambda_zip.py --source ../../../../tools/lambda_publisher/src/lambda_publisher
+python src/build_lambda_zip.py --source ../../lambda_publisher/src/lambda_publisher
 python src/compare_lambda_zip.py /private/live.zip build/publication-lambda.zip
-python src/deploy_lambda_code.py --source ../../../../tools/lambda_publisher/src/lambda_publisher
+python src/deploy_lambda_code.py --source ../../lambda_publisher/src/lambda_publisher
 python src/inspect_publication_notifications.py
 python src/inspect_watchdog_runtime.py --start-time-utc 2026-01-01T00:00:00Z
 python src/set_publication_secrets.py

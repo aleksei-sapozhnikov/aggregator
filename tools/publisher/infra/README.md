@@ -2,7 +2,7 @@
 
 OpenTofu root for scheduled GitHub publication on AWS.
 It owns Lambda, execution roles, DynamoDB queue state, S3 snapshots, the Scheduler
-group and watchdog, and failure notifications. The Lambda runtime is maintained separately under `tools/lambda_publisher/`.
+group and watchdog, and failure notifications. The Lambda runtime is maintained separately under `../lambda_publisher/`.
 
 ## Contents
 
@@ -11,7 +11,7 @@ group and watchdog, and failure notifications. The Lambda runtime is maintained 
 - `notifications.tf`, `secrets.tf`: alerts, logs, and secret containers.
 - `outputs.tf`: resource identifiers for publication operators.
 - `backend.tf`, `providers.tf`, `versions.tf`: state, AWS account, and tool versions.
-- [`tools/lambda_publisher/`](../../../tools/lambda_publisher/): Lambda runtime with its own source tree and tests.
+- [`../lambda_publisher/`](../lambda_publisher/): Lambda runtime with its own source tree and tests.
 - `tools/`: local packaging, release, inspection, and secret rotation commands,
   with separate sources, tests, and dependencies.
 
@@ -37,9 +37,9 @@ AWS CLI on `PATH`. Only the secret writer needs the additional Python dependency
 
 ```sh
 python -m pip install -r tools/requirements.txt
-python -B -m unittest discover -s ../../../tools/lambda_publisher/tests -p 'test_*.py'
+python -B -m unittest discover -s ../lambda_publisher/tests/lambda_publisher -p 'test_*.py'
 python -B -m unittest discover -s tools/tests -p 'test_*.py'
-python tools/src/build_lambda_zip.py --source ../../../tools/lambda_publisher/src/lambda_publisher
+python tools/src/build_lambda_zip.py --source ../lambda_publisher/src/lambda_publisher
 ```
 
 The builder writes `build/publication-lambda.zip`, a checksum, and a member
@@ -51,18 +51,18 @@ The runtime and tools do not import each other. Packaging and release commands
 receive the runtime source path through `--source` and can be used after either
 component is moved.
 
-See [tools/lambda_publisher/README.md](../../../tools/lambda_publisher/README.md) for the runtime and
+See [Lambda runtime](../lambda_publisher/README.md) for the runtime and
 [tools/README.md](tools/README.md) for operator commands.
 
 ## Checks
 
-Use TFLint 0.65.0 with this directory's `.tflint.hcl`. These static checks
+Use TFLint 0.65.0 with the repository-root `.tflint.hcl`. These static checks
 require no AWS credentials:
 
 ```sh
 tofu fmt -check -recursive
 tflint --init
-tflint --recursive --config="$PWD/.tflint.hcl" --minimum-failure-severity=notice
+tflint --recursive --config="$(git rev-parse --show-toplevel)/.tflint.hcl" --minimum-failure-severity=notice
 ```
 
 ## Operations
