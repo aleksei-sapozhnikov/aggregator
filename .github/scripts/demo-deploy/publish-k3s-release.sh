@@ -32,7 +32,7 @@ cp services/grafana/provisioning/dashboards/dashboards.yaml "$staged/dashboards.
 cp services/grafana/provisioning/datasources/prometheus.yaml "$staged/prometheus.yaml"
 cp services/prometheus/prometheus.yml "$staged/prometheus.yml"
 
-python3 deploy/demo/image_tags.py update-kustomization \
+python3 deploy/demo/src/image_tags.py update-kustomization \
   --revision "$RELEASE_SHA" --manifest "$staged/kustomization.yaml"
 
 kubectl kustomize "$staged" > "$RUNNER_TEMP/k3s-rendered.yaml"
