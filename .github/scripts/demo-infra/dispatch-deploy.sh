@@ -13,8 +13,14 @@ if [[ "$K3S_DESTROYED" == true ]]; then
   exit 0
 fi
 
-# Read the latest demo branch, including any previously promoted manifests.
-git fetch --no-tags --depth=1 origin refs/heads/demo
+# Read the independent GitOps branch, not the force-pushable source branch.
+gitops_branch="${GITOPS_BRANCH:-deploy/demo-gitops}"
+source_branch="${SOURCE_BRANCH:-deploy/demo}"
+[[ "$gitops_branch" == deploy/demo-gitops && "$source_branch" == deploy/demo ]] || {
+  echo "::error::Unexpected deployment branch configuration" >&2
+  exit 1
+}
+git fetch --no-tags --depth=1 origin "refs/heads/$gitops_branch"
 release_missing=false
 if ! git cat-file -e FETCH_HEAD:deploy/k8s-live/kustomization.yaml 2>/dev/null; then
   release_missing=true
@@ -31,6 +37,6 @@ if [[ "$APP_CHANGED" != true ]]; then
 fi
 
 # All builds, Compose deploys and K3s release promotion stay in demo-deploy.
-gh api --method POST "repos/${GITHUB_REPOSITORY}/actions/workflows/demo-deploy.yml/dispatches" -f ref=demo
+gh api --method POST "repos/${GITHUB_REPOSITORY}/actions/workflows/demo-deploy.yml/dispatches" -f "ref=$source_branch"
 echo "Requested demo-deploy after infrastructure stage (infra changed: $INFRA_CHANGED, app changed: $APP_CHANGED, initial release missing: $release_missing)." >> "$GITHUB_STEP_SUMMARY"
 echo "The dispatched workflow reports application deployment success separately." >> "$GITHUB_STEP_SUMMARY"
