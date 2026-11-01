@@ -320,9 +320,7 @@ def _format_module(
     if ok_before:
         return True
 
-    checks_by_id = {
-        check.check_id: check for check in selected_checks([module])
-    }
+    checks_by_id = {check.check_id: check for check in selected_checks([module])}
     fixes_succeeded = True
     for check_id in failed_ids:
         spec = checks_by_id.get(check_id)
@@ -333,9 +331,7 @@ def _format_module(
             end="",
             flush=True,
         )
-        ok, details = execute_check(
-            spec, spec.format_args, root, paths, scoped=scoped
-        )
+        ok, details = execute_check(spec, spec.format_args, root, paths, scoped=scoped)
         print("OK" if ok else "FAILED", flush=True)
         for line in details:
             emit(f"  {line}")
@@ -373,9 +369,7 @@ def run_format_command(
         for index, module in enumerate(module_names):
             if index:
                 emit("")
-            if not _format_module(
-                emit, module, root, paths, scoped=changed is not None
-            ):
+            if not _format_module(emit, module, root, paths, scoped=changed is not None):
                 passed = False
                 break
 
