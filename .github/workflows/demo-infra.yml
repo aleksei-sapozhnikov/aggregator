@@ -3,8 +3,6 @@ name: Demo pipeline
 on:
   push:
     branches: [demo]
-    paths-ignore:
-      - "deploy/k8s-live/**"
   workflow_dispatch:
     inputs:
       reapply_ansible:
