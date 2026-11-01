@@ -3,7 +3,13 @@
  */
 
 import { createRef } from "react";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ComponentProps } from "react";
@@ -13,7 +19,60 @@ vi.mock("./AiChatPanel", () => ({
   default: () => null,
 }));
 
+// A changed shared markup attribute must reach the live panel and every demo.
+// Checking CSS class names alone would also pass for separately copied markup.
+vi.mock("./ItemTitle", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./ItemTitle")>();
+  const { cloneElement } = await import("react");
+  return {
+    ...actual,
+    default: (props: Parameters<typeof actual.default>[0]) =>
+      cloneElement(actual.default(props), { "data-shared-revision": "title" }),
+  };
+});
+vi.mock("./ItemOwnership", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./ItemOwnership")>();
+  const { cloneElement } = await import("react");
+  return {
+    ...actual,
+    default: (props: Parameters<typeof actual.default>[0]) =>
+      cloneElement(actual.default(props), {
+        "data-shared-revision": "ownership",
+      }),
+  };
+});
+vi.mock("./ItemSignals", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./ItemSignals")>();
+  const { cloneElement } = await import("react");
+  return {
+    ...actual,
+    HealthySignals: (props: Parameters<typeof actual.HealthySignals>[0]) =>
+      cloneElement(actual.HealthySignals(props), {
+        "data-shared-revision": "HealthySignals",
+      }),
+    UnhealthySignals: (props: Parameters<typeof actual.UnhealthySignals>[0]) =>
+      cloneElement(actual.UnhealthySignals(props), {
+        "data-shared-revision": "UnhealthySignals",
+      }),
+  };
+});
+vi.mock("./ItemTimeline", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./ItemTimeline")>();
+  const { cloneElement } = await import("react");
+  return {
+    ...actual,
+    default: (props: Parameters<typeof actual.default>[0]) =>
+      cloneElement(actual.default(props), {
+        "data-shared-revision": "timeline",
+      }),
+  };
+});
+
 import DetailsPanel from "./DetailsPanel";
+import ActorsHelpDemo from "./about/actors/ActorsHelpDemo";
+import PrimaryContactHelpDemo from "./about/primary-contact/PrimaryContactHelpDemo";
+import SignalFlowHelpDemo from "./about/signal-flow/SignalFlowHelpDemo";
+import TimelineHelpDemo from "./about/timeline/TimelineHelpDemo";
 
 afterEach(() => {
   cleanup();
@@ -117,6 +176,75 @@ const renderDetailsPanel = (
 };
 
 describe("DetailsPanel contextual help", () => {
+  it("reflects shared markup changes in production and every help scene", () => {
+    vi.stubGlobal("matchMedia", () => ({ matches: true }));
+    const { container: production } = renderDetailsPanel();
+    for (const marker of [
+      "title",
+      "ownership",
+      "HealthySignals",
+      "UnhealthySignals",
+      "timeline",
+    ]) {
+      expect(
+        production.querySelector(`[data-shared-revision="${marker}"]`),
+      ).not.toBeNull();
+    }
+    const { container: demos } = render(
+      <>
+        <div data-demo="actors">
+          <ActorsHelpDemo />
+        </div>
+        <div data-demo="contact">
+          <PrimaryContactHelpDemo />
+        </div>
+        <div data-demo="healthy">
+          <SignalFlowHelpDemo mode="healthy" />
+        </div>
+        <div data-demo="unhealthy">
+          <SignalFlowHelpDemo mode="unhealthy" />
+        </div>
+        <div data-demo="timeline">
+          <TimelineHelpDemo />
+        </div>
+      </>,
+    );
+    for (const scene of ["actors", "contact", "healthy", "unhealthy"]) {
+      for (const marker of ["title", "ownership"]) {
+        expect(
+          demos.querySelector(
+            `[data-demo="${scene}"] [data-shared-revision="${marker}"]`,
+          ),
+        ).not.toBeNull();
+      }
+    }
+    expect(
+      demos.querySelector(
+        '[data-demo="healthy"] [data-shared-revision="HealthySignals"]',
+      ),
+    ).not.toBeNull();
+    expect(
+      demos.querySelector(
+        '[data-demo="unhealthy"] [data-shared-revision="UnhealthySignals"]',
+      ),
+    ).not.toBeNull();
+    expect(
+      demos.querySelector(
+        '[data-demo="timeline"] [data-shared-revision="timeline"]',
+      ),
+    ).not.toBeNull();
+    fireEvent.click(
+      within(demos).getByRole("button", { name: "Open a dependency" }),
+    );
+    for (const marker of ["title", "ownership", "HealthySignals", "timeline"]) {
+      expect(
+        demos.querySelector(
+          `[data-demo="timeline"] [data-shared-revision="${marker}"]`,
+        ),
+      ).not.toBeNull();
+    }
+  });
+
   it("renders the selected help controls", () => {
     renderDetailsPanel();
 
@@ -220,10 +348,16 @@ describe("DetailsPanel contextual help", () => {
 
       rerender(<DetailsPanel {...props} {...remove} />);
       expect(screen.queryByRole("button", { name: label })).toBeNull();
-      expect(screen.getByRole("dialog", { name: "About " + title })).toBe(dialog);
+      expect(screen.getByRole("dialog", { name: "About " + title })).toBe(
+        dialog,
+      );
 
-      await user.click(screen.getByRole("button", { name: "Close contextual help" }));
-      expect(screen.queryByRole("dialog", { name: "About " + title })).toBeNull();
+      await user.click(
+        screen.getByRole("button", { name: "Close contextual help" }),
+      );
+      expect(
+        screen.queryByRole("dialog", { name: "About " + title }),
+      ).toBeNull();
       expect(screen.queryByRole("button", { name: label })).toBeNull();
     },
   );
@@ -242,7 +376,9 @@ describe("DetailsPanel contextual help", () => {
       />,
     );
     expect(screen.getByRole("dialog", { name: "About Timeline" })).toBe(dialog);
-    await user.click(screen.getByRole("button", { name: "Close contextual help" }));
+    await user.click(
+      screen.getByRole("button", { name: "Close contextual help" }),
+    );
     expect(screen.queryByRole("dialog", { name: "About Timeline" })).toBeNull();
   });
 
@@ -263,7 +399,7 @@ describe("DetailsPanel contextual help", () => {
     await user.hover(infoButton);
 
     expect(screen.getByRole("tooltip").textContent).toBe(
-      "Accepts and prepares customer orders.",
+      "Accepts and prepares customer orders.Click for details",
     );
     expect(infoButton.getAttribute("aria-disabled")).toBe("false");
   });
@@ -380,9 +516,7 @@ describe("DetailsPanel contextual help", () => {
     });
 
     await user.hover(infoButton);
-    expect(screen.getByRole("tooltip").textContent).toBe(
-      "View item description",
-    );
+    expect(screen.getByRole("tooltip").textContent).toBe("Click for details");
 
     await user.click(infoButton);
 
@@ -444,13 +578,13 @@ describe("DetailsPanel contextual help", () => {
     expect(timelineToggle.getAttribute("aria-expanded")).toBe("false");
     const dialog = screen.getByRole("dialog", { name: "About Timeline" });
     expect(dialog.textContent).toContain(
-      "Timeline shows how the selected item's health changes over time.",
+      "Timeline shows the selected Item's [Overall] state, including dependency impact",
     );
-    expect(dialog.textContent).toContain("Green");
-    expect(dialog.textContent).toContain("Signals filter");
-    expect(dialog.textContent).toContain("Dependencies");
+    expect(dialog.textContent).toContain("Inspect a moment");
+    expect(dialog.textContent).toContain("Switch signal groups");
+    expect(dialog.textContent).toContain("Open a dependency");
     expect(dialog.textContent).toContain(
-      "were unhealthy or had an unknown state at some point during the selected time range",
+      "were DOWN or UNKNOWN at some point in the selected range",
     );
     expect(dialog.textContent).not.toContain("show: failing");
     expect(dialog.textContent).not.toContain("↺");

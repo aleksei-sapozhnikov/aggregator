@@ -1,0 +1,109 @@
+.primary-contact-help-demo {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+}
+.primary-contact-help-diagram {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 640px;
+  margin: 0 auto;
+  overflow: hidden;
+}
+/* The primary contact help window follows its content, not the fixed
+   height used by more complex dialogs. Mobile can still scroll if needed. */
+.modal-window:has(.primary-contact-help-demo) {
+  height: auto;
+}
+
+.primary-contact-shadow {
+  fill: #cdd7df;
+  opacity: 0.55;
+}
+.primary-contact-up-light {
+  fill: #70c87c;
+}
+.primary-contact-down-light {
+  fill: #eb4d46;
+}
+.primary-contact-up-rays {
+  stroke: #70c87c;
+}
+.primary-contact-down-rays,
+.primary-contact-alarm-rays,
+.primary-contact-repair-sparks {
+  stroke: #eb4d46;
+}
+.primary-contact-exclamation {
+  fill: #eb4d46;
+  font-size: 41px;
+  font-weight: 800;
+}
+.primary-contact-laptop-word {
+  fill: #344c63;
+  font-size: 11px;
+  font-weight: 700;
+}
+.primary-contact-phone-screen {
+  fill: var(--panel);
+}
+.primary-contact-phone-title {
+  fill: var(--text);
+  font-size: 11px;
+  font-weight: 650;
+}
+.primary-contact-call-circle {
+  fill: #45a87b;
+}
+.primary-contact-phone-waves {
+  stroke: #45a87b;
+}
+.primary-contact-help-diagram text {
+  font-family: Inter, "Segoe UI", system-ui, sans-serif;
+}
+.primary-contact-help-demo .help-scene {
+  max-width: 640px;
+  margin: 0 auto;
+}
+.primary-contact-page .primary-contact-row {
+  position: relative;
+}
+.primary-contact-page .primary-contact-row::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border: 2px solid var(--link);
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--link) 12%, transparent);
+  opacity: var(--contact-selection, 0);
+}
+.primary-contact-transfer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: top left;
+  border-radius: 7px;
+  outline: 2px solid var(--link);
+  background: var(--panel);
+  pointer-events: none;
+}
+@media (max-width: 540px) {
+  .primary-contact-help-demo {
+    padding: 5px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .primary-contact-help-demo *,
+  .primary-contact-help-demo *::before,
+  .primary-contact-help-demo *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

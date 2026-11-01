@@ -28,12 +28,37 @@ describe("InfoHelp signal examples", () => {
   it.each([
     ["healthySignals", "Healthy dependency signals example"],
     ["unhealthySignals", "Unhealthy dependency propagation example"],
-  ] as const)("renders the %s animation in its existing contextual help dialog", (key, label) => {
-    render(<InfoHelp topic={infoHelpTopics[key]} />);
-    fireEvent.click(screen.getByRole("button", { name: "About " + infoHelpTopics[key].title }));
-    const dialog = screen.getByRole("dialog", { name: "About " + infoHelpTopics[key].title });
-    expect(dialog.querySelector("figure[aria-label='" + label + "']")).not.toBeNull();
-    expect(dialog.querySelectorAll("[data-flow-node]")).toHaveLength(6);
+  ] as const)(
+    "renders the %s animation in its existing contextual help dialog",
+    (key, label) => {
+      render(<InfoHelp topic={infoHelpTopics[key]} />);
+      fireEvent.click(
+        screen.getByRole("button", {
+          name: "About " + infoHelpTopics[key].title,
+        }),
+      );
+      const dialog = screen.getByRole("dialog", {
+        name: "About " + infoHelpTopics[key].title,
+      });
+      expect(
+        dialog.querySelector("figure[aria-label='" + label + "']"),
+      ).not.toBeNull();
+      expect(dialog.querySelectorAll("[data-flow-node]")).toHaveLength(6);
+    },
+  );
+});
+
+describe("InfoHelp Actors example", () => {
+  it("shows the relationship animation in the existing Actors dialog", () => {
+    render(<InfoHelp topic={infoHelpTopics.actors} />);
+    fireEvent.click(screen.getByRole("button", { name: "About Actors" }));
+    const dialog = screen.getByRole("dialog", { name: "About Actors" });
+    expect(
+      dialog.querySelector(
+        "figure[aria-label='Actors become Item ownership and relationship entries']",
+      ),
+    ).not.toBeNull();
+    expect(dialog.querySelectorAll("[data-actor]")).toHaveLength(3);
   });
 });
 

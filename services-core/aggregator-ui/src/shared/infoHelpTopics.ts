@@ -10,7 +10,12 @@ export type InfoHelpTopic = {
       text: string;
     }[];
   }[];
-  demo?: "timeline" | "healthy-signals" | "unhealthy-signals";
+  demo?:
+    | "timeline"
+    | "healthy-signals"
+    | "unhealthy-signals"
+    | "actors"
+    | "primary-contact";
   details?: {
     label: string;
     value: string;
@@ -23,12 +28,14 @@ export const infoHelpTopics = {
     summary: "The main contact for this item. Click for details.",
     description:
       "The primary contact is the main contact point associated with this item. Use it when you need more information, need to reach the responsible people, or are not sure who to contact about the item.",
+    demo: "primary-contact",
   },
   actors: {
     title: "Actors",
     summary: "People or teams associated with this item. Click for details.",
     description:
       "Actors describe the people or teams associated with this item and their relationship to it. An actor can, for example, be an owner, a user, or another involved party. Actors can also provide contacts that help you reach the relevant people.",
+    demo: "actors",
   },
   unhealthySignals: {
     title: "Unhealthy signals",
@@ -48,7 +55,8 @@ export const infoHelpTopics = {
   },
   timeline: {
     title: "Timeline",
-    summary: "See historical health states and how to use the chart. Click for examples.",
+    summary:
+      "See historical health states and how to use the chart. Click for examples.",
     description:
       "Timeline shows the selected Item's [Overall] state, including dependency impact, and signals that were DOWN or UNKNOWN at some point in the selected range.",
     demo: "timeline",

@@ -50,15 +50,24 @@
   stroke-width: 3.5;
 }
 
+/* Green recovery grows from the repaired leaf along the previously red path. */
+.signal-flow-help-propagation.is-recovery {
+  stroke: var(--status-up);
+}
+
 @keyframes signal-flow-help-current-move {
-  to { stroke-dashoffset: -34; }
+  to {
+    stroke-dashoffset: -34;
+  }
 }
 
 .signal-flow-help-node-frame {
   fill: var(--panel);
   stroke: var(--status-up);
   stroke-width: 2.4;
-  transition: stroke 220ms ease, fill 220ms ease;
+  transition:
+    stroke 220ms ease,
+    fill 220ms ease;
 }
 
 .signal-flow-help-node.is-affected .signal-flow-help-node-frame {
@@ -113,135 +122,26 @@
   }
 }
 
-
-/* Healthy signals: the graph, Item preview and moving checks share one
-   SVG coordinate system, so the motion scales with the diagram. */
+/* Only the explanatory graph and moving selection frames use SVG styles. */
 .signal-flow-help-graph,
-.signal-flow-help-page {
+.signal-flow-help-owned-signal,
+.signal-flow-help-moving-dependency {
   pointer-events: none;
 }
-
-.signal-flow-help-page-surface {
-  fill: var(--panel);
-  stroke: none;
-}
-
-.signal-flow-help-page-divider {
-  stroke: var(--border);
-  stroke-width: 1;
-}
-
-.signal-flow-help-page-status {
-  fill: var(--status-up);
-  font-size: 22px;
-  font-weight: 700;
-}
-
-.signal-flow-help-page-title {
-  fill: var(--text);
-  font-size: 19px;
-  font-weight: 650;
-}
-
-.signal-flow-help-page-muted {
-  fill: var(--muted);
-  font-size: 12px;
-}
-
-.signal-flow-help-page-contact {
-  fill: var(--link);
-  font-size: 12px;
-}
-
-.signal-flow-help-page-heading {
-  fill: var(--text);
-  font-size: 15px;
-  font-weight: 650;
-}
-
 .signal-flow-help-selection-frame {
   fill: color-mix(in srgb, var(--link) 10%, transparent);
   stroke: var(--link);
   stroke-width: 2;
 }
-
+.signal-flow-help-selection-frame.is-unhealthy-frame {
+  fill: color-mix(in srgb, var(--status-down) 9%, transparent);
+  stroke: var(--status-down);
+}
 .signal-flow-help-owned-check {
   fill: var(--status-up);
   font-size: 19px;
   font-weight: 800;
 }
-
-.signal-flow-help-page-link,
-.signal-flow-help-page-link-arrow {
-  fill: var(--link);
-  font-size: 14px;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-
-.signal-flow-help-page-link-arrow {
-  font-size: 16px;
-  text-decoration: none;
-}
-
-.signal-flow-help-owned-signal {
-  pointer-events: none;
-}
-
-
-/* Unhealthy signals: keep the dependency and its two failing checks in
-   the same SVG coordinate system while they turn into grouped links. */
-.signal-flow-help-unhealthy-page,
-.signal-flow-help-moving-dependency,
-.signal-flow-help-moving-failure,
-.signal-flow-help-projection-metadata {
-  pointer-events: none;
-}
-
-.signal-flow-help-page-failed-status {
-  fill: var(--status-down);
-  font-size: 22px;
-  font-weight: 800;
-}
-
-.signal-flow-help-selection-frame.is-unhealthy-frame {
-  fill: color-mix(in srgb, var(--status-down) 9%, transparent);
-  stroke: var(--status-down);
-}
-
-.signal-flow-help-dependency-label {
-  font-size: 15px;
-  font-weight: 650;
-}
-
-.signal-flow-help-dependency-link-mark {
-  fill: var(--link);
-  font-size: 16px;
-}
-
-.signal-flow-help-dependency-tag {
-  fill: var(--muted);
-  font-size: 12px;
-}
-
-.signal-flow-help-failure-marker {
-  fill: var(--status-down);
-  font-size: 20px;
-  font-weight: 800;
-}
-
-
-/* The two full dependency nodes retain their outlines while morphing into
-   grouped dependency/signal entries on the Item page and back. */
-.signal-flow-help-projected-title {
-  font-size: 15px;
-  text-decoration: none;
-}
-
 .signal-flow-help-moving-dependency .signal-flow-help-node-frame {
   transition: none;
-}
-
-.signal-flow-help-moving-dependency .signal-flow-help-alarm {
-  pointer-events: none;
 }
