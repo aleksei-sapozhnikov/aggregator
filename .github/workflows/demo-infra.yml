@@ -245,7 +245,7 @@ jobs:
         env:
           SSM_INSTANCE_ID: ${{ steps.node.outputs.instance_id }}
           EXPECTED_FINGERPRINT: ${{ needs.plan.outputs.config_fingerprint }}
-        run: python3 .github/scripts/demo-infra/config_fingerprint.py record
+        run: python3 .github/scripts/demo-infra/src/config_fingerprint.py record
       - name: Reconcile Argo CD admin password from protected GitHub secret
         if: steps.node.outputs.available == 'true'
         shell: bash

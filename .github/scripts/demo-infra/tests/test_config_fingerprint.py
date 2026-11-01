@@ -10,7 +10,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-MODULE_FILE = Path(__file__).resolve().parents[1] / "config_fingerprint.py"
+MODULE_FILE = Path(__file__).resolve().parents[1] / "src" / "config_fingerprint.py"
 SPEC = importlib.util.spec_from_file_location("config_fingerprint", MODULE_FILE)
 assert SPEC is not None and SPEC.loader is not None
 module = importlib.util.module_from_spec(SPEC)

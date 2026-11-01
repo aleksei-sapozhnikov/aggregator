@@ -15,7 +15,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[4]
 PARAMETER = "/aggregator/demo/ansible/last-successful-config-sha256"
 CONFIG_SOURCES = (
     "infra/demo/ansible/site.yml",
