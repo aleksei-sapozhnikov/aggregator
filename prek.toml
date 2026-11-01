@@ -13,7 +13,7 @@ hooks = [
   {
     id = "qa-pre-commit",
     name = "qa pre-commit",
-    entry = "python tools/git_hooks/hook_pre_commit.py",
+    entry = "python tools/git_hooks/src/hook_pre_commit.py",
     language = "python",
     pass_filenames = false,
     stages = ["pre-commit"]
@@ -21,7 +21,7 @@ hooks = [
   {
     id = "qa-pre-push",
     name = "qa pre-push",
-    entry = "python tools/git_hooks/hook_pre_push.py",
+    entry = "python tools/git_hooks/src/hook_pre_push.py",
     language = "python",
     pass_filenames = false,
     stages = ["pre-push"]

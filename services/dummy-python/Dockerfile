@@ -14,7 +14,7 @@ RUN useradd -r -u 1001 appuser
 USER appuser
 
 COPY --from=build /opt/venv /opt/venv
-COPY app.py ./app.py
+COPY src/app.py ./app.py
 
 ENV PATH="/opt/venv/bin:$PATH"
 

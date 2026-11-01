@@ -12,7 +12,7 @@ from pathlib import Path
 
 def repo_root() -> Path:
     """Return repository root directory based on this script location."""
-    return Path(__file__).resolve().parent.parent.parent
+    return Path(__file__).resolve().parent.parent.parent.parent
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -21,8 +21,8 @@ def build_parser() -> argparse.ArgumentParser:
         description="Install git hooks with selected QA behavior.",
         epilog=(
             "Examples:\n"
-            "  python tools/git_hooks/setup_git_hooks.py --mode lint-only\n"
-            "  python tools/git_hooks/setup_git_hooks.py --mode format-and-lint\n\n"
+            "  python tools/git_hooks/src/setup_git_hooks.py --mode lint-only\n"
+            "  python tools/git_hooks/src/setup_git_hooks.py --mode format-and-lint\n\n"
             "Modes:\n"
             "  lint-only: hook runs checks without editing code.\n"
             "  format-and-lint: hook can format files and then validates results."
@@ -50,7 +50,7 @@ def resolve_prek() -> str:
             return str(candidate)
 
     print(
-        "error: prek executable not found. Install it first using tools/git_hooks/setup_prek.py.",
+        "error: prek executable not found. Install it first using tools/git_hooks/src/setup_prek.py.",
         file=sys.stderr,
     )
     raise SystemExit(1)

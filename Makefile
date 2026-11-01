@@ -286,4 +286,4 @@ qa-check:
 qa: qa-check
 
 deps-audit:
-	python tools/dependency_audit/check_npm.py
+	python tools/dependency_audit/src/check_npm.py

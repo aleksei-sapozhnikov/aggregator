@@ -9,7 +9,7 @@ from pathlib import Path
 
 def repo_root() -> Path:
     """Return repository root directory."""
-    return Path(__file__).resolve().parent.parent.parent
+    return Path(__file__).resolve().parent.parent.parent.parent
 
 
 def read_hook_mode() -> str | None:
@@ -32,15 +32,15 @@ def main() -> int:
     mode = read_hook_mode()
     if mode is None:
         print(
-            "error: hooks.qaMode is not configured. Run tools/git_hooks/setup_git_hooks.py --mode ...",
+            "error: hooks.qaMode is not configured. Run tools/git_hooks/src/setup_git_hooks.py --mode ...",
             file=sys.stderr,
         )
         return 1
 
     if mode == "lint-only":
-        cmd = [sys.executable, "tools/git_hooks/run_lint_only.py"]
+        cmd = [sys.executable, "tools/git_hooks/src/run_lint_only.py"]
     elif mode == "format-and-lint":
-        cmd = [sys.executable, "tools/git_hooks/run_format_and_check.py"]
+        cmd = [sys.executable, "tools/git_hooks/src/run_format_and_check.py"]
     else:
         print(f"error: unsupported hooks.qaMode value: {mode}", file=sys.stderr)
         return 1

@@ -28,7 +28,7 @@ EXCLUDED_DIRS = {
 
 def repo_root() -> Path:
     """Return repository root directory."""
-    return Path(__file__).resolve().parent.parent.parent
+    return Path(__file__).resolve().parent.parent.parent.parent
 
 
 def npm_command() -> str:

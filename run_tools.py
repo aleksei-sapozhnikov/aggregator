@@ -31,7 +31,7 @@ REPO_ROOT = Path(__file__).resolve().parent
 # the command behavior and provides short help text for the runner.
 COMMANDS: dict[str, CommandSpec] = {
     "prune-squashed-branches": CommandSpec(
-        script=Path("tools/prune_squashed_branches/main.py"),
+        script=Path("tools/prune_squashed_branches/src/main.py"),
         description="Find squashed local branches and offer to delete them.",
         examples=(f"{RUNNER} prune-squashed-branches",),
     ),
