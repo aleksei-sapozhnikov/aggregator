@@ -9,7 +9,7 @@ instance. It does not modify the currently serving Docker Compose demo.
 - `argocd` applies a pinned upstream Argo CD manifest in the `argocd`
   namespace with server-side apply and waits for the server rollout.
 - `gitops` registers the `aggregator-demo` Argo CD Application, tracking
-  the `demo` branch's published `deploy/k8s-live` directory.
+  the `deploy/demo-gitops` branch's published `deploy/k8s-live` directory.
 
 Pinned versions are in [group_vars/all.yml](group_vars/all.yml). Argo CD manages
 the applications defined in `deploy/k8s`, while Ansible manages cluster
@@ -96,14 +96,14 @@ plaintext password nor its hash is stored in OpenTofu state or saved plans.
 To rotate it through GitHub:
 
 1. Update the `ARGOCD_PASSWORD` secret in `demo-infra-apply`.
-2. Open **Actions → Demo pipeline → Run workflow**, select `demo`,
+2. Open **Actions → Demo pipeline → Run workflow**, select `deploy/demo`,
    leave `sync_argocd_password=true` and `reapply_ansible=false`.
 3. Review and approve the `demo-infra-apply` job. It applies the new
    password without running Ansible when no other changes require it.
 
 The manual Run workflow option requires `demo-infra.yml` to be present
 on the default `main` branch. Until then, the workflow is triggered by
-eligible `demo` pushes, or the password can be reconciled locally.
+eligible `deploy/demo` pushes, or the password can be reconciled locally.
 
 For a local rotation, set `ARGOCD_PASSWORD` as a process environment
 variable (not a command argument or a committed file), configure an AWS
@@ -144,8 +144,8 @@ sudo /usr/local/bin/k3s kubectl -n argocd get deployment argocd-server
 ## GitOps workload bootstrap
 
 The `gitops` role creates the Argo CD Application; it does not deploy
-containers directly. The Application watches `demo:deploy/k8s-live`, generated after
-successful GHCR image builds from `demo`. SSM verifies infrastructure
+containers directly. The Application watches `deploy/demo-gitops:deploy/k8s-live`, generated after
+successful GHCR image builds from `deploy/demo`. SSM verifies infrastructure
 only; when no published manifests exist, the infrastructure workflow
 dispatches `demo-deploy` after Ansible succeeds. The Kubernetes resources
 and release procedures are documented in
