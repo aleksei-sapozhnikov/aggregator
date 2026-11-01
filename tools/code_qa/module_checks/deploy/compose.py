@@ -1,0 +1,14 @@
+"""Module checks for deploy/compose."""
+
+from code_qa.module_checks.specs import ModuleSpec
+
+SPEC = ModuleSpec(
+    "deploy-compose",
+    "deploy/compose",
+)
+
+
+if __name__ == "__main__":
+    from code_qa.module_checks.runner import run
+
+    raise SystemExit(run(SPEC.name))
