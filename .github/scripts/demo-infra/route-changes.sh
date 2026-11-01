@@ -2,7 +2,7 @@
 # Route a demo push to infrastructure and/or application deployment stages.
 # Compares the Git push range and checks for a missing initial GitOps release.
 # Outputs infra_changed, deploy_changed, and bootstrap_missing through
-# GITHUB_OUTPUT; uses BASE_SHA and INFRA_WORKFLOW_ENABLED when applicable.
+# GITHUB_OUTPUT; uses BASE_SHA for push-range detection.
 
 set -euo pipefail
 infra_changed=false
@@ -20,8 +20,8 @@ else
       infra/demo/*|deploy/ansible|deploy/argocd/*|.github/workflows/demo-infra.yml|.github/scripts/demo-infra/*|.github/scripts/demo-infra-*.sh)
         infra_changed=true
         ;;
-      deploy/infra/*|infra/bootstrap/*|deploy/k8s/README.md|deploy/k8s-live/*|.github/workflows/demo-deploy.yml)
-        # Infrastructure administration, generated releases and docs do not build images.
+      deploy/infra/*|infra/*|docs/*|README.md|deploy/k8s/README.md|deploy/k8s-live/*|.github/workflows/demo-deploy.yml)
+        # Non-demo infrastructure, generated releases, and documentation do not build images.
         ;;
       ?*)
         deploy_changed=true
@@ -34,9 +34,7 @@ fi
 bootstrap_missing=false
 if ! git cat-file -e HEAD:deploy/k8s-live/kustomization.yaml 2>/dev/null; then
   bootstrap_missing=true
-  if [[ "$INFRA_WORKFLOW_ENABLED" == true ]]; then
-    infra_changed=true
-  fi
+  infra_changed=true
 fi
 {
   echo "infra_changed=$infra_changed"
