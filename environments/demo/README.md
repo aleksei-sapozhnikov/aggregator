@@ -1,32 +1,39 @@
-# Demo environment
+# Hosted demo environments
 
-The serving EC2 runs the Compose demo at [aggregator.alivion.cc](https://aggregator.alivion.cc).
-This environment supports both the public Docker Compose deployment and a
-separate K3s GitOps deployment. GitHub Actions runs [Demo deploy](../../.github/workflows/demo-deploy.yml)
-after [Demo pipeline](WORKFLOW.md) succeeds. Infrastructure lives in [infra/](infra/README.md),
-Ansible in [ansible/](ansible/README.md), and deployment scripts in `src/sh/`.
+Two independent AWS deployments exercise the same Aggregator application:
 
-## Image publication and deployment
+- **Public Compose demo:** [aggregator.alivion.cc](https://aggregator.alivion.cc)
+  on the serving EC2 with an Elastic IP and Caddy.
+- **K3s GitOps demo:** a separate EC2 running Kubernetes, Traefik and Argo CD,
+  accessible over HTTP at its current public IP (no DNS or TLS).
 
-GitHub Actions verifies the repository and derives a Git tree ID for each
-of the eight Docker build contexts. Images missing from GHCR are built and
-published; unchanged images are reused. To refresh a base image or remote
-dependency, change a build-context input (for example the Dockerfile).
+Neither environment is a production-ready reference deployment.
 
-The serving EC2 **does not build images**. GitHub OIDC assumes the scoped
-`AggregatorDemoDeployGithub` role and invokes the
-`AggregatorDemoDeploy` SSM document on the tagged serving instance.
-The document validates the full 40-character source SHA, checks out that
-revision from `deploy/demo` as `ec2-user`, derives the same image tags and
-runs `make deploy ENV=demo` (Compose `--no-build`). GitHub captures the SSM
-command result. No inbound SSH or deploy SSH keys are required.
+## Deploy a release
 
-In GitHub Settings → Environments, `demo` must allow **only**
-`deploy/demo`. It needs `AWS_DEMO_DEPLOY_ROLE_ARN` (from
-`environments/shared/infra/administration`) and `SSM_INSTANCE_ID` (from `environments/demo/infra`).
-GitHub OIDC Environment subjects do not independently restrict branches.
+Deployment is controlled by the GitHub Actions
+[Demo pipeline](WORKFLOW.md) and [Demo deploy](../../.github/workflows/demo-deploy.yml).
+A commit to `dev` alone does **not** deploy. The release source branch is
+`deploy/demo`:
 
-## Diagnostics
+1. Push the intended, validated source revision to `deploy/demo`.
+2. Check the infrastructure workflow plan. If infrastructure or Ansible
+   changed, an approved `demo-infra-apply` run may be required.
+3. Check the subsequent `Demo deploy` run. It publishes or reuses
+   content-tagged GHCR images, deploys the Compose instance via AWS SSM,
+   and publishes the K3s manifest snapshot for Argo CD to sync.
+4. Verify the public Compose URL separately from the K3s endpoint and
+   Argo CD Synced/Healthy status.
+
+The EC2 instances do not build service images. AWS authentication uses
+GitHub OIDC and SSM, with no inbound SSH or stored deploy keys.
+See [WORKFLOW.md](WORKFLOW.md) for required GitHub Environment settings,
+approval rules, flags, secret handling and recovery steps.
+
+## Diagnose and operate
+
+Inspect the corresponding GitHub Actions job first. AWS SSM command logs
+and the current node details are available to authorized operators:
 
 ```sh
 aws ssm describe-instance-information --region eu-central-1
@@ -34,17 +41,13 @@ aws ssm get-command-invocation --region eu-central-1 \
   --command-id <command-id> --instance-id <instance-id>
 ```
 
-From an authorized checkout on the serving EC2, an already published
-revision may also be deployed manually:
+For existing published Compose revisions, an operator on the serving
+instance can run the versioned deployment script after verifying its
+checkout and full revision SHA. Avoid manually changing images or
+branches outside the release workflow.
 
-```sh
-cd ~/aggregator-demo/repo
-DEPLOY_SHA="$(git rev-parse HEAD)" bash ./environments/demo/src/sh/demo-deploy.sh
-```
-
-Run `python3 environments/demo/src/python/image_tags.py list` to inspect content-based
-image tags. The UI entrypoint writes public `/config.json` from
-`APP_TITLE` and `TIMELINE_DEFAULT_RANGE`; do not put secrets in it.
-
-See [K3s GitOps](../../deploy/kubernetes/README.md) for the independently published
-Kubernetes demo and its rollback procedure.
+Further operations are documented where they are owned:
+[demo infrastructure](infra/README.md),
+[Ansible/K3s node configuration](ansible/README.md),
+[K3s release and rollback](../../deploy/kubernetes/README.md), and
+[project IAM and state](../shared/README.md).

@@ -1,34 +1,40 @@
-# Argo CD administrator credential utilities
+# Argo CD administrator password
 
-This directory owns Argo CD administrator password reconciliation. The
-scripts are operational utilities, not Argo CD installation manifests.
+Utilities to reconcile the demo K3s Argo CD administrator password without
+keeping plaintext in Git or OpenTofu state. They manage credentials, not
+Argo CD installation or application releases.
 
-- `src/sync_argocd_password.py` runs from GitHub Actions or a local workstation.
-  It compares `ARGOCD_PASSWORD` with the current bcrypt verifier over AWS SSM
-  and submits an updated verifier only when needed.
-- `src/argocd_admin_hash.py` runs on the K3s node. Ansible installs it as
-  `/usr/local/sbin/aggregator-argocd-admin-hash`. Its `read` and `apply`
-  commands access the Kubernetes `argocd-secret` without accepting plaintext.
+## Rotate through GitHub Actions
 
-Changes to the node-side helper trigger an Ansible reapply through the demo
-infrastructure workflow so the installed copy stays current.
+1. Set the `ARGOCD_PASSWORD` secret in the protected `demo-infra-apply`
+   GitHub Environment.
+2. Dispatch [Demo pipeline](../../environments/demo/WORKFLOW.md) on
+   `deploy/demo` with `sync_argocd_password=true`.
+3. Approve the infrastructure apply environment and verify the workflow
+   succeeded. Access the dashboard through the private
+   [SSM tunnel](../../environments/demo/ansible/README.md#private-dashboard).
 
-## Password requirements
+The password must contain at least **16 characters** and at most
+**72 UTF-8 bytes**, with no newlines or null bytes.
 
-`ARGOCD_PASSWORD` must contain at least 16 Unicode characters and must
-not exceed 72 bytes when encoded as UTF-8 (the bcrypt input limit).
-Null bytes and line breaks are not allowed. Non-ASCII characters may
-occupy multiple bytes: for example, 16 Cyrillic letters are valid, while
-37 Cyrillic letters exceed the byte limit.
+## Local alternative
 
-## Tests
-
-Run the tests and code quality checks for both utilities:
+With an AWS identity authorized to run SSM commands on the K3s instance,
+set `ARGOCD_PASSWORD` in the process environment and run:
 
 ```sh
-python tools/code_qa/src/main.py code-qa --module argocd
+python tools/argocd/src/sync_argocd_password.py
 ```
 
-Tests mock AWS and Kubernetes access and do not need a live cluster.
-See [Ansible credentials and access](../../infra/demo/ansible/README.md#argo-cd-credentials-and-private-dashboard-access)
-for rotation and [demo workflow](../../infra/demo/WORKFLOW.md) for deployment details.
+This requires Python with `boto3` and `bcrypt` plus AWS credentials for
+account `905418096305`, region `eu-central-1`. It discovers the
+running tagged K3s instance, or uses `SSM_INSTANCE_ID` when supplied.
+The helper compares against the current bcrypt verifier and updates it only
+when necessary. Only the verifier is sent to the node through SSM; the
+installed node-side helper updates Kubernetes `argocd-secret`.
+Session Manager tunnel access alone is insufficient for this operation.
+
+Run tests using the `argocd` module in
+[Code QA](../code_qa/README.md). See
+[Ansible operations](../../environments/demo/ansible/README.md) for
+configuration and access.

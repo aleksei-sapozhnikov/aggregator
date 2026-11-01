@@ -1,129 +1,65 @@
 # Code QA
 
-Run commands from the repository root with
-`python tools/code_qa/src/main.py <command>`.
+Shared format, lint, test, and secret-scanning entrypoint for this
+multi-language repository. It discovers repository modules from
+`module_checks/`, applies common checks, then runs the checks specific
+to each module. CI uses the same module registry.
 
-## Layout
-
-```text
-module_checks/
-  common/
-    repository.py    Repository-wide checks (not a second-level module)
-    secrets.py       Repository-wide TruffleHog scan
-  environments/      demo.py, shared.py
-  services/          aggregator.py, aggregator_ui.py, catalog.py, ...
-  deploy/            compose.py, kubernetes.py
-  tools/             argocd.py, code_qa.py, dependency_audit.py, ...
-  registry.py        Module discovery and CI matrix
-  specs.py           Module, nested check, and test contracts
-  runner.py          Single-module execution entrypoint
-src/
-  main.py            Existing CLI entrypoint
-  core/              Shared orchestration, path scoping, and QA execution
-  checks/
-    format/          Formatters, linters, and infrastructure checks
-    other/           Default file hygiene and repository-wide checks
-    tests/           Test command executors
-  tools/             Local tool installation and resolution
-tests/
-  core/              Core orchestration, contracts, and package tests
-  checks/            Mirror src/checks
-  tools/             Tooling and local dependency tests
-```
-
-Each second-level repository directory is one QA module. Module definitions
-in `module_checks` configure its code-specific checks and tests. Default
-checks (JSON, YAML, line endings, Prettier, trailing whitespace, and final
-newline) apply to every module before or after specialized checks.
-Components nested inside a module are configured as scoped checks and suites,
-never as separate CI modules. In particular, `demo` owns Ansible and
-`publisher` owns publication OpenTofu, operator tools, and Lambda runtime.
-
-The default `python tools/code_qa/src/main.py qa` command and Make aliases remain
-the supported entrypoints. A single module can also be orchestrated directly:
+## Run from the repository root
 
 ```sh
-python -m code_qa.module_checks.environments.demo
-```
-
-This direct Python-module form requires `tools/` on `PYTHONPATH`.
-The normal CLI does not require setting `PYTHONPATH` manually.
-
-## Make shortcuts
-
-From the repository root:
-
-```shell
-make qa-format                         # Format and test every module
-make qa-format aggregator aggregator-ui # Format and test two modules
-make qa-check                          # Check and test every module
-make qa-check demo shared              # Check and test two modules
-make qa-check MODULE=demo QA_SCAN_SECRETS=false # CI: no duplicate secrets scan
-```
-
-`qa-format` uses a single orchestration pass: for each module, run its
-checks, apply available formatting fixes, recheck that module only if needed,
-and then run its tests. Tests are skipped when the module still fails checks;
-other modules continue. Once all modules pass, secrets are scanned once.
-`qa-check` has the same module-by-module test ordering without any fixes.
-`qa` remains an alias for `qa-check`. Secrets are repository-wide even when modules
-are selected. Use `QA_SCAN_SECRETS=false` to skip the scan. In CI, jobs use
-`make qa-check MODULE=<name> QA_SCAN_SECRETS=false` to avoid repeated
-secret scans; the dedicated secrets job uses `make code-secrets`.
-
-## Commands
-
-| Command     | Purpose                                                      |
-| ----------- | ------------------------------------------------------------ |
-| `lint`      | Check configured modules without modifying files.            |
-| `format`    | Format failures, then recheck that module before continuing. |
-| `test`      | Run configured module test commands.                         |
-| `qa-check`  | Check and test modules, then scan secrets.                   |
-| `secrets`   | Scan the repository with TruffleHog.                         |
-| `qa`        | Alias for `qa-check`.                                        |
-| `qa-format` | Fix and test each module, then scan repository secrets.      |
-| `modules`   | List modules; `--json` prints the CI matrix.                 |
-
-Use `--module NAME` to select one or more modules. For example:
-
-```shell
-python tools/code_qa/src/main.py lint --module demo
+python tools/code_qa/src/main.py modules
+python tools/code_qa/src/main.py qa-check --module aggregator-ui
 python tools/code_qa/src/main.py test --module catalog
+python tools/code_qa/src/main.py lint --module demo
+python tools/code_qa/src/main.py qa
 ```
 
-Within each module, specialized formatters and validators run before the
-final `trailing whitespace` and `final newline` checks. The large-file check
-remains a repository-wide check.
+Available commands:
 
-In `qa-check`, `qa`, and `qa-format`, each module's registered tests run
-directly after its checks pass. Failing checks skip only that module's tests;
-other modules are still checked and tested. Standalone `test` retains its separate behavior.
+| Command | Behavior |
+| --- | --- |
+| `modules` | List modules (`--json` for the CI matrix). |
+| `lint` | Check only; does not modify files. |
+| `format` | Attempt fixes, then recheck. |
+| `test` | Run registered tests. |
+| `qa-check` / `qa` | Check and test modules; scan secrets at the end. |
+| `qa-format` | Format and test modules; scan secrets at the end. |
+| `secrets` | Run the repository TruffleHog scan. |
 
-The `secrets` command scans the current repository filesystem recursively,
-excluding `.git` and Git-ignored paths, not historical Git commits.
-With `CODE_QA_FILE_LIST` set, it scans only the listed files.
+Repeat `--module NAME` to select modules. Without it, commands target
+the full repository. In `qa-check` and `qa-format`, a module's tests
+run only if its checks passed, but other modules still run. A secrets
+scan is repository-wide unless `QA_SCAN_SECRETS=false` is set.
 
-With `CODE_QA_FILE_LIST` set, file-based formatters only modify listed files.
-OpenTofu deliberately differs: a changed infrastructure source triggers
-`tofu fmt -recursive` across its entire infrastructure root, including local
-modules. Review these changes before committing. TFLint uses the single
-repository-root `.tflint.hcl` for the OpenTofu roots; changes to
-that file trigger lint in every infrastructure module even in scoped hooks.
-The `demo` module includes pinned Ansible syntax and `ansible-lint`
-checks, as well as its configuration contract tests. Ansible dependencies
-use an isolated local environment, not the general QA Python toolchain.
-Ansible lint is skipped on native Windows (not marked passed); Linux and WSL enforce it.
+Equivalent human-facing shortcuts include `make qa-check demo`,
+`make qa-format aggregator-ui` and `make code-secrets`. Consult
+[development](../../docs/development.md) for hook installation and
+environment setup.
 
-Python and npm dependencies, tool binaries, and caches are stored under the
-ignored `.local/qa-runtime` directory. No global Python or npm packages are
-required.
+## Scope and safety
 
-Pinned OpenTofu, TFLint, Java formatter, and TruffleHog downloads verify SHA-256
-checksums before installation. Tool bootstrapping does not modify application
-dependencies.
+Module definitions own tool choices and test commands. Nested parts
+(for example, Ansible inside `demo` and Lambda inside `publisher`)
+are checked as part of their parent module, not as separate CI modules.
+Common file-hygiene checks apply across modules. The secret scan checks
+the working tree, not Git commit history.
 
-Run code_qa's own tests from the repository root with:
+With `CODE_QA_FILE_LIST`, file-oriented checks only operate on that
+selection. OpenTofu is an exception: a changed infra source can trigger
+`tofu fmt -recursive` for the entire OpenTofu root. Review formatted
+files before committing. The repository-root `.tflint.hcl` is shared
+across infrastructure roots. Ansible lint runs on Linux or WSL and is
+skipped on native Windows.
 
-```shell
+Tool dependencies and caches are installed under the ignored
+`.local/qa-runtime` directory. Pinned OpenTofu, TFLint, Java formatter
+and TruffleHog binaries are checksum-verified before installation.
+Use module-specific tests for focused changes and avoid running
+`format` against unrelated modules.
+
+To test the QA framework itself without invoking its CLI:
+
+```sh
 python -m unittest discover -s tools/code_qa/tests -t tools -p 'test_*.py'
 ```

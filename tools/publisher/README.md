@@ -1,18 +1,30 @@
-# Publication automation
+# Scheduled publication automation
 
-This directory groups AWS infrastructure, operator tools, and the Lambda runtime
-for scheduled GitHub publication.
+Publishes a finite, prepared queue of GitHub changes and releases according
+to a schedule. AWS EventBridge Scheduler invokes the Python Lambda runtime;
+DynamoDB tracks queue progress, S3 holds versioned publication inputs, and
+the watchdog reconciles scheduled events. This automation is separate from
+Aggregator's Product Health runtime.
 
-- [infra/](infra/README.md): OpenTofu infrastructure and state configuration.
-- [infra/tools/](infra/tools/README.md): packaging, deployment, inspection, and
-  secret management tools.
-- [lambda_publisher/](lambda_publisher/README.md): Lambda runtime and tests.
+## Operate
 
-These components are checked together as the `publisher` QA module:
+- [Infrastructure](infra/README.md): provision and inspect the AWS resources
+  with OpenTofu, using project credentials.
+- [Operator tools](infra/tools/README.md): build, preview and explicitly
+  deploy a Lambda code update; inspect alarms and watchdog runs; update
+  GitHub tokens in Secrets Manager.
+- [Lambda runtime](lambda_publisher/README.md): execution contract and tests.
+
+Infrastructure state is at `publication/tofu.tfstate`; changing code is
+a separate, explicitly confirmed release step. Queue schedules and
+publication inputs are not edited by `tofu apply`.
+
+To validate this module with the repository QA tooling, run from the root:
 
 ```sh
 python tools/code_qa/src/main.py qa-check --module publisher
 ```
 
-The remote state key remains `publication/tofu.tfstate`. Moving the local
-directory does not change AWS resource addresses or the configured backend key.
+Do not commit tokens, publication snapshots containing secrets, state, plans,
+or downloaded Lambda packages. Check current state and the intended queue
+before applying infrastructure or releasing code.

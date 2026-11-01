@@ -1,40 +1,44 @@
-# Publication tools
+# Publication operator tools
 
-Local operator commands, usable independently of the runtime source tree.
-Use Python 3.10 or newer; inspection and release commands also need the AWS CLI.
-AWS commands accept `--profile` and `--region`; defaults are
-`aggregator-admin` and `eu-central-1`.
+Local Python commands for safely building and releasing the publication Lambda,
+inspecting AWS notifications, and writing GitHub tokens to Secrets Manager.
+They are independent of the Lambda runtime and do not change the publication
+queue.
 
-- `src/`: command scripts and their shared AWS CLI adapter.
-- `tests/`: `test_<script>.py` files matching the tested scripts in `src/`;
-  `lambda_fixtures.py` supplies shared runtime fixtures without AWS calls.
-- `requirements.txt`: AWS SDK dependency for the secret writer.
+Use Python 3.10+, the AWS CLI, and an authorized AWS identity. Commands default
+to profile `aggregator-admin` and region `eu-central-1`; most AWS commands
+also accept `--profile` and `--region`.
 
-| File                                   | Purpose                                                              |
-| -------------------------------------- | -------------------------------------------------------------------- |
-| `build_lambda_zip.py`                  | Build a reproducible ZIP, checksum, and manifest locally.            |
-| `compare_lambda_zip.py`                | Compare ZIP member names and hashes without printing contents.       |
-| `deploy_lambda_code.py`                | Build and preview a code release; `--apply` confirms and deploys it. |
-| `inspect_publication_notifications.py` | Read alert, subscription, alarm, and DLQ metadata.                   |
-| `inspect_watchdog_runtime.py`          | Summarize sanitized watchdog logs from a UTC timestamp.              |
-| `set_publication_secrets.py`           | Write GitHub tokens using hidden input and `WRITE` confirmation.     |
-| `aws_cli.py`                           | Shared AWS CLI adapter that redacts error responses.                 |
+## Build and preview a Lambda release
 
-Run from this directory:
+From `tools/publisher/infra/tools`:
 
 ```sh
-python -m pip install -r requirements.txt
 python -B -m unittest discover -s tests -p 'test_*.py'
 python src/build_lambda_zip.py --source ../../lambda_publisher/src/lambda_publisher
-python src/compare_lambda_zip.py /private/live.zip build/publication-lambda.zip
 python src/deploy_lambda_code.py --source ../../lambda_publisher/src/lambda_publisher
+```
+
+The builder writes a reproducible ZIP under `build/`, its SHA-256
+checksum, and a member manifest. The deploy command **previews only** by
+default: it compares the local package hash with the running Lambda.
+After reviewing, rerun the deploy command with `--apply`; it checks the
+current Lambda revision and requests typed confirmation before changing
+code. It does not invoke Lambda or change environment settings.
+
+## Inspect and maintain
+
+```sh
 python src/inspect_publication_notifications.py
 python src/inspect_watchdog_runtime.py --start-time-utc 2026-01-01T00:00:00Z
 python src/set_publication_secrets.py
 ```
 
-The table lists files under `src/`. Build and release commands require `--source`
-pointing to the package directory containing `handler.py`. Their `--output`
-defaults to `build/publication-lambda.zip` relative to the working directory.
-Inspection commands do not invoke Lambda, read queue messages, or print
-credentials and email endpoints.
+The secret writer needs `boto3` and
+`python -m pip install -r requirements.txt`. It collects tokens
+through hidden input and asks for confirmation. Inspection commands
+summarize alerts or sanitized watchdog logs; they do not drain queue
+messages or print credentials.
+
+See [infrastructure](../README.md) for resource ownership and
+[Lambda runtime](../../lambda_publisher/README.md) for execution behavior.

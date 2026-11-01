@@ -1,25 +1,27 @@
-# Delegated AWS policies
+# Delegated IAM policies
 
-Managed policy documents loaded by `policies.tf` in this root.
+This directory contains the AWS IAM policy documents consumed by the
+[administration OpenTofu root](../README.md). It defines the boundaries
+between account/project administration, restricted demo operations,
+GitHub deployment workflows and publication automation.
 
-- `AggregatorDemoEC2Management.json`: manage tagged demo compute and networking.
-- `AggregatorDemoIAMManagement.json`: manage demo workload roles and profiles.
-- `AggregatorDemoSSMManagement.json`: manage the named demo SSM deployment document.
-- `AggregatorDemoSessionAccess.json`: open Session Manager shells and private port-forwarding sessions on tagged demo EC2 instances, and manage the caller's own sessions.
-- `AggregatorDemoSGRuleCreation.json`: create tagged security group rules.
-- `AggregatorDemoRoleBoundary.json`: limit demo workload role permissions.
-- `AggregatorPublicationManagement.json`: manage publication infrastructure.
-- `AggregatorPublicationRoleBoundary.json`: limit publication execution roles.
-- `AggregatorCallBedrockModel.json`: invoke the allowed Bedrock models.
+Policies are grouped by their purpose:
 
-Additional demo infrastructure OIDC policies, managed in this root:
+- Demo EC2, IAM, security group and SSM management within project tags
+  and role boundaries.
+- Read-only demo infrastructure planning versus approved plan apply,
+  K3s Run Command and state-lock access.
+- Session Manager access to tagged instances, including private Argo CD
+  port forwarding without public SSH.
+- Publication infrastructure permissions and runtime role boundaries.
+- Restricted invocation of supported Bedrock models.
 
-- `AggregatorDemoInfraRead.json`: read-only demo resource inspection for
-  both infrastructure GitHub roles.
-- `AggregatorDemoInfraPlanState.json`: read demo state and manage only
-  its state lock, for the plan role.
-- `AggregatorDemoK3sRunCommand.json`: SSM execution limited to the
-  tagged K3s node, for the apply role.
+To change a permission, edit the relevant JSON policy, inspect its
+attachments and conditions in the parent OpenTofu configuration, then
+plan and apply **as `infra-admin`** through the administration root.
+Do not attach broader permissions directly to workload roles or bypass
+the existing permissions boundary. IAM changes are not deployed by the
+demo workload pipeline.
 
-Other permissions are reused through existing managed-policy attachments;
-do not create copies of those policies in `demo`.
+See [project IAM ownership](../README.md) and
+[demo deployment approvals](../../../../demo/WORKFLOW.md).
