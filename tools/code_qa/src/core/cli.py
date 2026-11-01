@@ -307,6 +307,46 @@ def run_check_command(
         close()
 
 
+def _format_module(
+    emit: Callable[[str], None],
+    module: str,
+    root: Path,
+    paths: list[Path],
+    *,
+    scoped: bool,
+) -> bool:
+    """Fix failing checks and verify this module before running its tests."""
+    ok_before, failed_ids = _run_checks(emit, [module])
+    if ok_before:
+        return True
+
+    checks_by_id = {
+        check.check_id: check for check in selected_checks([module])
+    }
+    fixes_succeeded = True
+    for check_id in failed_ids:
+        spec = checks_by_id.get(check_id)
+        if spec is None or not spec.format_args:
+            continue
+        print(
+            f"  Fixing {spec.module}: {spec.display_name}.. ",
+            end="",
+            flush=True,
+        )
+        ok, details = execute_check(
+            spec, spec.format_args, root, paths, scoped=scoped
+        )
+        print("OK" if ok else "FAILED", flush=True)
+        for line in details:
+            emit(f"  {line}")
+        if not ok:
+            fixes_succeeded = False
+
+    emit(f"  Rechecking all checks for {module}...")
+    ok_after, _ = _run_checks(emit, [module], show_module=False)
+    return fixes_succeeded and ok_after
+
+
 def run_format_command(
     *,
     modules: list[str] | None = None,
@@ -317,48 +357,25 @@ def run_format_command(
     """Format and verify one selected module at a time."""
     emit, _, close = build_emitter(out_file, append=append_out_file)
     try:
-        # Fix exactly the inputs used by scoped checks. Project-wide formatters
-        # (such as recursive OpenTofu fmt) receive the same scope manifest and
-        # deliberately operate on their entire root when triggered.
+        # Reuse the exact scoped inputs for every formatter.
         root = repo_root()
         changed = scoped_paths(root)
         paths = changed if changed is not None else iter_repo_files(root)
-        checks = selected_checks(modules)
-        by_id = {check.check_id: check for check in checks}
         module_names = list(
-            dict.fromkeys(check.module for check in checks if check.module is not None)
+            dict.fromkeys(
+                check.module
+                for check in selected_checks(modules)
+                if check.module is not None
+            )
         )
         passed = True
 
         for index, module in enumerate(module_names):
             if index:
                 emit("")
-            ok_before, failed_ids = _run_checks(emit, [module])
-            if ok_before:
-                continue
-
-            format_failed = False
-            for check_id in failed_ids:
-                spec = by_id.get(check_id)
-                if spec is None or not spec.format_args:
-                    continue
-                print(
-                    f"  Fixing {spec.module}: {spec.display_name}.. ",
-                    end="",
-                    flush=True,
-                )
-                ok, details = execute_check(
-                    spec, spec.format_args, root, paths, scoped=changed is not None
-                )
-                print("OK" if ok else "FAILED", flush=True)
-                for line in details:
-                    emit(f"  {line}")
-                if not ok:
-                    format_failed = True
-
-            emit(f"  Rechecking all checks for {module}...")
-            ok_after, _ = _run_checks(emit, [module], show_module=False)
-            if not ok_after or format_failed:
+            if not _format_module(
+                emit, module, root, paths, scoped=changed is not None
+            ):
                 passed = False
                 break
 
@@ -552,20 +569,29 @@ def run_code_qa_command(
     modules: list[str] | None = None,
     out_file: str = "",
     suppress_final_summary: bool = False,
+    format_before_tests: bool = False,
 ) -> int:
-    """Check and test each module before proceeding to the next one."""
+    """Run each module's checks or formatting, then its tests."""
     emit, _, close = build_emitter(out_file)
     try:
         root = repo_root()
         selected = [
             module for module in MODULES if modules is None or module.name in modules
         ]
+        if format_before_tests:
+            changed = scoped_paths(root)
+            paths = changed if changed is not None else iter_repo_files(root)
         failed = False
 
         for index, module in enumerate(selected):
             if index:
                 emit("")
-            checks_ok, _ = _run_checks(emit, [module.name])
+            if format_before_tests:
+                checks_ok = _format_module(
+                    emit, module.name, root, paths, scoped=changed is not None
+                )
+            else:
+                checks_ok, _ = _run_checks(emit, [module.name])
             if not checks_ok:
                 failed = True
                 if module.tests is not None:
@@ -599,12 +625,14 @@ def run_qa_command(
     binary: str | None = None,
     raw: bool = False,
     out_file: str = "",
+    format_before_tests: bool = False,
 ) -> int:
-    """Check code without fixes, run tests, and then scan secrets."""
+    """Check or format modules, run their tests, then scan secrets."""
     code_qa_rc = run_code_qa_command(
         modules=modules,
         out_file=out_file,
         suppress_final_summary=True,
+        format_before_tests=format_before_tests,
     )
     if code_qa_rc != 0:
         emit, _, close = build_emitter(out_file, append=True)
@@ -650,12 +678,17 @@ def build_parser() -> argparse.ArgumentParser:
         "qa",
         help="Check code, run tests, and scan secrets without modifying files.",
     )
-    qa_cmd.add_argument("--scan-root", default=".")
-    qa_cmd.add_argument("--output-file", default="")
-    qa_cmd.add_argument("--gitignored-output-file", default="")
-    qa_cmd.add_argument("--binary")
-    qa_cmd.add_argument("--raw", action="store_true")
-    qa_cmd.add_argument("--out-file", default="")
+    qa_format_cmd = sub.add_parser(
+        "qa-format",
+        help="Format and test each module, then scan repository secrets.",
+    )
+    for command in (qa_cmd, qa_format_cmd):
+        command.add_argument("--scan-root", default=".")
+        command.add_argument("--output-file", default="")
+        command.add_argument("--gitignored-output-file", default="")
+        command.add_argument("--binary")
+        command.add_argument("--raw", action="store_true")
+        command.add_argument("--out-file", default="")
 
     code_qa_cmd = sub.add_parser(
         "code-qa",
@@ -690,7 +723,7 @@ def build_parser() -> argparse.ArgumentParser:
     lint_cmd = sub.add_parser("lint", help="Run code checks without secrets scanning.")
     lint_cmd.add_argument("--out-file", default="")
 
-    for command in (qa_cmd, code_qa_cmd, format_cmd, lint_cmd):
+    for command in (qa_cmd, qa_format_cmd, code_qa_cmd, format_cmd, lint_cmd):
         command.add_argument(
             "--module",
             action="append",
@@ -721,7 +754,7 @@ def main() -> int:
     configure_redirected_stdout()
     args = build_parser().parse_args()
 
-    if args.command == "qa":
+    if args.command in ("qa", "qa-format"):
         return run_qa_command(
             modules=args.module,
             scan_root=args.scan_root,
@@ -730,6 +763,7 @@ def main() -> int:
             binary=args.binary,
             raw=args.raw,
             out_file=args.out_file,
+            format_before_tests=args.command == "qa-format",
         )
 
     if args.command == "code-qa":
