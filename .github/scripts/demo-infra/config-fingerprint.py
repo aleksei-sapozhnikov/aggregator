@@ -95,7 +95,7 @@ def previous_value() -> str | None:
         raise RuntimeError(f"Cannot read SSM configuration fingerprint: {result.stderr.strip()}")
     value = json.loads(result.stdout)["Parameter"]["Value"]
     if not isinstance(value, str):
-        raise ValueError("Unexpected SSM parameter value")
+        raise TypeError("Unexpected SSM parameter value")
     return value
 
 
@@ -181,7 +181,14 @@ def main() -> None:
             record()
         else:
             print(fingerprint())
-    except (ValueError, RuntimeError, subprocess.CalledProcessError, KeyError, OSError) as exc:
+    except (
+        ValueError,
+        TypeError,
+        RuntimeError,
+        subprocess.CalledProcessError,
+        KeyError,
+        OSError,
+    ) as exc:
         print(f"::error::{exc}", file=sys.stderr)
         sys.exit(1)
 
