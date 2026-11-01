@@ -38,5 +38,9 @@ class ExecutorContractTests(unittest.TestCase):
         for module in modules.MODULES:
             with self.subTest(module=module.name):
                 self.assertTrue(set(module.checks + module.global_checks) <= check_ids)
+                for group in module.scoped_checks:
+                    self.assertTrue(set(group.checks) <= check_ids)
                 if module.tests is not None:
                     self.assertIn(module.tests.kind, cli.TEST_EXECUTORS)
+                for group in module.scoped_tests:
+                    self.assertIn(group.tests.kind, cli.TEST_EXECUTORS)

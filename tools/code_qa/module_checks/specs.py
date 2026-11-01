@@ -6,14 +6,13 @@ from dataclasses import dataclass
 
 DEFAULT_CHECKS = ("json", "yaml", "line-endings", "prettier")
 FINAL_CHECKS = ("trailing-whitespace", "final-newline")
+TOFU_CHECKS = ("tofu-format", "tofu-validate", "tflint")
 CODE_PROFILES = {
     "common_code": DEFAULT_CHECKS + FINAL_CHECKS,
     "java_code": DEFAULT_CHECKS + ("java-format",) + FINAL_CHECKS,
     "python_code": DEFAULT_CHECKS + ("ruff-lint", "ruff-format") + FINAL_CHECKS,
     "typescript_code": DEFAULT_CHECKS + ("typescript",) + FINAL_CHECKS,
-    "tofu_code": DEFAULT_CHECKS
-    + ("tofu-format", "tofu-validate", "tflint")
-    + FINAL_CHECKS,
+    "tofu_code": DEFAULT_CHECKS + TOFU_CHECKS + FINAL_CHECKS,
 }
 
 

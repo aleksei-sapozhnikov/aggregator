@@ -67,6 +67,44 @@ class ModuleConfigurationTests(unittest.TestCase):
             inputs.files_in_module(root, "lambda-publisher", paths), [paths[2]]
         )
 
+    def test_registered_modules_are_second_level_folders(self) -> None:
+        root = repo_root()
+        from code_qa.module_checks import registry
+
+        paths = [module.path for module in modules.MODULES if module.name != "repository"]
+        self.assertEqual(len(paths), len(set(paths)))
+        for path in paths:
+            with self.subTest(path=path):
+                self.assertEqual(len(Path(path).parts), 2)
+                self.assertTrue((root / path).is_dir())
+        self.assertEqual(
+            set(paths),
+            {
+                f"{group}/{directory.name}"
+                for group in ("services", "infra", "deploy", "tools")
+                for directory in (root / group).iterdir()
+                if directory.is_dir()
+            },
+        )
+        self.assertEqual(len(registry.MODULE_IMPORTS), len(paths))
+
+    def test_scoped_publication_checks_use_their_own_directory(self) -> None:
+        root = repo_root()
+        check = next(
+            check for check in cli.CHECKS
+            if check.check_id == "deploy-infra/publication/tofu-validate"
+        )
+        self.assertEqual(check.module, "deploy-infra")
+        self.assertEqual(check.scope_path, "deploy/infra/publication")
+        with patch.object(cli, "run_module", return_value=(True, [])) as run:
+            self.assertEqual(
+                cli.execute_check(check, check.check_args, root, []), (True, [])
+            )
+        self.assertEqual(
+            run.call_args.args[1][run.call_args.args[1].index("--directory") + 1],
+            str(root / "deploy/infra/publication"),
+        )
+
     def test_infra_roots_and_ansible_are_registered(self) -> None:
         for name in ("infra-administration", "infra-state", "infra-demo"):
             with self.subTest(module=name):
