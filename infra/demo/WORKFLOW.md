@@ -83,7 +83,7 @@ Changes under `infra/demo/ansible/**`, either of the versioned
 without Terraform resource updates. Ordinary application changes use GitHub
 image publication and Argo CD, without running Ansible. Once a GitOps release
 exists, application-only pushes skip Terraform/Ansible entirely.
-Before the first release, if `DEMO_INFRA_WORKFLOW_ENABLED=true`, even an
+Before the first release, even an
 application-only push runs a Terraform Plan and, when K3s is enabled,
 requires approval to reapply Ansible before deploying. This prevents
 deploying to a cluster whose initial setup may have failed. On first
@@ -222,13 +222,12 @@ plugin, then open `https://localhost:8080` and sign in as `admin`.
 See [the Ansible README](ansible/README.md) for verification
 and access details.
 
-## GitHub setup (required before enabling)
+## GitHub setup (required before use)
 
 Configure Repository and Environment variables under **Settings → Secrets and variables → Actions → Variables** and **Settings → Environments**:
 
 | Type                           | Name                          | Meaning                                                   |
 | ------------------------------ | ----------------------------- | --------------------------------------------------------- |
-| Repository                     | `DEMO_INFRA_WORKFLOW_ENABLED` | `true` enables AWS planning; validation works without it. |
 | Environment `demo-infra-plan`  | `AWS_ROLE_ARN`                | Plan role ARN from the admin OpenTofu outputs.            |
 | Environment `demo-infra-plan`  | `ENABLE_K3S_NODE`             | Explicit `true` or `false`.                               |
 | Environment `demo-infra-plan`  | `ENABLE_BEDROCK`              | Explicit `true` or `false`.                               |
@@ -268,10 +267,9 @@ GitHub Environment `demo-infra-apply` must be configured under
    `MANUAL_APPROVAL_CONFIGURED=true`.
 
 Do not set `MANUAL_APPROVAL_CONFIGURED` as a repository variable.
-The only Repository-level switch is `DEMO_INFRA_WORKFLOW_ENABLED` because
-its job-level condition is checked before Environment variables are available. The flag
-is an additional configuration guard, **not** a replacement for Environment
-required-reviewer rules. Apply and Ansible share the same Environment approval.
+AWS planning runs automatically for demo infrastructure changes. Required-reviewer
+rules in `demo-infra-apply` protect all changes to infrastructure and Ansible
+configuration. Apply and Ansible share the same Environment approval.
 
 GitHub `workflow_dispatch` generally requires a workflow file to exist on
 the repository's default branch. Until this file is also present on `main`,
