@@ -1,4 +1,4 @@
-"""Regression tests for force-push routing and GitOps release republishing."""
+"""Regression tests for source/GitOps separation and force-push routing."""
 
 from __future__ import annotations
 
@@ -24,6 +24,9 @@ class ForcePushRoutingTests(unittest.TestCase):
         self.write("services-core/catalog/README.md", "initial\n")
         self.write("deploy/k8s-live/kustomization.yaml", "resources: []\n")
         self.commit("Initial")
+        self.source_branch = self.git("branch", "--show-current").strip()
+        self.git("branch", "deploy/demo-gitops")
+        self.git("remote", "add", "origin", str(self.repository))
         self.before = self.git("rev-parse", "HEAD").strip()
 
     def git(self, *args: str) -> str:
@@ -51,6 +54,7 @@ class ForcePushRoutingTests(unittest.TestCase):
             "BASE_SHA": base if base is not None else self.before,
             "GITHUB_SHA": self.git("rev-parse", "HEAD").strip(),
             "GITHUB_OUTPUT": str(output),
+            "GITOPS_BRANCH": "deploy/demo-gitops",
         })
         result = subprocess.run(
             ["bash", str(SCRIPT)], cwd=self.repository, env=env,
@@ -59,32 +63,40 @@ class ForcePushRoutingTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         return output.read_text(encoding="utf-8")
 
-    def test_missing_release_requests_republication_and_plan(self) -> None:
+    def test_source_force_push_can_remove_generated_manifests(self) -> None:
         self.git("rm", "deploy/k8s-live/kustomization.yaml")
-        self.commit("Remove generated release")
+        self.commit("Remove generated source manifests")
         result = self.route()
-        self.assertIn("bootstrap_missing=true", result)
-        self.assertIn("infra_changed=true", result)
+        self.assertIn("bootstrap_missing=false", result)
+        self.assertIn("infra_changed=false", result)
         self.assertIn("deploy_changed=false", result)
 
-    def test_app_only_changes_also_check_last_successful_config(self) -> None:
+    def test_app_only_changes_still_check_last_successful_config(self) -> None:
         self.write("services-core/catalog/README.md", "updated\n")
         self.commit("Change application")
         result = self.route()
         self.assertIn("infra_changed=true", result)
         self.assertIn("deploy_changed=true", result)
 
-    def test_generated_manifest_commit_does_not_plan_or_deploy(self) -> None:
+    def test_missing_gitops_release_requests_republication_and_plan(self) -> None:
+        self.git("switch", "deploy/demo-gitops")
+        self.git("rm", "deploy/k8s-live/kustomization.yaml")
+        self.commit("Remove published GitOps manifest")
+        self.git("switch", self.source_branch)
+        result = self.route()
+        self.assertIn("bootstrap_missing=true", result)
+        self.assertIn("infra_changed=true", result)
+        self.assertIn("deploy_changed=false", result)
+
+    def test_manifest_only_source_commit_does_not_plan(self) -> None:
         self.write("deploy/k8s-live/kustomization.yaml", "resources: [workloads.yaml]\n")
-        self.commit("Regenerate manifests")
+        self.commit("Change generated source manifests")
         result = self.route()
         self.assertIn("infra_changed=false", result)
         self.assertIn("deploy_changed=false", result)
         self.assertIn("bootstrap_missing=false", result)
 
-    def test_missing_previous_commit_remains_fail_safe_for_routing(self) -> None:
-        self.git("rm", "deploy/k8s-live/kustomization.yaml")
-        self.commit("Remove generated release")
+    def test_unavailable_previous_commit_remains_fail_safe(self) -> None:
         result = self.route(base="f" * 40)
         self.assertIn("infra_changed=true", result)
         self.assertIn("deploy_changed=true", result)
