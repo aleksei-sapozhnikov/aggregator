@@ -2,7 +2,7 @@ name: Demo pipeline
 
 on:
   push:
-    branches: [demo]
+    branches: [deploy/demo]
   workflow_dispatch:
     inputs:
       reapply_ansible:
@@ -27,6 +27,8 @@ env:
   AWS_REGION: eu-central-1
   TF_IN_AUTOMATION: "true"
   TF_INPUT: "0"
+  SOURCE_BRANCH: deploy/demo
+  GITOPS_BRANCH: deploy/demo-gitops
 
 jobs:
   detect:
@@ -80,7 +82,7 @@ jobs:
   plan:
     name: Plan changes to demo only
     needs: [detect, validate]
-    if: github.ref == 'refs/heads/demo' && needs.detect.outputs.infra_changed == 'true'
+    if: github.ref == 'refs/heads/deploy/demo' && needs.detect.outputs.infra_changed == 'true'
     environment: demo-infra-plan
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -157,7 +159,7 @@ jobs:
     name: Approve, apply and configure K3s
     needs: [validate, plan]
     if: |
-      github.ref == 'refs/heads/demo' &&
+      github.ref == 'refs/heads/deploy/demo' &&
       needs.plan.result == 'success' &&
       (needs.plan.outputs.has_changes == 'true' ||
        needs.plan.outputs.ansible_changed == 'true' ||
@@ -265,7 +267,7 @@ jobs:
     name: Request demo application deployment
     needs: [detect, validate, plan, apply]
     if: |
-      always() && github.ref == 'refs/heads/demo' &&
+      always() && github.ref == 'refs/heads/deploy/demo' &&
       needs.detect.result == 'success' &&
       (
         (needs.detect.outputs.infra_changed == 'false' &&
