@@ -25,7 +25,7 @@ SERVICE_TARGETS := up-svc down-svc restart-svc recreate-svc rebuild-svc rebuild-
 COMPOSE_TARGETS := info up down restart recreate rebuild rebuild-recreate clean pull deploy $(SERVICE_TARGETS)
 
 # ---- Compose files ----
-COMPOSE_DIR := compose
+COMPOSE_DIR := deploy/compose
 BASE := -f $(COMPOSE_DIR)/compose.yaml
 LOCAL := -f $(COMPOSE_DIR)/compose.local.yaml
 LOCAL_DEMO := -f $(COMPOSE_DIR)/compose.local-demo.yaml

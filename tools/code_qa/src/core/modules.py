@@ -50,11 +50,11 @@ class ModuleSpec:
 
 MODULES = (
     ModuleSpec(
-        "aggregator", "services-core/aggregator", "java_code", TestSpec("java_tests")
+        "aggregator", "services/aggregator", "java_code", TestSpec("java_tests")
     ),
     ModuleSpec(
         "aggregator-ui",
-        "services-core/aggregator-ui",
+        "services/aggregator-ui",
         "typescript_code",
         TestSpec(
             "npm_tests",
@@ -62,10 +62,10 @@ MODULES = (
             ("--binary", "vitest", "--", "--reporter=verbose", "--no-color"),
         ),
     ),
-    ModuleSpec("catalog", "services-core/catalog", tests=TestSpec("go_tests")),
+    ModuleSpec("catalog", "services/catalog", tests=TestSpec("go_tests")),
     ModuleSpec(
         "ai-agent",
-        "services-core/ai-agent",
+        "services/ai-agent",
         "python_code",
         TestSpec(
             "pytest_tests",
@@ -89,12 +89,12 @@ MODULES = (
             ),
         ),
     ),
-    ModuleSpec("chaos-maker", "services-demo/chaos-maker", "python_code"),
-    ModuleSpec("dummy-java", "services-demo/dummy-java", "java_code"),
-    ModuleSpec("dummy-javascript", "services-demo/dummy-javascript"),
-    ModuleSpec("dummy-python", "services-demo/dummy-python", "python_code"),
-    ModuleSpec("grafana", "services-extra/grafana"),
-    ModuleSpec("prometheus", "services-extra/prometheus"),
+    ModuleSpec("chaos-maker", "services/chaos-maker", "python_code"),
+    ModuleSpec("dummy-java", "services/dummy-java", "java_code"),
+    ModuleSpec("dummy-javascript", "services/dummy-javascript"),
+    ModuleSpec("dummy-python", "services/dummy-python", "python_code"),
+    ModuleSpec("grafana", "services/grafana"),
+    ModuleSpec("prometheus", "services/prometheus"),
     ModuleSpec(
         "argocd",
         "deploy/argocd",

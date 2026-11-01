@@ -1,13 +1,13 @@
 services:
   catalog:
     build:
-      context: services-core/catalog
+      context: services/catalog
   aggregator:
     build:
-      context: services-core/aggregator
+      context: services/aggregator
   ai-agent:
     build:
-      context: services-core/ai-agent
+      context: services/ai-agent
   aggregator-ui:
     build:
-      context: services-core/aggregator-ui
+      context: services/aggregator-ui

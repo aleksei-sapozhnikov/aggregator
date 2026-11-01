@@ -26,11 +26,11 @@ fi
 # Stage the release from the triggering source revision.
 staged="$RUNNER_TEMP/staged-k8s-live"
 rm -rf "$staged"
-cp -a deploy/k8s "$staged"
-cp services-extra/grafana/dashboards/item_health_state.json "$staged/item_health_state.json"
-cp services-extra/grafana/provisioning/dashboards/dashboards.yaml "$staged/dashboards.yaml"
-cp services-extra/grafana/provisioning/datasources/prometheus.yaml "$staged/prometheus.yaml"
-cp services-extra/prometheus/prometheus.yml "$staged/prometheus.yml"
+cp -a deploy/kubernetes "$staged"
+cp services/grafana/dashboards/item_health_state.json "$staged/item_health_state.json"
+cp services/grafana/provisioning/dashboards/dashboards.yaml "$staged/dashboards.yaml"
+cp services/grafana/provisioning/datasources/prometheus.yaml "$staged/prometheus.yaml"
+cp services/prometheus/prometheus.yml "$staged/prometheus.yml"
 
 python3 deploy/demo/image_tags.py update-kustomization \
   --revision "$RELEASE_SHA" --manifest "$staged/kustomization.yaml"

@@ -9,14 +9,14 @@ import sys
 from pathlib import Path
 
 SERVICES = {
-    "aggregator": "services-core/aggregator",
-    "aggregator-ui": "services-core/aggregator-ui",
-    "catalog": "services-core/catalog",
-    "ai-agent": "services-core/ai-agent",
-    "chaos-maker": "services-demo/chaos-maker",
-    "dummy-java": "services-demo/dummy-java",
-    "dummy-python": "services-demo/dummy-python",
-    "dummy-javascript": "services-demo/dummy-javascript",
+    "aggregator": "services/aggregator",
+    "aggregator-ui": "services/aggregator-ui",
+    "catalog": "services/catalog",
+    "ai-agent": "services/ai-agent",
+    "chaos-maker": "services/chaos-maker",
+    "dummy-java": "services/dummy-java",
+    "dummy-python": "services/dummy-python",
+    "dummy-javascript": "services/dummy-javascript",
 }
 
 
