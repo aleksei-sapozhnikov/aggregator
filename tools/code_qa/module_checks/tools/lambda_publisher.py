@@ -6,7 +6,7 @@ SPEC = ModuleSpec(
     "lambda-publisher",
     "tools/lambda_publisher",
     code="python_code",
-    tests=TestSpec("unittest_tests", ("--start-directory", "tests")),
+    tests=TestSpec("unittest_tests", ("--start-directory", "tests/lambda_publisher")),
 )
 
 
