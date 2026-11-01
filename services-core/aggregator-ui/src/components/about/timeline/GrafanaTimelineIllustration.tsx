@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
-import "./TimelineHelpDemo.css";
-import HelpAnimationProgress from "./HelpAnimationProgress";
+import "./GrafanaTimelineIllustration.css";
 
-type Scenario = "inspect" | "filter" | "navigate";
+// Grafana owns this chart, its filter menu, time range and popups inside an iframe.
+// This deterministic illustration is the only UI facsimile in the help scenes.
+export type Scenario = "inspect" | "filter" | "navigate";
 type SignalFilter = "all" | "own" | "dependencies";
 type HealthState = "UP" | "DOWN" | "UNKNOWN";
 type TimelineRow = {
@@ -30,33 +30,6 @@ const exampleRows: TimelineRow[] = [
     item: "Notification Worker", states: ["UP", "DOWN", "UP", "UP", "UP"] },
 ];
 
-const scenarios: { id: Scenario; title: string; description: string }[] = [
-  {
-    id: "inspect",
-    title: "Inspect a moment",
-    description:
-      "Watch the cursor reveal the full names and health states for one moment.",
-  },
-  {
-    id: "filter",
-    title: "Switch signal groups",
-    description:
-      "Watch the signal selector switch between All, Own, and Dependencies. [Overall] remains visible.",
-  },
-  {
-    id: "navigate",
-    title: "Open a dependency",
-    description:
-      "The selected dependency segment has a popup containing an Item link. Watch it open the dependency.",
-  },
-];
-
-const cycleDurations: Record<Scenario, number> = {
-  inspect: 8500,
-  filter: 12000,
-  navigate: 13000,
-};
-
 const getFilter = (time: number): SignalFilter =>
   time >= 9200 ? "all" : time >= 5400 ? "dependencies" : time >= 1800 ? "own" : "all";
 
@@ -68,20 +41,36 @@ const isFilterMenuOpen = (time: number): boolean =>
 const lerp = (start: number, end: number, fraction: number) =>
   start + (end - start) * Math.max(0, Math.min(1, fraction));
 
+// In the inspect scenario, the pointer visits every visible signal row.
+// Match the 26px track height and 7px gap in TimelineHelpDemo.css.
+const inspectCursorStart = 3000;
+const inspectRowDuration = 760;
+const inspectRowPitch = 33;
+export function getInspectCursorRow(time: number): number {
+  const lastRow = exampleRows.length - 1;
+  const progress = Math.max(0, Math.min(lastRow,
+    (time - inspectCursorStart) / inspectRowDuration));
+  const row = Math.min(lastRow - 1, Math.floor(progress));
+  const movement = Math.min(1, (progress - row) / 0.66);
+  const eased = movement * movement * (3 - 2 * movement);
+  return row + eased;
+}
+
 function TimelineStatusMarker({ state }: { state: HealthState }) {
   return <span className={"timeline-help-popup-marker is-" + state.toLowerCase()} aria-hidden="true" />;
 }
 
-const timelineStart = Date.UTC(2026, 9, 14, 23, 50, 0);
+const timelineStart = Date.UTC(2026, 9, 9, 0, 0, 0);
+const timelineWeekMs = 7 * 24 * 60 * 60 * 1000;
 function timestampAt(position: number): string {
-  const date = new Date(timelineStart + Math.round(position * 9000));
+  const date = new Date(timelineStart + Math.round(position / 100 * timelineWeekMs));
   const pad = (value: number) => String(value).padStart(2, "0");
   return date.getUTCFullYear() + "-" + pad(date.getUTCMonth() + 1) + "-" +
     pad(date.getUTCDate()) + " " + pad(date.getUTCHours()) + ":" +
     pad(date.getUTCMinutes()) + ":" + pad(date.getUTCSeconds());
 }
 
-function TimelineHoverPopup({ x }: { x: number }) {
+function TimelineHoverPopup({ x, inspectedRowId }: { x: number; inspectedRowId?: string }) {
   return (
     <div
       className={"timeline-help-popup timeline-help-popup-hover" + (x >= 34 ? " is-flipped" : "")}
@@ -93,7 +82,10 @@ function TimelineHoverPopup({ x }: { x: number }) {
         {exampleRows.map((row) => {
           const state = row.states[Math.min(row.states.length - 1, Math.floor(x / 20))];
           return (
-            <div key={row.id} className="timeline-help-popup-row">
+            <div key={row.id}
+              className={"timeline-help-popup-row" +
+                (row.id === inspectedRowId ? " is-inspected" : "")}
+              data-inspected={row.id === inspectedRowId ? "true" : undefined}>
               <span className="timeline-help-popup-name">
                 <TimelineStatusMarker state={state} />
                 <span>{row.label}</span>
@@ -110,9 +102,11 @@ function TimelineHoverPopup({ x }: { x: number }) {
 function TimelineDependencyPopup({
   x,
   linkPressed,
+  inspected,
 }: {
   x: number;
   linkPressed: boolean;
+  inspected: boolean;
 }) {
   return (
     <div
@@ -121,9 +115,12 @@ function TimelineDependencyPopup({
       aria-label="Dependency signal details"
     >
       <div className="timeline-help-popup-date">
-        2026-10-14 23:56:00 – 2026-10-14 23:59:00
+        2026-10-11 19:12:00 – 2026-10-13 04:48:00
       </div>
-      <div className="timeline-help-popup-row">
+      <div
+        className={"timeline-help-popup-row" + (inspected ? " is-inspected" : "")}
+        data-inspected={inspected ? "true" : undefined}
+      >
         <span className="timeline-help-popup-name">
           <TimelineStatusMarker state="DOWN" />
           <span>↳ Payment Gateway · readiness check</span>
@@ -132,7 +129,7 @@ function TimelineDependencyPopup({
       </div>
       <div className="timeline-help-popup-duration">
         <span>Duration</span>
-        <strong>3m</strong>
+        <strong>1d 9h 36m</strong>
       </div>
       <div className={"timeline-help-popup-link" + (linkPressed ? " is-selected" : "")}>
         <span aria-hidden="true">↗</span>
@@ -219,59 +216,7 @@ function ExampleCursor({
   );
 }
 
-function OpenedDependencyItem() {
-  return (
-    <div className="timeline-help-item-preview" aria-label="Opened Payment Gateway Item">
-      <header className="timeline-help-item-heading">
-        <span className="timeline-help-item-check" aria-hidden="true">✓</span>
-        <strong>Payment Gateway</strong>
-        <span className="timeline-help-item-info" aria-hidden="true">ⓘ</span>
-      </header>
-      <section className="timeline-help-item-primary">
-        <h3>Primary contact <span aria-hidden="true">ⓘ</span></h3>
-        <div>
-          <span aria-hidden="true">✉</span>
-          <span>finance-ops@demo.email</span>
-        </div>
-      </section>
-      <div className="timeline-help-item-section">
-        <span aria-hidden="true">›</span>
-        <span aria-hidden="true">♧</span>
-        <strong>Actors (2)</strong>
-        <span className="timeline-help-item-question" aria-hidden="true">?</span>
-      </div>
-      <div className="timeline-help-item-section">
-        <span aria-hidden="true">›</span>
-        <span className="timeline-help-item-check" aria-hidden="true">✓</span>
-        <strong>Healthy signals (5)</strong>
-        <span className="timeline-help-item-question" aria-hidden="true">?</span>
-      </div>
-      <div className="timeline-help-item-section">
-        <span aria-hidden="true">›</span>
-        <span aria-hidden="true">◷</span>
-        <strong>Timeline</strong>
-        <span className="timeline-help-item-question" aria-hidden="true">?</span>
-      </div>
-    </div>
-  );
-}
-
-export default function TimelineHelpDemo() {
-  const [scenario, setScenario] = useState<Scenario>("inspect");
-  const [elapsed, setElapsed] = useState(0);
-
-  useEffect(() => {
-    const interval = window.setInterval(() => {
-      setElapsed((value) => (value + 100) % cycleDurations[scenario]);
-    }, 100);
-    return () => window.clearInterval(interval);
-  }, [scenario]);
-
-  const changeScenario = (nextScenario: Scenario) => {
-    setScenario(nextScenario);
-    setElapsed(0);
-  };
-
+export default function GrafanaTimelineIllustration({ scenario, elapsed }: { scenario: Scenario; elapsed: number }) {
   const filter = scenario === "filter" ? getFilter(elapsed) : "all";
   const menuOpen = scenario === "filter" && isFilterMenuOpen(elapsed);
   const highlighted =
@@ -288,12 +233,18 @@ export default function TimelineHelpDemo() {
   // Stop within a segment showing healthy, unhealthy and unknown signals together.
   const endX = scenario === "inspect" ? 50 : 48;
   const x = lerp(20, endX, (elapsed - 600) / 2200);
+  const inspectCursorRow = getInspectCursorRow(elapsed);
   const inspectPopup = scenario === "inspect" && elapsed >= 1100 && elapsed < 8150;
   const navigateHover = scenario === "navigate" && elapsed >= 1100 && elapsed < 3400;
   const navigateDetails = scenario === "navigate" && elapsed >= 3400 && elapsed < 7300;
-  const openedItem = scenario === "navigate" && elapsed >= 7300;
   const linkPressed = scenario === "navigate" && elapsed >= 6400 && elapsed < 7300;
   const movingToLink = navigateDetails && elapsed >= 5100;
+  // In the navigation demo, the cursor rests on Payment Gateway's graph
+  // before moving to its Item link. Highlight only the row it points at.
+  const inspectingPayment = scenario === "navigate" && !movingToLink;
+  const inspectedRowId = scenario === "inspect"
+    ? exampleRows[Math.round(inspectCursorRow)].id
+    : inspectingPayment ? "payment" : undefined;
 
   // The dependency popup opens beside the chart cursor. Keep the same cursor
   // in the tracks while the popup opens, then animate it toward the Item link
@@ -312,32 +263,10 @@ export default function TimelineHelpDemo() {
     : "65px";
 
   return (
-    <div className="timeline-help">
-      <nav className="timeline-help-scenarios" aria-label="Timeline help scenarios">
-        {scenarios.map((entry, index) => (
-          <button
-            key={entry.id}
-            type="button"
-            aria-pressed={scenario === entry.id}
-            onClick={() => changeScenario(entry.id)}
-          >
-            <span className="timeline-help-step" aria-hidden="true">{index + 1}</span>
-            {entry.title}
-          </button>
-        ))}
-      </nav>
-      <p className="timeline-help-description">
-        {scenarios.find((entry) => entry.id === scenario)?.description}
-      </p>
-      <section className="timeline-help-preview" aria-label="Example Timeline">
-        <HelpAnimationProgress progress={elapsed / cycleDurations[scenario]} />
-        {openedItem ? (
-          <OpenedDependencyItem />
-        ) : (
-          <>
+    <div className="grafana-timeline-illustration" aria-label="Illustrative Grafana timeline">
             <header className="timeline-help-preview-header">
               <strong>Orders Service</strong>
-              <span>Example data · Last 15 minutes</span>
+              <span>Last 1 week</span>
             </header>
             <TimelineSignalSelect
               filter={filter}
@@ -377,13 +306,15 @@ export default function TimelineHelpDemo() {
                       className="timeline-help-crosshair"
                       style={{ left: x + "%" }}
                     />
-                    {(inspectPopup || navigateHover) && <TimelineHoverPopup x={x} />}
+                    {(inspectPopup || navigateHover) &&
+                      <TimelineHoverPopup x={x} inspectedRowId={inspectedRowId} />}
                     {navigateDetails && (
-                      <TimelineDependencyPopup x={x} linkPressed={linkPressed} />
+                      <TimelineDependencyPopup x={x} linkPressed={linkPressed} inspected={inspectingPayment} />
                     )}
                     <ExampleCursor
                       left={scenario === "navigate" ? navigationCursorLeft : x + "%"}
-                      top={scenario === "navigate" ? navigationCursorTop : "7px"}
+                      top={scenario === "navigate" ? navigationCursorTop
+                        : (7 + inspectCursorRow * inspectRowPitch) + "px"}
                       pressed={linkPressed}
                       movingToLink={movingToLink}
                     />
@@ -392,15 +323,11 @@ export default function TimelineHelpDemo() {
               </div>
             </div>
             <div className="timeline-help-axis" aria-hidden="true">
-              <span>23:50</span><span>23:55</span><span>00:00</span><span>00:05</span>
+              <span>Oct 09</span><span>Oct 11</span><span>Oct 13</span><span>Oct 16</span>
             </div>
             {scenario === "filter" && (
               <ExampleCursor left={cursorLeft} top={cursorTop} />
             )}
-          </>
-        )}
-        <div className="timeline-help-interaction-shield" aria-hidden="true" />
-      </section>
     </div>
   );
 }

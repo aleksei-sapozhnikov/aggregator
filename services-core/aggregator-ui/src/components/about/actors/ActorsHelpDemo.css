@@ -1,0 +1,125 @@
+.actors-help-demo {
+  position: relative;
+  align-self: stretch;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-width: 0;
+  margin: 0;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+}
+
+.actors-help-diagram {
+  display: block;
+  align-self: center;
+  width: 100%;
+  max-width: 460px;
+  height: auto;
+  overflow: visible;
+}
+
+.actors-help-demo .help-scene {
+  max-width: 460px;
+  align-self: center;
+}
+
+.actors-help-machine,
+.actors-help-person {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.actors-help-scene-plate rect {
+  fill: #e2bf93;
+  stroke: #93683d;
+  stroke-width: 1.5;
+  filter: drop-shadow(0 1px 1px rgb(73 45 19 / 22%));
+}
+
+.actors-help-scene-plate text {
+  fill: #432b1a;
+  font-family: Inter, "Segoe UI", system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.actors-help-demo.is-illustrating .actors-help-gear {
+  animation: actors-help-rotate 3s linear infinite;
+}
+
+.actors-help-demo.is-illustrating .actors-help-light {
+  animation: actors-help-blink 1s ease-in-out infinite;
+}
+
+/* Exaggerate gestures so each tool stays animated at small modal sizes.
+   Local fill boxes keep the pivot on the tool, not the full SVG canvas. */
+.actors-help-demo.is-illustrating .actors-help-person-owner .actors-help-laptop {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: actors-help-laptop-tilt 1.2s ease-in-out infinite alternate;
+}
+
+.actors-help-demo.is-illustrating .actors-help-person-owner .actors-help-typing {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: actors-help-type .32s ease-in-out infinite alternate;
+}
+
+.actors-help-demo.is-illustrating .actors-help-person-user .actors-help-tablet {
+  transform-box: fill-box;
+  transform-origin: 50% 85%;
+  animation: actors-help-tablet-tilt .85s ease-in-out infinite alternate;
+}
+
+.actors-help-demo.is-illustrating .actors-help-person-user .actors-help-moving-arm {
+  transform-box: fill-box;
+  transform-origin: 50% 0%;
+  animation: actors-help-check .75s ease-in-out infinite alternate;
+}
+
+.actors-help-demo.is-illustrating .actors-help-person-support .actors-help-wrench {
+  transform-box: fill-box;
+  transform-origin: 50% 75%;
+  animation: actors-help-wrench-turn .85s ease-in-out infinite alternate;
+}
+
+@keyframes actors-help-rotate {
+  to { transform: translate(88px, 111px) rotate(360deg); }
+}
+
+@keyframes actors-help-blink {
+  50% { opacity: .12; }
+}
+
+@keyframes actors-help-laptop-tilt {
+  to { transform: rotate(-9deg) translateY(-3px); }
+}
+
+@keyframes actors-help-type {
+  to { transform: translateY(-12px); }
+}
+
+@keyframes actors-help-tablet-tilt {
+  to { transform: rotate(15deg) translateY(-4px); }
+}
+
+@keyframes actors-help-check {
+  to { transform: translate(-9px, 13px) rotate(20deg); }
+}
+
+@keyframes actors-help-wrench-turn {
+  to { transform: rotate(38deg) translate(3px, -4px); }
+}
+
+@media (max-width: 540px) {
+  .actors-help-demo { padding: 5px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .actors-help-demo * { animation: none !important; }
+}

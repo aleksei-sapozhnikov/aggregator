@@ -3,8 +3,11 @@ import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
 import type { InfoHelpTopic } from "../shared/infoHelpTopics";
 import ModalWindow from "./ModalWindow";
-import TimelineHelpDemo from "./TimelineHelpDemo";
-import SignalFlowHelpDemo from "./SignalFlowHelpDemo";
+import InfoHelpButton from "./InfoHelpButton";
+import TimelineHelpDemo from "./about/timeline/TimelineHelpDemo";
+import SignalFlowHelpDemo from "./about/signal-flow/SignalFlowHelpDemo";
+import ActorsHelpDemo from "./about/actors/ActorsHelpDemo";
+import PrimaryContactHelpDemo from "./about/primary-contact/PrimaryContactHelpDemo";
 
 type InfoHelpProps = {
   topic: InfoHelpTopic;
@@ -31,6 +34,8 @@ function InfoHelpDialog({ topic, onClose }: { topic: InfoHelpTopic; onClose: () 
             <p>{topic.description}</p>
           </div>
           {topic.demo === "timeline" && <TimelineHelpDemo />}
+          {topic.demo === "actors" && <ActorsHelpDemo />}
+          {topic.demo === "primary-contact" && <PrimaryContactHelpDemo />}
           {topic.demo === "healthy-signals" && <SignalFlowHelpDemo mode="healthy" />}
           {topic.demo === "unhealthy-signals" && <SignalFlowHelpDemo mode="unhealthy" />}
           {topic.sections && topic.sections.length > 0 && (
@@ -117,11 +122,9 @@ export default function InfoHelp({ topic }: InfoHelpProps) {
 
   return (
     <span className="info-help">
-      <button
-        ref={buttonRef}
-        type="button"
-        className="info-help-button"
-        aria-label={`About ${topic.title}`}
+      <InfoHelpButton
+        buttonRef={buttonRef}
+        label={`About ${topic.title}`}
         aria-describedby={isTooltipVisible ? tooltipId : undefined}
         onClick={(event) => {
           event.stopPropagation();
@@ -135,9 +138,7 @@ export default function InfoHelp({ topic }: InfoHelpProps) {
         onBlur={() => setIsTooltipVisible(false)}
         onMouseEnter={showTooltip}
         onMouseLeave={() => setIsTooltipVisible(false)}
-      >
-        ?
-      </button>
+      />
       {isTooltipVisible &&
         createPortal(
           <span

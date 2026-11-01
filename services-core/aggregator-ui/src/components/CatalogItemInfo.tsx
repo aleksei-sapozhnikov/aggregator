@@ -5,6 +5,7 @@ import ModalWindow from "./ModalWindow";
 
 type CatalogItemInfoProps = {
   item: CatalogItem;
+  interactive?: boolean;
 };
 
 const missingTooltip = "No description in catalog";
@@ -21,7 +22,7 @@ const splitParagraphs = (value: string): string[] =>
     .map((paragraph) => paragraph.trim())
     .filter(Boolean);
 
-export default function CatalogItemInfo({ item }: CatalogItemInfoProps) {
+export default function CatalogItemInfo({ item, interactive = true }: CatalogItemInfoProps) {
   const tooltipId = useId();
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const tooltipRef = useRef<HTMLSpanElement | null>(null);
@@ -48,7 +49,7 @@ export default function CatalogItemInfo({ item }: CatalogItemInfoProps) {
   );
 
   const showTooltip = () => {
-    if (isModalOpen) {
+    if (!interactive || isModalOpen) {
       return;
     }
 
@@ -122,7 +123,9 @@ export default function CatalogItemInfo({ item }: CatalogItemInfoProps) {
         aria-label={`Catalog information for ${item.title || item.id}`}
         aria-describedby={isTooltipVisible ? tooltipId : undefined}
         aria-disabled={!isEnabled}
+        disabled={!interactive}
         onClick={(event) => {
+          if (!interactive) return;
           event.stopPropagation();
           setIsTooltipVisible(false);
           if (isEnabled) {

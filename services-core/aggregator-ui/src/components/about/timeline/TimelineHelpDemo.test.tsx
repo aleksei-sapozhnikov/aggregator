@@ -3,13 +3,51 @@
  */
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import TimelineHelpDemo from "./TimelineHelpDemo";
+import TimelineHelpDemo, { getInspectCursorRow } from "./TimelineHelpDemo";
 
 beforeEach(() => vi.useFakeTimers());
-afterEach(() => { cleanup(); vi.useRealTimers(); });
+afterEach(() => { cleanup(); vi.useRealTimers(); vi.unstubAllGlobals(); });
 const advance = (ms: number) => act(() => vi.advanceTimersByTime(ms));
 
 describe("Timeline help walkthrough", () => {
+  it("uses the production timeline wrapper and an isolated Grafana illustration without an iframe", () => {
+    const { container } = render(<TimelineHelpDemo />);
+    expect(container.querySelector(".details-timeline-body .grafana-grid .grafana-panel .grafana-timeline-illustration")).not.toBeNull();
+    expect(container.querySelector("iframe")).toBeNull();
+    const preview = screen.getByLabelText("Example Timeline");
+    expect(preview.querySelector(".timeline-help-content")?.hasAttribute("inert")).toBe(true);
+    expect(preview.querySelector("a[href], button:not(:disabled), [tabindex='0']")).toBeNull();
+  });
+
+  it("holds a useful static frame in every scenario when reduced motion is requested", () => {
+    vi.stubGlobal("matchMedia", () => ({ matches: true }));
+    render(<TimelineHelpDemo />);
+    const preview = screen.getByLabelText("Example Timeline");
+    expect(within(preview).getByLabelText("States at selected time")).not.toBeNull();
+    for (const name of ["Inspect a moment", "Switch signal groups", "Open a dependency"]) {
+      fireEvent.click(screen.getByRole("button", { name }));
+      const before = preview.innerHTML;
+      advance(30000);
+      expect(preview.innerHTML).toBe(before);
+    }
+    expect(preview.querySelector(".help-item-page")).not.toBeNull();
+  });
+  it("shows the animation directly below scenario buttons without redundant descriptions", () => {
+    const { container } = render(<TimelineHelpDemo />);
+    const navigation = screen.getByRole("navigation", { name: "Timeline help scenarios" });
+    const preview = screen.getByLabelText("Example Timeline");
+
+    expect(navigation.nextElementSibling).toBe(preview);
+    expect(container.querySelector(".timeline-help-description")).toBeNull();
+    for (const scenario of ["Inspect a moment", "Switch signal groups", "Open a dependency"]) {
+      fireEvent.click(screen.getByRole("button", { name: scenario }));
+      expect(navigation.nextElementSibling).toBe(preview);
+      expect(container.querySelector(".timeline-help-description")).toBeNull();
+      expect(screen.getByRole("progressbar", { name: "Animation progress" })).not.toBeNull();
+    }
+  });
+
+
   it.each([
     ["inspect", "Inspect a moment", 8500],
     ["filter", "Switch signal groups", 12000],
@@ -33,9 +71,64 @@ describe("Timeline help walkthrough", () => {
     expect(bar.getAttribute("aria-valuenow")).toBe("0");
   });
 
+  it("uses a one-week range rather than the old fifteen-minute sample", () => {
+    render(<TimelineHelpDemo />);
+    const preview = screen.getByLabelText("Example Timeline");
+    expect(within(preview).getByText("Last 1 week")).not.toBeNull();
+    expect(within(preview).queryByText(/Example data|Last 15 minutes/)).toBeNull();
+    expect(within(preview).getByText("Oct 09")).not.toBeNull();
+    expect(within(preview).getByText("Oct 16")).not.toBeNull();
+    advance(1400);
+    expect(within(preview).getByLabelText("States at selected time")
+      .querySelector(".timeline-help-popup-date")?.textContent).toMatch(/^2026-10-/);
+  });
+
+  it("moves the inspect pointer down through all graph rows and emphasizes only the current popup name", () => {
+    render(<TimelineHelpDemo />);
+    const preview = screen.getByLabelText("Example Timeline");
+    const cursor = preview.querySelector(".timeline-help-tracks > .timeline-help-cursor") as SVGElement;
+    const labels = [
+      "[Overall] Orders Service",
+      "● HTTP availability check",
+      "● Request success ratio",
+      "↳ Payment Gateway · readiness check",
+      "↳ Inventory API · synchronization check",
+      "↳ Notification Worker · backlog check",
+    ];
+    const assertActiveRow = (index: number) => {
+      const popup = within(preview).getByLabelText("States at selected time");
+      const active = popup.querySelectorAll(".timeline-help-popup-row.is-inspected");
+      expect(active).toHaveLength(1);
+      expect(active[0].getAttribute("data-inspected")).toBe("true");
+      expect(active[0].querySelector(".timeline-help-popup-name span:last-child")?.textContent)
+        .toBe(labels[index]);
+      expect(cursor.style.top).toBe((7 + index * 33) + "px");
+      const otherRows = Array.from(popup.querySelectorAll(".timeline-help-popup-row"))
+        .filter((row) => row !== active[0]);
+      expect(otherRows.every((row) => !row.classList.contains("is-inspected"))).toBe(true);
+    };
+
+    advance(1500);
+    assertActiveRow(0);
+    advance(1500);
+    expect(cursor.style.left).toBe("50%");
+    assertActiveRow(0);
+
+    // Each transition takes 66% of a 760ms step, then holds the selected row.
+    advance(680);
+    assertActiveRow(1);
+    for (let row = 2; row < labels.length; row++) {
+      advance(760);
+      assertActiveRow(row);
+    }
+    expect(getInspectCursorRow(6800)).toBe(5);
+    advance(700);
+    assertActiveRow(5);
+  });
+
   it("moves the popup with the cursor and holds it for three seconds", () => {
     render(<TimelineHelpDemo />);
-    advance(2700);
+    advance(2900);
     const preview = screen.getByLabelText("Example Timeline");
     const popup = within(preview).getByLabelText("States at selected time");
     expect(within(popup).getByText("↳ Payment Gateway · readiness check")).not.toBeNull();
@@ -157,6 +250,35 @@ describe("Timeline help walkthrough", () => {
     expect(within(preview).queryByLabelText("Available signal groups")).toBeNull();
   });
 
+  it("bolds Payment Gateway readiness check while the cursor is on its graph", () => {
+    render(<TimelineHelpDemo />);
+    fireEvent.click(screen.getByRole("button", { name: "Open a dependency" }));
+    const preview = screen.getByLabelText("Example Timeline");
+    const cursor = preview.querySelector(".timeline-help-tracks > .timeline-help-cursor") as SVGElement;
+
+    advance(1600);
+    expect(cursor.style.top).toBe("107px");
+    const hover = within(preview).getByLabelText("States at selected time");
+    const activeHoverRows = hover.querySelectorAll(".timeline-help-popup-row.is-inspected");
+    expect(activeHoverRows).toHaveLength(1);
+    expect(activeHoverRows[0].textContent).toContain("Payment Gateway · readiness check");
+    expect(activeHoverRows[0].querySelector(".timeline-help-popup-name span:last-child")
+      ?.textContent).toBe("↳ Payment Gateway · readiness check");
+
+    advance(2000);
+    const details = within(preview).getByLabelText("Dependency signal details");
+    const detailRow = details.querySelector(".timeline-help-popup-row") as HTMLElement;
+    expect(detailRow.classList.contains("is-inspected")).toBe(true);
+    expect(detailRow.getAttribute("data-inspected")).toBe("true");
+    expect(cursor.style.top).toBe("107px");
+
+    // As the pointer moves to the Item link, the signal is no longer selected.
+    advance(1600);
+    expect(cursor.classList.contains("is-moving-to-link")).toBe(true);
+    expect(detailRow.classList.contains("is-inspected")).toBe(false);
+    expect(detailRow.hasAttribute("data-inspected")).toBe(false);
+  });
+
   it("replaces the hover popup with details then opens a miniature Item", () => {
     render(<TimelineHelpDemo />);
     fireEvent.click(screen.getByRole("button", { name: "Open a dependency" }));
@@ -192,7 +314,7 @@ describe("Timeline help walkthrough", () => {
     expect(sameCursor.classList.contains("is-pressed")).toBe(true);
     advance(800);
     const item = within(preview).getByLabelText("Opened Payment Gateway Item");
-    expect(within(item).getByText("Payment Gateway")).not.toBeNull();
+    expect(item.querySelector(".content-title")?.textContent).toContain("Payment Gateway");
     expect(within(item).getByText(/Primary contact/)).not.toBeNull();
     expect(within(item).getByText("Actors (2)")).not.toBeNull();
     expect(within(item).getByText("Healthy signals (5)")).not.toBeNull();

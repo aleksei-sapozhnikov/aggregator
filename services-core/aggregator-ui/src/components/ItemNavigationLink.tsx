@@ -1,7 +1,7 @@
 import type { MouseEvent, ReactNode } from "react";
 
 type ItemNavigationLinkProps = {
-  href: string;
+  href?: string;
   children: ReactNode;
   onClick?: (event: MouseEvent<HTMLAnchorElement>) => void;
   className?: string;
