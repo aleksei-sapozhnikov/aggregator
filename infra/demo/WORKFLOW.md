@@ -7,7 +7,9 @@ validation and planning run for infrastructure changes or whenever the
 initial K3s GitOps release is missing. A missing release triggers a read-only
 plan but does not by itself trigger Ansible. Otherwise, application updates dispatch the existing
 `demo-deploy.yml` directly without running Terraform.
-Generated `deploy/k8s-live/**`-only promotion commits are excluded.
+Generated `deploy/k8s-live/**`-only changes run the lightweight
+detect job, but do not trigger infrastructure planning or application deploys
+while a published release exists.
 The `admin` and `publication` OpenTofu roots remain outside demo state.
 
 ## Branches and execution
