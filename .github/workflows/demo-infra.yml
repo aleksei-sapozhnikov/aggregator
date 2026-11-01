@@ -51,7 +51,6 @@ jobs:
         shell: bash
         env:
           BASE_SHA: ${{ github.event.before }}
-          INFRA_WORKFLOW_ENABLED: ${{ vars.DEMO_INFRA_WORKFLOW_ENABLED }}
         run: bash .github/scripts/demo-infra/route-changes.sh
   validate:
     name: Validate demo OpenTofu and Ansible (no AWS access)
@@ -83,7 +82,7 @@ jobs:
   plan:
     name: Plan changes to demo only
     needs: [detect, validate]
-    if: github.ref == 'refs/heads/demo' && needs.detect.outputs.infra_changed == 'true' && vars.DEMO_INFRA_WORKFLOW_ENABLED == 'true'
+    if: github.ref == 'refs/heads/demo' && needs.detect.outputs.infra_changed == 'true'
     environment: demo-infra-plan
     runs-on: ubuntu-latest
     timeout-minutes: 30
