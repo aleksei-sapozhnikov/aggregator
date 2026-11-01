@@ -3,10 +3,10 @@
 [demo-infra.yml](../../../.github/workflows/demo-infra.yml) is the
 **only automatic entry point** for pushes to `demo`. Its lightweight
 `detect` job routes changes without AWS access. Terraform/Ansible
-validation and planning run for infrastructure changes or whenever the
-initial K3s GitOps release is missing. A missing release triggers a read-only
-plan but does not by itself trigger Ansible. Otherwise, application updates dispatch the existing
-`demo-deploy.yml` directly without running Terraform.
+validation and planning run for infrastructure changes, application updates
+and missing GitOps releases, so every application deployment checks the
+last successfully applied Ansible fingerprint. Missing manifests alone do
+not trigger Ansible. `tofu apply` is skipped for an unchanged plan.
 Generated `deploy/k8s-live/**`-only changes run the lightweight
 detect job, but do not trigger infrastructure planning or application deploys
 while a published release exists.
@@ -29,13 +29,15 @@ local checks or pull-request validation:
      `terraform` code block in the job summary and upload the exact binary
      plan to private S3 under `plans/demo/<run-id>/<attempt>/demo.tfplan`.
      Publish its SHA-256 as a GitHub job output.
-  3. Request human approval through the `demo-infra-apply` Environment when there
-     are Terraform changes or Ansible changes. The job fails closed without
-     `MANUAL_APPROVAL_CONFIGURED=true` in that environment. The planning job
-     explains **why** approval is needed even when Terraform reports no changes.
-     Its GitHub Actions job summary shows the intended Terraform/Ansible actions,
-     with a collapsed Terraform plan and a collapsed Git diff of changed Ansible
-     sources. The Git diff is not an Ansible dry-run of the remote EC2.
+  3. After planning, compute a SHA-256 fingerprint of tracked node configuration
+     files (Ansible roles, group variables, site playbook, launch scripts, and
+     Argo CD node helper). Compare it and the current EC2 ID with the last
+     successfully applied value in AWS SSM Parameter Store. Missing records,
+     different fingerprints, and a new/replaced instance require Ansible.
+     Read failures other than ParameterNotFound fail the job. Request human
+     approval through the `demo-infra-apply` Environment for any Terraform
+     changes or Ansible configuration work. Approval is still required when
+     Terraform reports No changes, but Ansible reconciliation is needed.
   4. After approval, assume the **write OIDC apply role**, download the saved
      plan from private S3, verify its SHA-256 against the planning job output,
      then apply the _same saved plan_. Abort on checksum mismatch or absent
@@ -58,7 +60,11 @@ local checks or pull-request validation:
   6. Ansible configures K3s, Traefik and Argo CD, and registers its
      Application. SSM checks the applied revision, Kubernetes API, Traefik
      and Argo CD readiness, and the Application resource's existence. It
-     does **not** wait for application manifests or HTTP routes.
+     does **not** wait for application manifests or HTTP routes. Only after
+     SSM succeeds does the approved apply job record
+     `<instance-id>:<config-fingerprint>` in SSM Parameter Store. A failed
+     configuration or failed record leaves the previous successful value
+     unchanged and is retried on the next applicable push.
   7. The `request-demo-deploy` job executes only after the required
      infrastructure stages have succeeded. It dispatches the existing
      `demo-deploy.yml` if application files changed or an initial GitOps
@@ -68,8 +74,9 @@ local checks or pull-request validation:
      the K3s node, no application deployment is dispatched in that run,
      even if source changes were pushed alongside the infrastructure change.
      Deployment logic stays exclusively
-     in `demo-deploy`. For application-only pushes with a published
-     release, all Terraform/Ansible jobs are skipped.
+     in `demo-deploy`. Application-only pushes still perform read-only
+     OpenTofu planning and fingerprint verification to retry a previously
+     failed node reconciliation; no apply occurs when both match.
 
 Cloud-init installs only OS prerequisites; it does not embed a shell
 wrapper or reference repository paths. The approved SSM launcher fetches
@@ -83,17 +90,18 @@ Changes under `infra/demo/ansible/**`, either of the versioned
 `infra/demo/{ssm-node-configure,node-configure}.sh` scripts, or
 `deploy/argocd/argocd-admin-hash.py` reconfigure the existing EC2 through SSM,
 without Terraform resource updates. Ordinary application changes use GitHub
-image publication and Argo CD, without running Ansible. Once a GitOps release
-exists, application-only pushes skip Terraform/Ansible entirely.
-Force pushes that remove the generated release trigger republishing; if the
-previous branch SHA cannot be retrieved, the pipeline warns that it could not
-compare Ansible configuration. In that case, an explicitly reviewed reapply
-is required if node configuration was also changed.
+image publication and Argo CD, without running Ansible. Once a GitOps release exists, application-only pushes still perform a read-only
+plan and fingerprint comparison. Ansible is skipped when the recorded
+configuration matches, regardless of rewritten Git commit history.
+Force pushes that remove the generated release trigger republishing without
+forcing Ansible. Failed Ansible attempts are retried because only successful
+configurations update the stored fingerprint.
 Before the first release, even an
 application-only push runs a Terraform Plan. A missing GitOps release does
-not require Ansible when the existing K3s node is already configured.
-Ansible runs for changed node configuration, an explicit manual reapply, or
-a newly created/replaced K3s instance after approved infrastructure changes. On first
+not require Ansible when the existing K3s node has a matching successful
+fingerprint record. Ansible runs for changed configuration, a missing
+successful record, an explicit manual reapply, or a new/replaced K3s instance
+after approved infrastructure changes. On first
 provisioning, the Argo CD Application can temporarily report
 `ComparisonError` until
 `demo-deploy.yml` publishes `deploy/k8s-live`. That does not fail
@@ -117,7 +125,9 @@ successful Git revision is recorded only after those checks pass.
 This workflow never builds or publishes application images. Every
 `demo` push enters a single ordering workflow; infrastructure changes
 must pass Terraform/Ansible before the dispatch stage is reached.
-Application-only changes bypass Terraform and proceed to `demo-deploy`.
+Application changes perform a read-only Terraform Plan and an SSM fingerprint
+check before proceeding to `demo-deploy`. They never run `tofu apply` without
+changes in the reviewed plan and an approval.
 The dispatch job holds `actions: write`, while the approved Terraform/SSM
 job retains narrower permissions. A dispatched `demo-deploy` workflow
 runs independently: infrastructure success does not imply application
@@ -287,7 +297,14 @@ reapply input becomes useful once that requirement is met.
 
 The workflow refuses missing `ENABLE_K3S_NODE` and
 `ENABLE_BEDROCK` variables rather than silently selecting Terraform
-defaults. **Setting `ENABLE_K3S_NODE=false` after creating the node
+defaults. Before activating this workflow, apply the two additional IAM
+role policies in `infra/administration/ansible_config_state.tf` using
+`infra-admin`. The planning role needs `ssm:GetParameter` for
+`/aggregator/demo/ansible/last-successful-config-sha256`, and the approved
+apply role needs `ssm:PutParameter` on the same path. The Standard String
+parameter is created only after the first successful Ansible run.
+An absent initial record deliberately requires approval and reconciliation;
+do not invent or seed a success record without verified node configuration. **Setting `ENABLE_K3S_NODE=false` after creating the node
 would plan its destruction.** Review the plan before approval.
 
 No `K3S_BOOTSTRAP_GIT_REF` is needed. The workflow runs the precise
