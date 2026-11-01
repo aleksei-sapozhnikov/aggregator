@@ -1,48 +1,35 @@
-# Aggregator project state storage
+# Project state and private plans
 
-This OpenTofu root is **executed by `aggregator-admin`**, using permissions
-granted by `infra/administration`. It creates only the Aggregator-owned
-`aggregator-project-tofu-state-905418096305-eu-central-1` bucket and its
-versioning, default encryption, public-access block, ownership controls,
-private plan lifecycle, and conditional plan-write policy.
+This OpenTofu root, run as `aggregator-admin`, owns the project S3 bucket
+`aggregator-project-tofu-state-905418096305-eu-central-1`: versioning,
+encryption, public-access restrictions, ownership controls, and lifecycle.
 
-Unlike the privileged IAM administration state, the project bucket holds
-only workload state and approved-plan artifacts:
+| Prefix | Contents |
+| --- | --- |
+| `state/tofu.tfstate` | This bucket's own state |
+| `demo/tofu.tfstate` | Demo EC2/K3s and SSM state |
+| `publication/tofu.tfstate` | Publication infrastructure state |
+| `plans/demo/<run-id>/<attempt>/demo.tfplan` | Private, checksum-verified approved plans |
 
-```text
-state/tofu.tfstate
-demo/tofu.tfstate
-publication/tofu.tfstate
-plans/demo/<run-id>/<attempt>/demo.tfplan
-```
+Only `plans/demo/` is expired by lifecycle (current objects after seven
+days; noncurrent versions after the configured short retention).
+Administration IAM state must remain in the central Administration bucket.
 
-The seven-day Lifecycle applies **only** to `plans/demo/`. Do not store
-IAM administration state or IAM secrets in this bucket. The user who manages
-this bucket cannot access the protected Foundation/Administration buckets.
+## Operations
 
-## First initialization
+Use the delegated `aggregator-admin` identity in AWS account
+`905418096305`, region `eu-central-1`. After `backend.tf` has been
+configured from `backend.s3.tf.example`, run:
 
-The bucket cannot be a remote backend until it exists. For the first
-apply, `backend.tf` must be **absent**. Use a protected **local state**,
-create the bucket with the authorized delegated user, then migrate that
-local state into the newly created bucket:
-
-```powershell
-$env:AWS_PROFILE = "aggregator-admin"
-tofu init
+```sh
+aws sts get-caller-identity
+tofu init -input=false -lockfile=readonly
 tofu validate
 tofu plan
-# Review the complete plan, then run: tofu apply
-Copy-Item backend.s3.tf.example backend.tf
-tofu init -migrate-state
-tofu state list
-tofu plan
 ```
 
-Keep local state backups outside Git, secure temporary files, and verify
-the remote key is `state/tofu.tfstate`. `backend.tf` is intentionally
-gitignored only in this initial-creation root. Once it is activated,
-all later operations use the remote backend.
-
-See [the full migration runbook](../MIGRATE-STATE.md) before changing
-any `demo` or `publication` backends.
+For a **brand-new bucket only**, initialize with protected local state,
+review and apply the bucket creation, then copy the backend example to the
+ignored `backend.tf` and run `tofu init -migrate-state`. Never start with
+an empty backend when an existing state should already be present.
+Do not commit state, backend credentials, local plans or variables.

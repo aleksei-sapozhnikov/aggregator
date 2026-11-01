@@ -1,122 +1,37 @@
 # K3s GitOps demo
 
-This is a **separate** deployment of Aggregator. The existing serving
-Docker Compose EC2 and its public DNS are not modified.
+The K3s instance is separate from the public Docker Compose demo and
+does not use its Elastic IP or DNS. It runs the Aggregator stack,
+Prometheus/Grafana and demo services, with Traefik/ServiceLB on HTTP
+port 80. The default workload is an **unhardened public demo**, not a
+production Kubernetes configuration.
 
-## Deployment pipeline
+## Release flow
 
-1. A push to `deploy/demo` enters `.github/workflows/demo-infra.yml`. Its
-   change detection runs Terraform/Ansible only when necessary, and dispatches
-   `.github/workflows/demo-deploy.yml` after the infrastructure stage is
-   complete or safely skipped. `demo-deploy` is **not** triggered directly
-   by pushes. Missing published manifests cause a release build, not
-   automatic Ansible reconfiguration. The node is reconciled only when its
-   last successful configuration fingerprint differs or a new EC2 is created.
-2. Code quality must pass. The workflow computes a separate 40-character
-   Git tree ID from each service's Docker build context, checks GHCR, and
-   builds/pushes only images that do not already exist under those tags.
-3. After all required images are available, `publish-k3s-release` copies the
-   candidate manifests from `deploy/k8s` to **`deploy/k8s-live` on the
-   separate `deploy/demo-gitops` branch**, copies monitoring provisioning
-   files, replaces each
-   of the eight image tags with that service's Git tree ID, and validates the
-   rendered manifests. Unchanged image tags do not trigger application
-   rollouts merely because another service changed.
-4. Argo CD watches **`deploy/demo-gitops:deploy/k8s-live`**. It automatically syncs and
-   self-heals these already-published Kubernetes manifests.
-5. K3s ships with Traefik and ServiceLB enabled. A hostless HTTP Ingress
-   routes port 80 to `aggregator-ui:3000`; that container's Caddy forwards
-   the catalog, Product Health API, AI chat, Prometheus and Grafana paths.
+1. A `deploy/demo` push starts [Demo pipeline](../../infra/demo/WORKFLOW.md).
+   It plans infrastructure, checks the Ansible fingerprint, and requires
+   reviewer approval only when infrastructure or node configuration changes.
+2. Once ready, `Demo deploy` runs QA, checks GHCR for eight content-tagged
+   Docker images and builds only missing images.
+3. The release job renders `deploy/k8s` manifests and monitoring files into
+   `deploy/k8s-live` **on the protected `deploy/demo-gitops` branch**.
+   It replaces image references with each service's Git tree ID.
+4. Argo CD's `aggregator-demo` Application follows
+   `deploy/demo-gitops:deploy/k8s-live`, auto-syncs and self-heals.
 
-The branches deliberately separate candidate configuration from published
-configuration. Edit `deploy/k8s` on the source branch; the CI workflow
-publishes `deploy/k8s-live` on the independent GitOps branch.
-Do not manually edit generated manifests.
+Edit the source `deploy/k8s` manifests, **not** the generated
+`deploy/k8s-live` snapshot. GitOps publication must be fast-forward;
+do not force-push or delete the GitOps branch. Rewriting the source
+branch must not erase the published configuration.
 
-Bot promotion commits target only `deploy/demo-gitops`, so they cannot
-trigger the source branch deployment workflow. Stale jobs refuse to
-publish after the source branch advances. GitOps writes must be fast-forward;
-force pushes and branch deletion are prohibited by the GitHub ruleset.
+## Check a release
 
-The application stack includes Aggregator, Catalog, UI, AI Agent, Chaos
-Maker, three dummy services, Prometheus and Grafana. Grafana contains the
-demo timeline dashboard. Prometheus/Grafana data uses K3s local-path PVCs,
-which are **not** durable if the EC2 instance is deleted.
-Prometheus retains up to 30 days or 5 GB of TSDB blocks (whichever
-limit applies first); its PVC requests 8 GiB to leave room for
-compaction and WAL. The EC2 root volume remains 50 GiB by default.
+Verify the `Demo deploy` workflow succeeded, then inspect Argo CD
+(Synced/Healthy) and the service at `http://<k3s-public-ip>/`.
+No DNS or HTTPS endpoint is configured for this K3s instance.
+Ansible startup checks alone do not verify application workloads.
 
-## First deployment
-
-- Review and apply policy updates in `infra/bootstrap` using the
-  authorized `infra-admin` identity; do not change IAM manually.
-- Verify that all eight GHCR images allow **anonymous pulls**, since K3s has
-  no image pull secret.
-- Update `deploy/demo` from tested `dev`, and confirm that `demo-deploy.yml`
-  publishes `deploy/k8s-live` to `deploy/demo-gitops`. The workflow requires
-  `contents: write` to push ordinary fast-forward commits there.
-  Initialize the GitOps branch with the last published manifests before
-  changing Argo CD's source.
-- For K3s provisioning, set `ENABLE_K3S_NODE=true` and the existing
-  `ENABLE_BEDROCK` value. No `DEMO_INFRA_WORKFLOW_ENABLED` flag is used.
-  The infrastructure workflow automatically passes its own Git SHA to
-  the SSM-driven Ansible bootstrap; no SHA variable is needed.
-- Review the OpenTofu plan and manually approve `demo-infra-apply`.
-- Once infrastructure is ready, check the **separate** `Demo deploy`
-  workflow for image publication and `deploy/demo-gitops:deploy/k8s-live` promotion.
-  Verify Argo CD becomes Synced/Healthy and then open
-  `http://<k3s_public_ip>/`. No DNS cutover is performed.
-
-Infrastructure verification ends when cloud-init/Ansible, K3s, Traefik
-and Argo CD are configured and ready. It does not check application
-workloads or HTTP endpoints. SSM output is sent to CloudWatch Logs.
-Before the first published release, Argo CD can temporarily report
-`ComparisonError` because `deploy/k8s-live` does not exist yet.
-
-## Subsequent updates and rollback
-
-Each successful `deploy/demo` deployment publishes the generated
-`deploy/k8s-live` snapshot on **`deploy/demo-gitops`**, including releases where
-all images were reused. Argo CD sees only the published state, so no
-re-running Ansible or direct SSH is required.
-
-The first run after switching from commit-wide image tags may publish eight
-new tags once. Subsequent runs do not re-upload unchanged images. To refresh
-an otherwise unchanged image when upstream dependencies or base images change,
-modify its Dockerfile or another build-context file; build inputs are tracked
-by the Git tree hash.
-The `deploy` job in `demo-deploy.yml` still updates the separate Docker
-Compose demo using SSM.
-
-For rollback, revert the generated publication commit in `deploy/demo-gitops`; Argo CD
-will return to the previous published release. Avoid triggering a fresh
-image build while performing this rollback. Local PVC data is unaffected
-by image rollback.
-
-## Operating limits and security
-
-- This demo deliberately serves **plain HTTP by IP**, not HTTPS.
-  Neither DNS nor TLS certificates are configured. Port 443 is closed.
-  Do not send secrets or sensitive data through this public endpoint.
-- Argo CD, SSH and the Kubernetes API are not publicly exposed.
-  The UI Caddy proxies Grafana/Prometheus routes; review their exposure
-  before using any real workloads.
-- Grafana's init container reads the public IPv4 from EC2 IMDSv2 to build
-  its `/grafana/` URL. This depends on the Terraform hop limit; workload
-  access to instance-profile credentials also needs hardening for
-  production use.
-- The default node is **t3.medium (4 GiB)**. It has **not** been proven
-  sufficient for the entire stack. Watch pod OOMKills, node memory,
-  CPU and scheduling; switch to a larger size if required.
-- First application publication needs public GHCR packages, outbound
-  GitHub/GHCR connectivity and working containers. Infrastructure can
-  complete before `deploy/k8s-live` exists; the first release runs as
-  an independent `demo-deploy` workflow.
-
-## Diagnostics
-
-Use the SSM command ID shown in GitHub Actions and the log group
-`/aws/ssm/aggregator-demo-k3s`. In an SSM session:
+For troubleshooting through an authorized SSM session:
 
 ```sh
 sudo k3s kubectl get applications -n argocd
@@ -126,5 +41,25 @@ sudo k3s kubectl top pods -n aggregator
 curl -i http://127.0.0.1/config.json
 ```
 
-The `kubectl top` commands require a functioning Metrics Server, which
-may take time to become ready on a new K3s node.
+Metrics Server must be ready for `kubectl top`. The relevant SSM log group
+is `/aws/ssm/aggregator-demo-k3s`. For a private Argo CD dashboard
+tunnel, see [Ansible](../../infra/demo/ansible/README.md).
+
+## Rollback and limits
+
+To roll back the application, **revert the published release commit**
+in `deploy/demo-gitops` (a new fast-forward commit). Argo CD then syncs
+the preceding manifest state. This does not require rebuilding images
+or re-running Ansible.
+
+- Traffic is plain HTTP by IP. Do not send confidential data to this demo.
+  Port 443, SSH, Kubernetes API and Argo CD UI are not publicly exposed.
+- Prometheus and Grafana use K3s local-path PVCs. Destroying/replacing
+  the EC2 loses their data; an application image rollback does not.
+- Prometheus retention is limited to 30 days or 5 GB; its PVC requests
+  8 GiB. The default instance is `t3.medium` (4 GiB) with a 50 GiB
+  root volume, so watch OOMKills, disk and scheduling.
+- Grafana's public-IP helper uses EC2 IMDSv2. Public monitoring routes
+  and instance-profile access would need further hardening for production.
+- K3s pulls GHCR images anonymously. Required packages must be public
+  and the instance must reach GHCR and relevant external registries.

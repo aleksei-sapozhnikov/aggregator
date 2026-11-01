@@ -1,152 +1,83 @@
-# Ansible configuration for the K3s node
+# K3s node configuration
 
-The playbook configures only the **new**, single-node Amazon Linux 2023 EC2
-instance. It does not modify the currently serving Docker Compose demo.
+Ansible configures the separate Amazon Linux 2023 K3s EC2. It does **not**
+manage the serving Compose instance or application image releases.
 
-- `common` installs node administration/network packages and enables SSM Agent.
-- `k3s` configures the server, installs a pinned K3s version, and waits for the
-  Kubernetes API. The bundled Traefik ingress and ServiceLB are enabled.
-- `argocd` applies a pinned upstream Argo CD manifest in the `argocd`
-  namespace with server-side apply and waits for the server rollout.
-- `gitops` registers the `aggregator-demo` Argo CD Application, tracking
-  the `deploy/demo-gitops` branch's published `deploy/k8s-live` directory.
+| Role | Responsibility |
+| --- | --- |
+| `common` | System packages and SSM Agent |
+| `k3s` | Pinned single-node K3s, bundled Traefik/ServiceLB, Kubernetes API readiness |
+| `argocd` | Pinned Argo CD install, server rollout and local-only UI forwarding |
+| `gitops` | `aggregator-demo` Application pointing at `deploy/demo-gitops:deploy/k8s-live` |
 
-Pinned versions are in [group_vars/all.yml](group_vars/all.yml). Argo CD manages
-the applications defined in `deploy/k8s`, while Ansible manages cluster
-bootstrapping. The existing Docker Compose demo remains unchanged.
+Versions live in [group_vars/all.yml](group_vars/all.yml).
 
-## Execution and reconciliation
+## How configuration runs
 
-Cloud-init installs Git and Python 3.12 only; it contains no embedded
-Ansible wrapper. The reviewed GitHub workflow uses `infra/demo/ansible/dispatch-ssm.sh` to submit the versioned
-`infra/demo/ssm-node-configure.sh` through SSM. This launcher:
+The approved [Demo pipeline](../WORKFLOW.md) invokes
+`infra/demo/ansible/dispatch-ssm.sh`, which runs the versioned
+`infra/demo/ssm-node-configure.sh` on the EC2 through AWS SSM.
+The launcher locks the shared checkout, checks out the exact source
+commit, runs `infra/demo/node-configure.sh` and verifies K3s, Traefik,
+Argo CD and the Application resource. The successful revision and
+content-based configuration fingerprint are recorded only after success.
 
-1. Waits for cloud-init and takes the same node configuration lock as the
-   configuration process, preventing concurrent checkouts or playbook execution.
-2. Fetches and verifies the exact triggering commit SHA.
-3. Runs `infra/demo/node-configure.sh` **from that checkout**.
-4. Checks K3s, Traefik, Argo CD and the registered Application.
-5. Records the successful revision only after all checks pass.
+SSM reports logs to CloudWatch `/aws/ssm/aggregator-demo-k3s` and
+`/var/log/aggregator-node-configure.log` on the instance. The workflow
+compares the fingerprint on subsequent runs and skips unchanged Ansible
+configuration; use `reapply_ansible=true` for a deliberate reapply.
 
-The versioned `node-configure.sh` installs the isolated Ansible environment
-as needed and resolves its `ansible/site.yml` relative to its own location.
-The active SSM path is no longer coupled to the historical
-`deploy/ansible` path baked into the unchanged cloud-init wrapper.
-Logs are sent to CloudWatch and appended to
-`/var/log/aggregator-node-configure.log`.
+The pinned K3s version is fixed, but its installer is downloaded from
+`get.k3s.io` without a pinned installer checksum. Treat this as a demo
+supply-chain limitation.
 
-To retry, rerun the reviewed demo infrastructure workflow with
-`reapply_ansible=true` once available on the default branch, or use an
-authorized SSM Run Command running the checked-out revision's
-`ssm-node-configure.sh`. Do not call `node-configure.sh` directly on a
-running node; it assumes the caller owns the shared checkout lock.
+## Verify the node
 
-The replacement K3s EC2 is initialized from the minimal cloud-init
-template. No legacy wrapper or `deploy/ansible` compatibility symlink is
-needed. Existing local-path PVC contents are intentionally not migrated.
-
-K3s is reinstalled only if its installed pinned version differs. The
-Argo CD manifest is reapplied to reconcile drift. Configuration does not
-wait for application sync or public HTTP endpoints.
-
-The K3s installer comes from the official `get.k3s.io` endpoint, with
-`INSTALL_K3S_VERSION` pinned. The installer script itself is not pinned
-to a SHA256 checksum; review this supply-chain limitation before using the
-demo configuration in a production environment.
-
-## Verification on the EC2 instance
+Inside an authorized AWS Session Manager session:
 
 ```sh
 sudo systemctl is-active amazon-ssm-agent
 sudo systemctl is-active k3s
-sudo /usr/local/bin/k3s kubectl get nodes
-sudo /usr/local/bin/k3s kubectl get pods --namespace argocd
-sudo /usr/local/bin/k3s kubectl --namespace argocd rollout status deployment/argocd-server
+sudo k3s kubectl get nodes
+sudo k3s kubectl get pods -n argocd
+sudo k3s kubectl get applications -n argocd
 sudo cat /var/lib/aggregator-node/last-configured-revision
 sudo tail -100 /var/log/aggregator-node-configure.log
 ```
 
-On first-boot failure, also inspect `/var/log/cloud-init-output.log`.
-The GitHub infrastructure workflow waits for cloud-init, applies the exact
-workflow revision and checks K3s and Argo CD readiness using SSM. Full output is
-forwarded to CloudWatch Logs group `/aws/ssm/aggregator-demo-k3s` and retained
-for 14 days.
-Argo CD remains reachable only inside the cluster (ClusterIP service).
-The public entrypoint is Traefik port 80, serving the UI Caddy via a hostless
-Ingress. Neither Argo CD nor the Kubernetes API is publicly exposed.
+Cloud-init logs are at `/var/log/cloud-init-output.log`.
+Configuration readiness is separate from application Synced/Healthy status.
 
-## Argo CD credentials and private dashboard access
+## Argo CD password
 
-The pinned `install.yaml` is the **full Argo CD installation**, including
-its Web UI. The `argocd-server` Service is ClusterIP; no public Argo CD
-ingress, LoadBalancer, SSH port, or Kubernetes API port is exposed.
+Store secret `ARGOCD_PASSWORD` in the GitHub Environment
+`demo-infra-apply`, protected by required reviewers. It must contain
+16 or more characters and at most **72 UTF-8 bytes**, with no nulls or
+line breaks. On approved apply, the workflow checks its bcrypt verifier
+in `argocd-secret` via SSM and updates it only when different. It never
+stores plaintext in Git or OpenTofu state.
 
-### Administrator password in GitHub Environment
+To rotate: change the GitHub secret, dispatch `Demo pipeline` on
+`deploy/demo` with `sync_argocd_password=true`, and approve the apply
+environment. See [password tooling](../../../deploy/argocd/README.md).
+A local alternative is `python deploy/argocd/sync-argocd-password.py`,
+using an AWS identity authorized for `ssm:SendCommand` and a process-only
+`ARGOCD_PASSWORD` variable; tunnel-only privileges are insufficient.
 
-Set `ARGOCD_PASSWORD` as an **Environment Secret** in the protected
-`demo-infra-apply` GitHub Environment. It must contain at least 16 characters
-and no more than 72 UTF-8 bytes, without null bytes or line breaks. Keep the Environment's required-reviewer protection.
+## Private dashboard
 
-The approved infrastructure Apply job verifies the password against the
-current bcrypt hash from `argocd-secret` over AWS SSM. An unchanged password
-does not update Kubernetes. A changed password is bcrypt-hashed with a new
-random salt on the runner; only the hash is sent through SSM. Neither the
-plaintext password nor its hash is stored in OpenTofu state or saved plans.
-
-To rotate it through GitHub:
-
-1. Update the `ARGOCD_PASSWORD` secret in `demo-infra-apply`.
-2. Open **Actions → Demo pipeline → Run workflow**, select `deploy/demo`,
-   leave `sync_argocd_password=true` and `reapply_ansible=false`.
-3. Review and approve the `demo-infra-apply` job. It applies the new
-   password without running Ansible when no other changes require it.
-
-The manual Run workflow option requires `demo-infra.yml` to be present
-on the default `main` branch. Until then, the workflow is triggered by
-eligible `deploy/demo` pushes, or the password can be reconciled locally.
-
-For a local rotation, set `ARGOCD_PASSWORD` as a process environment
-variable (not a command argument or a committed file), configure an AWS
-profile authorized for SSM Run Command on the K3s instance, then run:
+Argo CD is ClusterIP-only. Ansible maintains a port forward bound to
+`127.0.0.1:18080` on the EC2. With AWS CLI and the Session Manager
+plugin, connect through SSM:
 
 ```sh
-python -m pip install boto3==1.40.53 bcrypt==4.3.0
-python deploy/argocd/sync-argocd-password.py
+aws ssm start-session --region eu-central-1 \
+  --profile aggregator-admin \
+  --target <k3s-instance-id> \
+  --document-name AWS-StartPortForwardingSession \
+  --parameters portNumber=18080,localPortNumber=8080
 ```
 
-The script checks the AWS account and locates the single running K3s EC2
-by tags if `SSM_INSTANCE_ID` is not set. An AWS profile with only
-Session Manager tunnel permissions (such as `aggregator-admin`) is **not**
-sufficient for the local password rotation. The GitHub workflow is the
-recommended route because its write role is gated by approval.
-
-### Connect to the dashboard
-
-Ansible runs a local `kubectl port-forward` service on the EC2 instance,
-bound to `127.0.0.1:18080` and restarted by systemd. To connect from Windows or Linux, install AWS CLI and the Session Manager
-plugin. Copy the current K3s instance ID and the one-line SSM port-forward
-command from the infrastructure Apply Summary. For example:
-
-```sh
-aws ssm start-session --region eu-central-1 --profile aggregator-admin --target <k3s-instance-id> --document-name AWS-StartPortForwardingSession --parameters portNumber=18080,localPortNumber=8080
-```
-
-Open `https://localhost:8080`, accept the development self-signed
-certificate, and sign in as `admin` using the configured password.
-No inbound EC2 security-group port is required.
-Checks on the node:
-
-```sh
-sudo systemctl status aggregator-argocd-ui-forward.service
-sudo /usr/local/bin/k3s kubectl -n argocd get deployment argocd-server
-```
-
-## GitOps workload bootstrap
-
-The `gitops` role creates the Argo CD Application; it does not deploy
-containers directly. The Application watches `deploy/demo-gitops:deploy/k8s-live`, generated after
-successful GHCR image builds from `deploy/demo`. SSM verifies infrastructure
-only; when no published manifests exist, the infrastructure workflow
-dispatches `demo-deploy` after Ansible succeeds. The Kubernetes resources
-and release procedures are documented in
-[deploy/k8s/README.md](../../../deploy/k8s/README.md).
+Open `https://localhost:8080` and sign in as `admin`. The development
+certificate is self-signed. The current K3s instance ID and a ready-to-copy
+tunnel command also appear in the infrastructure apply job summary.

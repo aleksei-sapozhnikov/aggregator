@@ -1,71 +1,31 @@
-# Aggregator Demo Deployment
+# Hosted Docker Compose demo
 
-The original one-off VM bootstrap scripts have been retired from the repository.
-The existing serving Docker Compose EC2 remains unchanged. The separate K3s
-node is provisioned through cloud-init and Ansible instead.
+The serving EC2 runs the Compose demo at [aggregator.alivion.cc](https://aggregator.alivion.cc).
+Its application source is `deploy/demo`; it is separate from the K3s
+GitOps demo. Deployment is performed by [Demo deploy](../../.github/workflows/demo-deploy.yml)
+after [Demo pipeline](../../infra/demo/WORKFLOW.md) succeeds.
 
-The hosted demo is deployed only from the `deploy/demo` branch. GitHub Actions runs
-the code checks, then calculates a Git tree ID for each of the eight image
-build contexts. An image is built and published to GHCR only if that
-service-specific tag does not already exist. The full Git commit SHA identifies
-the release, while each image tag identifies its unchanged build inputs.
-The EC2 host only pulls and starts published images; it does not build them.
+## Image publication and deployment
 
-The first run after migrating from commit-wide image tags may publish all eight
-new content-tagged images once. Later runs reuse existing GHCR images; GitHub
-Actions can skip every build job when no Docker build context changed. Images
-are checked in GHCR before the build matrix is created, so deleted/missing
-images are rebuilt rather than silently referenced. To deliberately refresh an
-image when upstream base images or remote dependencies change, update its
-Dockerfile or another file in its build context.
+GitHub Actions verifies the repository and derives a Git tree ID for each
+of the eight Docker build contexts. Images missing from GHCR are built and
+published; unchanged images are reused. To refresh a base image or remote
+dependency, change a build-context input (for example the Dockerfile).
 
-## Transport and permissions
+The serving EC2 **does not build images**. GitHub OIDC assumes the scoped
+`AggregatorDemoDeployGithub` role and invokes the
+`AggregatorDemoDeploy` SSM document on the tagged serving instance.
+The document validates the full 40-character source SHA, checks out that
+revision from `deploy/demo` as `ec2-user`, derives the same image tags and
+runs `make deploy ENV=demo` (Compose `--no-build`). GitHub captures the SSM
+command result. No inbound SSH or deploy SSH keys are required.
 
-GitHub Actions obtains short-lived AWS credentials with GitHub OIDC. The
-`AggregatorDemoDeployGithub` role can only run the
-`AggregatorDemoDeploy` SSM document on the tagged serving EC2 instance and
-read command results. No SSH keys or inbound SSH are needed for deployment.
+In GitHub Settings → Environments, `demo` must allow **only**
+`deploy/demo`. It needs `AWS_DEMO_DEPLOY_ROLE_ARN` (from
+`infra/administration`) and `SSM_INSTANCE_ID` (from `infra/demo`).
+GitHub OIDC Environment subjects do not independently restrict branches.
 
-SSM Agent executes the document with root privileges but switches to
-`ec2-user` before accessing the checkout or Docker. The document accepts
-only a 40-character hexadecimal Git SHA, then:
-
-1. Fetches `deploy/demo` and verifies that the SHA belongs to that branch.
-2. Checks out precisely that SHA so mounted Caddy/Prometheus/Grafana files
-   match the released configuration.
-3. Calculates the same per-service image tags from that commit's Git trees,
-   then runs `make deploy ENV=demo` (Compose uses `--no-build`). Only
-   changed image layers need to be downloaded.
-4. Reports the command result and captured stdout/stderr back to Actions.
-
-## Cutover preparation (before updating the demo branch)
-
-1. In `infra/bootstrap`, review and apply the restricted GitHub deployment
-   IAM role with `infra-admin`. The existing GitHub OIDC provider is already
-   managed by `aws_foundation/account`; do not create a duplicate.
-2. In `infra/demo`, review and apply the SSM document and
-   `AmazonSSMManagedInstanceCore` role attachment. Reject any unrelated
-   destructive or EC2 replacement plans.
-3. Confirm the serving instance is **Online** in AWS Systems Manager and
-   its SSM Agent is at least **3.3.2746.0**. It needs outbound HTTPS.
-4. In GitHub Settings → Environments → `demo`, add environment variables
-   `AWS_DEMO_DEPLOY_ROLE_ARN` (output `github_demo_deploy_role_arn`) and
-   `SSM_INSTANCE_ID` (output `instance_id` from the demo root).
-   **Restrict deployment branches to `deploy/demo` only**, because the IAM OIDC
-   trust policy uses an environment subject, not a branch subject.
-5. Update the `deploy/demo` branch from the tested `dev` branch. The workflow
-   will publish images, then run SSM to deploy. Check the GitHub job output.
-6. Only after a successful SSM deploy, set `enable_legacy_ssh=false`
-   in the demo root and apply again. Remove old GitHub `SSH_HOST`,
-   `SSH_KEY`, and `SSH_HOST_KEY` environment secrets.
-
-The trust policy assumes the legacy OIDC subject format. If immutable OIDC
-subject claims were enabled for this older repository, use its actual
-subject format in the policy before running Actions.
-
-## Operations
-
-Check managed node status and command output in AWS:
+## Diagnostics
 
 ```sh
 aws ssm describe-instance-information --region eu-central-1
@@ -73,18 +33,17 @@ aws ssm get-command-invocation --region eu-central-1 \
   --command-id <command-id> --instance-id <instance-id>
 ```
 
-Manual deployment of an already published commit from the EC2 checkout:
+From an authorized checkout on the serving EC2, an already published
+revision may also be deployed manually:
 
 ```sh
 cd ~/aggregator-demo/repo
 DEPLOY_SHA="$(git rev-parse HEAD)" bash ./deploy/demo/demo-deploy.sh
 ```
 
-For inspection, run `python3 deploy/demo/image_tags.py list` from a
-checked-out release to display the eight image tags. The Compose environment
-variables are generated by `image_tags.py compose-env`; do not set one
-global `IMAGE_TAG` for the entire demo stack.
+Run `python3 deploy/demo/image_tags.py list` to inspect content-based
+image tags. The UI entrypoint writes public `/config.json` from
+`APP_TITLE` and `TIMELINE_DEFAULT_RANGE`; do not put secrets in it.
 
-The UI uses one image for every environment. Its entrypoint writes public
-`/config.json` from `APP_TITLE` and `TIMELINE_DEFAULT_RANGE`; do not put
-secrets in browser-visible settings.
+See [K3s GitOps](../k8s/README.md) for the independently published
+Kubernetes demo and its rollback procedure.
