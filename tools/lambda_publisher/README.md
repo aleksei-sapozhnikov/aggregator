@@ -16,3 +16,7 @@ The deployed runtime is Python 3.12 and supplies `boto3`. The ZIP builder takes
 `src/lambda_publisher/` as its `--source` input and packages it as
 `github_publication_runner`, preserving the configured handler
 `github_publication_runner.handler.lambda_handler`.
+
+The runtime source lives under `tools/lambda_publisher/` in the repository.
+The infrastructure and operator tools remain in
+[`deploy/infra/publication`](../../deploy/infra/publication/README.md).

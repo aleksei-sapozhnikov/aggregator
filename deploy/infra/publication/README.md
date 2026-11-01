@@ -1,9 +1,8 @@
 # Publication infrastructure
 
-OpenTofu root and Python runtime for scheduled GitHub publication on AWS.
+OpenTofu root for scheduled GitHub publication on AWS.
 It owns Lambda, execution roles, DynamoDB queue state, S3 snapshots, the Scheduler
-group and watchdog, and failure notifications. This directory can be used as a
-standalone repository.
+group and watchdog, and failure notifications. The Lambda runtime is maintained separately under `tools/lambda_publisher/`.
 
 ## Contents
 
@@ -12,7 +11,7 @@ standalone repository.
 - `notifications.tf`, `secrets.tf`: alerts, logs, and secret containers.
 - `outputs.tf`: resource identifiers for publication operators.
 - `backend.tf`, `providers.tf`, `versions.tf`: state, AWS account, and tool versions.
-- `lambda_publisher/`: Lambda runtime with its own source tree and tests.
+- [`tools/lambda_publisher/`](../../../tools/lambda_publisher/): Lambda runtime with its own source tree and tests.
 - `tools/`: local packaging, release, inspection, and secret rotation commands,
   with separate sources, tests, and dependencies.
 
@@ -38,9 +37,9 @@ AWS CLI on `PATH`. Only the secret writer needs the additional Python dependency
 
 ```sh
 python -m pip install -r tools/requirements.txt
-python -B -m unittest discover -s lambda_publisher/tests -p 'test_*.py'
+python -B -m unittest discover -s ../../../tools/lambda_publisher/tests -p 'test_*.py'
 python -B -m unittest discover -s tools/tests -p 'test_*.py'
-python tools/src/build_lambda_zip.py --source lambda_publisher/src/lambda_publisher
+python tools/src/build_lambda_zip.py --source ../../../tools/lambda_publisher/src/lambda_publisher
 ```
 
 The builder writes `build/publication-lambda.zip`, a checksum, and a member
@@ -52,7 +51,7 @@ The runtime and tools do not import each other. Packaging and release commands
 receive the runtime source path through `--source` and can be used after either
 component is moved.
 
-See [lambda_publisher/README.md](lambda_publisher/README.md) for the runtime and
+See [tools/lambda_publisher/README.md](../../../tools/lambda_publisher/README.md) for the runtime and
 [tools/README.md](tools/README.md) for operator commands.
 
 ## Checks

@@ -113,7 +113,7 @@ MODULES = (
     ModuleSpec("infra-publication", "deploy/infra/publication", "tofu_code"),
     ModuleSpec(
         "lambda-publisher",
-        "deploy/infra/publication/lambda_publisher",
+        "tools/lambda_publisher",
         "python_code",
         TestSpec("unittest_tests", ("--start-directory", "tests")),
     ),
