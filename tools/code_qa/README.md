@@ -48,16 +48,16 @@ secret scans; the dedicated secrets job uses `make code-secrets`.
 
 ## Commands
 
-| Command   | Purpose                                                      |
-| --------- | ------------------------------------------------------------ |
-| `lint`    | Check configured modules without modifying files.            |
-| `format`  | Format failures, then recheck that module before continuing. |
-| `test`    | Run configured module test commands.                         |
-| `code-qa` | Check and test each module before proceeding to the next.    |
-| `secrets` | Scan the repository with TruffleHog.                         |
-| `qa`       | Check and test each module, then scan repository secrets.   |
-| `qa-format` | Fix and test each module, then scan repository secrets.    |
-| `modules` | List modules; `--json` prints the CI matrix.                 |
+| Command     | Purpose                                                      |
+| ----------- | ------------------------------------------------------------ |
+| `lint`      | Check configured modules without modifying files.            |
+| `format`    | Format failures, then recheck that module before continuing. |
+| `test`      | Run configured module test commands.                         |
+| `code-qa`   | Check and test each module before proceeding to the next.    |
+| `secrets`   | Scan the repository with TruffleHog.                         |
+| `qa`        | Check and test each module, then scan repository secrets.    |
+| `qa-format` | Fix and test each module, then scan repository secrets.      |
+| `modules`   | List modules; `--json` prints the CI matrix.                 |
 
 Use `--module NAME` to select one or more modules. For example:
 
@@ -71,8 +71,8 @@ final `trailing whitespace` and `final newline` checks. The large-file check
 remains a repository-wide check.
 
 In `code-qa`, `qa`, and `qa-format`, each module's registered tests run
-directly after its checks pass. Failing checks skip only that module's tests; other modules are
-still checked and tested. Standalone `test` retains its separate behavior.
+directly after its checks pass. Failing checks skip only that module's tests;
+other modules are still checked and tested. Standalone `test` retains its separate behavior.
 
 The `secrets` command scans the current repository filesystem recursively,
 excluding `.git` and Git-ignored paths, not historical Git commits.
