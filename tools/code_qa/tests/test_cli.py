@@ -592,7 +592,9 @@ class OrchestratorFlowTests(unittest.TestCase):
         with (
             patch.object(main.sys, "platform", "linux"),
             patch.object(main, "CHECKS", [check]),
-            patch.object(main, "execute_check", return_value=(False, ["lint error"])) as execute,
+            patch.object(
+                main, "execute_check", return_value=(False, ["lint error"])
+            ) as execute,
             redirect_stdout(StringIO()) as output,
         ):
             passed, failed = main._run_checks(print)
