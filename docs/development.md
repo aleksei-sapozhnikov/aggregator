@@ -30,8 +30,8 @@ Select a module for code checks or its registered tests:
 ```shell
 python tools/code_qa/src/main.py code-qa --module catalog
 python tools/code_qa/src/main.py lint --module publisher
-python tools/code_qa/src/main.py format --module publisher
 python tools/code_qa/src/main.py test --module publisher
+python tools/code_qa/src/main.py format --module publisher
 python tools/code_qa/src/main.py modules
 ```
 

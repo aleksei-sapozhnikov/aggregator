@@ -9,7 +9,7 @@ This component has no dependency on the local operator tools.
 Run from this directory with Python 3.10 or newer:
 
 ```sh
-python -B -m unittest discover -s tests -p 'test_*.py'
+python -B -m unittest discover -s tests/lambda_publisher -p 'test_*.py'
 ```
 
 The deployed runtime is Python 3.12 and supplies `boto3`. The ZIP builder takes

@@ -2,7 +2,8 @@
 
 OpenTofu root for scheduled GitHub publication on AWS.
 It owns Lambda, execution roles, DynamoDB queue state, S3 snapshots, the Scheduler
-group and watchdog, and failure notifications. The Lambda runtime is maintained separately under `../lambda_publisher/`.
+group and watchdog, and failure notifications. The Lambda runtime is maintained
+separately under `../lambda_publisher/`.
 
 ## Contents
 
@@ -62,7 +63,7 @@ require no AWS credentials:
 ```sh
 tofu fmt -check -recursive
 tflint --init
-tflint --recursive --config="$(git rev-parse --show-toplevel)/.tflint.hcl" --minimum-failure-severity=notice
+tflint --recursive --config=../../../.tflint.hcl --minimum-failure-severity=notice
 ```
 
 ## Operations

@@ -56,7 +56,9 @@ class ModuleConfigurationTests(unittest.TestCase):
         paths = [
             module_path(root, "publisher", "infra/main.tf"),
             module_path(root, "publisher", "infra/tools/src/tool.py"),
-            module_path(root, "publisher", "lambda_publisher/src/lambda_publisher/handler.py"),
+            module_path(
+                root, "publisher", "lambda_publisher/src/lambda_publisher/handler.py"
+            ),
             module_path(root, "code-qa", "src/core/cli.py"),
             module_path(root, "publisher", "README.md"),
         ]
@@ -80,7 +82,9 @@ class ModuleConfigurationTests(unittest.TestCase):
         root = repo_root()
         from code_qa.module_checks import registry
 
-        paths = [module.path for module in modules.MODULES if module.name != "repository"]
+        paths = [
+            module.path for module in modules.MODULES if module.name != "repository"
+        ]
         self.assertEqual(len(paths), len(set(paths)))
         for path in paths:
             with self.subTest(path=path):
@@ -93,7 +97,8 @@ class ModuleConfigurationTests(unittest.TestCase):
                 for group in ("services", "infra", "deploy", "tools")
                 for directory in (root / group).iterdir()
                 if directory.is_dir()
-                and directory.name not in {"__pycache__", "node_modules", "build", "dist"}
+                and directory.name
+                not in {"__pycache__", "node_modules", "build", "dist"}
                 and not directory.name.startswith(".")
             },
         )
@@ -147,8 +152,12 @@ class ModuleConfigurationTests(unittest.TestCase):
             [label for label, _ in commands],
             ["publisher (infra-tools)", "publisher (lambda_publisher)"],
         )
+        paths = [
+            Path(command[command.index("--directory") + 1])
+            for _, command in commands
+        ]
         self.assertEqual(
-            [Path(command[command.index("--directory") + 1]) for _, command in commands],
+            paths,
             [
                 root / "tools/publisher/infra/tools",
                 root / "tools/publisher/lambda_publisher",
