@@ -542,22 +542,22 @@ class OrchestratorFlowTests(unittest.TestCase):
     def test_ansible_lint_skips_on_windows_without_blocking_other_checks(self) -> None:
         checks = [
             main.CheckSpec(
-                "infra-demo-ansible/ansible-lint",
+                "infra-demo/ansible/ansible-lint",
                 "Ansible lint and syntax",
                 "code_qa.src.checks.format.ansible_lint",
                 ["--lint"],
                 None,
-                module="infra-demo-ansible",
+                module="infra-demo",
                 input_kind="project",
                 skip_on_windows=True,
             ),
             main.CheckSpec(
-                "infra-demo-ansible/trailing-whitespace",
+                "infra-demo/trailing-whitespace",
                 "trailing whitespace",
                 "code_qa.src.checks.other.trailing_whitespace",
                 ["--check-only"],
                 ["--format"],
-                module="infra-demo-ansible",
+                module="infra-demo",
             ),
         ]
         with (
@@ -580,12 +580,12 @@ class OrchestratorFlowTests(unittest.TestCase):
 
     def test_ansible_lint_remains_required_on_linux(self) -> None:
         check = main.CheckSpec(
-            "infra-demo-ansible/ansible-lint",
+            "infra-demo/ansible/ansible-lint",
             "Ansible lint and syntax",
             "code_qa.src.checks.format.ansible_lint",
             ["--lint"],
             None,
-            module="infra-demo-ansible",
+            module="infra-demo",
             input_kind="project",
             skip_on_windows=True,
         )

@@ -6,25 +6,45 @@ Run commands from the repository root with
 ## Layout
 
 ```text
+module_checks/
+  common/
+    repository.py    Repository-wide checks (not a second-level module)
+    secrets.py       Repository-wide TruffleHog scan
+  infra/             administration.py, demo.py, state.py
+  services/          aggregator.py, aggregator_ui.py, catalog.py, ...
+  deploy/            argocd.py, compose.py, demo.py, infra.py, kubernetes.py
+  tools/             code_qa.py, dependency_audit.py, git_hooks.py, ...
+  registry.py        Module discovery and CI matrix
+  specs.py           Module, nested check, and test contracts
+  runner.py          Single-module execution entrypoint
 src/
-  main.py          CLI entrypoint
-  core/            module configuration and QA orchestration
+  main.py            Existing CLI entrypoint
+  core/              Shared orchestration, path scoping, and QA execution
   checks/
-    format/        formatters, linters, and infrastructure checks
-    other/         repository hygiene, file validation, and secret scanning
-    tests/         executors for a module's configured test command
-  tools/           local tool installation and resolution
-tests/             tests for code_qa itself
-requirements.txt   pinned Python dependencies for local QA tools
+    format/          Formatters, linters, and infrastructure checks
+    other/           Default file hygiene and repository-wide checks
+    tests/           Test command executors
+  tools/             Local tool installation and resolution
+tests/               Tests for code_qa
 ```
 
-`src/checks/tests` contains command executors, not tests for this tool. An
-executor receives its working directory and parameters from the module
-configuration and runs one test command. `tests/` verifies code_qa behavior.
+Each second-level repository directory is one QA module. Module definitions
+in `module_checks` configure its code-specific checks and tests. Default
+checks (JSON, YAML, line endings, Prettier, trailing whitespace, and final
+newline) apply to every module before or after specialized checks.
+Components nested inside a module are configured as scoped checks and suites,
+never as separate CI modules. In particular, `infra-demo` owns Ansible and
+`deploy-infra` owns publication OpenTofu and publication-tools.
 
-Configure module paths, check profiles, and test commands in
-[`src/core/modules.py`](src/core/modules.py). A module's test configuration
-selects an executor and passes it module-relative arguments.
+The default `python tools/code_qa/src/main.py qa` command and Make aliases remain
+the supported entrypoints. A single module can also be orchestrated directly:
+
+```sh
+python -m code_qa.module_checks.infra.demo
+```
+
+This direct Python-module form requires `tools/` on `PYTHONPATH`.
+The normal CLI does not require setting `PYTHONPATH` manually.
 
 ## Make shortcuts
 
@@ -82,12 +102,12 @@ With `CODE_QA_FILE_LIST` set, file-based formatters only modify listed files.
 OpenTofu deliberately differs: a changed infrastructure source triggers
 `tofu fmt -recursive` across its entire infrastructure root, including local
 modules. Review these changes before committing. TFLint uses the single
-repository-root `.tflint.hcl` for all four infrastructure roots; changes to
+repository-root `.tflint.hcl` for the OpenTofu roots; changes to
 that file trigger lint in every infrastructure module even in scoped hooks.
-The `infra-demo-ansible` module runs pinned Ansible syntax and `ansible-lint`
+The `infra-demo` module includes pinned Ansible syntax and `ansible-lint`
 checks, as well as its configuration contract tests. Ansible dependencies
 use an isolated local environment, not the general QA Python toolchain.
-Ansible checks require Linux or WSL; native Windows is not supported.
+Ansible lint is skipped on native Windows (not marked passed); Linux and WSL enforce it.
 
 Python and npm dependencies, tool binaries, and caches are stored under the
 ignored `.local/qa-runtime` directory. No global Python or npm packages are

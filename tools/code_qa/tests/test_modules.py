@@ -34,7 +34,7 @@ class ModuleConfigurationTests(unittest.TestCase):
                 bound_checks = [
                     check.check_id.removeprefix(f"{module.name}/")
                     for check in cli.selected_checks([module.name])
-                    if not check.global_scope
+                    if not check.global_scope and check.scope_path is None
                 ]
                 self.assertEqual(bound_checks, configured)
 
@@ -51,40 +51,43 @@ class ModuleConfigurationTests(unittest.TestCase):
             )
         )
 
-    def test_module_files_use_paths_and_exclude_registered_child_modules(self) -> None:
+    def test_module_files_include_nested_directories_but_not_other_modules(self) -> None:
         root = Path(tempfile.gettempdir()).resolve() / "qa-module-paths"
         paths = [
-            module_path(root, "infra-publication", "main.tf"),
-            module_path(root, "publication-tools", "src/tool.py"),
+            module_path(root, "deploy-infra", "publication/main.tf"),
+            module_path(root, "deploy-infra", "publication/tools/src/tool.py"),
             module_path(root, "lambda-publisher", "src/publisher.py"),
-            module_path(root, "infra-publication", "README.md"),
+            module_path(root, "deploy-infra", "README.md"),
         ]
         self.assertEqual(
-            inputs.files_in_module(root, "infra-publication", paths),
-            [paths[0], paths[3]],
+            inputs.files_in_module(root, "deploy-infra", paths),
+            [paths[0], paths[1], paths[3]],
         )
         self.assertEqual(
-            inputs.files_in_module(root, "publication-tools", paths), [paths[1]]
+            inputs.files_in_module(root, "lambda-publisher", paths), [paths[2]]
         )
 
     def test_infra_roots_and_ansible_are_registered(self) -> None:
-        for name in (
-            "infra-administration",
-            "infra-state",
-            "infra-demo",
-            "infra-publication",
-        ):
+        for name in ("infra-administration", "infra-state", "infra-demo"):
             with self.subTest(module=name):
                 self.assertEqual(modules.MODULE_BY_NAME[name].code, "tofu_code")
                 self.assertIn(f"{name}/tflint", [c.check_id for c in cli.CHECKS])
+        self.assertIn(
+            "infra-demo/ansible/ansible-lint", [c.check_id for c in cli.CHECKS]
+        )
         self.assertEqual(
-            modules.MODULE_BY_NAME["infra-demo-ansible"].code, "ansible_code"
+            modules.MODULE_BY_NAME["infra-demo"].scoped_tests[0].tests.kind,
+            "unittest_tests",
         )
         self.assertIn(
-            "infra-demo-ansible/ansible-lint", [c.check_id for c in cli.CHECKS]
+            "deploy-infra/publication/tflint", [c.check_id for c in cli.CHECKS]
+        )
+        self.assertIn(
+            "deploy-infra/publication-tools/ruff-lint",
+            [c.check_id for c in cli.CHECKS],
         )
         self.assertEqual(
-            modules.MODULE_BY_NAME["infra-demo-ansible"].tests.kind,
+            modules.MODULE_BY_NAME["deploy-infra"].scoped_tests[0].tests.kind,
             "unittest_tests",
         )
 
@@ -110,14 +113,23 @@ class ModuleConfigurationTests(unittest.TestCase):
                 (True, []),
             )
 
-    def test_demo_ansible_is_a_nested_module(self) -> None:
+    def test_demo_ansible_is_scoped_under_the_parent_module(self) -> None:
         root = Path(tempfile.gettempdir()).resolve() / "qa-demo-module-paths"
         tofu_file = module_path(root, "infra-demo", "main.tf")
-        playbook = module_path(root, "infra-demo-ansible", "site.yml")
-        paths = [tofu_file, playbook]
-        self.assertEqual(inputs.files_in_module(root, "infra-demo", paths), [tofu_file])
+        playbook = module_path(root, "infra-demo", "ansible/site.yml")
         self.assertEqual(
-            inputs.files_in_module(root, "infra-demo-ansible", paths), [playbook]
+            inputs.files_in_module(root, "infra-demo", [tofu_file, playbook]),
+            [tofu_file, playbook],
+        )
+        check = next(
+            c for c in cli.CHECKS
+            if c.check_id == "infra-demo/ansible/ansible-lint"
+        )
+        self.assertEqual(check.scope_path, "infra/demo/ansible")
+        command = cli.test_commands(modules.MODULE_BY_NAME["infra-demo"], root)[0][1]
+        self.assertEqual(
+            command[command.index("--directory") + 1],
+            str(root / "infra/demo/ansible"),
         )
 
     def test_file_checks_receive_only_the_configured_module_directory(self) -> None:
@@ -240,7 +252,9 @@ class ModuleConfigurationTests(unittest.TestCase):
             code=None,
             tests=modules.TestSpec("go_tests"),
         )
-        with patch.object(modules, "MODULES", (custom,)):
+        from code_qa.module_checks import registry
+
+        with patch.object(registry, "MODULES", (custom,)):
             self.assertEqual(
                 modules.ci_matrix(),
                 {
