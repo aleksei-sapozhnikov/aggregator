@@ -369,7 +369,9 @@ def run_format_command(
         for index, module in enumerate(module_names):
             if index:
                 emit("")
-            if not _format_module(emit, module, root, paths, scoped=changed is not None):
+            if not _format_module(
+                emit, module, root, paths, scoped=changed is not None
+            ):
                 passed = False
                 break
 
