@@ -109,7 +109,7 @@ export AGENT_AI_CONFIG
 .PHONY: help info env \
         up down restart recreate rebuild rebuild-recreate clean pull deploy \
         up-svc down-svc restart-svc recreate-svc rebuild-svc rebuild-recreate-svc clean-svc \
-        code-qa code-format code-lint code-secrets test qa deps-audit
+        code-qa code-format code-lint code-secrets test qa qa-format qa-check deps-audit
 
 help:
 	@echo "Usage:"
@@ -133,7 +133,9 @@ help:
 	@echo "  code-lint        -> check code without modifying files (no secrets scan)"
 	@echo "  test             -> run all unit tests (or TEST_MODULE=aggregator)"
 	@echo "  code-secrets     -> scan secrets with TruffleHog"
-	@echo "  qa               -> check code, run tests, then scan secrets (stop on failure; no fixes)"
+	@echo "  qa-format        -> autoformat code, then run all checks, tests and secrets scan"
+	@echo "  qa-check         -> check code, run tests and scan secrets (no changes)"
+	@echo "  qa               -> alias for qa-check"
 	@echo "  deps-audit       -> check npm dependency advisories and update suggestions"
 	@echo ""
 	@echo "Service-scoped (positional args):"
@@ -256,6 +258,9 @@ clean-svc: info
 
 # ---- Code QA commands ----
 QA_MODULE_ARGS = $(foreach module,$(MODULE),--module $(module))
+# CI runs module checks in parallel and scans secrets in a dedicated job.
+QA_SCAN_SECRETS ?= true
+QA_CHECK_COMMAND = $(if $(filter false,$(QA_SCAN_SECRETS)),code-qa,qa)
 
 code-qa:
 	python tools/code_qa/src/main.py code-qa $(QA_MODULE_ARGS)
@@ -272,8 +277,14 @@ test:
 code-secrets:
 	python tools/code_qa/src/main.py secrets
 
-qa:
-	python tools/code_qa/src/main.py qa $(QA_MODULE_ARGS)
+qa-format:
+	$(MAKE) code-format
+	$(MAKE) qa-check
+
+qa-check:
+	python tools/code_qa/src/main.py $(QA_CHECK_COMMAND) $(QA_MODULE_ARGS)
+
+qa: qa-check
 
 deps-audit:
 	python tools/dependency_audit/check_npm.py
