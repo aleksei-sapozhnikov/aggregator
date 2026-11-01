@@ -25,7 +25,10 @@ src/
     other/           Default file hygiene and repository-wide checks
     tests/           Test command executors
   tools/             Local tool installation and resolution
-tests/               Tests for code_qa
+tests/
+  core/              Core orchestration, contracts, and package tests
+  checks/            Mirror src/checks
+  tools/             Tooling and local dependency tests
 ```
 
 Each second-level repository directory is one QA module. Module definitions

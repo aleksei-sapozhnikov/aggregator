@@ -67,6 +67,14 @@ class ModuleConfigurationTests(unittest.TestCase):
             inputs.files_in_module(root, "lambda-publisher", paths), [paths[2]]
         )
 
+    def test_python_modules_keep_implementation_in_src(self) -> None:
+        root = repo_root()
+        for module in modules.MODULES:
+            if module.code != "python_code" or module.path == ".":
+                continue
+            with self.subTest(module=module.name):
+                self.assertTrue((root / module.path / "src").is_dir())
+
     def test_registered_modules_are_second_level_folders(self) -> None:
         root = repo_root()
         from code_qa.module_checks import registry

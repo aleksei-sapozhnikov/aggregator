@@ -57,7 +57,7 @@ Check npm dependency advisories and available updates:
 
 ```shell
 make deps-audit
-python tools/dependency_audit/check_npm.py
+python tools/dependency_audit/src/check_npm.py
 ```
 
 The command fails on npm audit findings at `moderate` severity or above. Outdated
@@ -71,8 +71,8 @@ Git hooks are managed through `prek`; the QA implementation itself lives under
 Install local hook tooling:
 
 ```shell
-python tools/git_hooks/setup_prek.py
-python tools/git_hooks/setup_git_hooks.py --mode lint-only
+python tools/git_hooks/src/setup_prek.py
+python tools/git_hooks/src/setup_git_hooks.py --mode lint-only
 ```
 
 Available pre-commit modes:
