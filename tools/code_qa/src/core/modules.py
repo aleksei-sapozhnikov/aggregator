@@ -93,7 +93,11 @@ MODULES = (
     ModuleSpec("dummy-java", "services/dummy-java", "java_code"),
     ModuleSpec("dummy-javascript", "services/dummy-javascript"),
     ModuleSpec("dummy-python", "services/dummy-python", "python_code"),
-    ModuleSpec("grafana", "services/grafana"),
+    ModuleSpec(
+        "grafana",
+        "services/grafana",
+        tests=TestSpec("unittest_tests", ("--start-directory", "tests")),
+    ),
     ModuleSpec("prometheus", "services/prometheus"),
     ModuleSpec(
         "argocd",
