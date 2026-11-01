@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import "./TimelineHelpDemo.css";
+import HelpAnimationProgress from "./HelpAnimationProgress";
 
 type Scenario = "inspect" | "filter" | "navigate";
 type SignalFilter = "all" | "own" | "dependencies";
@@ -320,7 +321,7 @@ export default function TimelineHelpDemo() {
             aria-pressed={scenario === entry.id}
             onClick={() => changeScenario(entry.id)}
           >
-            <span className="timeline-help-step">{index + 1}</span>
+            <span className="timeline-help-step" aria-hidden="true">{index + 1}</span>
             {entry.title}
           </button>
         ))}
@@ -329,6 +330,7 @@ export default function TimelineHelpDemo() {
         {scenarios.find((entry) => entry.id === scenario)?.description}
       </p>
       <section className="timeline-help-preview" aria-label="Example Timeline">
+        <HelpAnimationProgress progress={elapsed / cycleDurations[scenario]} />
         {openedItem ? (
           <OpenedDependencyItem />
         ) : (

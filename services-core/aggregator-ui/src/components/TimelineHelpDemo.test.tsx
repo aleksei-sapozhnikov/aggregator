@@ -10,6 +10,29 @@ afterEach(() => { cleanup(); vi.useRealTimers(); });
 const advance = (ms: number) => act(() => vi.advanceTimersByTime(ms));
 
 describe("Timeline help walkthrough", () => {
+  it.each([
+    ["inspect", "Inspect a moment", 8500],
+    ["filter", "Switch signal groups", 12000],
+    ["navigate", "Open a dependency", 13000],
+  ] as const)("shows cycle progress for %s and resets on scenario switch", (_scenario, name, duration) => {
+    render(<TimelineHelpDemo />);
+    fireEvent.click(screen.getByRole("button", { name }));
+    const bar = screen.getByRole("progressbar", { name: "Animation progress" });
+    const fill = document.querySelector(".timeline-help-preview .help-animation-progress-fill") as HTMLElement;
+    expect(bar.getAttribute("aria-valuenow")).toBe("0");
+    // The clock advances in 100ms steps, so use a whole tick for odd halves.
+    const midpoint = Math.ceil(duration / 200) * 100;
+    advance(midpoint);
+    const fraction = midpoint / duration;
+    expect(bar.getAttribute("aria-valuenow")).toBe(String(Math.round(fraction * 100)));
+    expect(fill.style.transform).toBe("scaleX(" + fraction + ")");
+    advance(duration - midpoint);
+    expect(bar.getAttribute("aria-valuenow")).toBe("0");
+    expect(fill.style.transform).toBe("scaleX(0)");
+    fireEvent.click(screen.getByRole("button", { name: "Inspect a moment" }));
+    expect(bar.getAttribute("aria-valuenow")).toBe("0");
+  });
+
   it("moves the popup with the cursor and holds it for three seconds", () => {
     render(<TimelineHelpDemo />);
     advance(2700);
