@@ -3,12 +3,12 @@
 Account-wide resources live in [aws_foundation](https://github.com/aleksei-sapozhnikov/aws_foundation).
 This repository owns project IAM and workloads.
 
-| OpenTofu root | Operator | Responsibility | State key |
-| --- | --- | --- | --- |
-| [infra/administration](../../infra/administration/) | `infra-admin` | Project IAM, GitHub OIDC roles, delegated permissions | `projects/aggregator/tofu.tfstate` (central Administration bucket) |
-| [infra/state](../../infra/state/) | `aggregator-admin` | Project S3 state bucket and saved-plan lifecycle | `state/tofu.tfstate` |
-| [infra/demo](../../infra/demo/) | `aggregator-admin` / approved OIDC role | Serving Compose EC2, optional K3s EC2 and SSM documents | `demo/tofu.tfstate` |
-| [deploy/infra/publication](publication/) | `aggregator-admin` | Publication automation | `publication/tofu.tfstate` |
+| OpenTofu root                                       | Operator                                | Responsibility                                          | State key                                                          |
+| --------------------------------------------------- | --------------------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------ |
+| [infra/administration](../../infra/administration/) | `infra-admin`                           | Project IAM, GitHub OIDC roles, delegated permissions   | `projects/aggregator/tofu.tfstate` (central Administration bucket) |
+| [infra/state](../../infra/state/)                   | `aggregator-admin`                      | Project S3 state bucket and saved-plan lifecycle        | `state/tofu.tfstate`                                               |
+| [infra/demo](../../infra/demo/)                     | `aggregator-admin` / approved OIDC role | Serving Compose EC2, optional K3s EC2 and SSM documents | `demo/tofu.tfstate`                                                |
+| [deploy/infra/publication](publication/)            | `aggregator-admin`                      | Publication automation                                  | `publication/tofu.tfstate`                                         |
 
 The central Administration bucket is `aws-administration-state-905418096305-eu-central-1`.
 Workload state and private demo plans use `aggregator-project-tofu-state-905418096305-eu-central-1`.

@@ -4,11 +4,11 @@ This OpenTofu root, run as `aggregator-admin`, owns the project S3 bucket
 `aggregator-project-tofu-state-905418096305-eu-central-1`: versioning,
 encryption, public-access restrictions, ownership controls, and lifecycle.
 
-| Prefix | Contents |
-| --- | --- |
-| `state/tofu.tfstate` | This bucket's own state |
-| `demo/tofu.tfstate` | Demo EC2/K3s and SSM state |
-| `publication/tofu.tfstate` | Publication infrastructure state |
+| Prefix                                      | Contents                                  |
+| ------------------------------------------- | ----------------------------------------- |
+| `state/tofu.tfstate`                        | This bucket's own state                   |
+| `demo/tofu.tfstate`                         | Demo EC2/K3s and SSM state                |
+| `publication/tofu.tfstate`                  | Publication infrastructure state          |
 | `plans/demo/<run-id>/<attempt>/demo.tfplan` | Private, checksum-verified approved plans |
 
 Only `plans/demo/` is expired by lifecycle (current objects after seven

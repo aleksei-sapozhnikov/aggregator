@@ -23,10 +23,7 @@ def has_relevant_changes(
     shared_config = (workspace / ".tflint.hcl").resolve()
     return any(
         path == shared_config
-        or (
-            path.is_relative_to(directory)
-            and path.suffix.lower() in RELEVANT_SUFFIXES
-        )
+        or (path.is_relative_to(directory) and path.suffix.lower() in RELEVANT_SUFFIXES)
         for path in read_path_manifest(workspace, changed_files)
     )
 

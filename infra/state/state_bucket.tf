@@ -100,9 +100,9 @@ resource "aws_s3_bucket_lifecycle_configuration" "aggregator_demo_plans" {
 
 data "aws_iam_policy_document" "aggregator_state_bucket" {
   statement {
-    sid       = "DenyInsecureTransport"
-    effect    = "Deny"
-    actions   = ["s3:*"]
+    sid     = "DenyInsecureTransport"
+    effect  = "Deny"
+    actions = ["s3:*"]
     resources = [
       aws_s3_bucket.aggregator_state.arn,
       "${aws_s3_bucket.aggregator_state.arn}/*",

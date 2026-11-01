@@ -10,9 +10,7 @@
       ],
       "Condition": {
         "StringLike": {
-          "s3:prefix": [
-            "demo/*"
-          ]
+          "s3:prefix": ["demo/*"]
         }
       }
     },
@@ -27,11 +25,7 @@
     {
       "Sid": "LockDemoStateForPlan",
       "Effect": "Allow",
-      "Action": [
-        "s3:GetObject",
-        "s3:PutObject",
-        "s3:DeleteObject"
-      ],
+      "Action": ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"],
       "Resource": [
         "arn:aws:s3:::aggregator-project-tofu-state-905418096305-eu-central-1/demo/tofu.tfstate.tflock"
       ]

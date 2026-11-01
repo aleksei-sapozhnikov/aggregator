@@ -40,12 +40,14 @@ class AnsibleToolTests(unittest.TestCase):
                 self.assertEqual(ansible.ensure_ansible_python(root), str(python))
                 self.assertEqual(ansible.ensure_ansible_python(root), str(python))
             self.assertEqual(execute.call_count, 2)
-            self.assertEqual(execute.call_args_list[0].args[0][:3], [
-                ansible.sys.executable, "-m", "venv"
-            ])
-            self.assertEqual(execute.call_args_list[1].args[0][:4], [
-                str(python), "-m", "pip", "install"
-            ])
+            self.assertEqual(
+                execute.call_args_list[0].args[0][:3],
+                [ansible.sys.executable, "-m", "venv"],
+            )
+            self.assertEqual(
+                execute.call_args_list[1].args[0][:4],
+                [str(python), "-m", "pip", "install"],
+            )
 
     def test_failed_install_is_not_cached(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -58,7 +60,8 @@ class AnsibleToolTests(unittest.TestCase):
                 patch.object(ansible, "project_dir", return_value=root),
                 patch.object(ansible, "python_has_module", return_value=True),
                 patch.object(
-                    ansible.subprocess, "run",
+                    ansible.subprocess,
+                    "run",
                     side_effect=[
                         subprocess.CompletedProcess([], 0),
                         subprocess.CompletedProcess([], 1, "", "offline"),

@@ -29,11 +29,11 @@ buckets without a separate, deliberate plan.
 
 ## Demo GitHub roles
 
-| Role | GitHub Environment | Allowed actions |
-| --- | --- | --- |
-| `AggregatorDemoInfraPlanGithub` | `demo-infra-plan` | Read demo state/resources, manage its lock, conditionally upload a private plan, read the SSM configuration fingerprint |
-| `AggregatorDemoInfraApplyGithub` | `demo-infra-apply` | Approved demo apply, read exact saved plan, run K3s configuration through SSM, record successful fingerprint |
-| `AggregatorDemoDeployGithub` | `demo` | Run `AggregatorDemoDeploy` SSM document on the tagged serving Compose instance and read its result |
+| Role                             | GitHub Environment | Allowed actions                                                                                                         |
+| -------------------------------- | ------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| `AggregatorDemoInfraPlanGithub`  | `demo-infra-plan`  | Read demo state/resources, manage its lock, conditionally upload a private plan, read the SSM configuration fingerprint |
+| `AggregatorDemoInfraApplyGithub` | `demo-infra-apply` | Approved demo apply, read exact saved plan, run K3s configuration through SSM, record successful fingerprint            |
+| `AggregatorDemoDeployGithub`     | `demo`             | Run `AggregatorDemoDeploy` SSM document on the tagged serving Compose instance and read its result                      |
 
 GitHub OIDC trust uses **Environment subjects**; it does not enforce branch
 restrictions. In GitHub Settings → Environments, restrict all three

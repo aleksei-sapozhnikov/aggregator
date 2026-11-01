@@ -15,16 +15,16 @@ data "aws_iam_policy_document" "demo_state_access" {
   }
 
   statement {
-    sid     = "ReadWriteDemoState"
-    effect  = "Allow"
-    actions = ["s3:GetObject", "s3:PutObject"]
+    sid       = "ReadWriteDemoState"
+    effect    = "Allow"
+    actions   = ["s3:GetObject", "s3:PutObject"]
     resources = ["${local.state_bucket_arn}/demo/tofu.tfstate"]
   }
 
   statement {
-    sid     = "ManageDemoStateLock"
-    effect  = "Allow"
-    actions = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
+    sid       = "ManageDemoStateLock"
+    effect    = "Allow"
+    actions   = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
     resources = ["${local.state_bucket_arn}/demo/tofu.tfstate.tflock"]
   }
 }
@@ -57,14 +57,14 @@ data "aws_iam_policy_document" "publication_state_access" {
   }
 
   statement {
-    sid     = "ReadWritePublicationState"
-    actions = ["s3:GetObject", "s3:PutObject"]
+    sid       = "ReadWritePublicationState"
+    actions   = ["s3:GetObject", "s3:PutObject"]
     resources = ["${local.state_bucket_arn}/publication/tofu.tfstate"]
   }
 
   statement {
-    sid     = "ManagePublicationStateLock"
-    actions = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
+    sid       = "ManagePublicationStateLock"
+    actions   = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
     resources = ["${local.state_bucket_arn}/publication/tofu.tfstate.tflock"]
   }
 }

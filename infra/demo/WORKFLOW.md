@@ -47,11 +47,11 @@ workflow or Argo CD sync succeeded. Check both Actions runs.
 
 ## Required GitHub Environments
 
-| Environment | Required settings | Protection |
-| --- | --- | --- |
-| `demo-infra-plan` | `AWS_ROLE_ARN`, `ENABLE_K3S_NODE`, `ENABLE_BEDROCK` | Only `deploy/demo`; **no required reviewers** |
-| `demo-infra-apply` | `AWS_ROLE_ARN`, secret `ARGOCD_PASSWORD`, `MANUAL_APPROVAL_CONFIGURED=true` | Only `deploy/demo`; **required reviewers** |
-| `demo` | `AWS_DEMO_DEPLOY_ROLE_ARN`, `SSM_INSTANCE_ID` | Only `deploy/demo` |
+| Environment        | Required settings                                                           | Protection                                    |
+| ------------------ | --------------------------------------------------------------------------- | --------------------------------------------- |
+| `demo-infra-plan`  | `AWS_ROLE_ARN`, `ENABLE_K3S_NODE`, `ENABLE_BEDROCK`                         | Only `deploy/demo`; **no required reviewers** |
+| `demo-infra-apply` | `AWS_ROLE_ARN`, secret `ARGOCD_PASSWORD`, `MANUAL_APPROVAL_CONFIGURED=true` | Only `deploy/demo`; **required reviewers**    |
+| `demo`             | `AWS_DEMO_DEPLOY_ROLE_ARN`, `SSM_INSTANCE_ID`                               | Only `deploy/demo`                            |
 
 Use IAM role ARNs from `infra/administration`. The OIDC trust uses
 Environment subjects, so the allowed-branch restrictions above are

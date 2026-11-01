@@ -69,7 +69,10 @@ class ModuleConfigurationTests(unittest.TestCase):
 
     def test_infra_roots_and_ansible_are_registered(self) -> None:
         for name in (
-            "infra-administration", "infra-state", "infra-demo", "infra-publication"
+            "infra-administration",
+            "infra-state",
+            "infra-demo",
+            "infra-publication",
         ):
             with self.subTest(module=name):
                 self.assertEqual(modules.MODULE_BY_NAME[name].code, "tofu_code")

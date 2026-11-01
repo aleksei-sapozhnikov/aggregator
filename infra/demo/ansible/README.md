@@ -3,11 +3,11 @@
 Ansible configures the separate Amazon Linux 2023 K3s EC2. It does **not**
 manage the serving Compose instance or application image releases.
 
-| Role | Responsibility |
-| --- | --- |
-| `common` | System packages and SSM Agent |
-| `k3s` | Pinned single-node K3s, bundled Traefik/ServiceLB, Kubernetes API readiness |
-| `argocd` | Pinned Argo CD install, server rollout and local-only UI forwarding |
+| Role     | Responsibility                                                                 |
+| -------- | ------------------------------------------------------------------------------ |
+| `common` | System packages and SSM Agent                                                  |
+| `k3s`    | Pinned single-node K3s, bundled Traefik/ServiceLB, Kubernetes API readiness    |
+| `argocd` | Pinned Argo CD install, server rollout and local-only UI forwarding            |
 | `gitops` | `aggregator-demo` Application pointing at `deploy/demo-gitops:deploy/k8s-live` |
 
 Versions live in [group_vars/all.yml](group_vars/all.yml).
