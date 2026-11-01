@@ -1,4 +1,11 @@
-import { createContext, useContext, useId, useMemo, useRef, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
 import type { InfoHelpTopic } from "../shared/infoHelpTopics";
@@ -20,78 +27,95 @@ type InfoHelpContextValue = {
 const InfoHelpContext = createContext<InfoHelpContextValue | null>(null);
 
 // The dialog belongs to a stable parent, not the conditional source section.
-function InfoHelpDialog({ topic, onClose }: { topic: InfoHelpTopic; onClose: () => void }) {
+function InfoHelpDialog({
+  topic,
+  onClose,
+}: {
+  topic: InfoHelpTopic;
+  onClose: () => void;
+}) {
   return (
-      <ModalWindow
-        isOpen={true}
-        onClose={onClose}
-        ariaLabel={`About ${topic.title}`}
-        closeLabel="Close contextual help"
-        header={<h2>{topic.title}</h2>}
-      >
-        <div className="info-help-modal">
-          <div className="info-help-description modal-text-flow">
-            <p>{topic.description}</p>
-          </div>
-          {topic.demo === "timeline" && <TimelineHelpDemo />}
-          {topic.demo === "actors" && <ActorsHelpDemo />}
-          {topic.demo === "primary-contact" && <PrimaryContactHelpDemo />}
-          {topic.demo === "healthy-signals" && <SignalFlowHelpDemo mode="healthy" />}
-          {topic.demo === "unhealthy-signals" && <SignalFlowHelpDemo mode="unhealthy" />}
-          {topic.sections && topic.sections.length > 0 && (
-            <div className="info-help-sections">
-              {topic.sections.map((section) => (
-                <section key={section.heading} className="info-help-section">
-                  <h3>{section.heading}</h3>
-                  {section.paragraphs?.map((paragraph) => (
-                    <p key={paragraph}>{paragraph}</p>
-                  ))}
-                  {section.items && section.items.length > 0 && (
-                    <dl className="info-help-section-list">
-                      {section.items.map((entry) => (
-                        <div
-                          key={`${section.heading}:${entry.label}`}
-                          className="info-help-section-row"
-                        >
-                          <dt>{entry.label}</dt>
-                          <dd>{entry.text}</dd>
-                        </div>
-                      ))}
-                    </dl>
-                  )}
-                </section>
-              ))}
-            </div>
-          )}
-          {topic.details && topic.details.length > 0 && (
-            <dl className="info-help-detail-list">
-              {topic.details.map((entry) => (
-                <div key={entry.label} className="info-help-detail-row">
-                  <dt>{entry.label}</dt>
-                  <dd>
-                    <code>{entry.value}</code>
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          )}
+    <ModalWindow
+      isOpen={true}
+      onClose={onClose}
+      ariaLabel={`About ${topic.title}`}
+      closeLabel="Close contextual help"
+      header={<h2>{topic.title}</h2>}
+    >
+      <div className="info-help-modal">
+        <div className="info-help-description modal-text-flow">
+          <p>{topic.description}</p>
         </div>
-      </ModalWindow>
+        {topic.demo === "timeline" && <TimelineHelpDemo />}
+        {topic.demo === "actors" && <ActorsHelpDemo />}
+        {topic.demo === "primary-contact" && <PrimaryContactHelpDemo />}
+        {topic.demo === "healthy-signals" && (
+          <SignalFlowHelpDemo mode="healthy" />
+        )}
+        {topic.demo === "unhealthy-signals" && (
+          <SignalFlowHelpDemo mode="unhealthy" />
+        )}
+        {topic.sections && topic.sections.length > 0 && (
+          <div className="info-help-sections">
+            {topic.sections.map((section) => (
+              <section key={section.heading} className="info-help-section">
+                <h3>{section.heading}</h3>
+                {section.paragraphs?.map((paragraph) => (
+                  <p key={paragraph}>{paragraph}</p>
+                ))}
+                {section.items && section.items.length > 0 && (
+                  <dl className="info-help-section-list">
+                    {section.items.map((entry) => (
+                      <div
+                        key={`${section.heading}:${entry.label}`}
+                        className="info-help-section-row"
+                      >
+                        <dt>{entry.label}</dt>
+                        <dd>{entry.text}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                )}
+              </section>
+            ))}
+          </div>
+        )}
+        {topic.details && topic.details.length > 0 && (
+          <dl className="info-help-detail-list">
+            {topic.details.map((entry) => (
+              <div key={entry.label} className="info-help-detail-row">
+                <dt>{entry.label}</dt>
+                <dd>
+                  <code>{entry.value}</code>
+                </dd>
+              </div>
+            ))}
+          </dl>
+        )}
+      </div>
+    </ModalWindow>
   );
 }
 
 export function InfoHelpProvider({ children }: { children: ReactNode }) {
   const [activeTopic, setActiveTopic] = useState<InfoHelpTopic | null>(null);
-  const context = useMemo(() => ({ activeTopic, openTopic: setActiveTopic }), [activeTopic]);
+  const context = useMemo(
+    () => ({ activeTopic, openTopic: setActiveTopic }),
+    [activeTopic],
+  );
 
   return (
     <InfoHelpContext.Provider value={context}>
       {children}
-      {activeTopic && <InfoHelpDialog topic={activeTopic} onClose={() => setActiveTopic(null)} />}
+      {activeTopic && (
+        <InfoHelpDialog
+          topic={activeTopic}
+          onClose={() => setActiveTopic(null)}
+        />
+      )}
     </InfoHelpContext.Provider>
   );
 }
-
 
 export default function InfoHelp({ topic }: InfoHelpProps) {
   const sharedHelp = useContext(InfoHelpContext);

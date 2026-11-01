@@ -5,7 +5,13 @@ import "./HelpScene.css";
 export type SceneRect = { x: number; y: number; width: number; height: number };
 
 /** Scale ordinary HTML and illustrative SVG together, without SVG foreignObject. */
-export default function HelpScene({ width, height, viewBox, onResize, children }: {
+export default function HelpScene({
+  width,
+  height,
+  viewBox,
+  onResize,
+  children,
+}: {
   width: number;
   height: number;
   viewBox?: string;
@@ -15,7 +21,8 @@ export default function HelpScene({ width, height, viewBox, onResize, children }
   const ref = useRef<HTMLDivElement>(null);
   const [availableWidth, setAvailableWidth] = useState(width);
   const [left, top, viewportWidth, viewportHeight] = viewBox
-    ? viewBox.split(" ").map(Number) : [0, 0, width, height];
+    ? viewBox.split(" ").map(Number)
+    : [0, 0, width, height];
 
   useLayoutEffect(() => {
     const element = ref.current;
@@ -38,9 +45,19 @@ export default function HelpScene({ width, height, viewBox, onResize, children }
   }, [onResize]);
 
   return (
-    <div ref={ref} className="help-scene" style={{ aspectRatio: `${viewportWidth} / ${viewportHeight}` }}>
-      <div className="help-scene-canvas" style={{ width, height,
-        transform: `scale(${availableWidth / viewportWidth}) translate(${-left}px, ${-top}px)` }}>
+    <div
+      ref={ref}
+      className="help-scene"
+      style={{ aspectRatio: `${viewportWidth} / ${viewportHeight}` }}
+    >
+      <div
+        className="help-scene-canvas"
+        style={{
+          width,
+          height,
+          transform: `scale(${availableWidth / viewportWidth}) translate(${-left}px, ${-top}px)`,
+        }}
+      >
         {children}
       </div>
     </div>
@@ -67,11 +84,15 @@ export function useHelpTargets<T extends string>(
         if (!element) continue;
         const rect = element.getBoundingClientRect();
         next[key] = {
-          x: (rect.left - pageRect.left) / scale, y: (rect.top - pageRect.top) / scale,
-          width: rect.width / scale, height: rect.height / scale,
+          x: (rect.left - pageRect.left) / scale,
+          y: (rect.top - pageRect.top) / scale,
+          width: rect.width / scale,
+          height: rect.height / scale,
         };
       }
-      setTargets((current) => JSON.stringify(current) === JSON.stringify(next) ? current : next);
+      setTargets((current) =>
+        JSON.stringify(current) === JSON.stringify(next) ? current : next,
+      );
     };
     measure();
     if (typeof ResizeObserver === "undefined") {

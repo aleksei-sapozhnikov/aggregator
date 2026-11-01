@@ -3,7 +3,13 @@
  */
 
 import { createRef } from "react";
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ComponentProps } from "react";
@@ -13,36 +19,52 @@ vi.mock("./AiChatPanel", () => ({
   default: () => null,
 }));
 
-
 // A changed shared markup attribute must reach the live panel and every demo.
 // Checking CSS class names alone would also pass for separately copied markup.
 vi.mock("./ItemTitle", async (importOriginal) => {
   const actual = await importOriginal<typeof import("./ItemTitle")>();
   const { cloneElement } = await import("react");
-  return { ...actual,
-    default: (props: Parameters<typeof actual.default>[0]) => cloneElement(actual.default(props), { "data-shared-revision": "title" }),
+  return {
+    ...actual,
+    default: (props: Parameters<typeof actual.default>[0]) =>
+      cloneElement(actual.default(props), { "data-shared-revision": "title" }),
   };
 });
 vi.mock("./ItemOwnership", async (importOriginal) => {
   const actual = await importOriginal<typeof import("./ItemOwnership")>();
   const { cloneElement } = await import("react");
-  return { ...actual,
-    default: (props: Parameters<typeof actual.default>[0]) => cloneElement(actual.default(props), { "data-shared-revision": "ownership" }),
+  return {
+    ...actual,
+    default: (props: Parameters<typeof actual.default>[0]) =>
+      cloneElement(actual.default(props), {
+        "data-shared-revision": "ownership",
+      }),
   };
 });
 vi.mock("./ItemSignals", async (importOriginal) => {
   const actual = await importOriginal<typeof import("./ItemSignals")>();
   const { cloneElement } = await import("react");
-  return { ...actual,
-    HealthySignals: (props: Parameters<typeof actual.HealthySignals>[0]) => cloneElement(actual.HealthySignals(props), { "data-shared-revision": "HealthySignals" }),
-    UnhealthySignals: (props: Parameters<typeof actual.UnhealthySignals>[0]) => cloneElement(actual.UnhealthySignals(props), { "data-shared-revision": "UnhealthySignals" }),
+  return {
+    ...actual,
+    HealthySignals: (props: Parameters<typeof actual.HealthySignals>[0]) =>
+      cloneElement(actual.HealthySignals(props), {
+        "data-shared-revision": "HealthySignals",
+      }),
+    UnhealthySignals: (props: Parameters<typeof actual.UnhealthySignals>[0]) =>
+      cloneElement(actual.UnhealthySignals(props), {
+        "data-shared-revision": "UnhealthySignals",
+      }),
   };
 });
 vi.mock("./ItemTimeline", async (importOriginal) => {
   const actual = await importOriginal<typeof import("./ItemTimeline")>();
   const { cloneElement } = await import("react");
-  return { ...actual,
-    default: (props: Parameters<typeof actual.default>[0]) => cloneElement(actual.default(props), { "data-shared-revision": "timeline" }),
+  return {
+    ...actual,
+    default: (props: Parameters<typeof actual.default>[0]) =>
+      cloneElement(actual.default(props), {
+        "data-shared-revision": "timeline",
+      }),
   };
 });
 
@@ -157,27 +179,69 @@ describe("DetailsPanel contextual help", () => {
   it("reflects shared markup changes in production and every help scene", () => {
     vi.stubGlobal("matchMedia", () => ({ matches: true }));
     const { container: production } = renderDetailsPanel();
-    for (const marker of ["title", "ownership", "HealthySignals", "UnhealthySignals", "timeline"]) {
-      expect(production.querySelector(`[data-shared-revision="${marker}"]`)).not.toBeNull();
+    for (const marker of [
+      "title",
+      "ownership",
+      "HealthySignals",
+      "UnhealthySignals",
+      "timeline",
+    ]) {
+      expect(
+        production.querySelector(`[data-shared-revision="${marker}"]`),
+      ).not.toBeNull();
     }
-    const { container: demos } = render(<>
-      <div data-demo="actors"><ActorsHelpDemo /></div>
-      <div data-demo="contact"><PrimaryContactHelpDemo /></div>
-      <div data-demo="healthy"><SignalFlowHelpDemo mode="healthy" /></div>
-      <div data-demo="unhealthy"><SignalFlowHelpDemo mode="unhealthy" /></div>
-      <div data-demo="timeline"><TimelineHelpDemo /></div>
-    </>);
+    const { container: demos } = render(
+      <>
+        <div data-demo="actors">
+          <ActorsHelpDemo />
+        </div>
+        <div data-demo="contact">
+          <PrimaryContactHelpDemo />
+        </div>
+        <div data-demo="healthy">
+          <SignalFlowHelpDemo mode="healthy" />
+        </div>
+        <div data-demo="unhealthy">
+          <SignalFlowHelpDemo mode="unhealthy" />
+        </div>
+        <div data-demo="timeline">
+          <TimelineHelpDemo />
+        </div>
+      </>,
+    );
     for (const scene of ["actors", "contact", "healthy", "unhealthy"]) {
       for (const marker of ["title", "ownership"]) {
-        expect(demos.querySelector(`[data-demo="${scene}"] [data-shared-revision="${marker}"]`)).not.toBeNull();
+        expect(
+          demos.querySelector(
+            `[data-demo="${scene}"] [data-shared-revision="${marker}"]`,
+          ),
+        ).not.toBeNull();
       }
     }
-    expect(demos.querySelector('[data-demo="healthy"] [data-shared-revision="HealthySignals"]')).not.toBeNull();
-    expect(demos.querySelector('[data-demo="unhealthy"] [data-shared-revision="UnhealthySignals"]')).not.toBeNull();
-    expect(demos.querySelector('[data-demo="timeline"] [data-shared-revision="timeline"]')).not.toBeNull();
-    fireEvent.click(within(demos).getByRole("button", { name: "Open a dependency" }));
+    expect(
+      demos.querySelector(
+        '[data-demo="healthy"] [data-shared-revision="HealthySignals"]',
+      ),
+    ).not.toBeNull();
+    expect(
+      demos.querySelector(
+        '[data-demo="unhealthy"] [data-shared-revision="UnhealthySignals"]',
+      ),
+    ).not.toBeNull();
+    expect(
+      demos.querySelector(
+        '[data-demo="timeline"] [data-shared-revision="timeline"]',
+      ),
+    ).not.toBeNull();
+    fireEvent.click(
+      within(demos).getByRole("button", { name: "Open a dependency" }),
+    );
     for (const marker of ["title", "ownership", "HealthySignals", "timeline"]) {
-      expect(demos.querySelector(`[data-demo="timeline"] [data-shared-revision="${marker}"]`)).not.toBeNull();
+      expect(
+        demos.querySelector(
+          `[data-demo="timeline"] [data-shared-revision="${marker}"]`,
+        ),
+      ).not.toBeNull();
     }
   });
 
@@ -284,10 +348,16 @@ describe("DetailsPanel contextual help", () => {
 
       rerender(<DetailsPanel {...props} {...remove} />);
       expect(screen.queryByRole("button", { name: label })).toBeNull();
-      expect(screen.getByRole("dialog", { name: "About " + title })).toBe(dialog);
+      expect(screen.getByRole("dialog", { name: "About " + title })).toBe(
+        dialog,
+      );
 
-      await user.click(screen.getByRole("button", { name: "Close contextual help" }));
-      expect(screen.queryByRole("dialog", { name: "About " + title })).toBeNull();
+      await user.click(
+        screen.getByRole("button", { name: "Close contextual help" }),
+      );
+      expect(
+        screen.queryByRole("dialog", { name: "About " + title }),
+      ).toBeNull();
       expect(screen.queryByRole("button", { name: label })).toBeNull();
     },
   );
@@ -306,7 +376,9 @@ describe("DetailsPanel contextual help", () => {
       />,
     );
     expect(screen.getByRole("dialog", { name: "About Timeline" })).toBe(dialog);
-    await user.click(screen.getByRole("button", { name: "Close contextual help" }));
+    await user.click(
+      screen.getByRole("button", { name: "Close contextual help" }),
+    );
     expect(screen.queryByRole("dialog", { name: "About Timeline" })).toBeNull();
   });
 
@@ -444,9 +516,7 @@ describe("DetailsPanel contextual help", () => {
     });
 
     await user.hover(infoButton);
-    expect(screen.getByRole("tooltip").textContent).toBe(
-      "Click for details",
-    );
+    expect(screen.getByRole("tooltip").textContent).toBe("Click for details");
 
     await user.click(infoButton);
 

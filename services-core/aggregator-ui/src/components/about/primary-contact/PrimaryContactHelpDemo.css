@@ -23,13 +23,24 @@
   height: auto;
 }
 
-.primary-contact-shadow { fill: #cdd7df; opacity: 0.55; }
-.primary-contact-up-light { fill: #70c87c; }
-.primary-contact-down-light { fill: #eb4d46; }
-.primary-contact-up-rays { stroke: #70c87c; }
+.primary-contact-shadow {
+  fill: #cdd7df;
+  opacity: 0.55;
+}
+.primary-contact-up-light {
+  fill: #70c87c;
+}
+.primary-contact-down-light {
+  fill: #eb4d46;
+}
+.primary-contact-up-rays {
+  stroke: #70c87c;
+}
 .primary-contact-down-rays,
 .primary-contact-alarm-rays,
-.primary-contact-repair-sparks { stroke: #eb4d46; }
+.primary-contact-repair-sparks {
+  stroke: #eb4d46;
+}
 .primary-contact-exclamation {
   fill: #eb4d46;
   font-size: 41px;
@@ -40,14 +51,20 @@
   font-size: 11px;
   font-weight: 700;
 }
-.primary-contact-phone-screen { fill: var(--panel); }
+.primary-contact-phone-screen {
+  fill: var(--panel);
+}
 .primary-contact-phone-title {
   fill: var(--text);
   font-size: 11px;
   font-weight: 650;
 }
-.primary-contact-call-circle { fill: #45a87b; }
-.primary-contact-phone-waves { stroke: #45a87b; }
+.primary-contact-call-circle {
+  fill: #45a87b;
+}
+.primary-contact-phone-waves {
+  stroke: #45a87b;
+}
 .primary-contact-help-diagram text {
   font-family: Inter, "Segoe UI", system-ui, sans-serif;
 }
@@ -78,7 +95,9 @@
   pointer-events: none;
 }
 @media (max-width: 540px) {
-  .primary-contact-help-demo { padding: 5px; }
+  .primary-contact-help-demo {
+    padding: 5px;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .primary-contact-help-demo *,

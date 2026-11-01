@@ -22,7 +22,10 @@ const splitParagraphs = (value: string): string[] =>
     .map((paragraph) => paragraph.trim())
     .filter(Boolean);
 
-export default function CatalogItemInfo({ item, interactive = true }: CatalogItemInfoProps) {
+export default function CatalogItemInfo({
+  item,
+  interactive = true,
+}: CatalogItemInfoProps) {
   const tooltipId = useId();
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const tooltipRef = useRef<HTMLSpanElement | null>(null);

@@ -43,7 +43,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .help-item-page *, .help-item-page *::before, .help-item-page *::after {
+  .help-item-page *,
+  .help-item-page *::before,
+  .help-item-page *::after {
     animation: none !important;
     transition: none !important;
   }

@@ -1,3 +1,52 @@
+.local
+# =========================
+# IDE / Editor
+# =========================
+
+## IntelliJ IDEA
+.idea/
+*.iml
+out/
+
+## VS Code
+.vscode/
+
+## Eclipse
+.project
+.classpath
+.settings/
+
+# Local OpenTofu data and generated files.
+.terraform/
+.tofu/
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.plan
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Local variables and backend configuration values.
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+!*.tfvars.example.json
+*.tfbackend
+*.tfbackend.*
+
+# Local tools, credentials, and editor files.
+.local/
+.env
+*.log
+.DS_Store
+Thumbs.db
+desktop.ini
+
+
 # =========================
 # OS / System files
 # =========================

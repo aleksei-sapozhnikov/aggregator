@@ -10,7 +10,12 @@ export type InfoHelpTopic = {
       text: string;
     }[];
   }[];
-  demo?: "timeline" | "healthy-signals" | "unhealthy-signals" | "actors" | "primary-contact";
+  demo?:
+    | "timeline"
+    | "healthy-signals"
+    | "unhealthy-signals"
+    | "actors"
+    | "primary-contact";
   details?: {
     label: string;
     value: string;
@@ -50,7 +55,8 @@ export const infoHelpTopics = {
   },
   timeline: {
     title: "Timeline",
-    summary: "See historical health states and how to use the chart. Click for examples.",
+    summary:
+      "See historical health states and how to use the chart. Click for examples.",
     description:
       "Timeline shows the selected Item's [Overall] state, including dependency impact, and signals that were DOWN or UNKNOWN at some point in the selected range.",
     demo: "timeline",

@@ -6,7 +6,11 @@ import TopBarActions from "./TopBarActions";
 import AiChatPanel from "./AiChatPanel";
 import ItemTitle from "./ItemTitle";
 import ItemOwnership, { type ActorSummaryRow } from "./ItemOwnership";
-import { HealthySignals, UnhealthySignals, type UnhealthyDependencyRow } from "./ItemSignals";
+import {
+  HealthySignals,
+  UnhealthySignals,
+  type UnhealthyDependencyRow,
+} from "./ItemSignals";
 import ItemTimeline from "./ItemTimeline";
 import InfoHelp, { InfoHelpProvider } from "./InfoHelp";
 import HealthSignalModal from "./HealthSignalModal";
@@ -20,10 +24,7 @@ import type {
   HealthStatus,
   ItemSignal,
 } from "../shared/types";
-import type {
-  MouseEvent,
-  RefObject,
-} from "react";
+import type { MouseEvent, RefObject } from "react";
 import { useEffect, useMemo, useState } from "react";
 
 type DetailsPanelProps = {
@@ -357,9 +358,14 @@ function DetailsPanelContent({
           />
         </div>
         <div className="content-header-main">
-          <ItemTitle item={selectedItem} status={selectedStatus} lastUpdated={lastUpdated}
-            firstWord={selectedTitleFirstWord} rest={selectedTitleRest}
-            primaryRef={contentTitlePrimaryRef} />
+          <ItemTitle
+            item={selectedItem}
+            status={selectedStatus}
+            lastUpdated={lastUpdated}
+            firstWord={selectedTitleFirstWord}
+            rest={selectedTitleRest}
+            primaryRef={contentTitlePrimaryRef}
+          />
         </div>
       </header>
       <div
@@ -373,28 +379,55 @@ function DetailsPanelContent({
           ) : (
             <>
               <section className="details-summary-block">
-                <ItemOwnership primaryContact={primaryContact} actorRows={actorRowsForContacts}
-                  expanded={itemDisclosureState.isContactsExtraOpen} onToggleActors={toggleContactsExtra}
-                  onOpenContact={onOpenContact} onOpenActor={onOpenActor} iconSpriteHref={iconSpriteHref}
-                  primaryHelp={<InfoHelp topic={infoHelpTopics.primaryContact} />}
-                  actorsHelp={<InfoHelp topic={infoHelpTopics.actors} />} />
+                <ItemOwnership
+                  primaryContact={primaryContact}
+                  actorRows={actorRowsForContacts}
+                  expanded={itemDisclosureState.isContactsExtraOpen}
+                  onToggleActors={toggleContactsExtra}
+                  onOpenContact={onOpenContact}
+                  onOpenActor={onOpenActor}
+                  iconSpriteHref={iconSpriteHref}
+                  primaryHelp={
+                    <InfoHelp topic={infoHelpTopics.primaryContact} />
+                  }
+                  actorsHelp={<InfoHelp topic={infoHelpTopics.actors} />}
+                />
                 {hasAffectingSignals && (
-                  <UnhealthySignals signals={selectedFailingSignals} dependencies={unhealthyDependencyRows}
-                    expanded={itemDisclosureState.isAffectingOpen} onToggle={toggleAffectingSignals}
-                    buildSignalLink={buildSignalLink} onSignalClick={handleSignalClick}
-                    help={<InfoHelp topic={infoHelpTopics.unhealthySignals} />} />
+                  <UnhealthySignals
+                    signals={selectedFailingSignals}
+                    dependencies={unhealthyDependencyRows}
+                    expanded={itemDisclosureState.isAffectingOpen}
+                    onToggle={toggleAffectingSignals}
+                    buildSignalLink={buildSignalLink}
+                    onSignalClick={handleSignalClick}
+                    help={<InfoHelp topic={infoHelpTopics.unhealthySignals} />}
+                  />
                 )}
                 {passingSignalsCount > 0 && (
-                  <HealthySignals signals={selectedPassingSignals} count={passingSignalsCount}
-                    expanded={itemDisclosureState.isHealthyOpen} onToggle={toggleHealthySignals}
-                    buildSignalLink={buildSignalLink} onSignalClick={handleSignalClick}
-                    help={<InfoHelp topic={infoHelpTopics.healthySignals} />} />
+                  <HealthySignals
+                    signals={selectedPassingSignals}
+                    count={passingSignalsCount}
+                    expanded={itemDisclosureState.isHealthyOpen}
+                    onToggle={toggleHealthySignals}
+                    buildSignalLink={buildSignalLink}
+                    onSignalClick={handleSignalClick}
+                    help={<InfoHelp topic={infoHelpTopics.healthySignals} />}
+                  />
                 )}
               </section>
 
-              <ItemTimeline expanded={isGrafanaOpen} onToggle={onToggleGrafana} height={grafanaHeight}
-                help={<InfoHelp topic={infoHelpTopics.timeline} />}>
-                <iframe title="State Timeline" ref={grafanaIframeRef} onLoad={onGrafanaLoad} src={grafanaFrameUrl} />
+              <ItemTimeline
+                expanded={isGrafanaOpen}
+                onToggle={onToggleGrafana}
+                height={grafanaHeight}
+                help={<InfoHelp topic={infoHelpTopics.timeline} />}
+              >
+                <iframe
+                  title="State Timeline"
+                  ref={grafanaIframeRef}
+                  onLoad={onGrafanaLoad}
+                  src={grafanaFrameUrl}
+                />
               </ItemTimeline>
             </>
           )}
