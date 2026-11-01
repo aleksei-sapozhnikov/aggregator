@@ -37,10 +37,10 @@ resource "aws_ssm_document" "aggregator_demo_deploy" {
               runuser -u ec2-user -- env DEPLOY_SHA="$SSM_CommitSha" bash -c '
                 set -euo pipefail
                 cd /home/ec2-user/aggregator-demo/repo
-                git fetch --prune origin demo
+                git fetch --prune origin deploy/demo
                 git cat-file -e "$DEPLOY_SHA"
-                git merge-base --is-ancestor "$DEPLOY_SHA" origin/demo
-                git checkout -B demo "$DEPLOY_SHA"
+                git merge-base --is-ancestor "$DEPLOY_SHA" origin/deploy/demo
+                git checkout -B deploy/demo "$DEPLOY_SHA"
                 bash ./deploy/demo/demo-deploy.sh
               '
             SCRIPT
