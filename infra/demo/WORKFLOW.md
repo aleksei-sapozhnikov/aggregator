@@ -1,27 +1,41 @@
 # Demo infrastructure workflow
 
 [demo-infra.yml](../../../.github/workflows/demo-infra.yml) is the
-**only automatic entry point** for pushes to `demo`. Its lightweight
+**only automatic entry point** for pushes to `deploy/demo`. Its lightweight
 `detect` job routes changes without AWS access. Terraform/Ansible
 validation and planning run for infrastructure changes, application updates
 and missing GitOps releases, so every application deployment checks the
 last successfully applied Ansible fingerprint. Missing manifests alone do
 not trigger Ansible. `tofu apply` is skipped for an unchanged plan.
-Generated `deploy/k8s-live/**`-only changes run the lightweight
-detect job, but do not trigger infrastructure planning or application deploys
-while a published release exists.
+Generated `deploy/k8s-live/**` lives only on the separate protected
+`deploy/demo-gitops` branch. Its publication commits do not trigger
+infrastructure or application workflows.
 The `admin` and `publication` OpenTofu roots remain outside demo state.
+
+## Deployment branch separation
+
+The source branch is `deploy/demo`, which can be force-pushed. The published
+GitOps branch is `deploy/demo-gitops`, which must retain fast-forward history.
+Argo CD reads only `deploy/demo-gitops:deploy/k8s-live`; no source push deletes
+its manifests. The CI workflow uses `SOURCE_BRANCH` and `GITOPS_BRANCH` in
+its YAML, while `on.push.branches` explicitly names `deploy/demo`.
+The IAM role trusts GitHub Environments rather than branch names; update the
+allowed deployment branches in all three GitHub Environments when migrating.
+
+The Compose SSM Document also uses `deploy/demo` in its checked Git ref.
+This one-time document update appears in the reviewed OpenTofu plan and
+requires approval; it does not require replacing the serving EC2.
 
 ## Branches and execution
 
-Only `demo` pushes start this pipeline. Use `dev` for development and
+Only `deploy/demo` pushes start this pipeline. Use `dev` for development and
 local checks or pull-request validation:
 
 - **`dev` — development only:** validate Terraform and Ansible locally
   or in review without applying AWS infrastructure.
-- **`demo` — detect → optional validate/plan/approval/apply/Ansible → demo-deploy:**
+- **`deploy/demo` — detect → optional validate/plan/approval/apply/Ansible → demo-deploy:**
   1. Validate the checked-out revision as above.
-  2. Use unprotected, `demo`-branch-only Environment `demo-infra-plan`
+  2. Use unprotected, `deploy/demo`-branch-only Environment `demo-infra-plan`
      to assume the **read-only infrastructure OIDC plan role** (with narrowly
      scoped conditional `s3:PutObject` access to the private plan prefix)
      and access the demo infrastructure and its remote state. Generate
@@ -111,7 +125,7 @@ To retry failed configuration without replacing EC2, run a fresh
 the repository's default branch. This produces a fresh Terraform plan, usually
 with no infrastructure changes, and reruns Ansible through SSM after approval.
 Until the manual trigger is available, use an explicitly authorized SSM run or
-a reviewed Ansible-only update in `demo`. Do not blindly reapply an old saved
+a reviewed Ansible-only update in `deploy/demo`. Do not blindly reapply an old saved
 Terraform plan: it can be stale after a successful infrastructure apply followed
 by a failed Ansible run. Automatic retry of failed configurations without a new
 workflow trigger is not implemented for this demo.
@@ -123,7 +137,7 @@ The shared lock covers checkout, playbook and readiness checks. The
 successful Git revision is recorded only after those checks pass.
 
 This workflow never builds or publishes application images. Every
-`demo` push enters a single ordering workflow; infrastructure changes
+`deploy/demo` push enters a single ordering workflow; infrastructure changes
 must pass Terraform/Ansible before the dispatch stage is reached.
 Application changes perform a read-only Terraform Plan and an SSM fingerprint
 check before proceeding to `demo-deploy`. They never run `tofu apply` without
@@ -134,7 +148,7 @@ runs independently: infrastructure success does not imply application
 deployment success. GitHub `workflow_dispatch` is available because
 `demo-deploy.yml` exists on `main` (the repository default branch).
 
-A push to `demo` is required before infrastructure can be applied;
+A push to `deploy/demo` is required before infrastructure can be applied;
 changes in `dev` alone never deploy.
 
 The workflow serializes itself with a concurrency group, and OpenTofu locks
@@ -181,7 +195,7 @@ unsalted fingerprint or persistent comparison state.
 
 1. Edit the Environment Secret `ARGOCD_PASSWORD` under
    **Settings → Environments → `demo-infra-apply`**.
-2. Open **Actions → Demo pipeline → Run workflow** and select `demo`.
+2. Open **Actions → Demo pipeline → Run workflow** and select `deploy/demo`.
    Keep `sync_argocd_password=true` and `reapply_ansible=false`.
 3. Review the infrastructure plan and approve `demo-infra-apply`.
    If there are no infrastructure or Ansible changes, only the password
@@ -193,7 +207,7 @@ Changing a GitHub secret does not itself start a workflow. The
 Ansible reapplication. **GitHub requires the workflow file to exist on
 the repository's default branch (`main`) to enable manual dispatch.**
 Until it is promoted there, `dev` commits do not run a deployment, and
-an eligible `demo` push is the available automatic trigger. Do not
+an eligible `deploy/demo` push is the available automatic trigger. Do not
 assume the manual button is available merely because the YAML in `dev`
 contains `workflow_dispatch`.
 
@@ -265,13 +279,13 @@ managed permission policies are defined as IaC in
 the authorized `infra-admin` identity and use its outputs for the GitHub
 Environment-scoped `AWS_ROLE_ARN` values; do not create the roles manually.
 The plan role's IAM trust now uses the subject `environment:demo-infra-plan`
-instead of `ref:refs/heads/demo`; **apply admin again** before activating
+instead of the legacy branch-bound OIDC subject; **apply admin again** before activating
 this workflow. Each job resolves `AWS_ROLE_ARN` from its own Environment. The OIDC plan role must not
 have infrastructure write privileges, because planning occurs **before**
 manual approval. The existing `AggregatorDemoDeployGithub` role is
 restricted to the old application deployment and is **not** reused.
 
-Environment `demo-infra-plan` must allow only `demo` and have no Required
+Environment `demo-infra-plan` must allow only `deploy/demo` and have no Required
 reviewers, so plan runs without manual confirmation.
 
 GitHub Environment `demo-infra-apply` must be configured under
@@ -279,7 +293,7 @@ GitHub Environment `demo-infra-apply` must be configured under
 
 1. Add **Required reviewers** (allow self-review if you intend to approve
    your own pushes; do not enable Prevent self-review in that case).
-2. Allow deployments from **only the `demo` branch**.
+2. Allow deployments from **only the `deploy/demo` branch**.
 3. Only after both rules are saved, set the Environment variable
    `MANUAL_APPROVAL_CONFIGURED=true`.
 
@@ -290,7 +304,7 @@ configuration. Apply and Ansible share the same Environment approval.
 
 GitHub `workflow_dispatch` generally requires a workflow file to exist on
 the repository's default branch. Until this file is also present on `main`,
-normal pushes to `dev` and `demo` are the supported triggers. The manual
+normal pushes to `deploy/demo` are the supported trigger. The manual
 reapply input becomes useful once that requirement is met.
 
 ## Infrastructure flags and review risks
@@ -333,7 +347,7 @@ create protected Foundation/Administration buckets; migrate the privileged
 administration state; apply project IAM delegation; create the project bucket
 through `aggregator-admin`; and migrate demo/publication backends. The
 plan lifecycle and conditional-write policy are owned by `infra/state`,
-not by Foundation. Only then promote the updated workflow to `demo`.
+not by Foundation. Only then promote the updated workflow to `deploy/demo`.
 The textual plan and review summary are still shown in public Actions
 logs; continue treating those as public information. Approval must be based on the actual plan, not only the status of checks.
 
@@ -432,7 +446,7 @@ on-node `/var/log/cloud-init-output.log` or
 ## Public K3s application deployment
 
 The new node is bootstrapped with K3s, bundled Traefik/ServiceLB and an
-Argo CD Application following `demo:deploy/k8s-live`, containing only image
+Argo CD Application following `deploy/demo-gitops:deploy/k8s-live`, containing only image
 versions published after the corresponding GHCR build. See
 [the K3s GitOps README](../../deploy/k8s/README.md) for prerequisites,
 public HTTP-by-IP behaviour, image publication, rollback and limitations.
