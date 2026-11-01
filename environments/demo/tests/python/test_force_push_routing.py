@@ -8,7 +8,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-SCRIPT = Path(__file__).resolve().parents[1] / "route-changes.sh"
+SCRIPT = Path(__file__).resolve().parents[2] / "src" / "sh" / route-changes.sh"
 
 
 class ForcePushRoutingTests(unittest.TestCase):
@@ -20,7 +20,7 @@ class ForcePushRoutingTests(unittest.TestCase):
         self.git("init", "-q")
         self.git("config", "user.name", "Test")
         self.git("config", "user.email", "test@example.invalid")
-        self.write("infra/demo/ansible/site.yml", "---\n- hosts: localhost\n")
+        self.write("environments/demo/ansible/site.yml", "---\n- hosts: localhost\n")
         self.write("services/catalog/README.md", "initial\n")
         self.write("deploy/k8s-live/kustomization.yaml", "resources: []\n")
         self.commit("Initial")
@@ -83,6 +83,13 @@ class ForcePushRoutingTests(unittest.TestCase):
     def test_argocd_utility_change_triggers_infrastructure_not_image_deploy(self) -> None:
         self.write("tools/argocd/src/argocd_admin_hash.py", "print('changed')\n")
         self.commit("Change Argo CD admin hash helper")
+        result = self.route()
+        self.assertIn("infra_changed=true", result)
+        self.assertIn("deploy_changed=false", result)
+
+    def test_demo_infrastructure_changes_do_not_trigger_image_builds(self) -> None:
+        self.write("environments/demo/infra/main.tf", "resource \"null_resource\" \"test\" {}\n")
+        self.commit("Change demo infrastructure")
         result = self.route()
         self.assertIn("infra_changed=true", result)
         self.assertIn("deploy_changed=false", result)

@@ -9,7 +9,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-SCRIPT = Path(__file__).resolve().parents[1] / "s3-plan.sh"
+SCRIPT = Path(__file__).resolve().parents[2] / "src" / "sh" / s3-plan.sh"
 
 FAKE_AWS = """#!/usr/bin/env python3
 import os

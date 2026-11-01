@@ -6,17 +6,17 @@ import unittest
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[4]
-DEMO = REPO / "infra" / "demo"
+DEMO = REPO / "environments" / "demo"
 
 
 class NodeConfigurationContractTests(unittest.TestCase):
     def test_ssm_launcher_uses_shared_lock_and_checked_out_revision(self) -> None:
-        launcher = (DEMO / "ssm-node-configure.sh").read_text(encoding="utf-8")
+        launcher = (DEMO / "src/sh/ssm-node-configure.sh").read_text(encoding="utf-8")
         self.assertEqual(launcher.count("__CONFIGURATION_SHA__"), 1)
         self.assertIn("flock -n 9", launcher)
         self.assertIn("git -C \"$repo_dir\" checkout --force --detach FETCH_HEAD", launcher)
         self.assertIn('git -C "$repo_dir" rev-parse HEAD', launcher)
-        self.assertIn('bash "$repo_dir/infra/demo/node-configure.sh" "$revision"', launcher)
+        self.assertIn('bash "$repo_dir/environments/demo/src/sh/node-configure.sh" "$revision"', launcher)
         self.assertNotIn("/usr/local/sbin/aggregator-node-configure", launcher)
 
         readiness = launcher.index("systemctl is-active --quiet k3s")
@@ -24,15 +24,15 @@ class NodeConfigurationContractTests(unittest.TestCase):
         self.assertLess(readiness, recorded)
 
     def test_node_configuration_resolves_ansible_relative_to_itself(self) -> None:
-        runner = (DEMO / "node-configure.sh").read_text(encoding="utf-8")
+        runner = (DEMO / "src/sh/node-configure.sh").read_text(encoding="utf-8")
         self.assertIn('dirname -- "${BASH_SOURCE[0]}"', runner)
-        self.assertIn('cd "$script_dir/ansible"', runner)
+        self.assertIn('cd "$demo_dir/ansible"', runner)
         self.assertIn('export AGGREGATOR_REPO_ROOT="$repo_dir"', runner)
         self.assertNotIn("deploy/ansible", runner)
 
     def test_minimal_cloud_init_and_prometheus_retention(self) -> None:
         cloud_init = (
-            DEMO / "modules/ec2_k3s/cloud-init.yaml.tftpl"
+            DEMO / "infra/modules/ec2_k3s/cloud-init.yaml.tftpl"
         ).read_text(encoding="utf-8")
         self.assertIn("python3.12", cloud_init)
         self.assertNotIn("write_files:", cloud_init)

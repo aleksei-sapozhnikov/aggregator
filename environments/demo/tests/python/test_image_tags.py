@@ -7,7 +7,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from src.image_tags import (
+from src.python.image_tags import (
     SERVICES,
     build_images,
     compose_exports,
@@ -81,7 +81,7 @@ class ImageTagsTests(unittest.TestCase):
         )
 
     def test_compose_image_tag_contract_matches_service_mapping(self):
-        root = Path(__file__).resolve().parents[3]
+        root = Path(__file__).resolve().parents[4]
         compose = (root / "deploy/compose/compose.images.demo.yaml").read_text(
             encoding="utf-8"
         )
@@ -96,7 +96,7 @@ class ImageTagsTests(unittest.TestCase):
             self.assertIn(expected, compose)
 
     def test_real_kustomization_contains_all_expected_images(self):
-        root = Path(__file__).resolve().parents[3]
+        root = Path(__file__).resolve().parents[4]
         manifest = (root / "deploy/kubernetes/kustomization.yaml").read_text(encoding="utf-8")
         images = [
             {"service": service, "context": context, "tag": "a" * 40}
@@ -118,7 +118,7 @@ class ImageTagsTests(unittest.TestCase):
 
             return Result()
 
-        with patch("src.image_tags.subprocess.run", side_effect=inspect):
+        with patch("src.python.image_tags.subprocess.run", side_effect=inspect):
             missing = plan_missing(images, "ExampleOwner")
         self.assertEqual([image["service"] for image in missing], ["catalog"])
 

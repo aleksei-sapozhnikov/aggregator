@@ -10,7 +10,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-MODULE_FILE = Path(__file__).resolve().parents[1] / "src" / "config_fingerprint.py"
+MODULE_FILE = Path(__file__).resolve().parents[2] / "src" / "python" / "config_fingerprint.py"
 SPEC = importlib.util.spec_from_file_location("config_fingerprint", MODULE_FILE)
 assert SPEC is not None and SPEC.loader is not None
 module = importlib.util.module_from_spec(SPEC)
@@ -27,16 +27,16 @@ class FingerprintTests(unittest.TestCase):
         self.git("init", "-q")
         self.git("config", "user.name", "Test")
         self.git("config", "user.email", "test@example.invalid")
-        self.write("infra/demo/ansible/site.yml", "---\n- hosts: localhost\n")
-        self.write("infra/demo/ansible/group_vars/all.yml", "k3s_version: v1\n")
+        self.write("environments/demo/ansible/site.yml", "---\n- hosts: localhost\n")
+        self.write("environments/demo/ansible/group_vars/all.yml", "k3s_version: v1\n")
         self.write(
-            "infra/demo/ansible/roles/k3s/tasks/main.yml", "---\n- name: Check node\n"
+            "environments/demo/ansible/roles/k3s/tasks/main.yml", "---\n- name: Check node\n"
         )
-        self.write("infra/demo/node-configure.sh", "#!/bin/bash\n")
-        self.write("infra/demo/ssm-node-configure.sh", "#!/bin/sh\n")
+        self.write("environments/demo/src/sh/node-configure.sh", "#!/bin/bash\n")
+        self.write("environments/demo/src/sh/ssm-node-configure.sh", "#!/bin/sh\n")
         self.write("tools/argocd/src/argocd_admin_hash.py", "pass\n")
         self.write("services/catalog/README.md", "initial\n")
-        self.write("infra/demo/ansible/README.md", "documentation\n")
+        self.write("environments/demo/ansible/README.md", "documentation\n")
         self.commit("Initial configuration")
         self.root_patch = mock.patch.object(module, "ROOT", self.root)
         self.root_patch.start()
@@ -91,14 +91,14 @@ class FingerprintTests(unittest.TestCase):
     def test_application_commits_do_not_change_configuration_fingerprint(self) -> None:
         before = module.fingerprint()
         self.write("services/catalog/README.md", "changed source\n")
-        self.write("infra/demo/ansible/README.md", "changed documentation\n")
+        self.write("environments/demo/ansible/README.md", "changed documentation\n")
         self.commit("Application and documentation changes")
         self.assertEqual(before, module.fingerprint())
         self.assertIn("ansible_changed=false", self.check(f"{NODE}:{before}"))
 
     def test_changed_ansible_content_triggers_reconciliation(self) -> None:
         before = module.fingerprint()
-        self.write("infra/demo/ansible/group_vars/all.yml", "k3s_version: v2\n")
+        self.write("environments/demo/ansible/group_vars/all.yml", "k3s_version: v2\n")
         self.commit("Change node configuration")
         after = module.fingerprint()
         self.assertNotEqual(before, after)
