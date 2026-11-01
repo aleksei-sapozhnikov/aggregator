@@ -11,17 +11,21 @@ concurrency:
   group: demo-deploy
   cancel-in-progress: false
 
+env:
+  SOURCE_BRANCH: deploy/demo
+  GITOPS_BRANCH: deploy/demo-gitops
+
 jobs:
   quality:
     name: Verify repository
-    if: github.ref == 'refs/heads/demo'
+    if: github.ref == 'refs/heads/deploy/demo'
     uses: ./.github/workflows/code-quality.yml
     permissions:
       contents: read
 
   plan-images:
     name: Select images missing from GHCR
-    if: github.ref == 'refs/heads/demo'
+    if: github.ref == 'refs/heads/deploy/demo'
     needs: quality
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -53,7 +57,7 @@ jobs:
 
   build-and-publish:
     name: Build & publish / ${{ matrix.service }}
-    if: github.ref == 'refs/heads/demo' && needs.plan-images.outputs.has_changes == 'true'
+    if: github.ref == 'refs/heads/deploy/demo' && needs.plan-images.outputs.has_changes == 'true'
     needs: plan-images
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -93,7 +97,7 @@ jobs:
   deploy:
     name: Deploy published images using SSM
     if: >-
-      always() && github.ref == 'refs/heads/demo' &&
+      always() && github.ref == 'refs/heads/deploy/demo' &&
       needs.plan-images.result == 'success' &&
       (needs.build-and-publish.result == 'success' ||
       (needs.plan-images.outputs.has_changes == 'false' && needs.build-and-publish.result == 'skipped'))
@@ -125,7 +129,7 @@ jobs:
   publish-k3s-release:
     name: Publish K3s release in demo
     if: >-
-      always() && github.ref == 'refs/heads/demo' &&
+      always() && github.ref == 'refs/heads/deploy/demo' &&
       needs.plan-images.result == 'success' &&
       (needs.build-and-publish.result == 'success' ||
       (needs.plan-images.outputs.has_changes == 'false' && needs.build-and-publish.result == 'skipped'))
