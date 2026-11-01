@@ -11,7 +11,7 @@ for scheduled GitHub publication.
 These components are checked together as the `publisher` QA module:
 
 ```sh
-python tools/code_qa/src/main.py code-qa --module publisher
+python tools/code_qa/src/main.py qa-check --module publisher
 ```
 
 The remote state key remains `publication/tofu.tfstate`. Moving the local

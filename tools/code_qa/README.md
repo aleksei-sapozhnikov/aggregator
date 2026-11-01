@@ -54,10 +54,11 @@ The normal CLI does not require setting `PYTHONPATH` manually.
 From the repository root:
 
 ```shell
-make qa-format                  # Format and test each module, then scan secrets
-make qa-format MODULE=catalog   # Format and test one module
-make qa-check                   # Check, test and scan without changing files
-make qa-check MODULE=catalog    # Check and test one module
+make qa-format                         # Format and test every module
+make qa-format aggregator aggregator-ui # Format and test two modules
+make qa-check                          # Check and test every module
+make qa-check demo shared              # Check and test two modules
+make qa-check MODULE=demo QA_SCAN_SECRETS=false # CI: no duplicate secrets scan
 ```
 
 `qa-format` uses a single orchestration pass: for each module, run its
@@ -65,7 +66,8 @@ checks, apply available formatting fixes, recheck that module only if needed,
 and then run its tests. Tests are skipped when the module still fails checks;
 other modules continue. Once all modules pass, secrets are scanned once.
 `qa-check` has the same module-by-module test ordering without any fixes.
-`qa` remains an alias for `qa-check`. In CI, module jobs use
+`qa` remains an alias for `qa-check`. Secrets are repository-wide even when modules
+are selected. Use `QA_SCAN_SECRETS=false` to skip the scan. In CI, jobs use
 `make qa-check MODULE=<name> QA_SCAN_SECRETS=false` to avoid repeated
 secret scans; the dedicated secrets job uses `make code-secrets`.
 
@@ -76,9 +78,9 @@ secret scans; the dedicated secrets job uses `make code-secrets`.
 | `lint`      | Check configured modules without modifying files.            |
 | `format`    | Format failures, then recheck that module before continuing. |
 | `test`      | Run configured module test commands.                         |
-| `code-qa`   | Check and test each module before proceeding to the next.    |
+| `qa-check`  | Check and test modules, then scan secrets.                   |
 | `secrets`   | Scan the repository with TruffleHog.                         |
-| `qa`        | Check and test each module, then scan repository secrets.    |
+| `qa`        | Alias for `qa-check`.                                        |
 | `qa-format` | Fix and test each module, then scan repository secrets.      |
 | `modules`   | List modules; `--json` prints the CI matrix.                 |
 
@@ -93,7 +95,7 @@ Within each module, specialized formatters and validators run before the
 final `trailing whitespace` and `final newline` checks. The large-file check
 remains a repository-wide check.
 
-In `code-qa`, `qa`, and `qa-format`, each module's registered tests run
+In `qa-check`, `qa`, and `qa-format`, each module's registered tests run
 directly after its checks pass. Failing checks skip only that module's tests;
 other modules are still checked and tested. Standalone `test` retains its separate behavior.
 

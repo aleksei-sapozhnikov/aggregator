@@ -350,6 +350,47 @@ class OrchestratorFlowTests(unittest.TestCase):
         self.assertEqual(run.call_args.kwargs["modules"], ["catalog"])
         self.assertTrue(run.call_args.kwargs["format_before_tests"])
 
+    def test_qa_check_supports_multiple_modules_and_skip_secrets(self) -> None:
+        with (
+            patch.object(
+                sys,
+                "argv",
+                [
+                    "code_qa",
+                    "qa-check",
+                    "--skip-secrets",
+                    "--module",
+                    "aggregator",
+                    "--module",
+                    "aggregator-ui",
+                ],
+            ),
+            patch.object(main, "run_qa_command", return_value=0) as run,
+        ):
+            self.assertEqual(main.main(), 0)
+        self.assertEqual(run.call_args.kwargs["modules"], ["aggregator", "aggregator-ui"])
+        self.assertFalse(run.call_args.kwargs["scan_secrets"])
+        self.assertFalse(run.call_args.kwargs["format_before_tests"])
+
+    def test_qa_format_skips_secrets_but_still_formats(self) -> None:
+        with (
+            patch.object(main, "run_code_qa_command", return_value=0) as checks,
+            patch.object(main, "run_secrets_command") as secrets,
+        ):
+            self.assertEqual(
+                main.run_qa_command(
+                    modules=["aggregator", "aggregator-ui"],
+                    scan_secrets=False,
+                    format_before_tests=True,
+                ),
+                0,
+            )
+        self.assertEqual(
+            checks.call_args.kwargs["modules"], ["aggregator", "aggregator-ui"]
+        )
+        self.assertTrue(checks.call_args.kwargs["format_before_tests"])
+        secrets.assert_not_called()
+
     def test_code_format_still_applies_fixes(self) -> None:
         with (
             patch.object(

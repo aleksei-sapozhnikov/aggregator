@@ -128,15 +128,17 @@ help:
 	@echo "  rebuild          -> build images + start/update (keep volumes)"
 	@echo "  rebuild-recreate -> build images + force re-create containers (keep volumes)"
 	@echo "  clean            -> down + remove containers, network, and volumes (DATA LOSS)"
-	@echo "  code-qa          -> check code and run module tests (no fixes or secrets scan)"
-	@echo "  code-format      -> run formatting checks and fixes"
-	@echo "  code-lint        -> check code without modifying files (no secrets scan)"
+	@echo "  qa-format        -> format and test selected modules, then scan secrets"
+	@echo "  qa-check         -> check and test selected modules, then scan secrets"
+	@echo "  qa               -> alias for qa-check"
 	@echo "  test             -> run all unit tests (or TEST_MODULE=aggregator)"
 	@echo "  code-secrets     -> scan secrets with TruffleHog"
-	@echo "  qa-format        -> fix/check each module, run its tests, then scan secrets"
-	@echo "  qa-check         -> check code, run tests and scan secrets (no changes)"
-	@echo "  qa               -> alias for qa-check"
 	@echo "  deps-audit       -> check npm dependency advisories and update suggestions"
+	@echo ""
+	@echo "Positional module selection (omit names to check all):"
+	@echo "  make qa-format aggregator aggregator-ui"
+	@echo "  make qa-check demo shared"
+	@echo "  make qa-check MODULE=demo QA_SCAN_SECRETS=false"
 	@echo ""
 	@echo "Service-scoped (positional args):"
 	@echo "  make down-svc caddy grafana"
@@ -256,11 +258,23 @@ clean-svc: info
 		done; \
 	fi
 
-# ---- Code QA commands ----
-QA_MODULE_ARGS = $(foreach module,$(MODULE),--module $(module))
+# ---- QA commands ----
+# Positional module names are goals to Make, but arguments to the QA command.
+# Keep MODULE=... for existing CI workflows and non-positional callers.
+QA_TARGETS := qa-check qa-format qa
+ifneq ($(filter $(QA_TARGETS),$(MAKECMDGOALS)),)
+QA_POSITIONAL_MODULES := $(filter-out $(QA_TARGETS),$(MAKECMDGOALS))
+ifneq ($(strip $(QA_POSITIONAL_MODULES)),)
+.PHONY: $(QA_POSITIONAL_MODULES)
+$(QA_POSITIONAL_MODULES):
+	@:
+endif
+endif
+QA_SELECTED_MODULES = $(strip $(MODULE) $(QA_POSITIONAL_MODULES))
+QA_MODULE_ARGS = $(foreach module,$(QA_SELECTED_MODULES),--module $(module))
 # CI runs module checks in parallel and scans secrets in a dedicated job.
 QA_SCAN_SECRETS ?= true
-QA_CHECK_COMMAND = $(if $(filter false,$(QA_SCAN_SECRETS)),code-qa,qa)
+QA_SECRETS_ARGS = $(if $(filter false,$(QA_SCAN_SECRETS)),--skip-secrets,)
 
 code-qa:
 	python tools/code_qa/src/main.py code-qa $(QA_MODULE_ARGS)
@@ -278,10 +292,10 @@ code-secrets:
 	python tools/code_qa/src/main.py secrets
 
 qa-format:
-	python tools/code_qa/src/main.py qa-format $(QA_MODULE_ARGS)
+	python tools/code_qa/src/main.py qa-format $(QA_SECRETS_ARGS) $(QA_MODULE_ARGS)
 
 qa-check:
-	python tools/code_qa/src/main.py $(QA_CHECK_COMMAND) $(QA_MODULE_ARGS)
+	python tools/code_qa/src/main.py qa-check $(QA_SECRETS_ARGS) $(QA_MODULE_ARGS)
 
 qa: qa-check
 

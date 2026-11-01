@@ -28,7 +28,7 @@ package lockfile.
 Select a module for code checks or its registered tests:
 
 ```shell
-python tools/code_qa/src/main.py code-qa --module catalog
+python tools/code_qa/src/main.py qa-check --module catalog
 python tools/code_qa/src/main.py lint --module publisher
 python tools/code_qa/src/main.py test --module publisher
 python tools/code_qa/src/main.py format --module publisher
@@ -36,7 +36,7 @@ python tools/code_qa/src/main.py modules
 ```
 
 Repeat `--module` to select several modules; omit it to check all modules.
-`code-qa` runs checks and then tests for each module before starting the next.
+`qa-check` runs checks and then tests for each module before starting the next.
 `qa` follows the same per-module order, then scans repository secrets.
 
 `format` runs checks, formats failed check groups such as Prettier, final

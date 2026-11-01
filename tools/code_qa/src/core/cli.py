@@ -610,8 +610,15 @@ def run_qa_command(
     raw: bool = False,
     out_file: str = "",
     format_before_tests: bool = False,
+    scan_secrets: bool = True,
 ) -> int:
-    """Check or format modules, run their tests, then scan secrets."""
+    """Check or format modules, run tests, and optionally scan secrets."""
+    if not scan_secrets:
+        return run_code_qa_command(
+            modules=modules,
+            out_file=out_file,
+            format_before_tests=format_before_tests,
+        )
     code_qa_rc = run_code_qa_command(
         modules=modules,
         out_file=out_file,
@@ -662,17 +669,26 @@ def build_parser() -> argparse.ArgumentParser:
         "qa",
         help="Check code, run tests, and scan secrets without modifying files.",
     )
+    qa_check_cmd = sub.add_parser(
+        "qa-check",
+        help="Check and test selected modules, then scan repository secrets.",
+    )
     qa_format_cmd = sub.add_parser(
         "qa-format",
         help="Format and test each module, then scan repository secrets.",
     )
-    for command in (qa_cmd, qa_format_cmd):
+    for command in (qa_cmd, qa_check_cmd, qa_format_cmd):
         command.add_argument("--scan-root", default=".")
         command.add_argument("--output-file", default="")
         command.add_argument("--gitignored-output-file", default="")
         command.add_argument("--binary")
         command.add_argument("--raw", action="store_true")
         command.add_argument("--out-file", default="")
+        command.add_argument(
+            "--skip-secrets",
+            action="store_true",
+            help="Skip the repository-wide secrets scan (e.g. in per-module CI).",
+        )
 
     code_qa_cmd = sub.add_parser(
         "code-qa",
@@ -707,7 +723,9 @@ def build_parser() -> argparse.ArgumentParser:
     lint_cmd = sub.add_parser("lint", help="Run code checks without secrets scanning.")
     lint_cmd.add_argument("--out-file", default="")
 
-    for command in (qa_cmd, qa_format_cmd, code_qa_cmd, format_cmd, lint_cmd):
+    for command in (
+        qa_cmd, qa_check_cmd, qa_format_cmd, code_qa_cmd, format_cmd, lint_cmd
+    ):
         command.add_argument(
             "--module",
             action="append",
@@ -738,7 +756,7 @@ def main() -> int:
     configure_redirected_stdout()
     args = build_parser().parse_args()
 
-    if args.command in ("qa", "qa-format"):
+    if args.command in ("qa", "qa-check", "qa-format"):
         return run_qa_command(
             modules=args.module,
             scan_root=args.scan_root,
@@ -748,6 +766,7 @@ def main() -> int:
             raw=args.raw,
             out_file=args.out_file,
             format_before_tests=args.command == "qa-format",
+            scan_secrets=not args.skip_secrets,
         )
 
     if args.command == "code-qa":
