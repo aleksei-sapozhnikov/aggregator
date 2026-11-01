@@ -6,6 +6,7 @@ import sys
 import unittest
 from contextlib import redirect_stdout
 from io import BytesIO, StringIO, TextIOWrapper
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from code_qa.src.core import cli as main
@@ -258,7 +259,7 @@ class OrchestratorFlowTests(unittest.TestCase):
             return True, []
 
         def test(command, _emit, *, verbose):
-            name = "aggregator" if "services-core/aggregator" in command else "aggregator-ui"
+            name = Path(command[command.index("--directory") + 1]).name
             events.append(f"test:{name}")
             return 0, []
 
