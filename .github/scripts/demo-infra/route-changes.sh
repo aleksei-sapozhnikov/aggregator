@@ -35,9 +35,16 @@ fi
 if [[ "$deploy_changed" == true ]]; then
   infra_changed=true
 fi
-# Missing GitOps manifests requires a plan/check, but not an Ansible reapply.
+# GitOps lives on its own protected branch, independent of source force pushes.
+# A missing published release needs rebuilding, not node reconfiguration.
+gitops_branch="${GITOPS_BRANCH:-deploy/demo-gitops}"
+[[ "$gitops_branch" == deploy/demo-gitops ]] || {
+  echo "::error::Unexpected GitOps branch" >&2
+  exit 1
+}
+git fetch --no-tags origin "refs/heads/$gitops_branch" >/dev/null
 bootstrap_missing=false
-if ! git cat-file -e HEAD:deploy/k8s-live/kustomization.yaml 2>/dev/null; then
+if ! git cat-file -e FETCH_HEAD:deploy/k8s-live/kustomization.yaml 2>/dev/null; then
   bootstrap_missing=true
   infra_changed=true
 fi
