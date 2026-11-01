@@ -1,39 +1,36 @@
-# EC2 node for K3s
+# Optional K3s EC2 module
 
-This opt-in Terraform module creates a separate Amazon Linux 2023 EC2 node,
-instance profile, and security group. Cloud-init runs during **first boot**
-to install only minimal prerequisites. After Terraform
-apply, GitHub Actions uses the versioned `environments/demo/src/sh/ssm-node-configure.sh`
-over SSM to fetch the approved commit and run its `environments/demo/src/sh/node-configure.sh`
-entrypoint with [Ansible](../../ansible/README.md). There is no on-node wrapper in the new cloud-init; all configuration
-logic is maintained in Git and invoked over SSM.
+OpenTofu module for the separate, single-node K3s demo. It creates an
+Amazon Linux 2023 instance, profile, security group and encrypted root
+volume. It does not replace or modify the public Compose demo host.
 
-Security and networking:
+The module is used through the [demo infrastructure root](../../README.md);
+the root controls `enable_k3s_node`, AWS permissions and the approved
+workflow. Do not apply this module as a standalone Terraform root.
 
-- IMDSv2 is required, the gp3 root volume is encrypted, and the IAM role
-  grants SSM and Bedrock access within its permissions boundary.
-- Inbound HTTP (80) serves the demo through K3s Traefik and ServiceLB.
-  There is no SSH key pair, port 22, public Kubernetes API port, or public
-  Argo CD endpoint.
-- The instance gets an ephemeral public IPv4 address, **not** an Elastic IP.
-  It may change after a stop/start; the existing demo IP is not changed.
-- Session Manager provides interactive access as `ec2-user`, with sudo
-  for node configuration.
+## Provisioning and configuration
 
-There is no bootstrap Git variable: the SSM command receives the exact
-GitHub workflow commit SHA. The cloud-init template does not depend on
-application or Ansible revisions. A cloud-init template change is a
-reviewed EC2 replacement so first-boot initialization is applied reliably.
-Subsequent Ansible changes run on the existing node through SSM.
+Cloud-init installs minimal first-boot prerequisites. The
+[demo pipeline](../../../WORKFLOW.md) subsequently uses AWS SSM to
+check out the approved source revision and apply
+[Ansible configuration](../../../ansible/README.md). K3s, Traefik,
+Argo CD and the GitOps Application are managed there, not by cloud-init.
+Changes to node configuration can be applied through SSM without replacing
+the instance; changing first-boot cloud-init needs deliberate review of
+the resulting EC2 replacement.
 
-The K3s and Argo CD versions are pinned inside the Ansible configuration.
-Changing them is a deliberate upgrade, not a Terraform replacement.
-The default K3s Traefik/ServiceLB serves the application on the instance public
-IP over plain HTTP. No DNS or TLS certificate is provisioned, and 443 should
-remain closed until HTTPS is explicitly configured. The default K3s instance
-is t3.medium for an initial cost-conscious trial. Monitor memory pressure
-and OOMKilled pods; a larger size may still be required.
+## Network and operational limits
 
-The public HTTP address is available from OpenTofu output `k3s_public_ip`
-after a successful reviewed deployment. The full release pipeline and
-security limitations are described in [the K3s deployment README](../../../../deploy/kubernetes/README.md).
+- Port 80 serves the Kubernetes demo over plain HTTP through Traefik.
+  There is no DNS or HTTPS endpoint; do not transmit sensitive data.
+- There is no SSH key, inbound SSH port, public Kubernetes API, or public
+  Argo CD UI. Use Session Manager and the private SSM dashboard tunnel.
+- IMDSv2 is required, and the EC2 role operates under a permission
+  boundary. The instance has a **non-static** public IP, not an Elastic IP.
+- The default instance is `t3.medium` with a 50 GiB root volume.
+  Monitor memory, disk, scheduling failures and OOMKilled pods.
+
+After approved deployment, read the root's `k3s_public_ip` output
+and verify Argo CD Synced/Healthy and the app independently. Replacing or
+destroying the instance loses K3s local-path monitoring data. See
+[K3s release and rollback](../../../../../deploy/kubernetes/README.md).

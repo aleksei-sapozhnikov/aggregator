@@ -21,9 +21,10 @@ npm ci
 npm run dev
 ```
 
-The Vite development server listens on port 3000. Catalog, Product Health,
-Grafana and optional AI routes must be reachable via the development proxy;
-use the full Compose stack if you do not have those services running.
+The Vite development server listens on port 3000. It does **not**
+configure an API reverse proxy; catalog and Product Health requests will
+fail unless you provide the required same-origin routes separately.
+Use the Compose stack for a functional integrated environment.
 For runtime configuration and exposed local ports, see
 [Running locally](../../docs/running-locally.md).
 

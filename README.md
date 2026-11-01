@@ -118,20 +118,6 @@ Health propagation is deterministic:
 
 ---
 
-## Why so many technologies?
-
-Partly because it is more interesting than a single-stack toy app, but also
-because it mirrors a real company with history. Different teams know different
-stacks, services appear at different times, and ownership boundaries outlive
-framework choices. A useful platform should still work across those differences.
-
-That is why the repository has a Java backend, a Go catalog service, a React UI,
-Python demo automation, Java/Python/JavaScript dummy services, Prometheus,
-Grafana, Caddy, Docker Compose, and shared QA tooling. The important boundary is
-not the language. It is the contract between services.
-
----
-
 ## Run it locally
 
 You need Docker or Podman with Compose support. From the repository root:
@@ -174,39 +160,34 @@ uses the instance IAM role.
 
 ---
 
-## Repository map
+## Module documentation
 
-- [services/aggregator](services/aggregator): Java / Spring Boot
-  backend. Loads catalog and signal definitions, polls health endpoints,
-  propagates health through the dependency graph, exposes current health facts,
-  and exports derived metrics.
-- [services/ai-agent](services/ai-agent): optional Python service that
-  answers natural-language health questions by calling the aggregator REST API
-  and using a configured model provider.
-- [services/catalog](services/catalog): Go service. Owns catalog
-  files, JSON schemas, validation, and the catalog HTTP API.
-- [services/aggregator-ui](services/aggregator-ui): React frontend
-  served by Caddy.
-- [services/prometheus](services/prometheus): metrics collection.
-- [services/grafana](services/grafana): dashboards used by the UI.
-- [services/chaos-maker](services/chaos-maker): Python service that
-  changes demo-service state.
-- [services/dummy-java](services/dummy-java),
-  [services/dummy-python](services/dummy-python), and
-  [services/dummy-javascript](services/dummy-javascript): simulated
-  services with health endpoints.
+The main services each document their role, integration boundary, and
+developer entrypoints:
 
-More detail:
+- [Health aggregator](services/aggregator/README.md): Java service that
+  calculates and exposes deterministic Product Health.
+- [Catalog](services/catalog/README.md): Go service owning catalog records
+  and HTTP signal definitions.
+- [Web UI](services/aggregator-ui/README.md): React interface, navigation,
+  connection states, and optional chat.
+- [AI agent](services/ai-agent/README.md): optional natural-language access
+  to health facts, backed by AWS Bedrock.
+- [Prometheus](services/prometheus/README.md) and
+  [Grafana](services/grafana/README.md): historical metrics and visualization.
+- [Chaos maker](services/chaos-maker/README.md) and the
+  [Java](services/dummy-java/README.md),
+  [Python](services/dummy-python/README.md), and
+  [JavaScript](services/dummy-javascript/README.md) dummy services:
+  demonstration failures and recovery.
 
-- [docs/services.md](docs/services.md) contains detailed architecture and
-  interaction diagrams.
-- [docs/development.md](docs/development.md) covers formatting, linting, and git
-  hooks.
-- [environments/demo/README.md](environments/demo/README.md) covers the hosted demo stack.
-- [environments/shared/infra/administration/README.md](environments/shared/infra/administration/README.md) documents project IAM
-  administration. [environments/demo/infra/README.md](environments/demo/infra/README.md) covers demo
-  infrastructure and Ansible. [environments/shared/README.md](environments/shared/README.md)
-  covers workload infrastructure and state separation. Publication automation
-  lives in [tools/publisher](tools/publisher/README.md).
-- [tools/code_qa/README.md](tools/code_qa/README.md) describes the repository
-  QA runner and available module-level checks.
+For architecture and operations:
+
+- [Architecture and data flow](docs/services.md)
+- [Development and checks](docs/development.md)
+- [Local Compose environments](deploy/compose/README.md)
+- [Hosted demo and release workflow](environments/demo/README.md)
+- [K3s GitOps deployment](deploy/kubernetes/README.md)
+- [Project infrastructure ownership](environments/shared/README.md)
+- [Publication automation](tools/publisher/README.md)
+- [Code QA](tools/code_qa/README.md)

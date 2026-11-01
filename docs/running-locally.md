@@ -52,7 +52,7 @@ Examples:
 ```shell
 make up ENV=local
 make rebuild-recreate ENV=local-demo
-IMAGE_TAG=<published-commit-sha> make deploy ENV=demo
+# Hosted demo deployment is handled by the GitHub Actions + SSM workflow.
 ```
 
 ## Local ports
