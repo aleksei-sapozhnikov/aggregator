@@ -26,6 +26,21 @@ Configure module paths, check profiles, and test commands in
 [`src/core/modules.py`](src/core/modules.py). A module's test configuration
 selects an executor and passes it module-relative arguments.
 
+## Make shortcuts
+
+From the repository root:
+
+```shell
+make qa-format                  # Format, then run checks, tests and secrets scan
+make qa-check                   # Check, test and scan without changing files
+make qa-check MODULE=catalog    # Restrict code checks and tests to one module
+```
+
+`qa-format` runs `code-format` before `qa-check` and stops if formatting
+cannot be completed. `qa` remains an alias for `qa-check`. In CI, module
+jobs use `make qa-check MODULE=<name> QA_SCAN_SECRETS=false` to avoid
+repeated secret scans; the dedicated secrets job uses `make code-secrets`.
+
 ## Commands
 
 | Command   | Purpose                                                      |
