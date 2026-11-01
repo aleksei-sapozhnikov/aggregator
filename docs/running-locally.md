@@ -45,7 +45,7 @@ make help
 
 - `local-demo` (default): full local demo with dummy services and chaos-maker.
 - `local`: core stack without demo service overlay.
-- `demo`: hosted demo with public Caddy and GHCR images, tagged by `IMAGE_TAG`.
+- `demo`: hosted Compose demo with public Caddy and separately tagged GHCR images; releases are orchestrated by the demo deployment workflow.
 
 Examples:
 
