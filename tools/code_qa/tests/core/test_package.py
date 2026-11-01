@@ -49,13 +49,13 @@ class PackageLayoutTests(unittest.TestCase):
                 check=False,
             )
         self.assertEqual(result.returncode, 0, result.stderr)
-        project = Path(__file__).resolve().parents[1]
+        project = Path(__file__).resolve().parents[2]
         self.assertEqual(
             json.loads(result.stdout), [str(project), str(project.parent.parent)]
         )
 
     def test_public_entrypoint_imports_the_cli_without_running_checks(self) -> None:
-        entrypoint = Path(__file__).resolve().parents[1] / "src" / "main.py"
+        entrypoint = Path(__file__).resolve().parents[2] / "src" / "main.py"
         namespace = runpy.run_path(str(entrypoint), run_name="entrypoint_import")
         run = MagicMock(return_value=0)
         with (

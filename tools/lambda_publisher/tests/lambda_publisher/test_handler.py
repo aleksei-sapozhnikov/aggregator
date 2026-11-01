@@ -7,7 +7,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-SOURCE_ROOT = Path(__file__).resolve().parent.parent / "src"
+SOURCE_ROOT = Path(__file__).resolve().parents[2] / "src"
 sys.path.insert(0, str(SOURCE_ROOT))
 
 from lambda_publisher.handler import _github_tokens
