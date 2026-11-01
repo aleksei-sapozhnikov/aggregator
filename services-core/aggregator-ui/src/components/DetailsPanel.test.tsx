@@ -183,6 +183,69 @@ describe("DetailsPanel contextual help", () => {
     ).toBeNull();
   });
 
+  it.each([
+    {
+      title: "Unhealthy signals",
+      remove: { selectedFailingSignals: [], failingDependencies: [] },
+      label: "Toggle Unhealthy signals",
+    },
+    {
+      title: "Healthy signals",
+      remove: { passingSignalsCount: 0, selectedPassingSignals: [] },
+      label: "Toggle Healthy signals",
+    },
+    {
+      title: "Actors",
+      remove: { selectedItemActors: null },
+      label: "Toggle Actors",
+    },
+    {
+      title: "Primary contact",
+      remove: { actorContactsByActorId: new Map() },
+      label: "About Primary contact",
+    },
+    {
+      title: "Timeline",
+      remove: { selectedItem: undefined },
+      label: "Toggle Timeline",
+    },
+  ])(
+    "keeps $title contextual help open after the source section disappears",
+    async ({ title, remove, label }) => {
+      const { props, rerender, user } = renderDetailsPanel();
+
+      await user.click(screen.getByRole("button", { name: "About " + title }));
+      const dialog = screen.getByRole("dialog", { name: "About " + title });
+      expect(dialog.textContent).toContain(title);
+
+      rerender(<DetailsPanel {...props} {...remove} />);
+      expect(screen.queryByRole("button", { name: label })).toBeNull();
+      expect(screen.getByRole("dialog", { name: "About " + title })).toBe(dialog);
+
+      await user.click(screen.getByRole("button", { name: "Close contextual help" }));
+      expect(screen.queryByRole("dialog", { name: "About " + title })).toBeNull();
+      expect(screen.queryByRole("button", { name: label })).toBeNull();
+    },
+  );
+
+  it("keeps Timeline help open when the selected Item changes", async () => {
+    const { props, rerender, user } = renderDetailsPanel();
+
+    await user.click(screen.getByRole("button", { name: "About Timeline" }));
+    const dialog = screen.getByRole("dialog", { name: "About Timeline" });
+    rerender(
+      <DetailsPanel
+        {...props}
+        selectedItem={{ id: "payments", title: "Payments Service" }}
+        selectedTitleFirstWord="Payments"
+        selectedTitleRest="Service"
+      />,
+    );
+    expect(screen.getByRole("dialog", { name: "About Timeline" })).toBe(dialog);
+    await user.click(screen.getByRole("button", { name: "Close contextual help" }));
+    expect(screen.queryByRole("dialog", { name: "About Timeline" })).toBeNull();
+  });
+
   it("shows catalog short description in the item information tooltip", async () => {
     const { user } = renderDetailsPanel({
       selectedItem: {

@@ -10,7 +10,7 @@ export type InfoHelpTopic = {
       text: string;
     }[];
   }[];
-  demo?: "timeline";
+  demo?: "timeline" | "healthy-signals" | "unhealthy-signals";
   details?: {
     label: string;
     value: string;
@@ -36,6 +36,7 @@ export const infoHelpTopics = {
       "Signals currently contributing to this item's unhealthy state. Click for details.",
     description:
       "Unhealthy signals show what is currently affecting the health of this item. The list can include the item's own failing signals and failing signals coming from its dependencies. Dependencies are shown with their relevant signals so you can see where the problem originates and open the dependency for more detail.",
+    demo: "unhealthy-signals",
   },
   healthySignals: {
     title: "Healthy signals",
@@ -43,6 +44,7 @@ export const infoHelpTopics = {
       "Signals on this item that are currently healthy. Click for details.",
     description:
       "Healthy signals are the selected item's own health signals that are currently passing. They are kept separate from unhealthy signals so the main view can focus on what is affecting the item while healthy evidence remains available when needed.",
+    demo: "healthy-signals",
   },
   timeline: {
     title: "Timeline",
