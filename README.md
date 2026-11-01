@@ -206,6 +206,7 @@ More detail:
 - [infra/administration/README.md](infra/administration/README.md) documents project IAM
   administration. [infra/demo/README.md](infra/demo/README.md) covers demo
   infrastructure and Ansible. [infra/README.md](infra/README.md)
-  covers workload infrastructure and state separation. Publication automation\n  lives in [tools/publisher](tools/publisher/README.md).
+  covers workload infrastructure and state separation. Publication automation
+  lives in [tools/publisher](tools/publisher/README.md).
 - [tools/code_qa/README.md](tools/code_qa/README.md) describes the repository
   QA runner and available module-level checks.

@@ -37,7 +37,7 @@ checks (JSON, YAML, line endings, Prettier, trailing whitespace, and final
 newline) apply to every module before or after specialized checks.
 Components nested inside a module are configured as scoped checks and suites,
 never as separate CI modules. In particular, `infra-demo` owns Ansible and
-`deploy-infra` owns publication OpenTofu and publication-tools.
+`publisher` owns publication OpenTofu, operator tools, and Lambda runtime.
 
 The default `python tools/code_qa/src/main.py qa` command and Make aliases remain
 the supported entrypoints. A single module can also be orchestrated directly:

@@ -28,7 +28,6 @@ MODULE_IMPORTS = (
     "code_qa.module_checks.deploy.argocd",
     "code_qa.module_checks.deploy.compose",
     "code_qa.module_checks.deploy.demo",
-    "code_qa.module_checks.deploy.infra",
     "code_qa.module_checks.deploy.kubernetes",
     "code_qa.module_checks.infra.administration",
     "code_qa.module_checks.infra.demo",
@@ -36,7 +35,7 @@ MODULE_IMPORTS = (
     "code_qa.module_checks.tools.code_qa",
     "code_qa.module_checks.tools.dependency_audit",
     "code_qa.module_checks.tools.git_hooks",
-    "code_qa.module_checks.tools.lambda_publisher",
+    "code_qa.module_checks.tools.publisher",
     "code_qa.module_checks.tools.prune_squashed_branches",
 )
 

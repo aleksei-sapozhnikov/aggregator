@@ -54,17 +54,18 @@ class ModuleConfigurationTests(unittest.TestCase):
     def test_module_files_include_nested_directories_but_not_other_modules(self) -> None:
         root = Path(tempfile.gettempdir()).resolve() / "qa-module-paths"
         paths = [
-            module_path(root, "deploy-infra", "publication/main.tf"),
-            module_path(root, "deploy-infra", "publication/tools/src/tool.py"),
-            module_path(root, "lambda-publisher", "src/publisher.py"),
-            module_path(root, "deploy-infra", "README.md"),
+            module_path(root, "publisher", "infra/main.tf"),
+            module_path(root, "publisher", "infra/tools/src/tool.py"),
+            module_path(root, "publisher", "lambda_publisher/src/lambda_publisher/handler.py"),
+            module_path(root, "code-qa", "src/core/cli.py"),
+            module_path(root, "publisher", "README.md"),
         ]
         self.assertEqual(
-            inputs.files_in_module(root, "deploy-infra", paths),
-            [paths[0], paths[1], paths[3]],
+            inputs.files_in_module(root, "publisher", paths),
+            [paths[0], paths[1], paths[2], paths[4]],
         )
         self.assertEqual(
-            inputs.files_in_module(root, "lambda-publisher", paths), [paths[2]]
+            inputs.files_in_module(root, "code-qa", paths), [paths[3]]
         )
 
     def test_python_modules_keep_implementation_in_src(self) -> None:
@@ -102,17 +103,17 @@ class ModuleConfigurationTests(unittest.TestCase):
         root = repo_root()
         check = next(
             check for check in cli.CHECKS
-            if check.check_id == "deploy-infra/publication/tofu-validate"
+            if check.check_id == "publisher/infra/tofu-validate"
         )
-        self.assertEqual(check.module, "deploy-infra")
-        self.assertEqual(check.scope_path, "deploy/infra/publication")
+        self.assertEqual(check.module, "publisher")
+        self.assertEqual(check.scope_path, "tools/publisher/infra")
         with patch.object(cli, "run_module", return_value=(True, [])) as run:
             self.assertEqual(
                 cli.execute_check(check, check.check_args, root, []), (True, [])
             )
         self.assertEqual(
             run.call_args.args[1][run.call_args.args[1].index("--directory") + 1],
-            str(root / "deploy/infra/publication"),
+            str(root / "tools/publisher/infra"),
         )
 
     def test_infra_roots_and_ansible_are_registered(self) -> None:
@@ -128,15 +129,30 @@ class ModuleConfigurationTests(unittest.TestCase):
             "unittest_tests",
         )
         self.assertIn(
-            "deploy-infra/publication/tflint", [c.check_id for c in cli.CHECKS]
+            "publisher/infra/tflint", [c.check_id for c in cli.CHECKS]
         )
         self.assertIn(
-            "deploy-infra/publication-tools/ruff-lint",
+            "publisher/infra-tools/ruff-lint",
             [c.check_id for c in cli.CHECKS],
         )
         self.assertEqual(
-            modules.MODULE_BY_NAME["deploy-infra"].scoped_tests[0].tests.kind,
+            modules.MODULE_BY_NAME["publisher"].scoped_tests[0].tests.kind,
             "unittest_tests",
+        )
+
+    def test_publisher_runs_both_python_test_suites(self) -> None:
+        root = repo_root()
+        commands = cli.test_commands(modules.MODULE_BY_NAME["publisher"], root)
+        self.assertEqual(
+            [label for label, _ in commands],
+            ["publisher (infra-tools)", "publisher (lambda_publisher)"],
+        )
+        self.assertEqual(
+            [Path(command[command.index("--directory") + 1]) for _, command in commands],
+            [
+                root / "tools/publisher/infra/tools",
+                root / "tools/publisher/lambda_publisher",
+            ],
         )
 
     def test_shared_tflint_config_is_forwarded_to_scoped_checks(self) -> None:
