@@ -99,6 +99,13 @@ class FingerprintTests(unittest.TestCase):
         self.assertEqual(before, module.fingerprint())
         self.assertIn("ansible_changed=false", self.check(f"{NODE}:{before}"))
 
+    def test_ansible_change_check_uses_the_sibling_python_script(self) -> None:
+        script = (
+            Path(__file__).resolve().parents[2]
+            / "src/sh/detect-ansible-changes.sh"
+        ).read_text(encoding="utf-8")
+        self.assertIn("../python/config_fingerprint.py", script)
+
     def test_changed_ansible_content_triggers_reconciliation(self) -> None:
         before = module.fingerprint()
         self.write("environments/demo/ansible/group_vars/all.yml", "k3s_version: v2\n")
