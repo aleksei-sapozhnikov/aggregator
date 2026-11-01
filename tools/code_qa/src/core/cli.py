@@ -46,6 +46,7 @@ class CheckSpec:
     global_scope: bool = False
     input_kind: str = "files"
     skip_on_windows: bool = False
+    scope_path: str | None = None
 
 
 CHECK_TEMPLATES: list[CheckSpec] = [
@@ -186,6 +187,17 @@ def module_checks() -> list[CheckSpec]:
                     module=module.name,
                 )
             )
+        for group in module.scoped_checks:
+            for check_id in group.checks:
+                spec = templates[check_id]
+                checks.append(
+                    replace(
+                        spec,
+                        check_id=f"{module.name}/{group.name}/{check_id}",
+                        module=module.name,
+                        scope_path=group.path,
+                    )
+                )
     return checks
 
 
@@ -218,7 +230,7 @@ def execute_check(
 
     if spec.input_kind == "project":
         assert spec.module is not None
-        directory = root / MODULE_BY_NAME[spec.module].path
+        directory = root / (spec.scope_path or MODULE_BY_NAME[spec.module].path)
         parameters = [
             *args,
             "--directory",
@@ -238,6 +250,9 @@ def execute_check(
             )
         return run_module(spec.runner, parameters)
 
+    if spec.scope_path:
+        directory = (root / spec.scope_path).resolve()
+        paths = [path for path in paths if path.resolve().is_relative_to(directory)]
     files = [path for path in paths if path.is_file()]
     if not files:
         return True, []
@@ -503,6 +518,22 @@ def test_command(module: ModuleSpec, root: Path, *, verbose: bool = False) -> li
     ]
 
 
+def test_commands(
+    module: ModuleSpec, root: Path, *, verbose: bool = False
+) -> list[tuple[str, list[str]]]:
+    """Include suites owned by nested directories in the parent module."""
+    result = []
+    if module.tests is not None:
+        result.append((module.name, test_command(module, root, verbose=verbose)))
+    for group in module.scoped_tests:
+        scoped = replace(module, path=group.path, tests=group.tests)
+        result.append((
+            f"{module.name} ({group.name})",
+            test_command(scoped, root, verbose=verbose),
+        ))
+    return result
+
+
 def execute_test(
     command: list[str], emit: Callable[[str], None], *, verbose: bool
 ) -> tuple[int, list[str]]:
@@ -551,26 +582,23 @@ def run_test_command(
             modules if modules is not None else TEST_MODULE_NAMES
         ):
             module = MODULE_BY_NAME[name]
-            if module.tests is None:
-                continue
-            if not (root / module.path).is_dir():
-                emit(
-                    f"Testing {name}.. FAILED (missing directory: {root / module.path})"
-                )
-                failed.append(name)
-                continue
-            command = test_command(module, root, verbose=verbose)
-            if verbose:
-                emit(f"Testing {name}...")
-                emit(f"  command: {' '.join(command)}")
-            status, details = execute_test(command, emit, verbose=verbose)
-            emit(f"Testing {name}.. {'OK' if status == 0 else 'FAILED'}")
-            if status != 0:
-                failed.append(name)
-                if not verbose:
+            for label, command in test_commands(module, root, verbose=verbose):
+                directory = Path(command[command.index("--directory") + 1])
+                if not directory.is_dir():
+                    emit(f"Testing {label}.. FAILED (missing directory: {directory})")
+                    failed.append(name)
+                    continue
+                if verbose:
+                    emit(f"Testing {label}...")
                     emit(f"  command: {' '.join(command)}")
-                for line in details:
-                    emit(line)
+                status, details = execute_test(command, emit, verbose=verbose)
+                emit(f"Testing {label}.. {'OK' if status == 0 else 'FAILED'}")
+                if status != 0:
+                    failed.append(name)
+                    if not verbose:
+                        emit(f"  command: {' '.join(command)}")
+                    for line in details:
+                        emit(line)
         emit(f"=== TESTS: {'FAILED' if failed else 'PASSED'} ===")
         if failed:
             emit(f"Failed modules: {', '.join(failed)}")
@@ -611,20 +639,23 @@ def run_code_qa_command(
                 checks_ok, _ = _run_checks(emit, [module.name])
             if not checks_ok:
                 failed = True
-                if module.tests is not None:
+                if module.has_tests:
                     emit(f"  Testing {module.name}.. SKIPPED (checks failed)")
                 continue
-            if module.tests is None:
-                continue
 
-            command = test_command(module, root)
-            status, details = execute_test(command, emit, verbose=False)
-            emit(f"  Testing {module.name}.. {'OK' if status == 0 else 'FAILED'}")
-            if status != 0:
-                failed = True
-                emit(f"    command: {' '.join(command)}")
-                for line in details:
-                    emit(f"    {line}")
+            for label, command in test_commands(module, root):
+                directory = Path(command[command.index("--directory") + 1])
+                if not directory.is_dir():
+                    failed = True
+                    emit(f"  Testing {label}.. FAILED (missing directory: {directory})")
+                    continue
+                status, details = execute_test(command, emit, verbose=False)
+                emit(f"  Testing {label}.. {'OK' if status == 0 else 'FAILED'}")
+                if status != 0:
+                    failed = True
+                    emit(f"    command: {' '.join(command)}")
+                    for line in details:
+                        emit(f"    {line}")
 
         if not suppress_final_summary:
             emit_final_summary(emit, not failed)
