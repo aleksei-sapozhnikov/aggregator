@@ -31,6 +31,21 @@ The pinned K3s version is fixed, but its installer is downloaded from
 `get.k3s.io` without a pinned installer checksum. Treat this as a demo
 supply-chain limitation.
 
+## Local code QA
+
+The repository-wide `code_qa` orchestrator runs Ansible syntax checks,
+offline `ansible-lint` (basic profile), YAML/format checks and node
+configuration contract tests:
+
+```sh
+make qa-check MODULE=infra-demo-ansible QA_SCAN_SECRETS=false
+```
+
+Run this on Linux or through WSL on Windows. QA installs pinned Ansible tools
+into the ignored `.local/qa-runtime/ansible` directory and does not require
+AWS credentials or an EC2 connection. The demo pipeline runs the same QA
+module before planning infrastructure changes.
+
 ## Verify the node
 
 Inside an authorized AWS Session Manager session:
