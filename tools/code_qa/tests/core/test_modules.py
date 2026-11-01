@@ -94,7 +94,7 @@ class ModuleConfigurationTests(unittest.TestCase):
             set(paths),
             {
                 f"{group}/{directory.name}"
-                for group in ("services", "infra", "deploy", "tools")
+                for group in ("services", "environments", "deploy", "tools")
                 for directory in (root / group).iterdir()
                 if directory.is_dir()
                 and directory.name not in {
@@ -125,16 +125,17 @@ class ModuleConfigurationTests(unittest.TestCase):
             str(root / "tools/publisher/infra"),
         )
 
-    def test_infra_roots_and_ansible_are_registered(self) -> None:
-        for name in ("infra-administration", "infra-state", "infra-demo"):
-            with self.subTest(module=name):
-                self.assertEqual(modules.MODULE_BY_NAME[name].code, "tofu_code")
-                self.assertIn(f"{name}/tflint", [c.check_id for c in cli.CHECKS])
+    def test_shared_infra_roots_and_demo_ansible_are_registered(self) -> None:
+        for name in ("administration", "state"):
+            self.assertIn(
+                f"shared/{name}/tflint", [c.check_id for c in cli.CHECKS]
+            )
+        self.assertIn("demo/infra/tflint", [c.check_id for c in cli.CHECKS])
         self.assertIn(
-            "infra-demo/ansible/ansible-lint", [c.check_id for c in cli.CHECKS]
+            "demo/ansible/ansible-lint", [c.check_id for c in cli.CHECKS]
         )
         self.assertEqual(
-            modules.MODULE_BY_NAME["infra-demo"].scoped_tests[0].tests.kind,
+            modules.MODULE_BY_NAME["demo"].scoped_tests[0].tests.kind,
             "unittest_tests",
         )
         self.assertIn(
@@ -171,7 +172,7 @@ class ModuleConfigurationTests(unittest.TestCase):
     def test_shared_tflint_config_is_forwarded_to_scoped_checks(self) -> None:
         root = repo_root()
         config_path = (root / ".tflint.hcl").resolve()
-        check = next(c for c in cli.CHECKS if c.check_id == "infra-state/tflint")
+        check = next(c for c in cli.CHECKS if c.check_id == "shared/state/tflint")
 
         def inspect(runner: str, args: list[str]) -> tuple[bool, list[str]]:
             self.assertEqual(runner, "code_qa.src.checks.format.tflint")
@@ -192,21 +193,21 @@ class ModuleConfigurationTests(unittest.TestCase):
 
     def test_demo_ansible_is_scoped_under_the_parent_module(self) -> None:
         root = Path(tempfile.gettempdir()).resolve() / "qa-demo-module-paths"
-        tofu_file = module_path(root, "infra-demo", "main.tf")
-        playbook = module_path(root, "infra-demo", "ansible/site.yml")
+        tofu_file = module_path(root, "demo", "infra/main.tf")
+        playbook = module_path(root, "demo", "ansible/site.yml")
         self.assertEqual(
-            inputs.files_in_module(root, "infra-demo", [tofu_file, playbook]),
+            inputs.files_in_module(root, "demo", [tofu_file, playbook]),
             [tofu_file, playbook],
         )
         check = next(
             c for c in cli.CHECKS
-            if c.check_id == "infra-demo/ansible/ansible-lint"
+            if c.check_id == "demo/ansible/ansible-lint"
         )
-        self.assertEqual(check.scope_path, "infra/demo/ansible")
-        command = cli.test_commands(modules.MODULE_BY_NAME["infra-demo"], root)[0][1]
+        self.assertEqual(check.scope_path, "environments/demo/ansible")
+        command = cli.test_commands(modules.MODULE_BY_NAME["demo"], root)[0][1]
         self.assertEqual(
             command[command.index("--directory") + 1],
-            str(root / "infra/demo/ansible"),
+            str(root / "environments/demo"),
         )
 
     def test_file_checks_receive_only_the_configured_module_directory(self) -> None:
@@ -239,18 +240,18 @@ class ModuleConfigurationTests(unittest.TestCase):
 
     def test_changed_paths_are_passed_to_project_checks(self) -> None:
         root = repo_root()
-        changed = module_path(root, "infra-administration", "removed.tf")
+        changed = module_path(root, "shared", "administration/removed.tf")
         check = next(
             check
             for check in cli.CHECKS
-            if check.check_id == "infra-administration/tofu-format"
+            if check.check_id == "shared/administration/tofu-format"
         )
 
         def inspect(runner: str, args: list[str]) -> tuple[bool, list[str]]:
             self.assertEqual(runner, "code_qa.src.checks.format.tofu")
             self.assertEqual(
                 args[args.index("--directory") + 1],
-                str(root / modules.MODULE_BY_NAME["infra-administration"].path),
+                str(root / "environments/shared/administration"),
             )
             self.assertEqual(args[args.index("--workspace-root") + 1], str(root))
             manifest = Path(args[args.index("--changed-files-from") + 1])
@@ -270,10 +271,10 @@ class ModuleConfigurationTests(unittest.TestCase):
         run.assert_called_once()
 
     def test_administration_module_uses_the_current_directory(self) -> None:
-        module = modules.MODULE_BY_NAME["infra-administration"]
-        self.assertEqual(module.path, "infra/administration")
+        module = modules.MODULE_BY_NAME["shared"]
+        self.assertEqual(module.path, "environments/shared")
         self.assertTrue((repo_root() / module.path).is_dir())
-        self.assertNotIn("infra-bootstrap", modules.MODULE_BY_NAME)
+        self.assertIn("shared/administration/tofu-validate", [c.check_id for c in cli.CHECKS])
 
     def test_moving_a_module_only_changes_its_configured_path(self) -> None:
         root = Path(tempfile.gettempdir()).resolve() / "qa-relocation"

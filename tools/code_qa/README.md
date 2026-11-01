@@ -10,9 +10,9 @@ module_checks/
   common/
     repository.py    Repository-wide checks (not a second-level module)
     secrets.py       Repository-wide TruffleHog scan
-  infra/             administration.py, demo.py, state.py
+  environments/      demo.py, shared.py
   services/          aggregator.py, aggregator_ui.py, catalog.py, ...
-  deploy/            compose.py, demo.py, kubernetes.py
+  deploy/            compose.py, kubernetes.py
   tools/             argocd.py, code_qa.py, dependency_audit.py, ...
   registry.py        Module discovery and CI matrix
   specs.py           Module, nested check, and test contracts
@@ -36,14 +36,14 @@ in `module_checks` configure its code-specific checks and tests. Default
 checks (JSON, YAML, line endings, Prettier, trailing whitespace, and final
 newline) apply to every module before or after specialized checks.
 Components nested inside a module are configured as scoped checks and suites,
-never as separate CI modules. In particular, `infra-demo` owns Ansible and
+never as separate CI modules. In particular, `demo` owns Ansible and
 `publisher` owns publication OpenTofu, operator tools, and Lambda runtime.
 
 The default `python tools/code_qa/src/main.py qa` command and Make aliases remain
 the supported entrypoints. A single module can also be orchestrated directly:
 
 ```sh
-python -m code_qa.module_checks.infra.demo
+python -m code_qa.module_checks.environments.demo
 ```
 
 This direct Python-module form requires `tools/` on `PYTHONPATH`.
@@ -85,7 +85,7 @@ secret scans; the dedicated secrets job uses `make code-secrets`.
 Use `--module NAME` to select one or more modules. For example:
 
 ```shell
-python tools/code_qa/src/main.py lint --module infra-demo
+python tools/code_qa/src/main.py lint --module demo
 python tools/code_qa/src/main.py test --module catalog
 ```
 
@@ -107,7 +107,7 @@ OpenTofu deliberately differs: a changed infrastructure source triggers
 modules. Review these changes before committing. TFLint uses the single
 repository-root `.tflint.hcl` for the OpenTofu roots; changes to
 that file trigger lint in every infrastructure module even in scoped hooks.
-The `infra-demo` module includes pinned Ansible syntax and `ansible-lint`
+The `demo` module includes pinned Ansible syntax and `ansible-lint`
 checks, as well as its configuration contract tests. Ansible dependencies
 use an isolated local environment, not the general QA Python toolchain.
 Ansible lint is skipped on native Windows (not marked passed); Linux and WSL enforce it.

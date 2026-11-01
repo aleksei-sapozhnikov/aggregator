@@ -70,7 +70,7 @@ jobs:
           tofu_wrapper: false
       - name: Validate demo OpenTofu, Ansible and contracts with shared code QA
         shell: bash
-        run: make qa-check MODULE=infra-demo QA_SCAN_SECRETS=false
+        run: make qa-check MODULE=demo QA_SCAN_SECRETS=false
       - name: Validate bootstrap scripts and node contracts
         shell: bash
         run: bash environments/demo/src/sh/check-ansible.sh
