@@ -1,16 +1,13 @@
 """Tests for deterministic per-service demo image tag generation."""
 
 import os
-import sys
 import subprocess
 import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-
-from image_tags import (
+from src.image_tags import (
     SERVICES,
     build_images,
     compose_exports,
@@ -121,7 +118,7 @@ class ImageTagsTests(unittest.TestCase):
 
             return Result()
 
-        with patch("image_tags.subprocess.run", side_effect=inspect):
+        with patch("src.image_tags.subprocess.run", side_effect=inspect):
             missing = plan_missing(images, "ExampleOwner")
         self.assertEqual([image["service"] for image in missing], ["catalog"])
 
