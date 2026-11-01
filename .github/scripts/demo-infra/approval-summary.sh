@@ -17,7 +17,7 @@ set -euo pipefail
     echo "- **Terraform:** No infrastructure changes. Terraform Apply will be skipped."
   fi
   if [[ "$ANSIBLE_CHANGED" == true || "$K3S_CREATED" == true ]]; then
-    echo "- **Ansible:** Reapply the playbook over AWS SSM to the K3s EC2 (if provisioned). This can change packages, services and Kubernetes configuration."
+    echo "- **Ansible:** Apply the reviewed node configuration over AWS SSM. The desired fingerprint differs from the last successful SSM record, or a new K3s node/manual reapply requires it."
   else
     echo "- **Ansible:** No run required; the K3s EC2 is not being created or reconfigured."
   fi
@@ -66,35 +66,9 @@ set -euo pipefail
   if [[ "$ANSIBLE_CHANGED" == true ]]; then
     cat "$RUNNER_TEMP/ansible-change-reason.txt"
     echo
-    echo "**Execution:** The existing K3s node is configured through SSM after approval; the playbook runs with root privileges. A Git diff describes source changes, not a remote Ansible check-mode plan."
-    if [[ -s "$RUNNER_TEMP/ansible-changed-files.txt" ]]; then
-      echo
-      echo "Changed source files: $(wc -l < "$RUNNER_TEMP/ansible-changed-files.txt" | tr -d ' '). Expand the Git diff below to review them."
-      echo
-      echo "<details>"
-      echo "<summary>Changed Ansible files and Git diff (expand to inspect)</summary>"
-      echo
-      echo "**Changed files:**"
-      echo
-      echo '~~~text'
-      cat "$RUNNER_TEMP/ansible-changed-files.txt"
-      echo '~~~'
-      echo
-      echo "**Git diff:**"
-      echo
-      echo '~~~diff'
-      head -c 120000 "$RUNNER_TEMP/ansible-diff.patch"
-      echo
-      if [[ $(wc -c < "$RUNNER_TEMP/ansible-diff.patch") -gt 120000 ]]; then
-        echo '# Preview truncated at 120 KB. Inspect the full Git diff for the commit range.'
-      fi
-      echo '~~~'
-      echo
-      echo "</details>"
-    else
-      echo
-      echo "No Ansible file diff is available for this run (manual reapply, unavailable commit range or first-bootstrap reconciliation). Review the selected commit and playbook before approval."
-    fi
+    echo "**Execution:** The node is configured through SSM after approval. The fingerprint covers Ansible playbooks, pinned versions and launcher scripts, not Git commit identity."
+    echo "The workflow records the fingerprint in Parameter Store only after successful execution and readiness checks."
+
   elif [[ "$K3S_CREATED" == true ]]; then
     echo "No Ansible source changes detected. Ansible will still configure the newly created or replaced K3s EC2."
   else
