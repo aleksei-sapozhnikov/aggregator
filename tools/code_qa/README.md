@@ -81,7 +81,12 @@ With `CODE_QA_FILE_LIST` set, it scans only the listed files.
 With `CODE_QA_FILE_LIST` set, file-based formatters only modify listed files.
 OpenTofu deliberately differs: a changed infrastructure source triggers
 `tofu fmt -recursive` across its entire infrastructure root, including local
-modules. Review these changes before committing.
+modules. Review these changes before committing. TFLint uses the single
+repository-root `.tflint.hcl` for all four infrastructure roots; changes to
+that file trigger lint in every infrastructure module even in scoped hooks.
+The `infra-demo-ansible` module runs pinned Ansible syntax and `ansible-lint`
+checks, as well as its configuration contract tests. Ansible dependencies
+use an isolated local environment, not the general QA Python toolchain.
 
 Python and npm dependencies, tool binaries, and caches are stored under the
 ignored `.local/qa-runtime` directory. No global Python or npm packages are

@@ -1,4 +1,4 @@
-# Strict static checks; no AWS credentials or shared repository config required.
+# Shared lint policy for all Aggregator OpenTofu roots.
 # Tags are enforced through provider defaults; GovCloud portability rules do not apply.
 tflint {
   required_version = "= 0.65.0"

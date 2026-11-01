@@ -20,6 +20,7 @@ CODE_PROFILES = {
     "tofu_code": COMMON_CHECKS
     + ("tofu-format", "tofu-validate", "tflint")
     + FINAL_CHECKS,
+    "ansible_code": COMMON_CHECKS + ("ansible-lint",) + FINAL_CHECKS,
 }
 
 
@@ -101,8 +102,14 @@ MODULES = (
         TestSpec("unittest_tests", ("--start-directory", "tests")),
     ),
     ModuleSpec("infra-administration", "infra/administration", "tofu_code"),
+    ModuleSpec("infra-state", "infra/state", "tofu_code"),
     ModuleSpec("infra-demo", "infra/demo", "tofu_code"),
-    ModuleSpec("infra-demo-ansible", "infra/demo/ansible"),
+    ModuleSpec(
+        "infra-demo-ansible",
+        "infra/demo/ansible",
+        "ansible_code",
+        TestSpec("unittest_tests", ("--start-directory", "tests")),
+    ),
     ModuleSpec("infra-publication", "deploy/infra/publication", "tofu_code"),
     ModuleSpec(
         "lambda-publisher",

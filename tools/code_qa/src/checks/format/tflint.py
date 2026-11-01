@@ -1,4 +1,4 @@
-"""Lint one configured infrastructure root with its local TFLint policy."""
+"""Lint an infrastructure root with the repository-wide TFLint policy."""
 
 from __future__ import annotations
 
@@ -20,8 +20,13 @@ def has_relevant_changes(
     """Run lint when a Terraform source or config file changed."""
     if changed_files is None:
         return True
+    shared_config = (workspace / ".tflint.hcl").resolve()
     return any(
-        path.is_relative_to(directory) and path.suffix.lower() in RELEVANT_SUFFIXES
+        path == shared_config
+        or (
+            path.is_relative_to(directory)
+            and path.suffix.lower() in RELEVANT_SUFFIXES
+        )
         for path in read_path_manifest(workspace, changed_files)
     )
 
@@ -34,7 +39,7 @@ def run(directory: Path, workspace: Path, changed_files: Path | None = None) -> 
     if binary is None:
         return 1
 
-    config = directory / ".tflint.hcl"
+    config = workspace / ".tflint.hcl"
     env = dependency_environment()
     env["TF_IN_AUTOMATION"] = "true"
     env["TFLINT_DISABLE_VERSION_CHECK"] = "1"

@@ -159,6 +159,14 @@ CHECK_TEMPLATES: list[CheckSpec] = [
         None,
         input_kind="project",
     ),
+    CheckSpec(
+        "ansible-lint",
+        "Ansible lint and syntax",
+        "code_qa.src.checks.format.ansible_lint",
+        ["--lint"],
+        None,
+        input_kind="project",
+    ),
 ]
 
 
@@ -198,6 +206,7 @@ def execute_check(
     """Pass the chosen module's paths; checks decide which file types matter."""
     root = root or repo_root()
     paths = paths if paths is not None else iter_repo_files(root)
+    all_paths = paths
     if spec.module is not None and not spec.global_scope:
         paths = files_in_module(root, spec.module, paths)
     else:
@@ -216,6 +225,12 @@ def execute_check(
             str(root),
         ]
         if scoped:
+            # Repository-wide TFLint policy changes invalidate every infra root.
+            if (
+                spec.runner == "code_qa.src.checks.format.tflint"
+                and (root / ".tflint.hcl").resolve() in all_paths
+            ):
+                paths = [*paths, (root / ".tflint.hcl").resolve()]
             return _run_with_manifest(
                 spec.runner, [*parameters, "--changed-files-from"], root, paths
             )

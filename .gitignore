@@ -108,6 +108,12 @@ override.tf.json
 *_override.tf
 *_override.tf.json
 
+# Private infrastructure backends and environment overrides.
+# Keep these exceptions when removing nested infrastructure ignore files.
+/infra/state/backend.tf
+infra/**/.env
+deploy/infra/**/.env
+
 # =========================
 # Temporary / Local Dev
 # =========================
