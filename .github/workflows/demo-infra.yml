@@ -68,12 +68,9 @@ jobs:
         with:
           tofu_version: "1.13.1"
           tofu_wrapper: false
-      - name: Validate demo infrastructure with shared code QA
+      - name: Validate demo OpenTofu, Ansible and contracts with shared code QA
         shell: bash
-        run: make code-lint MODULE=infra-demo
-      - name: Validate Ansible syntax, lint and contracts with shared code QA
-        shell: bash
-        run: make qa-check MODULE=infra-demo-ansible QA_SCAN_SECRETS=false
+        run: make qa-check MODULE=infra-demo QA_SCAN_SECRETS=false
       - name: Validate bootstrap scripts and node contracts
         shell: bash
         run: bash .github/scripts/demo-infra/check-ansible.sh
