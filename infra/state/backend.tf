@@ -1,5 +1,4 @@
-# Activate only AFTER the first apply has created the private state bucket.
-# Copy to ignored backend.tf, then run tofu init -migrate-state.
+# Existing project state bucket and key. AWS credentials are external.
 terraform {
   backend "s3" {
     bucket       = "aggregator-project-tofu-state-905418096305-eu-central-1"

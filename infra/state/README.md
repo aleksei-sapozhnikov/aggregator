@@ -18,8 +18,8 @@ Administration IAM state must remain in the central Administration bucket.
 ## Operations
 
 Use the delegated `aggregator-admin` identity in AWS account
-`905418096305`, region `eu-central-1`. After `backend.tf` has been
-configured from `backend.s3.tf.example`, run:
+`905418096305`, region `eu-central-1`. The tracked `backend.tf` points
+to the existing project state bucket. Run:
 
 ```sh
 aws sts get-caller-identity
@@ -28,8 +28,6 @@ tofu validate
 tofu plan
 ```
 
-For a **brand-new bucket only**, initialize with protected local state,
-review and apply the bucket creation, then copy the backend example to the
-ignored `backend.tf` and run `tofu init -migrate-state`. Never start with
-an empty backend when an existing state should already be present.
-Do not commit state, backend credentials, local plans or variables.
+The bucket bootstrap is complete. Never initialize an empty state or
+recreate this S3 bucket. Do not commit state, backend credentials, plans
+or private variable values.
