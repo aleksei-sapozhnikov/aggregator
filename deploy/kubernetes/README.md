@@ -13,13 +13,13 @@ production Kubernetes configuration.
    reviewer approval only when infrastructure or node configuration changes.
 2. Once ready, `Demo deploy` runs QA, checks GHCR for eight content-tagged
    Docker images and builds only missing images.
-3. The release job renders `deploy/k8s` manifests and monitoring files into
+3. The release job renders `deploy/kubernetes` manifests and monitoring files into
    `deploy/k8s-live` **on the protected `deploy/demo-gitops` branch**.
    It replaces image references with each service's Git tree ID.
 4. Argo CD's `aggregator-demo` Application follows
    `deploy/demo-gitops:deploy/k8s-live`, auto-syncs and self-heals.
 
-Edit the source `deploy/k8s` manifests, **not** the generated
+Edit the source `deploy/kubernetes` manifests, **not** the generated
 `deploy/k8s-live` snapshot. GitOps publication must be fast-forward;
 do not force-push or delete the GitOps branch. Rewriting the source
 branch must not erase the published configuration.

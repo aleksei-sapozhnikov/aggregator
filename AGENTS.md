@@ -9,21 +9,21 @@ The repository is intentionally multi-service and multi-language.
 
 Core services:
 
-- `services-core/aggregator` - Java / Spring Boot backend. Loads catalog and
+- `services/aggregator` - Java / Spring Boot backend. Loads catalog and
   signal definitions, polls health endpoints, propagates health through the
   dependency graph, and exposes Prometheus metrics.
-- `services-core/catalog` - Go service. Owns catalog data, dependency
+- `services/catalog` - Go service. Owns catalog data, dependency
   definitions, signal definitions, schemas, and their HTTP API.
-- `services-core/aggregator-ui` - React frontend. Displays catalog health,
+- `services/aggregator-ui` - React frontend. Displays catalog health,
   dependency impact, and signal history.
 
 Supporting and demo components:
 
-- `services-extra/prometheus` - metrics collection.
-- `services-extra/grafana` - metrics visualization.
-- `services-demo/chaos-maker` - Python service that changes demo-service state
+- `services/prometheus` - metrics collection.
+- `services/grafana` - metrics visualization.
+- `services/chaos-maker` - Python service that changes demo-service state
   to simulate failures.
-- `services-demo/dummy-*` - simulated services in multiple languages.
+- `services/dummy-*` - simulated services in multiple languages.
 
 Read `README.md` for the current architecture, behavior, and local-run
 instructions before making broad architectural assumptions.

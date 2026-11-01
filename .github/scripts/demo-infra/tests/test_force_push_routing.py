@@ -21,7 +21,7 @@ class ForcePushRoutingTests(unittest.TestCase):
         self.git("config", "user.name", "Test")
         self.git("config", "user.email", "test@example.invalid")
         self.write("infra/demo/ansible/site.yml", "---\n- hosts: localhost\n")
-        self.write("services-core/catalog/README.md", "initial\n")
+        self.write("services/catalog/README.md", "initial\n")
         self.write("deploy/k8s-live/kustomization.yaml", "resources: []\n")
         self.commit("Initial")
         self.source_branch = self.git("branch", "--show-current").strip()
@@ -81,7 +81,7 @@ class ForcePushRoutingTests(unittest.TestCase):
         self.assertIn("deploy_changed=false", result)
 
     def test_app_only_changes_still_check_last_successful_config(self) -> None:
-        self.write("services-core/catalog/README.md", "updated\n")
+        self.write("services/catalog/README.md", "updated\n")
         self.commit("Change application")
         result = self.route()
         self.assertIn("infra_changed=true", result)

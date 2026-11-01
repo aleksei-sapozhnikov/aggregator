@@ -66,4 +66,4 @@ cloud-init output is in `/var/log/cloud-init-output.log`.
 Do not force-unlock or replace state to recover a partial apply. Create a
 fresh plan after investigating the error. Replacing/removing K3s destroys
 local-path PVC data (Prometheus/Grafana); image rollback does not.
-See [Ansible operations](ansible/README.md) and [GitOps deployment](../../deploy/k8s/README.md).
+See [Ansible operations](ansible/README.md) and [GitOps deployment](../../deploy/kubernetes/README.md).

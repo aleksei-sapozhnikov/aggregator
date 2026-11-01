@@ -20,7 +20,7 @@ else
       infra/demo/*|deploy/ansible|deploy/argocd/*|.github/workflows/demo-infra.yml|.github/scripts/demo-infra/*|.github/scripts/demo-infra-*.sh)
         infra_changed=true
         ;;
-      deploy/infra/*|infra/*|docs/*|README.md|deploy/k8s/README.md|deploy/k8s-live/*|.github/workflows/demo-deploy.yml)
+      deploy/infra/*|infra/*|docs/*|README.md|deploy/kubernetes/README.md|deploy/k8s-live/*|.github/workflows/demo-deploy.yml)
         # Non-demo infrastructure, generated releases, and documentation do not build images.
         ;;
       ?*)

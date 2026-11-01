@@ -98,4 +98,4 @@ the protected apply environment.
   Use the private SSM tunnel documented in [Ansible](ansible/README.md).
 
 See [demo infrastructure](README.md), [Compose deployment](../../deploy/demo/README.md),
-and [K3s GitOps](../../deploy/k8s/README.md).
+and [K3s GitOps](../../deploy/kubernetes/README.md).

@@ -78,16 +78,16 @@ Examples below use Docker. If you use Podman, replace `docker compose` with
 To start the default local demo, run this command from the repository root:
 
 ```shell
-docker compose --project-name aggregator-local-demo --project-directory . -f compose/compose.yaml -f compose/compose.local-demo.yaml -f compose/compose.overlay.demo-services.yaml -f compose/compose.build.core.yaml -f compose/compose.build.demo-services.yaml -f compose/compose.overlay.local-ports.yaml -f compose/compose.overlay.demo-services-local-ports.yaml up --detach --wait --remove-orphans
+docker compose --project-name aggregator-local-demo --project-directory . -f deploy/compose/compose.yaml -f deploy/compose/compose.local-demo.yaml -f deploy/compose/compose.overlay.demo-services.yaml -f deploy/compose/compose.build.core.yaml -f deploy/compose/compose.build.demo-services.yaml -f deploy/compose/compose.overlay.local-ports.yaml -f deploy/compose/compose.overlay.demo-services-local-ports.yaml up --detach --wait --remove-orphans
 ```
 
 To stop it, run this command from the repository root:
 
 ```shell
-docker compose --project-name aggregator-local-demo --project-directory . -f compose/compose.yaml -f compose/compose.local-demo.yaml -f compose/compose.overlay.demo-services.yaml -f compose/compose.build.core.yaml -f compose/compose.build.demo-services.yaml -f compose/compose.overlay.local-ports.yaml -f compose/compose.overlay.demo-services-local-ports.yaml down --remove-orphans
+docker compose --project-name aggregator-local-demo --project-directory . -f deploy/compose/compose.yaml -f deploy/compose/compose.local-demo.yaml -f deploy/compose/compose.overlay.demo-services.yaml -f deploy/compose/compose.build.core.yaml -f deploy/compose/compose.build.demo-services.yaml -f deploy/compose/compose.overlay.local-ports.yaml -f deploy/compose/compose.overlay.demo-services-local-ports.yaml down --remove-orphans
 ```
 
-The compose files live under `compose/`. Keep `--project-directory .` in manual
+The compose files live under `deploy/compose/`. Keep `--project-directory .` in manual
 commands so relative paths and the root `.env` file resolve from the repository
 root. The `Makefile` is the source of truth for supported compose combinations
 and service-scoped commands.
@@ -97,7 +97,7 @@ and service-scoped commands.
 The base Compose stack leaves AI disabled unless explicitly configured. Local
 Compose environments (`local` and `local-demo`) enable Bedrock automatically
 and keep the non-secret model settings in
-`compose/compose.overlay.local-ports.yaml`.
+`deploy/compose/compose.overlay.local-ports.yaml`.
 
 Authentication still requires temporary AWS credentials. The
 `aggregator-admin` IAM user gets restricted Nova Lite invocation permissions
@@ -170,7 +170,7 @@ The same UI image works in every environment. At container startup,
 settings. The local-demo title contains `PROJECT_VERSION`, and its range is
 `15m`; hosted demo uses `1d`.
 
-For standalone `npm run dev` in `services-core/aggregator-ui`, Vite serves
+For standalone `npm run dev` in `services/aggregator-ui`, Vite serves
 the same JSON endpoint using the dev server process environment.
 
 `local` and `local-demo` still build from the local Dockerfiles, while

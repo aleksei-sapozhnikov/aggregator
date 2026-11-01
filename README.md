@@ -159,7 +159,7 @@ downloads Prometheus/Grafana/Caddy images. Full local-run options are in
 ### Optional AI agent configuration
 
 Local Docker Compose environments enable the Bedrock AI agent with
-non-secret defaults from `compose/compose.overlay.local-ports.yaml`.
+non-secret defaults from `deploy/compose/compose.overlay.local-ports.yaml`.
 Other developers can override `AGENT_AI_CONFIG` from their shell and provide
 temporary credentials from their own AWS profile, with access to their chosen
 Bedrock model. The project `aggregator-admin` profile is not required.
@@ -176,24 +176,24 @@ uses the instance IAM role.
 
 ## Repository map
 
-- [services-core/aggregator](services-core/aggregator): Java / Spring Boot
+- [services/aggregator](services/aggregator): Java / Spring Boot
   backend. Loads catalog and signal definitions, polls health endpoints,
   propagates health through the dependency graph, exposes current health facts,
   and exports derived metrics.
-- [services-core/ai-agent](services-core/ai-agent): optional Python service that
+- [services/ai-agent](services/ai-agent): optional Python service that
   answers natural-language health questions by calling the aggregator REST API
   and using a configured model provider.
-- [services-core/catalog](services-core/catalog): Go service. Owns catalog
+- [services/catalog](services/catalog): Go service. Owns catalog
   files, JSON schemas, validation, and the catalog HTTP API.
-- [services-core/aggregator-ui](services-core/aggregator-ui): React frontend
+- [services/aggregator-ui](services/aggregator-ui): React frontend
   served by Caddy.
-- [services-extra/prometheus](services-extra/prometheus): metrics collection.
-- [services-extra/grafana](services-extra/grafana): dashboards used by the UI.
-- [services-demo/chaos-maker](services-demo/chaos-maker): Python service that
+- [services/prometheus](services/prometheus): metrics collection.
+- [services/grafana](services/grafana): dashboards used by the UI.
+- [services/chaos-maker](services/chaos-maker): Python service that
   changes demo-service state.
-- [services-demo/dummy-java](services-demo/dummy-java),
-  [services-demo/dummy-python](services-demo/dummy-python), and
-  [services-demo/dummy-javascript](services-demo/dummy-javascript): simulated
+- [services/dummy-java](services/dummy-java),
+  [services/dummy-python](services/dummy-python), and
+  [services/dummy-javascript](services/dummy-javascript): simulated
   services with health endpoints.
 
 More detail:
