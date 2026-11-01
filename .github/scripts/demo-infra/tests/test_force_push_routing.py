@@ -1,4 +1,4 @@
-"""Regression tests for force-push and GitOps release routing."""
+"""Regression tests for force-push routing and GitOps release republishing."""
 
 from __future__ import annotations
 
@@ -8,18 +8,15 @@ import tempfile
 import unittest
 from pathlib import Path
 
-SCRIPTS = Path(__file__).resolve().parents[1]
+SCRIPT = Path(__file__).resolve().parents[1] / "route-changes.sh"
 
 
 class ForcePushRoutingTests(unittest.TestCase):
     def setUp(self) -> None:
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
-        self.root = Path(self.tmp.name)
-        self.repository = self.root / "repo"
+        self.repository = Path(self.tmp.name) / "repo"
         self.repository.mkdir()
-        self.runtime = self.root / "runner"
-        self.runtime.mkdir()
         self.git("init", "-q")
         self.git("config", "user.name", "Test")
         self.git("config", "user.email", "test@example.invalid")
@@ -31,87 +28,66 @@ class ForcePushRoutingTests(unittest.TestCase):
 
     def git(self, *args: str) -> str:
         result = subprocess.run(
-            ["git", *args],
-            cwd=self.repository,
-            capture_output=True,
-            text=True,
-            check=True,
+            ["git", *args], cwd=self.repository,
+            capture_output=True, text=True, check=True,
         )
         return result.stdout
 
-    def write(self, path: str, value: str) -> None:
-        dest = self.repository / path
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        dest.write_text(value, encoding="utf-8")
+    def write(self, path: str, content: str) -> None:
+        file = self.repository / path
+        file.parent.mkdir(parents=True, exist_ok=True)
+        file.write_text(content, encoding="utf-8")
 
     def commit(self, message: str) -> None:
         self.git("add", "-A")
         self.git("commit", "-qm", message)
 
-    def script(self, name: str, **overrides: str) -> tuple[str, str]:
-        output = self.runtime / "github-output"
+    def route(self, *, base: str | None = None) -> str:
+        output = self.repository / "github-output"
         output.write_text("", encoding="utf-8")
         env = dict(os.environ)
-        env.update(
-            {
-                "GITHUB_EVENT_NAME": "push",
-                "BASE_SHA": self.before,
-                "GITHUB_SHA": self.git("rev-parse", "HEAD").strip(),
-                "GITHUB_OUTPUT": str(output),
-                "RUNNER_TEMP": str(self.runtime),
-                "MANUAL_REAPPLY": "false",
-                "BOOTSTRAP_MISSING": "true",
-                "K3S_ENABLED": "true",
-            }
-        )
-        env.update(overrides)
+        env.update({
+            "GITHUB_EVENT_NAME": "push",
+            "BASE_SHA": base if base is not None else self.before,
+            "GITHUB_SHA": self.git("rev-parse", "HEAD").strip(),
+            "GITHUB_OUTPUT": str(output),
+        })
         result = subprocess.run(
-            ["bash", str(SCRIPTS / name)],
-            cwd=self.repository,
-            env=env,
-            capture_output=True,
-            text=True,
-            check=False,
+            ["bash", str(SCRIPT)], cwd=self.repository, env=env,
+            capture_output=True, text=True, check=False,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
-        return output.read_text(encoding="utf-8"), result.stderr
+        return output.read_text(encoding="utf-8")
 
-    def test_missing_release_requests_republication_without_ansible(self) -> None:
+    def test_missing_release_requests_republication_and_plan(self) -> None:
         self.git("rm", "deploy/k8s-live/kustomization.yaml")
         self.commit("Remove generated release")
-        routing, _ = self.script("route-changes.sh")
-        self.assertIn("bootstrap_missing=true", routing)
-        self.assertIn("infra_changed=true", routing)
-        self.assertIn("deploy_changed=false", routing)
-        ansible, _ = self.script("detect-ansible-changes.sh")
-        self.assertIn("ansible_changed=false", ansible)
+        result = self.route()
+        self.assertIn("bootstrap_missing=true", result)
+        self.assertIn("infra_changed=true", result)
+        self.assertIn("deploy_changed=false", result)
 
-    def test_node_config_change_triggers_ansible_even_without_release(self) -> None:
-        self.git("rm", "deploy/k8s-live/kustomization.yaml")
-        self.write("infra/demo/ansible/site.yml", "---\n- hosts: localhost\n  gather_facts: false\n")
-        self.commit("Change node configuration")
-        ansible, _ = self.script("detect-ansible-changes.sh")
-        self.assertIn("ansible_changed=true", ansible)
-        self.assertTrue((self.runtime / "ansible-diff.patch").stat().st_size)
+    def test_app_only_changes_also_check_last_successful_config(self) -> None:
+        self.write("services-core/catalog/README.md", "updated\n")
+        self.commit("Change application")
+        result = self.route()
+        self.assertIn("infra_changed=true", result)
+        self.assertIn("deploy_changed=true", result)
 
-    def test_force_push_with_unavailable_base_does_not_auto_reconfigure(self) -> None:
+    def test_generated_manifest_commit_does_not_plan_or_deploy(self) -> None:
+        self.write("deploy/k8s-live/kustomization.yaml", "resources: [workloads.yaml]\n")
+        self.commit("Regenerate manifests")
+        result = self.route()
+        self.assertIn("infra_changed=false", result)
+        self.assertIn("deploy_changed=false", result)
+        self.assertIn("bootstrap_missing=false", result)
+
+    def test_missing_previous_commit_remains_fail_safe_for_routing(self) -> None:
         self.git("rm", "deploy/k8s-live/kustomization.yaml")
         self.commit("Remove generated release")
-        missing_sha = "f" * 40
-        routing, _ = self.script("route-changes.sh", BASE_SHA=missing_sha)
-        self.assertIn("infra_changed=true", routing)
-        self.assertIn("deploy_changed=true", routing)
-        ansible, warning = self.script("detect-ansible-changes.sh", BASE_SHA=missing_sha)
-        self.assertIn("ansible_changed=false", ansible)
-        self.assertIn("::warning::", warning)
-
-    def test_explicit_manual_reapply_still_triggers_ansible(self) -> None:
-        ansible, _ = self.script(
-            "detect-ansible-changes.sh",
-            GITHUB_EVENT_NAME="workflow_dispatch",
-            MANUAL_REAPPLY="true",
-        )
-        self.assertIn("ansible_changed=true", ansible)
+        result = self.route(base="f" * 40)
+        self.assertIn("infra_changed=true", result)
+        self.assertIn("deploy_changed=true", result)
 
 
 if __name__ == "__main__":
