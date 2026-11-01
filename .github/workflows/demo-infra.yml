@@ -90,6 +90,7 @@ jobs:
     outputs:
       has_changes: ${{ steps.plan.outputs.has_changes }}
       ansible_changed: ${{ steps.changes.outputs.ansible_changed }}
+      config_fingerprint: ${{ steps.changes.outputs.config_fingerprint }}
       k3s_created: ${{ steps.plan.outputs.k3s_created }}
       k3s_destroyed: ${{ steps.plan.outputs.k3s_destroyed }}
       k3s_enabled: ${{ steps.flags.outputs.k3s_enabled }}
@@ -106,15 +107,6 @@ jobs:
           ENABLE_K3S_NODE: ${{ vars.ENABLE_K3S_NODE }}
           ENABLE_BEDROCK: ${{ vars.ENABLE_BEDROCK }}
         run: bash .github/scripts/demo-infra/check-flags.sh
-      - name: Detect Ansible changes in demo
-        id: changes
-        shell: bash
-        env:
-          BASE_SHA: ${{ github.event.before }}
-          MANUAL_REAPPLY: ${{ inputs.reapply_ansible }}
-          BOOTSTRAP_MISSING: ${{ needs.detect.outputs.bootstrap_missing }}
-          K3S_ENABLED: ${{ vars.ENABLE_K3S_NODE }}
-        run: bash .github/scripts/demo-infra/detect-ansible-changes.sh
       - name: Use read-only OIDC role for planning
         uses: aws-actions/configure-aws-credentials@v6.3.0
         with:
@@ -138,6 +130,15 @@ jobs:
         working-directory: infra/demo
         shell: bash
         run: bash "$GITHUB_WORKSPACE/.github/scripts/demo-infra/plan.sh"
+      - name: Compare node configuration against last successful SSM fingerprint
+        id: changes
+        working-directory: infra/demo
+        shell: bash
+        env:
+          MANUAL_REAPPLY: ${{ inputs.reapply_ansible }}
+          K3S_ENABLED: ${{ steps.flags.outputs.k3s_enabled }}
+          K3S_CREATED: ${{ steps.plan.outputs.k3s_created }}
+        run: bash "$GITHUB_WORKSPACE/.github/scripts/demo-infra/detect-ansible-changes.sh"
       - name: Explain Terraform and Ansible actions for approval
         shell: bash
         env:
@@ -241,6 +242,13 @@ jobs:
           CONFIGURATION_SHA: ${{ github.sha }}
         shell: bash
         run: bash infra/demo/ansible/dispatch-ssm.sh
+      - name: Record successful node configuration fingerprint
+        if: steps.node.outputs.available == 'true' && (needs.plan.outputs.k3s_created == 'true' || needs.plan.outputs.ansible_changed == 'true')
+        shell: bash
+        env:
+          SSM_INSTANCE_ID: ${{ steps.node.outputs.instance_id }}
+          EXPECTED_FINGERPRINT: ${{ needs.plan.outputs.config_fingerprint }}
+        run: python3 .github/scripts/demo-infra/config-fingerprint.py record
       - name: Reconcile Argo CD admin password from protected GitHub secret
         if: steps.node.outputs.available == 'true'
         shell: bash
