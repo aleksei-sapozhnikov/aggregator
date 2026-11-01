@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import shutil
+import sys
 import subprocess
 import tempfile
 import unittest
@@ -19,6 +20,7 @@ CONFIG_SOURCES = {
 }
 
 
+@unittest.skipIf(sys.platform == "win32", "Requires POSIX shell")
 @unittest.skipUnless(shutil.which("bash") and shutil.which("git"), "Requires Bash and Git")
 class KubernetesStagingTests(unittest.TestCase):
     def test_staging_uses_canonical_monitoring_configurations(self) -> None:

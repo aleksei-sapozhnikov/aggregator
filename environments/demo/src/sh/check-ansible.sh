@@ -42,5 +42,4 @@ if not {"git", "python3.12", "python3.12-pip"}.issubset(
 ):
     raise SystemExit("K3s cloud-init is missing required packages")
 PY
-# Shared code_qa runs the Ansible contract tests.
-python3 -m unittest discover -s environments/demo/src/sh/tests -p 'test_*.py'
+# Shared code_qa runs the Python and Ansible contract tests before this script.

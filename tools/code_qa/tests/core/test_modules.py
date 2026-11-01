@@ -135,7 +135,7 @@ class ModuleConfigurationTests(unittest.TestCase):
             "demo/ansible/ansible-lint", [c.check_id for c in cli.CHECKS]
         )
         self.assertEqual(
-            modules.MODULE_BY_NAME["demo"].scoped_tests[0].tests.kind,
+            modules.MODULE_BY_NAME["demo"].tests.kind,
             "unittest_tests",
         )
         self.assertIn(

@@ -4,15 +4,17 @@ from __future__ import annotations
 
 import hashlib
 import os
+import sys
 import subprocess
 import tempfile
 import unittest
 from pathlib import Path
 
-SCRIPT = Path(__file__).resolve().parents[2] / "src" / "sh" / s3-plan.sh"
+SCRIPT = Path(__file__).resolve().parents[2] / "src" / "sh" / "s3-plan.sh"
 
 FAKE_AWS = """#!/usr/bin/env python3
 import os
+import sys
 import shutil
 import sys
 from pathlib import Path
@@ -36,6 +38,7 @@ print("{}")
 """
 
 
+@unittest.skipIf(sys.platform == "win32", "Bash and Unix tooling required")
 class SavedPlanS3TransferTests(unittest.TestCase):
     def setUp(self) -> None:
         self.tmp = tempfile.TemporaryDirectory()

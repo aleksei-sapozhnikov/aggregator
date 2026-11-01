@@ -3,7 +3,7 @@
 # Stores the saved plan and readable output under RUNNER_TEMP, detects
 # instance creation/replacement or removal, and exports has_changes,
 # k3s_created, and k3s_destroyed through GITHUB_OUTPUT.
-# Run from infra/demo.
+# Run from environments/demo/infra.
 
 set -euo pipefail
 set +e
