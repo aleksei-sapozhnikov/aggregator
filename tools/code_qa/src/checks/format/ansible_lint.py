@@ -31,8 +31,8 @@ def run(directory: Path, workspace: Path, changed_files: Path | None = None) -> 
     if not has_relevant_changes(directory, changed_files, workspace):
         return 0
     if sys.platform == "win32":
-        print("Ansible QA requires Linux or WSL; run this module in WSL or CI.")
-        return 1
+        print("SKIPPED: Ansible QA requires Linux or WSL.")
+        return 0
     python = ensure_ansible_python(workspace)
     if python is None:
         return 1

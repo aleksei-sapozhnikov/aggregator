@@ -45,6 +45,7 @@ class CheckSpec:
     module: str | None = None
     global_scope: bool = False
     input_kind: str = "files"
+    skip_on_windows: bool = False
 
 
 CHECK_TEMPLATES: list[CheckSpec] = [
@@ -166,6 +167,7 @@ CHECK_TEMPLATES: list[CheckSpec] = [
         ["--lint"],
         None,
         input_kind="project",
+        skip_on_windows=True,
     ),
 ]
 
@@ -289,6 +291,10 @@ def _run_checks(
                     missing.add(check.module)
             previous_module = check.module
         if check.module in missing:
+            continue
+        if sys.platform == "win32" and check.skip_on_windows:
+            emit(f"  Checking {check.display_name}.. SKIPPED (requires Linux or WSL)")
+            has_output = True
             continue
         print(f"  Checking {check.display_name}.. ", end="", flush=True)
         has_output = True

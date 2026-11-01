@@ -539,6 +539,69 @@ class OrchestratorFlowTests(unittest.TestCase):
         self.assertEqual(details, [*violations, "Additional diagnostics"])
         self.assertTrue(run.call_args.kwargs["capture_output"])
 
+    def test_ansible_lint_skips_on_windows_without_blocking_other_checks(self) -> None:
+        checks = [
+            main.CheckSpec(
+                "infra-demo-ansible/ansible-lint",
+                "Ansible lint and syntax",
+                "code_qa.src.checks.format.ansible_lint",
+                ["--lint"],
+                None,
+                module="infra-demo-ansible",
+                input_kind="project",
+                skip_on_windows=True,
+            ),
+            main.CheckSpec(
+                "infra-demo-ansible/trailing-whitespace",
+                "trailing whitespace",
+                "code_qa.src.checks.other.trailing_whitespace",
+                ["--check-only"],
+                ["--format"],
+                module="infra-demo-ansible",
+            ),
+        ]
+        with (
+            patch.object(main.sys, "platform", "win32"),
+            patch.object(main, "CHECKS", checks),
+            patch.object(main, "execute_check", return_value=(True, [])) as execute,
+            redirect_stdout(StringIO()) as output,
+        ):
+            passed, failed = main._run_checks(print)
+
+        self.assertTrue(passed)
+        self.assertEqual(failed, [])
+        execute.assert_called_once()
+        self.assertEqual(execute.call_args.args[0].check_id, checks[1].check_id)
+        self.assertIn(
+            "Checking Ansible lint and syntax.. SKIPPED (requires Linux or WSL)",
+            output.getvalue(),
+        )
+        self.assertIn("Checking trailing whitespace.. OK", output.getvalue())
+
+    def test_ansible_lint_remains_required_on_linux(self) -> None:
+        check = main.CheckSpec(
+            "infra-demo-ansible/ansible-lint",
+            "Ansible lint and syntax",
+            "code_qa.src.checks.format.ansible_lint",
+            ["--lint"],
+            None,
+            module="infra-demo-ansible",
+            input_kind="project",
+            skip_on_windows=True,
+        )
+        with (
+            patch.object(main.sys, "platform", "linux"),
+            patch.object(main, "CHECKS", [check]),
+            patch.object(main, "execute_check", return_value=(False, ["lint error"])) as execute,
+            redirect_stdout(StringIO()) as output,
+        ):
+            passed, failed = main._run_checks(print)
+
+        self.assertFalse(passed)
+        self.assertEqual(failed, [check.check_id])
+        execute.assert_called_once()
+        self.assertIn("Checking Ansible lint and syntax.. FAILED", output.getvalue())
+
     def test_checks_continue_and_print_all_failure_diagnostics(self) -> None:
         checks = [
             main.CheckSpec(

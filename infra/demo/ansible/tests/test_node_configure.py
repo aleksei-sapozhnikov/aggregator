@@ -40,7 +40,7 @@ class NodeConfigurationContractTests(unittest.TestCase):
         self.assertNotIn("deploy/ansible", cloud_init)
         self.assertFalse((REPO / "deploy/ansible").exists())
 
-        manifests = (REPO / "deploy/k8s/workloads.yaml").read_text(
+        manifests = (REPO / "deploy/kubernetes/workloads.yaml").read_text(
             encoding="utf-8"
         )
         self.assertIn("--storage.tsdb.retention.time=30d", manifests)

@@ -105,13 +105,17 @@ class AnsibleLintTests(unittest.TestCase):
             self.assertEqual(ansible_lint.run(self.directory, self.workspace), 2)
         execute.assert_called_once()
 
-    def test_windows_requires_linux_environment(self) -> None:
+    def test_windows_skips_without_installing_or_running_ansible(self) -> None:
         with (
             patch.object(ansible_lint.sys, "platform", "win32"),
             patch.object(ansible_lint, "ensure_ansible_python") as installer,
+            patch.object(ansible_lint.subprocess, "run") as execute,
+            patch("builtins.print") as output,
         ):
-            self.assertEqual(ansible_lint.run(self.directory, self.workspace), 1)
+            self.assertEqual(ansible_lint.run(self.directory, self.workspace), 0)
         installer.assert_not_called()
+        execute.assert_not_called()
+        output.assert_called_once_with("SKIPPED: Ansible QA requires Linux or WSL.")
 
 
 if __name__ == "__main__":
