@@ -76,8 +76,8 @@ resource "aws_iam_role" "github_demo_infra_apply" {
 
 resource "aws_iam_role_policy_attachment" "github_demo_infra_plan" {
   for_each = {
-    read       = aws_iam_policy.demo_infra_read.arn
-    plan_state    = aws_iam_policy.demo_infra_plan_state.arn
+    read           = aws_iam_policy.demo_infra_read.arn
+    plan_state     = aws_iam_policy.demo_infra_plan_state.arn
     plan_artifacts = aws_iam_policy.demo_plan_artifacts_write.arn
   }
 
@@ -87,14 +87,14 @@ resource "aws_iam_role_policy_attachment" "github_demo_infra_plan" {
 
 resource "aws_iam_role_policy_attachment" "github_demo_infra_apply" {
   for_each = {
-    read        = aws_iam_policy.demo_infra_read.arn
-    state       = aws_iam_policy.demo_state_access.arn
+    read           = aws_iam_policy.demo_infra_read.arn
+    state          = aws_iam_policy.demo_state_access.arn
     plan_artifacts = aws_iam_policy.demo_plan_artifacts_read.arn
-    ec2         = aws_iam_policy.demo_ec2_management.arn
-    iam         = aws_iam_policy.demo_iam_management.arn
-    sg_rules    = aws_iam_policy.demo_sg_rule_creation.arn
-    ssm_manage  = aws_iam_policy.demo_ssm_management.arn
-    ssm_execute = aws_iam_policy.demo_infra_k3s_run_command.arn
+    ec2            = aws_iam_policy.demo_ec2_management.arn
+    iam            = aws_iam_policy.demo_iam_management.arn
+    sg_rules       = aws_iam_policy.demo_sg_rule_creation.arn
+    ssm_manage     = aws_iam_policy.demo_ssm_management.arn
+    ssm_execute    = aws_iam_policy.demo_infra_k3s_run_command.arn
   }
 
   role       = aws_iam_role.github_demo_infra_apply.name

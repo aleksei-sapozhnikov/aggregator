@@ -31,8 +31,11 @@ class ForcePushRoutingTests(unittest.TestCase):
 
     def git(self, *args: str) -> str:
         result = subprocess.run(
-            ["git", *args], cwd=self.repository,
-            capture_output=True, text=True, check=True,
+            ["git", *args],
+            cwd=self.repository,
+            capture_output=True,
+            text=True,
+            check=True,
         )
         return result.stdout
 
@@ -49,16 +52,22 @@ class ForcePushRoutingTests(unittest.TestCase):
         output = self.repository / "github-output"
         output.write_text("", encoding="utf-8")
         env = dict(os.environ)
-        env.update({
-            "GITHUB_EVENT_NAME": "push",
-            "BASE_SHA": base if base is not None else self.before,
-            "GITHUB_SHA": self.git("rev-parse", "HEAD").strip(),
-            "GITHUB_OUTPUT": str(output),
-            "GITOPS_BRANCH": "deploy/demo-gitops",
-        })
+        env.update(
+            {
+                "GITHUB_EVENT_NAME": "push",
+                "BASE_SHA": base if base is not None else self.before,
+                "GITHUB_SHA": self.git("rev-parse", "HEAD").strip(),
+                "GITHUB_OUTPUT": str(output),
+                "GITOPS_BRANCH": "deploy/demo-gitops",
+            }
+        )
         result = subprocess.run(
-            ["bash", str(SCRIPT)], cwd=self.repository, env=env,
-            capture_output=True, text=True, check=False,
+            ["bash", str(SCRIPT)],
+            cwd=self.repository,
+            env=env,
+            capture_output=True,
+            text=True,
+            check=False,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
         return output.read_text(encoding="utf-8")
@@ -89,7 +98,9 @@ class ForcePushRoutingTests(unittest.TestCase):
         self.assertIn("deploy_changed=false", result)
 
     def test_manifest_only_source_commit_does_not_plan(self) -> None:
-        self.write("deploy/k8s-live/kustomization.yaml", "resources: [workloads.yaml]\n")
+        self.write(
+            "deploy/k8s-live/kustomization.yaml", "resources: [workloads.yaml]\n"
+        )
         self.commit("Change generated source manifests")
         result = self.route()
         self.assertIn("infra_changed=false", result)

@@ -335,9 +335,7 @@ class OrchestratorFlowTests(unittest.TestCase):
         fix.assert_called_once()
         tests.assert_called_once()
         secrets.assert_not_called()
-        self.assertIn(
-            "Testing aggregator.. SKIPPED (checks failed)", output.getvalue()
-        )
+        self.assertIn("Testing aggregator.. SKIPPED (checks failed)", output.getvalue())
 
     def test_qa_format_is_routed_to_its_own_orchestration_mode(self) -> None:
         with (

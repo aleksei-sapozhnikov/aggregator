@@ -30,9 +30,7 @@ SHA256 = re.compile(r"[0-9a-f]{64}\Z")
 
 
 def command(*args: str, cwd: Path = ROOT) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        args, cwd=cwd, capture_output=True, text=True, check=False
-    )
+    return subprocess.run(args, cwd=cwd, capture_output=True, text=True, check=False)
 
 
 def fingerprint() -> str:
@@ -84,7 +82,9 @@ def state_instance_id() -> str | None:
 
 
 def aws(*args: str) -> subprocess.CompletedProcess[str]:
-    return command("aws", "ssm", *args, "--region", os.getenv("AWS_REGION", "eu-central-1"))
+    return command(
+        "aws", "ssm", *args, "--region", os.getenv("AWS_REGION", "eu-central-1")
+    )
 
 
 def previous_value() -> str | None:
@@ -92,7 +92,9 @@ def previous_value() -> str | None:
     if result.returncode:
         if "ParameterNotFound" in result.stderr:
             return None
-        raise RuntimeError(f"Cannot read SSM configuration fingerprint: {result.stderr.strip()}")
+        raise RuntimeError(
+            f"Cannot read SSM configuration fingerprint: {result.stderr.strip()}"
+        )
     value = json.loads(result.stdout)["Parameter"]["Value"]
     if not isinstance(value, str):
         raise TypeError("Unexpected SSM parameter value")
@@ -126,24 +128,27 @@ def check() -> None:
     changed = manual or creating or current != expected
     reason = (
         "Manual Ansible reconciliation requested"
-        if manual else
-        "New or replaced K3s instance requires configuration"
-        if creating else
-        "No successful configuration fingerprint is recorded"
-        if current is None else
-        "Last successful node configuration belongs to another EC2 or differs"
-        if current != expected else
-        "K3s node configuration already matches the last successful run"
+        if manual
+        else "New or replaced K3s instance requires configuration"
+        if creating
+        else "No successful configuration fingerprint is recorded"
+        if current is None
+        else "Last successful node configuration belongs to another EC2 or differs"
+        if current != expected
+        else "K3s node configuration already matches the last successful run"
     )
     output("ansible_changed", str(changed).lower())
     reason_path = Path(os.environ["RUNNER_TEMP"]) / "ansible-change-reason.txt"
     reason_path.write_text(reason + "\n", encoding="utf-8")
     (Path(os.environ["RUNNER_TEMP"]) / "ansible-changed-files.txt").write_text(
         "Fingerprint covers infra/demo/ansible, node launch scripts and Argo CD helper.\n"
-        if changed else "",
+        if changed
+        else "",
         encoding="utf-8",
     )
-    (Path(os.environ["RUNNER_TEMP"]) / "ansible-diff.patch").write_text("", encoding="utf-8")
+    (Path(os.environ["RUNNER_TEMP"]) / "ansible-diff.patch").write_text(
+        "", encoding="utf-8"
+    )
     print(f"Ansible configuration comparison: {reason}; changed={changed}")
 
 
@@ -153,20 +158,30 @@ def record() -> None:
         raise ValueError("Invalid K3s instance ID")
     current_id = state_instance_id()
     if current_id != instance_id:
-        raise RuntimeError("K3s instance changed since configuration; refusing to record success")
+        raise RuntimeError(
+            "K3s instance changed since configuration; refusing to record success"
+        )
     digest = fingerprint()
     if digest != os.environ["EXPECTED_FINGERPRINT"] or not SHA256.fullmatch(digest):
-        raise RuntimeError("Node configuration fingerprint does not match the approved plan")
+        raise RuntimeError(
+            "Node configuration fingerprint does not match the approved plan"
+        )
     result = aws(
         "put-parameter",
-        "--name", PARAMETER,
-        "--type", "String",
-        "--value", f"{instance_id}:{digest}",
+        "--name",
+        PARAMETER,
+        "--type",
+        "String",
+        "--value",
+        f"{instance_id}:{digest}",
         "--overwrite",
-        "--output", "json",
+        "--output",
+        "json",
     )
     if result.returncode:
-        raise RuntimeError(f"Unable to record successful Ansible configuration: {result.stderr.strip()}")
+        raise RuntimeError(
+            f"Unable to record successful Ansible configuration: {result.stderr.strip()}"
+        )
     print(f"Recorded last successful K3s configuration for {instance_id}: {digest}")
 
 

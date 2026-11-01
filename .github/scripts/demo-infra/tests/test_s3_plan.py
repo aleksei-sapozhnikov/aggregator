@@ -67,7 +67,9 @@ class SavedPlanS3TransferTests(unittest.TestCase):
             }
         )
 
-    def run_transfer(self, command: str, *, expect_success: bool) -> subprocess.CompletedProcess[str]:
+    def run_transfer(
+        self, command: str, *, expect_success: bool
+    ) -> subprocess.CompletedProcess[str]:
         process = subprocess.run(
             ["bash", str(SCRIPT), command],
             env=self.env,
@@ -97,7 +99,9 @@ class SavedPlanS3TransferTests(unittest.TestCase):
 
     def test_refuse_modified_s3_object(self) -> None:
         self.run_transfer("upload", expect_success=True)
-        self.env["EXPECTED_PLAN_SHA256"] = hashlib.sha256(self.plan.read_bytes()).hexdigest()
+        self.env["EXPECTED_PLAN_SHA256"] = hashlib.sha256(
+            self.plan.read_bytes()
+        ).hexdigest()
         self.artifact.write_bytes(b"unexpected plan")
         result = self.run_transfer("download", expect_success=False)
         self.assertIn("SHA-256 mismatch", result.stderr)

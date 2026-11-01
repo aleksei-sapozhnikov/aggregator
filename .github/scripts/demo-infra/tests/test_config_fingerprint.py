@@ -29,7 +29,9 @@ class FingerprintTests(unittest.TestCase):
         self.git("config", "user.email", "test@example.invalid")
         self.write("infra/demo/ansible/site.yml", "---\n- hosts: localhost\n")
         self.write("infra/demo/ansible/group_vars/all.yml", "k3s_version: v1\n")
-        self.write("infra/demo/ansible/roles/k3s/tasks/main.yml", "---\n- name: Check node\n")
+        self.write(
+            "infra/demo/ansible/roles/k3s/tasks/main.yml", "---\n- name: Check node\n"
+        )
         self.write("infra/demo/node-configure.sh", "#!/bin/bash\n")
         self.write("infra/demo/ssm-node-configure.sh", "#!/bin/sh\n")
         self.write("deploy/argocd/argocd-admin-hash.py", "pass\n")
@@ -46,8 +48,11 @@ class FingerprintTests(unittest.TestCase):
 
     def git(self, *args: str) -> str:
         return subprocess.run(
-            ["git", *args], cwd=self.root, capture_output=True,
-            text=True, check=True,
+            ["git", *args],
+            cwd=self.root,
+            capture_output=True,
+            text=True,
+            check=True,
         ).stdout
 
     def write(self, path: str, value: str) -> None:
@@ -60,8 +65,12 @@ class FingerprintTests(unittest.TestCase):
         self.git("commit", "-qm", message)
 
     def check(
-        self, previous: str | None, *, creating: bool = False,
-        manual: bool = False, existing: str | None = NODE,
+        self,
+        previous: str | None,
+        *,
+        creating: bool = False,
+        manual: bool = False,
+        existing: str | None = NODE,
     ) -> str:
         self.output_file.write_text("", encoding="utf-8")
         environment = {
@@ -133,15 +142,20 @@ class FingerprintTests(unittest.TestCase):
         self.assertIn("ansible_changed=false", self.output_file.read_text())
 
     def test_ssm_access_failure_does_not_look_like_missing_parameter(self) -> None:
-        with mock.patch.object(
-            module, "aws",
-            return_value=subprocess.CompletedProcess(
-                args=[], returncode=255, stdout="",
-                stderr="AccessDeniedException",
+        with (
+            mock.patch.object(
+                module,
+                "aws",
+                return_value=subprocess.CompletedProcess(
+                    args=[],
+                    returncode=255,
+                    stdout="",
+                    stderr="AccessDeniedException",
+                ),
             ),
+            self.assertRaises(RuntimeError),
         ):
-            with self.assertRaises(RuntimeError):
-                module.previous_value()
+            module.previous_value()
 
     def test_ssm_rejects_non_string_parameter_value(self) -> None:
         with (
@@ -168,9 +182,13 @@ class FingerprintTests(unittest.TestCase):
             ),
             mock.patch.object(module, "state_instance_id", return_value=NODE),
             mock.patch.object(
-                module, "aws",
+                module,
+                "aws",
                 return_value=subprocess.CompletedProcess(
-                    args=[], returncode=0, stdout="{}", stderr="",
+                    args=[],
+                    returncode=0,
+                    stdout="{}",
+                    stderr="",
                 ),
             ) as write,
         ):

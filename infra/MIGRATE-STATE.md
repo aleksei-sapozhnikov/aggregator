@@ -7,14 +7,14 @@ OpenTofu applies and state migrations are deliberate, operator-run steps.
 
 ## Target ownership
 
-| Root | AWS operator | Backend |
-| --- | --- | --- |
-| `aws_foundation/foundation` | AWS root | Existing root-protected bucket, `foundation/tofu.tfstate` |
-| `aws_foundation/administration/aws_account` | `infra-admin` | Administration-state bucket, `aws_account/tofu.tfstate` |
-| `aggregator/infra/administration` | `infra-admin` | Administration-state bucket, `projects/aggregator/tofu.tfstate` |
-| `aggregator/infra/state` | `aggregator-admin` | Project bucket, `state/tofu.tfstate` |
-| `aggregator/infra/demo` | Delegated user / approved OIDC jobs | Project bucket, `demo/tofu.tfstate` |
-| `aggregator/deploy/infra/publication` | `aggregator-admin` | Project bucket, `publication/tofu.tfstate` |
+| Root                                        | AWS operator                        | Backend                                                         |
+| ------------------------------------------- | ----------------------------------- | --------------------------------------------------------------- |
+| `aws_foundation/foundation`                 | AWS root                            | Existing root-protected bucket, `foundation/tofu.tfstate`       |
+| `aws_foundation/administration/aws_account` | `infra-admin`                       | Administration-state bucket, `aws_account/tofu.tfstate`         |
+| `aggregator/infra/administration`           | `infra-admin`                       | Administration-state bucket, `projects/aggregator/tofu.tfstate` |
+| `aggregator/infra/state`                    | `aggregator-admin`                  | Project bucket, `state/tofu.tfstate`                            |
+| `aggregator/infra/demo`                     | Delegated user / approved OIDC jobs | Project bucket, `demo/tofu.tfstate`                             |
+| `aggregator/deploy/infra/publication`       | `aggregator-admin`                  | Project bucket, `publication/tofu.tfstate`                      |
 
 The central operator is presently named `infra-admin` in AWS.
 `administrator` denotes its role, not a silently renamed IAM identity.
@@ -171,7 +171,7 @@ tofu plan
 ```
 
 Check the `aggregator-project-tofu-state-905418096305-eu-central-1`
-bucket and `state/tofu.tfstate` object. It must contain *only*
+bucket and `state/tofu.tfstate` object. It must contain _only_
 the bucket and its own security/lifecycle resources, not project IAM.
 
 ## 5 — Migrate demo and publication state
@@ -211,7 +211,7 @@ test plan upload/download checksum and protected apply with a fresh run.
 Invalidate all earlier saved plans; never apply a plan generated against
 old backend state.
 
-After monitoring successful live runs, make a *separate* cleanup change
+After monitoring successful live runs, make a _separate_ cleanup change
 removing temporary old-bucket permissions from
 `infra/administration/state.tf`,
 `state_access.tf` and `policies/AggregatorDemoInfraPlanState.json`.

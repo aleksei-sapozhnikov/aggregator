@@ -13,19 +13,19 @@ its resource addresses and `demo/tofu.tfstate` key.
 
 ## New architecture — staged, not yet applied in AWS
 
-| Root | Ownership | Intended state |
-| --- | --- | --- |
-| `aws_foundation/foundation` | AWS root | Existing root-protected Foundation state bucket, `foundation/tofu.tfstate` |
-| `aws_foundation/administration/aws_account` | Central `infra-admin` | Administration bucket, `aws_account/tofu.tfstate` |
-| `aggregator/infra/administration` | Central `infra-admin`, code in Aggregator | Protected Administration bucket, `projects/aggregator/tofu.tfstate` |
-| `aggregator/infra/state` | Delegated `aggregator-admin` | Project bucket, `state/tofu.tfstate` |
-| `aggregator/infra/demo` | Delegated / approved OIDC | Project bucket, `demo/tofu.tfstate` |
-| `aggregator/deploy/infra/publication` | Delegated `aggregator-admin` | Project bucket, `publication/tofu.tfstate` |
+| Root                                        | Ownership                                 | Intended state                                                             |
+| ------------------------------------------- | ----------------------------------------- | -------------------------------------------------------------------------- |
+| `aws_foundation/foundation`                 | AWS root                                  | Existing root-protected Foundation state bucket, `foundation/tofu.tfstate` |
+| `aws_foundation/administration/aws_account` | Central `infra-admin`                     | Administration bucket, `aws_account/tofu.tfstate`                          |
+| `aggregator/infra/administration`           | Central `infra-admin`, code in Aggregator | Protected Administration bucket, `projects/aggregator/tofu.tfstate`        |
+| `aggregator/infra/state`                    | Delegated `aggregator-admin`              | Project bucket, `state/tofu.tfstate`                                       |
+| `aggregator/infra/demo`                     | Delegated / approved OIDC                 | Project bucket, `demo/tofu.tfstate`                                        |
+| `aggregator/deploy/infra/publication`       | Delegated `aggregator-admin`              | Project bucket, `publication/tofu.tfstate`                                 |
 
 The account-wide OIDC provider is reused by project GitHub roles; the
 roles and all Aggregator-specific IAM users/policies live only in
 `aggregator/infra/administration`. The central Administrator identity
-is presently named `infra-admin`; the IAM user is *not* renamed
+is presently named `infra-admin`; the IAM user is _not_ renamed
 automatically by these changes.
 
 The original shared bucket is retained intact for migration and for
