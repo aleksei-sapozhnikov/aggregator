@@ -62,7 +62,7 @@ require no AWS credentials:
 
 ```sh
 tofu fmt -check -recursive
-tflint --init
+tflint --init --config=../../../.tflint.hcl
 tflint --recursive --config=../../../.tflint.hcl --minimum-failure-severity=notice
 ```
 

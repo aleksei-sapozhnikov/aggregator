@@ -97,8 +97,12 @@ class ModuleConfigurationTests(unittest.TestCase):
                 for group in ("services", "infra", "deploy", "tools")
                 for directory in (root / group).iterdir()
                 if directory.is_dir()
-                and directory.name
-                not in {"__pycache__", "node_modules", "build", "dist"}
+                and directory.name not in {
+                    "__pycache__",
+                    "node_modules",
+                    "build",
+                    "dist",
+                }
                 and not directory.name.startswith(".")
             },
         )
