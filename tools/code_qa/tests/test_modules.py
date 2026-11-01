@@ -107,18 +107,18 @@ class ModuleConfigurationTests(unittest.TestCase):
 
     def test_changed_paths_are_passed_to_project_checks(self) -> None:
         root = repo_root()
-        changed = module_path(root, "infra-bootstrap", "removed.tf")
+        changed = module_path(root, "infra-administration", "removed.tf")
         check = next(
             check
             for check in cli.CHECKS
-            if check.check_id == "infra-bootstrap/tofu-format"
+            if check.check_id == "infra-administration/tofu-format"
         )
 
         def inspect(runner: str, args: list[str]) -> tuple[bool, list[str]]:
             self.assertEqual(runner, "code_qa.src.checks.format.tofu")
             self.assertEqual(
                 args[args.index("--directory") + 1],
-                str(root / modules.MODULE_BY_NAME["infra-bootstrap"].path),
+                str(root / modules.MODULE_BY_NAME["infra-administration"].path),
             )
             self.assertEqual(args[args.index("--workspace-root") + 1], str(root))
             manifest = Path(args[args.index("--changed-files-from") + 1])
@@ -136,6 +136,12 @@ class ModuleConfigurationTests(unittest.TestCase):
                 (True, []),
             )
         run.assert_called_once()
+
+    def test_administration_module_uses_the_current_directory(self) -> None:
+        module = modules.MODULE_BY_NAME["infra-administration"]
+        self.assertEqual(module.path, "infra/administration")
+        self.assertTrue((repo_root() / module.path).is_dir())
+        self.assertNotIn("infra-bootstrap", modules.MODULE_BY_NAME)
 
     def test_moving_a_module_only_changes_its_configured_path(self) -> None:
         root = Path(tempfile.gettempdir()).resolve() / "qa-relocation"
