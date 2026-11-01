@@ -67,6 +67,46 @@ class ModuleConfigurationTests(unittest.TestCase):
             inputs.files_in_module(root, "publication-tools", paths), [paths[1]]
         )
 
+    def test_infra_roots_and_ansible_are_registered(self) -> None:
+        for name in (
+            "infra-administration", "infra-state", "infra-demo", "infra-publication"
+        ):
+            with self.subTest(module=name):
+                self.assertEqual(modules.MODULE_BY_NAME[name].code, "tofu_code")
+                self.assertIn(f"{name}/tflint", [c.check_id for c in cli.CHECKS])
+        self.assertEqual(
+            modules.MODULE_BY_NAME["infra-demo-ansible"].code, "ansible_code"
+        )
+        self.assertIn(
+            "infra-demo-ansible/ansible-lint", [c.check_id for c in cli.CHECKS]
+        )
+        self.assertEqual(
+            modules.MODULE_BY_NAME["infra-demo-ansible"].tests.kind,
+            "unittest_tests",
+        )
+
+    def test_shared_tflint_config_is_forwarded_to_scoped_checks(self) -> None:
+        root = repo_root()
+        config_path = (root / ".tflint.hcl").resolve()
+        check = next(c for c in cli.CHECKS if c.check_id == "infra-state/tflint")
+
+        def inspect(runner: str, args: list[str]) -> tuple[bool, list[str]]:
+            self.assertEqual(runner, "code_qa.src.checks.format.tflint")
+            manifest = Path(args[args.index("--changed-files-from") + 1])
+            self.assertEqual(
+                json.loads(manifest.read_text(encoding="utf-8")),
+                [".tflint.hcl"],
+            )
+            return True, []
+
+        with patch.object(cli, "run_module", side_effect=inspect):
+            self.assertEqual(
+                cli.execute_check(
+                    check, check.check_args, root, [config_path], scoped=True
+                ),
+                (True, []),
+            )
+
     def test_demo_ansible_is_a_nested_module(self) -> None:
         root = Path(tempfile.gettempdir()).resolve() / "qa-demo-module-paths"
         tofu_file = module_path(root, "infra-demo", "main.tf")

@@ -60,9 +60,7 @@ def run(directory: Path, workspace: Path, changed_files: Path | None = None) -> 
             "site.yml",
         ],
         [
-            python,
-            "-m",
-            "ansiblelint",
+            str(Path(python).parent / "ansible-lint"),
             "--offline",
             "--profile=basic",
             "--nocolor",

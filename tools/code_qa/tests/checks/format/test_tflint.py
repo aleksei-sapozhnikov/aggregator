@@ -19,7 +19,7 @@ class TFLintTests(unittest.TestCase):
         self.cache = tempfile.TemporaryDirectory()
         self.addCleanup(self.cache.cleanup)
 
-    def test_loads_local_policy_and_fails_on_notice_level_issues(self) -> None:
+    def test_loads_shared_policy_and_fails_on_notice_level_issues(self) -> None:
         with (
             patch.object(tflint, "runtime_dir", return_value=Path(self.cache.name)),
             patch.object(tflint, "resolve", return_value="tflint"),
@@ -30,7 +30,7 @@ class TFLintTests(unittest.TestCase):
             ) as run,
         ):
             self.assertEqual(tflint.run(self.directory, self.workspace), 0)
-        config = f"--config={self.directory / '.tflint.hcl'}"
+        config = f"--config={self.workspace / '.tflint.hcl'}"
         self.assertEqual(run.call_args_list[0].args[0], ["tflint", "--init", config])
         self.assertEqual(
             run.call_args_list[1].args[0],
@@ -66,6 +66,22 @@ class TFLintTests(unittest.TestCase):
                     tflint.run(self.directory, self.workspace, manifest), 1
                 )
             resolve.assert_called_once_with(self.workspace)
+
+    def test_shared_policy_change_runs_in_scoped_mode(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            manifest = Path(temporary) / "changed.json"
+            manifest.write_text(json.dumps([".tflint.hcl"]), encoding="utf-8")
+            with (
+                patch.object(tflint, "runtime_dir", return_value=Path(self.cache.name)),
+                patch.object(tflint, "resolve", return_value="tflint"),
+                patch.object(
+                    tflint.subprocess,
+                    "run",
+                    return_value=subprocess.CompletedProcess([], 0),
+                ) as execute,
+            ):
+                self.assertEqual(tflint.run(self.directory, self.workspace, manifest), 0)
+            self.assertEqual(execute.call_count, 2)
 
     def test_lint_failure_is_returned(self) -> None:
         with (

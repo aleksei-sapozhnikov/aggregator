@@ -40,7 +40,7 @@ class AnsibleLintTests(unittest.TestCase):
         )
         self.assertEqual(
             lint,
-            ["/qa/venv/bin/python", "-m", "ansiblelint", "--offline", "--profile=basic", "--nocolor", "site.yml"],
+            ["/qa/venv/bin/ansible-lint", "--offline", "--profile=basic", "--nocolor", "site.yml"],
         )
         for call in execute.call_args_list:
             self.assertEqual(call.kwargs["cwd"], self.directory)
