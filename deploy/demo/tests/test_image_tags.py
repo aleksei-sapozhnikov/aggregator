@@ -1,11 +1,14 @@
 """Tests for deterministic per-service demo image tag generation."""
 
 import os
+import sys
 import subprocess
 import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from image_tags import (
     SERVICES,
@@ -40,7 +43,7 @@ class ImageTagsTests(unittest.TestCase):
             try:
                 os.chdir(root)
                 before = build_images("HEAD")
-                (root / "services-core/aggregator/Dockerfile").write_text(
+                (root / "services/aggregator/Dockerfile").write_text(
                     "FROM alpine:3\n", encoding="utf-8"
                 )
                 subprocess.run(["git", "add", "."], check=True)
@@ -81,8 +84,8 @@ class ImageTagsTests(unittest.TestCase):
         )
 
     def test_compose_image_tag_contract_matches_service_mapping(self):
-        root = Path(__file__).resolve().parents[2]
-        compose = (root / "compose/compose.images.demo.yaml").read_text(
+        root = Path(__file__).resolve().parents[3]
+        compose = (root / "deploy/compose/compose.images.demo.yaml").read_text(
             encoding="utf-8"
         )
         for service in SERVICES:
@@ -96,8 +99,8 @@ class ImageTagsTests(unittest.TestCase):
             self.assertIn(expected, compose)
 
     def test_real_kustomization_contains_all_expected_images(self):
-        root = Path(__file__).resolve().parents[2]
-        manifest = (root / "deploy/k8s/kustomization.yaml").read_text(encoding="utf-8")
+        root = Path(__file__).resolve().parents[3]
+        manifest = (root / "deploy/kubernetes/kustomization.yaml").read_text(encoding="utf-8")
         images = [
             {"service": service, "context": context, "tag": "a" * 40}
             for service, context in SERVICES.items()

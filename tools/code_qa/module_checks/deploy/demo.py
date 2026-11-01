@@ -6,7 +6,7 @@ SPEC = ModuleSpec(
     "deploy-demo",
     "deploy/demo",
     code="python_code",
-    tests=TestSpec("unittest_tests", ("--start-directory", ".")),
+    tests=TestSpec("unittest_tests", ("--start-directory", "tests")),
 )
 
 

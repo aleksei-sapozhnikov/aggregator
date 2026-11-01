@@ -41,7 +41,7 @@ cd ~/aggregator-demo/repo
 DEPLOY_SHA="$(git rev-parse HEAD)" bash ./deploy/demo/demo-deploy.sh
 ```
 
-Run `python3 deploy/demo/image_tags.py list` to inspect content-based
+Run `python3 deploy/demo/src/image_tags.py list` to inspect content-based
 image tags. The UI entrypoint writes public `/config.json` from
 `APP_TITLE` and `TIMELINE_DEFAULT_RANGE`; do not put secrets in it.
 

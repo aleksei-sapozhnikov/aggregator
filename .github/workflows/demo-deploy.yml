@@ -53,7 +53,7 @@ jobs:
         id: plan
         env:
           GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
-        run: python3 deploy/demo/image_tags.py plan
+        run: python3 deploy/demo/src/image_tags.py plan
 
   build-and-publish:
     name: Build & publish / ${{ matrix.service }}
