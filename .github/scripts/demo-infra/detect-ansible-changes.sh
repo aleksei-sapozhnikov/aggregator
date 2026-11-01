@@ -31,10 +31,10 @@ else
     echo "::warning::$reason" >&2
   else
     git diff --name-status "$BASE_SHA" "$GITHUB_SHA" -- infra/demo/ansible/ infra/demo/node-configure.sh infra/demo/ssm-node-configure.sh deploy/argocd/argocd-admin-hash.py > "$RUNNER_TEMP/ansible-changed-files.txt"
-  if [[ -s "$RUNNER_TEMP/ansible-changed-files.txt" ]]; then
-    changed=true
-    reason="Node configuration or Argo CD helper changed between $BASE_SHA and $GITHUB_SHA."
-    git diff --no-ext-diff --no-color "$BASE_SHA" "$GITHUB_SHA" -- infra/demo/ansible/ infra/demo/node-configure.sh infra/demo/ssm-node-configure.sh deploy/argocd/argocd-admin-hash.py > "$RUNNER_TEMP/ansible-diff.patch"
+    if [[ -s "$RUNNER_TEMP/ansible-changed-files.txt" ]]; then
+      changed=true
+      reason="Node configuration or Argo CD helper changed between $BASE_SHA and $GITHUB_SHA."
+      git diff --no-ext-diff --no-color "$BASE_SHA" "$GITHUB_SHA" -- infra/demo/ansible/ infra/demo/node-configure.sh infra/demo/ssm-node-configure.sh deploy/argocd/argocd-admin-hash.py > "$RUNNER_TEMP/ansible-diff.patch"
     fi
   fi
 fi
