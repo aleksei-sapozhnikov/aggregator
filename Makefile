@@ -133,7 +133,7 @@ help:
 	@echo "  code-lint        -> check code without modifying files (no secrets scan)"
 	@echo "  test             -> run all unit tests (or TEST_MODULE=aggregator)"
 	@echo "  code-secrets     -> scan secrets with TruffleHog"
-	@echo "  qa-format        -> autoformat code, then run all checks, tests and secrets scan"
+	@echo "  qa-format        -> fix/check each module, run its tests, then scan secrets"
 	@echo "  qa-check         -> check code, run tests and scan secrets (no changes)"
 	@echo "  qa               -> alias for qa-check"
 	@echo "  deps-audit       -> check npm dependency advisories and update suggestions"
