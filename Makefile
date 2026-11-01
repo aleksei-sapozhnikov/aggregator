@@ -278,8 +278,7 @@ code-secrets:
 	python tools/code_qa/src/main.py secrets
 
 qa-format:
-	$(MAKE) code-format
-	$(MAKE) qa-check
+	python tools/code_qa/src/main.py qa-format $(QA_MODULE_ARGS)
 
 qa-check:
 	python tools/code_qa/src/main.py $(QA_CHECK_COMMAND) $(QA_MODULE_ARGS)
