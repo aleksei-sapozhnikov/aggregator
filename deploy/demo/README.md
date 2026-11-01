@@ -4,7 +4,7 @@ The original one-off VM bootstrap scripts have been retired from the repository.
 The existing serving Docker Compose EC2 remains unchanged. The separate K3s
 node is provisioned through cloud-init and Ansible instead.
 
-The hosted demo is deployed only from the `demo` branch. GitHub Actions runs
+The hosted demo is deployed only from the `deploy/demo` branch. GitHub Actions runs
 the code checks, then calculates a Git tree ID for each of the eight image
 build contexts. An image is built and published to GHCR only if that
 service-specific tag does not already exist. The full Git commit SHA identifies
@@ -30,7 +30,7 @@ SSM Agent executes the document with root privileges but switches to
 `ec2-user` before accessing the checkout or Docker. The document accepts
 only a 40-character hexadecimal Git SHA, then:
 
-1. Fetches `demo` and verifies that the SHA belongs to that branch.
+1. Fetches `deploy/demo` and verifies that the SHA belongs to that branch.
 2. Checks out precisely that SHA so mounted Caddy/Prometheus/Grafana files
    match the released configuration.
 3. Calculates the same per-service image tags from that commit's Git trees,
@@ -51,9 +51,9 @@ only a 40-character hexadecimal Git SHA, then:
 4. In GitHub Settings → Environments → `demo`, add environment variables
    `AWS_DEMO_DEPLOY_ROLE_ARN` (output `github_demo_deploy_role_arn`) and
    `SSM_INSTANCE_ID` (output `instance_id` from the demo root).
-   **Restrict deployment branches to `demo` only**, because the IAM OIDC
+   **Restrict deployment branches to `deploy/demo` only**, because the IAM OIDC
    trust policy uses an environment subject, not a branch subject.
-5. Update the `demo` branch from the tested `dev` branch. The workflow
+5. Update the `deploy/demo` branch from the tested `dev` branch. The workflow
    will publish images, then run SSM to deploy. Check the GitHub job output.
 6. Only after a successful SSM deploy, set `enable_legacy_ssh=false`
    in the demo root and apply again. Remove old GitHub `SSH_HOST`,
