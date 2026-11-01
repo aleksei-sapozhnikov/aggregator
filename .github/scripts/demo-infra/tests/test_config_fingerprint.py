@@ -35,7 +35,7 @@ class FingerprintTests(unittest.TestCase):
         self.write("infra/demo/node-configure.sh", "#!/bin/bash\n")
         self.write("infra/demo/ssm-node-configure.sh", "#!/bin/sh\n")
         self.write("deploy/argocd/argocd-admin-hash.py", "pass\n")
-        self.write("services-core/catalog/README.md", "initial\n")
+        self.write("services/catalog/README.md", "initial\n")
         self.write("infra/demo/ansible/README.md", "documentation\n")
         self.commit("Initial configuration")
         self.root_patch = mock.patch.object(module, "ROOT", self.root)
@@ -90,7 +90,7 @@ class FingerprintTests(unittest.TestCase):
 
     def test_application_commits_do_not_change_configuration_fingerprint(self) -> None:
         before = module.fingerprint()
-        self.write("services-core/catalog/README.md", "changed source\n")
+        self.write("services/catalog/README.md", "changed source\n")
         self.write("infra/demo/ansible/README.md", "changed documentation\n")
         self.commit("Application and documentation changes")
         self.assertEqual(before, module.fingerprint())

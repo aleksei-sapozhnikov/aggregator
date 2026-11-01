@@ -36,4 +36,4 @@ and OOMKilled pods; a larger size may still be required.
 
 The public HTTP address is available from OpenTofu output `k3s_public_ip`
 after a successful reviewed deployment. The full release pipeline and
-security limitations are described in [the K3s deployment README](../../../../deploy/k8s/README.md).
+security limitations are described in [the K3s deployment README](../../../../deploy/kubernetes/README.md).
