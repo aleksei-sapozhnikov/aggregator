@@ -29,8 +29,13 @@ else
     esac
   done < <(git diff --name-only "$BASE_SHA" "$GITHUB_SHA")
 fi
-# A missing first release means cluster bootstrap must be reconciled
-# before an application deploy, even on a code-only push.
+# Always check the last successful node configuration before application
+# deploys. This retries a previously failed Ansible apply even if the next
+# push only changes application sources or rewrites branch history.
+if [[ "$deploy_changed" == true ]]; then
+  infra_changed=true
+fi
+# Missing GitOps manifests requires a plan/check, but not an Ansible reapply.
 bootstrap_missing=false
 if ! git cat-file -e HEAD:deploy/k8s-live/kustomization.yaml 2>/dev/null; then
   bootstrap_missing=true
