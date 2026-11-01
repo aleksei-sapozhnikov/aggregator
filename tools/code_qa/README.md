@@ -12,8 +12,8 @@ module_checks/
     secrets.py       Repository-wide TruffleHog scan
   infra/             administration.py, demo.py, state.py
   services/          aggregator.py, aggregator_ui.py, catalog.py, ...
-  deploy/            argocd.py, compose.py, demo.py, kubernetes.py
-  tools/             code_qa.py, dependency_audit.py, git_hooks.py, publisher.py, ...
+  deploy/            compose.py, demo.py, kubernetes.py
+  tools/             argocd.py, code_qa.py, dependency_audit.py, ...
   registry.py        Module discovery and CI matrix
   specs.py           Module, nested check, and test contracts
   runner.py          Single-module execution entrypoint

@@ -38,7 +38,7 @@ offline `ansible-lint` (basic profile), YAML/format checks and node
 configuration contract tests:
 
 ```sh
-make qa-check MODULE=infra-demo-ansible QA_SCAN_SECRETS=false
+make qa-check MODULE=infra-demo QA_SCAN_SECRETS=false
 ```
 
 Run this on Linux or through WSL on Windows. QA installs pinned Ansible tools
@@ -74,8 +74,8 @@ stores plaintext in Git or OpenTofu state.
 
 To rotate: change the GitHub secret, dispatch `Demo pipeline` on
 `deploy/demo` with `sync_argocd_password=true`, and approve the apply
-environment. See [password tooling](../../../deploy/argocd/README.md).
-A local alternative is `python deploy/argocd/src/sync_argocd_password.py`,
+environment. See [password tooling](../../../../tools/argocd/README.md).
+A local alternative is `python tools/argocd/src/sync_argocd_password.py`,
 using an AWS identity authorized for `ssm:SendCommand` and a process-only
 `ARGOCD_PASSWORD` variable; tunnel-only privileges are insufficient.
 

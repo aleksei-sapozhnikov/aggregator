@@ -21,9 +21,9 @@ fi
 for script in .github/scripts/demo-infra/*.sh .github/scripts/demo-deploy/*.sh; do
   bash -n "$script"
 done
-python3 -m py_compile deploy/argocd/src/argocd_admin_hash.py
-python3 -m py_compile deploy/argocd/src/sync_argocd_password.py
-python3 -m unittest discover -s deploy/argocd/tests -p 'test_*.py'
+python3 -m py_compile tools/argocd/src/argocd_admin_hash.py
+python3 -m py_compile tools/argocd/src/sync_argocd_password.py
+python3 -m unittest discover -s tools/argocd/tests -p 'test_*.py'
 # The EC2 bootstrap must remain independent of Git repository layout.
 "$ansible_python" - <<'PY'
 from pathlib import Path

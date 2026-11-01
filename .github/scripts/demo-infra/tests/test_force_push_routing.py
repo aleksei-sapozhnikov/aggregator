@@ -80,6 +80,13 @@ class ForcePushRoutingTests(unittest.TestCase):
         self.assertIn("infra_changed=false", result)
         self.assertIn("deploy_changed=false", result)
 
+    def test_argocd_utility_change_triggers_infrastructure_not_image_deploy(self) -> None:
+        self.write("tools/argocd/src/argocd_admin_hash.py", "print('changed')\n")
+        self.commit("Change Argo CD admin hash helper")
+        result = self.route()
+        self.assertIn("infra_changed=true", result)
+        self.assertIn("deploy_changed=false", result)
+
     def test_app_only_changes_still_check_last_successful_config(self) -> None:
         self.write("services/catalog/README.md", "updated\n")
         self.commit("Change application")

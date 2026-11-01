@@ -23,7 +23,7 @@ CONFIG_SOURCES = (
     "infra/demo/ansible/roles",
     "infra/demo/node-configure.sh",
     "infra/demo/ssm-node-configure.sh",
-    "deploy/argocd/src/argocd_admin_hash.py",
+    "tools/argocd/src/argocd_admin_hash.py",
 )
 INSTANCE_ID = re.compile(r"i-[0-9a-f]{8,17}\Z")
 SHA256 = re.compile(r"[0-9a-f]{64}\Z")
@@ -58,7 +58,7 @@ def fingerprint() -> str:
         "infra/demo/ansible/site.yml",
         "infra/demo/node-configure.sh",
         "infra/demo/ssm-node-configure.sh",
-        "deploy/argocd/src/argocd_admin_hash.py",
+        "tools/argocd/src/argocd_admin_hash.py",
     ):
         if required not in included:
             raise ValueError(f"Missing tracked node configuration source: {required}")

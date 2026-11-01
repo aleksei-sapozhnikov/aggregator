@@ -1,7 +1,7 @@
 # Argo CD administrator credential utilities
 
 This directory owns Argo CD administrator password reconciliation. The
-scripts are deployment utilities, not GitHub Actions or Ansible implementations.
+scripts are operational utilities, not Argo CD installation manifests.
 
 - `src/sync_argocd_password.py` runs from GitHub Actions or a local workstation.
   It compares `ARGOCD_PASSWORD` with the current bcrypt verifier over AWS SSM

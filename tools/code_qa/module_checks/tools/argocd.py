@@ -1,10 +1,10 @@
-"""Module checks for deploy/argocd."""
+"""Module checks for tools/argocd."""
 
 from code_qa.module_checks.specs import ModuleSpec, TestSpec
 
 SPEC = ModuleSpec(
     "argocd",
-    "deploy/argocd",
+    "tools/argocd",
     code="python_code",
     tests=TestSpec("unittest_tests", ("--start-directory", "tests")),
 )
