@@ -34,7 +34,7 @@ class FingerprintTests(unittest.TestCase):
         )
         self.write("infra/demo/node-configure.sh", "#!/bin/bash\n")
         self.write("infra/demo/ssm-node-configure.sh", "#!/bin/sh\n")
-        self.write("deploy/argocd/argocd_admin_hash.py", "pass\n")
+        self.write("deploy/argocd/src/argocd_admin_hash.py", "pass\n")
         self.write("services/catalog/README.md", "initial\n")
         self.write("infra/demo/ansible/README.md", "documentation\n")
         self.commit("Initial configuration")

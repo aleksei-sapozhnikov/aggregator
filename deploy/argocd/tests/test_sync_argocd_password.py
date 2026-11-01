@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import ClassVar
 from unittest.mock import Mock, patch
 
-SCRIPT = Path(__file__).resolve().parents[1] / "sync_argocd_password.py"
+SCRIPT = Path(__file__).resolve().parents[1] / "src" / "sync_argocd_password.py"
 BCRYPT_HASH = b"$2b$12$" + b"." * 53
 
 
