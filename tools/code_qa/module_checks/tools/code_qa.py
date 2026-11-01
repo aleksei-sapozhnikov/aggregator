@@ -6,8 +6,10 @@ SPEC = ModuleSpec(
     "code-qa",
     "tools/code_qa",
     code="python_code",
-    tests=TestSpec("unittest_tests",
-                   ("--start-directory", "tests", "--top-level-directory", "..")),
+    tests=TestSpec(
+        "unittest_tests",
+        ("--start-directory", "tests", "--top-level-directory", ".."),
+    ),
 )
 
 

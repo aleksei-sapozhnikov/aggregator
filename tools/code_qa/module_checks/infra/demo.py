@@ -1,6 +1,6 @@
 """Module checks for infra/demo."""
 
-from code_qa.module_checks.specs import ModuleSpec, TestSpec, ScopedChecks, ScopedTests
+from code_qa.module_checks.specs import ModuleSpec, ScopedChecks, ScopedTests, TestSpec
 
 SPEC = ModuleSpec(
     "infra-demo",
@@ -10,8 +10,11 @@ SPEC = ModuleSpec(
         ScopedChecks("ansible", "infra/demo/ansible", ("ansible-lint",)),
     ),
     scoped_tests=(
-        ScopedTests("ansible", "infra/demo/ansible",
-                    TestSpec("unittest_tests", ("--start-directory", "tests"))),
+        ScopedTests(
+            "ansible",
+            "infra/demo/ansible",
+            TestSpec("unittest_tests", ("--start-directory", "tests")),
+        ),
     ),
 )
 

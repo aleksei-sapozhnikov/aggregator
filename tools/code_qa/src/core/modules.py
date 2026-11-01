@@ -14,3 +14,18 @@ from code_qa.module_checks.registry import (
     TestSpec,
     ci_matrix,
 )
+
+__all__ = (
+    "CODE_PROFILES",
+    "COMMON_CHECKS",
+    "FINAL_CHECKS",
+    "MODULES",
+    "MODULE_BY_NAME",
+    "MODULE_NAMES",
+    "TEST_MODULE_NAMES",
+    "ModuleSpec",
+    "ScopedChecks",
+    "ScopedTests",
+    "TestSpec",
+    "ci_matrix",
+)

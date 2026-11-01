@@ -66,3 +66,18 @@ def ci_matrix() -> dict[str, list[dict[str, object]]]:
             for module in MODULES
         ]
     }
+
+__all__ = (
+    "CODE_PROFILES",
+    "DEFAULT_CHECKS",
+    "FINAL_CHECKS",
+    "ModuleSpec",
+    "ScopedChecks",
+    "ScopedTests",
+    "TestSpec",
+    "MODULES",
+    "MODULE_BY_NAME",
+    "MODULE_NAMES",
+    "TEST_MODULE_NAMES",
+    "ci_matrix",
+)

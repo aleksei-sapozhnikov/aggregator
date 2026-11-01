@@ -11,6 +11,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, replace
 from pathlib import Path
 
+from code_qa.module_checks.common.secrets import run_secrets_command
 from code_qa.src.core.inputs import files_in_module
 from code_qa.src.core.modules import (
     MODULE_BY_NAME,
@@ -25,7 +26,6 @@ from code_qa.src.core.utils import (
     dependency_environment,
     emit_final_summary,
     iter_repo_files,
-    parse_secrets_summary,
     repo_root,
     run_module,
     runtime_dir,
@@ -416,9 +416,6 @@ def run_format_command(
         return 0 if passed else 1
     finally:
         close()
-
-
-from code_qa.module_checks.common.secrets import run_secrets_command
 
 
 def readable_test_line(line: str) -> str:

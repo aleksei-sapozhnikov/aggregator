@@ -8,10 +8,24 @@ SPEC = ModuleSpec(
     code="python_code",
     tests=TestSpec(
         "pytest_tests",
-        ("--requirements", "src/requirements.txt", "--test-directory", "tests",
-         "--require-import", "pytest", "--require-import", "fastapi",
-         "--require-import", "httpx", "--require-import", "boto3",
-         "--require-import", "lingua", "--require-import", "requests"),
+        (
+            "--requirements",
+            "src/requirements.txt",
+            "--test-directory",
+            "tests",
+            "--require-import",
+            "pytest",
+            "--require-import",
+            "fastapi",
+            "--require-import",
+            "httpx",
+            "--require-import",
+            "boto3",
+            "--require-import",
+            "lingua",
+            "--require-import",
+            "requests",
+        ),
     ),
 )
 
