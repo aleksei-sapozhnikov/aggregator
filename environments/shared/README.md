@@ -5,8 +5,8 @@ This repository owns project IAM and workloads.
 
 | OpenTofu root                                      | Operator                                | Responsibility                                          | State key                                                          |
 | -------------------------------------------------- | --------------------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------ |
-| [shared/administration](administration/) | `infra-admin`                           | Project IAM, GitHub OIDC roles, delegated permissions | `projects/aggregator/tofu.tfstate` (central Administration bucket)  |
-| [shared/state](state/)                  | `aggregator-admin`                      | Project S3 state bucket and saved-plan lifecycle      | `state/tofu.tfstate`                                                |
+| [shared/infra/administration](infra/administration/) | `infra-admin`                           | Project IAM, GitHub OIDC roles, delegated permissions | `projects/aggregator/tofu.tfstate` (central Administration bucket)  |
+| [shared/infra/state](infra/state/)                  | `aggregator-admin`                      | Project S3 state bucket and saved-plan lifecycle      | `state/tofu.tfstate`                                                |
 | [demo/infra](../demo/infra/)            | `aggregator-admin` / approved OIDC role | Serving Compose EC2, optional K3s EC2 and SSM documents | `demo/tofu.tfstate`                                                 |
 | [tools/publisher/infra](../../tools/publisher/infra/) | `aggregator-admin`                      | Publication automation                                | `publication/tofu.tfstate`                                          |
 

@@ -8,12 +8,12 @@ SPEC = ModuleSpec(
     scoped_checks=(
         ScopedChecks(
             "administration",
-            "environments/shared/administration",
+            "environments/shared/infra/administration",
             ("tofu-format", "tofu-validate", "tflint"),
         ),
         ScopedChecks(
             "state",
-            "environments/shared/state",
+            "environments/shared/infra/state",
             ("tofu-format", "tofu-validate", "tflint"),
         ),
     ),

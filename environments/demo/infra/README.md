@@ -6,7 +6,7 @@ Elastic IP, and an optional K3s EC2 with Argo CD. It also manages the
 serving demo's SSM deployment document and workload IAM roles/profiles.
 The project bucket stores its state at `demo/tofu.tfstate`.
 
-Project IAM policy/role changes belong in [shared administration](../../shared/administration/README.md)
+Project IAM policy/role changes belong in [shared administration](../../shared/infra/administration/README.md)
 and must be applied as `infra-admin`, separately from this root.
 
 ## OpenTofu operations

@@ -23,7 +23,7 @@ command result. No inbound SSH or deploy SSH keys are required.
 
 In GitHub Settings → Environments, `demo` must allow **only**
 `deploy/demo`. It needs `AWS_DEMO_DEPLOY_ROLE_ARN` (from
-`environments/shared/administration`) and `SSM_INSTANCE_ID` (from `environments/demo/infra`).
+`environments/shared/infra/administration`) and `SSM_INSTANCE_ID` (from `environments/demo/infra`).
 GitHub OIDC Environment subjects do not independently restrict branches.
 
 ## Diagnostics

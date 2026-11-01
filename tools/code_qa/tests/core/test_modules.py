@@ -240,7 +240,7 @@ class ModuleConfigurationTests(unittest.TestCase):
 
     def test_changed_paths_are_passed_to_project_checks(self) -> None:
         root = repo_root()
-        changed = module_path(root, "shared", "administration/removed.tf")
+        changed = module_path(root, "shared", "infra/administration/removed.tf")
         check = next(
             check
             for check in cli.CHECKS
@@ -251,7 +251,7 @@ class ModuleConfigurationTests(unittest.TestCase):
             self.assertEqual(runner, "code_qa.src.checks.format.tofu")
             self.assertEqual(
                 args[args.index("--directory") + 1],
-                str(root / "environments/shared/administration"),
+                str(root / "environments/shared/infra/administration"),
             )
             self.assertEqual(args[args.index("--workspace-root") + 1], str(root))
             manifest = Path(args[args.index("--changed-files-from") + 1])

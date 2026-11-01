@@ -53,7 +53,7 @@ workflow or Argo CD sync succeeded. Check both Actions runs.
 | `demo-infra-apply` | `AWS_ROLE_ARN`, secret `ARGOCD_PASSWORD`, `MANUAL_APPROVAL_CONFIGURED=true` | Only `deploy/demo`; **required reviewers**    |
 | `demo`             | `AWS_DEMO_DEPLOY_ROLE_ARN`, `SSM_INSTANCE_ID`                               | Only `deploy/demo`                            |
 
-Use IAM role ARNs from `environments/shared/administration`. The OIDC trust uses
+Use IAM role ARNs from `environments/shared/infra/administration`. The OIDC trust uses
 Environment subjects, so the allowed-branch restrictions above are
 mandatory. Do not store AWS access keys in GitHub.
 
@@ -87,7 +87,7 @@ the protected apply environment.
 - Inspect both workflow job summaries, AWS account identity, planned
   resource actions and saved-plan checksum before approval.
 - If apply fails, **do not reuse the saved plan**: investigate, refresh IAM
-  through `environments/shared/administration` if required, and plan again against
+  through `environments/shared/infra/administration` if required, and plan again against
   current state. Do not force-unlock or manually delete partly created resources.
 - Inspect SSM Run Command output in CloudWatch
   `/aws/ssm/aggregator-demo-k3s` (14-day retention), or on the node at

@@ -13,7 +13,7 @@ access this state.
 
 ## Apply changes
 
-From `environments/shared/administration` with authorized central credentials:
+From `environments/shared/infra/administration` with authorized central credentials:
 
 ```sh
 aws sts get-caller-identity
@@ -56,10 +56,10 @@ The infrastructure workflow never applies this administrator root.
   private Argo CD port-forwarding on tagged instances. The IAM user
   `aggregator-admin` runs as `ec2-user`. No inbound SSH is required.
 - Project state bucket provisioning is delegated to `aggregator-admin`;
-  the bucket itself belongs to `environments/shared/state`.
+  the bucket itself belongs to `environments/shared/infra/state`.
 
 State access in this root is restricted to the project-owned bucket.
 Removing an unused S3 bucket is a separate, explicitly reviewed AWS action:
 verify active backends, object versions and lock files first.
 
-For the approval workflow and troubleshooting, see [Demo pipeline](../../demo/WORKFLOW.md).
+For the approval workflow and troubleshooting, see [Demo pipeline](../../../demo/WORKFLOW.md).
