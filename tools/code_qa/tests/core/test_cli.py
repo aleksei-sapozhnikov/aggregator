@@ -368,7 +368,9 @@ class OrchestratorFlowTests(unittest.TestCase):
             patch.object(main, "run_qa_command", return_value=0) as run,
         ):
             self.assertEqual(main.main(), 0)
-        self.assertEqual(run.call_args.kwargs["modules"], ["aggregator", "aggregator-ui"])
+        self.assertEqual(
+            run.call_args.kwargs["modules"], ["aggregator", "aggregator-ui"]
+        )
         self.assertFalse(run.call_args.kwargs["scan_secrets"])
         self.assertFalse(run.call_args.kwargs["format_before_tests"])
 

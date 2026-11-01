@@ -174,7 +174,7 @@ CHECK_TEMPLATES: list[CheckSpec] = [
 
 
 def module_checks() -> list[CheckSpec]:
-    """Bind adapters to explicit modules, keeping repository hygiene in its own group."""
+    """Bind adapters to modules, keeping repository hygiene separate."""
     templates = {check.check_id: check for check in CHECK_TEMPLATES}
     checks = []
     for module in MODULES:
@@ -730,7 +730,10 @@ def build_parser() -> argparse.ArgumentParser:
             "--module",
             action="append",
             choices=MODULE_NAMES,
-            help="Check only this module (may be repeated); secrets remain repository-wide.",
+            help=(
+                "Check only this module (repeatable). "
+                "Secrets remain repository-wide."
+            ),
         )
     modules_cmd = sub.add_parser(
         "modules", help="List module names or emit the CI matrix."

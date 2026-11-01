@@ -51,7 +51,9 @@ class ModuleConfigurationTests(unittest.TestCase):
             )
         )
 
-    def test_module_files_include_nested_directories_but_not_other_modules(self) -> None:
+    def test_module_files_include_nested_directories_but_not_other_modules(
+        self,
+    ) -> None:
         root = Path(tempfile.gettempdir()).resolve() / "qa-module-paths"
         paths = [
             module_path(root, "publisher", "infra/main.tf"),
@@ -274,7 +276,10 @@ class ModuleConfigurationTests(unittest.TestCase):
         module = modules.MODULE_BY_NAME["shared"]
         self.assertEqual(module.path, "environments/shared")
         self.assertTrue((repo_root() / module.path).is_dir())
-        self.assertIn("shared/administration/tofu-validate", [c.check_id for c in cli.CHECKS])
+        self.assertIn(
+            "shared/administration/tofu-validate",
+            [check.check_id for check in cli.CHECKS],
+        )
 
     def test_moving_a_module_only_changes_its_configured_path(self) -> None:
         root = Path(tempfile.gettempdir()).resolve() / "qa-relocation"
