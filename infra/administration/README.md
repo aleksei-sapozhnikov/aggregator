@@ -58,10 +58,8 @@ The infrastructure workflow never applies this administrator root.
 - Project state bucket provisioning is delegated to `aggregator-admin`;
   the bucket itself belongs to `infra/state`.
 
-The state-access policies currently include a separate shared-bucket ARN in
-addition to the project bucket. Do not remove that grant, the old bucket or
-its historical versions without checking all remaining state consumers and
-the **deployed** IAM policy. Cleanup of privileged AWS resources is not part
-of routine demo deployment.
+State access in this root is restricted to the project-owned bucket.
+Removing an unused S3 bucket is a separate, explicitly reviewed AWS action:
+verify active backends, object versions and lock files first.
 
 For the approval workflow and troubleshooting, see [Demo pipeline](../demo/WORKFLOW.md).

@@ -5,7 +5,7 @@ data "aws_iam_policy_document" "demo_state_access" {
     sid       = "ListDemoStateOnly"
     effect    = "Allow"
     actions   = ["s3:ListBucket"]
-    resources = local.migration_state_buckets
+    resources = [local.state_bucket_arn]
 
     condition {
       test     = "StringLike"
@@ -18,18 +18,14 @@ data "aws_iam_policy_document" "demo_state_access" {
     sid     = "ReadWriteDemoState"
     effect  = "Allow"
     actions = ["s3:GetObject", "s3:PutObject"]
-    resources = [
-      for bucket_arn in local.migration_state_buckets : "${bucket_arn}/demo/tofu.tfstate"
-    ]
+    resources = ["${local.state_bucket_arn}/demo/tofu.tfstate"]
   }
 
   statement {
     sid     = "ManageDemoStateLock"
     effect  = "Allow"
     actions = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
-    resources = [
-      for bucket_arn in local.migration_state_buckets : "${bucket_arn}/demo/tofu.tfstate.tflock"
-    ]
+    resources = ["${local.state_bucket_arn}/demo/tofu.tfstate.tflock"]
   }
 }
 
@@ -51,7 +47,7 @@ data "aws_iam_policy_document" "publication_state_access" {
   statement {
     sid       = "ListPublicationStateOnly"
     actions   = ["s3:ListBucket"]
-    resources = local.migration_state_buckets
+    resources = [local.state_bucket_arn]
 
     condition {
       test     = "StringLike"
@@ -63,17 +59,13 @@ data "aws_iam_policy_document" "publication_state_access" {
   statement {
     sid     = "ReadWritePublicationState"
     actions = ["s3:GetObject", "s3:PutObject"]
-    resources = [
-      for bucket_arn in local.migration_state_buckets : "${bucket_arn}/publication/tofu.tfstate"
-    ]
+    resources = ["${local.state_bucket_arn}/publication/tofu.tfstate"]
   }
 
   statement {
     sid     = "ManagePublicationStateLock"
     actions = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
-    resources = [
-      for bucket_arn in local.migration_state_buckets : "${bucket_arn}/publication/tofu.tfstate.tflock"
-    ]
+    resources = ["${local.state_bucket_arn}/publication/tofu.tfstate.tflock"]
   }
 }
 
