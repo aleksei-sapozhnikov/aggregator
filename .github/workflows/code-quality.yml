@@ -89,7 +89,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-qa-${{ matrix.module }}-py${{ env.PYTHON_VERSION }}-
       - name: Check module and run its tests
-        run: python tools/code_qa/src/main.py code-qa --module "${{ matrix.module }}"
+        run: make qa-check MODULE="${{ matrix.module }}" QA_SCAN_SECRETS=false
         env:
           GITHUB_TOKEN: ${{ github.token }}
       - name: Verify checks left tracked files unchanged
@@ -110,7 +110,7 @@ jobs:
           path: .local/qa-runtime/trufflehog
           key: ${{ runner.os }}-qa-trufflehog-${{ hashFiles('tools/code_qa/src/checks/other/trufflehog.py') }}
       - name: Scan repository secrets
-        run: python tools/code_qa/src/main.py secrets
+        run: make code-secrets
 
   quality:
     name: Checks
