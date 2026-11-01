@@ -31,15 +31,20 @@ selects an executor and passes it module-relative arguments.
 From the repository root:
 
 ```shell
-make qa-format                  # Format, then run checks, tests and secrets scan
+make qa-format                  # Format and test each module, then scan secrets
+make qa-format MODULE=catalog   # Format and test one module
 make qa-check                   # Check, test and scan without changing files
-make qa-check MODULE=catalog    # Restrict code checks and tests to one module
+make qa-check MODULE=catalog    # Check and test one module
 ```
 
-`qa-format` runs `code-format` before `qa-check` and stops if formatting
-cannot be completed. `qa` remains an alias for `qa-check`. In CI, module
-jobs use `make qa-check MODULE=<name> QA_SCAN_SECRETS=false` to avoid
-repeated secret scans; the dedicated secrets job uses `make code-secrets`.
+`qa-format` uses a single orchestration pass: for each module, run its
+checks, apply available formatting fixes, recheck that module only if needed,
+and then run its tests. Tests are skipped when the module still fails checks;
+other modules continue. Once all modules pass, secrets are scanned once.
+`qa-check` has the same module-by-module test ordering without any fixes.
+`qa` remains an alias for `qa-check`. In CI, module jobs use
+`make qa-check MODULE=<name> QA_SCAN_SECRETS=false` to avoid repeated
+secret scans; the dedicated secrets job uses `make code-secrets`.
 
 ## Commands
 
@@ -50,7 +55,8 @@ repeated secret scans; the dedicated secrets job uses `make code-secrets`.
 | `test`    | Run configured module test commands.                         |
 | `code-qa` | Check and test each module before proceeding to the next.    |
 | `secrets` | Scan the repository with TruffleHog.                         |
-| `qa`      | Check and test each module, then scan repository secrets.    |
+| `qa`       | Check and test each module, then scan repository secrets.   |
+| `qa-format` | Fix and test each module, then scan repository secrets.    |
 | `modules` | List modules; `--json` prints the CI matrix.                 |
 
 Use `--module NAME` to select one or more modules. For example:
@@ -64,8 +70,8 @@ Within each module, specialized formatters and validators run before the
 final `trailing whitespace` and `final newline` checks. The large-file check
 remains a repository-wide check.
 
-In `code-qa` and `qa`, each module's registered tests run directly after its
-checks pass. Failing checks skip only that module's tests; other modules are
+In `code-qa`, `qa`, and `qa-format`, each module's registered tests run
+directly after its checks pass. Failing checks skip only that module's tests; other modules are
 still checked and tested. Standalone `test` retains its separate behavior.
 
 The `secrets` command scans the current repository filesystem recursively,
