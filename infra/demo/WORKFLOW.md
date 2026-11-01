@@ -1,8 +1,8 @@
 # Demo pipeline: operations
 
-[`demo-infra.yml`](../../../.github/workflows/demo-infra.yml) is the automatic
+[`demo-infra.yml`](../../.github/workflows/demo-infra.yml) is the automatic
 entry point for a push to `deploy/demo`. It checks infrastructure and node
-configuration **before** dispatching [`demo-deploy.yml`](../../../.github/workflows/demo-deploy.yml).
+configuration **before** dispatching [`demo-deploy.yml`](../../.github/workflows/demo-deploy.yml).
 A commit on `dev` alone never deploys.
 
 ## Branches
