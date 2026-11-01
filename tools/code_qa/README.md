@@ -87,6 +87,7 @@ that file trigger lint in every infrastructure module even in scoped hooks.
 The `infra-demo-ansible` module runs pinned Ansible syntax and `ansible-lint`
 checks, as well as its configuration contract tests. Ansible dependencies
 use an isolated local environment, not the general QA Python toolchain.
+Ansible checks require Linux or WSL; native Windows is not supported.
 
 Python and npm dependencies, tool binaries, and caches are stored under the
 ignored `.local/qa-runtime` directory. No global Python or npm packages are

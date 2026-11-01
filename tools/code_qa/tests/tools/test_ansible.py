@@ -20,13 +20,18 @@ class AnsibleToolTests(unittest.TestCase):
             requirements = requirements_dir / "requirements-ansible.txt"
             requirements.write_text("ansible-lint==26.10.1\n", encoding="utf-8")
             python = root / ".local/qa-runtime/ansible/venv/bin/python"
+            def fake_run(command: list[str], **_: object) -> subprocess.CompletedProcess:
+                if command[1:3] == ["-m", "venv"]:
+                    python.parent.mkdir(parents=True, exist_ok=True)
+                    python.touch()
+                return subprocess.CompletedProcess(command, 0)
+
             with (
                 patch.object(ansible.sys, "platform", "linux"),
                 patch.object(ansible, "project_dir", return_value=requirements_dir),
                 patch.object(ansible, "python_has_module", return_value=True),
                 patch.object(
-                    ansible.subprocess, "run",
-                    return_value=subprocess.CompletedProcess([], 0),
+                    ansible.subprocess, "run", side_effect=fake_run
                 ) as execute,
             ):
                 self.assertEqual(ansible.ensure_ansible_python(root), str(python))
