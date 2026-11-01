@@ -4,8 +4,8 @@
 **only automatic entry point** for pushes to `demo`. Its lightweight
 `detect` job routes changes without AWS access. Terraform/Ansible
 validation and planning run for infrastructure changes or whenever the
-initial K3s GitOps release is missing and infrastructure automation is
-enabled. Otherwise, application updates dispatch the existing
+initial K3s GitOps release is missing. A missing release triggers a read-only
+plan but does not by itself trigger Ansible. Otherwise, application updates dispatch the existing
 `demo-deploy.yml` directly without running Terraform.
 Generated `deploy/k8s-live/**`-only promotion commits are excluded.
 The `admin` and `publication` OpenTofu roots remain outside demo state.
@@ -83,10 +83,15 @@ Changes under `infra/demo/ansible/**`, either of the versioned
 without Terraform resource updates. Ordinary application changes use GitHub
 image publication and Argo CD, without running Ansible. Once a GitOps release
 exists, application-only pushes skip Terraform/Ansible entirely.
+Force pushes that remove the generated release trigger republishing; if the
+previous branch SHA cannot be retrieved, the pipeline warns that it could not
+compare Ansible configuration. In that case, an explicitly reviewed reapply
+is required if node configuration was also changed.
 Before the first release, even an
-application-only push runs a Terraform Plan and, when K3s is enabled,
-requires approval to reapply Ansible before deploying. This prevents
-deploying to a cluster whose initial setup may have failed. On first
+application-only push runs a Terraform Plan. A missing GitOps release does
+not require Ansible when the existing K3s node is already configured.
+Ansible runs for changed node configuration, an explicit manual reapply, or
+a newly created/replaced K3s instance after approved infrastructure changes. On first
 provisioning, the Argo CD Application can temporarily report
 `ComparisonError` until
 `demo-deploy.yml` publishes `deploy/k8s-live`. That does not fail
