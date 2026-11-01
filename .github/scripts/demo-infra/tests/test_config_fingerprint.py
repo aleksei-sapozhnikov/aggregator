@@ -143,6 +143,22 @@ class FingerprintTests(unittest.TestCase):
             with self.assertRaises(RuntimeError):
                 module.previous_value()
 
+    def test_ssm_rejects_non_string_parameter_value(self) -> None:
+        with (
+            mock.patch.object(
+                module,
+                "aws",
+                return_value=subprocess.CompletedProcess(
+                    args=[],
+                    returncode=0,
+                    stdout='{"Parameter": {"Value": 123}}',
+                    stderr="",
+                ),
+            ),
+            self.assertRaisesRegex(TypeError, "Unexpected SSM parameter value"),
+        ):
+            module.previous_value()
+
     def test_record_requires_confirmed_instance_and_matching_fingerprint(self) -> None:
         digest = module.fingerprint()
         with (
