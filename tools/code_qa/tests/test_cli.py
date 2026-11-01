@@ -241,6 +241,116 @@ class OrchestratorFlowTests(unittest.TestCase):
         self.assertIn("Scan scope: /repo", output.getvalue())
         self.assertIn("0 secrets found", output.getvalue())
 
+    def test_qa_format_fixes_and_tests_each_module_before_the_next(self) -> None:
+        events: list[str] = []
+        checks_per_module: dict[str, int] = {}
+
+        def check(_emit, selected, **_kwargs):
+            name = selected[0]
+            checks_per_module[name] = checks_per_module.get(name, 0) + 1
+            events.append(f"check:{name}")
+            if name == "aggregator" and checks_per_module[name] == 1:
+                return False, ["aggregator/java-format"]
+            return True, []
+
+        def fix(spec, _args, *_positional, **_kwargs):
+            events.append(f"fix:{spec.check_id}")
+            return True, []
+
+        def test(command, _emit, *, verbose):
+            name = "aggregator" if "services-core/aggregator" in command else "aggregator-ui"
+            events.append(f"test:{name}")
+            return 0, []
+
+        with (
+            patch.object(main, "_run_checks", side_effect=check),
+            patch.object(main, "execute_check", side_effect=fix),
+            patch.object(main, "execute_test", side_effect=test),
+            patch.object(
+                main,
+                "run_secrets_command",
+                side_effect=lambda **_: events.append("secrets") or 0,
+            ),
+            redirect_stdout(StringIO()),
+        ):
+            self.assertEqual(
+                main.run_qa_command(
+                    modules=["aggregator", "aggregator-ui"],
+                    format_before_tests=True,
+                ),
+                0,
+            )
+
+        self.assertEqual(
+            events,
+            [
+                "check:aggregator",
+                "fix:aggregator/java-format",
+                "check:aggregator",
+                "test:aggregator",
+                "check:aggregator-ui",
+                "test:aggregator-ui",
+                "secrets",
+            ],
+        )
+
+    def test_qa_format_skips_tests_for_unfixable_module(self) -> None:
+        events: list[str] = []
+
+        def check(_emit, selected, **_kwargs):
+            name = selected[0]
+            events.append(f"check:{name}")
+            if name == "aggregator":
+                return False, ["aggregator/java-format"]
+            return True, []
+
+        with (
+            patch.object(main, "_run_checks", side_effect=check),
+            patch.object(
+                main,
+                "execute_check",
+                side_effect=lambda *_args, **_kwargs: (True, []),
+            ) as fix,
+            patch.object(
+                main,
+                "execute_test",
+                side_effect=lambda *_args, **_kwargs: (0, []),
+            ) as tests,
+            patch.object(main, "run_secrets_command") as secrets,
+            redirect_stdout(StringIO()) as output,
+        ):
+            self.assertEqual(
+                main.run_qa_command(
+                    modules=["aggregator", "aggregator-ui"],
+                    format_before_tests=True,
+                ),
+                1,
+            )
+
+        self.assertEqual(
+            events,
+            ["check:aggregator", "check:aggregator", "check:aggregator-ui"],
+        )
+        fix.assert_called_once()
+        tests.assert_called_once()
+        secrets.assert_not_called()
+        self.assertIn(
+            "Testing aggregator.. SKIPPED (checks failed)", output.getvalue()
+        )
+
+    def test_qa_format_is_routed_to_its_own_orchestration_mode(self) -> None:
+        with (
+            patch.object(
+                sys,
+                "argv",
+                ["code_qa", "qa-format", "--module", "catalog"],
+            ),
+            patch.object(main, "run_qa_command", return_value=0) as run,
+        ):
+            self.assertEqual(main.main(), 0)
+        self.assertEqual(run.call_args.kwargs["modules"], ["catalog"])
+        self.assertTrue(run.call_args.kwargs["format_before_tests"])
+
     def test_code_format_still_applies_fixes(self) -> None:
         with (
             patch.object(
