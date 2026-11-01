@@ -46,7 +46,8 @@ def update_kustomization(content: str, images: list[dict[str, str]]) -> str:
     expected = {image["service"]: image["tag"] for image in images}
     matched = set()
     pattern = re.compile(
-        r"(?m)^(\s*- name: ghcr\.io/aleksei-sapozhnikov/([a-z-]+)\s*\n\s+newTag: )([^\s]+)\s*$"
+        r"(?m)^(\s*- name: ghcr\.io/aleksei-sapozhnikov/([a-z-]+)\s*"
+        r"\n\s+newTag: )([^\s]+)\s*$"
     )
 
     def replace(match: re.Match[str]) -> str:
@@ -117,7 +118,8 @@ def main() -> None:
         if summary:
             with open(summary, "a", encoding="utf-8") as handle:
                 handle.write(
-                    f"Published images reused: {len(images) - len(missing)} / {len(images)}.\n\n"
+                    f"Published images reused: "
+                    f"{len(images) - len(missing)} / {len(images)}.\n\n"
                 )
                 handle.write(f"Images to build and push: {len(missing)}.\n")
 

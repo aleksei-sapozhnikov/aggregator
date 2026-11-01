@@ -62,13 +62,15 @@ class ImageTagsTests(unittest.TestCase):
             for service, context in SERVICES.items()
         ]
         original = "images:\n" + "".join(
-            f"  - name: ghcr.io/aleksei-sapozhnikov/{service}\n    newTag: unpublished\n"
+            f"  - name: ghcr.io/aleksei-sapozhnikov/{service}\n"
+            "    newTag: unpublished\n"
             for service in SERVICES
         )
         updated = update_kustomization(original, images)
         self.assertEqual(updated.count("newTag: " + "a" * 40), 8)
         invalid = original.replace(
-            "  - name: ghcr.io/aleksei-sapozhnikov/dummy-java\n    newTag: unpublished\n",
+            "  - name: ghcr.io/aleksei-sapozhnikov/dummy-java\n"
+            "    newTag: unpublished\n",
             "",
         )
         with self.assertRaises(ValueError):

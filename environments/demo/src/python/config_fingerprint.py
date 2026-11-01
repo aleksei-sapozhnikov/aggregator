@@ -180,7 +180,8 @@ def record() -> None:
     )
     if result.returncode:
         raise RuntimeError(
-            f"Unable to record successful Ansible configuration: {result.stderr.strip()}"
+            "Unable to record successful Ansible configuration: "
+            f"{result.stderr.strip()}"
         )
     print(f"Recorded last successful K3s configuration for {instance_id}: {digest}")
 

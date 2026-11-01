@@ -14,7 +14,9 @@ class NodeConfigurationContractTests(unittest.TestCase):
         launcher = (DEMO / "src/sh/ssm-node-configure.sh").read_text(encoding="utf-8")
         self.assertEqual(launcher.count("__CONFIGURATION_SHA__"), 1)
         self.assertIn("flock -n 9", launcher)
-        self.assertIn("git -C \"$repo_dir\" checkout --force --detach FETCH_HEAD", launcher)
+        self.assertIn(
+            'git -C "$repo_dir" checkout --force --detach FETCH_HEAD', launcher
+        )
         self.assertIn('git -C "$repo_dir" rev-parse HEAD', launcher)
         self.assertIn(
             'bash "$repo_dir/environments/demo/src/sh/node-configure.sh" "$revision"',

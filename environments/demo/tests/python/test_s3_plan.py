@@ -66,7 +66,9 @@ class SavedPlanS3TransferTests(unittest.TestCase):
                 "AWS_REGION": "eu-central-1",
                 "FAKE_S3_OBJECT": str(self.artifact),
                 "EXPECTED_KEY": "plans/demo/123456/2/demo.tfplan",
-                "EXPECTED_BUCKET": "aggregator-project-tofu-state-905418096305-eu-central-1",
+                "EXPECTED_BUCKET": (
+                    "aggregator-project-tofu-state-905418096305-eu-central-1"
+                ),
             }
         )
 
