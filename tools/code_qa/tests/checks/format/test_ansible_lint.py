@@ -39,7 +39,7 @@ class AnsibleLintTests(unittest.TestCase):
         self.assertEqual(
             syntax,
             [
-                "/qa/venv/bin/ansible-playbook",
+                str(Path("/qa/venv/bin/python").parent / "ansible-playbook"),
                 "-i",
                 "localhost,",
                 "--syntax-check",
@@ -49,7 +49,7 @@ class AnsibleLintTests(unittest.TestCase):
         self.assertEqual(
             lint,
             [
-                "/qa/venv/bin/ansible-lint",
+                str(Path("/qa/venv/bin/python").parent / "ansible-lint"),
                 "--offline",
                 "--profile=basic",
                 "--nocolor",
