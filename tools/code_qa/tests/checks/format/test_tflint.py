@@ -80,7 +80,9 @@ class TFLintTests(unittest.TestCase):
                     return_value=subprocess.CompletedProcess([], 0),
                 ) as execute,
             ):
-                self.assertEqual(tflint.run(self.directory, self.workspace, manifest), 0)
+                self.assertEqual(
+                    tflint.run(self.directory, self.workspace, manifest), 0
+                )
             self.assertEqual(execute.call_count, 2)
 
     def test_lint_failure_is_returned(self) -> None:

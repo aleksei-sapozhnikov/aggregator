@@ -1,4 +1,4 @@
-"""Verify the Ansible QA command, hermetic execution, and hook scope."""
+"""Verify Ansible QA commands, isolated execution, and hook scope."""
 
 from __future__ import annotations
 
@@ -23,7 +23,9 @@ class AnsibleLintTests(unittest.TestCase):
         with (
             patch.object(ansible_lint.sys, "platform", "linux"),
             patch.object(
-                ansible_lint, "ensure_ansible_python", return_value="/qa/venv/bin/python"
+                ansible_lint,
+                "ensure_ansible_python",
+                return_value="/qa/venv/bin/python",
             ),
             patch.object(
                 ansible_lint.subprocess,
@@ -36,11 +38,23 @@ class AnsibleLintTests(unittest.TestCase):
         syntax, lint = (call.args[0] for call in execute.call_args_list)
         self.assertEqual(
             syntax,
-            ["/qa/venv/bin/ansible-playbook", "-i", "localhost,", "--syntax-check", "site.yml"],
+            [
+                "/qa/venv/bin/ansible-playbook",
+                "-i",
+                "localhost,",
+                "--syntax-check",
+                "site.yml",
+            ],
         )
         self.assertEqual(
             lint,
-            ["/qa/venv/bin/ansible-lint", "--offline", "--profile=basic", "--nocolor", "site.yml"],
+            [
+                "/qa/venv/bin/ansible-lint",
+                "--offline",
+                "--profile=basic",
+                "--nocolor",
+                "site.yml",
+            ],
         )
         for call in execute.call_args_list:
             self.assertEqual(call.kwargs["cwd"], self.directory)
@@ -50,25 +64,38 @@ class AnsibleLintTests(unittest.TestCase):
 
     def test_hook_scope_skips_docs_but_includes_deleted_tasks(self) -> None:
         manifest = self.workspace / "changes.json"
-        manifest.write_text(json.dumps(["infra/demo/ansible/README.md"]), encoding="utf-8")
+        manifest.write_text(
+            json.dumps(["infra/demo/ansible/README.md"]), encoding="utf-8"
+        )
         with patch.object(ansible_lint, "ensure_ansible_python") as installer:
-            self.assertEqual(ansible_lint.run(self.directory, self.workspace, manifest), 0)
+            self.assertEqual(
+                ansible_lint.run(self.directory, self.workspace, manifest), 0
+            )
         installer.assert_not_called()
+
         manifest.write_text(
             json.dumps(["infra/demo/ansible/roles/common/tasks/deleted.yml"]),
             encoding="utf-8",
         )
         with (
             patch.object(ansible_lint.sys, "platform", "linux"),
-            patch.object(ansible_lint, "ensure_ansible_python", return_value=None) as installer,
+            patch.object(
+                ansible_lint, "ensure_ansible_python", return_value=None
+            ) as installer,
         ):
-            self.assertEqual(ansible_lint.run(self.directory, self.workspace, manifest), 1)
+            self.assertEqual(
+                ansible_lint.run(self.directory, self.workspace, manifest), 1
+            )
         installer.assert_called_once_with(self.workspace)
 
     def test_failed_syntax_prevents_lint(self) -> None:
         with (
             patch.object(ansible_lint.sys, "platform", "linux"),
-            patch.object(ansible_lint, "ensure_ansible_python", return_value="/qa/venv/bin/python"),
+            patch.object(
+                ansible_lint,
+                "ensure_ansible_python",
+                return_value="/qa/venv/bin/python",
+            ),
             patch.object(
                 ansible_lint.subprocess,
                 "run",

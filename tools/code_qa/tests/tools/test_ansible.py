@@ -20,7 +20,10 @@ class AnsibleToolTests(unittest.TestCase):
             requirements = requirements_dir / "requirements-ansible.txt"
             requirements.write_text("ansible-lint==26.10.1\n", encoding="utf-8")
             python = root / ".local/qa-runtime/ansible/venv/bin/python"
-            def fake_run(command: list[str], **_: object) -> subprocess.CompletedProcess:
+
+            def fake_run(
+                command: list[str], **_: object
+            ) -> subprocess.CompletedProcess:
                 if command[1:3] == ["-m", "venv"]:
                     python.parent.mkdir(parents=True, exist_ok=True)
                     python.touch()
