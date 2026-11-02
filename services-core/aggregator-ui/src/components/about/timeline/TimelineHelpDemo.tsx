@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import ItemTitle from "../../ItemTitle";
-import ItemOwnership from "../../ItemOwnership";
-import { HealthySignals } from "../../ItemSignals";
-import ItemTimeline from "../../ItemTimeline";
+import ItemTitle from "../../shared/item/ItemTitle";
+import ItemOwnership from "../../shared/item/ItemOwnership";
+import { HealthySignals } from "../../shared/item/ItemSignals";
+import ItemTimeline from "../../shared/item/ItemTimeline";
 import HelpAnimationProgress from "../shared/HelpAnimationProgress";
 import HelpInteractionShield from "../shared/HelpInteractionShield";
 import DemoHelp from "../shared/DemoHelp";
