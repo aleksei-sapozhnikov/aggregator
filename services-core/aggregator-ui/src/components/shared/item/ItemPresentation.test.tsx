@@ -7,7 +7,11 @@ import ItemOwnership from "./ItemOwnership";
 import { HealthySignals, UnhealthySignals } from "./ItemSignals";
 import ItemTimeline from "./ItemTimeline";
 import InfoHelpButton from "../help/InfoHelpButton";
-import type { CatalogActor, CatalogContact, ItemSignal } from "../../../shared/types";
+import type {
+  CatalogActor,
+  CatalogContact,
+  ItemSignal,
+} from "../../../shared/types";
 
 afterEach(cleanup);
 

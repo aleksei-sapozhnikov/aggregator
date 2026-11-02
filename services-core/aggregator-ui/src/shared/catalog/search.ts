@@ -1,4 +1,10 @@
-import type { CatalogItem, CatalogTreeNode, SearchAutocompleteIndex, SearchAutocompleteOption, SearchResult } from "../types";
+import type {
+  CatalogItem,
+  CatalogTreeNode,
+  SearchAutocompleteIndex,
+  SearchAutocompleteOption,
+  SearchResult,
+} from "../types";
 
 export const normalizeSearchText = (value: string): string =>
   value
@@ -169,4 +175,3 @@ export const buildSearchAutocompleteOptions = (
   }
   return options.sort((a, b) => a.word.localeCompare(b.word));
 };
-

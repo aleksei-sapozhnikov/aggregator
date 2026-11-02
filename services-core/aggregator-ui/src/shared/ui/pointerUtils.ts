@@ -14,4 +14,3 @@ export const isPlainLeftClick = (event: PlainLeftClickEvent): boolean =>
   !event.ctrlKey &&
   !event.shiftKey &&
   !event.altKey;
-

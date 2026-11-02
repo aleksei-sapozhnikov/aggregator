@@ -1,4 +1,8 @@
-import type { CatalogContact, CatalogItem, ItemSignal } from "../../../shared/types";
+import type {
+  CatalogContact,
+  CatalogItem,
+  ItemSignal,
+} from "../../../shared/types";
 import type { ActorSummaryRow } from "../../shared/item/ItemOwnership";
 import type { UnhealthyDependencyRow } from "../../shared/item/ItemSignals";
 
