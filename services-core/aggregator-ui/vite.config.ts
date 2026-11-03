@@ -15,7 +15,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(currentDir, "index.html"),
-        grafanaFrame: resolve(currentDir, "grafana-frame/index.html"),
+        grafanaFrame: resolve(currentDir, "src/components/item-details/timeline/grafana/frame/index.html"),
       },
     },
   },
