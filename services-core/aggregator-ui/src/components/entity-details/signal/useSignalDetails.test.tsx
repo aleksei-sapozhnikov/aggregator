@@ -12,7 +12,13 @@ describe("Signal details routing", () => {
   it("opens signal details without changing the selected Item route", () => {
     window.history.replaceState({}, "", "/item/checkout");
     const { result } = renderHook(() => useSignalDetails());
-    act(() => result.current.openSignal({ id: "latency", title: "Latency", status: "down" }));
+    act(() =>
+      result.current.openSignal({
+        id: "latency",
+        title: "Latency",
+        status: "down",
+      }),
+    );
     expect(result.current.openedSignalId).toBe("latency");
     expect(result.current.openedSignalTitle).toBe("Latency");
     expect(window.location.pathname).toBe("/item/checkout");

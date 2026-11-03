@@ -75,15 +75,21 @@ export default function HealthSignalModal({
           { signal: controller.signal },
         );
         if (!response.ok) {
-          throw new Error(
-            response.status === 404
-              ? "Signal not found in the catalog."
-              : "Unable to load signal details from the catalog.",
-          );
+          if (!controller.signal.aborted) {
+            setError(
+              response.status === 404
+                ? "Signal not found in the catalog."
+                : "Unable to load signal details from the catalog.",
+            );
+          }
+          return;
         }
         const payload: unknown = await response.json();
         if (!isHealthSignalDetails(payload, signalId)) {
-          throw new Error("Invalid signal details returned by the catalog.");
+          if (!controller.signal.aborted) {
+            setError("Invalid signal details returned by the catalog.");
+          }
+          return;
         }
         if (!controller.signal.aborted) {
           setDetails(payload);

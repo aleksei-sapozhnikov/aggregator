@@ -29,10 +29,26 @@ type AppLayoutProps = {
 
 /** Application workspace layout; independent of Item details and AI chat content. */
 export default function AppLayout({
-  children, chat, contentRef, headerRef, headerActionsRef, contentTitlePrimaryRef,
-  isCatalogOpen, iconSpriteHref, onToggleCatalog, shouldOffsetContentHeader,
-  isTitlePrimaryBelowControls, theme, isAiChatOpen, onToggleAiChat, onToggleTheme,
-  onOpenAbout, selectedItem, selectedStatus, lastUpdated, selectedTitleFirstWord,
+  children,
+  chat,
+  contentRef,
+  headerRef,
+  headerActionsRef,
+  contentTitlePrimaryRef,
+  isCatalogOpen,
+  iconSpriteHref,
+  onToggleCatalog,
+  shouldOffsetContentHeader,
+  isTitlePrimaryBelowControls,
+  theme,
+  isAiChatOpen,
+  onToggleAiChat,
+  onToggleTheme,
+  onOpenAbout,
+  selectedItem,
+  selectedStatus,
+  lastUpdated,
+  selectedTitleFirstWord,
   selectedTitleRest,
 }: AppLayoutProps) {
   return (
@@ -42,8 +58,12 @@ export default function AppLayout({
           type="button"
           aria-label="Open catalog panel"
           className={[
-            "hamburger-toggle", "sidebar-toggle", "top-control", "top-control-button",
-            "top-control-icon", "top-control-surface",
+            "hamburger-toggle",
+            "sidebar-toggle",
+            "top-control",
+            "top-control-button",
+            "top-control-icon",
+            "top-control-surface",
           ].join(" ")}
           onClick={onToggleCatalog}
         >
@@ -68,12 +88,19 @@ export default function AppLayout({
           />
         </div>
         <div className="content-header-main">
-          <ItemTitle item={selectedItem} status={selectedStatus} lastUpdated={lastUpdated}
-            firstWord={selectedTitleFirstWord} rest={selectedTitleRest}
-            primaryRef={contentTitlePrimaryRef} />
+          <ItemTitle
+            item={selectedItem}
+            status={selectedStatus}
+            lastUpdated={lastUpdated}
+            firstWord={selectedTitleFirstWord}
+            rest={selectedTitleRest}
+            primaryRef={contentTitlePrimaryRef}
+          />
         </div>
       </header>
-      <div className={`content-workspace ${isAiChatOpen ? "ai-chat-open" : ""}`}>
+      <div
+        className={`content-workspace ${isAiChatOpen ? "ai-chat-open" : ""}`}
+      >
         <div className="item-details-column">{children}</div>
         {chat}
       </div>
