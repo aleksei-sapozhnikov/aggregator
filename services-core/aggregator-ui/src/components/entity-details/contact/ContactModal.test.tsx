@@ -5,7 +5,12 @@
 import type { ReactElement } from "react";
 import ContextualHelpProvider from "../../about/ContextualHelpProvider";
 
-import { act, cleanup, render as baseRender, screen } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  render as baseRender,
+  screen,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -14,7 +19,9 @@ import ContactModal from "./ContactModal";
 import type { CatalogContact } from "../../../shared/types";
 
 const render = (ui: ReactElement) => {
-  const view = baseRender(<ContextualHelpProvider>{ui}</ContextualHelpProvider>);
+  const view = baseRender(
+    <ContextualHelpProvider>{ui}</ContextualHelpProvider>,
+  );
   return {
     ...view,
     rerender: (next: ReactElement) =>

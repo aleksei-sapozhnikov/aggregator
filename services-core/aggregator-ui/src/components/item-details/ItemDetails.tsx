@@ -1,10 +1,22 @@
 /** Renders the selected Item independently of the application shell. */
-import ItemOwnership, { type ActorSummaryRow } from "../shared/item/ItemOwnership";
-import { HealthySignals, UnhealthySignals, type UnhealthyDependencyRow } from "../shared/item/ItemSignals";
+import ItemOwnership, {
+  type ActorSummaryRow,
+} from "../shared/item/ItemOwnership";
+import {
+  HealthySignals,
+  UnhealthySignals,
+  type UnhealthyDependencyRow,
+} from "../shared/item/ItemSignals";
 import TimelineSection from "./timeline/TimelineSection";
 import InfoHelp from "../shared/help/InfoHelp";
 import { isPlainLeftClick } from "../../shared/ui/pointerUtils";
-import type { CatalogActor, CatalogContact, CatalogItem, FailingDependencyEntry, ItemSignal } from "../../shared/types";
+import type {
+  CatalogActor,
+  CatalogContact,
+  CatalogItem,
+  FailingDependencyEntry,
+  ItemSignal,
+} from "../../shared/types";
 import type { MouseEvent, RefObject } from "react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -16,8 +28,14 @@ export type ItemDetailsProps = {
   selectedItem: CatalogItem | undefined;
   selectedFailingSignals: ItemSignal[];
   failingDependencies: FailingDependencyEntry[];
-  selectedItemActors: { owner: CatalogActor | null; otherActors: CatalogActor[] } | null;
-  actorContactsByActorId: Map<string, { contacts: CatalogContact[]; primaryContact: CatalogContact | null }>;
+  selectedItemActors: {
+    owner: CatalogActor | null;
+    otherActors: CatalogActor[];
+  } | null;
+  actorContactsByActorId: Map<
+    string,
+    { contacts: CatalogContact[]; primaryContact: CatalogContact | null }
+  >;
   buildItemLink: (itemId: string, pathIds?: string[]) => string;
   onOpenSignal: (signal: ItemSignal) => void;
   onSelectItemByPath: (pathIds: string[]) => void;
@@ -30,7 +48,8 @@ export type ItemDetailsProps = {
   onNavigateToTimelineItem: (itemId: string, href: string) => void;
 };
 
-const buildSignalLink = (id: string): string => `#signal/${encodeURIComponent(id)}`;
+const buildSignalLink = (id: string): string =>
+  `#signal/${encodeURIComponent(id)}`;
 
 type DetailsDisclosureState = {
   isHealthyOpen: boolean;
@@ -47,7 +66,11 @@ const emptyDisclosureState: DetailsDisclosureState = {
 const buildExtraActorRows = (actors: CatalogActor[]): ActorSummaryRow[] =>
   [...actors]
     .sort((left, right) => {
-      const rankByType: Record<string, number> = { owner: 0, user: 1, other: 2 };
+      const rankByType: Record<string, number> = {
+        owner: 0,
+        user: 1,
+        other: 2,
+      };
       const leftRank = rankByType[String(left.type || "other")] ?? 99;
       const rightRank = rankByType[String(right.type || "other")] ?? 99;
       if (leftRank !== rightRank) return leftRank - rightRank;
@@ -56,15 +79,30 @@ const buildExtraActorRows = (actors: CatalogActor[]): ActorSummaryRow[] =>
     .map((actor) => ({
       key: actor.id,
       actor,
-      typeLabel: String(actor.type || "other").toLowerCase()
+      typeLabel: String(actor.type || "other")
+        .toLowerCase()
         .replace(/^./, (firstLetter) => firstLetter.toUpperCase()),
     }));
 
 export default function ItemDetails({
-  contentRef, headerRef, iconSpriteHref, theme, selectedItem, selectedFailingSignals,
-  failingDependencies, selectedItemActors, actorContactsByActorId, buildItemLink,
-  onOpenSignal, onSelectItemByPath, onOpenActor, passingSignalsCount,
-  selectedPassingSignals, onOpenContact, isTimelineOpen, onToggleTimeline,
+  contentRef,
+  headerRef,
+  iconSpriteHref,
+  theme,
+  selectedItem,
+  selectedFailingSignals,
+  failingDependencies,
+  selectedItemActors,
+  actorContactsByActorId,
+  buildItemLink,
+  onOpenSignal,
+  onSelectItemByPath,
+  onOpenActor,
+  passingSignalsCount,
+  selectedPassingSignals,
+  onOpenContact,
+  isTimelineOpen,
+  onToggleTimeline,
   onNavigateToTimelineItem,
 }: ItemDetailsProps) {
   const selectedItemId = selectedItem?.id || "";
@@ -184,43 +222,57 @@ export default function ItemDetails({
 
   return (
     <>
-          {!selectedItem ? (
-            <div className="empty">
-              Select a catalog item to view dashboards.
-            </div>
-          ) : (
-            <>
-              <section className="details-summary-block">
-                <ItemOwnership primaryContact={primaryContact} actorRows={actorRowsForContacts}
-                  expanded={itemDisclosureState.isContactsExtraOpen} onToggleActors={toggleContactsExtra}
-                  onOpenContact={onOpenContact} onOpenActor={onOpenActor} iconSpriteHref={iconSpriteHref}
-                  primaryHelp={<InfoHelp topicId="primary-contact" />}
-                  actorsHelp={<InfoHelp topicId="actors" />} />
-                {hasAffectingSignals && (
-                  <UnhealthySignals signals={selectedFailingSignals} dependencies={unhealthyDependencyRows}
-                    expanded={itemDisclosureState.isAffectingOpen} onToggle={toggleAffectingSignals}
-                    buildSignalLink={buildSignalLink} onSignalClick={handleSignalClick}
-                    help={<InfoHelp topicId="unhealthy-signals" />} />
-                )}
-                {passingSignalsCount > 0 && (
-                  <HealthySignals signals={selectedPassingSignals} count={passingSignalsCount}
-                    expanded={itemDisclosureState.isHealthyOpen} onToggle={toggleHealthySignals}
-                    buildSignalLink={buildSignalLink} onSignalClick={handleSignalClick}
-                    help={<InfoHelp topicId="healthy-signals" />} />
-                )}
-              </section>
-
-              <TimelineSection
-                itemId={selectedItem.id}
-                theme={theme}
-                expanded={isTimelineOpen}
-                onToggle={onToggleTimeline}
-                onNavigateToItem={onNavigateToTimelineItem}
-                contentRef={contentRef}
-                headerRef={headerRef}
+      {!selectedItem ? (
+        <div className="empty">Select a catalog item to view dashboards.</div>
+      ) : (
+        <>
+          <section className="details-summary-block">
+            <ItemOwnership
+              primaryContact={primaryContact}
+              actorRows={actorRowsForContacts}
+              expanded={itemDisclosureState.isContactsExtraOpen}
+              onToggleActors={toggleContactsExtra}
+              onOpenContact={onOpenContact}
+              onOpenActor={onOpenActor}
+              iconSpriteHref={iconSpriteHref}
+              primaryHelp={<InfoHelp topicId="primary-contact" />}
+              actorsHelp={<InfoHelp topicId="actors" />}
+            />
+            {hasAffectingSignals && (
+              <UnhealthySignals
+                signals={selectedFailingSignals}
+                dependencies={unhealthyDependencyRows}
+                expanded={itemDisclosureState.isAffectingOpen}
+                onToggle={toggleAffectingSignals}
+                buildSignalLink={buildSignalLink}
+                onSignalClick={handleSignalClick}
+                help={<InfoHelp topicId="unhealthy-signals" />}
               />
-            </>
-          )}
+            )}
+            {passingSignalsCount > 0 && (
+              <HealthySignals
+                signals={selectedPassingSignals}
+                count={passingSignalsCount}
+                expanded={itemDisclosureState.isHealthyOpen}
+                onToggle={toggleHealthySignals}
+                buildSignalLink={buildSignalLink}
+                onSignalClick={handleSignalClick}
+                help={<InfoHelp topicId="healthy-signals" />}
+              />
+            )}
+          </section>
+
+          <TimelineSection
+            itemId={selectedItem.id}
+            theme={theme}
+            expanded={isTimelineOpen}
+            onToggle={onToggleTimeline}
+            onNavigateToItem={onNavigateToTimelineItem}
+            contentRef={contentRef}
+            headerRef={headerRef}
+          />
+        </>
+      )}
     </>
   );
 }

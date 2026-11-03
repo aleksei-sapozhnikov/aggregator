@@ -2,7 +2,13 @@ import type { ReactNode } from "react";
 import DetailsDisclosureHeader from "./DetailsDisclosureHeader";
 
 /** Shared Timeline disclosure; its visualization is supplied by the caller. */
-export default function ItemTimeline({ expanded, onToggle, help, height, children }: {
+export default function ItemTimeline({
+  expanded,
+  onToggle,
+  help,
+  height,
+  children,
+}: {
   expanded: boolean;
   onToggle?: () => void;
   help?: ReactNode;
