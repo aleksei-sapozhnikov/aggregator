@@ -10,7 +10,10 @@ resource "aws_secretsmanager_secret" "notification_email" {
 }
 
 # The initial secret version must be created outside Terraform before reading it.
-# Reading secret_string will also record the destination in the encrypted state.
+# The SNS endpoint is a persistent resource argument, so the secret version is
+# necessarily written to the encrypted state. Ephemeral values cannot populate
+# persistent resource arguments.
+# tflint-ignore: aws_ephemeral_resources
 data "aws_secretsmanager_secret_version" "notification_email" {
   secret_id = aws_secretsmanager_secret.notification_email.id
 }

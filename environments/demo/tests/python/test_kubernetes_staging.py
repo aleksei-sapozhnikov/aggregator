@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import shutil
-import sys
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path

@@ -1,10 +1,27 @@
-"""Configure Code QA for Publisher only; Publisher Legacy is excluded."""
+"""Configure Code QA for Publisher; frozen Publisher Legacy stays excluded."""
 
-from code_qa.module_checks.specs import ModuleSpec, ScopedTests, TestSpec
+from code_qa.module_checks.specs import (
+    ModuleSpec,
+    ScopedChecks,
+    ScopedTests,
+    TestSpec,
+)
 
 SPEC = ModuleSpec(
     "publisher",
     "tools/publisher",
+    scoped_checks=(
+        ScopedChecks(
+            "administration",
+            "tools/publisher/infra/administration",
+            ("tofu-format", "tofu-validate", "tflint"),
+        ),
+        ScopedChecks(
+            "resources",
+            "tools/publisher/infra/resources",
+            ("tofu-format", "tofu-validate", "tflint"),
+        ),
+    ),
     scoped_tests=(
         ScopedTests(
             "publisher",
