@@ -783,13 +783,14 @@ class OrchestratorFlowTests(unittest.TestCase):
                     "argv",
                     [
                         "code_qa.src.core.cli",
-                        "test",
+                        "qa-check",
                         "--module",
                         "catalog",
-                        "--verbose",
+                        "--skip-secrets",
                     ],
                 ),
                 patch.object(main.subprocess, "Popen", return_value=process),
+                patch.object(main, "_run_checks", return_value=(True, [])),
             ):
                 self.assertEqual(main.main(), 0)
                 redirected_stdout.flush()

@@ -146,6 +146,14 @@ CHECK_TEMPLATES: list[CheckSpec] = [
         input_kind="project",
     ),
     CheckSpec(
+        "publisher-archive",
+        "Publisher Lambda archive",
+        "code_qa.src.checks.format.publisher_archive",
+        [],
+        None,
+        input_kind="project",
+    ),
+    CheckSpec(
         "tofu-validate",
         "OpenTofu validation",
         "code_qa.src.checks.format.tofu",
@@ -663,23 +671,22 @@ def run_qa_command(
 
 
 def build_parser() -> argparse.ArgumentParser:
-    """Create CLI parser for QA subcommands."""
-    parser = argparse.ArgumentParser(description="Run code QA flows (default: qa).")
-    sub = parser.add_subparsers(dest="command")
-
-    qa_cmd = sub.add_parser(
-        "qa",
-        help="Check code, run tests, and scan secrets without modifying files.",
+    """Expose only the two public QA commands and CI's module registry."""
+    parser = argparse.ArgumentParser(
+        description="Run repository QA checks or formatting."
     )
-    qa_check_cmd = sub.add_parser(
-        "qa-check",
-        help="Check and test selected modules, then scan repository secrets.",
-    )
-    qa_format_cmd = sub.add_parser(
-        "qa-format",
-        help="Format and test each module, then scan repository secrets.",
-    )
-    for command in (qa_cmd, qa_check_cmd, qa_format_cmd):
+    sub = parser.add_subparsers(dest="command", required=True)
+    for name, help_text in (
+        ("qa-check", "Check and test selected modules, then scan secrets."),
+        ("qa-format", "Format and test selected modules, then scan secrets."),
+    ):
+        command = sub.add_parser(name, help=help_text)
+        command.add_argument(
+            "--module",
+            action="append",
+            choices=MODULE_NAMES,
+            help="Select a module (repeatable).",
+        )
         command.add_argument("--scan-root", default=".")
         command.add_argument("--output-file", default="")
         command.add_argument("--gitignored-output-file", default="")
@@ -689,65 +696,13 @@ def build_parser() -> argparse.ArgumentParser:
         command.add_argument(
             "--skip-secrets",
             action="store_true",
-            help="Skip the repository-wide secrets scan (e.g. in per-module CI).",
-        )
-
-    code_qa_cmd = sub.add_parser(
-        "code-qa",
-        help="Check code and run module tests without fixes or secrets scanning.",
-    )
-    code_qa_cmd.add_argument("--out-file", default="")
-
-    test_cmd = sub.add_parser("test", help="Run unit tests by module.")
-    test_cmd.add_argument(
-        "--module",
-        action="append",
-        choices=TEST_MODULE_NAMES,
-    )
-    test_cmd.add_argument("--out-file", default="")
-    test_cmd.add_argument(
-        "--verbose", action="store_true", help="Show output from every test module."
-    )
-
-    secrets_cmd = sub.add_parser(
-        "secrets", help="Run only the TruffleHog secrets scan."
-    )
-    secrets_cmd.add_argument("--scan-root", default=".")
-    secrets_cmd.add_argument("--output-file", default="")
-    secrets_cmd.add_argument("--gitignored-output-file", default="")
-    secrets_cmd.add_argument("--binary")
-    secrets_cmd.add_argument("--raw", action="store_true")
-    secrets_cmd.add_argument("--out-file", default="")
-
-    format_cmd = sub.add_parser("format", help="Run code format flow.")
-    format_cmd.add_argument("--out-file", default="")
-
-    lint_cmd = sub.add_parser("lint", help="Run code checks without secrets scanning.")
-    lint_cmd.add_argument("--out-file", default="")
-
-    for command in (
-        qa_cmd,
-        qa_check_cmd,
-        qa_format_cmd,
-        code_qa_cmd,
-        format_cmd,
-        lint_cmd,
-    ):
-        command.add_argument(
-            "--module",
-            action="append",
-            choices=MODULE_NAMES,
-            help=(
-                "Check only this module (repeatable). Secrets remain repository-wide."
-            ),
+            help="Skip the repository-wide scan (for per-module CI).",
         )
     modules_cmd = sub.add_parser(
-        "modules", help="List module names or emit the CI matrix."
+        "modules", help="Internal: list modules or emit the CI matrix."
     )
     modules_cmd.add_argument("--json", action="store_true")
-
     return parser
-
 
 def configure_redirected_stdout() -> None:
     """Use UTF-8 for redirected logs instead of a Windows ANSI code page."""
@@ -761,53 +716,23 @@ def configure_redirected_stdout() -> None:
 
 
 def main() -> int:
-    """Dispatch CLI command to the matching QA workflow."""
+    """Dispatch the supported public QA commands."""
     configure_redirected_stdout()
     args = build_parser().parse_args()
-
-    if args.command in ("qa", "qa-check", "qa-format"):
-        return run_qa_command(
-            modules=args.module,
-            scan_root=args.scan_root,
-            output_file=args.output_file,
-            gitignored_output_file=args.gitignored_output_file,
-            binary=args.binary,
-            raw=args.raw,
-            out_file=args.out_file,
-            format_before_tests=args.command == "qa-format",
-            scan_secrets=not args.skip_secrets,
-        )
-
-    if args.command == "code-qa":
-        return run_code_qa_command(modules=args.module, out_file=args.out_file)
-
-    if args.command == "test":
-        return run_test_command(
-            modules=args.module, out_file=args.out_file, verbose=args.verbose
-        )
-
-    if args.command == "secrets":
-        return run_secrets_command(
-            scan_root=args.scan_root,
-            output_file=args.output_file,
-            gitignored_output_file=args.gitignored_output_file,
-            binary=args.binary,
-            raw=args.raw,
-            out_file=args.out_file,
-        )
-
-    if args.command == "format":
-        return run_format_command(modules=args.module, out_file=args.out_file)
-
-    if args.command == "lint":
-        return run_check_command(modules=args.module, out_file=args.out_file)
-
     if args.command == "modules":
         print(json.dumps(ci_matrix()) if args.json else "\n".join(MODULE_NAMES))
         return 0
-
-    return run_qa_command()
-
+    return run_qa_command(
+        modules=args.module,
+        scan_root=args.scan_root,
+        output_file=args.output_file,
+        gitignored_output_file=args.gitignored_output_file,
+        binary=args.binary,
+        raw=args.raw,
+        out_file=args.out_file,
+        format_before_tests=args.command == "qa-format",
+        scan_secrets=not args.skip_secrets,
+    )
 
 if __name__ == "__main__":
     raise SystemExit(main())

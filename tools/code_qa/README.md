@@ -5,37 +5,34 @@ multi-language repository. It discovers repository modules from
 `module_checks/`, applies common checks, then runs the checks specific
 to each module. CI uses the same module registry.
 
-## Run from the repository root
+## Public QA commands
+
+From the repository root:
 
 ```sh
-python tools/code_qa/src/main.py modules
-python tools/code_qa/src/main.py qa-check --module aggregator-ui
-python tools/code_qa/src/main.py test --module catalog
-python tools/code_qa/src/main.py lint --module demo
-python tools/code_qa/src/main.py qa
+make qa-check
+make qa-format shared argocd code-qa publisher
+make qa-check MODULE=demo QA_SCAN_SECRETS=false
 ```
 
-Available commands:
+- `qa-check` runs checks and tests without modifying tracked files.
+- `qa-format` applies supported formatting fixes, then checks and tests.
+- Module names after the target are positional selectors; `MODULE=...` is
+  supported for CI. Without a selector, all modules are checked.
+- A repository-wide secrets scan is included unless
+  `QA_SCAN_SECRETS=false` is explicitly set. CI scans secrets once in
+  the separate `qa-check MODULE=repository` job.
 
-| Command           | Behavior                                          |
-| ----------------- | ------------------------------------------------- |
-| `modules`         | List modules (`--json` for the CI matrix).        |
-| `lint`            | Check only; does not modify files.                |
-| `format`          | Attempt fixes, then recheck.                      |
-| `test`            | Run registered tests.                             |
-| `qa-check` / `qa` | Check and test modules; scan secrets at the end.  |
-| `qa-format`       | Format and test modules; scan secrets at the end. |
-| `secrets`         | Run the repository TruffleHog scan.               |
+`code-qa` is **a module name**, not a separate QA command. The Python
+orchestrator and small internal Git hook adapters remain implementation
+details. CI also uses `python tools/code_qa/src/main.py modules --json`
+to generate its module matrix.
 
-Repeat `--module NAME` to select modules. Without it, commands target
-the full repository. In `qa-check` and `qa-format`, a module's tests
-run only if its checks passed, but other modules still run. A secrets
-scan is repository-wide unless `QA_SCAN_SECRETS=false` is set.
+Publisher's `resources` OpenTofu root requires the Lambda archive for
+`filebase64sha256` during `tofu validate`. The QA configuration builds this
+ignored local artifact using `python tools/publisher/publisher.py build`
+before validation; it does not deploy or access AWS.
 
-Equivalent human-facing shortcuts include `make qa-check demo`,
-`make qa-format aggregator-ui` and `make code-secrets`. Consult
-[development](../../docs/development.md) for hook installation and
-environment setup.
 
 ## Scope and safety
 

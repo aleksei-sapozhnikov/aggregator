@@ -53,7 +53,7 @@ def main() -> int:
 
     env = os.environ.copy()
     env[SCOPED_FILES_ENV] = scope_file
-    cmd = [sys.executable, "tools/code_qa/src/main.py", "lint"]
+    cmd = [sys.executable, "tools/git_hooks/src/run_qa_mode.py", "check"]
     try:
         result = subprocess.run(cmd, cwd=repo_root(), env=env, check=False)
         return result.returncode
