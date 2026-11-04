@@ -38,7 +38,7 @@ def main() -> int:
         if path.suffix.lower() not in {".yaml", ".yml"}:
             continue
         try:
-            yaml.safe_load(path.read_text(encoding="utf-8"))
+            list(yaml.safe_load_all(path.read_text(encoding="utf-8")))
         except (OSError, UnicodeDecodeError, yaml.YAMLError) as exc:
             print(f"{path.relative_to(root)}: {exc}")
             failed = True
