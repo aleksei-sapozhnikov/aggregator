@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Reconcile the Argo CD admin password from GitHub or a local environment.
 
 Only a bcrypt verifier crosses AWS SSM. Neither the plaintext password nor
