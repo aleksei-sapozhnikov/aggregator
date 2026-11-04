@@ -50,7 +50,7 @@ workflow or Argo CD sync succeeded. Check both Actions runs.
 
 | Environment        | Required settings                                                           | Protection                                    |
 | ------------------ | --------------------------------------------------------------------------- | --------------------------------------------- |
-| `demo-infra-plan`  | `AWS_ROLE_ARN`, `ENABLE_K3S_NODE`, `ENABLE_BEDROCK`, `EIP_TARGET_K3S`         | Only `deploy/demo`; **no required reviewers** |
+| `demo-infra-plan`  | `AWS_ROLE_ARN`, `ENABLE_K3S_NODE`, `ENABLE_BEDROCK`, `EIP_TARGET_K3S`       | Only `deploy/demo`; **no required reviewers** |
 | `demo-infra-apply` | `AWS_ROLE_ARN`, secret `ARGOCD_PASSWORD`, `MANUAL_APPROVAL_CONFIGURED=true` | Only `deploy/demo`; **required reviewers**    |
 | `demo`             | `AWS_DEMO_DEPLOY_ROLE_ARN`, `SSM_INSTANCE_ID`                               | Only `deploy/demo`                            |
 
