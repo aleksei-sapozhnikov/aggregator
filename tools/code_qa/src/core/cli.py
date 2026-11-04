@@ -704,6 +704,7 @@ def build_parser() -> argparse.ArgumentParser:
     modules_cmd.add_argument("--json", action="store_true")
     return parser
 
+
 def configure_redirected_stdout() -> None:
     """Use UTF-8 for redirected logs instead of a Windows ANSI code page."""
     stdout = sys.stdout
@@ -733,6 +734,7 @@ def main() -> int:
         format_before_tests=args.command == "qa-format",
         scan_secrets=not args.skip_secrets,
     )
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
