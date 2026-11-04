@@ -19,6 +19,11 @@ ifeq ($(filter $(ENV),$(SUPPORTED_ENVS)),)
   $(error Invalid ENV='$(ENV)'. Supported: $(SUPPORTED_ENVS))
 endif
 
+# Compose configuration and runtime checks are needed only for Compose commands.
+# QA and help targets must also run in clean CI checkouts without .env or Docker.
+SERVICE_TARGETS := up-svc down-svc restart-svc recreate-svc rebuild-svc rebuild-recreate-svc clean-svc
+COMPOSE_TARGETS := info up down restart recreate rebuild rebuild-recreate clean $(SERVICE_TARGETS)
+
 # ---- Compose files ----
 COMPOSE_DIR := compose
 BASE := -f $(COMPOSE_DIR)/compose.yaml
@@ -43,7 +48,8 @@ PROJECT := $(PROJECT_$(ENV))
 CONTAINER_RUNTIME :=
 COMPOSE_CMD :=
 
-# ---- Project version ----
+# ---- Project version (Compose targets only) ----
+ifneq ($(filter $(COMPOSE_TARGETS),$(MAKECMDGOALS)),)
 PROJECT_ENV_FILE := .env
 ifeq ($(wildcard $(PROJECT_ENV_FILE)),)
   $(error Missing $(PROJECT_ENV_FILE))
@@ -83,6 +89,8 @@ endif
 
 COMPOSE_CMD := $(COMPOSE) --project-name $(PROJECT) --project-directory . $(STACK)
 
+endif
+
 # ---- Chaos-maker last-start control to ensure ----
 # ---- it starts when services ready            ----
 CHAOS_LAST_ENVS := demo local-demo
@@ -98,7 +106,7 @@ export AGENT_AI_CONFIG
 .PHONY: help info env \
         up down restart recreate rebuild rebuild-recreate clean \
         up-svc down-svc restart-svc recreate-svc rebuild-svc rebuild-recreate-svc clean-svc \
-        code-qa code-format code-lint deps-audit
+        code-qa code-format code-lint code-secrets test qa deps-audit
 
 help:
 	@echo "Usage:"
@@ -115,9 +123,12 @@ help:
 	@echo "  rebuild          -> build images + start/update (keep volumes)"
 	@echo "  rebuild-recreate -> build images + force re-create containers (keep volumes)"
 	@echo "  clean            -> down + remove containers, network, and volumes (DATA LOSS)"
-	@echo "  code-qa          -> run format, then secrets scan"
-	@echo "  code-format      -> run format flow"
-	@echo "  code-lint        -> run lint flow"
+	@echo "  code-qa          -> check code and run module tests (no fixes or secrets scan)"
+	@echo "  code-format      -> run formatting checks and fixes"
+	@echo "  code-lint        -> check code without modifying files (no secrets scan)"
+	@echo "  test             -> run all unit tests (or TEST_MODULE=aggregator)"
+	@echo "  code-secrets     -> scan secrets with TruffleHog"
+	@echo "  qa               -> check code, run tests, then scan secrets (stop on failure; no fixes)"
 	@echo "  deps-audit       -> check npm dependency advisories and update suggestions"
 	@echo ""
 	@echo "Service-scoped (positional args):"
@@ -180,8 +191,6 @@ clean: info
 # ---- Service-scoped commands (positional service args) ----
 # Positional services are passed after the target:
 #   make down-svc caddy grafana
-SERVICE_TARGETS := up-svc down-svc restart-svc recreate-svc rebuild-svc rebuild-recreate-svc clean-svc
-
 ifneq ($(filter $(SERVICE_TARGETS),$(MAKECMDGOALS)),)
 SERVICES := $(filter-out $(SERVICE_TARGETS),$(MAKECMDGOALS))
 $(SERVICES):
@@ -231,13 +240,22 @@ clean-svc: info
 
 # ---- Code QA commands ----
 code-qa:
-	python tools/code_qa/main.py qa
+	python tools/code_qa/main.py code-qa
 
 code-format:
 	python tools/code_qa/main.py format
 
 code-lint:
 	python tools/code_qa/main.py lint
+
+test:
+	python tools/code_qa/main.py test $(if $(TEST_MODULE),--module $(TEST_MODULE),)
+
+code-secrets:
+	python tools/code_qa/main.py secrets
+
+qa:
+	python tools/code_qa/main.py qa
 
 deps-audit:
 	python tools/dependency_audit/check_npm.py

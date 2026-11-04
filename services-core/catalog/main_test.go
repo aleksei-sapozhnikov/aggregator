@@ -108,3 +108,29 @@ func TestCatalogSignalDetailsMissingAndHead(t *testing.T) {
 		t.Errorf("HEAD status = %d, body length = %d; want 200 and empty", rec.Code, rec.Body.Len())
 	}
 }
+
+func TestHealthEndpointRespondsToGetAndHead(t *testing.T) {
+	svc := &service{}
+
+	get := httptest.NewRecorder()
+	svc.healthHandler(get, httptest.NewRequest(http.MethodGet, "/health", nil))
+	if get.Code != http.StatusOK {
+		t.Fatalf("GET /health status = %d, want 200", get.Code)
+	}
+	if get.Header().Get("Content-Type") != "application/json" {
+		t.Fatalf("GET /health content type = %q, want application/json", get.Header().Get("Content-Type"))
+	}
+	var payload map[string]string
+	if err := json.Unmarshal(get.Body.Bytes(), &payload); err != nil {
+		t.Fatalf("decode GET /health: %v", err)
+	}
+	if payload["status"] != "UP" {
+		t.Errorf("GET /health status = %q, want UP", payload["status"])
+	}
+
+	head := httptest.NewRecorder()
+	svc.healthHandler(head, httptest.NewRequest(http.MethodHead, "/health", nil))
+	if head.Code != http.StatusOK || head.Body.Len() != 0 {
+		t.Errorf("HEAD /health status = %d, body length = %d; want 200 and empty", head.Code, head.Body.Len())
+	}
+}
