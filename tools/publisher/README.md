@@ -124,7 +124,6 @@ Codex must ask a concise explicit question stating the target, effect,
 backup/safety step, and exact approval requested, instead of posting an
 incomplete long-form report.
 
-
 Each `push` packages the seven expected files; unrelated files in the local
 directory are not uploaded. On first upload the S3 ZIP must not yet exist.
 Later uploads use the stored `.remote-etag` for conditional writes.

@@ -2,10 +2,10 @@
 
 Two independent OpenTofu roots manage the Publisher:
 
-| Root | AWS identity | Responsibility | State key |
-| --- | --- | --- | --- |
-| [`administration`](administration/README.md) | `administrator` | Scoped IAM permissions and role boundary | `projects/aggregator/publisher/tofu.tfstate` in the central administration bucket |
-| [`resources`](resources/README.md) | `aggregator-admin` | S3, DynamoDB, Lambda, Scheduler, SNS, SQS, workload roles and Secrets Manager | `aggregator-publisher/tofu.tfstate` in the project state bucket |
+| Root                                         | AWS identity       | Responsibility                                                                | State key                                                                         |
+| -------------------------------------------- | ------------------ | ----------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| [`administration`](administration/README.md) | `administrator`    | Scoped IAM permissions and role boundary                                      | `projects/aggregator/publisher/tofu.tfstate` in the central administration bucket |
+| [`resources`](resources/README.md)           | `aggregator-admin` | S3, DynamoDB, Lambda, Scheduler, SNS, SQS, workload roles and Secrets Manager | `aggregator-publisher/tofu.tfstate` in the project state bucket                   |
 
 Use the matching AWS identity, verify it with `aws sts get-caller-identity`,
 and review `tofu plan` before applying. Both roots pin AWS Provider 6.41.0.
