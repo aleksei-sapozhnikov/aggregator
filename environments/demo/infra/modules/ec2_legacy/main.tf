@@ -167,18 +167,18 @@ resource "aws_eip" "public" {
 # Association changes are intentionally separate from the protected EIP allocation.
 # The default is identical to the old deployment; target changes require a reviewed plan.
 resource "aws_eip_association" "public" {
-  allocation_id = aws_eip.public.id
-  instance_id = var.eip_target_instance_id != null ? var.eip_target_instance_id : (
+  allocation_id        = aws_eip.public.id
+  instance_id          = var.eip_target_instance_id != null ? var.eip_target_instance_id : (
     var.eip_association_method == "instance" ? aws_instance.this.id : null
   )
   network_interface_id = var.eip_target_instance_id != null ? null : (
     var.eip_association_method == "network_interface" ? aws_instance.this.primary_network_interface_id : null
   )
-  private_ip_address = var.eip_target_instance_id != null ? null : (
+  private_ip_address   = var.eip_target_instance_id != null ? null : (
     var.eip_association_method == "network_interface" ? (
       var.private_ip == null ? aws_instance.this.private_ip : var.private_ip
     ) : null
   )
   # Keep the existing value until cutover; this argument forces replacement.
-  allow_reassociation = var.eip_target_instance_id != null
+  allow_reassociation  = var.eip_target_instance_id != null
 }

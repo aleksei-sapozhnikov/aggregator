@@ -11,8 +11,11 @@ from pathlib import Path
 SCRIPT = Path(__file__).resolve().parents[2] / "src" / "sh" / "check-flags.sh"
 
 
+@unittest.skipIf(os.name == "nt", "Requires Bash")
 class EipCutoverFlagTests(unittest.TestCase):
-    def run_flags(self, *, k3s: str, bedrock: str = "true", eip: str = "false") -> tuple[int, str, str]:
+    def run_flags(
+        self, *, k3s: str, bedrock: str = "true", eip: str = "false"
+    ) -> tuple[int, str, str]:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             env_file = root / "env"

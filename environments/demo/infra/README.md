@@ -46,8 +46,11 @@ The switch changes only `aws_eip_association.public` within
    Check Argo CD Synced/Healthy, Traefik service TCP 80/443, and the
    `curl --resolve` pre-cutover tests in
    [K3s README](../../../deploy/kubernetes/README.md).
-2. Set the repository-level Actions variable `EIP_TARGET_K3S=true` and trigger
-   a new `Demo pipeline` run. In the generated OpenTofu plan, verify
+2. Set the repository-level Actions variable `EIP_TARGET_K3S=true`.
+   Promote a new infrastructure-changing commit to `deploy/demo`, which
+   triggers a fresh `Demo pipeline` run. (The manual
+   `workflow_dispatch` entry point is unavailable until
+   `demo-infra.yml` also exists on the default branch.) In the generated OpenTofu plan, verify
    only the intended association is replaced, the EIP allocation is
    unchanged, no instance is replaced, and the association is re-pointed
    to the K3s instance. Explicitly approve the protected apply.
@@ -56,9 +59,9 @@ The switch changes only `aws_eip_association.public` within
    plus HTTP redirects, the UI, APIs, agent and Grafana timeline.
    HTTP-01 issuance happens **after** the IP moves; temporary default
    TLS until issuance is expected, but must not be accepted as complete.
-4. If validation fails, set `EIP_TARGET_K3S=false`, trigger a new
-   approved infrastructure run and confirm that the original Caddy site
-   is serving HTTPS again. The same flag re-enables the Compose SSM deployment
+4. If validation fails, set `EIP_TARGET_K3S=false`, promote another
+   infrastructure-changing commit to `deploy/demo`, and approve the rollback
+   and confirm that the original Caddy site is serving HTTPS again. The same flag re-enables the Compose SSM deployment
    once the old instance regains connectivity. Do not destroy the old EC2
    during migration.
 
