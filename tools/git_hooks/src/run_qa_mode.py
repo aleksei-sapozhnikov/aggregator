@@ -13,11 +13,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools"))
 
+from code_qa.module_checks.common.secrets import run_secrets_command  # noqa: E402
 from code_qa.src.core.cli import (  # noqa: E402
     run_check_command,
     run_format_command,
 )
-from code_qa.module_checks.common.secrets import run_secrets_command  # noqa: E402
 
 
 def main() -> int:
