@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import html
 from collections import defaultdict
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -32,21 +32,15 @@ def _esc(value) -> str:
     return html.escape(str(value), quote=True)
 
 
-def render(
-    snapshot: dict,
-    progress: dict | None = None,
-    *,
-    paused: bool = True,
-    checked_at: datetime | None = None,
-    revision: str = "preview",
-    handoff_complete: bool | None = None,
-) -> str:
+def render(snapshot: dict, progress: dict | None = None, *, paused: bool = True,
+           checked_at: datetime | None = None, revision: str = "preview",
+           handoff_complete: bool | None = None) -> str:
     progress = progress or {}
     done = set(progress.get("completed", []))
     records = progress.get("prs", {})
     errors = progress.get("errors", [])
     tz = ZoneInfo(snapshot["config"]["timezone"])
-    now = checked_at or datetime.now(UTC)
+    now = checked_at or datetime.now(timezone.utc)
     if now.tzinfo is None:
         raise ValueError("checked_at must be timezone-aware")
     now_local = now.astimezone(tz)
@@ -71,83 +65,52 @@ def render(
         else:
             status = "Scheduled"
         next_id = merge_id if open_id in done else open_id
-        if (
-            status != "Merged"
-            and paused
-            and any(error.get("event_id") == next_id for error in errors[-10:])
+        if status != "Merged" and paused and any(
+            error.get("event_id") == next_id for error in errors[-10:]
         ):
             status = "Blocked"
-        if (
-            status == "Scheduled"
-            and not paused
-            and now > datetime.fromisoformat(opened["utc"])
-        ):
+        if status == "Scheduled" and not paused and now > datetime.fromisoformat(opened["utc"].replace("Z", "+00:00")):
             status = "Overdue"
         open_time = datetime.fromisoformat(opened["local"])
         merge_time = datetime.fromisoformat(merged["local"])
-        link = (
-            f"https://github.com/{snapshot['config']['repository']}/pull/{int(record['number'])}"
-            if record.get("number")
-            else ""
-        )
+        link = (f'https://github.com/{snapshot["config"]["repository"]}/pull/{int(record["number"])}'
+                if record.get("number") else "")
         title = _esc(row["title"])
-        title_markup = (
-            f'<a href="{_esc(link)}" rel="noopener noreferrer">{title}</a>'
-            if link
-            else title
-        )
+        title_markup = f'<a href="{_esc(link)}" rel="noopener noreferrer">{title}</a>' if link else title
         actual = []
         if record.get("created_at"):
-            actual.append(f"Opened: {_esc(record['created_at'])}")
+            actual.append(f'Opened: {_esc(record["created_at"])}')
         if record.get("merged_at"):
-            actual.append(f"Merged: {_esc(record['merged_at'])}")
-        detail = (
-            ('<div class="meta">' + " · ".join(actual) + "</div>") if actual else ""
-        )
+            actual.append(f'Merged: {_esc(record["merged_at"])}')
+        detail = ("<div class=\"meta\">" + " · ".join(actual) + "</div>") if actual else ""
         groups[open_time.date().isoformat()].append(
             f'<article class="item {status.lower()}"><div class="head"><span>#{index} · {title_markup}</span>'
             f'<span class="pill">{_esc(status)}</span></div>'
             f'<div class="meta">{_esc(open_time.strftime("%H:%M"))} open · {_esc(merge_time.strftime("%H:%M"))} merge'
-            f" · {_esc(row['release'])}</div>{detail}</article>"
+            f' · {_esc(row["release"])}</div>{detail}</article>'
         )
-    cards = (
-        "".join(
-            f'<section class="day"><h2>{_esc(datetime.fromisoformat(day).strftime("%a, %d %b %Y"))}</h2>{"".join(items)}</section>'
-            for day, items in sorted(groups.items())
-        )
-        or "<p>No publications are scheduled. Add pull requests to the JSON plan.</p>"
-    )
+    cards = "".join(
+        f'<section class="day"><h2>{_esc(datetime.fromisoformat(day).strftime("%a, %d %b %Y"))}</h2>{"".join(items)}</section>'
+        for day, items in sorted(groups.items())
+    ) or '<p>No publications are scheduled. Add pull requests to the JSON plan.</p>'
     total = len(snapshot["queue"]["entries"])
-    state = (
-        "Paused"
-        if paused
-        else ("Waiting for legacy" if handoff_complete is False else "Running")
-    )
+    state = "Paused" if paused else ("Waiting for legacy" if handoff_complete is False else "Running")
     return (
         '<!doctype html><html lang="en"><head><meta charset="utf-8">'
         '<meta name="viewport" content="width=device-width,initial-scale=1">'
-        "<title>Publication Calendar</title><style>" + CSS + "</style></head><body>"
-        "<header><div><h1>Publication Calendar</h1><small>"
-        + _esc(snapshot["config"]["timezone"])
-        + " · "
-        + _esc(snapshot["config"]["start_date"])
-        + " – "
-        + _esc(snapshot["config"]["end_date"])
-        + "</small></div><strong>"
-        + state
-        + "</strong></header>"
+        '<title>Publication Calendar</title><style>' + CSS + '</style></head><body>'
+        '<header><div><h1>Publication Calendar</h1><small>'
+        + _esc(snapshot["config"]["timezone"]) + ' · '
+        + _esc(snapshot["config"]["start_date"]) + ' – ' + _esc(snapshot["config"]["end_date"])
+        + '</small></div><strong>' + state + '</strong></header>'
         + '<div class="stats">'
         + f'<div class="stat"><b>{total}</b><small>Total PRs</small></div>'
         + f'<div class="stat"><b>{merged_count}</b><small>Merged</small></div>'
         + f'<div class="stat"><b>{open_count}</b><small>Open</small></div>'
-        + f'<div class="stat"><b>{total - merged_count}</b><small>Remaining</small></div>'
-        + '</div><main class="days">'
-        + cards
-        + "</main><footer>Snapshot: "
-        + _esc(revision)
-        + " · Generated: "
-        + _esc(now_local.isoformat(timespec="minutes"))
-        + ". This is a static export; rerun calendar --live to refresh.</footer></body></html>"
+        + f'<div class="stat"><b>{total-merged_count}</b><small>Remaining</small></div>'
+        + '</div><main class="days">' + cards + '</main><footer>Snapshot: '
+        + _esc(revision) + ' · Generated: ' + _esc(now_local.isoformat(timespec="minutes"))
+        + '. This is a static export; rerun calendar --live to refresh.</footer></body></html>'
     )
 
 

@@ -1,49 +1,33 @@
 """Offline tests for human-readable plans and HTML rendering."""
 
 import json
-import sys
 import tempfile
 import unittest
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import MagicMock, patch
+import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "runtime" / "src"))
-from html_calendar import render
-from lambda_publisher.publication.snapshot_runner import Runner, allowed_start
 from plan import compile_plan
+from html_calendar import render
 from publisher import _validate_history
+from lambda_publisher.publication.snapshot_runner import Runner, allowed_start
 
 
 def sample():
     return {
-        "timezone": "Europe/Belgrade",
-        "previous_published_tag": "v0.7.13",
-        "start_date": "2026-11-10",
-        "end_date": "2026-11-12",
+        "timezone": "Europe/Belgrade", "previous_published_tag": "v0.7.13",
+        "start_date": "2026-11-10", "end_date": "2026-11-12",
         "pull_requests": [
-            {
-                "branch": "test/one",
-                "release": "v0.8.0",
-                "title": "UI boundaries",
-                "body": "- Implementation\n\n## Result\n- Verified",
-                "open": "2026-11-10 09:00",
-                "merge": "2026-11-10 11:30",
-            },
-            {
-                "branch": "version/v0.8.0",
-                "release": "v0.8.0",
-                "title": "Release 0.8.0",
-                "body": "- Version bump\n\n## Result\n- Versioned",
-                "open": "2026-11-10 14:00",
-                "merge": "2026-11-10 16:30",
-            },
+            {"branch": "test/one", "release": "v0.8.0", "title": "UI boundaries",
+             "body": "- Implementation\n\n## Result\n- Verified", "open": "2026-11-10 09:00", "merge": "2026-11-10 11:30"},
+            {"branch": "version/v0.8.0", "release": "v0.8.0", "title": "Release 0.8.0",
+             "body": "- Version bump\n\n## Result\n- Versioned", "open": "2026-11-10 14:00", "merge": "2026-11-10 16:30"},
         ],
-        "releases": {
-            "v0.8.0": {"title": "Release 0.8.0", "notes": "## Features\n- UI"}
-        },
+        "releases": {"v0.8.0": {"title": "Release 0.8.0", "notes": "## Features\n- UI"}},
     }
 
 
@@ -59,12 +43,8 @@ class PublisherTests(unittest.TestCase):
         self.assertEqual(4, len(snapshot["schedule"]["events"]))
         self.assertEqual("publisher-001-open", snapshot["schedule"]["events"][0]["id"])
         self.assertEqual("test/one", snapshot["queue"]["entries"][1]["depends_on"])
-        output = render(
-            snapshot,
-            {"completed": ["publisher-001-open"], "prs": {"1": {"number": 123}}},
-            paused=False,
-            checked_at=datetime(2026, 11, 10, 9, tzinfo=UTC),
-        )
+        output = render(snapshot, {"completed": ["publisher-001-open"], "prs": {"1": {"number": 123}}},
+                        paused=False, checked_at=datetime(2026, 11, 10, 9, tzinfo=timezone.utc))
         self.assertIn("Open", output)
         self.assertIn("/pull/123", output)
         self.assertIn("16:30", output)
@@ -94,12 +74,8 @@ class PublisherTests(unittest.TestCase):
         self.assertEqual("20:30", config["start_window"]["through"])
         self.assertEqual("22:00", config["execution_window"]["through"])
         for local_hour, expected in (
-            ("09:00", True),
-            ("20:30", True),
-            ("20:45", True),
-            ("21:01", True),
-            ("22:00", True),
-            ("22:05", False),
+            ("09:00", True), ("20:30", True), ("20:45", True),
+            ("21:01", True), ("22:00", True), ("22:05", False)
         ):
             with self.subTest(local_hour=local_hour):
                 now = datetime.fromisoformat(f"2026-11-10T{local_hour}:00+01:00")
@@ -110,26 +86,15 @@ class PublisherTests(unittest.TestCase):
         state = MagicMock()
         progress = {"completed": []}
         state.acquire.return_value = {
-            "activated": True,
-            "paused": False,
-            "activation_all": True,
+            "activated": True, "paused": False, "activation_all": True,
             "progress": progress,
         }
         runner = Runner(
-            snapshot["config"],
-            snapshot["queue"],
-            snapshot["schedule"],
-            snapshot["releases"],
-            MagicMock(),
-            MagicMock(),
-            state,
+            snapshot["config"], snapshot["queue"], snapshot["schedule"],
+            snapshot["releases"], MagicMock(), MagicMock(), state,
         )
-        with (
-            patch.dict("os.environ", {"ACTIVATION_ENABLED": "true"}),
-            patch.object(
-                runner, "_execute", return_value={"verified": True}
-            ) as execute,
-        ):
+        with patch.dict("os.environ", {"ACTIVATION_ENABLED": "true"}), \
+                patch.object(runner, "_execute", return_value={"verified": True}) as execute:
             now = datetime.fromisoformat("2026-11-10T21:01:00+01:00")
             result = runner.run(dry_run=False, now=now, reconcile=True)
         self.assertEqual("completed", result["status"])
@@ -144,26 +109,17 @@ class PublisherTests(unittest.TestCase):
         state.read.return_value = {"progress": progress}
         state.acquire.return_value = {"progress": progress}
         runner = Runner(
-            snapshot["config"],
-            snapshot["queue"],
-            snapshot["schedule"],
-            snapshot["releases"],
-            MagicMock(),
-            MagicMock(),
-            state,
+            snapshot["config"], snapshot["queue"], snapshot["schedule"],
+            snapshot["releases"], MagicMock(), MagicMock(), state,
         )
-        with (
-            patch.dict("os.environ", {"ACTIVATION_ENABLED": "true"}),
-            patch.object(runner, "_execute") as execute,
-        ):
+        with patch.dict("os.environ", {"ACTIVATION_ENABLED": "true"}), \
+                patch.object(runner, "_execute") as execute:
             today = runner.run(
-                dry_run=False,
-                reconcile=True,
+                dry_run=False, reconcile=True,
                 now=datetime.fromisoformat("2026-11-10T22:05:00+01:00"),
             )
             deadline = runner.run(
-                dry_run=False,
-                reconcile=True,
+                dry_run=False, reconcile=True,
                 now=datetime.fromisoformat("2026-11-12T22:05:00+01:00"),
             )
         self.assertEqual("deferred", today["status"])
