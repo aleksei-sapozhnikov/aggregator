@@ -86,8 +86,37 @@ build/
 .vite/
 
 # =========================
+# OpenTofu / Terraform
+# =========================
+
+.terraform/
+.tofu/
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.plan
+crash.log
+crash.*.log
+*.auto.tfvars
+*.auto.tfvars.json
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+!*.tfvars.example.json
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Local infrastructure environment overrides.
+infra/**/.env
+deploy/infra/**/.env
+
+# =========================
 # Temporary / Local Dev
 # =========================
+
+.local/
 .temp/
 tmp/
 *.tmp
