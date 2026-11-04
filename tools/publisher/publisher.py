@@ -10,14 +10,14 @@ import subprocess
 import sys
 import time
 import zipfile
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT / "runtime" / "src"))
-from html_calendar import save
-from lambda_publisher.publication.publication import canonical, digest, load_snapshot
-from plan import compile_plan
+from lambda_publisher.publication.publication import canonical, digest, load_snapshot  # noqa: E402
+from plan import compile_plan  # noqa: E402
+from html_calendar import save  # noqa: E402
 
 ACCOUNT = "905418096305"
 REGION = "eu-central-1"
@@ -31,9 +31,7 @@ def _session(profile: str):
     try:
         import boto3
     except ImportError as error:
-        raise RuntimeError(
-            "Install boto3 to use --live, apply, pause, or resume"
-        ) from error
+        raise RuntimeError("Install boto3 to use --live, apply, pause, or resume") from error
     session = boto3.Session(profile_name=profile, region_name=REGION)
     identity = session.client("sts").get_caller_identity()
     if identity["Account"] != ACCOUNT:
@@ -52,10 +50,7 @@ def _state(table):
 def _progress(item):
     raw = item.get("progress", "{}")
     result = json.loads(raw) if isinstance(raw, str) else raw
-    invalid_progress = not isinstance(result, dict) or not isinstance(
-        result.get("completed", []), list
-    )
-    if invalid_progress:
+    if not isinstance(result, dict) or not isinstance(result.get("completed", []), list):
         raise RuntimeError("invalid progress in DynamoDB")
     return result
 
@@ -65,11 +60,9 @@ def _validate_history(current: dict, proposed: dict, completed: list[str]) -> No
     new_events = proposed["schedule"]["events"]
     old_by = {event["id"]: event for event in old_events}
     new_by = {event["id"]: event for event in new_events}
-    if len(completed) != len(set(completed)) or any(
-        event_id not in old_by for event_id in completed
-    ):
+    if len(completed) != len(set(completed)) or any(event_id not in old_by for event_id in completed):
         raise RuntimeError("DynamoDB progress does not match existing snapshot")
-    if [e["id"] for e in new_events[: len(completed)]] != completed:
+    if [e["id"] for e in new_events[:len(completed)]] != completed:
         raise RuntimeError("completed operations must remain the exact ordered prefix")
     for event_id in completed:
         if new_by[event_id] != old_by[event_id]:
@@ -82,21 +75,14 @@ def _validate_history(current: dict, proposed: dict, completed: list[str]) -> No
     for index in finished_ids:
         if new_rows[index] != old_rows[index]:
             raise RuntimeError(f"cannot edit partially or fully published PR {index}")
-    if [e["id"] for e in new_events[: len(old_events)]] != [
-        e["id"] for e in old_events
-    ]:
-        raise RuntimeError(
-            "existing operation order cannot change; append new PRs instead"
-        )
+    if [e["id"] for e in new_events[:len(old_events)]] != [e["id"] for e in old_events]:
+        raise RuntimeError("existing operation order cannot change; append new PRs instead")
     old_releases = {r["tag"]: r for r in current["releases"]["releases"]}
     new_releases = {r["tag"]: r for r in proposed["releases"]["releases"]}
     done_releases = {old_by[e]["release"] for e in completed}
     if any(new_releases.get(tag) != old_releases[tag] for tag in done_releases):
         raise RuntimeError("release definition for a started release is immutable")
-    if (
-        current["config"]["previous_published_tag"]
-        != proposed["config"]["previous_published_tag"]
-    ):
+    if current["config"]["previous_published_tag"] != proposed["config"]["previous_published_tag"]:
         raise RuntimeError("previous published tag cannot change within the same queue")
 
 
@@ -104,16 +90,14 @@ def _next_due(snapshot: dict, completed: list[str]):
     done = set(completed)
     for event in snapshot["schedule"]["events"]:
         if event["id"] not in done:
-            return datetime.fromisoformat(event["utc"]), event["id"]
+            return datetime.fromisoformat(event["utc"].replace("Z", "+00:00")), event["id"]
     return None
 
 
 def _enough_time(snapshot: dict, completed: list[str]) -> None:
     next_due = _next_due(snapshot, completed)
-    if next_due and next_due[0] < datetime.now(UTC) + timedelta(minutes=20):
-        raise RuntimeError(
-            f"next pending event {next_due[1]} is too close or overdue; revise the JSON plan"
-        )
+    if next_due and next_due[0] < datetime.now(timezone.utc) + timedelta(minutes=20):
+        raise RuntimeError(f"next pending event {next_due[1]} is too close or overdue; revise the JSON plan")
 
 
 def _verify_remote_branches(snapshot: dict) -> None:
@@ -122,17 +106,11 @@ def _verify_remote_branches(snapshot: dict) -> None:
         return
     command = ["git", "ls-remote", "--heads", REMOTE, "refs/heads/main"]
     command.extend(f"refs/heads/{branch}" for branch in branches)
-    result = subprocess.run(
-        command, capture_output=True, text=True, timeout=45, check=False
-    )
+    result = subprocess.run(command, capture_output=True, text=True, timeout=45, check=False)
     if result.returncode != 0:
         raise RuntimeError("GitHub branch inspection failed; verify SSH authentication")
-    found = {
-        line.split("\t")[1].strip()
-        for line in result.stdout.splitlines()
-        if "\t" in line
-    }
-    missing = {f"refs/heads/{branch}" for branch in branches} - found
+    found = {line.split("\t")[1].strip() for line in result.stdout.splitlines() if "\t" in line}
+    missing = set(f"refs/heads/{branch}" for branch in branches) - found
     if "refs/heads/main" not in found or missing:
         raise RuntimeError(f"missing GitHub branch refs: {sorted(missing)}")
 
@@ -144,17 +122,9 @@ def apply(plan: Path, profile: str) -> None:
     item = _state(table)
     if item is not None and item.get("paused") is not True:
         raise RuntimeError("pause publisher before applying a new plan")
-    if item and (
-        item.get("sync_pending") or int(item.get("lease_until", 0)) >= int(time.time())
-    ):
-        raise RuntimeError(
-            "active lease or incomplete synchronization; inspect live queue"
-        )
-    progress = (
-        _progress(item)
-        if item
-        else {"completed": [], "prs": {}, "attempts": {}, "errors": [], "alerts": []}
-    )
+    if item and (item.get("sync_pending") or int(item.get("lease_until", 0)) >= int(time.time())):
+        raise RuntimeError("active lease or incomplete synchronization; inspect live queue")
+    progress = _progress(item) if item else {"completed": [], "prs": {}, "attempts": {}, "errors": [], "alerts": []}
     if item:
         old = load_snapshot(session.client("s3"), BUCKET, item["data_revision"])
         _validate_history(old, proposed, progress["completed"])
@@ -169,41 +139,23 @@ def apply(plan: Path, profile: str) -> None:
         if existing != raw:
             raise RuntimeError("snapshot key collision or corrupted S3 object")
     except s3.exceptions.NoSuchKey:
-        s3.put_object(
-            Bucket=BUCKET,
-            Key=key,
-            Body=raw,
-            ContentType="application/json",
-            IfNoneMatch="*",
-        )
+        s3.put_object(Bucket=BUCKET, Key=key, Body=raw, ContentType="application/json", IfNoneMatch="*")
     if not item:
         table.put_item(
-            Item={
-                "pk": "QUEUE",
-                "data_revision": revision,
-                "paused": True,
-                "activated": True,
-                "activation_all": True,
-                "progress": json.dumps(progress, separators=(",", ":")),
-            },
+            Item={"pk": "QUEUE", "data_revision": revision, "paused": True,
+                  "activated": True, "activation_all": True,
+                  "progress": json.dumps(progress, separators=(",", ":"))},
             ConditionExpression="attribute_not_exists(pk)",
         )
     elif item["data_revision"] != revision:
         table.update_item(
-            Key={"pk": "QUEUE"},
-            UpdateExpression="SET data_revision=:new",
+            Key={"pk": "QUEUE"}, UpdateExpression="SET data_revision=:new",
             ConditionExpression="data_revision=:old AND paused=:yes AND (attribute_not_exists(lease_until) OR lease_until<:now)",
-            ExpressionAttributeValues={
-                ":new": revision,
-                ":old": item["data_revision"],
-                ":yes": True,
-                ":now": int(time.time()),
-            },
+            ExpressionAttributeValues={":new": revision, ":old": item["data_revision"],
+                                       ":yes": True, ":now": int(time.time())},
         )
     print(f"Staged {len(proposed['schedule']['events'])} operations in S3: {revision}")
-    print(
-        "Publication remains PAUSED. Explicitly run `resume` after reviewing the calendar."
-    )
+    print("Publication remains PAUSED. Explicitly run `resume` after reviewing the calendar.")
 
 
 def set_paused(paused: bool, profile: str) -> None:
@@ -217,20 +169,11 @@ def set_paused(paused: bool, profile: str) -> None:
         _enough_time(snapshot, _progress(item)["completed"])
         _verify_remote_branches(snapshot)
     table.update_item(
-        Key={"pk": "QUEUE"},
-        UpdateExpression="SET paused=:new",
+        Key={"pk": "QUEUE"}, UpdateExpression="SET paused=:new",
         ConditionExpression="data_revision=:revision AND (attribute_not_exists(lease_until) OR lease_until<:now)",
-        ExpressionAttributeValues={
-            ":new": paused,
-            ":revision": item["data_revision"],
-            ":now": int(time.time()),
-        },
+        ExpressionAttributeValues={":new": paused, ":revision": item["data_revision"], ":now": int(time.time())},
     )
-    print(
-        "Publisher PAUSED"
-        if paused
-        else "Publisher ARMED; legacy completion gate still applies"
-    )
+    print("Publisher PAUSED" if paused else "Publisher ARMED; legacy completion gate still applies")
 
 
 def live(profile: str):
@@ -240,21 +183,13 @@ def live(profile: str):
     if not item:
         raise RuntimeError("publisher QUEUE not initialized")
     snapshot = load_snapshot(session.client("s3"), BUCKET, item["data_revision"])
-    return (
-        snapshot,
-        _progress(item),
-        bool(item.get("paused", True)),
-        item["data_revision"],
-        bool(item.get("legacy_handoff_complete", False)),
-    )
+    return snapshot, _progress(item), bool(item.get("paused", True)), item["data_revision"], bool(item.get("legacy_handoff_complete", False))
 
 
 def build(zip_path: Path) -> None:
     root = ROOT / "runtime" / "src"
     files = sorted(p for p in root.rglob("*.py") if "__pycache__" not in p.parts)
-    if not any(
-        p.relative_to(root).as_posix() == "publisher_runtime/handler.py" for p in files
-    ):
+    if not any(p.relative_to(root).as_posix() == "publisher_runtime/handler.py" for p in files):
         raise RuntimeError("publisher Lambda handler missing")
     zip_path.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as archive:
@@ -266,9 +201,7 @@ def build(zip_path: Path) -> None:
 
 def main(argv=None) -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--profile", default=os.environ.get("AWS_PROFILE", "aggregator-admin")
-    )
+    parser.add_argument("--profile", default=os.environ.get("AWS_PROFILE", "aggregator-admin"))
     commands = parser.add_subparsers(dest="command", required=True)
     for name in ("validate", "preview", "apply"):
         command = commands.add_parser(name)
@@ -285,9 +218,7 @@ def main(argv=None) -> None:
     args = parser.parse_args(argv)
     if args.command in ("validate", "preview"):
         snapshot = compile_plan(args.plan)
-        print(
-            f"Valid: {len(snapshot['queue']['entries'])} PRs, {len(snapshot['schedule']['events'])} operations"
-        )
+        print(f"Valid: {len(snapshot['queue']['entries'])} PRs, {len(snapshot['schedule']['events'])} operations")
         for event in snapshot["schedule"]["events"]:
             print(f"  {event['local']}: {event['id']} / {event['branch']}")
         if args.command == "preview":
@@ -297,14 +228,7 @@ def main(argv=None) -> None:
         apply(args.plan, args.profile)
     elif args.command == "calendar":
         snapshot, progress, paused, revision, handoff = live(args.profile)
-        save(
-            args.output,
-            snapshot,
-            progress,
-            paused=paused,
-            revision=revision,
-            handoff_complete=handoff,
-        )
+        save(args.output, snapshot, progress, paused=paused, revision=revision, handoff_complete=handoff)
         print(f"HTML calendar: {args.output}")
     elif args.command in ("pause", "resume"):
         set_paused(args.command == "pause", args.profile)

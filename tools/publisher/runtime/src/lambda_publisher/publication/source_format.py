@@ -6,7 +6,7 @@ import csv
 import io
 import json
 import re
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -221,7 +221,7 @@ def _local(value: str, tz: ZoneInfo) -> datetime:
         for fold in (0, 1)
         if wall.replace(tzinfo=tz, fold=fold).utcoffset() == dt.utcoffset()
         and wall.replace(tzinfo=tz, fold=fold)
-        .astimezone(UTC)
+        .astimezone(timezone.utc)
         .astimezone(tz)
         .replace(tzinfo=None)
         == wall

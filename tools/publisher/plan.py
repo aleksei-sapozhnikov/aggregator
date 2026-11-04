@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import re
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -32,7 +32,7 @@ def _time(raw: str, tz: ZoneInfo) -> datetime:
     second = value.replace(tzinfo=tz, fold=1)
     if first.utcoffset() != second.utcoffset():
         raise ValueError(f"ambiguous or nonexistent local time: {raw}")
-    if first.astimezone(UTC).astimezone(tz).replace(tzinfo=None) != value:
+    if first.astimezone(timezone.utc).astimezone(tz).replace(tzinfo=None) != value:
         raise ValueError(f"nonexistent local time: {raw}")
     return first
 
@@ -52,60 +52,33 @@ def compile_plan(path: Path) -> dict:
     path = Path(path).resolve()
     plan = json.loads(path.read_text(encoding="utf-8-sig"))
     if not isinstance(plan, dict) or set(plan) != {
-        "timezone",
-        "previous_published_tag",
-        "start_date",
-        "end_date",
-        "pull_requests",
-        "releases",
+        "timezone", "previous_published_tag", "start_date", "end_date",
+        "pull_requests", "releases",
     }:
-        raise ValueError(
-            "plan must contain timezone, previous_published_tag, start_date, end_date, pull_requests, releases"
-        )
+        raise ValueError("plan must contain timezone, previous_published_tag, start_date, end_date, pull_requests, releases")
     if plan["timezone"] != "Europe/Belgrade":
         raise ValueError("publisher timezone must be Europe/Belgrade")
     tz = ZoneInfo(plan["timezone"])
     start, end = plan["start_date"], plan["end_date"]
-    if (
-        not isinstance(start, str)
-        or not isinstance(end, str)
-        or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", start)
-        or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", end)
-    ):
+    if not isinstance(start, str) or not isinstance(end, str) or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", start) or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", end):
         raise ValueError("start_date and end_date must be YYYY-MM-DD")
     if start < START_NOT_BEFORE or end < start:
         raise ValueError("publisher may not start before legacy's handover window")
     if not TAG.fullmatch(plan["previous_published_tag"]):
         raise ValueError("previous_published_tag must be a semver tag")
-    invalid_collections = not isinstance(plan["pull_requests"], list) or not isinstance(
-        plan["releases"], dict
-    )
-    if invalid_collections:
-        raise ValueError(
-            "pull_requests must be an array and releases must be an object"
-        )
+    if not isinstance(plan["pull_requests"], list) or not isinstance(plan["releases"], dict):
+        raise ValueError("pull_requests must be an array and releases must be an object")
     config = {
-        "repository": REPOSITORY,
-        "base": "main",
-        "timezone": plan["timezone"],
-        "start_date": start,
-        "end_date": end,
+        "repository": REPOSITORY, "base": "main", "timezone": plan["timezone"],
+        "start_date": start, "end_date": end,
         "start_window": {"from": "09:00", "through": "20:30", "inclusive": True},
         "execution_window": {"from": "09:00", "through": "22:00", "inclusive": True},
-        "allowed_merge_method": "squash",
-        "maximum_open_prs_from_queue": 1,
-        "minimum_actual_open_minutes": 60,
-        "minimum_planned_open_minutes": 75,
+        "allowed_merge_method": "squash", "maximum_open_prs_from_queue": 1,
+        "minimum_actual_open_minutes": 60, "minimum_planned_open_minutes": 75,
         "post_release_open_minutes": 40,
-        "final_version_merge_latest_local": "18:30",
-        "event_prefix": "publisher",
+        "final_version_merge_latest_local": "18:30", "event_prefix": "publisher",
         "expected_actor": "aleksei-sapozhnikov",
-        "project": {
-            "kind": "user_project_v2",
-            "number": 1,
-            "owner": "aleksei-sapozhnikov",
-            "url": PROJECT_URL,
-        },
+        "project": {"kind": "user_project_v2", "number": 1, "owner": "aleksei-sapozhnikov", "url": PROJECT_URL},
         "previous_published_tag": plan["previous_published_tag"],
         "release_titles": {},
     }
@@ -114,39 +87,15 @@ def compile_plan(path: Path) -> dict:
     last_merge = None
     last_release = None
     for position, row in enumerate(plan["pull_requests"], 1):
-        if (
-            not isinstance(row, dict)
-            or not {"branch", "release", "title", "open", "merge"}.issubset(row)
-            or set(row)
-            - {
-                "id",
-                "branch",
-                "release",
-                "title",
-                "body",
-                "body_file",
-                "outcome",
-                "expected_source_commits",
-                "open",
-                "merge",
-            }
-        ):
+        if not isinstance(row, dict) or not {"branch", "release", "title", "open", "merge"}.issubset(row) or set(row) - {
+            "id", "branch", "release", "title", "body", "body_file", "outcome", "expected_source_commits", "open", "merge"
+        }:
             raise ValueError(f"invalid fields in pull request {position}")
         index = row.get("id", position)
-        if (
-            type(index) is not int
-            or index <= 0
-            or (entries and index <= entries[-1]["id"])
-        ):
+        if type(index) is not int or index <= 0 or (entries and index <= entries[-1]["id"]):
             raise ValueError("PR queue IDs must be unique, positive, and increasing")
         branch, release = row["branch"], row["release"]
-        if (
-            not isinstance(branch, str)
-            or not BRANCH.fullmatch(branch)
-            or ".." in branch
-            or branch.endswith("/")
-            or branch in seen_branches
-        ):
+        if not isinstance(branch, str) or not BRANCH.fullmatch(branch) or ".." in branch or branch.endswith("/") or branch in seen_branches:
             raise ValueError(f"invalid or duplicate branch: {branch}")
         if not isinstance(release, str) or not TAG.fullmatch(release):
             raise ValueError(f"invalid release for PR {index}")
@@ -167,120 +116,70 @@ def compile_plan(path: Path) -> dict:
         opened, merged = _time(row["open"], tz), _time(row["merge"], tz)
         if opened.date().isoformat() < start or merged.date().isoformat() > end:
             raise ValueError(f"PR {index} outside plan date range")
-        if not (
-            "09:00" <= opened.strftime("%H:%M") <= "20:30"
-            and "09:00" <= merged.strftime("%H:%M") <= "20:30"
-        ):
+        if not ("09:00" <= opened.strftime("%H:%M") <= "20:30" and "09:00" <= merged.strftime("%H:%M") <= "20:30"):
             raise ValueError(f"PR {index} outside 09:00-20:30")
         if merged - opened < timedelta(minutes=75):
             raise ValueError(f"PR {index} must remain open at least 75 minutes")
         if last_merge and opened <= last_merge + timedelta(minutes=15):
-            raise ValueError(
-                f"PR {index} must open at least 15 minutes after previous merge"
-            )
-        if last_utc and opened.astimezone(UTC) <= last_utc:
+            raise ValueError(f"PR {index} must open at least 15 minutes after previous merge")
+        if last_utc and opened.astimezone(timezone.utc) <= last_utc:
             raise ValueError("PR times must increase")
-        last_utc, last_merge = merged.astimezone(UTC), merged
+        last_utc, last_merge = merged.astimezone(timezone.utc), merged
         entry = {
-            "id": index,
-            "branch": branch,
+            "id": index, "branch": branch,
             "depends_on": entries[-1]["branch"] if entries else "main",
-            "release": release,
-            "title": title.strip(),
-            "body": body,
+            "release": release, "title": title.strip(), "body": body,
             "outcome": row.get("outcome", title.strip()),
             "expected_source_commits": count,
             "version_boundary": branch == f"version/{release}",
-            "source_mode": "new",
-            "existing_pr_number": None,
+            "source_mode": "new", "existing_pr_number": None,
             "pr_file": f"plan/{index:03d}.json",
         }
         entries.append(entry)
         seen_branches.add(branch)
-        for action, suffix, dt in (
-            ("open_pr", "open", opened),
-            ("merge_pr", "merge", merged),
-        ):
-            events.append(
-                {
-                    "id": f"{config['event_prefix']}-{index:03d}-{suffix}",
-                    "queue_id": index,
-                    "action": action,
-                    "branch": branch,
-                    "release": release,
-                    "local": dt.isoformat(timespec="seconds"),
-                    "utc": dt.astimezone(UTC)
-                    .isoformat(timespec="seconds")
-                    .replace("+00:00", "Z"),
-                }
-            )
+        for action, suffix, dt in (("open_pr", "open", opened), ("merge_pr", "merge", merged)):
+            events.append({
+                "id": f"{config['event_prefix']}-{index:03d}-{suffix}", "queue_id": index,
+                "action": action, "branch": branch, "release": release,
+                "local": dt.isoformat(timespec="seconds"),
+                "utc": dt.astimezone(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z"),
+            })
     releases = []
     prior = plan["previous_published_tag"]
     if set(plan["releases"]) != set(tags):
-        raise ValueError(
-            "releases definitions must match release tags used by the queue"
-        )
+        raise ValueError("releases definitions must match release tags used by the queue")
     for tag in tags:
         if tuple(map(int, tag[1:].split("."))) <= tuple(map(int, prior[1:].split("."))):
             raise ValueError("release tags must increase from previous_published_tag")
         group = [e for e in entries if e["release"] == tag]
-        if (
-            sum(e["version_boundary"] for e in group) != 1
-            or not group[-1]["version_boundary"]
-        ):
+        if sum(e["version_boundary"] for e in group) != 1 or not group[-1]["version_boundary"]:
             raise ValueError(f"release {tag} must end with its version/{tag} PR")
         rd = plan["releases"][tag]
-        if (
-            not isinstance(rd, dict)
-            or not "title" in rd
-            or set(rd) - {"title", "notes", "notes_file"}
-        ):
+        if not isinstance(rd, dict) or not "title" in rd or set(rd) - {"title", "notes", "notes_file"}:
             raise ValueError(f"invalid release definition for {tag}")
         title = rd["title"]
         notes = _content(path.parent, rd, "notes")
-        if (
-            not isinstance(title, str)
-            or not title.strip()
-            or "## What's Changed" in notes
-            or "**Full Changelog**" in notes
-        ):
+        if not isinstance(title, str) or not title.strip() or "## What's Changed" in notes or "**Full Changelog**" in notes:
             raise ValueError(f"invalid release title or notes for {tag}")
-        releases.append(
-            {
-                "tag": tag,
-                "previous_tag": prior,
-                "title": title.strip(),
-                "notes": notes,
-                "milestone_semantic": tag,
-                "version_queue_id": group[-1]["id"],
-                "version_branch": group[-1]["branch"],
-                "queue_ids": [e["id"] for e in group],
-            }
-        )
+        releases.append({
+            "tag": tag, "previous_tag": prior, "title": title.strip(),
+            "notes": notes, "milestone_semantic": tag,
+            "version_queue_id": group[-1]["id"], "version_branch": group[-1]["branch"],
+            "queue_ids": [e["id"] for e in group],
+        })
         config["release_titles"][tag] = title.strip()
         prior = tag
     if events and entries[-1]["version_boundary"] is False:
         raise ValueError("last queued PR must be a version boundary")
-    if (
-        events
-        and last_merge.strftime("%H:%M") > config["final_version_merge_latest_local"]
-    ):
+    if events and last_merge.strftime("%H:%M") > config["final_version_merge_latest_local"]:
         raise ValueError("final release merge must complete by 18:30")
     from lambda_publisher.publication.config import queue_digest
     from lambda_publisher.publication.publication import validate_snapshot
-
     queue = {"repository": REPOSITORY, "entries": entries}
     snapshot = {
-        "format": 1,
-        "config": config,
-        "queue": queue,
-        "schedule": {
-            "timezone": plan["timezone"],
-            "start": start,
-            "end": end,
-            "events": events,
-            "queue_sha256": queue_digest(queue),
-        },
+        "format": 1, "config": config, "queue": queue,
+        "schedule": {"timezone": plan["timezone"], "start": start, "end": end,
+                     "events": events, "queue_sha256": queue_digest(queue)},
         "releases": {"releases": releases},
     }
     validate_snapshot(snapshot)

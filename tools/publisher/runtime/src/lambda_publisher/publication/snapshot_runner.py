@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import os
 import uuid
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -98,7 +98,7 @@ class Runner:
         schedule_sha: str | None = None,
         reconcile=False,
     ):
-        now = now or datetime.now(UTC)
+        now = now or datetime.now(timezone.utc)
         execution_id = execution_id or str(uuid.uuid4())
         if dry_run:
             item = self.state.read()
@@ -124,10 +124,9 @@ class Runner:
             local = now.astimezone(ZoneInfo(self.config["timezone"]))
             if local.date().isoformat() > self.config["end_date"] or (
                 local.date().isoformat() == self.config["end_date"]
-                and local.strftime("%H:%M")
-                > self.config.get("execution_window", self.config["start_window"])[
-                    "through"
-                ]
+                and local.strftime("%H:%M") > self.config.get(
+                    "execution_window", self.config["start_window"]
+                )["through"]
             ):
                 item = self.state.read()
                 if self.next_event(item["progress"]):
@@ -181,7 +180,7 @@ class Runner:
                     "reason": "out of order",
                     "next_event": event["id"],
                 }
-            due = datetime.fromisoformat(event["utc"])
+            due = datetime.fromisoformat(event["utc"].replace("Z", "+00:00"))
             if now < due:
                 return {
                     "status": "deferred",
@@ -261,7 +260,7 @@ class Runner:
         row = self.rows[event["queue_id"]]
         record = progress.setdefault("prs", {}).setdefault(str(row["id"]), {})
         if event["action"] == "open_pr":
-            scheduled_at = datetime.fromisoformat(event["utc"])
+            scheduled_at = datetime.fromisoformat(event["utc"].replace("Z", "+00:00"))
             already_open = pull_requests.find_exact(
                 self.repo,
                 row,
