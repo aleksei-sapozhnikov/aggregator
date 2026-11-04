@@ -68,7 +68,9 @@ class ModuleConfigurationTests(unittest.TestCase):
             inputs.files_in_module(root, "publisher", paths),
             [paths[0], paths[1], paths[2], paths[4]],
         )
-        self.assertEqual(inputs.files_in_module(root, "code-qa", paths), [paths[3]])
+        self.assertEqual(
+            inputs.files_in_module(root, "code-qa", paths), [paths[3]]
+        )
 
     def test_python_modules_keep_implementation_in_src(self) -> None:
         root = repo_root()
@@ -97,65 +99,75 @@ class ModuleConfigurationTests(unittest.TestCase):
                 for group in ("services", "environments", "deploy", "tools")
                 for directory in (root / group).iterdir()
                 if directory.is_dir()
-                and directory.name
-                not in {
+                and directory.name not in {
                     "__pycache__",
                     "node_modules",
                     "build",
                     "dist",
                 }
-                and not (group == "tools" and directory.name == "publisher-legacy")
                 and not directory.name.startswith(".")
             },
         )
         self.assertEqual(len(registry.MODULE_IMPORTS), len(paths))
 
-    def test_scoped_demo_checks_use_their_own_directory(self) -> None:
+    def test_scoped_publication_checks_use_their_own_directory(self) -> None:
         root = repo_root()
         check = next(
-            check
-            for check in cli.CHECKS
-            if check.check_id == "demo/infra/tofu-validate"
+            check for check in cli.CHECKS
+            if check.check_id == "publisher/infra/tofu-validate"
         )
-        self.assertEqual(check.module, "demo")
-        self.assertEqual(check.scope_path, "environments/demo/infra")
+        self.assertEqual(check.module, "publisher")
+        self.assertEqual(check.scope_path, "tools/publisher/infra")
         with patch.object(cli, "run_module", return_value=(True, [])) as run:
             self.assertEqual(
                 cli.execute_check(check, check.check_args, root, []), (True, [])
             )
         self.assertEqual(
             run.call_args.args[1][run.call_args.args[1].index("--directory") + 1],
-            str(root / "environments/demo/infra"),
+            str(root / "tools/publisher/infra"),
         )
 
     def test_shared_infra_roots_and_demo_ansible_are_registered(self) -> None:
         for name in ("administration", "state"):
-            self.assertIn(f"shared/{name}/tflint", [c.check_id for c in cli.CHECKS])
+            self.assertIn(
+                f"shared/{name}/tflint", [c.check_id for c in cli.CHECKS]
+            )
         self.assertIn("demo/infra/tflint", [c.check_id for c in cli.CHECKS])
-        self.assertIn("demo/ansible/ansible-lint", [c.check_id for c in cli.CHECKS])
+        self.assertIn(
+            "demo/ansible/ansible-lint", [c.check_id for c in cli.CHECKS]
+        )
         self.assertEqual(
             modules.MODULE_BY_NAME["demo"].tests.kind,
             "unittest_tests",
+        )
+        self.assertIn(
+            "publisher/infra/tflint", [c.check_id for c in cli.CHECKS]
+        )
+        self.assertIn(
+            "publisher/infra-tools/ruff-lint",
+            [c.check_id for c in cli.CHECKS],
         )
         self.assertEqual(
             modules.MODULE_BY_NAME["publisher"].scoped_tests[0].tests.kind,
             "unittest_tests",
         )
 
-    def test_publisher_runs_its_python_test_suite(self) -> None:
+    def test_publisher_runs_both_python_test_suites(self) -> None:
         root = repo_root()
         commands = cli.test_commands(modules.MODULE_BY_NAME["publisher"], root)
         self.assertEqual(
             [label for label, _ in commands],
-            ["publisher (publisher)"],
+            ["publisher (infra-tools)", "publisher (lambda_publisher)"],
         )
         paths = [
-            Path(command[command.index("--directory") + 1]) for _, command in commands
+            Path(command[command.index("--directory") + 1])
+            for _, command in commands
         ]
         self.assertEqual(
             paths,
             [
-                root / "tools/publisher",
+                root / "tools/publisher/infra/tools",
+                root / "tools/publisher/lambda_publisher",
             ],
         )
 
@@ -189,7 +201,10 @@ class ModuleConfigurationTests(unittest.TestCase):
             inputs.files_in_module(root, "demo", [tofu_file, playbook]),
             [tofu_file, playbook],
         )
-        check = next(c for c in cli.CHECKS if c.check_id == "demo/ansible/ansible-lint")
+        check = next(
+            c for c in cli.CHECKS
+            if c.check_id == "demo/ansible/ansible-lint"
+        )
         self.assertEqual(check.scope_path, "environments/demo/ansible")
         command = cli.test_commands(modules.MODULE_BY_NAME["demo"], root)[0][1]
         self.assertEqual(

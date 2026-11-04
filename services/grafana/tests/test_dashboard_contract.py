@@ -56,16 +56,14 @@ class TimelineDashboardContractTests(unittest.TestCase):
             self.assertIn(expected, dependency_signals["expr"])
         self.assertNotIn("${show}", dependency_signals["expr"])
         self.assertNotIn("dep_depth", dependency_signals["expr"])
-        self.assertEqual(dependency_signals["legendFormat"], "\u200c↳ {{signal_name}}")
+        self.assertEqual(
+            dependency_signals["legendFormat"], "\u200c↳ {{signal_name}}"
+        )
 
     def test_only_one_signals_selector_is_visible(self) -> None:
         variables = self.dashboard["templating"]["list"]
-        visible = [
-            variable.get("label") for variable in variables if not variable.get("hide")
-        ]
-        signals = next(
-            variable for variable in variables if variable["name"] == "signals"
-        )
+        visible = [variable.get("label") for variable in variables if not variable.get("hide")]
+        signals = next(variable for variable in variables if variable["name"] == "signals")
 
         self.assertEqual(
             [variable["name"] for variable in variables],
@@ -80,12 +78,14 @@ class TimelineDashboardContractTests(unittest.TestCase):
             [option["text"] for option in signals["options"]],
             ["All", "● Own", "↳ Dependencies"],
         )
-        self.assertEqual(signals["query"], "● ↳ All : 2, ● Own : 1, ↳ Dependencies : 3")
+        self.assertEqual(
+            signals["query"], "● ↳ All : 2, ● Own : 1, ↳ Dependencies : 3"
+        )
 
     def test_timeline_label_column_stays_compact(self) -> None:
-        axis_width = self.dashboard["panels"][0]["fieldConfig"]["defaults"]["custom"][
-            "axisWidth"
-        ]
+        axis_width = self.dashboard["panels"][0]["fieldConfig"]["defaults"][
+            "custom"
+        ]["axisWidth"]
         self.assertEqual(axis_width, 300)
 
     def test_transitive_dependencies_and_item_links_are_preserved(self) -> None:
@@ -99,7 +99,9 @@ class TimelineDashboardContractTests(unittest.TestCase):
 
         overrides = self.dashboard["panels"][0]["fieldConfig"]["overrides"]
         dependency_override = next(
-            override for override in overrides if override["matcher"]["options"] == "D"
+            override
+            for override in overrides
+            if override["matcher"]["options"] == "D"
         )
         links = next(
             property

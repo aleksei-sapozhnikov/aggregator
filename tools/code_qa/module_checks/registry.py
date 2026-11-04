@@ -56,25 +56,25 @@ def ci_matrix() -> dict[str, list[dict[str, object]]]:
                 "go": bool(module.tests and module.tests.kind == "go_tests"),
                 "tofu": module.code == "tofu_code"
                 or any(
-                    "tofu-validate" in group.checks for group in module.scoped_checks
+                    "tofu-validate" in group.checks
+                    for group in module.scoped_checks
                 ),
             }
             for module in MODULES
         ]
     }
 
-
 __all__ = (
     "CODE_PROFILES",
     "DEFAULT_CHECKS",
     "FINAL_CHECKS",
-    "MODULES",
-    "MODULE_BY_NAME",
-    "MODULE_NAMES",
-    "TEST_MODULE_NAMES",
     "ModuleSpec",
     "ScopedChecks",
     "ScopedTests",
     "TestSpec",
+    "MODULES",
+    "MODULE_BY_NAME",
+    "MODULE_NAMES",
+    "TEST_MODULE_NAMES",
     "ci_matrix",
 )

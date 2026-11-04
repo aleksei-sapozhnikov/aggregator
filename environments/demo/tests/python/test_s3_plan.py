@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import hashlib
 import os
-import subprocess
 import sys
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path

@@ -36,9 +36,9 @@ class NodeConfigurationContractTests(unittest.TestCase):
         self.assertNotIn("deploy/ansible", runner)
 
     def test_minimal_cloud_init_and_prometheus_retention(self) -> None:
-        cloud_init = (DEMO / "infra/modules/ec2_k3s/cloud-init.yaml.tftpl").read_text(
-            encoding="utf-8"
-        )
+        cloud_init = (
+            DEMO / "infra/modules/ec2_k3s/cloud-init.yaml.tftpl"
+        ).read_text(encoding="utf-8")
         self.assertIn("python3.12", cloud_init)
         self.assertNotIn("write_files:", cloud_init)
         self.assertNotIn("aggregator-node-configure", cloud_init)
