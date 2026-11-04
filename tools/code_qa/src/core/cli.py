@@ -463,10 +463,12 @@ def test_commands(
         result.append((module.name, test_command(module, root, verbose=verbose)))
     for group in module.scoped_tests:
         scoped = replace(module, path=group.path, tests=group.tests)
-        result.append((
-            f"{module.name} ({group.name})",
-            test_command(scoped, root, verbose=verbose),
-        ))
+        result.append(
+            (
+                f"{module.name} ({group.name})",
+                test_command(scoped, root, verbose=verbose),
+            )
+        )
     return result
 
 
@@ -724,15 +726,19 @@ def build_parser() -> argparse.ArgumentParser:
     lint_cmd.add_argument("--out-file", default="")
 
     for command in (
-        qa_cmd, qa_check_cmd, qa_format_cmd, code_qa_cmd, format_cmd, lint_cmd
+        qa_cmd,
+        qa_check_cmd,
+        qa_format_cmd,
+        code_qa_cmd,
+        format_cmd,
+        lint_cmd,
     ):
         command.add_argument(
             "--module",
             action="append",
             choices=MODULE_NAMES,
             help=(
-                "Check only this module (repeatable). "
-                "Secrets remain repository-wide."
+                "Check only this module (repeatable). Secrets remain repository-wide."
             ),
         )
     modules_cmd = sub.add_parser(

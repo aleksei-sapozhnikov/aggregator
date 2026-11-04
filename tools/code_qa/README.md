@@ -17,15 +17,15 @@ python tools/code_qa/src/main.py qa
 
 Available commands:
 
-| Command | Behavior |
-| --- | --- |
-| `modules` | List modules (`--json` for the CI matrix). |
-| `lint` | Check only; does not modify files. |
-| `format` | Attempt fixes, then recheck. |
-| `test` | Run registered tests. |
-| `qa-check` / `qa` | Check and test modules; scan secrets at the end. |
-| `qa-format` | Format and test modules; scan secrets at the end. |
-| `secrets` | Run the repository TruffleHog scan. |
+| Command           | Behavior                                          |
+| ----------------- | ------------------------------------------------- |
+| `modules`         | List modules (`--json` for the CI matrix).        |
+| `lint`            | Check only; does not modify files.                |
+| `format`          | Attempt fixes, then recheck.                      |
+| `test`            | Run registered tests.                             |
+| `qa-check` / `qa` | Check and test modules; scan secrets at the end.  |
+| `qa-format`       | Format and test modules; scan secrets at the end. |
+| `secrets`         | Run the repository TruffleHog scan.               |
 
 Repeat `--module NAME` to select modules. Without it, commands target
 the full repository. In `qa-check` and `qa-format`, a module's tests

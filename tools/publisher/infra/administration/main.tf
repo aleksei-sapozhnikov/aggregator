@@ -50,7 +50,3 @@ resource "aws_iam_group_policy_attachment" "publisher_state" {
   group      = data.aws_iam_group.publication_admins.group_name
   policy_arn = aws_iam_policy.publisher_state.arn
 }
-
-output "publisher_role_boundary_arn" {
-  value = aws_iam_policy.publisher_role_boundary.arn
-}

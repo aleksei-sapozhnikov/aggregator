@@ -2,17 +2,19 @@
 
 from code_qa.module_checks.registry import (
     CODE_PROFILES,
-    DEFAULT_CHECKS as COMMON_CHECKS,
     FINAL_CHECKS,
-    MODULES,
     MODULE_BY_NAME,
     MODULE_NAMES,
+    MODULES,
     TEST_MODULE_NAMES,
     ModuleSpec,
     ScopedChecks,
     ScopedTests,
     TestSpec,
     ci_matrix,
+)
+from code_qa.module_checks.registry import (
+    DEFAULT_CHECKS as COMMON_CHECKS,
 )
 
 __all__ = (
