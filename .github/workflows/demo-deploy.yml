@@ -114,6 +114,8 @@ jobs:
           persist-credentials: false
 
       - name: Configure AWS credentials with GitHub OIDC
+        # The old instance can lose SSM connectivity after its Elastic IP moves.
+        if: vars.EIP_TARGET_K3S != 'true'
         uses: aws-actions/configure-aws-credentials@v6.3.0
         with:
           role-to-assume: ${{ vars.AWS_DEMO_DEPLOY_ROLE_ARN }}
@@ -121,6 +123,7 @@ jobs:
           role-session-name: aggregator-demo-deploy
 
       - name: Trigger and verify deployment
+        if: vars.EIP_TARGET_K3S != 'true'
         run: bash ./environments/demo/src/sh/dispatch-ssm.sh
         env:
           SSM_INSTANCE_ID: ${{ vars.SSM_INSTANCE_ID }}

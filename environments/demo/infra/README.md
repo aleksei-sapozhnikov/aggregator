@@ -42,13 +42,13 @@ The switch changes only `aws_eip_association.public` within
 `module.aggregator_demo`, preserving the old EC2 and EIP allocation.
 
 1. Promote and deploy the HTTPS changes through `deploy/demo` with
-   `EIP_TARGET_K3S=false` in GitHub Environment `demo-infra-plan`.
+   the repository-level Actions variable `EIP_TARGET_K3S=false`.
    Check Argo CD Synced/Healthy, Traefik service TCP 80/443, and the
    `curl --resolve` pre-cutover tests in
    [K3s README](../../../deploy/kubernetes/README.md).
-2. Set `EIP_TARGET_K3S=true` in that GitHub Environment and trigger
+2. Set the repository-level Actions variable `EIP_TARGET_K3S=true` and trigger
    a new `Demo pipeline` run. In the generated OpenTofu plan, verify
-   the **only** unexpected change is absent, the EIP allocation is
+   only the intended association is replaced, the EIP allocation is
    unchanged, no instance is replaced, and the association is re-pointed
    to the K3s instance. Explicitly approve the protected apply.
 3. After EIP reassociation, verify trusted Let's Encrypt HTTPS on
@@ -58,7 +58,9 @@ The switch changes only `aws_eip_association.public` within
    TLS until issuance is expected, but must not be accepted as complete.
 4. If validation fails, set `EIP_TARGET_K3S=false`, trigger a new
    approved infrastructure run and confirm that the original Caddy site
-   is serving HTTPS again. Do not destroy the old EC2 during migration.
+   is serving HTTPS again. The same flag re-enables the Compose SSM deployment
+   once the old instance regains connectivity. Do not destroy the old EC2
+   during migration.
 
 Changes to `dev` alone never deploy or move the Elastic IP. A manual
 `aws ec2 associate-address` outside OpenTofu would cause state drift;

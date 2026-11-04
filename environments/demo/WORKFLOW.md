@@ -39,8 +39,9 @@ Restrict deployment Environments to `deploy/demo`.
 5. **Deploy the application.** After successful infrastructure stages, dispatch
    `Demo deploy` for application changes or a missing K3s release.
    That independent workflow runs full QA, builds only missing GHCR image
-   tags, deploys the serving Compose instance via SSM, then publishes
-   `deploy/k8s-live` on `deploy/demo-gitops` for Argo CD to sync.
+   tags, deploys Compose via SSM **only while `EIP_TARGET_K3S` is not `true`**,
+   then publishes `deploy/k8s-live` on `deploy/demo-gitops` for Argo CD to sync.
+   The legacy instance can lose SSM connectivity after EIP reassociation.
 
 A successful infrastructure workflow **does not** prove the application
 workflow or Argo CD sync succeeded. Check both Actions runs.
@@ -53,12 +54,15 @@ workflow or Argo CD sync succeeded. Check both Actions runs.
 | `demo-infra-apply` | `AWS_ROLE_ARN`, secret `ARGOCD_PASSWORD`, `MANUAL_APPROVAL_CONFIGURED=true` | Only `deploy/demo`; **required reviewers**    |
 | `demo`             | `AWS_DEMO_DEPLOY_ROLE_ARN`, `SSM_INSTANCE_ID`                               | Only `deploy/demo`                            |
 
-Set `EIP_TARGET_K3S=false` until the explicit final cutover. Set it to `true`
-only after reviewing the pre-cutover verification and the exact EIP-association
-replacement in the saved plan. Keep it `true` for future infrastructure runs
-to prevent the association from being moved back. The approved apply
-environment is required for the switch, and the Compose EC2 must remain
-available for rollback.
+Use a **repository-level Actions variable** `EIP_TARGET_K3S`
+(defaults to `false` if absent). Do not define it separately at the
+Environment level: both the infrastructure plan and the application deploy
+must see the same value. Keep it `false` until the explicit cutover.
+Set it to `true` only after pre-cutover verification; the approved plan
+must show the expected EIP-association replacement. The same flag then
+skips the legacy Compose SSM deployment while K3s GitOps publication continues.
+Keep it `true` for future runs to prevent Terraform reverting the EIP
+association. Preserve the old Compose EC2 for rollback.
 
 Use IAM role ARNs from `environments/shared/infra/administration`. The OIDC trust uses
 Environment subjects, so the allowed-branch restrictions above are
