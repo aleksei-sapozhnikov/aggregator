@@ -28,6 +28,12 @@ orchestrator and small internal Git hook adapters remain implementation
 details. CI also uses `python tools/code_qa/src/main.py modules --json`
 to generate its module matrix.
 
+Publisher's `resources` OpenTofu root requires the Lambda archive for
+`filebase64sha256` during `tofu validate`. The QA configuration builds this
+ignored local artifact using `python tools/publisher/publisher.py build`
+before validation; it does not deploy or access AWS.
+
+
 ## Scope and safety
 
 Module definitions own tool choices and test commands. Nested parts

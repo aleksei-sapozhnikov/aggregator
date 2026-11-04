@@ -146,6 +146,14 @@ CHECK_TEMPLATES: list[CheckSpec] = [
         input_kind="project",
     ),
     CheckSpec(
+        "publisher-archive",
+        "Publisher Lambda archive",
+        "code_qa.src.checks.format.publisher_archive",
+        [],
+        None,
+        input_kind="project",
+    ),
+    CheckSpec(
         "tofu-validate",
         "OpenTofu validation",
         "code_qa.src.checks.format.tofu",
