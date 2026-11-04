@@ -6,7 +6,7 @@ import argparse
 import json
 import re
 import sys
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from aws_cli import AwsCliError, aws_json
@@ -22,12 +22,12 @@ def parse_utc_timestamp(value: str) -> datetime:
     timestamp = datetime.fromisoformat(normalized)
     if timestamp.tzinfo is None or timestamp.utcoffset() != timedelta(0):
         raise ValueError("The timestamp must include the UTC offset Z or +00:00.")
-    return timestamp.astimezone(UTC)
+    return timestamp.astimezone(timezone.utc)
 
 
 def iso_utc(timestamp: datetime) -> str:
     """Render an aware timestamp in a stable UTC format."""
-    return timestamp.astimezone(UTC).isoformat().replace("+00:00", "Z")
+    return timestamp.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
 def safe_error_type(entry: dict[str, Any]) -> str | None:
@@ -49,7 +49,7 @@ def collect_report(profile: str, region: str, start_time_utc: str) -> dict[str, 
         )
 
     start_time = parse_utc_timestamp(start_time_utc)
-    end_time = datetime.now(UTC)
+    end_time = datetime.now(timezone.utc)
     if start_time > end_time:
         raise ValueError("The log window start time cannot be in the future.")
 
@@ -74,7 +74,7 @@ def collect_report(profile: str, region: str, start_time_utc: str) -> dict[str, 
             entry = json.loads(event.get("message", ""))
         except (json.JSONDecodeError, TypeError):
             continue
-        event_time = datetime.fromtimestamp(event["timestamp"] / 1000, UTC)
+        event_time = datetime.fromtimestamp(event["timestamp"] / 1000, timezone.utc)
         if (
             entry.get("level") == "info"
             and entry.get("phase") == "start"

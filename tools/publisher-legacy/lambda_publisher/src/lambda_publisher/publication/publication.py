@@ -6,7 +6,7 @@ import hashlib
 import json
 import re
 from collections import Counter
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -288,7 +288,7 @@ def compile_sources(
             if not row[cell]:
                 continue
             at = _local(row[cell], tz)
-            utc = at.astimezone(UTC)
+            utc = at.astimezone(timezone.utc)
             local = at.astimezone(tz)
             if (
                 not config["start_date"]
@@ -345,9 +345,9 @@ def compile_sources(
             f"{config['event_prefix']}-{previous_row['id']:03d}-merge"
         )
         if open_event and previous_merge:
-            gap = datetime.fromisoformat(open_event["utc"]) - datetime.fromisoformat(
-                previous_merge["utc"]
-            )
+            gap = datetime.fromisoformat(
+                open_event["utc"].replace("Z", "+00:00")
+            ) - datetime.fromisoformat(previous_merge["utc"].replace("Z", "+00:00"))
             if gap < timedelta(
                 minutes=int(config.get("post_release_open_minutes", 40))
             ):

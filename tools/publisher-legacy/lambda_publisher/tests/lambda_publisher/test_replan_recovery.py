@@ -60,11 +60,7 @@ class MissedEventRecoveryTests(unittest.TestCase):
             "history": {"events": []},
             "queue": {
                 "entries": [
-                    {
-                        "id": int(row["id"]),
-                        "branch": row["branch"],
-                        "release": row["release"],
-                    }
+                    {"id": int(row["id"]), "branch": row["branch"], "release": row["release"]}
                     for row in self.rows
                 ]
             },
@@ -80,17 +76,16 @@ class MissedEventRecoveryTests(unittest.TestCase):
                 ]
             },
         }
-        self.progress = {"completed": ["aggregator-059-open", "aggregator-059-merge"]}
+        self.progress = {
+            "completed": ["aggregator-059-open", "aggregator-059-merge"]
+        }
 
     def _compile(self, *_args, **_kwargs):
         return {
             "queue": self.previous["queue"],
             "schedule": {
                 "events": [
-                    {
-                        "id": f"aggregator-{int(row['id']):03d}-{suffix}",
-                        "local": row[cell],
-                    }
+                    {"id": f"aggregator-{int(row['id']):03d}-{suffix}", "local": row[cell]}
                     for row in self.rows
                     for suffix, cell in (("open", "open_at"), ("merge", "merge_at"))
                 ]
@@ -114,8 +109,7 @@ class MissedEventRecoveryTests(unittest.TestCase):
 
     def test_missed_event_is_rejected_by_default(self):
         with self.assertRaisesRegex(
-            ValueError,
-            "missed unfinished event requires reconciliation: aggregator-060-open",
+            ValueError, "missed unfinished event requires reconciliation: aggregator-060-open"
         ):
             self._replan()
 
