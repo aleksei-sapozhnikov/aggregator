@@ -4,13 +4,20 @@
     {
       "Sid": "PublisherCloudWatchLogs",
       "Effect": "Allow",
-      "Action": ["logs:CreateLogStream", "logs:PutLogEvents"],
+      "Action": [
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
       "Resource": "arn:aws:logs:eu-central-1:905418096305:log-group:/aws/lambda/aggregator-publisher-runner:*"
     },
     {
       "Sid": "PublisherQueueState",
       "Effect": "Allow",
-      "Action": ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem"],
+      "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem"
+      ],
       "Resource": "arn:aws:dynamodb:eu-central-1:905418096305:table/aggregator-publisher-state"
     },
     {

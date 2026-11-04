@@ -74,7 +74,9 @@
     {
       "Sid": "TagPublisherSecrets",
       "Effect": "Allow",
-      "Action": ["secretsmanager:TagResource"],
+      "Action": [
+        "secretsmanager:TagResource"
+      ],
       "Resource": "arn:aws:secretsmanager:eu-central-1:905418096305:secret:aggregator-publisher-*-??????",
       "Condition": {
         "StringEquals": {

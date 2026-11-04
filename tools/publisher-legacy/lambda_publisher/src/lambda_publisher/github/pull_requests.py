@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from . import milestones, projects
 from .github_client import GitHubError
@@ -34,7 +34,7 @@ def _same_repo(pr: dict, repo: str, branch: str):
 
 def _pr_time(pr: dict, field: str):
     try:
-        value = datetime.fromisoformat(pr[field])
+        value = datetime.fromisoformat(pr[field].replace("Z", "+00:00"))
         if value.utcoffset() is not None:
             return value
     except (KeyError, TypeError, ValueError, AttributeError):
@@ -458,8 +458,8 @@ def merge_pr(
             raise RuntimeError(
                 "merged PR head SHA differs from durable merge attempt; pause for review"
             )
-        created = datetime.fromisoformat(pr["created_at"])
-        merged_at = datetime.fromisoformat(pr["merged_at"])
+        created = datetime.fromisoformat(pr["created_at"].replace("Z", "+00:00"))
+        merged_at = datetime.fromisoformat(pr["merged_at"].replace("Z", "+00:00"))
         if merged_at < created + timedelta(
             minutes=config["minimum_actual_open_minutes"]
         ):
@@ -476,8 +476,8 @@ def merge_pr(
         raise RuntimeError("PR closed without merge")
     if queue_branches is not None:
         ensure_only_queue_pr(client, queue_branches, row["branch"])
-    created = datetime.fromisoformat(pr["created_at"])
-    if now.astimezone(UTC) < created + timedelta(
+    created = datetime.fromisoformat(pr["created_at"].replace("Z", "+00:00"))
+    if now.astimezone(timezone.utc) < created + timedelta(
         minutes=config["minimum_actual_open_minutes"]
     ):
         raise Deferred("actual GitHub created_at + 60 minutes not reached")

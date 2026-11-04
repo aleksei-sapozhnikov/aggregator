@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from urllib.parse import quote
 
 
@@ -44,7 +44,7 @@ def alert(
     signature = hashlib.sha256(f"{event['id']}:{clean}".encode()).hexdigest()
     if signature in progress.setdefault("alerts", []):
         return False
-    timestamp = datetime.now(UTC).isoformat()
+    timestamp = datetime.now(timezone.utc).isoformat()
     details = {
         "operation": event["action"],
         "branch": event["branch"],

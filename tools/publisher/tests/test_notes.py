@@ -16,9 +16,7 @@ import notes
 class GuidancePathTests(unittest.TestCase):
     def test_location_is_under_repository_root(self):
         root = Path(notes.__file__).resolve().parents[2]
-        self.assertEqual(
-            root / ".local" / "codex-publication-preparation", notes.BUNDLE_DIR
-        )
+        self.assertEqual(root / ".local" / "publisher" / "codex-publication-preparation", notes.BUNDLE_DIR)
         self.assertEqual(notes.BUNDLE_DIR / ".remote-etag", notes.ETAG)
 
 
@@ -27,56 +25,40 @@ class ConfirmationTests(unittest.TestCase):
         with patch("builtins.input", return_value="yes"):
             notes.confirm("push", False)
         for response in ("", "y", "YES", "yes ", "no"):
-            with (
-                self.subTest(response=response),
-                patch("builtins.input", return_value=response),
-                self.assertRaisesRegex(RuntimeError, "exactly 'yes'"),
-            ):
-                notes.confirm("push", False)
+            with self.subTest(response=response):
+                with patch("builtins.input", return_value=response):
+                    with self.assertRaisesRegex(RuntimeError, "exactly 'yes'"):
+                        notes.confirm("push", False)
 
     def test_yes_required_for_force_pull(self):
         with patch("builtins.input", return_value="yes"):
             notes.confirm("pull", True)
-        with (
-            patch("builtins.input", return_value="no"),
-            self.assertRaisesRegex(RuntimeError, "cancelled"),
-        ):
-            notes.confirm("pull", True)
+        with patch("builtins.input", return_value="no"):
+            with self.assertRaisesRegex(RuntimeError, "cancelled"):
+                notes.confirm("pull", True)
 
     def test_noninteractive_confirmation_is_rejected(self):
-        with (
-            patch("builtins.input", side_effect=EOFError),
-            self.assertRaisesRegex(RuntimeError, "interactive confirmation"),
-        ):
-            notes.confirm("push", False)
+        with patch("builtins.input", side_effect=EOFError):
+            with self.assertRaisesRegex(RuntimeError, "interactive confirmation"):
+                notes.confirm("push", False)
 
     def test_no_confirmation_prevents_aws_access(self):
         for action in ("push", "pull"):
-            with (
-                self.subTest(action=action),
-                patch.object(sys, "argv", ["notes.py", action]),
-                patch("builtins.input", return_value="no"),
-                patch.object(notes, "authorize") as authorize,
-                patch.object(notes, action) as operation,
-            ):
-                with self.assertRaises(SystemExit) as raised:
-                    notes.main()
-                self.assertEqual(1, raised.exception.code)
-                authorize.assert_not_called()
-                operation.assert_not_called()
+            with self.subTest(action=action):
+                with patch.object(sys, "argv", ["notes.py", action]), patch("builtins.input", return_value="no"), patch.object(notes, "authorize") as authorize, patch.object(notes, action) as operation:
+                    with self.assertRaises(SystemExit) as raised:
+                        notes.main()
+                    self.assertEqual(1, raised.exception.code)
+                    authorize.assert_not_called()
+                    operation.assert_not_called()
 
     def test_yes_authorizes_operation(self):
         for action in ("push", "pull"):
-            with (
-                self.subTest(action=action),
-                patch.object(sys, "argv", ["notes.py", action]),
-                patch("builtins.input", return_value="yes"),
-                patch.object(notes, "authorize") as authorize,
-                patch.object(notes, action) as operation,
-            ):
-                notes.main()
-                authorize.assert_called_once_with()
-                operation.assert_called_once_with(False)
+            with self.subTest(action=action):
+                with patch.object(sys, "argv", ["notes.py", action]), patch("builtins.input", return_value="yes"), patch.object(notes, "authorize") as authorize, patch.object(notes, action) as operation:
+                    notes.main()
+                    authorize.assert_called_once_with()
+                    operation.assert_called_once_with(False)
 
 
 class GuidanceSyncTests(unittest.TestCase):
@@ -84,7 +66,7 @@ class GuidanceSyncTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         base = Path(self.temp.name)
-        self.bundle = base / ".local" / "codex-publication-preparation"
+        self.bundle = base / ".local" / "publisher" / "codex-publication-preparation"
         self.bundle.mkdir(parents=True)
         self.etag = self.bundle / ".remote-etag"
         for key, value in (("BUNDLE_DIR", self.bundle), ("ETAG", self.etag)):
@@ -104,9 +86,7 @@ class GuidanceSyncTests(unittest.TestCase):
 
     def test_initial_push_is_create_only(self):
         self.write_content()
-        with patch.object(
-            notes, "aws", return_value={"ETag": '"r1"', "VersionId": "1"}
-        ) as aws:
+        with patch.object(notes, "aws", return_value={"ETag": '"r1"', "VersionId": "1"}) as aws:
             notes.push()
         self.assertIn("--if-none-match", aws.call_args.args)
         self.assertIn("application/zip", aws.call_args.args)
@@ -148,47 +128,30 @@ class GuidanceSyncTests(unittest.TestCase):
     def test_pull_force_replaces_bundle(self):
         self.write_content()
         (self.bundle / "old-local-only.txt").write_text("local", encoding="utf-8")
-
         def download(*args):
             self.write_zip(Path(args[-1]))
             return {"ETag": '"remote"'}
-
         with patch.object(notes, "aws", side_effect=download):
             notes.pull(force=True)
         self.assertFalse((self.bundle / "old-local-only.txt").exists())
         self.assertEqual('"remote"', self.etag.read_text(encoding="utf-8"))
-        self.assertEqual(
-            "# codex-instructions.md\n",
-            (self.bundle / notes.FILES[0]).read_text(encoding="utf-8"),
-        )
+        self.assertEqual("# codex-instructions.md\n", (self.bundle / notes.FILES[0]).read_text(encoding="utf-8"))
 
     def test_pull_rejects_zip_extra_path_without_replacing_local(self):
         self.write_content()
         original = (self.bundle / notes.FILES[0]).read_text(encoding="utf-8")
-
         def download(*args):
             self.write_zip(Path(args[-1]), list(notes.FILES) + ["../../outside.md"])
             return {"ETag": '"bad"'}
-
-        with (
-            patch.object(notes, "aws", side_effect=download),
-            self.assertRaisesRegex(RuntimeError, "seven expected"),
-        ):
-            notes.pull(force=True)
-        self.assertEqual(
-            original, (self.bundle / notes.FILES[0]).read_text(encoding="utf-8")
-        )
+        with patch.object(notes, "aws", side_effect=download):
+            with self.assertRaisesRegex(RuntimeError, "seven expected"):
+                notes.pull(force=True)
+        self.assertEqual(original, (self.bundle / notes.FILES[0]).read_text(encoding="utf-8"))
 
     def test_identity_must_be_operator(self):
-        with (
-            patch.object(
-                notes,
-                "aws",
-                return_value={"Arn": "arn:aws:iam::905418096305:user/administrator"},
-            ),
-            self.assertRaisesRegex(RuntimeError, "aggregator-admin"),
-        ):
-            notes.authorize()
+        with patch.object(notes, "aws", return_value={"Arn": "arn:aws:iam::905418096305:user/administrator"}):
+            with self.assertRaisesRegex(RuntimeError, "aggregator-admin"):
+                notes.authorize()
 
 
 if __name__ == "__main__":
