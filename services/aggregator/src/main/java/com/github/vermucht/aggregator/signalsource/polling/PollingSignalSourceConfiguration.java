@@ -5,6 +5,8 @@ import com.github.vermucht.aggregator.signalsource.polling.http.configuration.Ht
 import jakarta.annotation.Nonnull;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.TaskScheduler;
@@ -22,6 +24,13 @@ public class PollingSignalSourceConfiguration {
     scheduler.setThreadNamePrefix("health-signal-");
     scheduler.initialize();
     return scheduler;
+  }
+
+  /** Runs independent blocking health checks on lightweight virtual threads. */
+  @Bean(destroyMethod = "close")
+  @Nonnull
+  public ExecutorService healthSignalVirtualExecutor() {
+    return Executors.newVirtualThreadPerTaskExecutor();
   }
 
   /** Builds polling signal sources from the loaded HTTP polling signal configurations. */

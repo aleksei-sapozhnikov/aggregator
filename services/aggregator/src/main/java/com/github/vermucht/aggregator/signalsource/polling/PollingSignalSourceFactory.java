@@ -5,13 +5,17 @@ import com.github.vermucht.aggregator.catalog.model.ItemId;
 import com.github.vermucht.aggregator.signalsource.polling.http.HttpPollingSignalSource;
 import com.github.vermucht.aggregator.signalsource.polling.http.configuration.HttpPollingSignalConfiguration;
 import jakarta.annotation.Nonnull;
+import jakarta.annotation.PreDestroy;
 import java.net.URI;
+import java.net.http.HttpClient;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import org.springframework.boot.web.client.RestTemplateBuilder;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -21,10 +25,16 @@ public class PollingSignalSourceFactory {
   private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(2);
   private static final Duration DEFAULT_INTERVAL = Duration.ofSeconds(30);
 
-  private final RestTemplateBuilder restTemplateBuilder;
+  // Share connection pools and selector threads across signals with the same connect timeout.
+  private final Map<Duration, HttpClient> httpClients = new ConcurrentHashMap<>();
 
-  public PollingSignalSourceFactory(@Nonnull RestTemplateBuilder restTemplateBuilder) {
-    this.restTemplateBuilder = restTemplateBuilder;
+  @PreDestroy
+  public void closeHttpClients() {
+    httpClients.values().forEach(HttpClient::close);
+  }
+
+  int sharedClientCount() {
+    return httpClients.size();
   }
 
   @Nonnull
@@ -57,8 +67,15 @@ public class PollingSignalSourceFactory {
     if (interval.isZero() || interval.isNegative()) {
       throw new IllegalStateException("Health signal interval must be positive for " + id);
     }
-    RestTemplate restTemplate =
-        restTemplateBuilder.connectTimeout(timeout).readTimeout(timeout).build();
+    if (timeout.isZero() || timeout.isNegative()) {
+      throw new IllegalStateException("Health signal timeout must be positive for " + id);
+    }
+    HttpClient httpClient =
+        httpClients.computeIfAbsent(
+            timeout, value -> HttpClient.newBuilder().connectTimeout(value).build());
+    JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
+    requestFactory.setReadTimeout(timeout);
+    RestTemplate restTemplate = new RestTemplate(requestFactory);
     return new HttpPollingSignalSource(
         itemId, id, signalTitle, uri, method, interval, restTemplate);
   }
