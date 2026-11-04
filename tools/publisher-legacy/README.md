@@ -4,7 +4,6 @@
 > Terraform state, or queues during this campaign. The independent replacement
 > is documented in [Publisher](../publisher/README.md).
 
-
 Publishes a finite, prepared queue of GitHub changes and releases according
 to a schedule. AWS EventBridge Scheduler invokes the Python Lambda runtime;
 DynamoDB tracks queue progress, S3 holds versioned publication inputs, and
