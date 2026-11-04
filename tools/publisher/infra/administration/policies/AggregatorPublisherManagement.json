@@ -1,0 +1,152 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ManagePublisherServices",
+      "Effect": "Allow",
+      "Action": [
+        "lambda:*",
+        "dynamodb:*",
+        "scheduler:*",
+        "sns:*",
+        "sqs:*",
+        "logs:*",
+        "cloudwatch:*",
+        "s3:*"
+      ],
+      "Resource": [
+        "arn:aws:lambda:eu-central-1:905418096305:function:aggregator-publisher-*",
+        "arn:aws:lambda:eu-central-1:905418096305:function:aggregator-publisher-*:*",
+        "arn:aws:dynamodb:eu-central-1:905418096305:table/aggregator-publisher-*",
+        "arn:aws:dynamodb:eu-central-1:905418096305:table/aggregator-publisher-*/*",
+        "arn:aws:scheduler:eu-central-1:905418096305:schedule-group/aggregator-publisher-*",
+        "arn:aws:scheduler:eu-central-1:905418096305:schedule/aggregator-publisher-*/*",
+        "arn:aws:sns:eu-central-1:905418096305:aggregator-publisher-*",
+        "arn:aws:sqs:eu-central-1:905418096305:aggregator-publisher-*",
+        "arn:aws:logs:eu-central-1:905418096305:log-group:/aws/lambda/aggregator-publisher-*",
+        "arn:aws:logs:eu-central-1:905418096305:log-group:/aws/lambda/aggregator-publisher-*:*",
+        "arn:aws:cloudwatch:eu-central-1:905418096305:alarm:aggregator-publisher-*",
+        "arn:aws:s3:::aggregator-publisher-*",
+        "arn:aws:s3:::aggregator-publisher-*/*"
+      ]
+    },
+    {
+      "Sid": "CreatePublisherSecrets",
+      "Effect": "Allow",
+      "Action": "secretsmanager:CreateSecret",
+      "Resource": "arn:aws:secretsmanager:eu-central-1:905418096305:secret:aggregator-publisher-*-??????",
+      "Condition": {
+        "StringEquals": {
+          "secretsmanager:Name": [
+            "aggregator-publisher-github-token",
+            "aggregator-publisher-project-token",
+            "aggregator-publisher-notification-email"
+          ],
+          "aws:RequestTag/Name": [
+            "aggregator-publisher-github-token",
+            "aggregator-publisher-project-token",
+            "aggregator-publisher-notification-email"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "ManageTaggedPublisherSecrets",
+      "Effect": "Allow",
+      "Action": [
+        "secretsmanager:DescribeSecret",
+        "secretsmanager:PutSecretValue",
+        "secretsmanager:DeleteSecret",
+        "secretsmanager:RestoreSecret",
+        "secretsmanager:UpdateSecret"
+      ],
+      "Resource": "arn:aws:secretsmanager:eu-central-1:905418096305:secret:aggregator-publisher-*-??????",
+      "Condition": {
+        "StringEquals": {
+          "aws:ResourceTag/Name": [
+            "aggregator-publisher-github-token",
+            "aggregator-publisher-project-token",
+            "aggregator-publisher-notification-email"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "TagPublisherSecrets",
+      "Effect": "Allow",
+      "Action": ["secretsmanager:TagResource"],
+      "Resource": "arn:aws:secretsmanager:eu-central-1:905418096305:secret:aggregator-publisher-*-??????",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestTag/Name": [
+            "aggregator-publisher-github-token",
+            "aggregator-publisher-project-token",
+            "aggregator-publisher-notification-email"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "ReadPublisherNotificationEmail",
+      "Effect": "Allow",
+      "Action": "secretsmanager:GetSecretValue",
+      "Resource": "arn:aws:secretsmanager:eu-central-1:905418096305:secret:aggregator-publisher-notification-email-??????",
+      "Condition": {
+        "StringEquals": {
+          "aws:ResourceTag/Name": "aggregator-publisher-notification-email"
+        }
+      }
+    },
+    {
+      "Sid": "CreateBoundedPublisherRoles",
+      "Effect": "Allow",
+      "Action": "iam:CreateRole",
+      "Resource": "arn:aws:iam::905418096305:role/aggregator-publisher-*",
+      "Condition": {
+        "ArnEquals": {
+          "iam:PermissionsBoundary": "arn:aws:iam::905418096305:policy/AggregatorPublisherRoleBoundary"
+        }
+      }
+    },
+    {
+      "Sid": "ManagePublisherRoles",
+      "Effect": "Allow",
+      "Action": [
+        "iam:PutRolePolicy",
+        "iam:DeleteRolePolicy",
+        "iam:UpdateAssumeRolePolicy",
+        "iam:UpdateRole",
+        "iam:DeleteRole",
+        "iam:TagRole",
+        "iam:UntagRole",
+        "iam:DetachRolePolicy"
+      ],
+      "Resource": "arn:aws:iam::905418096305:role/aggregator-publisher-*"
+    },
+    {
+      "Sid": "MaintainRequiredPublisherBoundary",
+      "Effect": "Allow",
+      "Action": "iam:PutRolePermissionsBoundary",
+      "Resource": "arn:aws:iam::905418096305:role/aggregator-publisher-*",
+      "Condition": {
+        "ArnEquals": {
+          "iam:PermissionsBoundary": "arn:aws:iam::905418096305:policy/AggregatorPublisherRoleBoundary"
+        }
+      }
+    },
+    {
+      "Sid": "PassPublisherRoles",
+      "Effect": "Allow",
+      "Action": "iam:PassRole",
+      "Resource": "arn:aws:iam::905418096305:role/aggregator-publisher-*",
+      "Condition": {
+        "StringEquals": {
+          "iam:PassedToService": [
+            "lambda.amazonaws.com",
+            "scheduler.amazonaws.com"
+          ]
+        }
+      }
+    }
+  ]
+}
