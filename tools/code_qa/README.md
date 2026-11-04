@@ -1,35 +1,65 @@
 # Code QA
 
-The QA runners are invoked from the repository root through the Makefile.
+Shared format, lint, test, and secret-scanning entrypoint for this
+multi-language repository. It discovers repository modules from
+`module_checks/`, applies common checks, then runs the checks specific
+to each module. CI uses the same module registry.
 
-| Command                         | Behavior                                                                               |
-| ------------------------------- | -------------------------------------------------------------------------------------- |
-| `make code-format`              | Check formatting and apply supported fixes, then recheck.                              |
-| `make code-lint`                | Check code quality without changing files or scanning secrets.                         |
-| `make test`                     | Run all unit tests, reporting output and status for each module.                       |
-| `make test TEST_MODULE=catalog` | Run one module (also accepts `aggregator`, `aggregator-ui`, `ai-agent`, or `code-qa`). |
-| `make code-qa`                  | Run formatting, then module tests, with no secrets scan.                               |
-| `make code-secrets`             | Run only the TruffleHog secrets scanner.                                               |
-| `make qa`                       | Run formatting, tests, and TruffleHog.                                                 |
+## Run from the repository root
 
-## Test modules
+```sh
+python tools/code_qa/src/main.py modules
+python tools/code_qa/src/main.py qa-check --module aggregator-ui
+python tools/code_qa/src/main.py test --module catalog
+python tools/code_qa/src/main.py lint --module demo
+python tools/code_qa/src/main.py qa
+```
 
-- **aggregator:** `mvn -B test` (uses an installed JDK 25 or downloads Eclipse Temurin 25 to `.temp/qa-runtime/jdk`; uses Maven on PATH or downloads and verifies Maven 3.9.11 in `.temp/qa-runtime/maven`).
-- **aggregator-ui:** `npm test -- --reporter=verbose --no-color` (uses the package lock and runs `npm ci` if Vitest is missing). The runner disables ANSI colors and renders test status symbols as ASCII text (PASS/FAIL).
-- **catalog:** `go test -v ./...` (requires Go 1.23 or newer).
-- **ai-agent:** `python -m pytest -v tests` (uses existing Python dependencies or bootstraps the QA virtualenv).
-- **code-qa:** `python -m unittest discover -s tools/code_qa -p "test_*.py" -v`.
+Available commands:
 
-Each suite runs in its own directory; a failing suite does not prevent other modules from running.
-Command output is shown in full, not truncated to the formatting check failure summary.
-A missing tool, missing module or failed dependency installation fails the test command. Maven is bootstrapped when absent from PATH; an unavailable network or invalid download checksum is reported as a setup failure.
+| Command           | Behavior                                          |
+| ----------------- | ------------------------------------------------- |
+| `modules`         | List modules (`--json` for the CI matrix).        |
+| `lint`            | Check only; does not modify files.                |
+| `format`          | Attempt fixes, then recheck.                      |
+| `test`            | Run registered tests.                             |
+| `qa-check` / `qa` | Check and test modules; scan secrets at the end.  |
+| `qa-format`       | Format and test modules; scan secrets at the end. |
+| `secrets`         | Run the repository TruffleHog scan.               |
 
-Run a single module without Make: `python tools/code_qa/main.py test --module catalog`.
-Pass `--module` more than once for a subset. All supported modules run by default.
-To save the test transcript: `python tools/code_qa/main.py test --out-file test-results.txt`.
+Repeat `--module NAME` to select modules. Without it, commands target
+the full repository. In `qa-check` and `qa-format`, a module's tests
+run only if its checks passed, but other modules still run. A secrets
+scan is repository-wide unless `QA_SCAN_SECRETS=false` is set.
 
-Ruff lint and Ruff formatting are reported as separate checks. The format
-command applies fixes only for the Ruff stage that failed.
+Equivalent human-facing shortcuts include `make qa-check demo`,
+`make qa-format aggregator-ui` and `make code-secrets`. Consult
+[development](../../docs/development.md) for hook installation and
+environment setup.
 
-The `code-qa` flow stops if formatting fails. Full `qa` always scans secrets, even when formatting or tests fail.
-The CI workflow runs `make qa` as its single QA entrypoint and separately verifies that formatting did not change any tracked files. The Makefile does not require `.env` or Docker/Podman for QA targets. The Java formatter also uses the cached JDK 25 when needed; `JAVA_HOME` and `PATH` are scoped to each subprocess and do not modify the system installation.
+## Scope and safety
+
+Module definitions own tool choices and test commands. Nested parts
+(for example, Ansible inside `demo` and Lambda inside `publisher`)
+are checked as part of their parent module, not as separate CI modules.
+Common file-hygiene checks apply across modules. The secret scan checks
+the working tree, not Git commit history.
+
+With `CODE_QA_FILE_LIST`, file-oriented checks only operate on that
+selection. OpenTofu is an exception: a changed infra source can trigger
+`tofu fmt -recursive` for the entire OpenTofu root. Review formatted
+files before committing. The repository-root `.tflint.hcl` is shared
+across infrastructure roots. Ansible lint runs on Linux or WSL and is
+skipped on native Windows.
+
+Tool dependencies and caches are installed under the ignored
+`.local/qa-runtime` directory. Pinned OpenTofu, TFLint, Java formatter
+and TruffleHog binaries are checksum-verified before installation.
+Use module-specific tests for focused changes and avoid running
+`format` against unrelated modules.
+
+To test the QA framework itself without invoking its CLI:
+
+```sh
+python -m unittest discover -s tools/code_qa/tests -t tools -p 'test_*.py'
+```

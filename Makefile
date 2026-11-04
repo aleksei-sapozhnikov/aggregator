@@ -22,21 +22,24 @@ endif
 # Compose configuration and runtime checks are needed only for Compose commands.
 # QA and help targets must also run in clean CI checkouts without .env or Docker.
 SERVICE_TARGETS := up-svc down-svc restart-svc recreate-svc rebuild-svc rebuild-recreate-svc clean-svc
-COMPOSE_TARGETS := info up down restart recreate rebuild rebuild-recreate clean $(SERVICE_TARGETS)
+COMPOSE_TARGETS := info up down restart recreate rebuild rebuild-recreate clean pull deploy $(SERVICE_TARGETS)
 
 # ---- Compose files ----
-COMPOSE_DIR := compose
+COMPOSE_DIR := deploy/compose
 BASE := -f $(COMPOSE_DIR)/compose.yaml
 LOCAL := -f $(COMPOSE_DIR)/compose.local.yaml
 LOCAL_DEMO := -f $(COMPOSE_DIR)/compose.local-demo.yaml
 DEMO := -f $(COMPOSE_DIR)/compose.demo.yaml
 LOCAL_PORTS := -f $(COMPOSE_DIR)/compose.overlay.local-ports.yaml
+CORE_BUILD := -f $(COMPOSE_DIR)/compose.build.core.yaml
+DEMO_BUILD := -f $(COMPOSE_DIR)/compose.build.demo-services.yaml
+DEMO_IMAGES := -f $(COMPOSE_DIR)/compose.images.demo.yaml
 DEMO_SERVICES := -f $(COMPOSE_DIR)/compose.overlay.demo-services.yaml
 DEMO_SERVICES_PORTS := -f $(COMPOSE_DIR)/compose.overlay.demo-services-local-ports.yaml
 
-STACK_local := $(BASE) $(LOCAL) $(LOCAL_PORTS)
-STACK_local-demo := $(BASE) $(LOCAL_DEMO) $(DEMO_SERVICES) $(LOCAL_PORTS) $(DEMO_SERVICES_PORTS)
-STACK_demo := $(BASE) $(DEMO) $(DEMO_SERVICES)
+STACK_local := $(BASE) $(LOCAL) $(CORE_BUILD) $(LOCAL_PORTS)
+STACK_local-demo := $(BASE) $(LOCAL_DEMO) $(DEMO_SERVICES) $(CORE_BUILD) $(DEMO_BUILD) $(LOCAL_PORTS) $(DEMO_SERVICES_PORTS)
+STACK_demo := $(BASE) $(DEMO) $(DEMO_SERVICES) $(DEMO_IMAGES)
 
 PROJECT_local := aggregator-local
 PROJECT_local-demo := aggregator-local-demo
@@ -104,9 +107,9 @@ export AGENT_AI_ENABLED
 export AGENT_AI_CONFIG
 
 .PHONY: help info env \
-        up down restart recreate rebuild rebuild-recreate clean \
+        up down restart recreate rebuild rebuild-recreate clean pull deploy \
         up-svc down-svc restart-svc recreate-svc rebuild-svc rebuild-recreate-svc clean-svc \
-        code-qa code-format code-lint code-secrets test qa deps-audit
+        code-qa code-format code-lint code-secrets test qa qa-format qa-check deps-audit
 
 help:
 	@echo "Usage:"
@@ -117,19 +120,25 @@ help:
 	@echo ""
 	@echo "Targets:"
 	@echo "  up               -> start/update containers (no build)"
+	@echo "  pull             -> download published demo images (ENV=demo)"
+	@echo "  deploy           -> pull demo images and run without building (ENV=demo)"
 	@echo "  down             -> stop/remove containers + network (keep volumes)"
 	@echo "  restart          -> restart existing containers (no recreate)"
 	@echo "  recreate         -> force re-create containers (keep volumes)"
 	@echo "  rebuild          -> build images + start/update (keep volumes)"
 	@echo "  rebuild-recreate -> build images + force re-create containers (keep volumes)"
 	@echo "  clean            -> down + remove containers, network, and volumes (DATA LOSS)"
-	@echo "  code-qa          -> check code and run module tests (no fixes or secrets scan)"
-	@echo "  code-format      -> run formatting checks and fixes"
-	@echo "  code-lint        -> check code without modifying files (no secrets scan)"
+	@echo "  qa-format        -> format and test selected modules, then scan secrets"
+	@echo "  qa-check         -> check and test selected modules, then scan secrets"
+	@echo "  qa               -> alias for qa-check"
 	@echo "  test             -> run all unit tests (or TEST_MODULE=aggregator)"
 	@echo "  code-secrets     -> scan secrets with TruffleHog"
-	@echo "  qa               -> check code, run tests, then scan secrets (stop on failure; no fixes)"
 	@echo "  deps-audit       -> check npm dependency advisories and update suggestions"
+	@echo ""
+	@echo "Positional module selection (omit names to check all):"
+	@echo "  make qa-format aggregator aggregator-ui"
+	@echo "  make qa-check demo shared"
+	@echo "  make qa-check MODULE=demo QA_SCAN_SECRETS=false"
 	@echo ""
 	@echo "Service-scoped (positional args):"
 	@echo "  make down-svc caddy grafana"
@@ -154,6 +163,17 @@ ifneq ($(CHAOS_LAST),)
 else
 	$(COMPOSE_CMD) up --detach --wait --remove-orphans
 endif
+
+# Published demo artifacts use immutable per-service Git build-context tags.
+pull: info
+	$(if $(filter demo,$(ENV)),,$(error pull requires ENV=demo))
+	$(COMPOSE_CMD) pull
+
+deploy: info
+	$(if $(filter demo,$(ENV)),,$(error deploy requires ENV=demo))
+	$(COMPOSE_CMD) pull
+	$(COMPOSE_CMD) up --detach --no-build --wait --remove-orphans --scale $(CHAOS_SVC)=0
+	$(COMPOSE_CMD) up --detach --no-build --wait --remove-orphans $(CHAOS_SVC)
 
 down: info
 	$(COMPOSE_CMD) down --remove-orphans
@@ -238,24 +258,46 @@ clean-svc: info
 		done; \
 	fi
 
-# ---- Code QA commands ----
+# ---- QA commands ----
+# Positional module names are goals to Make, but arguments to the QA command.
+# Keep MODULE=... for existing CI workflows and non-positional callers.
+QA_TARGETS := qa-check qa-format qa
+ifneq ($(filter $(QA_TARGETS),$(MAKECMDGOALS)),)
+QA_POSITIONAL_MODULES := $(filter-out $(QA_TARGETS),$(MAKECMDGOALS))
+ifneq ($(strip $(QA_POSITIONAL_MODULES)),)
+.PHONY: $(QA_POSITIONAL_MODULES)
+$(QA_POSITIONAL_MODULES):
+	@:
+endif
+endif
+QA_SELECTED_MODULES = $(strip $(MODULE) $(QA_POSITIONAL_MODULES))
+QA_MODULE_ARGS = $(foreach module,$(QA_SELECTED_MODULES),--module $(module))
+# CI runs module checks in parallel and scans secrets in a dedicated job.
+QA_SCAN_SECRETS ?= true
+QA_SECRETS_ARGS = $(if $(filter false,$(QA_SCAN_SECRETS)),--skip-secrets,)
+
 code-qa:
-	python tools/code_qa/main.py code-qa
+	python tools/code_qa/src/main.py code-qa $(QA_MODULE_ARGS)
 
 code-format:
-	python tools/code_qa/main.py format
+	python tools/code_qa/src/main.py format $(QA_MODULE_ARGS)
 
 code-lint:
-	python tools/code_qa/main.py lint
+	python tools/code_qa/src/main.py lint $(QA_MODULE_ARGS)
 
 test:
-	python tools/code_qa/main.py test $(if $(TEST_MODULE),--module $(TEST_MODULE),)
+	python tools/code_qa/src/main.py test $(foreach module,$(if $(MODULE),$(MODULE),$(TEST_MODULE)),--module $(module))
 
 code-secrets:
-	python tools/code_qa/main.py secrets
+	python tools/code_qa/src/main.py secrets
 
-qa:
-	python tools/code_qa/main.py qa
+qa-format:
+	python tools/code_qa/src/main.py qa-format $(QA_SECRETS_ARGS) $(QA_MODULE_ARGS)
+
+qa-check:
+	python tools/code_qa/src/main.py qa-check $(QA_SECRETS_ARGS) $(QA_MODULE_ARGS)
+
+qa: qa-check
 
 deps-audit:
-	python tools/dependency_audit/check_npm.py
+	python tools/dependency_audit/src/check_npm.py
