@@ -25,6 +25,7 @@ k3s_ip="$(public_output k3s_public_ip)"
 k3s_instance="$(public_output k3s_instance_id)"
 legacy_ip="$(public_output elastic_ip_address)"
 legacy_instance="$(public_output instance_id)"
+eip_target="$(public_output elastic_ip_target_instance_id)"
 
 # The human-readable form automatically redacts sensitive output values.
 outputs_text="$(tofu output -no-color)"
@@ -54,6 +55,9 @@ outputs_text="$(tofu output -no-color)"
   fi
   if [[ -n "$legacy_instance" ]]; then
     printf -- '- **Existing demo EC2 instance:** `%s`\n' "$legacy_instance"
+  fi
+  if [[ -n "$eip_target" ]]; then
+    printf -- '- **Elastic IP target EC2:** `%s`\n' "$eip_target"
   fi
   echo
   echo "### Private Argo CD dashboard"

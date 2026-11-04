@@ -596,7 +596,7 @@ metadata:
   name: redirect-apex
 spec:
   redirectRegex:
-    regex: ^https?://alivion\\.cc(.*)$
+    regex: ^https?://alivion\.cc(.*)$
     replacement: https://aggregator.alivion.cc${1}
     permanent: true
 ---

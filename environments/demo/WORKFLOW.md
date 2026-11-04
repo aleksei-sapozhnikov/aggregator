@@ -49,9 +49,16 @@ workflow or Argo CD sync succeeded. Check both Actions runs.
 
 | Environment        | Required settings                                                           | Protection                                    |
 | ------------------ | --------------------------------------------------------------------------- | --------------------------------------------- |
-| `demo-infra-plan`  | `AWS_ROLE_ARN`, `ENABLE_K3S_NODE`, `ENABLE_BEDROCK`                         | Only `deploy/demo`; **no required reviewers** |
+| `demo-infra-plan`  | `AWS_ROLE_ARN`, `ENABLE_K3S_NODE`, `ENABLE_BEDROCK`, `EIP_TARGET_K3S`         | Only `deploy/demo`; **no required reviewers** |
 | `demo-infra-apply` | `AWS_ROLE_ARN`, secret `ARGOCD_PASSWORD`, `MANUAL_APPROVAL_CONFIGURED=true` | Only `deploy/demo`; **required reviewers**    |
 | `demo`             | `AWS_DEMO_DEPLOY_ROLE_ARN`, `SSM_INSTANCE_ID`                               | Only `deploy/demo`                            |
+
+Set `EIP_TARGET_K3S=false` until the explicit final cutover. Set it to `true`
+only after reviewing the pre-cutover verification and the exact EIP-association
+replacement in the saved plan. Keep it `true` for future infrastructure runs
+to prevent the association from being moved back. The approved apply
+environment is required for the switch, and the Compose EC2 must remain
+available for rollback.
 
 Use IAM role ARNs from `environments/shared/infra/administration`. The OIDC trust uses
 Environment subjects, so the allowed-branch restrictions above are

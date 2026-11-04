@@ -236,3 +236,9 @@ variable "iam_permissions_boundary_arn" {
   type        = string
   default     = null
 }
+
+variable "eip_target_instance_id" {
+  description = "Optional alternate EC2 target for the existing Elastic IP; null retains the legacy instance."
+  type        = string
+  default     = null
+}
