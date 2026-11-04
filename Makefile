@@ -109,7 +109,7 @@ export AGENT_AI_CONFIG
 .PHONY: help info env \
         up down restart recreate rebuild rebuild-recreate clean pull deploy \
         up-svc down-svc restart-svc recreate-svc rebuild-svc rebuild-recreate-svc clean-svc \
-        code-qa code-format code-lint code-secrets test qa qa-format qa-check deps-audit
+        qa-format qa-check deps-audit
 
 help:
 	@echo "Usage:"
@@ -130,8 +130,6 @@ help:
 	@echo "  clean            -> down + remove containers, network, and volumes (DATA LOSS)"
 	@echo "  qa-format        -> format and test selected modules, then scan secrets"
 	@echo "  qa-check         -> check and test selected modules, then scan secrets"
-	@echo "  qa               -> alias for qa-check"
-	@echo "  test             -> run all unit tests (or TEST_MODULE=aggregator)"
 	@echo "  code-secrets     -> scan secrets with TruffleHog"
 	@echo "  deps-audit       -> check npm dependency advisories and update suggestions"
 	@echo ""
@@ -261,7 +259,7 @@ clean-svc: info
 # ---- QA commands ----
 # Positional module names are goals to Make, but arguments to the QA command.
 # Keep MODULE=... for existing CI workflows and non-positional callers.
-QA_TARGETS := qa-check qa-format qa
+QA_TARGETS := qa-check qa-format
 ifneq ($(filter $(QA_TARGETS),$(MAKECMDGOALS)),)
 QA_POSITIONAL_MODULES := $(filter-out $(QA_TARGETS),$(MAKECMDGOALS))
 ifneq ($(strip $(QA_POSITIONAL_MODULES)),)
@@ -276,32 +274,12 @@ QA_MODULE_ARGS = $(foreach module,$(QA_SELECTED_MODULES),--module $(module))
 QA_SCAN_SECRETS ?= true
 QA_SECRETS_ARGS = $(if $(filter false,$(QA_SCAN_SECRETS)),--skip-secrets,)
 
-# code-qa is both a QA module name and a standalone Make target.
-# Suppress the standalone recipe when it is a positional QA module.
-ifeq ($(filter code-qa,$(QA_POSITIONAL_MODULES)),)
-code-qa:
-	python tools/code_qa/src/main.py code-qa $(QA_MODULE_ARGS)
-endif
-
-code-format:
-	python tools/code_qa/src/main.py format $(QA_MODULE_ARGS)
-
-code-lint:
-	python tools/code_qa/src/main.py lint $(QA_MODULE_ARGS)
-
-test:
-	python tools/code_qa/src/main.py test $(foreach module,$(if $(MODULE),$(MODULE),$(TEST_MODULE)),--module $(module))
-
-code-secrets:
-	python tools/code_qa/src/main.py secrets
-
 qa-format:
 	python tools/code_qa/src/main.py qa-format $(QA_SECRETS_ARGS) $(QA_MODULE_ARGS)
 
 qa-check:
 	python tools/code_qa/src/main.py qa-check $(QA_SECRETS_ARGS) $(QA_MODULE_ARGS)
 
-qa: qa-check
 
 deps-audit:
 	python tools/dependency_audit/src/check_npm.py
