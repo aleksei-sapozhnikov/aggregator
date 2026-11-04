@@ -48,15 +48,13 @@ class DispatchDeployTests(unittest.TestCase):
         self.write("deploy/kubernetes/workloads.yaml", "kind: Deployment\n")
         self.write(
             "environments/demo/src/sh/stage-kubernetes.sh",
-            "#!/usr/bin/env bash\nset -euo pipefail\ncp -a deploy/kubernetes \"$1\"\n",
+            '#!/usr/bin/env bash\nset -euo pipefail\ncp -a deploy/kubernetes "$1"\n',
         )
         self.write(
             "environments/demo/src/python/image_tags.py",
             "# Fixture images have stable tags; no changes needed.\n",
         )
-        shutil.copytree(
-            self.repo / "deploy/kubernetes", self.repo / "deploy/k8s-live"
-        )
+        shutil.copytree(self.repo / "deploy/kubernetes", self.repo / "deploy/k8s-live")
         self.git("add", "-A")
         self.git("commit", "-qm", "Initial matching GitOps release")
         self.git("branch", "deploy/demo-gitops")
@@ -103,21 +101,28 @@ class DispatchDeployTests(unittest.TestCase):
             check=False,
         )
         self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
-        return self.commands.read_text(encoding="utf-8") if self.commands.exists() else ""
+        return (
+            self.commands.read_text(encoding="utf-8") if self.commands.exists() else ""
+        )
 
     def test_matching_release_skips_dispatch(self) -> None:
         self.assertEqual(self.dispatch(), "")
         self.assertIn("matches the current desired snapshot", self.summary.read_text())
 
     def test_stale_manifest_dispatches_even_without_app_changes(self) -> None:
-        self.write("deploy/kubernetes/workloads.yaml", "kind: Deployment\nupdated: true\n")
+        self.write(
+            "deploy/kubernetes/workloads.yaml", "kind: Deployment\nupdated: true\n"
+        )
         self.git("add", "-A")
         self.git("commit", "-qm", "Modify source without publishing GitOps")
         self.assertIn("actions/workflows/demo-deploy.yml/dispatches", self.dispatch())
         self.assertIn("GitOps snapshot outdated: true", self.summary.read_text())
 
     def test_explicit_app_change_dispatches(self) -> None:
-        self.assertIn("actions/workflows/demo-deploy.yml/dispatches", self.dispatch(app_changed=True))
+        self.assertIn(
+            "actions/workflows/demo-deploy.yml/dispatches",
+            self.dispatch(app_changed=True),
+        )
 
     def test_teardown_never_dispatches(self) -> None:
         self.assertEqual(self.dispatch(destroyed=True), "")
