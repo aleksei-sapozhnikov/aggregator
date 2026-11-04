@@ -101,7 +101,8 @@ class FingerprintTests(unittest.TestCase):
 
     def test_ansible_change_check_uses_the_sibling_python_script(self) -> None:
         script = (
-            Path(__file__).resolve().parents[2] / "src/sh/detect-ansible-changes.sh"
+            Path(__file__).resolve().parents[2]
+            / "src/sh/detect-ansible-changes.sh"
         ).read_text(encoding="utf-8")
         self.assertIn("../python/config_fingerprint.py", script)
 

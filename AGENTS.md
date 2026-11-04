@@ -50,36 +50,53 @@ change.
 
 ## QA and developer tooling
 
-Never invoke repository QA helper scripts under `tools/code_qa` for any reason.
-This includes, but is not limited to, `python tools/code_qa/src/main.py qa`,
-`python tools/code_qa/src/main.py lint`, and `python tools/code_qa/src/main.py format`.
-These scripts are reserved for humans and must not be used by agents, even when
-doing broad repository validation.
+### Explicit publication-preparation exception
 
-Do not invoke `make` commands at all. This includes repository-level targets
-such as `make code-qa`, `make code-lint`, `make code-format`,
-`make deps-audit`, and service/runtime targets. If validation is needed, run
-the smallest direct service-level command instead, or ask the user before using
-any `make` target.
+When the user explicitly requests release/publication preparation using
+`.local/publisher/codex-publication-preparation/codex-instructions.md`,
+the agent **must** run the required QA on every prepared publication PR branch,
+including version-boundary branches. Use isolated worktrees under
+`.local/publisher/worktrees/`; do not change the primary checkout.
 
-Repository-level QA helpers under `tools/code_qa`, `make code-qa`,
-`make code-lint`, `make code-format`, `make deps-audit`, and similar aggregate
-developer tooling are intended for human use.
+The approved commands are:
 
-Do not run repository-wide QA, formatting, linting, dependency audit, or helper
-tooling. If the user asks for broad validation, ask which direct service-level
-commands they want to run instead.
+- `make qa-format` if the branch's Makefile supports it.
+- Otherwise, for an older branch without `qa-format`, `make code-format`
+  followed by `make qa`.
+- Local commands invoked by the above QA workflow, including test executors,
+  formatters, linters, secret scans, `make -n qa-check`, and **offline**
+  OpenTofu `fmt`, `init -backend=false -lockfile=readonly -input=false`,
+  and `validate`. Installing required local toolchains and downloading
+  declared providers for offline validation are permitted.
 
-For scoped code changes, run only the relevant service-level tests or build
-checks when practical. Prefer the smallest validation command that directly
-covers the changed service.
+The OpenTofu QA exception permits local formatting and syntax/configuration
+validation only. Do **not** run `tofu plan`, `apply`, `destroy`, `import`,
+state-changing commands, or `init` with a remote backend; do not run AWS CLI,
+access live infrastructure, deploy resources, or load cloud credentials.
+If a QA command unexpectedly requires remote infrastructure access, stop
+that operation and ask for explicit approval instead of bypassing checks.
 
-Do not run formatting tools across unrelated files. If a formatter is required,
-run it only on files changed for the current task, unless the user explicitly
-requests broader formatting.
+Read publication guidance from its stable private path and the pinned
+`.local/publisher/reference-dev/AGENTS.md` reference when available.
+A historical branch's older Makefile determines which QA target exists.
+The preparation task does not authorize unrelated Make targets or changes to
+`main` or `dev`.
 
-When the user says "run tests" or "run relevant checks", this does not imply
-running repository-wide QA helpers. Treat repository-wide QA as opt-in only.
+Repair QA failures and rerun the checks on affected branches. Never report
+a branch as QA-passing because only Publisher's offline tests passed.
+
+### Ordinary development tasks
+
+Outside the explicitly authorized publication-preparation workflow, agents
+must **not** run repository QA helpers under `tools/code_qa`, any `make`
+target, repository-wide formatting, linting, dependency audits, or other
+aggregate developer tooling. Those are reserved for humans.
+
+For ordinary scoped changes, run the smallest direct service-level tests
+or build checks when practical. Do not apply formatters to unrelated files.
+
+A generic request to "run tests" or "run relevant checks" does not grant
+permission to execute Make or repository-wide QA.
 
 ## Commits
 

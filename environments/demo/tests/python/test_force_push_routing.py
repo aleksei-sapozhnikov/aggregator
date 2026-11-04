@@ -3,13 +3,15 @@
 from __future__ import annotations
 
 import os
-import subprocess
 import sys
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
 
-SCRIPT = Path(__file__).resolve().parents[2] / "src" / "sh" / "route-changes.sh"
+SCRIPT = (
+    Path(__file__).resolve().parents[2] / "src" / "sh" / "route-changes.sh"
+)
 
 
 @unittest.skipIf(sys.platform == "win32", "Bash/Git routing tests require POSIX")

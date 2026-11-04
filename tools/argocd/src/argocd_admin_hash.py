@@ -13,7 +13,7 @@ import re
 import subprocess
 import sys
 import tempfile
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 KUBECTL = ("/usr/local/bin/k3s", "kubectl", "--namespace=argocd")
@@ -51,7 +51,9 @@ def apply_hash(digest: bytes) -> None:
     patch = {
         "stringData": {
             "admin.password": digest.decode("ascii"),
-            "admin.passwordMtime": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "admin.passwordMtime": datetime.now(timezone.utc).strftime(
+                "%Y-%m-%dT%H:%M:%SZ"
+            ),
         }
     }
     descriptor, path = tempfile.mkstemp(

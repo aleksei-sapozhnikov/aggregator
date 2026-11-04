@@ -37,7 +37,9 @@ class MakeQATargetTests(unittest.TestCase):
         self.assertIn("--module demo --module shared", output)
 
     def test_qa_check_preserves_ci_module_and_secrets_options(self) -> None:
-        output = self.dry_run("qa-check", "MODULE=demo", "QA_SCAN_SECRETS=false")
+        output = self.dry_run(
+            "qa-check", "MODULE=demo", "QA_SCAN_SECRETS=false"
+        )
         self.assertIn("src/main.py qa-check --skip-secrets --module demo", output)
 
     def test_qa_check_without_modules_scans_every_module(self) -> None:
