@@ -276,8 +276,12 @@ QA_MODULE_ARGS = $(foreach module,$(QA_SELECTED_MODULES),--module $(module))
 QA_SCAN_SECRETS ?= true
 QA_SECRETS_ARGS = $(if $(filter false,$(QA_SCAN_SECRETS)),--skip-secrets,)
 
+# code-qa is both a QA module name and a standalone Make target.
+# Suppress the standalone recipe when it is a positional QA module.
+ifeq ($(filter code-qa,$(QA_POSITIONAL_MODULES)),)
 code-qa:
 	python tools/code_qa/src/main.py code-qa $(QA_MODULE_ARGS)
+endif
 
 code-format:
 	python tools/code_qa/src/main.py format $(QA_MODULE_ARGS)
