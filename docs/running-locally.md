@@ -45,14 +45,14 @@ make help
 
 - `local-demo` (default): full local demo with dummy services and chaos-maker.
 - `local`: core stack without demo service overlay.
-- `demo`: hosted demo stack with public Caddy configuration.
+- `demo`: hosted Compose demo with public Caddy and separately tagged GHCR images; releases are orchestrated by the demo deployment workflow.
 
 Examples:
 
 ```shell
 make up ENV=local
 make rebuild-recreate ENV=local-demo
-make down ENV=demo
+# Hosted demo deployment is handled by the GitHub Actions + SSM workflow.
 ```
 
 ## Local ports
@@ -78,42 +78,101 @@ Examples below use Docker. If you use Podman, replace `docker compose` with
 To start the default local demo, run this command from the repository root:
 
 ```shell
-docker compose --project-name aggregator-local-demo --project-directory . -f compose/compose.yaml -f compose/compose.local-demo.yaml -f compose/compose.overlay.demo-services.yaml -f compose/compose.overlay.local-ports.yaml -f compose/compose.overlay.demo-services-local-ports.yaml up --detach --wait --remove-orphans
+docker compose --project-name aggregator-local-demo --project-directory . -f deploy/compose/compose.yaml -f deploy/compose/compose.local-demo.yaml -f deploy/compose/compose.overlay.demo-services.yaml -f deploy/compose/compose.build.core.yaml -f deploy/compose/compose.build.demo-services.yaml -f deploy/compose/compose.overlay.local-ports.yaml -f deploy/compose/compose.overlay.demo-services-local-ports.yaml up --detach --wait --remove-orphans
 ```
 
 To stop it, run this command from the repository root:
 
 ```shell
-docker compose --project-name aggregator-local-demo --project-directory . -f compose/compose.yaml -f compose/compose.local-demo.yaml -f compose/compose.overlay.demo-services.yaml -f compose/compose.overlay.local-ports.yaml -f compose/compose.overlay.demo-services-local-ports.yaml down --remove-orphans
+docker compose --project-name aggregator-local-demo --project-directory . -f deploy/compose/compose.yaml -f deploy/compose/compose.local-demo.yaml -f deploy/compose/compose.overlay.demo-services.yaml -f deploy/compose/compose.build.core.yaml -f deploy/compose/compose.build.demo-services.yaml -f deploy/compose/compose.overlay.local-ports.yaml -f deploy/compose/compose.overlay.demo-services-local-ports.yaml down --remove-orphans
 ```
 
-The compose files live under `compose/`. Keep `--project-directory .` in manual
+The compose files live under `deploy/compose/`. Keep `--project-directory .` in manual
 commands so relative paths and the root `.env` file resolve from the repository
 root. The `Makefile` is the source of truth for supported compose combinations
 and service-scoped commands.
 
 ## Optional AI agent
 
-The Python AI agent container starts with AI disabled by default. The rest of the
-Product Health stack works normally in that mode. To enable the Bedrock
-provider, set `AGENT_AI_ENABLED=true` and provide one of the supported
-authentication configurations before starting Compose.
+The base Compose stack leaves AI disabled unless explicitly configured. Local
+Compose environments (`local` and `local-demo`) enable Bedrock automatically
+and keep the non-secret model settings in
+`deploy/compose/compose.overlay.local-ports.yaml`.
 
-For local development with a Bedrock API key, use `api_key`. This is a Bedrock
-bearer token, not an AWS access key or secret key:
+Authentication still requires temporary AWS credentials. The
+`aggregator-admin` IAM user gets restricted Nova Lite invocation permissions
+through the `AggregatorBedrockDevelopers` group, so no long-lived Bedrock API
+key or IAM access key is needed.
 
-```shell
-AGENT_AI_ENABLED=true
-AGENT_AI_CONFIG={"provider":"bedrock","max_tool_rounds":2,"bedrock":{"model_id":"eu.amazon.nova-lite-v1:0","aws_region":"eu-central-1","api_key":"<bedrock-api-key>","temperature":0.00001,"max_tokens":300}}
+From PowerShell in the repository root:
+
+```powershell
+aws login --profile aggregator-admin
+aws sts get-caller-identity --profile aggregator-admin
+
+# Export temporary AWS credentials for the local AI agent container.
+Invoke-Expression ((aws configure export-credentials --profile aggregator-admin --format powershell) -join "`n")
+
+make up
 ```
 
-For optional local AWS credentials, use the explicit AWS credential fields:
+With no overrides, local Compose uses the included Bedrock model settings.
+To change the model or region, set `AGENT_AI_CONFIG` in the same shell
+before running `make up`. For example, PowerShell:
 
-```shell
-AGENT_AI_ENABLED=true
-AGENT_AI_CONFIG={"provider":"bedrock","max_tool_rounds":2,"bedrock":{"model_id":"eu.amazon.nova-lite-v1:0","aws_region":"eu-central-1","aws_access_key_id":"<aws-access-key-id>","aws_secret_access_key":"<aws-secret-access-key>","aws_session_token":"<optional-session-token>","temperature":0.00001,"max_tokens":300}}
+```powershell
+$agentConfig = @{
+    provider = "bedrock"
+    max_tool_rounds = 2
+    bedrock = @{
+        model_id = "eu.amazon.nova-lite-v1:0"
+        aws_region = "eu-central-1"
+        temperature = 0.00001
+        max_tokens = 300
+    }
+}
+$env:AGENT_AI_CONFIG = $agentConfig | ConvertTo-Json -Compress -Depth 5
 ```
 
-For deployment on EC2, omit `api_key` and the explicit AWS credential fields.
-boto3 then uses the normal default credential chain, including the instance IAM
-role.
+Use your own AWS profile in the login and credential-export commands above
+instead of `aggregator-admin`. Your AWS identity must have permission to invoke
+the selected Bedrock model in the selected region. You do not need the project's
+IAM users or groups. The current AI agent supports the Bedrock provider only.
+
+Set `AGENT_AI_ENABLED=false` in the shell to disable local AI without
+modifying Compose files. Only `ai-agent` receives the temporary credentials.
+The project-root `.env` file is tracked by Git: do not put credentials there.
+Keep personal setup scripts in the ignored `.private/` directory.
+Docker stores the temporary credentials in the running container's configuration;
+do not share `docker inspect` output or run untrusted code inside that container.
+
+The AWS session expires. After refreshing the login and exporting new
+credentials, recreate the agent so it receives the new session:
+
+```powershell
+aws login --profile aggregator-admin
+Invoke-Expression ((aws configure export-credentials --profile aggregator-admin --format powershell) -join "`n")
+make recreate-svc ai-agent
+```
+
+When finished, stop the stack with `make down` and clear
+`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_SESSION_TOKEN`
+from the current PowerShell session.
+
+For deployment on EC2, the Bedrock provider uses the instance IAM role
+when `api_key` and explicit AWS credentials are omitted from
+`AGENT_AI_CONFIG`.
+
+## UI runtime settings
+
+The same UI image works in every environment. At container startup,
+`APP_TITLE` and `TIMELINE_DEFAULT_RANGE` become public `/config.json`
+settings. The local-demo title contains `PROJECT_VERSION`, and its range is
+`15m`; hosted demo uses `1d`.
+
+For standalone `npm run dev` in `services/aggregator-ui`, Vite serves
+the same JSON endpoint using the dev server process environment.
+
+`local` and `local-demo` still build from the local Dockerfiles, while
+`demo` uses only published GHCR images. Deployment instructions are in
+[demo environment](../environments/demo/README.md).
