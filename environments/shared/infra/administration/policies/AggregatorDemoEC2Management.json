@@ -183,7 +183,8 @@
         "ec2:RevokeSecurityGroupIngress",
         "ec2:RevokeSecurityGroupEgress",
         "ec2:UpdateSecurityGroupRuleDescriptionsIngress",
-        "ec2:UpdateSecurityGroupRuleDescriptionsEgress"
+        "ec2:UpdateSecurityGroupRuleDescriptionsEgress",
+        "ec2:ModifySecurityGroupRules"
       ],
       "Resource": "arn:aws:ec2:eu-central-1:905418096305:security-group/*",
       "Condition": {

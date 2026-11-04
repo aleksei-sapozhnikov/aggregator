@@ -45,6 +45,21 @@ Populate `AWS_ROLE_ARN` in each infrastructure environment from this root's
 outputs and `AWS_DEMO_DEPLOY_ROLE_ARN` in `demo`. Use OIDC, not stored AWS keys.
 The infrastructure workflow never applies this administrator root.
 
+The `AggregatorDemoEC2Management` policy grants
+`ec2:ModifySecurityGroupRules` on tagged project security groups as well
+as tagged individual security group rules. The AWS API used by the OpenTofu
+`aws_vpc_security_group_ingress_rule` resource requires authorization on both
+resource types even for a description-only change. This action can also alter
+rule settings, so it is restricted to project-tagged resources and the
+approved demo infrastructure apply role.
+
+**Apply IAM changes first:** with `infra-admin`, run `tofu plan` and
+`tofu apply` in this administration root. Only after that succeeds, promote
+the corresponding demo infrastructure change to `deploy/demo` and replan
+there. Do not retry a previously saved failed OpenTofu plan: the initial
+apply may have already created some resources.
+
+
 ## Permission boundaries
 
 - `policies/` contains scoped demo compute, IAM, SSM, Session Manager and
