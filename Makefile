@@ -280,6 +280,5 @@ qa-format:
 qa-check:
 	python tools/code_qa/src/main.py qa-check $(QA_SECRETS_ARGS) $(QA_MODULE_ARGS)
 
-
 deps-audit:
 	python tools/dependency_audit/src/check_npm.py

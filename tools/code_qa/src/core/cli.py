@@ -672,7 +672,9 @@ def run_qa_command(
 
 def build_parser() -> argparse.ArgumentParser:
     """Expose only the two public QA commands and CI's module registry."""
-    parser = argparse.ArgumentParser(description="Run repository QA checks or formatting.")
+    parser = argparse.ArgumentParser(
+        description="Run repository QA checks or formatting."
+    )
     sub = parser.add_subparsers(dest="command", required=True)
     for name, help_text in (
         ("qa-check", "Check and test selected modules, then scan secrets."),

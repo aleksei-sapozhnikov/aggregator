@@ -38,7 +38,9 @@ class PublisherArchiveTests(unittest.TestCase):
             archive.write_bytes(b"fixture")
             return subprocess.CompletedProcess([], 0)
 
-        with patch.object(publisher_archive.subprocess, "run", side_effect=build) as call:
+        with patch.object(
+            publisher_archive.subprocess, "run", side_effect=build
+        ) as call:
             self.assertEqual(publisher_archive.run(self.directory, self.workspace), 0)
         self.assertEqual(
             call.call_args.args[0],
