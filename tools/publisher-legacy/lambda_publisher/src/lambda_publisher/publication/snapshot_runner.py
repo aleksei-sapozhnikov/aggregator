@@ -213,7 +213,7 @@ class Runner:
                     + clean
                 )
                 return self._block(progress, event, reason, execution_id, now)
-            except Exception as error:  # noqa: BLE001
+            except Exception as error:
                 # Persist unexpected event failures as blocked instead of aborting the run.
                 return self._block(
                     progress,

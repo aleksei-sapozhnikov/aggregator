@@ -671,7 +671,7 @@ def run_qa_command(
 
 
 def build_parser() -> argparse.ArgumentParser:
-    """Expose only the two public QA commands and CI's module registry."""
+    """Expose public QA commands and the internal CI module registry."""
     parser = argparse.ArgumentParser(
         description="Run repository QA checks or formatting."
     )
@@ -698,6 +698,15 @@ def build_parser() -> argparse.ArgumentParser:
             action="store_true",
             help="Skip the repository-wide scan (for per-module CI).",
         )
+    secrets_cmd = sub.add_parser(
+        "qa-secrets", help="Scan repository secrets without module checks."
+    )
+    secrets_cmd.add_argument("--scan-root", default=".")
+    secrets_cmd.add_argument("--output-file", default="")
+    secrets_cmd.add_argument("--gitignored-output-file", default="")
+    secrets_cmd.add_argument("--binary")
+    secrets_cmd.add_argument("--raw", action="store_true")
+    secrets_cmd.add_argument("--out-file", default="")
     modules_cmd = sub.add_parser(
         "modules", help="Internal: list modules or emit the CI matrix."
     )
@@ -723,6 +732,15 @@ def main() -> int:
     if args.command == "modules":
         print(json.dumps(ci_matrix()) if args.json else "\n".join(MODULE_NAMES))
         return 0
+    if args.command == "qa-secrets":
+        return run_secrets_command(
+            scan_root=args.scan_root,
+            output_file=args.output_file,
+            gitignored_output_file=args.gitignored_output_file,
+            binary=args.binary,
+            raw=args.raw,
+            out_file=args.out_file,
+        )
     return run_qa_command(
         modules=args.module,
         scan_root=args.scan_root,

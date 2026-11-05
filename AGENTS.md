@@ -48,6 +48,12 @@ checks when practical.
 Do not silently fix unrelated formatting or code while working on a scoped
 change.
 
+Avoid lint and formatter suppression directives in source code, including
+`noqa`, `eslint-disable`, `@ts-ignore`, and `@SuppressWarnings`. Fix the
+underlying issue instead. Use a narrowly scoped suppression only when a safe
+implementation without it is not feasible; document the concrete reason next
+to the exception. Do not disable checks globally to hide individual failures.
+
 ## QA and developer tooling
 
 ### Explicit publication-preparation exception

@@ -109,7 +109,7 @@ export AGENT_AI_CONFIG
 .PHONY: help info env \
         up down restart recreate rebuild rebuild-recreate clean pull deploy \
         up-svc down-svc restart-svc recreate-svc rebuild-svc rebuild-recreate-svc clean-svc \
-        qa-format qa-check deps-audit
+        qa-format qa-check qa-secrets deps-audit
 
 help:
 	@echo "Usage:"
@@ -130,7 +130,7 @@ help:
 	@echo "  clean            -> down + remove containers, network, and volumes (DATA LOSS)"
 	@echo "  qa-format        -> format and test selected modules, then scan secrets"
 	@echo "  qa-check         -> check and test selected modules, then scan secrets"
-	@echo "  code-secrets     -> scan secrets with TruffleHog"
+	@echo "  qa-secrets       -> scan repository secrets with TruffleHog"
 	@echo "  deps-audit       -> check npm dependency advisories and update suggestions"
 	@echo ""
 	@echo "Positional module selection (omit names to check all):"
@@ -279,6 +279,9 @@ qa-format:
 
 qa-check:
 	python tools/code_qa/src/main.py qa-check $(strip $(QA_SECRETS_ARGS) $(QA_MODULE_ARGS))
+
+qa-secrets:
+	python tools/code_qa/src/main.py qa-secrets
 
 deps-audit:
 	python tools/dependency_audit/src/check_npm.py
