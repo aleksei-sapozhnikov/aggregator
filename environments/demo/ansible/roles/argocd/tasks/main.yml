@@ -72,4 +72,4 @@
     dest: /usr/local/sbin/aggregator-argocd-admin-hash
     owner: root
     group: root
-    mode: "0700"
+    mode: "0600"

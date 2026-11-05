@@ -27,8 +27,14 @@ def load_module():
 
 
 class ArgoCDHashTests(unittest.TestCase):
-    def test_installed_helper_has_python_shebang(self) -> None:
-        self.assertTrue(SCRIPT.read_bytes().startswith(b"#!/usr/bin/env python3\\n"))
+    def test_helper_runs_through_python_without_executable_permission(self) -> None:
+        self.assertFalse(SCRIPT.read_bytes().startswith(b"#!"))
+        tasks = (
+            SCRIPT.parents[3]
+            / "environments/demo/ansible/roles/argocd/tasks/main.yml"
+        ).read_text(encoding="utf-8")
+        self.assertIn("dest: /usr/local/sbin/aggregator-argocd-admin-hash", tasks)
+        self.assertIn('mode: "0600"', tasks)
 
     def test_read_existing_hash(self) -> None:
         module = load_module()
