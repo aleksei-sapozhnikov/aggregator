@@ -9,6 +9,26 @@ from datetime import datetime, timezone
 from urllib.parse import quote
 
 
+# AWS SDK exceptions are optional when running offline unit tests.
+try:
+    from botocore.exceptions import BotoCoreError, ClientError
+except ImportError:
+    AWS_ERRORS: tuple[type[Exception], ...] = ()
+else:
+    AWS_ERRORS = (BotoCoreError, ClientError)
+
+# Expected AWS, transport, data-validation, and application errors.
+# Unexpected programming errors must still fail visibly.
+OPERATION_ERRORS = (
+    OSError,
+    RuntimeError,
+    ValueError,
+    TypeError,
+    LookupError,
+    ImportError,
+    *AWS_ERRORS,
+)
+
 def sanitize(value: str) -> str:
     value = re.sub(
         r"(?i)(authorization\s*[:=]\s*(?:bearer|token)\s+)\S+", r"\1[REDACTED]", value
@@ -70,7 +90,7 @@ def alert(
             Subject=f"Aggregator publication blocked: {event['id']}",
             Message=json.dumps(details, indent=2),
         )
-    except Exception as error:
+    except OPERATION_ERRORS as error:
         # Alert delivery is best-effort and must not interrupt publication handling.
         print(
             json.dumps(
