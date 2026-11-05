@@ -19,7 +19,7 @@ SPEC = ModuleSpec(
         ScopedChecks(
             "resources",
             "tools/publisher/infra/resources",
-            ("tofu-format", "tofu-validate", "tflint"),
+            ("tofu-format", "publisher-archive", "tofu-validate", "tflint"),
         ),
     ),
     scoped_tests=(

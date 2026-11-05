@@ -78,9 +78,8 @@ def main() -> int:
     env[SCOPED_FILES_ENV] = scope_file
     cmd = [
         sys.executable,
-        "tools/code_qa/src/main.py",
+        "tools/git_hooks/src/run_qa_mode.py",
         "secrets",
-        "--scan-root=.",
     ]
     try:
         return subprocess.run(cmd, cwd=repo_root(), env=env, check=False).returncode

@@ -3,53 +3,33 @@
 Use the repository's existing QA tooling instead of adding parallel formatting
 or linting workflows.
 
-## Full check
+## Repository QA
 
-From the repository root:
+The two public QA commands are:
 
 ```shell
-python tools/code_qa/src/main.py qa
+make qa-check
+make qa-format shared argocd code-qa publisher
 ```
 
-This checks every module, runs tests, and scans secrets without changing files. It finishes
+`qa-check` runs each selected module's checks and tests without changing
+source files. `qa-format` first fixes supported formatting problems, then
+reruns checks and tests. Both scan repository secrets by default and finish
 with `=== QA: PASSED ===` or `=== QA: FAILED ===`.
 
-## Manual formatting and checks
+Select modules positionally, or pass `MODULE=demo` in CI. Run without
+module selectors to cover the whole repository. The `code-qa` module is
+the QA engine itself, not a command.
 
-Install Python, Git, and Node.js with npm. The QA runner automatically creates
-`.local/qa-runtime/venv` for its pinned Python requirements and installs Prettier
-into `.local/qa-runtime/node_modules`. No activation or global package install
-is needed. The first run needs internet access; subsequent runs reuse local tools.
+Install Python, Git, and Node.js with npm. The QA runner uses
+`.local/qa-runtime` for pinned local dependencies. Infrastructure checks
+bootstrap OpenTofu and TFLint with local caches; no AWS state or credentials
+are needed for offline validation. See the [QA guide](../tools/code_qa/README.md)
+for module configuration and scoped formatting.
 
-TypeScript checks run through each npm package's `typecheck` script. When local
-package dependencies are missing, `code_qa` installs them with `npm ci` from the
-package lockfile.
-
-Select a module for code checks or its registered tests:
-
-```shell
-python tools/code_qa/src/main.py qa-check --module catalog
-python tools/code_qa/src/main.py lint --module publisher
-python tools/code_qa/src/main.py test --module publisher
-python tools/code_qa/src/main.py format --module publisher
-python tools/code_qa/src/main.py modules
-```
-
-Repeat `--module` to select several modules; omit it to check all modules.
-`qa-check` runs checks and then tests for each module before starting the next.
-`qa` follows the same per-module order, then scans repository secrets.
-
-`format` runs checks, formats failed check groups such as Prettier, final
-newline, or Java formatting, then re-checks.
-
-`lint` runs code checks without changes or secrets scanning.
-
-Infrastructure checks bootstrap OpenTofu 1.13.1 and TFLint 0.65.0 inside
-`.local/qa-runtime`, with local provider and plugin caches. Infrastructure roots share the repository's
-`.tflint.hcl` configuration. Catalog tests require Go 1.23+.
-See the [QA guide](../tools/code_qa/README.md) for module configuration,
-commands, and the scoped-formatting policy. The CI module matrix is derived from
-the same configuration.
+CI uses the module registry to run `qa-check` in parallel, with a separate
+repository-wide secrets scan. Git hooks use an internal adapter for their
+lighter, changed-file-only checks; they do not invoke whole-module tests.
 
 ## Dependency checks
 

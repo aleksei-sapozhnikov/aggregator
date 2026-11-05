@@ -765,12 +765,14 @@ class OrchestratorFlowTests(unittest.TestCase):
         self.assertNotIn("successful test detail", output.getvalue())
 
     def test_redirected_cp1251_stdout_preserves_unicode_test_output(self) -> None:
-        """Windows redirected stdout must not crash on Unicode from test tools."""
+        """Windows redirected stdout must display Unicode failure diagnostics."""
         process = MagicMock()
         process.stdout = iter(
             ["Testing catalog: \u2713 passed, \u4e2d\u6587 supported\n"]
         )
-        process.wait.return_value = 0
+        # qa-check intentionally hides output for successful tests.
+        # A failed test must expose its diagnostics without encoding errors.
+        process.wait.return_value = 1
         process.__enter__.return_value = process
 
         buffer = BytesIO()
@@ -783,15 +785,16 @@ class OrchestratorFlowTests(unittest.TestCase):
                     "argv",
                     [
                         "code_qa.src.core.cli",
-                        "test",
+                        "qa-check",
                         "--module",
                         "catalog",
-                        "--verbose",
+                        "--skip-secrets",
                     ],
                 ),
                 patch.object(main.subprocess, "Popen", return_value=process),
+                patch.object(main, "_run_checks", return_value=(True, [])),
             ):
-                self.assertEqual(main.main(), 0)
+                self.assertEqual(main.main(), 1)
                 redirected_stdout.flush()
                 self.assertEqual(redirected_stdout.encoding, "utf-8")
         finally:
@@ -799,7 +802,7 @@ class OrchestratorFlowTests(unittest.TestCase):
 
         output = buffer.getvalue().decode("utf-8")
         self.assertIn("PASS passed, \u4e2d\u6587 supported", output)
-        self.assertIn("=== QA: PASSED ===", output)
+        self.assertIn("=== QA: FAILED ===", output)
 
     def test_missing_test_process_reports_failure(self) -> None:
         with (
