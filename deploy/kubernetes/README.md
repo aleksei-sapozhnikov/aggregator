@@ -42,12 +42,14 @@ Synced/Healthy. Before switching the Elastic IP, test the new node directly
 without changing public DNS:
 
 ```sh
+curl -I --resolve aggregator.alivion.cc:80:<k3s-public-ip> http://aggregator.alivion.cc/
 curl -kI --resolve aggregator.alivion.cc:443:<k3s-public-ip> https://aggregator.alivion.cc/
 curl -kI --resolve www.alivion.cc:443:<k3s-public-ip> https://www.alivion.cc/
 curl -kI --resolve alivion.cc:443:<k3s-public-ip> https://alivion.cc/
 ```
 
-The first two requests must reach the application; the apex host must redirect
+The HTTP request must redirect to HTTPS, the next two must reach the
+application, and the apex host must redirect
 to `https://aggregator.alivion.cc/`. The `-k` flag is **only** for the
 pre-cutover test: DNS still points at the old Compose/Caddy instance, so
 Let's Encrypt HTTP-01 cannot validate the new Traefik instance yet.

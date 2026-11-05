@@ -119,7 +119,7 @@ spec:
               name: http
           env:
             - name: APP_TITLE
-              value: "Health Aggregator K3s demo"
+              value: "Health Aggregator demo"
             - name: TIMELINE_DEFAULT_RANGE
               value: "1d"
           resources:
@@ -596,7 +596,7 @@ metadata:
   name: redirect-apex
 spec:
   redirectRegex:
-    regex: ^https?://alivion\\.cc(.*)$
+    regex: ^https?://alivion\.cc(.*)$
     replacement: https://aggregator.alivion.cc${1}
     permanent: true
 ---
