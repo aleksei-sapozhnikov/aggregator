@@ -106,7 +106,9 @@ class PasswordSyncTests(unittest.TestCase):
             self.assertTrue(module.reconcile())
         script = send.call_args_list[-1].args[-1]
         self.assertIn(BCRYPT_HASH.decode("ascii"), script)
-        self.assertIn("python3 /usr/local/sbin/aggregator-argocd-admin-hash apply", script)
+        self.assertIn(
+            "python3 /usr/local/sbin/aggregator-argocd-admin-hash apply", script
+        )
         self.assertNotIn("example-strong-password", script)
         self.assertEqual(send.call_count, 2)
 
