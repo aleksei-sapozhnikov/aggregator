@@ -98,6 +98,13 @@ aws ssm start-session --region eu-central-1 \
   --parameters portNumber=18080,localPortNumber=8080
 ```
 
-Open `https://localhost:8080` and sign in as `admin`. The development
-certificate is self-signed. The current K3s instance ID and a ready-to-copy
-tunnel command also appear in the infrastructure apply job summary.
+Keep the SSM session open, visit `https://localhost:8080`, accept the
+self-signed certificate for this local tunnel, and sign in as `admin` with
+the configured `ARGOCD_PASSWORD` in the protected `demo-infra-apply`
+GitHub Environment. Close the session with Ctrl+C. If local port 8080 is
+already in use, change `localPortNumber` and the browser URL together.
+
+For a ready-to-run PowerShell example that discovers the K3s instance, see
+[Hosted demo: Argo CD dashboard](../README.md#open-the-private-argo-cd-dashboard).
+The current instance ID and an example tunnel command also appear in the
+infrastructure apply job summary.
