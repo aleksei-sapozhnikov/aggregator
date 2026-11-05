@@ -6,7 +6,7 @@ manage the serving Compose instance or application image releases.
 | Role     | Responsibility                                                                 |
 | -------- | ------------------------------------------------------------------------------ |
 | `common` | System packages and SSM Agent                                                  |
-| `k3s`    | Pinned single-node K3s, Traefik HTTPS/ACME, ServiceLB, API readiness    |
+| `k3s`    | Pinned single-node K3s, Traefik HTTPS/ACME, ServiceLB, API readiness           |
 | `argocd` | Pinned Argo CD install, server rollout and local-only UI forwarding            |
 | `gitops` | `aggregator-demo` Application pointing at `deploy/demo-gitops:deploy/k8s-live` |
 
