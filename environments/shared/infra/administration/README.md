@@ -39,18 +39,9 @@ Environments to `deploy/demo`. Only `demo-infra-apply` requires
 reviewers and `MANUAL_APPROVAL_CONFIGURED=true`. Set `AWS_ROLE_ARN` from
 the corresponding OpenTofu outputs. Use GitHub OIDC, not AWS access keys.
 
-The public demo runs on K3s. For the one-time retirement of the old
-Compose resources, the approved apply role has narrowly scoped permissions
-to remove the exact `AggregatorDemoEC2Role` role/profile and SSM
-`AggregatorDemoDeploy` document. These permissions can be retired in a
-subsequent IAM housekeeping change once the demo state confirms their removal.
-
-To perform that retirement safely, **apply this administration root first**
-with `infra-admin`, reviewing only expected IAM updates and the removal of
-the unused Compose deployment role/policy. Then run a fresh reviewed demo
-infrastructure plan through `deploy/demo`, confirming that the public
-Elastic IP and K3s resources are moved/no-op, not destroyed. Never reuse an
-old saved OpenTofu plan after a partial apply.
+The public demo runs on K3s. Apply IAM changes through this administration
+root before changes to infrastructure that depend on new permissions.
+Never reuse an old saved OpenTofu plan after a partial apply.
 
 ## Permission boundaries
 

@@ -25,17 +25,6 @@
       "Effect": "Allow",
       "Action": ["ssm:GetConnectionStatus", "ssm:GetCommandInvocation"],
       "Resource": "*"
-    },
-    {
-      "Sid": "RetireLegacyDemoDeployDocument",
-      "Effect": "Allow",
-      "Action": [
-        "ssm:DeleteDocument",
-        "ssm:DescribeDocument",
-        "ssm:GetDocument",
-        "ssm:ListTagsForResource"
-      ],
-      "Resource": "arn:aws:ssm:eu-central-1:905418096305:document/AggregatorDemoDeploy"
     }
   ]
 }

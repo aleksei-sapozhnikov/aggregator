@@ -24,11 +24,8 @@ tofu plan
 
 The public K3s instance is always provisioned. Changes must not delete
 or replace its EC2 or the Elastic IP: these serve the live HTTPS
-[demo](https://aggregator.alivion.cc). Terraform uses explicit
-`moved` blocks to preserve existing state identities. Do not remove
-those moves until they have been safely applied to all active states.
-Do not use `tofu state rm`, force-unlock, or manual `aws ec2 associate-address`
-to bypass the approved plan.
+[demo](https://aggregator.alivion.cc). Do not use `tofu state rm`, force-unlock, or manual
+`aws ec2 associate-address` to bypass the approved plan.
 
 The node runs a pinned Amazon Linux 2023 AMI with an encrypted root volume
 and only ports 80 and 443 public. Ansible installs K3s, Traefik, Argo CD

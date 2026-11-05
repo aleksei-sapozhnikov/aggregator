@@ -1,5 +1,4 @@
-# The public demo runs only on K3s. Keep the existing EIP and its state.
-# The moved blocks adopt resources without allocating or re-associating the IP.
+# The public demo runs on a single K3s node with a protected Elastic IP.
 data "aws_vpc" "default" {
   default = true
 }
@@ -8,21 +7,6 @@ data "aws_subnet" "default" {
   vpc_id            = data.aws_vpc.default.id
   availability_zone = "eu-central-1b"
   default_for_az    = true
-}
-
-moved {
-  from = module.aggregator_demo_k3s[0]
-  to   = module.aggregator_demo_k3s
-}
-
-moved {
-  from = module.aggregator_demo.aws_eip.public
-  to   = aws_eip.public
-}
-
-moved {
-  from = module.aggregator_demo.aws_eip_association.public
-  to   = aws_eip_association.public
 }
 
 module "aggregator_demo_k3s" {
@@ -35,7 +19,7 @@ module "aggregator_demo_k3s" {
   subnet_id        = data.aws_subnet.default.id
 }
 
-# Public DNS must keep using this existing allocation during cleanup.
+# Preserve the public demo address across infrastructure updates.
 resource "aws_eip" "public" {
   domain               = "vpc"
   network_border_group = "eu-central-1"
