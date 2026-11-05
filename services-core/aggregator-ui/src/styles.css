@@ -909,7 +909,7 @@ body {
   color: var(--muted);
 }
 
-.catalog-item-info-tooltip-action {
+.help-tooltip-action {
   display: block;
   margin-top: 4px;
   color: var(--muted);

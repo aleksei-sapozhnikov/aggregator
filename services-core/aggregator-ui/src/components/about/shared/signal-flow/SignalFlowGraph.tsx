@@ -272,16 +272,7 @@ export default function SignalFlowGraph({
                     !
                   </text>
                 </g>
-              ) : affected ? (
-                <text
-                  className="signal-flow-help-impacted-label"
-                  x={center}
-                  y={node.y + 47}
-                  textAnchor="middle"
-                >
-                  Affected by dependency
-                </text>
-              ) : (
+              ) : affected ? null : (
                 <g
                   className="signal-flow-help-checks"
                   aria-label="Passing checks"
