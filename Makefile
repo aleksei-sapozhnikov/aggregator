@@ -275,10 +275,10 @@ QA_SCAN_SECRETS ?= true
 QA_SECRETS_ARGS = $(if $(filter false,$(QA_SCAN_SECRETS)),--skip-secrets,)
 
 qa-format:
-	python tools/code_qa/src/main.py qa-format $(QA_SECRETS_ARGS) $(QA_MODULE_ARGS)
+	python tools/code_qa/src/main.py qa-format $(strip $(QA_SECRETS_ARGS) $(QA_MODULE_ARGS))
 
 qa-check:
-	python tools/code_qa/src/main.py qa-check $(QA_SECRETS_ARGS) $(QA_MODULE_ARGS)
+	python tools/code_qa/src/main.py qa-check $(strip $(QA_SECRETS_ARGS) $(QA_MODULE_ARGS))
 
 deps-audit:
 	python tools/dependency_audit/src/check_npm.py
