@@ -6,11 +6,16 @@ manage the serving Compose instance or application image releases.
 | Role     | Responsibility                                                                 |
 | -------- | ------------------------------------------------------------------------------ |
 | `common` | System packages and SSM Agent                                                  |
-| `k3s`    | Pinned single-node K3s, bundled Traefik/ServiceLB, Kubernetes API readiness    |
+| `k3s`    | Pinned single-node K3s, Traefik HTTPS/ACME, ServiceLB, API readiness    |
 | `argocd` | Pinned Argo CD install, server rollout and local-only UI forwarding            |
 | `gitops` | `aggregator-demo` Application pointing at `deploy/demo-gitops:deploy/k8s-live` |
 
 Versions live in [group_vars/all.yml](group_vars/all.yml).
+Traefik is configured using the K3s-packaged `HelmChartConfig`
+[`traefik-config.yaml`](roles/k3s/files/traefik-config.yaml).
+The file is copied to the K3s manifest directory through SSM/Ansible;
+its certificate storage uses a local-path PVC. Let's Encrypt HTTP-01
+validation requires the public domain to reach this node on port 80.
 
 ## How configuration runs
 
