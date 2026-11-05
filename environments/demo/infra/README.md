@@ -51,7 +51,6 @@ pipeline calculates a **fresh** infrastructure plan. Promoting only files
 under `environments/shared/` does not trigger a demo plan. Do not retry an
 old saved plan after a partial apply failure.
 
-
 The existing Elastic IP allocation is protected. The association starts on
 the legacy Compose instance; `eip_target_k3s=false` is the default.
 The switch changes only `aws_eip_association.public` within
