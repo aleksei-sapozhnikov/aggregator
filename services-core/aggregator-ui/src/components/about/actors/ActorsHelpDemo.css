@@ -12,52 +12,6 @@
   align-self: center;
 }
 
-.actors-help-machine,
-.actors-help-person {
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.actors-help-demo.is-illustrating .actors-help-gear {
-  animation: actors-help-rotate 3s linear infinite;
-}
-
-.actors-help-demo.is-illustrating .actors-help-light {
-  animation: actors-help-blink 1s ease-in-out infinite;
-}
-
-/* Exaggerate gestures so each tool stays animated at small modal sizes.
-   Local fill boxes keep the pivot on the tool, not the full SVG canvas. */
-.actors-help-demo.is-illustrating
-  .actors-help-person-owner
-  .actors-help-wrench {
-  transform-box: fill-box;
-  transform-origin: 50% 75%;
-  animation: actors-help-wrench-turn 0.85s ease-in-out infinite alternate;
-}
-
-@keyframes actors-help-rotate {
-  to {
-    transform: translate(88px, 111px) rotate(360deg);
-  }
-}
-
-@keyframes actors-help-blink {
-  50% {
-    opacity: 0.12;
-  }
-}
-
-
-
-
-
-@keyframes actors-help-wrench-turn {
-  to {
-    transform: rotate(38deg) translate(3px, -4px);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .actors-help-demo * {
     animation: none !important;
