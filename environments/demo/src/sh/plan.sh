@@ -18,7 +18,7 @@ else
   echo "has_changes=false" >> "$GITHUB_OUTPUT"
 fi
 # Deny deletion/replacement of the live K3s instance and any creation or
-# deletion of the EIP or its existing association. Moved state is a no-op.
+# deletion of the EIP or its existing association.
 unsafe="$(tofu show -json "$RUNNER_TEMP/demo.tfplan" | jq -r '
   .resource_changes[]?
   | select(
@@ -27,8 +27,7 @@ unsafe="$(tofu show -json "$RUNNER_TEMP/demo.tfplan" | jq -r '
       or (
         (.address == "aws_eip.public"
          or .address == "aws_eip_association.public"
-         or .address == "module.aggregator_demo.aws_eip.public"
-         or .address == "module.aggregator_demo.aws_eip_association.public")
+)
         and any(.change.actions[]?; . == "create" or . == "delete")
       )
     )
