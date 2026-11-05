@@ -23,17 +23,10 @@ class K3sSingleRuntimeTests(unittest.TestCase):
         )
         self.assertNotIn('source = "./modules/ec2_legacy"', source)
 
-    def test_no_k3s_or_eip_routing_flags(self) -> None:
-        infra = (INFRA / "variables.tf").read_text(encoding="utf-8")
-        flow = (ROOT / ".github/workflows/demo-infra.yml").read_text(encoding="utf-8")
-        for flag in (
-            "eip_target_k3s",
-            "EIP_TARGET_K3S",
-            "enable_k3s_node",
-            "ENABLE_K3S_NODE",
-            "ENABLE_BEDROCK",
-        ):
-            self.assertNotIn(flag, infra + flow)
+    def test_k3s_is_unconditional(self) -> None:
+        source = (INFRA / "main.tf").read_text(encoding="utf-8")
+        self.assertIn('module "aggregator_demo_k3s" {', source)
+        self.assertNotIn("count =", source)
 
     def test_protected_resources_cannot_be_destroyed_by_plan(self) -> None:
         script = (ROOT / "environments/demo/src/sh/plan.sh").read_text(encoding="utf-8")
@@ -53,5 +46,5 @@ class K3sSingleRuntimeTests(unittest.TestCase):
         self.assertNotIn("RetireLegacyDemoDeployDocument", ssm)
 
 
-if __name__/ == "__main__":
+if __name__ == "__main__":
     unittest.main()
