@@ -35,13 +35,6 @@ def build_images(revision: str) -> list[dict[str, str]]:
     return images
 
 
-def compose_exports(images: list[dict[str, str]]) -> str:
-    return "\n".join(
-        f"export IMAGE_TAG_{image['service'].upper().replace('-', '_')}={image['tag']}"
-        for image in images
-    )
-
-
 def update_kustomization(content: str, images: list[dict[str, str]]) -> str:
     expected = {image["service"]: image["tag"] for image in images}
     matched = set()
@@ -90,7 +83,7 @@ def plan_missing(images: list[dict[str, str]], owner: str) -> list[dict[str, str
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "command", choices=["plan", "compose-env", "update-kustomization", "list"]
+        "command", choices=["plan", "update-kustomization", "list"]
     )
     parser.add_argument("--revision", default="HEAD")
     parser.add_argument("--manifest", type=Path)
@@ -98,8 +91,6 @@ def main() -> None:
     images = build_images(args.revision)
     if args.command == "list":
         print(json.dumps(images))
-    elif args.command == "compose-env":
-        print(compose_exports(images))
     elif args.command == "update-kustomization":
         if not args.manifest:
             parser.error("--manifest is required")

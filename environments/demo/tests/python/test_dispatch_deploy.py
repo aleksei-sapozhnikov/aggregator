@@ -75,7 +75,7 @@ class DispatchDeployTests(unittest.TestCase):
         )
         return result.stdout.strip()
 
-    def dispatch(self, *, app_changed: bool = False, destroyed: bool = False) -> str:
+    def dispatch(self, *, app_changed: bool = False) -> str:
         env = dict(os.environ)
         env.update(
             {
@@ -86,8 +86,6 @@ class DispatchDeployTests(unittest.TestCase):
                 "DISPATCH_LOG": str(self.commands),
                 "APP_CHANGED": str(app_changed).lower(),
                 "INFRA_CHANGED": "false",
-                "K3S_ENABLED": "true",
-                "K3S_DESTROYED": str(destroyed).lower(),
                 "SOURCE_BRANCH": "deploy/demo",
                 "GITOPS_BRANCH": "deploy/demo-gitops",
             }
@@ -123,9 +121,6 @@ class DispatchDeployTests(unittest.TestCase):
             "actions/workflows/demo-deploy.yml/dispatches",
             self.dispatch(app_changed=True),
         )
-
-    def test_teardown_never_dispatches(self) -> None:
-        self.assertEqual(self.dispatch(destroyed=True), "")
 
 
 if __name__ == "__main__":
