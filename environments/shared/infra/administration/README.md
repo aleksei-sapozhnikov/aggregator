@@ -29,9 +29,9 @@ buckets without a separate, deliberate plan.
 
 ## Demo GitHub roles
 
-| Role | GitHub Environment | Purpose |
-| --- | --- | --- |
-| `AggregatorDemoInfraPlanGithub` | `demo-infra-plan` | Read-only planning and private plan upload |
+| Role                             | GitHub Environment | Purpose                                                                            |
+| -------------------------------- | ------------------ | ---------------------------------------------------------------------------------- |
+| `AggregatorDemoInfraPlanGithub`  | `demo-infra-plan`  | Read-only planning and private plan upload                                         |
 | `AggregatorDemoInfraApplyGithub` | `demo-infra-apply` | Reviewed infrastructure changes, K3s SSM configuration and password reconciliation |
 
 GitHub OIDC trust uses Environment subjects; restrict the two GitHub
