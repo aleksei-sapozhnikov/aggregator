@@ -1,4 +1,4 @@
-# Public endpoint and K3s instance. No legacy Compose resources remain.
+# Public endpoint and K3s instance.
 output "elastic_ip_allocation_id" {
   description = "Protected public demo Elastic IP allocation."
   value       = aws_eip.public.allocation_id
