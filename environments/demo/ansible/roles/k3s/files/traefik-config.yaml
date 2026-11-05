@@ -1,0 +1,32 @@
+---
+# K3s packaged Traefik is customized through its HelmChartConfig.
+# ACME HTTP-01 will only succeed once the public Elastic IP points at K3s.
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: traefik
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    ports:
+      web:
+        http:
+          redirections:
+            entryPoint:
+              to: websecure
+              scheme: https
+              permanent: true
+    additionalArguments:
+      - "--certificatesresolvers.letsencrypt.acme.email=aleksei.sapozhnikov@gmail.com"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/data/acme.json"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+    # Keep ACME account and certificates across Traefik restarts.
+    persistence:
+      enabled: true
+      name: data
+      path: /data
+      size: 128Mi
+      storageClass: local-path
+    podSecurityContext:
+      fsGroup: 65532
+      fsGroupChangePolicy: OnRootMismatch
