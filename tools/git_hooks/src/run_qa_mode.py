@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import importlib
 import sys
 from pathlib import Path
 
@@ -15,7 +16,8 @@ def main() -> int:
 
     root = Path(__file__).resolve().parents[3]
     sys.path.insert(0, str(root / "tools"))
-    from code_qa.src.core import cli
+    # Load after adding the repository-local tools directory to sys.path.
+    cli = importlib.import_module("code_qa.src.core.cli")
 
     if args.mode == "check":
         return cli.run_check_command()
