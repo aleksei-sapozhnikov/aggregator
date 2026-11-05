@@ -187,6 +187,7 @@ For architecture and operations:
 - [Development and checks](docs/development.md)
 - [Local Compose environments](deploy/compose/README.md)
 - [Hosted demo and release workflow](environments/demo/README.md)
+- [Private Argo CD dashboard access](environments/demo/README.md#open-the-private-argo-cd-dashboard)
 - [K3s GitOps deployment](deploy/kubernetes/README.md)
 - [Project infrastructure ownership](environments/shared/README.md)
 - [Publisher — publication automation](tools/publisher/README.md)
