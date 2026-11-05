@@ -20,8 +20,7 @@ make qa-check MODULE=demo QA_SCAN_SECRETS=false
 - Module names after the target are positional selectors; `MODULE=...` is
   supported for CI. Without a selector, all modules are checked.
 - A repository-wide secrets scan is included unless
-  `QA_SCAN_SECRETS=false` is explicitly set. CI scans secrets once in
-  the separate `qa-check MODULE=repository` job.
+  `QA_SCAN_SECRETS=false` is explicitly set. CI runs a separate secrets-only check through its internal adapter.
 
 `code-qa` is **a module name**, not a separate QA command. The Python
 orchestrator and small internal Git hook adapters remain implementation
