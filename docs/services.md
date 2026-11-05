@@ -55,7 +55,8 @@ sequenceDiagram
 
 ## Detailed service topology
 
-This is the runtime topology of the demo stack. Caddy is the entry point.
+This is the runtime topology of the public K3s demo. Traefik terminates TLS
+and forwards requests to the Caddy server in the UI container.
 The user-facing web interface is provided by `aggregator-ui`, while `catalog`
 serves the file-backed catalog definitions, `aggregator` calculates item health, and the optional `ai-agent` handles
 natural-language health questions.
@@ -67,7 +68,8 @@ produces changing health data.
 
 ```mermaid
 flowchart TB
-  browser["User Browser"] --> proxy["Caddy<br>reverse proxy"]
+  browser["User Browser"] --> ingress["Traefik<br>HTTPS Ingress"]
+  ingress --> proxy["UI Caddy<br>static files and API proxy"]
 
   subgraph core["Core application"]
     ui["aggregator-ui"]

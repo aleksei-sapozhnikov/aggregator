@@ -3,15 +3,9 @@
 # Compares the desired release snapshot with the published GitOps branch.
 # Dispatches if sources changed, the release is missing, or manifests drifted.
 # Requires GH_TOKEN, APP_CHANGED, and GitHub Actions repository context.
-# K3S_ENABLED (from the reviewed plan) suppresses initial K3s deployment
-# after an intentional teardown, without blocking application code updates.
-# K3S_DESTROYED stops all automatic application deployments in a teardown run.
+# The K3s infrastructure is always enabled and the public EIP is protected.
 
 set -euo pipefail
-if [[ "$K3S_DESTROYED" == true ]]; then
-  echo "K3s was destroyed by this plan; not dispatching application deployment during teardown." >> "$GITHUB_STEP_SUMMARY"
-  exit 0
-fi
 
 # Read the independent GitOps branch, not the force-pushable source branch.
 gitops_branch="${GITOPS_BRANCH:-deploy/demo-gitops}"
@@ -27,12 +21,7 @@ if ! git cat-file -e FETCH_HEAD:deploy/k8s-live/kustomization.yaml 2>/dev/null; 
 fi
 release_outdated=false
 if [[ "$APP_CHANGED" != true ]]; then
-  if [[ "$release_missing" == true ]]; then
-    if [[ "$K3S_ENABLED" == false ]]; then
-      echo "K3s is disabled and no application code changed; skipping initial K3s deployment." >> "$GITHUB_STEP_SUMMARY"
-      exit 0
-    fi
-  else
+  if [[ "$release_missing" == false ]]; then
     # Compare the whole published snapshot, including image tags derived from
     # the current Git trees. Merely finding a kustomization.yaml is insufficient
     # when an earlier deployment failed before GitOps publication.
@@ -56,7 +45,7 @@ if [[ "$APP_CHANGED" != true ]]; then
   fi
 fi
 
-# All builds, Compose deploys and K3s release promotion stay in demo-deploy.
+# Image publishing and K3s release promotion stay in demo-deploy.
 gh api --method POST "repos/${GITHUB_REPOSITORY}/actions/workflows/demo-deploy.yml/dispatches" -f "ref=$source_branch"
 echo "Requested demo-deploy after infrastructure stage (infra changed: $INFRA_CHANGED, app changed: $APP_CHANGED, initial release missing: $release_missing, GitOps snapshot outdated: $release_outdated)." >> "$GITHUB_STEP_SUMMARY"
 echo "The dispatched workflow reports application deployment success separately." >> "$GITHUB_STEP_SUMMARY"

@@ -11,11 +11,7 @@ set -euo pipefail
   echo "Commit: \`$GITHUB_SHA\`"
   echo
   echo "### What happens after approval"
-  if [[ "${EIP_TARGET_K3S:-false}" == true ]]; then
-    echo "- **Elastic IP cutover:** K3s is the requested live target. Verify the saved plan changes only the intended association and that the legacy instance is preserved."
-  else
-    echo "- **Elastic IP target:** Keep the existing Compose instance. No migration is authorized by this setting."
-  fi
+  echo "- **Public demo:** K3s is the only serving EC2. The existing EIP allocation and K3s instance must be preserved."
   if [[ "$TERRAFORM_CHANGED" == true ]]; then
     echo "- **Terraform:** Apply the exact saved plan displayed below."
   else

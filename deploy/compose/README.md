@@ -1,49 +1,35 @@
-# Docker Compose environments
+# Docker Compose for local development
 
-Compose defines the local development stack and the hosted Docker Compose demo.
-It connects the catalog, health aggregator, web UI, optional AI agent,
-Prometheus, and Grafana. Demo environments additionally run dummy services
-and the [failure simulator](../../services/chaos-maker/README.md).
+Compose provides the local catalog, Aggregator, UI, optional AI agent,
+Prometheus, Grafana, and sample services.
 
 ## Start locally
 
-From the repository root, with Docker or Podman and Compose installed:
+Run from the repository root with Docker or Podman and Compose installed:
 
 ```sh
-make up                       # Full local demo (default)
-make up ENV=local             # Core services without demo failures
-make down                     # Stop and keep data volumes
+make up
+make up ENV=local
+make down
 ```
 
-Open `http://localhost:3000`. Other development ports, AI credentials,
-service rebuilds, and equivalent direct Compose commands are documented in
-[Running locally](../../docs/running-locally.md). Use the repository
-`Makefile` to select a supported combination; individual Compose fragments
-are not complete, standalone deployments.
+`local-demo` is the default full-stack environment with dummy services and
+chaos-maker. `local` starts the core services without the demo failure
+simulation. Open `http://localhost:3000` after startup.
 
-## Hosted demo
+The fragments in this directory are composed by the root `Makefile`; do not
+treat an individual fragment as a complete deployment. See
+[Running locally](../../docs/running-locally.md) for ports, credentials,
+rebuild commands, and direct Compose equivalents.
 
-`ENV=demo` consumes published GHCR images rather than building on the EC2
-instance. Releases are normally delivered by
-[Demo deploy](../../environments/demo/README.md) through GitHub Actions and
-AWS SSM. The serving host uses `make deploy ENV=demo` with image
-references derived from the approved source revision. Do not manually
-invent `IMAGE_TAG` values; individual services have content-based tags.
+## Configuration
 
-The `demo` Compose setup also configures the public Caddy proxy.
-K3s GitOps is a **separate** deployment, described in
-[Kubernetes](../kubernetes/README.md).
+- The tracked root `.env` holds non-secret project settings, including
+  `PROJECT_VERSION`.
+- Local overlays expose development ports; do not use them for public hosting.
+- `APP_TITLE` and `TIMELINE_DEFAULT_RANGE` are public UI configuration keys.
+- The base AI agent remains disabled until the selected local overlay enables it.
+- `make down` preserves named volumes; `make clean` removes them.
 
-## Configuration boundaries
-
-- The root `.env` supplies non-secret project settings such as
-  `PROJECT_VERSION`; do not put keys or AWS credentials in this tracked file.
-- Local overlays publish debugging and development ports. The hosted demo
-  uses its own networking and image settings.
-- `APP_TITLE` and `TIMELINE_DEFAULT_RANGE` are published in the UI's
-  `/config.json`; never put secrets there.
-- The base AI agent is disabled unless enabled by an environment-specific
-  configuration. See [local AI setup](../../docs/running-locally.md#optional-ai-agent).
-- Named Prometheus and Grafana volumes survive `make down` but are deleted
-  by `make clean`. Do not run destructive clean commands against a hosted
-  environment without reviewing the data loss.
+The public hosted demo runs on K3s, not Compose. Its infrastructure and
+GitOps workflow are described in [Hosted demo](../../environments/demo/README.md).

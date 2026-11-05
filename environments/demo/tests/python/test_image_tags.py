@@ -10,7 +10,6 @@ from unittest.mock import patch
 from src.python.image_tags import (
     SERVICES,
     build_images,
-    compose_exports,
     plan_missing,
     update_kustomization,
 )
@@ -75,27 +74,6 @@ class ImageTagsTests(unittest.TestCase):
         )
         with self.assertRaises(ValueError):
             update_kustomization(invalid, images)
-
-    def test_compose_exports_use_distinct_service_variables(self):
-        images = [{"service": "ai-agent", "context": "x", "tag": "a" * 40}]
-        self.assertEqual(
-            compose_exports(images), "export IMAGE_TAG_AI_AGENT=" + "a" * 40
-        )
-
-    def test_compose_image_tag_contract_matches_service_mapping(self):
-        root = Path(__file__).resolve().parents[4]
-        compose = (root / "deploy/compose/compose.images.demo.yaml").read_text(
-            encoding="utf-8"
-        )
-        for service in SERVICES:
-            variable = "IMAGE_TAG_" + service.upper().replace("-", "_")
-            expected = (
-                f"image: ghcr.io/aleksei-sapozhnikov/{service}:"
-                + "${"
-                + f"{variable}:?Missing {variable}"
-                + "}"
-            )
-            self.assertIn(expected, compose)
 
     def test_real_kustomization_contains_all_expected_images(self):
         root = Path(__file__).resolve().parents[4]

@@ -94,41 +94,6 @@ jobs:
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
 
-  deploy:
-    name: Deploy published images using SSM
-    if: >-
-      always() && github.ref == 'refs/heads/deploy/demo' &&
-      needs.plan-images.result == 'success' &&
-      (needs.build-and-publish.result == 'success' ||
-      (needs.plan-images.outputs.has_changes == 'false' && needs.build-and-publish.result == 'skipped'))
-    needs: [plan-images, build-and-publish]
-    runs-on: ubuntu-latest
-    environment: demo
-    timeout-minutes: 25
-    permissions:
-      contents: read
-      id-token: write
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-
-      - name: Configure AWS credentials with GitHub OIDC
-        # The old instance can lose SSM connectivity after its Elastic IP moves.
-        if: vars.EIP_TARGET_K3S != 'true'
-        uses: aws-actions/configure-aws-credentials@v6.3.0
-        with:
-          role-to-assume: ${{ vars.AWS_DEMO_DEPLOY_ROLE_ARN }}
-          aws-region: eu-central-1
-          role-session-name: aggregator-demo-deploy
-
-      - name: Trigger and verify deployment
-        if: vars.EIP_TARGET_K3S != 'true'
-        run: bash ./environments/demo/src/sh/dispatch-ssm.sh
-        env:
-          SSM_INSTANCE_ID: ${{ vars.SSM_INSTANCE_ID }}
-          DEPLOY_SHA: ${{ github.sha }}
-
   publish-k3s-release:
     name: Publish K3s release in demo
     if: >-

@@ -4,16 +4,16 @@
 # Usage:
 #   make up                          # ENV defaults to local-demo
 #   make up ENV=local
-#   make rebuild-recreate ENV=demo
+#   make rebuild-recreate ENV=local-demo
 #
 # Service-scoped (positional args):
 #   make down-svc caddy grafana
 #   make rebuild-svc aggregator
-#   make clean-svc ENV=demo caddy
+#   make clean-svc ENV=local-demo caddy
 # ============================================================
 
 # ---- Environment selector ----
-SUPPORTED_ENVS := local local-demo demo
+SUPPORTED_ENVS := local local-demo
 ENV ?= local-demo
 ifeq ($(filter $(ENV),$(SUPPORTED_ENVS)),)
   $(error Invalid ENV='$(ENV)'. Supported: $(SUPPORTED_ENVS))
@@ -22,28 +22,24 @@ endif
 # Compose configuration and runtime checks are needed only for Compose commands.
 # QA and help targets must also run in clean CI checkouts without .env or Docker.
 SERVICE_TARGETS := up-svc down-svc restart-svc recreate-svc rebuild-svc rebuild-recreate-svc clean-svc
-COMPOSE_TARGETS := info up down restart recreate rebuild rebuild-recreate clean pull deploy $(SERVICE_TARGETS)
+COMPOSE_TARGETS := info up down restart recreate rebuild rebuild-recreate clean $(SERVICE_TARGETS)
 
 # ---- Compose files ----
 COMPOSE_DIR := deploy/compose
 BASE := -f $(COMPOSE_DIR)/compose.yaml
 LOCAL := -f $(COMPOSE_DIR)/compose.local.yaml
 LOCAL_DEMO := -f $(COMPOSE_DIR)/compose.local-demo.yaml
-DEMO := -f $(COMPOSE_DIR)/compose.demo.yaml
 LOCAL_PORTS := -f $(COMPOSE_DIR)/compose.overlay.local-ports.yaml
 CORE_BUILD := -f $(COMPOSE_DIR)/compose.build.core.yaml
 DEMO_BUILD := -f $(COMPOSE_DIR)/compose.build.demo-services.yaml
-DEMO_IMAGES := -f $(COMPOSE_DIR)/compose.images.demo.yaml
 DEMO_SERVICES := -f $(COMPOSE_DIR)/compose.overlay.demo-services.yaml
 DEMO_SERVICES_PORTS := -f $(COMPOSE_DIR)/compose.overlay.demo-services-local-ports.yaml
 
 STACK_local := $(BASE) $(LOCAL) $(CORE_BUILD) $(LOCAL_PORTS)
 STACK_local-demo := $(BASE) $(LOCAL_DEMO) $(DEMO_SERVICES) $(CORE_BUILD) $(DEMO_BUILD) $(LOCAL_PORTS) $(DEMO_SERVICES_PORTS)
-STACK_demo := $(BASE) $(DEMO) $(DEMO_SERVICES) $(DEMO_IMAGES)
 
 PROJECT_local := aggregator-local
 PROJECT_local-demo := aggregator-local-demo
-PROJECT_demo := aggregator-demo
 
 STACK := $(STACK_$(ENV))
 PROJECT := $(PROJECT_$(ENV))
@@ -96,7 +92,7 @@ endif
 
 # ---- Chaos-maker last-start control to ensure ----
 # ---- it starts when services ready            ----
-CHAOS_LAST_ENVS := demo local-demo
+CHAOS_LAST_ENVS := local-demo
 CHAOS_SVC := chaos-maker
 CHAOS_LAST := $(filter $(ENV),$(CHAOS_LAST_ENVS))
 
@@ -107,7 +103,7 @@ export AGENT_AI_ENABLED
 export AGENT_AI_CONFIG
 
 .PHONY: help info env \
-        up down restart recreate rebuild rebuild-recreate clean pull deploy \
+        up down restart recreate rebuild rebuild-recreate clean \
         up-svc down-svc restart-svc recreate-svc rebuild-svc rebuild-recreate-svc clean-svc \
         qa-format qa-check qa-secrets deps-audit
 
@@ -120,8 +116,6 @@ help:
 	@echo ""
 	@echo "Targets:"
 	@echo "  up               -> start/update containers (no build)"
-	@echo "  pull             -> download published demo images (ENV=demo)"
-	@echo "  deploy           -> pull demo images and run without building (ENV=demo)"
 	@echo "  down             -> stop/remove containers + network (keep volumes)"
 	@echo "  restart          -> restart existing containers (no recreate)"
 	@echo "  recreate         -> force re-create containers (keep volumes)"
@@ -140,8 +134,8 @@ help:
 	@echo ""
 	@echo "Service-scoped (positional args):"
 	@echo "  make down-svc caddy grafana"
-	@echo "  make clean-svc ENV=demo caddy"
-	@echo "  make rebuild-recreate-svc ENV=demo caddy"
+	@echo "  make clean-svc ENV=local-demo caddy"
+	@echo "  make rebuild-recreate-svc ENV=local-demo caddy"
 	@echo ""
 	@echo "Defaults:"
 	@echo "  ENV=$(ENV)"
@@ -161,17 +155,6 @@ ifneq ($(CHAOS_LAST),)
 else
 	$(COMPOSE_CMD) up --detach --wait --remove-orphans
 endif
-
-# Published demo artifacts use immutable per-service Git build-context tags.
-pull: info
-	$(if $(filter demo,$(ENV)),,$(error pull requires ENV=demo))
-	$(COMPOSE_CMD) pull
-
-deploy: info
-	$(if $(filter demo,$(ENV)),,$(error deploy requires ENV=demo))
-	$(COMPOSE_CMD) pull
-	$(COMPOSE_CMD) up --detach --no-build --wait --remove-orphans --scale $(CHAOS_SVC)=0
-	$(COMPOSE_CMD) up --detach --no-build --wait --remove-orphans $(CHAOS_SVC)
 
 down: info
 	$(COMPOSE_CMD) down --remove-orphans

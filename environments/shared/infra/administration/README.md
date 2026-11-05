@@ -29,50 +29,28 @@ buckets without a separate, deliberate plan.
 
 ## Demo GitHub roles
 
-| Role                             | GitHub Environment | Allowed actions                                                                                                         |
-| -------------------------------- | ------------------ | ----------------------------------------------------------------------------------------------------------------------- |
-| `AggregatorDemoInfraPlanGithub`  | `demo-infra-plan`  | Read demo state/resources, manage its lock, conditionally upload a private plan, read the SSM configuration fingerprint |
-| `AggregatorDemoInfraApplyGithub` | `demo-infra-apply` | Approved demo apply, read exact saved plan, run K3s configuration through SSM, record successful fingerprint            |
-| `AggregatorDemoDeployGithub`     | `demo`             | Run `AggregatorDemoDeploy` SSM document on the tagged serving Compose instance and read its result                      |
+| Role | GitHub Environment | Purpose |
+| --- | --- | --- |
+| `AggregatorDemoInfraPlanGithub` | `demo-infra-plan` | Read-only planning and private plan upload |
+| `AggregatorDemoInfraApplyGithub` | `demo-infra-apply` | Reviewed infrastructure changes, K3s SSM configuration and password reconciliation |
 
-GitHub OIDC trust uses **Environment subjects**; it does not enforce branch
-restrictions. In GitHub Settings → Environments, restrict all three
-environments to `deploy/demo`. The plan environment must not require reviewers.
-The apply environment **must require reviewers** and set
-`MANUAL_APPROVAL_CONFIGURED=true` only after that protection is configured.
+GitHub OIDC trust uses Environment subjects; restrict the two GitHub
+Environments to `deploy/demo`. Only `demo-infra-apply` requires
+reviewers and `MANUAL_APPROVAL_CONFIGURED=true`. Set `AWS_ROLE_ARN` from
+the corresponding OpenTofu outputs. Use GitHub OIDC, not AWS access keys.
 
-Populate `AWS_ROLE_ARN` in each infrastructure environment from this root's
-outputs and `AWS_DEMO_DEPLOY_ROLE_ARN` in `demo`. Use OIDC, not stored AWS keys.
-The infrastructure workflow never applies this administrator root.
+The public demo runs on K3s. For the one-time retirement of the old
+Compose resources, the approved apply role has narrowly scoped permissions
+to remove the exact `AggregatorDemoEC2Role` role/profile and SSM
+`AggregatorDemoDeploy` document. These permissions can be retired in a
+subsequent IAM housekeeping change once the demo state confirms their removal.
 
-The `AggregatorDemoEC2Management` policy grants
-`ec2:ModifySecurityGroupRules` on tagged project security groups as well
-as tagged individual security group rules. The AWS API used by the OpenTofu
-`aws_vpc_security_group_ingress_rule` resource requires authorization on both
-resource types even for a description-only change. This action can also alter
-rule settings, so it is restricted to project-tagged resources and the
-approved demo infrastructure apply role.
-
-For Elastic IP cutover, AWS authorizes `DisassociateAddress` on both the
-project-tagged Elastic IP and the **source network interface**. It also
-authorizes `AssociateAddress` on the destination network interface. EC2-created
-network interfaces are not guaranteed to inherit the instance's project tags,
-so `AggregatorDemoEC2Management` separately grants those two EIP operations
-on network interfaces **only in the demo subnet**
-(`subnet-0911c2ce97b9adc80`). The EIP itself must still have the
-`Project=aggregator` tag. Do not remove the subnet condition or broaden
-these actions to unrestricted network interfaces.
-
-If an EIP association replacement fails after its plan was approved, do not
-rerun the saved binary plan. Apply the corrected IAM policy through this
-administration root, verify the current EIP association, and then generate and
-approve a **fresh** demo OpenTofu plan.
-
-**Apply IAM changes first:** with `infra-admin`, run `tofu plan` and
-`tofu apply` in this administration root. Only after that succeeds, promote
-the corresponding demo infrastructure change to `deploy/demo` and replan
-there. Do not retry a previously saved failed OpenTofu plan: the initial
-apply may have already created some resources.
+To perform that retirement safely, **apply this administration root first**
+with `infra-admin`, reviewing only expected IAM updates and the removal of
+the unused Compose deployment role/policy. Then run a fresh reviewed demo
+infrastructure plan through `deploy/demo`, confirming that the public
+Elastic IP and K3s resources are moved/no-op, not destroyed. Never reuse an
+old saved OpenTofu plan after a partial apply.
 
 ## Permission boundaries
 

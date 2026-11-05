@@ -41,18 +41,16 @@ make help
 
 ## Compose environments
 
-`Makefile` supports three environments:
+`Makefile` supports two local environments:
 
 - `local-demo` (default): full local demo with dummy services and chaos-maker.
 - `local`: core stack without demo service overlay.
-- `demo`: hosted Compose demo with public Caddy and separately tagged GHCR images; releases are orchestrated by the demo deployment workflow.
 
 Examples:
 
 ```shell
 make up ENV=local
 make rebuild-recreate ENV=local-demo
-# Hosted demo deployment is handled by the GitHub Actions + SSM workflow.
 ```
 
 ## Local ports
@@ -165,14 +163,14 @@ when `api_key` and explicit AWS credentials are omitted from
 
 ## UI runtime settings
 
-The same UI image works in every environment. At container startup,
+The same UI image works in Docker Compose and K3s. At container startup,
 `APP_TITLE` and `TIMELINE_DEFAULT_RANGE` become public `/config.json`
 settings. The local-demo title contains `PROJECT_VERSION`, and its range is
-`15m`; hosted demo uses `1d`.
+`15m`; the public K3s demo uses `1d`.
 
 For standalone `npm run dev` in `services/aggregator-ui`, Vite serves
 the same JSON endpoint using the dev server process environment.
 
-`local` and `local-demo` still build from the local Dockerfiles, while
-`demo` uses only published GHCR images. Deployment instructions are in
+`local` and `local-demo` build from local Dockerfiles. The hosted K3s
+environment uses published GHCR images and Argo CD; see
 [demo environment](../environments/demo/README.md).
