@@ -57,7 +57,9 @@ TERMINAL_STATUSES = {
     "Undeliverable",
     "Terminated",
 }
-READ_COMMAND = "/usr/local/sbin/aggregator-argocd-admin-hash read"
+# The installed helper is a non-executable Python source file.
+HASH_HELPER_COMMAND = "python3 /usr/local/sbin/aggregator-argocd-admin-hash"
+READ_COMMAND = f"{HASH_HELPER_COMMAND} read"
 
 
 def send_command(client, instance_id: str, script: str) -> str:
@@ -129,9 +131,7 @@ def reconcile() -> bool:
 
     # The only value in AWS Run Command parameters is the bcrypt verifier.
     # Restrictive regex validation ensures safe single-quote shell escaping.
-    script = (
-        f"printf '%s' '{new_hash}' | /usr/local/sbin/aggregator-argocd-admin-hash apply"
-    )
+    script = f"printf '%s' '{new_hash}' | {HASH_HELPER_COMMAND} apply"
     apply_id = send_command(client, instance_id, script)
     wait_for_invocation(client, instance_id, apply_id)
     print("Argo CD administrator password verifier updated through SSM.")
