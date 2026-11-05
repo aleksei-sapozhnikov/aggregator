@@ -82,9 +82,7 @@ def plan_missing(images: list[dict[str, str]], owner: str) -> list[dict[str, str
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "command", choices=["plan", "update-kustomization", "list"]
-    )
+    parser.add_argument("command", choices=["plan", "update-kustomization", "list"])
     parser.add_argument("--revision", default="HEAD")
     parser.add_argument("--manifest", type=Path)
     args = parser.parse_args()
