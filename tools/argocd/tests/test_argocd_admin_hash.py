@@ -27,6 +27,9 @@ def load_module():
 
 
 class ArgoCDHashTests(unittest.TestCase):
+    def test_installed_helper_has_python_shebang(self) -> None:
+        self.assertTrue(SCRIPT.read_bytes().startswith(b"#!/usr/bin/env python3\\n"))
+
     def test_read_existing_hash(self) -> None:
         module = load_module()
         response = subprocess.CompletedProcess(

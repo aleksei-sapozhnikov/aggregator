@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Read or install the Argo CD admin bcrypt hash; never accept a plaintext password.
 
 Read mode returns the current bcrypt hash to an approved SSM caller. Apply

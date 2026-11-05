@@ -53,6 +53,13 @@ def load_module():
 
 
 class PasswordSyncTests(unittest.TestCase):
+    def test_read_invocation_uses_explicit_python_interpreter(self) -> None:
+        module = load_module()
+        self.assertEqual(
+            module.READ_COMMAND,
+            "python3 /usr/local/sbin/aggregator-argocd-admin-hash read",
+        )
+
     def test_unchanged_password_does_not_send_update(self) -> None:
         module = load_module()
         existing = BCRYPT_HASH.decode("ascii")
@@ -99,6 +106,7 @@ class PasswordSyncTests(unittest.TestCase):
             self.assertTrue(module.reconcile())
         script = send.call_args_list[-1].args[-1]
         self.assertIn(BCRYPT_HASH.decode("ascii"), script)
+        self.assertIn("python3 /usr/local/sbin/aggregator-argocd-admin-hash apply", script)
         self.assertNotIn("example-strong-password", script)
         self.assertEqual(send.call_count, 2)
 
