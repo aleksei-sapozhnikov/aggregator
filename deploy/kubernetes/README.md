@@ -74,6 +74,39 @@ Metrics Server must be ready for `kubectl top`. The relevant SSM log group
 is `/aws/ssm/aggregator-demo-k3s`. For a private Argo CD dashboard
 tunnel, see [Ansible](../../environments/demo/ansible/README.md).
 
+## Deployment rollouts
+
+The GitHub Actions workflow builds and publishes container images before
+publishing the GitOps manifests. Argo CD then reconciles the Deployment updates.
+
+Catalog, Aggregator, UI, and AI agent use a one-at-a-time `RollingUpdate`
+with `maxSurge: 1`, `maxUnavailable: 0`, and a five-second minimum
+readiness window. Their old Pod stays available while the replacement
+starts and passes its HTTP readiness probe. The Aggregator exposes a
+Spring Boot readiness endpoint at `/actuator/health/readiness`; the
+other three use their existing health/configuration endpoints.
+
+The dummy services, chaos-maker, Prometheus, and Grafana retain `Recreate`:
+dummy state and chaos scheduling are held in memory, and the monitoring
+services use single-writer local-path PVC data. This is not a
+whole-stack zero-downtime deployment. Updates to multiple services can
+briefly mix application versions, and existing HTTP requests may still be
+interrupted during shutdown. K3s runs on one EC2 node, so there must
+be enough free memory to run the old and new Pod together. If not, the
+rollout waits without intentionally killing the existing ready Pod.
+
+To verify a rollout through an authorized SSM session:
+
+```sh
+sudo k3s kubectl -n aggregator rollout status deployment/aggregator --timeout=300s
+sudo k3s kubectl -n aggregator rollout status deployment/aggregator-ui --timeout=300s
+sudo k3s kubectl -n aggregator get deploy,pods
+```
+
+Check that the desired deployments have `1/1` available after the release
+and that Argo CD is Synced/Healthy. A failed readiness check prevents the
+new Pod from being counted as available; inspect rollout events and logs.
+
 ## Rollback and limits
 
 To roll back the application, **revert the published release commit**
