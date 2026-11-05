@@ -32,7 +32,6 @@ Publisher's `resources` OpenTofu root requires the Lambda archive for
 ignored local artifact using `python tools/publisher/publisher.py build`
 before validation; it does not deploy or access AWS.
 
-
 ## Scope and safety
 
 Module definitions own tool choices and test commands. Nested parts
