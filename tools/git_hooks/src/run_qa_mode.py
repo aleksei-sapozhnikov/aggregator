@@ -12,7 +12,6 @@ import sys
 from pathlib import Path
 
 
-
 def main() -> int:
     parser = argparse.ArgumentParser(description="Internal Git hook QA actions.")
     parser.add_argument("mode", choices=("check", "format", "secrets"))
