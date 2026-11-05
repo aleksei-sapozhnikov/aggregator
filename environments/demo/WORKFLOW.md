@@ -40,9 +40,9 @@ certificate readiness. Verify the GitOps release and public HTTPS.
 
 ## GitHub Environments
 
-| Environment | Settings | Protection |
-| --- | --- | --- |
-| `demo-infra-plan` | `AWS_ROLE_ARN` | Restrict to `deploy/demo`; no reviewers |
+| Environment        | Settings                                                                    | Protection                                    |
+| ------------------ | --------------------------------------------------------------------------- | --------------------------------------------- |
+| `demo-infra-plan`  | `AWS_ROLE_ARN`                                                              | Restrict to `deploy/demo`; no reviewers       |
 | `demo-infra-apply` | `AWS_ROLE_ARN`, secret `ARGOCD_PASSWORD`, `MANUAL_APPROVAL_CONFIGURED=true` | Restrict to `deploy/demo`; required reviewers |
 
 K3s is always enabled and always owns the protected public Elastic IP.

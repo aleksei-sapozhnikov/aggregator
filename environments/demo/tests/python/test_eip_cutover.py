@@ -42,9 +42,7 @@ class K3sSingleRuntimeTests(unittest.TestCase):
             self.assertNotIn(flag, infra + flow)
 
     def test_protected_resources_cannot_be_destroyed_by_plan(self) -> None:
-        script = (ROOT / "environments/demo/src/sh/plan.sh").read_text(
-            encoding="utf-8"
-        )
+        script = (ROOT / "environments/demo/src/sh/plan.sh").read_text(encoding="utf-8")
         self.assertIn("module.aggregator_demo_k3s", script)
         self.assertIn("aws_eip.public", script)
         self.assertIn("aws_eip_association.public", script)
@@ -56,9 +54,7 @@ class K3sSingleRuntimeTests(unittest.TestCase):
     def test_legacy_iam_cleanup_grants_are_scoped(self) -> None:
         policies = ROOT / "environments/shared/infra/administration/policies"
         iam = json.loads(
-            (policies / "AggregatorDemoIAMManagement.json").read_text(
-                encoding="utf-8"
-            )
+            (policies / "AggregatorDemoIAMManagement.json").read_text(encoding="utf-8")
         )
         sid = {item["Sid"]: item for item in iam["Statement"]}
         self.assertEqual(
