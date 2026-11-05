@@ -17,6 +17,7 @@ import {
 } from "../demoData";
 import HelpAnimationProgress from "../HelpAnimationProgress";
 import HelpInteractionShield from "../HelpInteractionShield";
+import HelpAnimationCanvas from "../HelpAnimationCanvas";
 import SignalFlowGraph, { type FlowNodeId } from "./SignalFlowGraph";
 import "./SignalFlowHelpScene.css";
 
@@ -91,16 +92,17 @@ export default function SignalFlowHelpScene({
   ) as SignalFlowTargets;
 
   return (
-    <figure
+    <HelpAnimationCanvas
       className={
         "signal-flow-help" +
         (unhealthy ? " is-unhealthy-demo" : " is-healthy-demo")
       }
-      aria-label={
+      ariaLabel={
         unhealthy
           ? "Unhealthy dependency propagation example"
           : "Healthy dependency signals example"
       }
+      maxWidth={660}
     >
       <HelpAnimationProgress progress={elapsed / cycleDuration} />
       <HelpScene
@@ -166,6 +168,6 @@ export default function SignalFlowHelpScene({
         </SignalFlowGraph>
       </HelpScene>
       <HelpInteractionShield />
-    </figure>
+    </HelpAnimationCanvas>
   );
 }

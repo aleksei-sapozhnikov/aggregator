@@ -1,0 +1,24 @@
+/* Avoid filling the modal with an oversized, mostly empty scene frame. */
+.help-animation-canvas {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  align-self: center;
+  box-sizing: border-box;
+  width: min(100%, var(--help-animation-max-width));
+  min-width: 0;
+  margin: 0;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  overflow: hidden;
+}
+
+@media (max-width: 540px) {
+  .help-animation-canvas {
+    padding: 5px;
+  }
+}

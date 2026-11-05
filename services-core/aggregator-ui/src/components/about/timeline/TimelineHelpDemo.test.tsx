@@ -11,6 +11,7 @@ import {
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import TimelineHelpDemo, { getInspectCursorRow } from "./TimelineHelpDemo";
+import { getTimelineCursorTravel } from "./GrafanaTimelineIllustration";
 
 beforeEach(() => vi.useFakeTimers());
 afterEach(() => {
@@ -21,13 +22,17 @@ afterEach(() => {
 const advance = (ms: number) => act(() => vi.advanceTimersByTime(ms));
 
 describe("Timeline help walkthrough", () => {
-  it("uses the production timeline wrapper and an isolated Grafana illustration without an iframe", () => {
+  it("shows only the Grafana chart without a duplicate Timeline disclosure or iframe", () => {
     const { container } = render(<TimelineHelpDemo />);
     expect(
       container.querySelector(
-        ".details-timeline-body .grafana-grid .grafana-panel .grafana-timeline-illustration",
+        ".timeline-help-chart-layer > .grafana-timeline-illustration",
       ),
     ).not.toBeNull();
+    expect(container.querySelector(".details-timeline-body")).toBeNull();
+    expect(
+      container.querySelector(".timeline-help-content .details-disclosure-header"),
+    ).toBeNull();
     expect(container.querySelector("iframe")).toBeNull();
     const preview = screen.getByLabelText("Example Timeline");
     expect(
@@ -57,6 +62,16 @@ describe("Timeline help walkthrough", () => {
     }
     expect(preview.querySelector(".help-item-page")).not.toBeNull();
   });
+  it("frames just the illustration while keeping the scenarios outside the canvas", () => {
+    const { container } = render(<TimelineHelpDemo />);
+    const preview = screen.getByLabelText("Example Timeline");
+    expect(preview.classList.contains("help-animation-canvas")).toBe(true);
+    expect(preview.getAttribute("style")).toContain("840px");
+    expect(preview.querySelector(".grafana-timeline-illustration")).not.toBeNull();
+    expect(preview.querySelector(".details-timeline-section")).toBeNull();
+    expect(container.querySelector(".timeline-help-scenarios")).not.toBeNull();
+  });
+
   it("shows the animation directly below scenario buttons without redundant descriptions", () => {
     const { container } = render(<TimelineHelpDemo />);
     const navigation = screen.getByRole("navigation", {
@@ -111,6 +126,57 @@ describe("Timeline help walkthrough", () => {
       expect(bar.getAttribute("aria-valuenow")).toBe("0");
     },
   );
+
+  it.each([
+    ["Inspect a moment", "inspect", 8500],
+    ["Switch signal groups", "filter", 12000],
+    ["Open a dependency", "navigate", 13000],
+  ] as const)(
+    "starts and ends the %s cursor above the interaction area",
+    (button, scenario, duration) => {
+      render(<TimelineHelpDemo />);
+      fireEvent.click(screen.getByRole("button", { name: button }));
+      const preview = screen.getByLabelText("Example Timeline");
+      const cursor = () =>
+        preview.querySelector(".timeline-help-cursor") as SVGElement;
+      expect(getTimelineCursorTravel(scenario, 0)).toBe(0);
+      expect(cursor().style.top).toBe(
+        scenario === "filter" ? "14px" : "-98px",
+      );
+      expect(cursor().style.left).toBe(
+        scenario === "filter" ? "calc(100% - 160px)" : "67%",
+      );
+
+      advance(900);
+      expect(getTimelineCursorTravel(scenario, 900)).toBe(1);
+      expect(cursor().style.top).not.toBe(
+        scenario === "filter" ? "14px" : "-98px",
+      );
+
+      advance(duration - 960);
+      expect(getTimelineCursorTravel(scenario, duration - 60)).toBe(0);
+      expect(cursor().style.top).toBe(
+        scenario === "filter" ? "14px" : "-98px",
+      );
+      advance(60);
+      expect(cursor().style.top).toBe(
+        scenario === "filter" ? "14px" : "-98px",
+      );
+    },
+  );
+
+  it("moves the Timeline cursor smoothly between 100ms ticks", () => {
+    render(<TimelineHelpDemo />);
+    const cursor = screen
+      .getByLabelText("Example Timeline")
+      .querySelector(
+        ".timeline-help-tracks > .timeline-help-cursor",
+      ) as SVGElement;
+    advance(1520);
+    const before = cursor.style.left;
+    advance(20);
+    expect(cursor.style.left).not.toBe(before);
+  });
 
   it("uses a one-week range rather than the old fifteen-minute sample", () => {
     render(<TimelineHelpDemo />);
@@ -264,6 +330,44 @@ describe("Timeline help walkthrough", () => {
     ).toBe("50%");
   });
 
+  it("moves the blue frame to the Item for two seconds, then returns", () => {
+    render(<TimelineHelpDemo />);
+    fireEvent.click(screen.getByRole("button", { name: "Open a dependency" }));
+    const preview = screen.getByLabelText("Example Timeline");
+    const frame = preview.querySelector(
+      "[data-timeline-dependency-highlight]",
+    ) as HTMLElement;
+    const chart = preview.querySelector(".timeline-help-chart-layer") as HTMLElement;
+    const item = preview.querySelector(".timeline-help-opened-item") as HTMLElement;
+    expect(frame.style.opacity).toBe("0");
+
+    advance(6600);
+    expect(frame.style.opacity).toBe("1");
+    expect(chart.style.opacity).toBe("1");
+    expect(item.style.opacity).toBe("0");
+    expect(within(preview).getByLabelText("Dependency signal details")).not.toBeNull();
+
+    advance(1200);
+    expect(Number(item.style.opacity)).toBeGreaterThan(0);
+    expect(Number(item.style.opacity)).toBeLessThan(1);
+    advance(400);
+    expect(item.style.opacity).toBe("1");
+    expect(chart.style.opacity).toBe("0");
+    const destinationX = frame.style.left;
+    advance(2000);
+    expect(item.style.opacity).toBe("1");
+    expect(frame.style.left).toBe(destinationX);
+
+    advance(450);
+    expect(Number(item.style.opacity)).toBeGreaterThan(0);
+    expect(Number(item.style.opacity)).toBeLessThan(1);
+    advance(450);
+    expect(item.style.opacity).toBe("0");
+    expect(chart.style.opacity).toBe("1");
+    advance(1500);
+    expect(frame.style.opacity).toBe("0");
+  });
+
   it("renders the destination Item with Timeline collapsed", () => {
     render(<TimelineHelpDemo />);
     fireEvent.click(screen.getByRole("button", { name: "Open a dependency" }));
@@ -312,18 +416,16 @@ describe("Timeline help walkthrough", () => {
       within(preview).queryByLabelText("Available signal groups"),
     ).toBeNull();
     expect(rowCount()).toBe(3);
-    expect(
-      preview.querySelectorAll(".timeline-help-track.is-highlighted"),
-    ).toHaveLength(2);
+    expect(preview.querySelectorAll(".timeline-help-track")).toHaveLength(3);
+    expect(preview.querySelector(".timeline-help-track.is-highlighted")).toBeNull();
     advance(2900);
     expect(
       within(preview).getByLabelText("Available signal groups"),
     ).not.toBeNull();
     advance(700);
     expect(rowCount()).toBe(4);
-    expect(
-      preview.querySelectorAll(".timeline-help-track.is-highlighted"),
-    ).toHaveLength(3);
+    expect(preview.querySelectorAll(".timeline-help-track")).toHaveLength(4);
+    expect(preview.querySelector(".timeline-help-track.is-highlighted")).toBeNull();
     expect(
       within(preview).getByText("[Overall] Orders Service"),
     ).not.toBeNull();

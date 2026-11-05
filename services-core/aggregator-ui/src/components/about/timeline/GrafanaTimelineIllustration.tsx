@@ -1,3 +1,4 @@
+import { progressBetween, smooth } from "../shared/signal-flow/progress";
 import "./GrafanaTimelineIllustration.css";
 
 // Grafana owns this chart, its filter menu, time range and popups inside an iframe.
@@ -74,6 +75,43 @@ const isFilterMenuOpen = (time: number): boolean =>
 const lerp = (start: number, end: number, fraction: number) =>
   start + (end - start) * Math.max(0, Math.min(1, fraction));
 
+// Start and finish each walkthrough in the empty chart header area.
+export function getTimelineCursorTravel(scenario: Scenario, time: number) {
+  const exit: Record<Scenario, [number, number]> = {
+    inspect: [7800, 8380],
+    filter: [10800, 11880],
+    navigate: [11200, 12880],
+  };
+  return (
+    smooth(progressBetween(time, 0, 850)) *
+    (1 - smooth(progressBetween(time, ...exit[scenario])))
+  );
+}
+
+function positionedChartCursor(left: string, top: string, travel: number) {
+  if (travel >= 1) return { left, top };
+  return {
+    left: lerp(67, Number.parseFloat(left), travel) + "%",
+    top: lerp(-98, Number.parseFloat(top), travel) + "px",
+  };
+}
+
+function positionedSelectorCursor(top: string, travel: number) {
+  if (travel >= 1) return { left: "172px", top };
+  const percentage = 100 * (1 - travel);
+  const offset = 172 * travel - 160 * (1 - travel);
+  return {
+    left:
+      "calc(" +
+      percentage +
+      "% " +
+      (offset < 0 ? "- " : "+ ") +
+      Math.abs(offset) +
+      "px)",
+    top: lerp(14, Number.parseFloat(top), travel) + "px",
+  };
+}
+
 // In the inspect scenario, the pointer visits every visible signal row.
 // Match the 26px track height and 7px gap in TimelineHelpDemo.css.
 const inspectCursorStart = 3000;
@@ -87,7 +125,7 @@ export function getInspectCursorRow(time: number): number {
   );
   const row = Math.min(lastRow - 1, Math.floor(progress));
   const movement = Math.min(1, (progress - row) / 0.66);
-  const eased = movement * movement * (3 - 2 * movement);
+  const eased = smooth(movement);
   return row + eased;
 }
 
@@ -314,11 +352,6 @@ export default function GrafanaTimelineIllustration({
 }) {
   const filter = scenario === "filter" ? getFilter(elapsed) : "all";
   const menuOpen = scenario === "filter" && isFilterMenuOpen(elapsed);
-  const highlighted =
-    scenario === "filter" &&
-    ((elapsed >= 1800 && elapsed < 3700) || (elapsed >= 5400 && elapsed < 7400))
-      ? filter
-      : null;
   const visibleRows = exampleRows.filter(
     (row) => row.kind === "overall" || filter === "all" || row.kind === filter,
   );
@@ -327,10 +360,11 @@ export default function GrafanaTimelineIllustration({
   // cursor, hover popup and state lookup. No independent CSS animation drives it.
   // Stop within a segment showing healthy, unhealthy and unknown signals together.
   const endX = scenario === "inspect" ? 50 : 48;
-  const x = lerp(20, endX, (elapsed - 600) / 2200);
+  const x = lerp(20, endX, smooth(progressBetween(elapsed, 600, 2800)));
   const inspectCursorRow = getInspectCursorRow(elapsed);
+  const cursorTravel = getTimelineCursorTravel(scenario, elapsed);
   const inspectPopup =
-    scenario === "inspect" && elapsed >= 1100 && elapsed < 8150;
+    scenario === "inspect" && elapsed >= 1100 && elapsed < 7800;
   const navigateHover =
     scenario === "navigate" && elapsed >= 1100 && elapsed < 3400;
   const navigateDetails =
@@ -359,7 +393,6 @@ export default function GrafanaTimelineIllustration({
     : "107px";
 
   // The filter selector is above the bars, so its cursor uses preview coordinates.
-  const cursorLeft = "172px";
   const cursorTop = menuOpen
     ? elapsed < 1800
       ? "134px"
@@ -367,6 +400,14 @@ export default function GrafanaTimelineIllustration({
         ? "172px"
         : "96px"
     : "65px";
+  const trackPointer = positionedChartCursor(
+    scenario === "navigate" ? navigationCursorLeft : x + "%",
+    scenario === "navigate"
+      ? navigationCursorTop
+      : 7 + inspectCursorRow * inspectRowPitch + "px",
+    cursorTravel,
+  );
+  const selectorPointer = positionedSelectorCursor(cursorTop, cursorTravel);
 
   return (
     <div
@@ -395,10 +436,8 @@ export default function GrafanaTimelineIllustration({
           {visibleRows.map((row) => (
             <div
               key={row.id}
-              className={
-                "timeline-help-label" +
-                (highlighted === row.kind ? " is-highlighted" : "")
-              }
+              className="timeline-help-label"
+              data-timeline-row={row.id}
             >
               <span>{row.label}</span>
             </div>
@@ -408,10 +447,8 @@ export default function GrafanaTimelineIllustration({
           {visibleRows.map((row) => (
             <div
               key={row.id}
-              className={
-                "timeline-help-track" +
-                (highlighted === row.kind ? " is-highlighted" : "")
-              }
+              className="timeline-help-track"
+              data-timeline-row={row.id}
             >
               {row.states.map((state, index) => (
                 <span
@@ -440,12 +477,8 @@ export default function GrafanaTimelineIllustration({
                 />
               )}
               <ExampleCursor
-                left={scenario === "navigate" ? navigationCursorLeft : x + "%"}
-                top={
-                  scenario === "navigate"
-                    ? navigationCursorTop
-                    : 7 + inspectCursorRow * inspectRowPitch + "px"
-                }
+                left={trackPointer.left}
+                top={trackPointer.top}
                 pressed={linkPressed}
                 movingToLink={movingToLink}
               />
@@ -460,7 +493,10 @@ export default function GrafanaTimelineIllustration({
         <span>Oct 16</span>
       </div>
       {scenario === "filter" && (
-        <ExampleCursor left={cursorLeft} top={cursorTop} />
+        <ExampleCursor
+          left={selectorPointer.left}
+          top={selectorPointer.top}
+        />
       )}
     </div>
   );
