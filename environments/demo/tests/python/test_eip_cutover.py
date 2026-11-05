@@ -1,8 +1,7 @@
-"""Protect the only K3s deployment and existing Elastic IP during cleanup."""
+"""Protect the single K3s deployment and its existing Elastic IP."""
 
 from __future__ import annotations
 
-import json
 import unittest
 from pathlib import Path
 
@@ -11,17 +10,12 @@ INFRA = ROOT / "environments/demo/infra"
 
 
 class K3sSingleRuntimeTests(unittest.TestCase):
-    def test_existing_public_address_moves_without_replacement(self) -> None:
+    def test_existing_public_address_is_protected(self) -> None:
         source = (INFRA / "main.tf").read_text(encoding="utf-8")
-        self.assertIn("from = module.aggregator_demo.aws_eip.public", source)
-        self.assertIn("to   = aws_eip.public", source)
-        self.assertIn(
-            "from = module.aggregator_demo.aws_eip_association.public",
-            source,
-        )
-        self.assertIn("to   = aws_eip_association.public", source)
-        self.assertIn("from = module.aggregator_demo_k3s[0]", source)
-        self.assertIn("to   = module.aggregator_demo_k3s", source)
+        self.assertNotIn("moved {", source)
+        self.assertIn('resource "aws_eip" "public"', source)
+        self.assertIn('resource "aws_eip_association" "public"', source)
+        self.assertIn('module "aggregator_demo_k3s"', source)
         self.assertIn("prevent_destroy = true", source)
         self.assertIn(
             "instance_id         = module.aggregator_demo_k3s.instance_id",
@@ -51,21 +45,13 @@ class K3sSingleRuntimeTests(unittest.TestCase):
             script,
         )
 
-    def test_legacy_iam_cleanup_grants_are_scoped(self) -> None:
+    def test_legacy_cleanup_permissions_are_retired(self) -> None:
         policies = ROOT / "environments/shared/infra/administration/policies"
-        iam = json.loads(
-            (policies / "AggregatorDemoIAMManagement.json").read_text(encoding="utf-8")
-        )
-        sid = {item["Sid"]: item for item in iam["Statement"]}
-        self.assertEqual(
-            sid["RetireLegacyDemoRole"]["Resource"],
-            "arn:aws:iam::905418096305:role/AggregatorDemoEC2Role",
-        )
-        self.assertEqual(
-            sid["RetireLegacyDemoInstanceProfile"]["Resource"],
-            "arn:aws:iam::905418096305:instance-profile/AggregatorDemoEC2Role",
-        )
+        iam = (policies / "AggregatorDemoIAMManagement.json").read_text(encoding="utf-8")
+        ssm = (policies / "AggregatorDemoK3sRunCommand.json").read_text(encoding="utf-8")
+        self.assertNotIn("AggregatorDemoEC2Role", iam)
+        self.assertNotIn("RetireLegacyDemoDeployDocument", ssm)
 
 
-if __name__ == "__main__":
+if __name__/ == "__main__":
     unittest.main()
