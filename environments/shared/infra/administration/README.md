@@ -53,6 +53,21 @@ resource types even for a description-only change. This action can also alter
 rule settings, so it is restricted to project-tagged resources and the
 approved demo infrastructure apply role.
 
+For Elastic IP cutover, AWS authorizes `DisassociateAddress` on both the
+project-tagged Elastic IP and the **source network interface**. It also
+authorizes `AssociateAddress` on the destination network interface. EC2-created
+network interfaces are not guaranteed to inherit the instance's project tags,
+so `AggregatorDemoEC2Management` separately grants those two EIP operations
+on network interfaces **only in the demo subnet**
+(`subnet-0911c2ce97b9adc80`). The EIP itself must still have the
+`Project=aggregator` tag. Do not remove the subnet condition or broaden
+these actions to unrestricted network interfaces.
+
+If an EIP association replacement fails after its plan was approved, do not
+rerun the saved binary plan. Apply the corrected IAM policy through this
+administration root, verify the current EIP association, and then generate and
+approve a **fresh** demo OpenTofu plan.
+
 **Apply IAM changes first:** with `infra-admin`, run `tofu plan` and
 `tofu apply` in this administration root. Only after that succeeds, promote
 the corresponding demo infrastructure change to `deploy/demo` and replan
