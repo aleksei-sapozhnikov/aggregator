@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import subprocess
 import tempfile
@@ -68,8 +69,6 @@ class EipCutoverIAMPolicyTests(unittest.TestCase):
     """Require source and target ENI permissions without account-wide grants."""
 
     def test_eni_permissions_are_limited_to_demo_subnet(self) -> None:
-        import json
-
         policy_path = (
             Path(__file__).resolve().parents[4]
             / "environments/shared/infra/administration/policies"
