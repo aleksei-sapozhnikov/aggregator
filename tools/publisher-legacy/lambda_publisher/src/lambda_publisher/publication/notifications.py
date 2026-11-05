@@ -8,7 +8,6 @@ import re
 from datetime import datetime, timezone
 from urllib.parse import quote
 
-
 # AWS SDK exceptions are optional when running offline unit tests.
 try:
     from botocore.exceptions import BotoCoreError, ClientError
@@ -28,6 +27,7 @@ OPERATION_ERRORS = (
     ImportError,
     *AWS_ERRORS,
 )
+
 
 def sanitize(value: str) -> str:
     value = re.sub(
