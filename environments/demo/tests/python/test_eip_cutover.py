@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import subprocess
 import tempfile
@@ -62,6 +63,51 @@ class EipCutoverFlagTests(unittest.TestCase):
         status, _, output = self.run_flags(k3s="true", eip="maybe")
         self.assertNotEqual(status, 0)
         self.assertIn("EIP_TARGET_K3S must be true or false", output)
+
+
+class EipCutoverIAMPolicyTests(unittest.TestCase):
+    """Require source and target ENI permissions without account-wide grants."""
+
+    def test_eni_permissions_are_limited_to_demo_subnet(self) -> None:
+        policy_path = (
+            Path(__file__).resolve().parents[4]
+            / "environments/shared/infra/administration/policies"
+            / "AggregatorDemoEC2Management.json"
+        )
+        statements = json.loads(policy_path.read_text(encoding="utf-8"))["Statement"]
+        by_sid = {statement.get("Sid"): statement for statement in statements}
+
+        eip = by_sid["ManageEIP"]
+        self.assertEqual(
+            eip["Resource"],
+            "arn:aws:ec2:eu-central-1:905418096305:elastic-ip/*",
+        )
+        self.assertEqual(
+            eip["Condition"]["StringEquals"]["aws:ResourceTag/Project"],
+            "aggregator",
+        )
+
+        eni = by_sid["EIPNetworkInterfacesInDemoSubnet"]
+        self.assertEqual(eni["Effect"], "Allow")
+        self.assertEqual(
+            set(eni["Action"]),
+            {"ec2:DisassociateAddress", "ec2:AssociateAddress"},
+        )
+        self.assertEqual(
+            eni["Resource"],
+            "arn:aws:ec2:eu-central-1:905418096305:network-interface/*",
+        )
+        self.assertEqual(
+            eni["Condition"],
+            {
+                "ArnEquals": {
+                    "ec2:Subnet": (
+                        "arn:aws:ec2:eu-central-1:905418096305:"
+                        "subnet/subnet-0911c2ce97b9adc80"
+                    )
+                }
+            },
+        )
 
 
 if __name__ == "__main__":

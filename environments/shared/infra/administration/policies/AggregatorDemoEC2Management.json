@@ -220,6 +220,17 @@
       }
     },
     {
+      "Sid": "EIPNetworkInterfacesInDemoSubnet",
+      "Effect": "Allow",
+      "Action": ["ec2:DisassociateAddress", "ec2:AssociateAddress"],
+      "Resource": "arn:aws:ec2:eu-central-1:905418096305:network-interface/*",
+      "Condition": {
+        "ArnEquals": {
+          "ec2:Subnet": "arn:aws:ec2:eu-central-1:905418096305:subnet/subnet-0911c2ce97b9adc80"
+        }
+      }
+    },
+    {
       "Sid": "EIPOnProject",
       "Effect": "Allow",
       "Action": "ec2:AssociateAddress",

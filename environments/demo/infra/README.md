@@ -36,6 +36,21 @@ Application. No SSH or public Kubernetes API access is required.
 
 ## Elastic IP cutover (last step)
 
+Before moving the EIP, the approved `AggregatorDemoInfraApplyGithub` role
+must be able to disassociate the EIP from the old EC2 network interface and
+associate it with the K3s interface. The project-owned EIP is scoped by its
+`Project=aggregator` tag; permissions for the two network interfaces are
+restricted to demo subnet `subnet-0911c2ce97b9adc80` in
+`environments/shared/infra/administration/policies/AggregatorDemoEC2Management.json`.
+EC2-created interfaces do not necessarily inherit their instance tags.
+
+The shared IAM policy is deployed **separately** by `infra-admin` in the
+administration OpenTofu root. After applying it, promote a newly reviewed
+`deploy/demo` commit that changes `environments/demo/infra/` so the demo
+pipeline calculates a **fresh** infrastructure plan. Promoting only files
+under `environments/shared/` does not trigger a demo plan. Do not retry an
+old saved plan after a partial apply failure.
+
 The existing Elastic IP allocation is protected. The association starts on
 the legacy Compose instance; `eip_target_k3s=false` is the default.
 The switch changes only `aws_eip_association.public` within
