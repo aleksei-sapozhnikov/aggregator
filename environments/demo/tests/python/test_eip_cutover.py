@@ -74,9 +74,7 @@ class EipCutoverIAMPolicyTests(unittest.TestCase):
             / "environments/shared/infra/administration/policies"
             / "AggregatorDemoEC2Management.json"
         )
-        statements = json.loads(policy_path.read_text(encoding="utf-8"))[
-            "Statement"
-        ]
+        statements = json.loads(policy_path.read_text(encoding="utf-8"))["Statement"]
         by_sid = {statement.get("Sid"): statement for statement in statements}
 
         eip = by_sid["ManageEIP"]
