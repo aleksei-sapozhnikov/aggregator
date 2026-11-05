@@ -51,9 +51,9 @@ resource "aws_eip" "public" {
 }
 
 resource "aws_eip_association" "public" {
-  allocation_id        = aws_eip.public.id
-  instance_id          = module.aggregator_demo_k3s.instance_id
-  allow_reassociation  = true
+  allocation_id       = aws_eip.public.id
+  instance_id         = module.aggregator_demo_k3s.instance_id
+  allow_reassociation = true
   lifecycle {
     prevent_destroy = true
   }

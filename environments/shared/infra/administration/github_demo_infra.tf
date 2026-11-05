@@ -97,7 +97,6 @@ resource "aws_iam_role_policy_attachment" "github_demo_infra_apply" {
     ec2            = aws_iam_policy.demo_ec2_management.arn
     iam            = aws_iam_policy.demo_iam_management.arn
     sg_rules       = aws_iam_policy.demo_sg_rule_creation.arn
-    ssm_manage     = aws_iam_policy.demo_ssm_management.arn
     ssm_execute    = aws_iam_policy.demo_infra_k3s_run_command.arn
   }
 
