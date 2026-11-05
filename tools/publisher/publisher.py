@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib
 import json
 import os
 import subprocess
@@ -13,11 +14,16 @@ import zipfile
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+from html_calendar import save
+from plan import compile_plan
+
 ROOT = Path(__file__).resolve().parent
+# The Lambda runtime is not an installed package when this CLI runs locally.
 sys.path.insert(0, str(ROOT / "runtime" / "src"))
-from lambda_publisher.publication.publication import canonical, digest, load_snapshot  # noqa: E402
-from plan import compile_plan  # noqa: E402
-from html_calendar import save  # noqa: E402
+publication = importlib.import_module("lambda_publisher.publication.publication")
+canonical = publication.canonical
+digest = publication.digest
+load_snapshot = publication.load_snapshot
 
 ACCOUNT = "905418096305"
 REGION = "eu-central-1"

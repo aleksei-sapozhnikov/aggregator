@@ -63,6 +63,12 @@ class MakeQATargetTests(unittest.TestCase):
         )
         self.assertNotIn("src/main.py code-qa", output)
 
+    def test_qa_secrets_runs_without_module_checks(self) -> None:
+        output = self.dry_run("qa-secrets")
+        self.assertIn("src/main.py qa-secrets", output)
+        self.assertNotIn("--module", output)
+        self.assertNotIn("--skip-secrets", output)
+
     def test_qa_check_without_modules_scans_every_module(self) -> None:
         output = self.dry_run("qa-check")
         self.assertIn("src/main.py qa-check", output)

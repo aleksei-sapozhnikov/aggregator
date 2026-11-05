@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 
 from .github.github_client import GitHub
-from .publication.notifications import sanitize
+from .publication.notifications import OPERATION_ERRORS, sanitize
 from .publication.publication import load_snapshot
 from .publication.snapshot_runner import Runner
 from .publication.snapshot_state import SnapshotState
@@ -160,8 +160,8 @@ def lambda_handler(event, context):
             )
         )
         return result
-    except Exception as error:  # noqa: BLE001
-        # This path must work when secrets, state, data files, or runner construction fail.
+    except OPERATION_ERRORS as error:
+        # Handle expected runtime and AWS SDK errors without exposing credentials.
         # Never put exception text in the alert or Lambda exception: SDK errors may contain secrets.
         reason = f"invocation failed during bootstrap or AWS access ({type(error).__name__}); inspect request ID"
         print(
@@ -205,7 +205,7 @@ def lambda_handler(event, context):
                     region=os.environ.get("AWS_REGION", ""),
                 )
             # Do not let failure reporting replace the original invocation error.
-            except Exception as notify_error:  # noqa: BLE001
+            except OPERATION_ERRORS as notify_error:
                 print(
                     json.dumps(
                         {

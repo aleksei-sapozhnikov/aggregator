@@ -12,15 +12,18 @@ From the repository root:
 ```sh
 make qa-check
 make qa-format shared argocd code-qa publisher
+make qa-secrets
 make qa-check MODULE=demo QA_SCAN_SECRETS=false
 ```
 
 - `qa-check` runs checks and tests without modifying tracked files.
 - `qa-format` applies supported formatting fixes, then checks and tests.
+- `qa-secrets` runs the TruffleHog secrets scan without module checks or tests.
 - Module names after the target are positional selectors; `MODULE=...` is
   supported for CI. Without a selector, all modules are checked.
 - A repository-wide secrets scan is included unless
-  `QA_SCAN_SECRETS=false` is explicitly set. CI runs a separate secrets-only check through its internal adapter.
+  `QA_SCAN_SECRETS=false` is explicitly set. CI uses `make qa-secrets`
+  for its separate secrets-only job.
 
 `code-qa` is **a module name**, not a separate QA command. The Python
 orchestrator and small internal Git hook adapters remain implementation

@@ -5,17 +5,19 @@ or linting workflows.
 
 ## Repository QA
 
-The two public QA commands are:
+The three public QA commands are:
 
 ```shell
 make qa-check
 make qa-format shared argocd code-qa publisher
+make qa-secrets
 ```
 
 `qa-check` runs each selected module's checks and tests without changing
 source files. `qa-format` first fixes supported formatting problems, then
-reruns checks and tests. Both scan repository secrets by default and finish
-with `=== QA: PASSED ===` or `=== QA: FAILED ===`.
+reruns checks and tests. Both scan repository secrets by default. `qa-secrets`
+runs only the repository-wide TruffleHog scan. All three finish with
+`=== QA: PASSED ===` or `=== QA: FAILED ===`.
 
 Select modules positionally, or pass `MODULE=demo` in CI. Run without
 module selectors to cover the whole repository. The `code-qa` module is
@@ -28,8 +30,9 @@ are needed for offline validation. See the [QA guide](../tools/code_qa/README.md
 for module configuration and scoped formatting.
 
 CI uses the module registry to run `qa-check` in parallel, with a separate
-repository-wide secrets scan. Git hooks use an internal adapter for their
-lighter, changed-file-only checks; they do not invoke whole-module tests.
+`make qa-secrets` job. Git hooks use an internal adapter for lighter,
+changed-file-only code checks; pre-push invokes the `qa-secrets` CLI
+with its changed-file scope. These hooks do not invoke whole-module tests.
 
 ## Dependency checks
 

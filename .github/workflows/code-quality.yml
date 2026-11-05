@@ -110,7 +110,7 @@ jobs:
           path: .local/qa-runtime/trufflehog
           key: ${{ runner.os }}-qa-trufflehog-${{ hashFiles('tools/code_qa/src/checks/other/trufflehog.py') }}
       - name: Scan repository secrets
-        run: python tools/git_hooks/src/run_qa_mode.py secrets
+        run: make qa-secrets
 
   quality:
     name: Checks

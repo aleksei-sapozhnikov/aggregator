@@ -374,6 +374,45 @@ class OrchestratorFlowTests(unittest.TestCase):
         self.assertFalse(run.call_args.kwargs["scan_secrets"])
         self.assertFalse(run.call_args.kwargs["format_before_tests"])
 
+    def test_qa_secrets_runs_without_module_checks(self) -> None:
+        with (
+            patch.object(sys, "argv", ["code_qa", "qa-secrets"]),
+            patch.object(main, "run_secrets_command", return_value=0) as scan,
+            patch.object(main, "run_qa_command") as qa,
+        ):
+            self.assertEqual(main.main(), 0)
+        scan.assert_called_once_with(
+            scan_root=".",
+            output_file="",
+            gitignored_output_file="",
+            binary=None,
+            raw=False,
+            out_file="",
+        )
+        qa.assert_not_called()
+
+    def test_qa_secrets_forwards_optional_arguments(self) -> None:
+        with (
+            patch.object(
+                sys,
+                "argv",
+                [
+                    "code_qa",
+                    "qa-secrets",
+                    "--scan-root",
+                    "deploy",
+                    "--output-file",
+                    "scan.json",
+                    "--raw",
+                ],
+            ),
+            patch.object(main, "run_secrets_command", return_value=0) as scan,
+        ):
+            self.assertEqual(main.main(), 0)
+        self.assertEqual(scan.call_args.kwargs["scan_root"], "deploy")
+        self.assertEqual(scan.call_args.kwargs["output_file"], "scan.json")
+        self.assertTrue(scan.call_args.kwargs["raw"])
+
     def test_qa_format_skips_secrets_but_still_formats(self) -> None:
         with (
             patch.object(main, "run_code_qa_command", return_value=0) as checks,
