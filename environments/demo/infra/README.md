@@ -1,18 +1,18 @@
-# Demo infrastructure
+# Public demo infrastructure
 
-OpenTofu in `environments/demo/infra` manages two independent workloads in AWS account
-`905418096305` / `eu-central-1`: the serving Docker Compose EC2 with its
-Elastic IP, and an optional K3s EC2 with Argo CD. It also manages the
-serving demo's SSM deployment document and workload IAM roles/profiles.
-The project bucket stores its state at `demo/tofu.tfstate`.
+The OpenTofu root in `environments/demo/infra` manages the K3s EC2,
+its IAM role/profile, security group, SSM logs and the **existing protected
+public Elastic IP**. State remains at `demo/tofu.tfstate` in the project
+state bucket in AWS account `905418096305`, region `eu-central-1`.
 
-Project IAM policy/role changes belong in [shared administration](../../shared/infra/administration/README.md)
-and must be applied as `infra-admin`, separately from this root.
+Project-wide IAM roles and permissions are managed separately by
+[administration](../../shared/infra/administration/README.md) and applied
+with `infra-admin`. The approved
+[Demo pipeline](../WORKFLOW.md) is responsible for workload changes.
 
 ## OpenTofu operations
 
-Use `aggregator-admin` for local inspection (or the approved GitHub
-OIDC workflow for deployments):
+To inspect the current infrastructure with `aggregator-admin`:
 
 ```sh
 cd environments/demo/infra
@@ -22,98 +22,48 @@ tofu validate
 tofu plan
 ```
 
-`enable_k3s_node` and `enable_bedrock` default to `false` in the OpenTofu
-root. In GitHub, their required values come from `ENABLE_K3S_NODE` and
-`ENABLE_BEDROCK` in `demo-infra-plan`. Match those flags when planning
-locally; never approve an accidental K3s deletion or a replacement of the
-**serving Compose EC2**. K3s uses a separate security group (public TCP 80 and 443), IAM profile,
-public IP and encrypted root volume (50 GiB by default).
+The public K3s instance is always provisioned. Changes must not delete
+or replace its EC2 or the Elastic IP: these serve the live HTTPS
+[demo](https://aggregator.alivion.cc). Terraform uses explicit
+`moved` blocks to preserve existing state identities. Do not remove
+those moves until they have been safely applied to all active states.
+Do not use `tofu state rm`, force-unlock, or manual `aws ec2 associate-address`
+to bypass the approved plan.
 
-The pinned Amazon Linux 2023 cloud-init installs Git and Python; node
-configuration runs afterwards from the exact Git revision over AWS SSM.
-Ansible configures K3s, bundled Traefik/ServiceLB, Argo CD and its
-Application. No SSH or public Kubernetes API access is required.
+The node runs a pinned Amazon Linux 2023 AMI with an encrypted root volume
+and only ports 80 and 443 public. Ansible installs K3s, Traefik, Argo CD
+and the GitOps Application over SSM. The Kubernetes API and Argo CD UI
+remain private.
 
-## Elastic IP cutover (last step)
+## Approved apply
 
-Before moving the EIP, the approved `AggregatorDemoInfraApplyGithub` role
-must be able to disassociate the EIP from the old EC2 network interface and
-associate it with the K3s interface. The project-owned EIP is scoped by its
-`Project=aggregator` tag; permissions for the two network interfaces are
-restricted to demo subnet `subnet-0911c2ce97b9adc80` in
-`environments/shared/infra/administration/policies/AggregatorDemoEC2Management.json`.
-EC2-created interfaces do not necessarily inherit their instance tags.
+`demo-infra.yml` creates a read-only plan and stores its exact binary
+form privately under `plans/demo/<run-id>/<attempt>/demo.tfplan`.
+The protected apply job verifies its SHA-256 digest before applying.
+Inspect any deletion or replacement in the full plan; do not approve
+unexpected changes to K3s, EIP, state, or other AWS resources.
 
-The shared IAM policy is deployed **separately** by `infra-admin` in the
-administration OpenTofu root. After applying it, promote a newly reviewed
-`deploy/demo` commit that changes `environments/demo/infra/` so the demo
-pipeline calculates a **fresh** infrastructure plan. Promoting only files
-under `environments/shared/` does not trigger a demo plan. Do not retry an
-old saved plan after a partial apply failure.
-
-The existing Elastic IP allocation is protected. The association starts on
-the legacy Compose instance; `eip_target_k3s=false` is the default.
-The switch changes only `aws_eip_association.public` within
-`module.aggregator_demo`, preserving the old EC2 and EIP allocation.
-
-1. Promote and deploy the HTTPS changes through `deploy/demo` with
-   the repository-level Actions variable `EIP_TARGET_K3S=false`.
-   Check Argo CD Synced/Healthy, Traefik service TCP 80/443, and the
-   `curl --resolve` pre-cutover tests in
-   [K3s README](../../../deploy/kubernetes/README.md).
-2. Set the repository-level Actions variable `EIP_TARGET_K3S=true`.
-   Promote a new infrastructure-changing commit to `deploy/demo`, which
-   triggers a fresh `Demo pipeline` run. (The manual
-   `workflow_dispatch` entry point is unavailable until
-   `demo-infra.yml` also exists on the default branch.) In the generated OpenTofu plan, verify
-   only the intended association is replaced, the EIP allocation is
-   unchanged, no instance is replaced, and the association is re-pointed
-   to the K3s instance. Explicitly approve the protected apply.
-3. After EIP reassociation, verify trusted Let's Encrypt HTTPS on
-   `aggregator.alivion.cc`, `www.alivion.cc`, and `alivion.cc`,
-   plus HTTP redirects, the UI, APIs, agent and Grafana timeline.
-   HTTP-01 issuance happens **after** the IP moves; temporary default
-   TLS until issuance is expected, but must not be accepted as complete.
-4. If validation fails, set `EIP_TARGET_K3S=false`, promote another
-   infrastructure-changing commit to `deploy/demo`, and approve the rollback
-   and confirm that the original Caddy site is serving HTTPS again. The same flag re-enables the Compose SSM deployment
-   once the old instance regains connectivity. Do not destroy the old EC2
-   during migration.
-
-Changes to `dev` alone never deploy or move the Elastic IP. A manual
-`aws ec2 associate-address` outside OpenTofu would cause state drift;
-use the reviewed workflow to switch or roll back.
-
-## Approved automation
-
-[Demo pipeline](../WORKFLOW.md) runs OpenTofu validation and planning before
-reviewer approval. It stores the **exact binary plan** privately in
-`aggregator-project-tofu-state-905418096305-eu-central-1` under
-`plans/demo/<run-id>/<attempt>/demo.tfplan` and verifies its SHA-256
-before applying. No binary plan is attached to public GitHub Actions logs.
-
-The plan job checks the last successful Ansible fingerprint in SSM Parameter
-Store. The apply job runs Ansible through SSM only when configuration differs
-or a reapply is requested; it records success only after health checks pass.
-Application images and GitOps manifests are deployed by the separate
-`Demo deploy` workflow.
+A partially completed apply requires a new plan from current AWS state.
+If the IAM policy is missing permissions, fix it through the separate
+administration root first, then replan demo. Never reuse a failed plan.
 
 ## Inspect and recover
 
-Use an authorized Session Manager connection and inspect the K3s node:
+In an authorized SSM session:
 
 ```sh
 sudo k3s kubectl get nodes
 sudo k3s kubectl get pods -n argocd
 sudo k3s kubectl get applications -n argocd
-sudo cat /var/lib/aggregator-node/last-configured-revision
+sudo k3s kubectl get pods,svc,ingress -n aggregator
 sudo tail -100 /var/log/aggregator-node-configure.log
 ```
 
-SSM output is also in CloudWatch Logs `/aws/ssm/aggregator-demo-k3s`;
-cloud-init output is in `/var/log/cloud-init-output.log`.
+SSM output also appears in CloudWatch
+`/aws/ssm/aggregator-demo-k3s`. K3s local-path PVC data (Grafana,
+Prometheus and Traefik ACME storage) is lost if the instance and its
+root volume are destroyed. Application rollbacks use the protected
+GitOps branch rather than replacing EC2.
 
-Do not force-unlock or replace state to recover a partial apply. Create a
-fresh plan after investigating the error. Replacing/removing K3s destroys
-local-path PVC data (Prometheus/Grafana); image rollback does not.
-See [Ansible operations](../ansible/README.md) and [GitOps deployment](../../../deploy/kubernetes/README.md).
+See [Ansible operations](../ansible/README.md) and
+[GitOps deployment](../../../deploy/kubernetes/README.md).
