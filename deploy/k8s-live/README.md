@@ -1,11 +1,10 @@
-# K3s GitOps demo
+# Public K3s GitOps demo
 
-The K3s instance is separate from the public Docker Compose demo and
-initially uses its own public IP until the explicit Elastic IP cutover.
-It runs the Aggregator stack, Prometheus/Grafana and demo services.
-Traefik/ServiceLB serves HTTP (redirecting to HTTPS) and HTTPS on
-ports 80 and 443, with automatic Let's Encrypt certificate renewal. The default workload is an **unhardened public demo**, not a
-production Kubernetes configuration.
+K3s serves [aggregator.alivion.cc](https://aggregator.alivion.cc)
+through a protected public Elastic IP. It runs the Aggregator stack,
+Prometheus/Grafana and sample services, with Traefik routing HTTP/HTTPS
+and renewing Let's Encrypt certificates. This is an **unhardened public
+demo**, not a production Kubernetes configuration.
 
 ## Release flow
 
@@ -37,27 +36,20 @@ branch must not erase the published configuration.
 
 ## Check a release
 
-Verify the `Demo deploy` workflow succeeded and Argo CD is
-Synced/Healthy. Before switching the Elastic IP, test the new node directly
-without changing public DNS:
+Confirm the Demo deploy workflow succeeded, Argo CD reports
+`aggregator-demo` as Synced/Healthy, and the public endpoint responds
+with a **trusted** HTTPS certificate:
 
 ```sh
-curl -I --resolve aggregator.alivion.cc:80:<k3s-public-ip> http://aggregator.alivion.cc/
-curl -kI --resolve aggregator.alivion.cc:443:<k3s-public-ip> https://aggregator.alivion.cc/
-curl -kI --resolve www.alivion.cc:443:<k3s-public-ip> https://www.alivion.cc/
-curl -kI --resolve alivion.cc:443:<k3s-public-ip> https://alivion.cc/
+curl -I http://aggregator.alivion.cc/
+curl -I https://aggregator.alivion.cc/
+curl -I https://www.alivion.cc/
+curl -I https://alivion.cc/
 ```
 
-The HTTP request must redirect to HTTPS, the next two must reach the
-application, and the apex host must redirect
-to `https://aggregator.alivion.cc/`. The `-k` flag is **only** for the
-pre-cutover test: DNS still points at the old Compose/Caddy instance, so
-Let's Encrypt HTTP-01 cannot validate the new Traefik instance yet.
-Do not accept an untrusted certificate after cutover.
-
-After the explicit, reviewed EIP switch, confirm that Traefik obtained
-trusted certificates for all three hostnames, HTTP redirects to HTTPS, and
-the UI, APIs, Grafana timeline, and agent work at the public domain.
+HTTP should redirect to HTTPS, and the apex domain should redirect to
+`https://aggregator.alivion.cc/`. Confirm the UI, APIs, AI agent and
+Grafana timeline work. Do not bypass TLS validation in routine checks.
 Ansible startup checks alone do not verify application workloads.
 
 For troubleshooting through an authorized SSM session:

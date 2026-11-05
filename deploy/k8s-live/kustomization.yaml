@@ -19,7 +19,7 @@ configMapGenerator:
       - item_health_state.json
 images:
   - name: ghcr.io/aleksei-sapozhnikov/catalog
-    newTag: ca3fb9786e950ce7832ce2fa947709073b9f33b5
+    newTag: 623808a65138e806d9bc9a141f818d3b26e1296c
   - name: ghcr.io/aleksei-sapozhnikov/aggregator
     newTag: 037fd8c07905ed7b6971761a212fac8c45f22ee3
   - name: ghcr.io/aleksei-sapozhnikov/aggregator-ui
