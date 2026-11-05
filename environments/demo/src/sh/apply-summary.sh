@@ -23,9 +23,7 @@ public_output() {
 
 k3s_ip="$(public_output k3s_public_ip)"
 k3s_instance="$(public_output k3s_instance_id)"
-legacy_ip="$(public_output elastic_ip_address)"
-legacy_instance="$(public_output instance_id)"
-eip_target="$(public_output elastic_ip_target_instance_id)"
+elastic_ip="$(public_output elastic_ip_address)"
 
 # The human-readable form automatically redacts sensitive output values.
 outputs_text="$(tofu output -no-color)"
@@ -43,21 +41,15 @@ outputs_text="$(tofu output -no-color)"
   echo
   if [[ -n "$k3s_ip" ]]; then
     printf -- '- **K3s public IP:** `%s`\n' "$k3s_ip"
-    printf -- '- **K3s HTTP address:** `http://%s/` (available after application deployment)\n' "$k3s_ip"
+    printf -- '- **Live HTTPS domain:** `https://aggregator.alivion.cc/`\n'
   else
     echo "- **K3s public IP:** Not provisioned or not available."
   fi
   if [[ -n "$k3s_instance" ]]; then
     printf -- '- **K3s EC2 instance:** `%s`\n' "$k3s_instance"
   fi
-  if [[ -n "$legacy_ip" ]]; then
-    printf -- '- **Existing demo Elastic IP:** `%s`\n' "$legacy_ip"
-  fi
-  if [[ -n "$legacy_instance" ]]; then
-    printf -- '- **Existing demo EC2 instance:** `%s`\n' "$legacy_instance"
-  fi
-  if [[ -n "$eip_target" ]]; then
-    printf -- '- **Elastic IP target EC2:** `%s`\n' "$eip_target"
+  if [[ -n "$elastic_ip" ]]; then
+    printf -- '- **Public Elastic IP:** `%s`\n' "$elastic_ip"
   fi
   echo
   echo "### Private Argo CD dashboard"
