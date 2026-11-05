@@ -59,7 +59,6 @@ the corresponding demo infrastructure change to `deploy/demo` and replan
 there. Do not retry a previously saved failed OpenTofu plan: the initial
 apply may have already created some resources.
 
-
 ## Permission boundaries
 
 - `policies/` contains scoped demo compute, IAM, SSM, Session Manager and
