@@ -40,7 +40,7 @@ class EipCutoverFlagTests(unittest.TestCase):
             return (
                 result.returncode,
                 env_file.read_text(encoding="utf-8") if env_file.exists() else "",
-                result.stderr,
+                result.stdout,
             )
 
     def test_default_keeps_original_elastic_ip_target(self) -> None:
@@ -54,14 +54,14 @@ class EipCutoverFlagTests(unittest.TestCase):
         self.assertIn("TF_VAR_eip_target_k3s=true", settings)
 
     def test_k3s_disabled_blocks_cutover(self) -> None:
-        status, _, stderr = self.run_flags(k3s="false", eip="true")
+        status, _, output = self.run_flags(k3s="false", eip="true")
         self.assertNotEqual(status, 0)
-        self.assertIn("ENABLE_K3S_NODE=false", stderr)
+        self.assertIn("ENABLE_K3S_NODE=false", output)
 
     def test_rejects_unknown_flag(self) -> None:
-        status, _, stderr = self.run_flags(k3s="true", eip="maybe")
+        status, _, output = self.run_flags(k3s="true", eip="maybe")
         self.assertNotEqual(status, 0)
-        self.assertIn("EIP_TARGET_K3S must be true or false", stderr)
+        self.assertIn("EIP_TARGET_K3S must be true or false", output)
 
 
 if __name__ == "__main__":
