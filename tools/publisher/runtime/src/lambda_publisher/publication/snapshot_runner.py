@@ -216,8 +216,8 @@ class Runner:
                     + clean
                 )
                 return self._block(progress, event, reason, execution_id, now)
-            except Exception as error:
-                # Persist unexpected event failures as blocked instead of aborting the run.
+            except notifications.OPERATION_ERRORS as error:
+                # Block recognized operational failures instead of aborting the run.
                 return self._block(
                     progress,
                     event,

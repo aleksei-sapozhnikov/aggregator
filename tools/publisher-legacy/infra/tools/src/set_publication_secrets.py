@@ -6,6 +6,26 @@ import argparse
 import getpass
 import sys
 
+# AWS SDK exceptions are optional when running offline unit tests.
+try:
+    from botocore.exceptions import BotoCoreError, ClientError
+except ImportError:
+    AWS_ERRORS: tuple[type[Exception], ...] = ()
+else:
+    AWS_ERRORS = (BotoCoreError, ClientError)
+
+# Expected AWS, transport, data-validation, and application errors.
+# Unexpected programming errors must still fail visibly.
+OPERATION_ERRORS = (
+    OSError,
+    RuntimeError,
+    ValueError,
+    TypeError,
+    LookupError,
+    ImportError,
+    *AWS_ERRORS,
+)
+
 SECRETS = (
     ("GitHub repository token", "aggregator-publication-github-token"),
     ("GitHub Projects token", "aggregator-publication-project-token"),
@@ -62,7 +82,7 @@ def main(argv: list[str] | None = None) -> int:
                     f"Stored a new AWSCURRENT version for {secret_name} (version {result['VersionId']})."
                 )
         # Report partial writes even when the SDK returns an unexpected error.
-        except Exception as error:
+        except OPERATION_ERRORS as error:
             code = (
                 getattr(error, "response", {})
                 .get("Error", {})
@@ -79,7 +99,7 @@ def main(argv: list[str] | None = None) -> int:
 
         return 0
     # Keep setup errors concise and avoid exposing exception details or values.
-    except Exception as error:
+    except OPERATION_ERRORS as error:
         code = (
             getattr(error, "response", {})
             .get("Error", {})
