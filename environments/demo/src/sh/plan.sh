@@ -17,22 +17,25 @@ if [[ "$status" == 2 ]]; then
 else
   echo "has_changes=false" >> "$GITHUB_OUTPUT"
 fi
-# Never apply a plan that would replace the serving K3s EC2 or destroy/reallocate
-# the existing EIP. Module address moves are expected to be no-ops.
+# Deny deletion/replacement of the live K3s instance and any creation or
+# deletion of the EIP or its existing association. Moved state is a no-op.
 unsafe="$(tofu show -json "$RUNNER_TEMP/demo.tfplan" | jq -r '
   .resource_changes[]?
-  | select(any(.change.actions[]?; . == "delete"))
-  | .address
   | select(
-      startswith("module.aggregator_demo_k3s")
-      or . == "aws_eip.public"
-      or . == "aws_eip_association.public"
-      or . == "module.aggregator_demo.aws_eip.public"
-      or . == "module.aggregator_demo.aws_eip_association.public"
+      ((.address | startswith("module.aggregator_demo_k3s"))
+        and any(.change.actions[]?; . == "delete"))
+      or (
+        (.address == "aws_eip.public"
+         or .address == "aws_eip_association.public"
+         or .address == "module.aggregator_demo.aws_eip.public"
+         or .address == "module.aggregator_demo.aws_eip_association.public")
+        and any(.change.actions[]?; . == "create" or . == "delete")
+      )
     )
+  | .address
 ')"
 if [[ -n "$unsafe" ]]; then
-  echo "::error::Protected K3s/EIP resource would be destroyed: $unsafe" >&2
+  echo "::error::Protected K3s/EIP resource would be created or destroyed: $unsafe" >&2
   exit 1
 fi
 k3s_created="$(tofu show -json "$RUNNER_TEMP/demo.tfplan" | jq -r '

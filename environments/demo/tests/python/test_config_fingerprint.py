@@ -79,7 +79,6 @@ class FingerprintTests(unittest.TestCase):
         environment = {
             "GITHUB_OUTPUT": str(self.output_file),
             "RUNNER_TEMP": str(self.runner_dir),
-            "K3S_ENABLED": "true",
             "K3S_CREATED": str(creating).lower(),
             "MANUAL_REAPPLY": str(manual).lower(),
         }
@@ -136,19 +135,6 @@ class FingerprintTests(unittest.TestCase):
             "ansible_changed=true",
             self.check(f"{NODE}:{digest}", manual=True),
         )
-
-    def test_disabled_k3s_does_not_touch_ssm(self) -> None:
-        self.output_file.write_text("", encoding="utf-8")
-        with (
-            mock.patch.dict(
-                os.environ,
-                {"GITHUB_OUTPUT": str(self.output_file), "K3S_ENABLED": "false"},
-            ),
-            mock.patch.object(module, "previous_value") as read,
-        ):
-            module.check()
-            read.assert_not_called()
-        self.assertIn("ansible_changed=false", self.output_file.read_text())
 
     def test_ssm_access_failure_does_not_look_like_missing_parameter(self) -> None:
         with (

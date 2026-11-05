@@ -16,7 +16,8 @@ class K3sSingleRuntimeTests(unittest.TestCase):
         self.assertIn("from = module.aggregator_demo.aws_eip.public", source)
         self.assertIn("to   = aws_eip.public", source)
         self.assertIn(
-            "from = module.aggregator_demo.aws_eip_association.public", source
+            "from = module.aggregator_demo.aws_eip_association.public",
+            source,
         )
         self.assertIn("to   = aws_eip_association.public", source)
         self.assertIn("from = module.aggregator_demo_k3s[0]", source)
@@ -44,7 +45,10 @@ class K3sSingleRuntimeTests(unittest.TestCase):
         self.assertIn("module.aggregator_demo_k3s", script)
         self.assertIn("aws_eip.public", script)
         self.assertIn("aws_eip_association.public", script)
-        self.assertIn("Protected K3s/EIP resource would be destroyed", script)
+        self.assertIn(
+            "Protected K3s/EIP resource would be created or destroyed",
+            script,
+        )
 
     def test_legacy_iam_cleanup_grants_are_scoped(self) -> None:
         policies = ROOT / "environments/shared/infra/administration/policies"

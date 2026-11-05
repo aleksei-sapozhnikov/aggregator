@@ -45,5 +45,6 @@ curl http://localhost:8080/api/signals/<signal-id>
 
 The API also serves individual actor/contact collections and raw YAML and
 schema files. Changes to signal URLs affect both aggregator polling and
-[chaos-maker](../chaos-maker/README.md). The Compose demo selects
-`catalog/demo`; the base stack uses `catalog/empty`.
+[chaos-maker](../chaos-maker/README.md). The local-demo and public K3s
+environments select `catalog/demo`; the minimal local stack uses
+`catalog/empty`.

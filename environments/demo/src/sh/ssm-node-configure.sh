@@ -1,5 +1,5 @@
 #!/bin/sh
-# SSM Run Command entry point. Git revision is substituted by dispatch-ssm.sh.
+# SSM Run Command entry point. The revision is passed by dispatch-ansible-ssm.sh.
 # Keep this POSIX-compatible; AWS-RunShellScript invokes the system shell.
 set -eu
 revision="__CONFIGURATION_SHA__"

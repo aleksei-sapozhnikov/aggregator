@@ -124,7 +124,6 @@ jobs:
         shell: bash
         env:
           MANUAL_REAPPLY: ${{ inputs.reapply_ansible }}
-          K3S_ENABLED: "true"
           K3S_CREATED: ${{ steps.plan.outputs.k3s_created }}
         run: bash "$GITHUB_WORKSPACE/environments/demo/src/sh/detect-ansible-changes.sh"
       - name: Explain Terraform and Ansible actions for approval
@@ -209,7 +208,7 @@ jobs:
         env:
           TERRAFORM_CHANGED: ${{ needs.plan.outputs.has_changes }}
         run: bash "$GITHUB_WORKSPACE/environments/demo/src/sh/apply-summary.sh"
-      - name: Find the optional K3s node after successful apply
+      - name: Find the K3s node after successful apply
         if: |
           needs.plan.outputs.k3s_created == 'true' ||
           needs.plan.outputs.ansible_changed == 'true' ||

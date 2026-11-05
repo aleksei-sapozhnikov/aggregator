@@ -1,36 +1,39 @@
-# Optional K3s EC2 module
+# K3s EC2 module
 
-OpenTofu module for the separate, single-node K3s demo. It creates an
-Amazon Linux 2023 instance, profile, security group and encrypted root
-volume. It does not replace or modify the public Compose demo host.
+This OpenTofu module configures the public demo's single K3s node on
+Amazon Linux 2023. It creates the instance, IAM role/profile, security
+group, CloudWatch SSM log group and encrypted root volume. The
+[demo infrastructure root](../../README.md) owns the protected
+Elastic IP and the GitOps deployment workflow.
 
-The module is used through the [demo infrastructure root](../../README.md);
-the root controls `enable_k3s_node`, AWS permissions and the approved
-workflow. Do not apply this module as a standalone Terraform root.
+Do not apply this module standalone or change its instance identity
+outside the reviewed OpenTofu plan. The public demo uses only K3s.
 
-## Provisioning and configuration
+## Provisioning
 
-Cloud-init installs minimal first-boot prerequisites. The
-[demo pipeline](../../../WORKFLOW.md) subsequently uses AWS SSM to
-check out the approved source revision and apply
-[Ansible configuration](../../../ansible/README.md). K3s, Traefik,
-Argo CD and the GitOps Application are managed there, not by cloud-init.
-Changes to node configuration can be applied through SSM without replacing
-the instance; changing first-boot cloud-init needs deliberate review of
-the resulting EC2 replacement.
+Cloud-init installs first-boot prerequisites. The
+[Demo pipeline](../../../WORKFLOW.md) then uses AWS SSM to check out
+the approved revision and apply
+[Ansible configuration](../../../ansible/README.md). K3s, Traefik
+with Let's Encrypt HTTPS, Argo CD, and the GitOps Application are
+managed by Ansible.
+
+Node configuration can be reapplied through SSM. Modifying first-boot
+cloud-init may require EC2 replacement and must be reviewed against
+K3s local-path persistent data.
 
 ## Network and operational limits
 
-- Port 80 serves the Kubernetes demo over plain HTTP through Traefik.
-  There is no DNS or HTTPS endpoint; do not transmit sensitive data.
-- There is no SSH key, inbound SSH port, public Kubernetes API, or public
-  Argo CD UI. Use Session Manager and the private SSM dashboard tunnel.
-- IMDSv2 is required, and the EC2 role operates under a permission
-  boundary. The instance has a **non-static** public IP, not an Elastic IP.
-- The default instance is `t3.medium` with a 50 GiB root volume.
-  Monitor memory, disk, scheduling failures and OOMKilled pods.
+- The public Elastic IP serves
+  [aggregator.alivion.cc](https://aggregator.alivion.cc) on ports 80/443
+  through Traefik. HTTP redirects to HTTPS.
+- No inbound SSH, public Kubernetes API or public Argo CD UI is exposed.
+  Use Session Manager and the [private dashboard](../../../README.md).
+- IMDSv2 is required; the EC2 role has a permissions boundary.
+- The default instance is `t3.medium` with a 50 GiB encrypted root
+  volume. Monitor memory, disk and OOMKilled pods.
 
-After approved deployment, read the root's `k3s_public_ip` output
-and verify Argo CD Synced/Healthy and the app independently. Replacing or
-destroying the instance loses K3s local-path monitoring data. See
+The approved apply summary includes the current instance ID and Elastic IP.
+Replacing or destroying the node would lose K3s local-path monitoring and
+Traefik certificate data. See
 [K3s release and rollback](../../../../../deploy/kubernetes/README.md).
