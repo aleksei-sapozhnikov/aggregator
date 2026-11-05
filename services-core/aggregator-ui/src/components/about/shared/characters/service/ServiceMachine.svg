@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -20 215 260"
+  width="215" height="260" stroke-linecap="round" stroke-linejoin="round">
+  <g id="service-base">
+    <ellipse cx="94" cy="224" rx="105" ry="12" fill="#ccd5de" opacity=".55" />
+    <rect x="14" y="21" width="158" height="192" rx="20"
+      fill="#81a6bf" stroke="#314d64" stroke-width="5" />
+    <path d="M148 31 179 16q13-3 14 13v171l-21 13V43Z"
+      fill="#53758f" stroke="#314d64" stroke-width="4" />
+    <path d="M15 48h157M15 188h157" stroke="#52758f" stroke-width="3" />
+    <rect x="38" y="7" width="117" height="27" rx="6"
+      fill="#52758f" stroke="#314d64" stroke-width="4" />
+    <rect x="41" y="62" width="108" height="101" rx="12"
+      fill="#293f54" stroke="#314d64" stroke-width="4" />
+    <circle cx="126" cy="136" r="15" fill="#7094af"
+      stroke="#304e65" stroke-width="4" />
+    <circle cx="126" cy="136" r="6" fill="#304e65" />
+    <rect x="50" y="179" width="88" height="16" rx="5" fill="#52758f" />
+    <rect x="57" y="184" width="17" height="6" rx="2" fill="#b0c9d9" />
+    <rect x="85" y="184" width="17" height="6" rx="2" fill="#b0c9d9" />
+    <rect x="113" y="184" width="17" height="6" rx="2" fill="#b0c9d9" />
+    <path d="M174 83h18q10 0 10 10v63q0 8-9 8h-17"
+      fill="none" stroke="#314d64" stroke-width="14" />
+    <path d="M174 83h18q10 0 10 10v63q0 8-9 8h-17"
+      fill="none" stroke="#c4d2dc" stroke-width="7" />
+    <circle cx="26" cy="111" r="8" fill="#f5cd69"
+      stroke="#85672f" stroke-width="3" />
+    <circle cx="26" cy="140" r="5" fill="#ef9b67" />
+  </g>
+  <g id="service-gear">
+    <circle r="30" fill="#98b8ce" stroke="#304e65" stroke-width="4" />
+    <rect x="-6" y="-39" width="12" height="18" rx="2"
+      fill="#98b8ce" stroke="#304e65" stroke-width="2"
+      transform="rotate(0)" />
+    <rect x="-6" y="-39" width="12" height="18" rx="2"
+      fill="#98b8ce" stroke="#304e65" stroke-width="2"
+      transform="rotate(45)" />
+    <rect x="-6" y="-39" width="12" height="18" rx="2"
+      fill="#98b8ce" stroke="#304e65" stroke-width="2"
+      transform="rotate(90)" />
+    <rect x="-6" y="-39" width="12" height="18" rx="2"
+      fill="#98b8ce" stroke="#304e65" stroke-width="2"
+      transform="rotate(135)" />
+    <rect x="-6" y="-39" width="12" height="18" rx="2"
+      fill="#98b8ce" stroke="#304e65" stroke-width="2"
+      transform="rotate(180)" />
+    <rect x="-6" y="-39" width="12" height="18" rx="2"
+      fill="#98b8ce" stroke="#304e65" stroke-width="2"
+      transform="rotate(225)" />
+    <rect x="-6" y="-39" width="12" height="18" rx="2"
+      fill="#98b8ce" stroke="#304e65" stroke-width="2"
+      transform="rotate(270)" />
+    <rect x="-6" y="-39" width="12" height="18" rx="2"
+      fill="#98b8ce" stroke="#304e65" stroke-width="2"
+      transform="rotate(315)" />
+    <circle r="13" fill="#496981" stroke="#304e65" stroke-width="4" />
+  </g>
+  <g id="service-up">
+    <rect x="81" y="-5" width="31" height="21" rx="7"
+      fill="#70c87c" stroke="#305e59" stroke-width="4" />
+    <path d="M90-12V-18M104-11l7-8M76-7l-8-8" stroke="#70c87c"
+      stroke-width="3" />
+    <circle cx="26" cy="82" r="8" fill="#78d887"
+      stroke="#305e59" stroke-width="3" />
+  </g>
+  <g id="service-down">
+    <rect x="81" y="-5" width="31" height="21" rx="7"
+      fill="#eb4d46" stroke="#9c3733" stroke-width="4" />
+    <path d="M90-12V-18M104-11l7-8M76-7l-8-8" stroke="#eb4d46"
+      stroke-width="3" />
+    <circle cx="26" cy="82" r="8" fill="#eb4d46"
+      stroke="#9c3733" stroke-width="3" />
+  </g>
+</svg>

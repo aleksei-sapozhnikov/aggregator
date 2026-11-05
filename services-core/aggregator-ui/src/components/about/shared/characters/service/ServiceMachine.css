@@ -1,0 +1,30 @@
+.actors-help-machine {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.actors-help-demo.is-illustrating .actors-help-gear {
+  animation: actors-help-rotate 3s linear infinite;
+}
+
+.actors-help-demo.is-illustrating .actors-help-light {
+  animation: actors-help-blink 1s ease-in-out infinite;
+}
+
+@keyframes actors-help-rotate {
+  to {
+    transform: translate(88px, 111px) rotate(360deg);
+  }
+}
+
+@keyframes actors-help-blink {
+  50% {
+    opacity: 0.12;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .actors-help-machine * {
+    animation: none !important;
+  }
+}
