@@ -7,7 +7,7 @@ GitHub deployment workflows and publication automation.
 
 Policies are grouped by their purpose:
 
-- Demo EC2, IAM, security group and SSM management within project tags
+- K3s EC2, IAM, security group and SSM management within project tags
   and role boundaries.
 - Read-only demo infrastructure planning versus approved plan apply,
   K3s Run Command and state-lock access.

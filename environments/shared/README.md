@@ -7,7 +7,7 @@ This repository owns project IAM and workloads.
 | ----------------------------------------------------- | --------------------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------ |
 | [shared/infra/administration](infra/administration/)  | `infra-admin`                           | Project IAM, GitHub OIDC roles, delegated permissions   | `projects/aggregator/tofu.tfstate` (central Administration bucket) |
 | [shared/infra/state](infra/state/)                    | `aggregator-admin`                      | Project S3 state bucket and saved-plan lifecycle        | `state/tofu.tfstate`                                               |
-| [demo/infra](../demo/infra/)                          | `aggregator-admin` / approved OIDC role | Serving Compose EC2, optional K3s EC2 and SSM documents | `demo/tofu.tfstate`                                                |
+| [demo/infra](../demo/infra/)                          | `aggregator-admin` / approved OIDC role | Public K3s EC2, protected EIP and SSM log group | `demo/tofu.tfstate`                                                |
 | [tools/publisher/infra](../../tools/publisher/infra/) | `aggregator-admin`                      | Publication automation                                  | `publication/tofu.tfstate`                                         |
 
 The central Administration bucket is `aws-administration-state-905418096305-eu-central-1`.

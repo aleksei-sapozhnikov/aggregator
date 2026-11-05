@@ -1,7 +1,8 @@
 # K3s node configuration
 
-Ansible configures the separate Amazon Linux 2023 K3s EC2. It does **not**
-manage the serving Compose instance or application image releases.
+Ansible configures the Amazon Linux 2023 K3s EC2 serving the
+public Aggregator demo. Application images and GitOps releases are
+deployed separately.
 
 | Role     | Responsibility                                                                 |
 | -------- | ------------------------------------------------------------------------------ |

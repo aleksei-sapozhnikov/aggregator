@@ -110,18 +110,11 @@ def output(name: str, value: str) -> None:
 def check() -> None:
     digest = fingerprint()
     output("config_fingerprint", digest)
-    if os.getenv("K3S_ENABLED") == "false":
-        output("ansible_changed", "false")
-        print("K3s is disabled; no node configuration required")
-        return
-    if os.getenv("K3S_ENABLED") != "true":
-        raise ValueError("K3S_ENABLED must be explicitly true or false")
-
     current_id = state_instance_id()
     creating = os.getenv("K3S_CREATED") == "true"
     manual = os.getenv("MANUAL_REAPPLY") == "true"
     if not current_id and not creating:
-        raise RuntimeError("K3s enabled but no existing or planned K3s EC2 exists")
+        raise RuntimeError("No running or planned K3s EC2 instance found")
 
     current = previous_value()
     expected = f"{current_id}:{digest}" if current_id else None

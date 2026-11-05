@@ -1,39 +1,12 @@
-# Optional Bedrock access, K3s node, and availability zone selection.
-
-variable "enable_bedrock" {
-  description = "Allow the demo EC2 instance to invoke Bedrock models."
-  type        = bool
-  default     = false
-}
-
-variable "default_subnet_availability_zones" {
-  description = "Availability Zone for each instance using the Default VPC's default subnet."
-  type        = map(string)
-  default = {
-    aggregator_demo = "eu-central-1b"
-  }
-}
-
-variable "enable_k3s_node" {
-  description = "Opt in to provisioning the separate K3s EC2 instance. Its Ansible configuration runs through SSM after apply."
-  type        = bool
-  default     = false
-}
-
+# The K3s EC2 is the sole public demo runtime.
 variable "k3s_instance_type" {
-  description = "EC2 instance size for the optional K3s node."
+  description = "EC2 instance size for the public K3s demo."
   type        = string
   default     = "t3.medium"
 }
 
 variable "k3s_root_volume_size" {
-  description = "Encrypted gp3 root volume size for the optional K3s node, in GiB."
+  description = "Encrypted gp3 root volume size for K3s in GiB."
   type        = number
   default     = 50
-}
-
-variable "eip_target_k3s" {
-  description = "Switch the existing public Elastic IP from the protected Compose EC2 to the K3s EC2; false keeps the old target."
-  type        = bool
-  default     = false
 }
