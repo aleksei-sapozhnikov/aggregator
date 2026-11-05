@@ -40,8 +40,12 @@ class K3sSingleRuntimeTests(unittest.TestCase):
 
     def test_legacy_cleanup_permissions_are_retired(self) -> None:
         policies = ROOT / "environments/shared/infra/administration/policies"
-        iam = (policies / "AggregatorDemoIAMManagement.json").read_text(encoding="utf-8")
-        ssm = (policies / "AggregatorDemoK3sRunCommand.json").read_text(encoding="utf-8")
+        iam = (policies / "AggregatorDemoIAMManagement.json").read_text(
+            encoding="utf-8"
+        )
+        ssm = (policies / "AggregatorDemoK3sRunCommand.json").read_text(
+            encoding="utf-8"
+        )
         self.assertNotIn("AggregatorDemoEC2Role", iam)
         self.assertNotIn("RetireLegacyDemoDeployDocument", ssm)
 
