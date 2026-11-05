@@ -31,3 +31,9 @@ variable "k3s_root_volume_size" {
   type        = number
   default     = 50
 }
+
+variable "eip_target_k3s" {
+  description = "Switch the existing public Elastic IP from the protected Compose EC2 to the K3s EC2; false keeps the old target."
+  type        = bool
+  default     = false
+}

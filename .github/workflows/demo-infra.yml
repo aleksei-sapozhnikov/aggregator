@@ -103,6 +103,7 @@ jobs:
         env:
           ENABLE_K3S_NODE: ${{ vars.ENABLE_K3S_NODE }}
           ENABLE_BEDROCK: ${{ vars.ENABLE_BEDROCK }}
+          EIP_TARGET_K3S: ${{ vars.EIP_TARGET_K3S || 'false' }}
         run: bash environments/demo/src/sh/check-flags.sh
       - name: Use read-only OIDC role for planning
         uses: aws-actions/configure-aws-credentials@v6.3.0
@@ -143,6 +144,7 @@ jobs:
           ANSIBLE_CHANGED: ${{ steps.changes.outputs.ansible_changed }}
           K3S_CREATED: ${{ steps.plan.outputs.k3s_created }}
           PASSWORD_SYNC_REQUESTED: ${{ inputs.sync_argocd_password }}
+          EIP_TARGET_K3S: ${{ steps.flags.outputs.eip_target_k3s }}
         run: bash environments/demo/src/sh/approval-summary.sh
       - name: Save exact plan privately in S3 and publish SHA-256
         id: saved_plan

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Validate explicitly configured demo infrastructure feature flags.
-# Requires boolean ENABLE_K3S_NODE and ENABLE_BEDROCK values and exports
+# Requires boolean ENABLE_K3S_NODE, ENABLE_BEDROCK and EIP_TARGET_K3S and exports
 # the corresponding TF_VAR_* inputs through GITHUB_ENV for OpenTofu.
 
 set -euo pipefail
@@ -12,8 +12,20 @@ set -euo pipefail
   echo "::error::ENABLE_BEDROCK must be explicitly true or false."
   exit 1
 }
+[[ "${EIP_TARGET_K3S:-false}" == true || "${EIP_TARGET_K3S:-false}" == false ]] || {
+  echo "::error::EIP_TARGET_K3S must be true or false."
+  exit 1
+}
+if [[ "${EIP_TARGET_K3S:-false}" == true && "$ENABLE_K3S_NODE" != true ]]; then
+  echo "::error::Cannot move the Elastic IP to K3s while ENABLE_K3S_NODE=false."
+  exit 1
+fi
 {
   echo "TF_VAR_enable_k3s_node=$ENABLE_K3S_NODE"
   echo "TF_VAR_enable_bedrock=$ENABLE_BEDROCK"
+  echo "TF_VAR_eip_target_k3s=${EIP_TARGET_K3S:-false}"
 } >> "$GITHUB_ENV"
-echo "k3s_enabled=$ENABLE_K3S_NODE" >> "$GITHUB_OUTPUT"
+{
+  echo "k3s_enabled=$ENABLE_K3S_NODE"
+  echo "eip_target_k3s=${EIP_TARGET_K3S:-false}"
+} >> "$GITHUB_OUTPUT"

@@ -54,3 +54,8 @@ output "k3s_security_group_id" {
   description = "K3s node security group ID, null when disabled."
   value       = one(module.aggregator_demo_k3s[*].security_group_id)
 }
+
+output "elastic_ip_target_instance_id" {
+  description = "Intended EC2 target of the existing Elastic IP."
+  value       = var.eip_target_k3s ? module.aggregator_demo_k3s[0].instance_id : module.aggregator_demo.instance_id
+}
