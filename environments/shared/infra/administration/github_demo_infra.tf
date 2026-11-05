@@ -1,6 +1,10 @@
 # GitHub OIDC identities for the demo OpenTofu root.
 # Authentication policy is centrally owned by the IAM administration root.
 
+locals {
+  github_oidc_provider_arn = "arn:aws:iam::905418096305:oidc-provider/token.actions.githubusercontent.com"
+}
+
 data "aws_iam_policy_document" "github_demo_infra_plan_trust" {
   statement {
     effect  = "Allow"
