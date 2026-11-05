@@ -62,7 +62,7 @@ def main(argv: list[str] | None = None) -> int:
                     f"Stored a new AWSCURRENT version for {secret_name} (version {result['VersionId']})."
                 )
         # Report partial writes even when the SDK returns an unexpected error.
-        except Exception as error:  # noqa: BLE001
+        except Exception as error:
             code = (
                 getattr(error, "response", {})
                 .get("Error", {})
@@ -79,7 +79,7 @@ def main(argv: list[str] | None = None) -> int:
 
         return 0
     # Keep setup errors concise and avoid exposing exception details or values.
-    except Exception as error:  # noqa: BLE001
+    except Exception as error:
         code = (
             getattr(error, "response", {})
             .get("Error", {})

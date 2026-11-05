@@ -160,7 +160,7 @@ def lambda_handler(event, context):
             )
         )
         return result
-    except Exception as error:  # noqa: BLE001
+    except Exception as error:
         # This path must work when secrets, state, data files, or runner construction fail.
         # Never put exception text in the alert or Lambda exception: SDK errors may contain secrets.
         reason = f"invocation failed during bootstrap or AWS access ({type(error).__name__}); inspect request ID"
@@ -205,7 +205,7 @@ def lambda_handler(event, context):
                     region=os.environ.get("AWS_REGION", ""),
                 )
             # Do not let failure reporting replace the original invocation error.
-            except Exception as notify_error:  # noqa: BLE001
+            except Exception as notify_error:
                 print(
                     json.dumps(
                         {

@@ -70,7 +70,7 @@ def alert(
             Subject=f"Aggregator publication blocked: {event['id']}",
             Message=json.dumps(details, indent=2),
         )
-    except Exception as error:  # noqa: BLE001
+    except Exception as error:
         # Alert delivery is best-effort and must not interrupt publication handling.
         print(
             json.dumps(

@@ -40,7 +40,6 @@ package com.github.vermucht.aggregator.export;
  *   <li>{@code 1.0} - dependency edge present
  * </ul>
  */
-@SuppressWarnings("unused")
 public final class HealthMetricsDocumentation {
   private HealthMetricsDocumentation() {}
 }
