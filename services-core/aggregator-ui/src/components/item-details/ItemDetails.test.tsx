@@ -4,6 +4,7 @@
 
 import type { ReactElement } from "react";
 import ContextualHelpProvider from "../about/ContextualHelpProvider";
+import ThemeProvider from "../../shared/theme/ThemeProvider";
 
 import { createRef } from "react";
 import {
@@ -81,12 +82,18 @@ import TimelineHelpDemo from "../about/timeline/TimelineHelpDemo";
 
 const render = (ui: ReactElement) => {
   const view = baseRender(
-    <ContextualHelpProvider>{ui}</ContextualHelpProvider>,
+    <ThemeProvider>
+      <ContextualHelpProvider>{ui}</ContextualHelpProvider>
+    </ThemeProvider>,
   );
   return {
     ...view,
     rerender: (next: ReactElement) =>
-      view.rerender(<ContextualHelpProvider>{next}</ContextualHelpProvider>),
+      view.rerender(
+        <ThemeProvider>
+          <ContextualHelpProvider>{next}</ContextualHelpProvider>
+        </ThemeProvider>,
+      ),
   };
 };
 
@@ -132,10 +139,8 @@ function TestPage(props: TestPageProps) {
       onToggleCatalog={() => {}}
       shouldOffsetContentHeader={false}
       isTitlePrimaryBelowControls={false}
-      theme={props.theme}
       isAiChatOpen={false}
       onToggleAiChat={() => {}}
-      onToggleTheme={() => {}}
       onOpenAbout={() => {}}
       selectedItem={props.selectedItem}
       selectedStatus={props.selectedStatus}
@@ -159,11 +164,9 @@ const renderDetailsPanel = (overrides: Partial<TestPageProps> = {}) => {
     isTitlePrimaryBelowControls: false,
     headerRef: createRef<HTMLElement>(),
     headerActionsRef: createRef<HTMLDivElement>(),
-    theme: "light" as const,
     isAiChatOpen: false,
     onCloseAiChat: vi.fn(),
     onToggleAiChat: vi.fn(),
-    onToggleTheme: vi.fn(),
     onOpenAbout: vi.fn(),
     selectedItem: { id: "checkout", title: "Checkout" },
     selectedStatus: "down" as const,
@@ -329,7 +332,7 @@ describe("ItemDetails contextual help", () => {
 
     const tooltip = screen.getByRole("tooltip");
     expect(tooltip.textContent).toBe(
-      "Signals currently contributing to this item's unhealthy state. Click for details.",
+      "Signals currently contributing to this item's unhealthy state.Click for details",
     );
     expect(helpButton.getAttribute("aria-describedby")).toBe(tooltip.id);
   });

@@ -111,13 +111,37 @@ describe("InfoHelp Actors example", () => {
 });
 
 describe("InfoHelp shared tooltip", () => {
+  it.each([
+    ["primary-contact", "Primary contact"],
+    ["actors", "Actors"],
+    ["healthy-signals", "Healthy signals"],
+    ["unhealthy-signals", "Unhealthy signals"],
+    ["timeline", "Timeline"],
+  ] as const)("shows exactly one click hint for %s", (topicId, title) => {
+    render(<InfoHelp topicId={topicId} />);
+    fireEvent.mouseEnter(
+      screen.getByRole("button", { name: "About " + title }),
+    );
+    const tooltip = screen.getByRole("tooltip");
+    const hints = tooltip.textContent?.match(/Click for details/g) ?? [];
+    expect(hints).toHaveLength(1);
+    expect(tooltip.querySelector(".help-tooltip-action")?.textContent).toBe(
+      "Click for details",
+    );
+  });
+
   it("shows the summary and secondary click hint", () => {
     render(<InfoHelp topicId="actors" />);
     fireEvent.mouseEnter(
       screen.getByRole("button", { name: "About Actors" }),
     );
     const tooltip = screen.getByRole("tooltip");
-    expect(tooltip.textContent).toContain("Click for details");
+    expect(tooltip.textContent).toBe(
+      "People or teams associated with this item.Click for details",
+    );
+    expect(
+      tooltip.querySelectorAll(".help-tooltip-action"),
+    ).toHaveLength(1);
     expect(tooltip.querySelector(".help-tooltip-action")?.textContent).toBe(
       "Click for details",
     );

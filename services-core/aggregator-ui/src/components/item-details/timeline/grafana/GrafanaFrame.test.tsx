@@ -2,21 +2,28 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import GrafanaFrame from "./GrafanaFrame";
+import ThemeProvider, { useTheme } from "../../../../shared/theme/ThemeProvider";
 
 afterEach(() => {
   cleanup();
+  localStorage.removeItem("aggregator-ui-theme");
   vi.restoreAllMocks();
 });
+
+function ThemeSwitch() {
+  const { toggleTheme } = useTheme();
+  return <button onClick={toggleTheme}>Switch theme</button>;
+}
+
 
 describe("GrafanaFrame", () => {
   it("loads only its wrapper and sends the selected Item dashboard on load", () => {
     const onNavigateToItem = vi.fn();
+    localStorage.setItem("aggregator-ui-theme", "dark");
     render(
-      <GrafanaFrame
-        itemId="checkout"
-        theme="dark"
-        onNavigateToItem={onNavigateToItem}
-      />,
+      <ThemeProvider>
+        <GrafanaFrame itemId="checkout" onNavigateToItem={onNavigateToItem} />
+      </ThemeProvider>,
     );
     const iframe = screen.getByTitle("State Timeline") as HTMLIFrameElement;
     expect(iframe.getAttribute("src")).toContain(
@@ -39,23 +46,23 @@ describe("GrafanaFrame", () => {
 
   it("updates the dashboard and theme without remounting the wrapper", () => {
     const onNavigateToItem = vi.fn();
+    localStorage.setItem("aggregator-ui-theme", "light");
     const { rerender } = render(
-      <GrafanaFrame
-        itemId="checkout"
-        theme="light"
-        onNavigateToItem={onNavigateToItem}
-      />,
+      <ThemeProvider>
+        <ThemeSwitch />
+        <GrafanaFrame itemId="checkout" onNavigateToItem={onNavigateToItem} />
+      </ThemeProvider>,
     );
     const iframe = screen.getByTitle("State Timeline") as HTMLIFrameElement;
     const send = vi.spyOn(iframe.contentWindow!, "postMessage");
     fireEvent.load(iframe);
     send.mockClear();
+    fireEvent.click(screen.getByRole("button", { name: "Switch theme" }));
     rerender(
-      <GrafanaFrame
-        itemId="orders"
-        theme="dark"
-        onNavigateToItem={onNavigateToItem}
-      />,
+      <ThemeProvider>
+        <ThemeSwitch />
+        <GrafanaFrame itemId="orders" onNavigateToItem={onNavigateToItem} />
+      </ThemeProvider>,
     );
     expect(screen.getByTitle("State Timeline")).toBe(iframe);
     expect(send).toHaveBeenCalledWith(
@@ -73,12 +80,11 @@ describe("GrafanaFrame", () => {
 
   it("forwards trusted Item links to the application without handling unrelated messages", () => {
     const onNavigateToItem = vi.fn();
+    localStorage.setItem("aggregator-ui-theme", "light");
     render(
-      <GrafanaFrame
-        itemId="checkout"
-        theme="light"
-        onNavigateToItem={onNavigateToItem}
-      />,
+      <ThemeProvider>
+        <GrafanaFrame itemId="checkout" onNavigateToItem={onNavigateToItem} />
+      </ThemeProvider>,
     );
     const iframe = screen.getByTitle("State Timeline") as HTMLIFrameElement;
     const data = {
