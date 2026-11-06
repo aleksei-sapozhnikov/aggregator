@@ -17,6 +17,12 @@ const ownChecks = clientChecks.map((signal, index) => ({
   offset: (index - 1) * 28,
 }));
 
+// The outer selection follows the Item as a whole, while the three inner
+// selections continue to follow their individual healthy signals.
+const itemSource = { x: 239, y: 15, width: 162, height: 70 };
+const mix = (from: number, to: number, progress: number): number =>
+  from + (to - from) * progress;
+
 function HealthySignalHighlights({
   targets,
   presentationProgress,
@@ -28,8 +34,23 @@ function HealthySignalHighlights({
   selectionOpacity: number;
   linkOpacity: number;
 }) {
+  const itemTarget = {
+    ...getSignalHighlightBounds(targets.item),
+    y: targets.item.y - 5,
+    height: targets.item.height + 10,
+  };
+
   return (
     <>
+      <DemoHighlightFrame
+        data-healthy-frame="item"
+        x={mix(itemSource.x, itemTarget.x, presentationProgress)}
+        y={mix(itemSource.y, itemTarget.y, presentationProgress)}
+        width={mix(itemSource.width, itemTarget.width, presentationProgress)}
+        height={mix(itemSource.height, itemTarget.height, presentationProgress)}
+        color="var(--link)"
+        opacity={selectionOpacity}
+      />
       {ownChecks.map((check) => {
         const startX = 320 + check.offset - 12;
         const startY = 53;

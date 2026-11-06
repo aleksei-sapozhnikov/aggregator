@@ -22,7 +22,11 @@ afterEach(cleanup);
 describe("Independent character SVG assets", () => {
   it.each([
     ["owner", ownerArtwork, ["owner-base", "owner-wrench"]],
-    ["user", userArtwork, ["user-base", "user-phone"]],
+    [
+      "user",
+      userArtwork,
+      ["user-base", "user-happy", "user-unhappy", "user-idle-arm", "user-phone"],
+    ],
     ["support", supportArtwork, ["support-base", "support-headset", "support-hand"]],
   ] as const)(
     "provides a valid standalone %s illustration with separately addressable layers",
@@ -82,7 +86,7 @@ describe("Independent character SVG assets", () => {
     );
     const user = container.querySelector('[data-demo-character="user"]');
     const support = container.querySelector('[data-demo-character="support"]');
-    expect(user?.querySelectorAll("use")).toHaveLength(2);
+    expect(user?.querySelectorAll("use")).toHaveLength(5);
     expect(support?.querySelectorAll("use")).toHaveLength(3);
     expect(
       user?.querySelector('[data-demo-gesture="phone"] use')?.getAttribute("href"),
@@ -97,6 +101,39 @@ describe("Independent character SVG assets", () => {
     ).toContain("SupportCharacter.svg#support-hand");
     expect(support?.querySelector(".actors-help-wrench")).toBeNull();
   });
+  it("shows User concern and changes from phone to resting arm by composition", () => {
+    const { container, rerender } = render(
+      <svg>
+        <UserCharacter />
+      </svg>,
+    );
+    const user = container.querySelector('[data-demo-character="user"]');
+    const happy = user?.querySelector('[data-user-expression="happy"]');
+    const unhappy = user?.querySelector('[data-user-expression="unhappy"]');
+    const phone = user?.querySelector('[data-demo-gesture="phone"]');
+    const idle = user?.querySelector('[data-user-arm="idle"]');
+    expect(happy?.getAttribute("opacity")).toBe("1");
+    expect(unhappy?.getAttribute("opacity")).toBe("0");
+    expect(phone?.getAttribute("opacity")).toBe("1");
+    expect(idle?.getAttribute("opacity")).toBe("0");
+
+    rerender(
+      <svg>
+        <UserCharacter unhappy={1} phoneVisible={0} />
+      </svg>,
+    );
+    expect(happy?.getAttribute("opacity")).toBe("0");
+    expect(unhappy?.getAttribute("opacity")).toBe("1");
+    expect(phone?.getAttribute("opacity")).toBe("0");
+    expect(idle?.getAttribute("opacity")).toBe("1");
+    expect(
+      unhappy?.querySelector("use")?.getAttribute("href"),
+    ).toContain("UserCharacter.svg#user-unhappy");
+    expect(
+      idle?.querySelector("use")?.getAttribute("href"),
+    ).toContain("UserCharacter.svg#user-idle-arm");
+  });
+
   it("provides a standalone service illustration with four independent layers", () => {
     const document = new DOMParser().parseFromString(
       serviceArtwork,

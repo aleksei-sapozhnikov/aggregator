@@ -1,20 +1,20 @@
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import { HelpContext, type HelpTopic } from "../shared/help/HelpContext";
+import { HelpContext, type HelpTopic } from "../../shared/help/HelpContext";
 import ContextualHelpDialog from "./ContextualHelpDialog";
 import PrimaryContactHelpContent, {
   primaryContactHelp,
-} from "./primary-contact/PrimaryContactHelpContent";
-import ActorsHelpContent, { actorsHelp } from "./actors/ActorsHelpContent";
+} from "../primary-contact/PrimaryContactHelpContent";
+import ActorsHelpContent, { actorsHelp } from "../actors/ActorsHelpContent";
 import HealthySignalsHelpContent, {
   healthySignalsHelp,
-} from "./healthy-signals/HealthySignalsHelpContent";
+} from "../healthy-signals/HealthySignalsHelpContent";
 import UnhealthySignalsHelpContent, {
   unhealthySignalsHelp,
-} from "./unhealthy-signals/UnhealthySignalsHelpContent";
+} from "../unhealthy-signals/UnhealthySignalsHelpContent";
 import TimelineHelpContent, {
   timelineHelp,
-} from "./timeline/TimelineHelpContent";
+} from "../timeline/TimelineHelpContent";
 
 const topics: Record<string, HelpTopic> = {
   "primary-contact": {
