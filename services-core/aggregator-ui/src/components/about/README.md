@@ -1,7 +1,7 @@
 # Contextual help
 
-`ContextualHelpProvider.tsx` registers each topic's title, short hover summary,
-and full React content. `ContextualHelpDialog.tsx` displays the selected
+`core/ContextualHelpProvider.tsx` registers each topic's title, short hover summary,
+and full React content. `core/ContextualHelpDialog.tsx` displays the selected
 content in the common modal. Each static topic keeps its explanatory text and
 animation together inside its own `*HelpContent.tsx` next to the demo.
 

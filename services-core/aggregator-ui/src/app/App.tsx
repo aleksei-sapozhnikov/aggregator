@@ -5,14 +5,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import CatalogTree from "../components/catalog-tree/CatalogTree";
 import AppLayout from "./AppLayout";
-import ItemDetails from "../components/item-details/ItemDetails";
+import ItemDetails from "../components/item-details/core/ItemDetails";
 import AiChatPanel from "../components/ai-chat/AiChatPanel";
 import AboutModal from "../components/about/application/AboutModal";
 import ContactModal from "../components/entity-details/contact/ContactModal";
 import ActorModal from "../components/entity-details/actor/ActorModal";
 import HealthSignalModal from "../components/entity-details/signal/HealthSignalModal";
 import useSignalDetails from "../components/entity-details/signal/useSignalDetails";
-import useSelectedItemData from "../components/item-details/useSelectedItemData";
+import useSelectedItemData from "../components/item-details/data/useSelectedItemData";
 import useItemNavigation from "./hooks/useItemNavigation";
 import useCatalogData from "./hooks/useCatalogData";
 import useResponsiveLayout from "./hooks/useResponsiveLayout";
