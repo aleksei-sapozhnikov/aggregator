@@ -1,6 +1,7 @@
 /** Grafana-specific dashboard configuration and wrapper URLs. */
 import type { AggregatorUiRuntimeConfig } from "../../../../shared/types";
 import { resolveBaseUrl } from "../../../../services/aggregatorApi";
+import type { Theme } from "../../../../shared/theme/theme";
 
 export const DASHBOARDS = {
   timeline: {
@@ -71,7 +72,7 @@ export const buildDashboardUrl = (
   dashboardUid: string,
   dashboardSlug: string,
   itemId: string,
-  theme: "dark" | "light",
+  theme: Theme,
   panelId: string | number | null | undefined,
   appBaseUrl = "",
 ): string => {
@@ -97,7 +98,7 @@ export const buildDashboardUrl = (
 export const buildGrafanaFrameUrl = ({
   initialTheme,
   grafanaUrl = "",
-}: { initialTheme?: string; grafanaUrl?: string } = {}): string => {
+}: { initialTheme?: Theme; grafanaUrl?: string } = {}): string => {
   const frameUrl = new URL(
     "src/components/item-details/timeline/grafana/frame/index.html",
     resolveBaseUrl(),

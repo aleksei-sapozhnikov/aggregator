@@ -15,10 +15,8 @@ type AppLayoutProps = {
   onToggleCatalog: () => void;
   shouldOffsetContentHeader: boolean;
   isTitlePrimaryBelowControls: boolean;
-  theme: "dark" | "light";
   isAiChatOpen: boolean;
   onToggleAiChat: () => void;
-  onToggleTheme: () => void;
   onOpenAbout: () => void;
   selectedItem: CatalogItem | undefined;
   selectedStatus: HealthStatus;
@@ -40,10 +38,8 @@ export default function AppLayout({
   onToggleCatalog,
   shouldOffsetContentHeader,
   isTitlePrimaryBelowControls,
-  theme,
   isAiChatOpen,
   onToggleAiChat,
-  onToggleTheme,
   onOpenAbout,
   selectedItem,
   selectedStatus,
@@ -80,10 +76,8 @@ export default function AppLayout({
       >
         <div className="content-header-actions" ref={headerActionsRef}>
           <AppToolbar
-            theme={theme}
             isAiChatOpen={isAiChatOpen}
             onToggleAiChat={onToggleAiChat}
-            onToggleTheme={onToggleTheme}
             onOpenAbout={onOpenAbout}
           />
         </div>

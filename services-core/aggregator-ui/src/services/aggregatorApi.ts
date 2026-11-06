@@ -41,16 +41,6 @@ interface ProductHealthItemPayload {
   affectingDependencies?: ProductHealthDependencyPayload[];
 }
 
-export const getInitialTheme = (): "dark" | "light" => {
-  const stored = localStorage.getItem("aggregator-ui-theme");
-  if (stored === "dark" || stored === "light") {
-    return stored;
-  }
-  return window.matchMedia("(prefers-color-scheme: dark)").matches
-    ? "dark"
-    : "light";
-};
-
 export const resolveBasePath = (): string => {
   const baseUrl = import.meta.env.BASE_URL || "/";
   return new URL(baseUrl, window.location.origin).pathname;
