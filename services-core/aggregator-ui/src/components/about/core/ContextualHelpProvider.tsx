@@ -1,3 +1,5 @@
+/** @file Registers help topics and owns the active contextual-help dialog. */
+
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { HelpContext, type HelpTopic } from "../../shared/help/HelpContext";
@@ -33,6 +35,7 @@ const topics: Record<string, HelpTopic> = {
   timeline: { ...timelineHelp, content: <TimelineHelpContent /> },
 };
 
+/** Registers contextual help topics and controls the active help dialog. */
 export default function ContextualHelpProvider({
   children,
 }: {

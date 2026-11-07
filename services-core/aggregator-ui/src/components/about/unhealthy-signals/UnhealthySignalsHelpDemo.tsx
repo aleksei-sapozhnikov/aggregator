@@ -1,3 +1,5 @@
+/** @file Animates failing checks propagating through dependencies and their recovery. */
+
 import useHelpAnimationClock from "../shared/useHelpAnimationClock";
 import SignalFlowHelpScene from "../shared/signal-flow/SignalFlowHelpScene";
 import {
@@ -12,6 +14,7 @@ import UnhealthySignalProjection, {
   getUnhealthyDiagramOpacity,
 } from "./UnhealthySignalProjection";
 
+/** Illustrates how failing signals spread through dependencies and recover. */
 export default function UnhealthySignalsHelpDemo() {
   const { elapsed } = useHelpAnimationClock(
     unhealthyCycleDuration,
@@ -22,7 +25,8 @@ export default function UnhealthySignalsHelpDemo() {
     elapsed -
     Math.min(expandedListHoldMs, Math.max(0, elapsed - timing.pageHoldAt));
   const time = sceneElapsed >= unhealthyResetAt ? 0 : sceneElapsed;
-  const failedLeaf = time >= timing.failureStart && time < timing.leafRecoveredAt;
+  const failedLeaf =
+    time >= timing.failureStart && time < timing.leafRecoveredAt;
   const affectedDependency =
     time >= timing.dependencyAffectedAt && time < timing.dependencyRecoveredAt;
   const affectedItem =

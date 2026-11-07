@@ -100,6 +100,7 @@ const bindEscGuard = (targetWindow: GrafanaInnerWindow | null | undefined) => {
       if (!doc?.querySelectorAll) {
         return;
       }
+      /** Binds Escape protection to nested Grafana frames as they appear. */
       const attachNestedFrames = () => {
         doc.querySelectorAll("iframe").forEach((childFrameEl) => {
           const childFrame = childFrameEl as HTMLIFrameElement;
@@ -107,6 +108,7 @@ const bindEscGuard = (targetWindow: GrafanaInnerWindow | null | undefined) => {
             return;
           }
           trackedFrames.add(childFrame);
+          /** Attaches Escape guards once a nested iframe becomes accessible. */
           const bindChild = () => {
             try {
               bindWindow(childFrame.contentWindow);
@@ -242,6 +244,7 @@ const bindItemLinkInterceptor = (
       if (!doc?.querySelectorAll) {
         return;
       }
+      /** Binds Item-link interception to nested Grafana frames as they appear. */
       const attachNestedFrames = () => {
         doc.querySelectorAll("iframe").forEach((childFrameEl) => {
           const childFrame = childFrameEl as HTMLIFrameElement;
@@ -249,6 +252,7 @@ const bindItemLinkInterceptor = (
             return;
           }
           trackedFrames.add(childFrame);
+          /** Attaches Item-link handlers once a nested iframe becomes accessible. */
           const bindChild = () => {
             try {
               bindWindow(childFrame.contentWindow);

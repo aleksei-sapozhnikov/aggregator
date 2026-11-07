@@ -1,3 +1,5 @@
+/** @file Loads an SVG sprite layer for reusable help characters. */
+
 import "./CharacterLayer.css";
 
 /** Compose SVG image layers; the caller owns its specific illustration. */

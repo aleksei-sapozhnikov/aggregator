@@ -1,4 +1,6 @@
 /** @vitest-environment jsdom */
+/** @file Tests Item deep-link history, path selection, and navigation synchronization. */
+
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { CatalogTreeNode } from "../../shared/types";

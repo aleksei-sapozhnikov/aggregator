@@ -1,3 +1,5 @@
+/** @file Defines the Actors help summary, detailed explanation, and animated example. */
+
 import ActorsHelpDemo from "./ActorsHelpDemo";
 
 export const actorsHelp = {
@@ -5,6 +7,7 @@ export const actorsHelp = {
   summary: "People or teams involved with this item.",
 };
 
+/** Renders the shared summary and detailed explanation before the Actors animation. */
 export default function ActorsHelpContent() {
   return (
     <>
@@ -12,7 +15,10 @@ export default function ActorsHelpContent() {
         <p>
           <strong>{actorsHelp.summary}</strong>
         </p>
-        <p>Some own it, some use it, and others support it. Open an actor to see their role and any available contact details.</p>
+        <p>
+          Some own it, some use it, and others support it. Open an actor to see
+          their role and any available contact details.
+        </p>
       </div>
       <ActorsHelpDemo />
     </>

@@ -27,6 +27,10 @@ def build_parser() -> argparse.ArgumentParser:
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--check-only", action="store_true")
     group.add_argument("--format", action="store_true")
+    group.add_argument("--lint-check-only", action="store_true")
+    group.add_argument("--format-check-only", action="store_true")
+    group.add_argument("--lint-fix", action="store_true")
+    group.add_argument("--format-fix", action="store_true")
     return parser
 
 
@@ -45,6 +49,22 @@ def main() -> int:
     ]
     if not files:
         return 0
+    if args.lint_check_only:
+        return subprocess.run(
+            [*cmd, "check", "--no-fix", *files], cwd=root, check=False
+        ).returncode
+    if args.format_check_only:
+        return subprocess.run(
+            [*cmd, "format", "--check", *files], cwd=root, check=False
+        ).returncode
+    if args.lint_fix:
+        return subprocess.run(
+            [*cmd, "check", "--fix", *files], cwd=root, check=False
+        ).returncode
+    if args.format_fix:
+        return subprocess.run(
+            [*cmd, "format", *files], cwd=root, check=False
+        ).returncode
     if args.check_only:
         lint_rc = subprocess.run(
             [*cmd, "check", "--no-fix", *files], cwd=root, check=False

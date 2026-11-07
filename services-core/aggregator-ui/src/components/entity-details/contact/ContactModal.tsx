@@ -1,3 +1,5 @@
+/** @file Displays contact details and simulated channel interactions. */
+
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { RefObject } from "react";
 import type { CatalogContact } from "../../../shared/types";
@@ -55,6 +57,7 @@ type ContactDemoCopy = {
   phoneResponse: string;
 };
 
+/** Builds contextual help content for a contact-channel demonstration. */
 const buildContactDemoHelpTopic = (
   details: ContactDemoDetails,
   label: string,
@@ -69,42 +72,42 @@ const buildContactDemoHelpTopic = (
     case "email":
       return {
         title: `${details.appName} preview`,
-        summary: "Demo email workflow. Click for details.",
+        summary: "Demo email workflow.",
         description: `This is a demo preview. It simulates opening ${details.appName}, addressing ${label}, sending a service-problem request to the relevant team, and receiving a reply.`,
         details: detailRows,
       };
     case "phone":
       return {
         title: `${details.appName} preview`,
-        summary: "Demo phone workflow. Click for details.",
+        summary: "Demo phone workflow.",
         description: `This is a demo preview. It simulates opening ${details.appName}, calling ${label}, explaining that a service is unhealthy, and receiving acknowledgement from the contact.`,
         details: detailRows,
       };
     case "sms":
       return {
         title: `${details.appName} preview`,
-        summary: "Demo text message workflow. Click for details.",
+        summary: "Demo text message workflow.",
         description: `This is a demo preview. It simulates opening ${details.appName}, sending ${label} a service-problem request, and receiving a response.`,
         details: detailRows,
       };
     case "oncall":
       return {
         title: `${details.appName} preview`,
-        summary: "Demo on-call workflow. Click for details.",
+        summary: "Demo on-call workflow.",
         description: `This is a demo preview. It simulates opening ${details.appName}, creating a service-problem incident for ${label}, notifying the on-call responder, and receiving acknowledgement.`,
         details: detailRows,
       };
     case "chat":
       return {
         title: `${details.appName} preview`,
-        summary: "Demo team chat workflow. Click for details.",
+        summary: "Demo team chat workflow.",
         description: `This is a demo preview. It simulates opening ${details.appName}, sending ${label} a service-problem request, and receiving a response from the relevant team.`,
         details: detailRows,
       };
     default:
       return {
         title: `${details.appName} preview`,
-        summary: "Demo contact destination. Click for details.",
+        summary: "Demo contact destination.",
         description: `This is a demo preview. It simulates opening the contact destination that Aggregator would use for ${label}.`,
         details: detailRows,
       };
@@ -120,12 +123,15 @@ const onCallActivityByClient: OnCallActivity = {
   opsgenie: ["Incident created", "Notification sent", "On-call acknowledged"],
 };
 
+/** Normalizes a demo contact handle for consistent display. */
 const normalizeContactHandle = (label: string): string =>
   label.replace(/^#+/, "").replace(/^@+/, "").trim() || "team";
 
+/** Builds the simulated message sent through a contact channel. */
 const buildOutgoingText = (label: string): string =>
   `Hey ${normalizeContactHandle(label)}, I have a problem with a service.`;
 
+/** Prepares channel-specific outgoing and reply text for the contact demo. */
 const buildContactDemoCopy = (
   contact: CatalogContact,
   label: string,
@@ -210,6 +216,7 @@ const buildContactDemoCopy = (
 const onCallIncidentTitle = "Service problem";
 const onCallIncidentDescription = "A service is experiencing a health problem.";
 
+/** Resolves an actionable contact link when a channel supports one. */
 const buildRealContactHref = (
   contact: CatalogContact,
   label: string,
@@ -311,6 +318,7 @@ const buildRealContactHref = (
   }
 };
 
+/** Renders the visual window chrome for a simulated contact application. */
 const ContactDemoWindowBar = ({
   details,
   helpTopic,
@@ -332,6 +340,7 @@ const ContactDemoWindowBar = ({
   </div>
 );
 
+/** Renders the email illustration used in the contact preview. */
 const MailEnvelopeIcon = () => (
   <svg
     className="contact-email-envelope-icon"
@@ -357,6 +366,7 @@ const MailEnvelopeIcon = () => (
   </svg>
 );
 
+/** Renders the simulated interaction for the selected contact channel. */
 const renderContactDemo = (
   label: string,
   details: ContactDemoDetails,
@@ -734,6 +744,7 @@ const renderContactDemo = (
   );
 };
 
+/** Shows real contact details alongside non-interactive channel previews. */
 export default function ContactModal({
   isOpen,
   contact,

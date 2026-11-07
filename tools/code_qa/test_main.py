@@ -121,13 +121,13 @@ class OrchestratorFlowTests(unittest.TestCase):
             patch.object(
                 main,
                 "_run_checks",
-                side_effect=[(False, ["ruff"]), (True, [])],
+                side_effect=[(False, ["ruff-format"]), (True, [])],
             ),
             patch.object(main, "run_script", return_value=(True, [])) as fix,
             redirect_stdout(StringIO()),
         ):
             self.assertEqual(main.run_format_command(), 0)
-        fix.assert_called_once_with("run_ruff.py", ["--format"])
+        fix.assert_called_once_with("run_ruff.py", ["--format-fix"])
 
     def test_code_format_tries_remaining_fixers_after_failure(self) -> None:
         with (
@@ -135,8 +135,8 @@ class OrchestratorFlowTests(unittest.TestCase):
                 main,
                 "_run_checks",
                 side_effect=[
-                    (False, ["ruff", "trailing-whitespace"]),
-                    (False, ["ruff"]),
+                    (False, ["ruff-format", "trailing-whitespace"]),
+                    (False, ["ruff-format"]),
                 ],
             ) as checks,
             patch.object(
@@ -155,12 +155,63 @@ class OrchestratorFlowTests(unittest.TestCase):
         self.assertEqual(
             [call.args for call in fix.call_args_list],
             [
-                ("run_ruff.py", ["--format"]),
+                ("run_ruff.py", ["--format-fix"]),
                 ("run_trailing_whitespace.py", ["--format"]),
             ],
         )
         self.assertIn("Manual Ruff fix required", output.getvalue())
         self.assertIn("=== QA: FAILED ===", output.getvalue())
+
+    def test_ruff_checks_report_independent_results(self) -> None:
+        ruff_checks = [
+            check for check in main.CHECKS if check.check_id.startswith("ruff-")
+        ]
+        output = StringIO()
+        errors: list[str] = []
+        with (
+            patch.object(main, "CHECKS", ruff_checks),
+            patch.object(
+                main,
+                "run_script",
+                side_effect=[
+                    (True, ["All checks passed!"]),
+                    (False, ["unformatted: File would be reformatted"]),
+                ],
+            ) as run,
+            redirect_stdout(output),
+        ):
+            ok, failed = main._run_checks(errors.append)
+
+        self.assertFalse(ok)
+        self.assertEqual(failed, ["ruff-format"])
+        self.assertEqual(
+            [call.args[1] for call in run.call_args_list],
+            [["--lint-check-only"], ["--format-check-only"]],
+        )
+        self.assertIn("Checking ruff lint.. OK", output.getvalue())
+        self.assertIn("Checking ruff formatting.. FAILED", output.getvalue())
+        self.assertNotIn("All checks passed!", errors)
+        self.assertEqual(
+            errors,
+            [
+                "  source: tools/code_qa/run_ruff.py",
+                "  unformatted: File would be reformatted",
+            ],
+        )
+
+    def test_code_format_only_fixes_the_failing_ruff_stage(self) -> None:
+        with (
+            patch.object(
+                main,
+                "_run_checks",
+                side_effect=[(False, ["ruff-lint"]), (True, [])],
+            ),
+            patch.object(main, "run_script", return_value=(True, [])) as fix,
+            redirect_stdout(StringIO()),
+        ):
+            self.assertEqual(main.run_format_command(), 0)
+
+        fix.assert_called_once_with("run_ruff.py", ["--lint-fix"])
 
     def test_run_script_keeps_every_failure_line(self) -> None:
         violations = [f"Ruff violation {index}" for index in range(25)]

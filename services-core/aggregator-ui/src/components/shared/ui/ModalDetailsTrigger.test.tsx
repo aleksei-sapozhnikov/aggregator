@@ -2,6 +2,8 @@
  * @vitest-environment jsdom
  */
 
+/** @file Tests shared triggers for entity detail dialogs. */
+
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { MouseEvent } from "react";

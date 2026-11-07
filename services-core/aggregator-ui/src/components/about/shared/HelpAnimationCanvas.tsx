@@ -1,3 +1,5 @@
+/** @file Provides a responsive frame for contextual-help animations. */
+
 import type { CSSProperties, ReactNode } from "react";
 import "./HelpAnimationCanvas.css";
 

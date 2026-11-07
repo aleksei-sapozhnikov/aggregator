@@ -55,6 +55,26 @@ class RuffRunnerTests(unittest.TestCase):
                 self.assertIn("--no-fix", commands[0])
                 self.assertIn("--check", commands[1])
 
+    def test_isolated_modes_run_only_the_requested_operation(self) -> None:
+        modes = [
+            ("--lint-check-only", ["ruff", "check", "--no-fix", "module.py"]),
+            ("--format-check-only", ["ruff", "format", "--check", "module.py"]),
+            ("--lint-fix", ["ruff", "check", "--fix", "module.py"]),
+            ("--format-fix", ["ruff", "format", "module.py"]),
+        ]
+        for flag, expected_command in modes:
+            with self.subTest(flag=flag):
+                result, commands = self.run_ruff_mode(flag, [0])
+                self.assertEqual(result, 0)
+                self.assertEqual(commands, [expected_command])
+
+    def test_isolated_checks_propagate_failures_independently(self) -> None:
+        for flag in ("--lint-check-only", "--format-check-only"):
+            with self.subTest(flag=flag):
+                result, commands = self.run_ruff_mode(flag, [1])
+                self.assertEqual(result, 1)
+                self.assertEqual(len(commands), 1)
+
     def test_format_mode_is_the_only_mode_that_applies_fixes(self) -> None:
         result, commands = self.run_ruff_mode("--format", [0, 0])
         self.assertEqual(result, 0)

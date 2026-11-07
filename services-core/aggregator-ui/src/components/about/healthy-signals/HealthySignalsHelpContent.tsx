@@ -1,3 +1,5 @@
+/** @file Defines the Healthy signals topic summary and its demonstration. */
+
 import HealthySignalsHelpDemo from "./HealthySignalsHelpDemo";
 
 export const healthySignalsHelp = {
@@ -5,6 +7,7 @@ export const healthySignalsHelp = {
   summary: "These checks are working as expected.",
 };
 
+/** Renders the shared summary, explanation, and healthy-signal illustration. */
 export default function HealthySignalsHelpContent() {
   return (
     <>
@@ -12,7 +15,10 @@ export default function HealthySignalsHelpContent() {
         <p>
           <strong>{healthySignalsHelp.summary}</strong>
         </p>
-        <p>They belong to this item, not its dependencies. They're kept out of the way so problems are easier to spot.</p>
+        <p>
+          They belong to this item, not its dependencies. They're kept out of
+          the way so problems are easier to spot.
+        </p>
       </div>
       <HealthySignalsHelpDemo />
     </>

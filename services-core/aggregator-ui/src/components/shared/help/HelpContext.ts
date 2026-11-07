@@ -1,3 +1,5 @@
+/** @file Defines the typed React context for contextual help topics. */
+
 import { createContext } from "react";
 import type { ReactNode } from "react";
 
