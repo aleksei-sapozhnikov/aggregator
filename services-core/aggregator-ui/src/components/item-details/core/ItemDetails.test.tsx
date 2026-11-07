@@ -2,8 +2,13 @@
  * @vitest-environment jsdom
  */
 
+/** @file Tests selected Item sections, help controls, and shared UI composition. */
+
 import type { ReactElement } from "react";
 import ContextualHelpProvider from "../../about/core/ContextualHelpProvider";
+import { healthySignalsHelp } from "../../about/healthy-signals/HealthySignalsHelpContent";
+import { unhealthySignalsHelp } from "../../about/unhealthy-signals/UnhealthySignalsHelpContent";
+import { timelineHelp } from "../../about/timeline/TimelineHelpContent";
 import ThemeProvider from "../../../shared/theme/ThemeProvider";
 
 import { createRef } from "react";
@@ -280,7 +285,7 @@ describe("ItemDetails contextual help", () => {
     ).not.toBeNull();
     expect(
       demos.querySelector(
-        '[data-demo="timeline"] [data-shared-revision="timeline"]',
+        '[data-demo="timeline"] .grafana-timeline-illustration',
       ),
     ).not.toBeNull();
     fireEvent.click(
@@ -332,7 +337,7 @@ describe("ItemDetails contextual help", () => {
 
     const tooltip = screen.getByRole("tooltip");
     expect(tooltip.textContent).toBe(
-      "Signals currently contributing to this item's unhealthy state.Click for details",
+      unhealthySignalsHelp.summary + "Click for details",
     );
     expect(helpButton.getAttribute("aria-describedby")).toBe(tooltip.id);
   });
@@ -348,9 +353,10 @@ describe("ItemDetails contextual help", () => {
       name: "About Healthy signals",
     });
     expect(dialog.textContent).toContain("Healthy signals");
-    expect(dialog.textContent).toContain(
-      "Healthy signals are the selected item's own health signals that are currently passing.",
-    );
+    expect(
+      dialog.querySelector(".info-help-description p:first-child strong")
+        ?.textContent,
+    ).toBe(healthySignalsHelp.summary);
 
     await user.click(
       screen.getByRole("button", { name: "Close contextual help" }),
@@ -627,14 +633,15 @@ describe("ItemDetails contextual help", () => {
     expect(onToggleTimeline).not.toHaveBeenCalled();
     expect(timelineToggle.getAttribute("aria-expanded")).toBe("false");
     const dialog = screen.getByRole("dialog", { name: "About Timeline" });
-    expect(dialog.textContent).toContain(
-      "Timeline shows the selected Item's [Overall] state, including dependency impact",
-    );
+    expect(
+      dialog.querySelector(".info-help-description p:first-child strong")
+        ?.textContent,
+    ).toBe(timelineHelp.summary);
     expect(dialog.textContent).toContain("Inspect a moment");
     expect(dialog.textContent).toContain("Switch signal groups");
     expect(dialog.textContent).toContain("Open a dependency");
     expect(dialog.textContent).toContain(
-      "were DOWN or UNKNOWN at some point in the selected range",
+      "The other rows show checks that had problems or lacked data during the selected period.",
     );
     expect(dialog.textContent).not.toContain("show: failing");
     expect(dialog.textContent).not.toContain("↺");

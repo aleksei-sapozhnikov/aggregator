@@ -1,3 +1,5 @@
+/** @file Renders illustrated role captions for help characters. */
+
 import "./DemoWoodLabel.css";
 
 /** Wooden captions shared by the Actors and Primary contact illustrations. */

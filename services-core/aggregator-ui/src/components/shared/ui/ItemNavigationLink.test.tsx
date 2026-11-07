@@ -2,6 +2,8 @@
  * @vitest-environment jsdom
  */
 
+/** @file Tests accessibility and Item deep-link behavior. */
+
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { MouseEvent } from "react";

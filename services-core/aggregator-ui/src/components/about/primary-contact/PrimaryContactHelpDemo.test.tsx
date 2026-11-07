@@ -1,6 +1,8 @@
 /**
  * @vitest-environment jsdom
  */
+/** @file Tests primary-contact repair animation timing and scene presentation. */
+
 import {
   act,
   cleanup,
@@ -17,6 +19,8 @@ import PrimaryContactHelpDemo, {
 } from "./PrimaryContactHelpDemo";
 import InfoHelp from "../../shared/help/InfoHelp";
 import ContextualHelpProvider from "../core/ContextualHelpProvider";
+import { primaryContactHelp } from "./PrimaryContactHelpContent";
+import serviceAssetUrl from "../shared/characters/service/ServiceMachine.svg?no-inline";
 
 afterEach(() => {
   cleanup();
@@ -41,21 +45,21 @@ describe("Primary contact contextual help", () => {
       "[data-primary-contact-technician]",
     );
     const service = container.querySelector("[data-primary-contact-service]");
-    expect(caller?.querySelector('[data-demo-character="user"]')).not.toBeNull();
     expect(
-      caller?.querySelector('[data-demo-gesture="phone"]'),
+      caller?.querySelector('[data-demo-character="user"]'),
     ).not.toBeNull();
+    expect(caller?.querySelector('[data-demo-gesture="phone"]')).not.toBeNull();
     expect(
       technician?.querySelector('[data-demo-character="owner"]'),
     ).not.toBeNull();
-    expect(service?.querySelector("[data-demo-service-machine]")).not.toBeNull();
+    expect(
+      service?.querySelector("[data-demo-service-machine]"),
+    ).not.toBeNull();
     expect(caller?.querySelector('[data-scene-label="User"]')).not.toBeNull();
     expect(
       technician?.querySelector('[data-scene-label="Primary"]'),
     ).not.toBeNull();
-    expect(
-      container.querySelector('[data-scene-label="Service"]'),
-    ).toBeNull();
+    expect(container.querySelector('[data-scene-label="Service"]')).toBeNull();
     expect(container.querySelectorAll(".demo-wood-label")).toHaveLength(2);
     expect(
       caller?.querySelector('[data-demo-character="user"] [data-scene-label]'),
@@ -74,10 +78,10 @@ describe("Primary contact contextual help", () => {
     const red = service?.querySelector('[data-service-lamp="down"]');
     const green = service?.querySelector('[data-service-lamp="up"]');
     expect(red?.querySelector("use")?.getAttribute("href")).toContain(
-      "ServiceMachine.svg#service-down",
+      `${serviceAssetUrl}#service-down`,
     );
     expect(green?.querySelector("use")?.getAttribute("href")).toContain(
-      "ServiceMachine.svg#service-up",
+      `${serviceAssetUrl}#service-up`,
     );
     expect(red?.getAttribute("opacity")).toBe("0");
     expect(green?.getAttribute("opacity")).toBe("1");
@@ -196,8 +200,8 @@ describe("Primary contact contextual help", () => {
     });
     const text = dialog.querySelector(".info-help-description");
     const figure = dialog.querySelector("figure.primary-contact-help-demo");
-    expect(text?.textContent).toContain(
-      "The primary contact is the main contact point",
+    expect(text?.querySelector("p:first-child strong")?.textContent).toBe(
+      primaryContactHelp.summary,
     );
     expect(text?.nextElementSibling).toBe(figure);
     expect(figure?.classList.contains("help-animation-canvas")).toBe(true);
@@ -209,8 +213,7 @@ describe("Primary contact contextual help", () => {
     expect(height).toBeLessThan(340);
     const [left] = compactLayout.viewBox.split(" ").map(Number);
     expect(compactLayout.pageX).toBe(
-      left +
-        (width - compactLayout.pageWidth * compactLayout.pageScale) / 2,
+      left + (width - compactLayout.pageWidth * compactLayout.pageScale) / 2,
     );
     expect(figure?.querySelector("[data-primary-contact-page]")).not.toBeNull();
     expect(
@@ -362,7 +365,8 @@ describe("Primary contact contextual help", () => {
         layout.sceneX + layout.sceneScale * (75 + 94 * 0.75);
       const ownerCenter =
         layout.sceneX +
-        layout.sceneScale * (getPrimaryContactHelpFrame(10000).technicianX + 31);
+        layout.sceneScale *
+          (getPrimaryContactHelpFrame(10000).technicianX + 31);
       const userCenter =
         layout.sceneX + layout.sceneScale * (454 + (9 + 51 * 1.32) * 0.75);
       expect(serviceCenter).toBeLessThan(ownerCenter);
@@ -432,7 +436,9 @@ describe("Primary contact contextual help", () => {
     ).toBe("translate(454 140) scale(0.75) translate(-352 -76)");
     const layout = getPrimaryContactHelpLayout(320);
     expect(
-      svg.querySelector("[data-primary-contact-scene]")?.getAttribute("transform"),
+      svg
+        .querySelector("[data-primary-contact-scene]")
+        ?.getAttribute("transform"),
     ).toBe(
       `translate(${layout.sceneX} ${layout.sceneY}) scale(${layout.sceneScale})`,
     );

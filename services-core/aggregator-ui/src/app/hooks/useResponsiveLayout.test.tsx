@@ -1,4 +1,6 @@
 /** @vitest-environment jsdom */
+/** @file Tests responsive sidebar state and mobile pointer gestures. */
+
 import type { TouchEvent } from "react";
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";

@@ -76,7 +76,10 @@ def batched_file_args(command: list[str], files: list[str]) -> Iterator[list[str
 def print_prettier_output(output: str | None, stream: TextIO) -> None:
     """Forward useful Prettier output without repeated per-batch banners."""
     for line in (output or "").splitlines():
-        if line.strip() not in PRETTIER_STATUS_LINES:
+        stripped = line.strip()
+        if stripped not in PRETTIER_STATUS_LINES and not stripped.endswith(
+            " (unchanged)"
+        ):
             print(line, file=stream)
 
 

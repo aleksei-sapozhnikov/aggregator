@@ -1,3 +1,5 @@
+/** @file Defines deterministic catalog fixtures for contextual-help animations. */
+
 import type {
   CatalogContact,
   CatalogItem,

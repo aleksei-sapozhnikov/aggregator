@@ -2,6 +2,8 @@
  * @vitest-environment jsdom
  */
 
+/** @file Verifies About status indicators match the shared health presentation. */
+
 import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import AboutContent from "./AboutContent";

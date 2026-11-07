@@ -175,6 +175,7 @@ const CatalogNode = ({
  * App owns orchestration state and passes callbacks / derived data.
  *
  */
+/** Renders catalog browsing, search results, and service-reported status indicators. */
 export default function CatalogTree({
   isSidebarOpen,
   homeHref,

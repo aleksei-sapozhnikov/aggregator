@@ -1,9 +1,12 @@
+/** @file Displays accessible progress for looping help animations. */
+
 import "./HelpAnimationProgress.css";
 
 type HelpAnimationProgressProps = {
   progress: number;
 };
 
+/** Shows normalized progress through the current illustration cycle. */
 export default function HelpAnimationProgress({
   progress,
 }: HelpAnimationProgressProps) {

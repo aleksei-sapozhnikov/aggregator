@@ -2,6 +2,8 @@
  * @vitest-environment jsdom
  */
 
+/** @file Verifies the Actors help illustration and interaction safety. */
+
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { expectDecorativeSceneShield } from "../../shared/help/helpTestAssertions";
@@ -56,13 +58,13 @@ describe("Actors contextual help animation", () => {
       // Wooden labels are separate scene elements, not part of the assets.
       expect(sprite?.querySelector("[data-scene-label]")).toBeNull();
       expect(
-        container.querySelector(
-          `[data-actor="${role}"] [data-scene-label]`,
-        ),
+        container.querySelector(`[data-actor="${role}"] [data-scene-label]`),
       ).not.toBeNull();
     }
     expect(
-      container.querySelector('[data-service="item"] [data-demo-service-machine]'),
+      container.querySelector(
+        '[data-service="item"] [data-demo-service-machine]',
+      ),
     ).not.toBeNull();
     expect(
       container.querySelector('[data-actor="owner"] .actors-help-wrench'),
@@ -71,7 +73,9 @@ describe("Actors contextual help animation", () => {
       container.querySelector('[data-actor="support"] .actors-help-wrench'),
     ).toBeNull();
     expect(
-      container.querySelector('[data-actor="user"] [data-demo-gesture="phone"]'),
+      container.querySelector(
+        '[data-actor="user"] [data-demo-gesture="phone"]',
+      ),
     ).not.toBeNull();
     expect(
       container.querySelector(
@@ -109,9 +113,7 @@ describe("Actors contextual help animation", () => {
       ).sort(),
     ).toEqual(["Owner", "Support", "User"]);
     expect(
-      figure.querySelector(
-        "[data-service='item'] [data-scene-label]",
-      ),
+      figure.querySelector("[data-service='item'] [data-scene-label]"),
     ).toBeNull();
     expect(figure.querySelectorAll(".demo-wood-label")).toHaveLength(3);
     for (const [id, role] of [

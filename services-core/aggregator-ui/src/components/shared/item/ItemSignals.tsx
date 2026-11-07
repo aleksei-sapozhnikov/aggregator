@@ -1,3 +1,5 @@
+/** @file Renders healthy and unhealthy Item signals using reported health facts. */
+
 import type { MouseEvent, ReactNode } from "react";
 import type { ItemSignal } from "../../../shared/types";
 import { buildStatusText } from "../../../shared/health/healthPresentation";
@@ -22,6 +24,7 @@ type SignalActions = {
   ) => void;
 };
 
+/** Renders an optionally clickable signal name with UNKNOWN metadata. */
 function SignalName({
   signal,
   buildSignalLink,
@@ -58,6 +61,7 @@ type SignalsProps = SignalActions & {
   help?: ReactNode;
 };
 
+/** Renders a direct Item signal without inferring its health. */
 function OwnSignalRow({
   signal,
   healthy,
@@ -75,6 +79,7 @@ function OwnSignalRow({
   );
 }
 
+/** Displays the Item's passing signals in a collapsible list. */
 export function HealthySignals({
   signals,
   count = signals.length,
@@ -114,6 +119,7 @@ export function HealthySignals({
   );
 }
 
+/** Displays failing signals and dependencies contributing to Item health. */
 export function UnhealthySignals({
   signals,
   dependencies,

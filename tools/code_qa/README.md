@@ -28,5 +28,8 @@ Run a single module without Make: `python tools/code_qa/main.py test --module ca
 Pass `--module` more than once for a subset. All supported modules run by default.
 To save the test transcript: `python tools/code_qa/main.py test --out-file test-results.txt`.
 
+Ruff lint and Ruff formatting are reported as separate checks. The format
+command applies fixes only for the Ruff stage that failed.
+
 The `code-qa` flow stops if formatting fails. Full `qa` always scans secrets, even when formatting or tests fail.
 The CI workflow runs `make qa` as its single QA entrypoint and separately verifies that formatting did not change any tracked files. The Makefile does not require `.env` or Docker/Podman for QA targets. The Java formatter also uses the cached JDK 25 when needed; `JAVA_HOME` and `PATH` are scoped to each subprocess and do not modify the system installation.

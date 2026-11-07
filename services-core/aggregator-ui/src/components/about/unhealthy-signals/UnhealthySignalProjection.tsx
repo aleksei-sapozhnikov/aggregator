@@ -1,3 +1,5 @@
+/** @file Projects failing dependency signals into the selected Item preview. */
+
 import type { SceneRect } from "../shared/HelpScene";
 import {
   expandedListHoldMs,
@@ -27,7 +29,9 @@ const dependencies: MovingDependency[] = [
   },
 ];
 
+/** Clamps animation progress to the inclusive zero-to-one range. */
 const clamp = (value: number): number => Math.max(0, Math.min(1, value));
+/** Interpolates illustration geometry between two values. */
 const mix = (start: number, end: number, progress: number): number =>
   start + (end - start) * progress;
 
@@ -51,6 +55,7 @@ export const getUnhealthyDiagramOpacity = (elapsed: number): number =>
       smooth(progressBetween(elapsed, timing.reverseStart, timing.reverseEnd)),
   );
 
+/** Connects failed dependencies to their corresponding Item signal rows. */
 export default function UnhealthySignalProjection({
   elapsed,
   nestedFailed,
@@ -84,7 +89,11 @@ export default function UnhealthySignalProjection({
         timing.selectionFadeEnd,
       ));
   const symbolOpacity = 1 - smooth(progressBetween(progress, 0.38, 0.88));
-  const itemHighlight = getSignalHighlightBounds(targets.item, 4);
+  const itemHighlight = {
+    ...getSignalHighlightBounds(targets.item),
+    y: targets.item.y - 5,
+    height: targets.item.height + 10,
+  };
 
   return (
     <>
