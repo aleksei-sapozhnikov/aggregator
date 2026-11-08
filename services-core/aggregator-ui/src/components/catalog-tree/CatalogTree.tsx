@@ -1,5 +1,6 @@
 /**
- * @file Catalog tree, search, and navigation.
+ * @file Presents catalog browsing and search results with backend health indicators.
+ * Navigation state and actions are supplied by the application.
  */
 
 import { buildItemRouteHref } from "../../shared/navigation/itemRoutes";
@@ -23,6 +24,8 @@ type CatalogNodeProps = {
   status: HealthStatus;
   statuses: Record<string, HealthStatus>;
   lastUpdated: string;
+  hasHealthSnapshot: boolean;
+  isLastKnownHealth: boolean;
 };
 
 type CatalogTreeProps = {
@@ -52,6 +55,8 @@ type CatalogTreeProps = {
   onExpandPathToItem: (itemId: string) => void;
   itemStatuses: Record<string, HealthStatus>;
   lastUpdated: string;
+  hasHealthSnapshot?: boolean;
+  isLastKnownHealth?: boolean;
   catalogTreeRef: RefObject<HTMLDivElement | null>;
   filteredTree: CatalogTreeNode[];
   expandedIds: Set<string>;
@@ -59,11 +64,6 @@ type CatalogTreeProps = {
   onSelectNode: (node: CatalogTreeNode) => void;
 };
 
-/**
- * Recursive tree node renderer used only by CatalogTree.
- * Kept local to preserve the coarse-grained component split.
- *
- */
 const CatalogNode = ({
   node,
   selectedNodeUid,
@@ -74,10 +74,15 @@ const CatalogNode = ({
   status,
   statuses,
   lastUpdated,
+  hasHealthSnapshot,
+  isLastKnownHealth,
 }: CatalogNodeProps) => {
   const hasChildren = node.children.length > 0;
   const isExpanded = expandedIds.has(node.item.id);
-  const statusLabel = buildStatusText(status, { lastUpdated });
+  const statusLabel = buildStatusText(status, {
+    lastUpdated,
+    lastKnown: isLastKnownHealth,
+  });
   const itemHref = buildItemRouteHref(basePath, node.item.id, node.path);
 
   const row = (
@@ -123,11 +128,13 @@ const CatalogNode = ({
         <div className="node-main">
           <div className="node-label">
             <span className="node-heading">
-              <span
-                className={`status-indicator status-${status}`}
-                aria-label={statusLabel}
-                title={statusLabel}
-              />
+              {hasHealthSnapshot && statuses[node.item.id] !== undefined && (
+                <span
+                  className={`status-indicator status-${status}`}
+                  aria-label={statusLabel}
+                  title={statusLabel}
+                />
+              )}
               {node.item.title && (
                 <span className="node-name">{node.item.title}</span>
               )}
@@ -159,6 +166,8 @@ const CatalogNode = ({
               status={statuses[child.item.id] || "unknown"}
               statuses={statuses}
               lastUpdated={lastUpdated}
+              hasHealthSnapshot={hasHealthSnapshot}
+              isLastKnownHealth={isLastKnownHealth}
             />
           ))}
       </div>
@@ -166,16 +175,6 @@ const CatalogNode = ({
   );
 };
 
-/**
- * Renders the left-side navigation area:
- * - catalog tree
- * - search input + autocomplete
- * - search results mode
- *
- * App owns orchestration state and passes callbacks / derived data.
- *
- */
-/** Renders catalog browsing, search results, and service-reported status indicators. */
 export default function CatalogTree({
   isSidebarOpen,
   homeHref,
@@ -203,6 +202,8 @@ export default function CatalogTree({
   onExpandPathToItem,
   itemStatuses,
   lastUpdated,
+  hasHealthSnapshot = true,
+  isLastKnownHealth = false,
   catalogTreeRef,
   filteredTree,
   expandedIds,
@@ -354,6 +355,7 @@ export default function CatalogTree({
                 const searchItemStatus = itemStatuses[item.id] || "unknown";
                 const searchItemStatusText = buildStatusText(searchItemStatus, {
                   lastUpdated,
+                  lastKnown: isLastKnownHealth,
                 });
                 return (
                   <div key={item.id} className="catalog-item node-leaf">
@@ -381,11 +383,14 @@ export default function CatalogTree({
                         <div className="node-main">
                           <div className="node-label">
                             <span className="node-heading">
-                              <span
-                                className={`status-indicator status-${searchItemStatus}`}
-                                aria-label={searchItemStatusText}
-                                title={searchItemStatusText}
-                              />
+                              {hasHealthSnapshot &&
+                                itemStatuses[item.id] !== undefined && (
+                                  <span
+                                    className={`status-indicator status-${searchItemStatus}`}
+                                    aria-label={searchItemStatusText}
+                                    title={searchItemStatusText}
+                                  />
+                                )}
                               {item.title && (
                                 <span className="node-name">{item.title}</span>
                               )}
@@ -415,6 +420,8 @@ export default function CatalogTree({
                 status={itemStatuses[node.item.id] || "unknown"}
                 statuses={itemStatuses}
                 lastUpdated={lastUpdated}
+                hasHealthSnapshot={hasHealthSnapshot}
+                isLastKnownHealth={isLastKnownHealth}
               />
             ))}
           </div>

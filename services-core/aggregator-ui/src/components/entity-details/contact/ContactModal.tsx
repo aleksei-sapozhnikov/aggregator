@@ -1,4 +1,4 @@
-/** @file Displays contact details and simulated channel interactions. */
+/** @file Presents catalog contacts through simulated channel workflows that never send messages or place calls. */
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { RefObject } from "react";
@@ -57,7 +57,6 @@ type ContactDemoCopy = {
   phoneResponse: string;
 };
 
-/** Builds contextual help content for a contact-channel demonstration. */
 const buildContactDemoHelpTopic = (
   details: ContactDemoDetails,
   label: string,
@@ -123,15 +122,12 @@ const onCallActivityByClient: OnCallActivity = {
   opsgenie: ["Incident created", "Notification sent", "On-call acknowledged"],
 };
 
-/** Normalizes a demo contact handle for consistent display. */
 const normalizeContactHandle = (label: string): string =>
   label.replace(/^#+/, "").replace(/^@+/, "").trim() || "team";
 
-/** Builds the simulated message sent through a contact channel. */
 const buildOutgoingText = (label: string): string =>
   `Hey ${normalizeContactHandle(label)}, I have a problem with a service.`;
 
-/** Prepares channel-specific outgoing and reply text for the contact demo. */
 const buildContactDemoCopy = (
   contact: CatalogContact,
   label: string,
@@ -216,7 +212,7 @@ const buildContactDemoCopy = (
 const onCallIncidentTitle = "Service problem";
 const onCallIncidentDescription = "A service is experiencing a health problem.";
 
-/** Resolves an actionable contact link when a channel supports one. */
+/** Example destinations are displayed in preview help; they are never opened. */
 const buildRealContactHref = (
   contact: CatalogContact,
   label: string,
@@ -318,7 +314,6 @@ const buildRealContactHref = (
   }
 };
 
-/** Renders the visual window chrome for a simulated contact application. */
 const ContactDemoWindowBar = ({
   details,
   helpTopic,
@@ -340,7 +335,6 @@ const ContactDemoWindowBar = ({
   </div>
 );
 
-/** Renders the email illustration used in the contact preview. */
 const MailEnvelopeIcon = () => (
   <svg
     className="contact-email-envelope-icon"
@@ -366,7 +360,6 @@ const MailEnvelopeIcon = () => (
   </svg>
 );
 
-/** Renders the simulated interaction for the selected contact channel. */
 const renderContactDemo = (
   label: string,
   details: ContactDemoDetails,
@@ -744,7 +737,6 @@ const renderContactDemo = (
   );
 };
 
-/** Shows real contact details alongside non-interactive channel previews. */
 export default function ContactModal({
   isOpen,
   contact,

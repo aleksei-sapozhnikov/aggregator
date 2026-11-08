@@ -1,4 +1,4 @@
-/** @file Identifies plain pointer navigation clicks without modifier keys. */
+/** @file Identifies clicks the app can intercept while preserving modified browser navigation. */
 
 type PlainLeftClickEvent = {
   button: number;
@@ -9,7 +9,6 @@ type PlainLeftClickEvent = {
   altKey: boolean;
 };
 
-/** Checks whether an interaction should navigate within the SPA. */
 export const isPlainLeftClick = (event: PlainLeftClickEvent): boolean =>
   event.button === 0 &&
   !event.defaultPrevented &&

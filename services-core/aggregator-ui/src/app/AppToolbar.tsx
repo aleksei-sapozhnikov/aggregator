@@ -1,6 +1,4 @@
-/**
- * @file Application-level toolbar actions.
- */
+/** @file Groups global actions for theme, AI chat, and application help. */
 
 import { useTheme } from "../shared/theme/ThemeProvider";
 
@@ -10,10 +8,6 @@ type AppToolbarProps = {
   onOpenAbout: () => void;
 };
 
-/**
- * Renders top-bar actions for theme switching and opening the About dialog.
- *
- */
 export default function AppToolbar({
   isAiChatOpen,
   onToggleAiChat,
