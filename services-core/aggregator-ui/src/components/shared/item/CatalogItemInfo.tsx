@@ -13,18 +13,15 @@ type CatalogItemInfoProps = {
 const missingTooltip = "No description in catalog";
 const missingDetailNotice = "No detailed description in catalog.";
 
-/** Normalizes a catalog description before it is shown in the tooltip or modal. */
 const normalizeDescription = (value: string | undefined): string =>
   typeof value === "string" ? value.trim() : "";
 
-/** Separates a detailed catalog description into readable paragraphs. */
 const splitParagraphs = (value: string): string[] =>
   value
     .split(/\n\s*\n/)
     .map((paragraph) => paragraph.trim())
     .filter(Boolean);
 
-/** Shares the Item's short description between tooltip and detailed modal. */
 export default function CatalogItemInfo({
   item,
   interactive = true,
@@ -49,7 +46,6 @@ export default function CatalogItemInfo({
     [fullDescription],
   );
 
-  /** Shows the short catalog description when the Item information dialog is closed. */
   const showTooltip = () => {
     if (!interactive || isModalOpen) {
       return;

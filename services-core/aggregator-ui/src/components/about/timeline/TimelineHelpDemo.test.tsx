@@ -120,7 +120,7 @@ describe("Timeline help walkthrough", () => {
         ".timeline-help-preview .help-animation-progress-fill",
       ) as HTMLElement;
       expect(bar.getAttribute("aria-valuenow")).toBe("0");
-      // The clock advances in 100ms steps, so use a whole tick for odd halves.
+      // Round the midpoint to a multiple of the animation clock's 20 ms tick.
       const midpoint = Math.ceil(duration / 200) * 100;
       advance(midpoint);
       const fraction = midpoint / duration;

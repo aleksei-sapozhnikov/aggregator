@@ -1,6 +1,4 @@
-/**
- * @file About dialog wrapper for static application description content.
- */
+/** @file Presents the application introduction in the shared modal shell. */
 
 import AboutContent, { AboutHeader } from "./AboutContent";
 import ModalWindow from "../../shared/ui/ModalWindow";
@@ -10,10 +8,6 @@ type AboutModalProps = {
   onClose: () => void;
 };
 
-/**
- * Renders the About modal and delegates body content to `AboutContent`.
- *
- */
 export default function AboutModal({ isOpen, onClose }: AboutModalProps) {
   return (
     <ModalWindow

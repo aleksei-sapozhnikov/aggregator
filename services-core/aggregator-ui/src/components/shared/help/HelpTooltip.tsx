@@ -7,7 +7,6 @@ import { createPortal } from "react-dom";
 const gap = 6;
 const padding = 8;
 
-/** Viewport-aware help tooltip with primary and secondary text. */
 export default function HelpTooltip({
   id,
   anchorRef,
@@ -29,7 +28,6 @@ export default function HelpTooltip({
 
   useLayoutEffect(() => {
     if (!visible) return undefined;
-    /** Measures the trigger and places the tooltip within viewport bounds. */
     const update = () => {
       if (!anchorRef.current || !tipRef.current) return;
       const anchor = anchorRef.current.getBoundingClientRect();

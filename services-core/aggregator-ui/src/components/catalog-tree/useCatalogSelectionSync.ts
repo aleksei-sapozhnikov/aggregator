@@ -1,9 +1,8 @@
-/** @file Synchronizes external Item selection with the catalog tree. */
-
 /**
- * Synchronizes catalog search reset and pending tree scrolling with a selected Item.
- * Kept separate to avoid a cyclic dependency on useItemNavigation.
+ * @file Restores tree expansion and scrolling after Item navigation or clearing search.
+ * Connects catalog state to selection without making the navigation hooks depend on each other.
  */
+
 import { useEffect } from "react";
 import { findNodeUidById } from "../../shared/catalog/tree";
 import type { CatalogTreeNode } from "../../shared/types";
@@ -17,7 +16,6 @@ type CatalogSelectionSyncOptions = {
   isSidebarOpen: boolean;
 };
 
-/** Expands and scrolls to the selected Item after navigation or search changes. */
 export default function useCatalogSelectionSync({
   navigation,
   selectedId,

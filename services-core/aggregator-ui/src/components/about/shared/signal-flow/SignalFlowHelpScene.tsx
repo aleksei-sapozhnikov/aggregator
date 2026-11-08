@@ -1,4 +1,4 @@
-/** @file Combines dependency graph animation with inert production-style Item UI. */
+/** @file Shares the dependency graph and production Item components between healthy and unhealthy help scenes. */
 
 import { useCallback, useRef, useState } from "react";
 import type { ReactNode } from "react";
@@ -43,7 +43,6 @@ const targetFallback = {
 
 export type SignalFlowTargets = Record<keyof typeof targetFallback, SceneRect>;
 
-/** Aligns animated graph state with an inert production-style Item details preview. */
 export default function SignalFlowHelpScene({
   unhealthy,
   elapsed,

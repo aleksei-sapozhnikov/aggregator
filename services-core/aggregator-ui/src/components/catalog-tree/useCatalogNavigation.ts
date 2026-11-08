@@ -1,9 +1,8 @@
-/** @file Owns catalog search, tree expansion, autocomplete, and scroll targeting. */
-
 /**
- * Owns the catalog tree, search state, autocomplete, expansion, and tree scrolling.
- * Selected Item routes are owned separately by useItemNavigation.
+ * @file Owns catalog search, tree expansion, autocomplete, and scroll targeting.
+ * Item selection and browser routes belong to useItemNavigation.
  */
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   buildCatalogTree,
@@ -35,7 +34,6 @@ type CatalogNavigationOptions = {
   dependencies: CatalogDependency[];
 };
 
-/** Maintains catalog expansion, filtering, autocomplete, and scroll position. */
 export default function useCatalogNavigation({
   items,
   dependencies,
@@ -141,9 +139,7 @@ export default function useCatalogNavigation({
     });
   }, []);
 
-  /**
-   * Expands ancestors for the selected item so it is visible in the tree.
-   */
+  /** Replaces expanded branches with the selected Item's ancestors. */
   const expandPathToItem = useCallback(
     (itemId: string, { path }: { path?: string[] } = {}) => {
       const resolvedPath =
@@ -154,9 +150,7 @@ export default function useCatalogNavigation({
     [tree],
   );
 
-  /**
-   * Ensures ancestors in a known path are expanded without resetting other expanded branches.
-   */
+  /** Adds the path's ancestors while preserving other expanded branches. */
   const ensurePathExpanded = useCallback((pathIds: string[]) => {
     if (!Array.isArray(pathIds) || pathIds.length === 0) {
       return;
@@ -172,9 +166,6 @@ export default function useCatalogNavigation({
     });
   }, []);
 
-  /**
-   * Expands all nodes currently present in the tree.
-   */
   const handleExpandAll = useCallback(
     (selectedId: string, selectedPath: string[]) => {
       setExpandedIds(new Set(collectExpandableIds(tree)));
@@ -192,9 +183,6 @@ export default function useCatalogNavigation({
     [tree],
   );
 
-  /**
-   * Collapses the full tree and resets the catalog scroll position to the top.
-   */
   const handleCollapseAll = useCallback(() => {
     setExpandedIds(new Set());
     setPendingScrollId("");
@@ -206,9 +194,6 @@ export default function useCatalogNavigation({
     });
   }, []);
 
-  /**
-   * Clears search text and exits search-results mode.
-   */
   const handleClearSearch = useCallback(() => {
     clearSearchRequestedRef.current = true;
     setSearchQuery("");
@@ -219,7 +204,6 @@ export default function useCatalogNavigation({
     if (!isSearchActive) {
       return undefined;
     }
-    /** Handles keyboard navigation and dismissal of catalog search. */
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         event.preventDefault();
@@ -241,7 +225,7 @@ export default function useCatalogNavigation({
       if (!container) {
         return;
       }
-      /** Scrolls long distances in shorter segments toward the selected node. */
+      /** Jump near distant targets, then animate the final segment to keep navigation brief. */
       const animateScrollTo = (nextTop: number) => {
         const startTop = container.scrollTop;
         const targetTop = Math.max(0, nextTop);
@@ -270,7 +254,6 @@ export default function useCatalogNavigation({
         });
       };
       const startedAt = performance.now();
-      /** Waits for the selected catalog row to render before scrolling it into view. */
       const tryScroll = () => {
         const node = container.querySelector<HTMLElement>(
           `[data-node-id="${targetId}"]`,

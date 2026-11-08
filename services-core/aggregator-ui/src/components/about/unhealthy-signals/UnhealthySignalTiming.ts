@@ -1,12 +1,9 @@
-/** @file Defines shared timing milestones for failing and recovering signal animations. */
+/** @file Synchronizes failure, recovery, and Item-preview transitions in the Unhealthy signals scene. */
 
 /**
- * Unhealthy signal animation timings in milliseconds (excluding the 2-second
- * expanded Item pause, which is inserted at pageHoldAt).
- *
- * A node changes health exactly when the incoming propagation reaches it.
- * Keep the red diagram for 250 ms, hold the complete Item for two seconds,
- * then propagate recovery along both edges at the same speed as failure.
+ * Times are scene milliseconds, excluding the two-second pause inserted at pageHoldAt.
+ * Nodes change state when their incoming wave arrives; recovery and failure
+ * take the same time along each edge.
  */
 export const unhealthyTiming = {
   failureStart: 1500,

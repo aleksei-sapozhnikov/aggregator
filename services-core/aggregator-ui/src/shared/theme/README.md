@@ -1,14 +1,13 @@
 # Application theme
 
-The active theme is global UI state. `ThemeProvider` is mounted once in
-`src/main.tsx`; it owns the `Theme` union (`light | dark`), preference
-persistence in `aggregator-ui-theme`, and the `body[data-theme]` attribute.
+`ThemeProvider`, mounted in `src/main.tsx`, keeps React consumers, the saved
+`aggregator-ui-theme` preference, and `body[data-theme]` synchronized.
+`theme.ts` defines the shared `Theme` type and uses the system preference when
+no valid saved preference exists.
 
-Prefer existing CSS custom properties for theme-dependent colors. Components
-should not inspect or manage `body[data-theme]` themselves or duplicate the
-light/dark union. When a non-CSS integration needs the current theme (for
-example, the theme switch or the Grafana iframe), call `useTheme()`.
-Do not pass `theme` through components that do not consume it.
+Use existing CSS custom properties for colors and `useTheme()` when a component
+or integration needs the theme value. Keep document and preference updates in
+the provider.
 
 Grafana is a separate document and cannot access React context: `GrafanaFrame`
 reads the global theme and communicates it to the wrapper through

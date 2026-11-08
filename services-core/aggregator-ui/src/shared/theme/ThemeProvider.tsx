@@ -1,4 +1,4 @@
-/** @file Provides persistent global theme state to React consumers. */
+/** @file Shares the active theme across React, preference storage, and the document CSS selector. */
 
 import {
   createContext,
@@ -19,7 +19,6 @@ type ThemeContextValue = {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-/** Owns the global theme, preference storage and CSS theme selector. */
 export default function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>(getInitialTheme);
   const toggleTheme = useCallback(() => {
@@ -37,7 +36,6 @@ export default function ThemeProvider({ children }: { children: ReactNode }) {
   );
 }
 
-/** Returns the current theme context and its update function. */
 export function useTheme(): ThemeContextValue {
   const value = useContext(ThemeContext);
   if (!value) {

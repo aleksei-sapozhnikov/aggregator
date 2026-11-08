@@ -1,9 +1,8 @@
-/** @file Coordinates selected Item identity, route paths, browser history, and navigation actions. */
-
 /**
- * Owns the selected Item route, browser history, deep links and navigation.
- * Catalog search, scrolling and panel layout belong to their feature modules.
+ * @file Owns Item selection, dependency-path routes, and browser history.
+ * Catalog expansion and scrolling are coordinated through callbacks.
  */
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Dispatch, RefObject, SetStateAction } from "react";
 import {
@@ -38,7 +37,6 @@ type ItemNavigationOptions = {
   ensurePathExpanded: (pathIds: string[]) => void;
 };
 
-/** Synchronizes Item selection, tree paths, URL state, and browser history. */
 export default function useItemNavigation({
   basePath,
   tree,
@@ -54,9 +52,6 @@ export default function useItemNavigation({
   const lastHistoryUrlRef = useRef(window.location.href);
   const lastHistoryKeyRef = useRef("");
 
-  /**
-   * Pushes/replaces browser history for an item route while deduplicating no-op updates.
-   */
   const updateHistoryForRoute = useCallback(
     (
       itemId: string,
@@ -106,9 +101,6 @@ export default function useItemNavigation({
     [basePath],
   );
 
-  /**
-   * Updates route for an item id without preserving an explicit tree path.
-   */
   const updateUrlForItemId = useCallback(
     (itemId: string, { replace }: RouteUpdateOptions = {}) => {
       updateHistoryForRoute(itemId, [], { replace });
@@ -116,9 +108,6 @@ export default function useItemNavigation({
     [updateHistoryForRoute],
   );
 
-  /**
-   * Updates route using the selected tree node and its resolved path.
-   */
   const updateUrlForNode = useCallback(
     (node: CatalogTreeNode | null, { replace }: RouteUpdateOptions = {}) => {
       if (!node) {
@@ -129,9 +118,6 @@ export default function useItemNavigation({
     [updateHistoryForRoute],
   );
 
-  /**
-   * Normalizes route state after parsing browser location (same semantics, normalized path).
-   */
   const normalizeUrlForRoute = useCallback(
     (
       itemId: string,
@@ -156,9 +142,6 @@ export default function useItemNavigation({
     return findNodeById(tree, selectedId);
   }, [selectedId, selectedPath, tree]);
 
-  /**
-   * Selects a node from the tree and updates route with resolved path information.
-   */
   const handleSelectItem = useCallback(
     (node: CatalogTreeNode) => {
       setSelectedId(node.item.id);
@@ -170,9 +153,6 @@ export default function useItemNavigation({
     [updateUrlForNode],
   );
 
-  /**
-   * Selects an item by id, using a resolved node path when available.
-   */
   const handleSelectItemById = useCallback(
     (itemId: string) => {
       setSelectedId(itemId);
@@ -192,9 +172,7 @@ export default function useItemNavigation({
     [tree, updateUrlForItemId, updateUrlForNode],
   );
 
-  /**
-   * Selects an item by id and writes a pathless route (used by dependent item links).
-   */
+  /** External Item links select a tree occurrence without adding its path to the URL. */
   const handleSelectItemByIdNoPath = useCallback(
     (itemId: string) => {
       const resolvedPath = findNodePath(tree, itemId) || [];
@@ -209,9 +187,7 @@ export default function useItemNavigation({
     [expandPathToItem, tree, updateUrlForItemId],
   );
 
-  /**
-   * Selects an item by an exact tree path to preserve duplicate-id branch context.
-   */
+  /** The path distinguishes occurrences of the same Item in different branches. */
   const handleSelectItemByPath = useCallback(
     (pathIds: string[]) => {
       const normalizedPath = Array.isArray(pathIds) ? pathIds : [];
@@ -238,9 +214,6 @@ export default function useItemNavigation({
     [ensurePathExpanded, normalizeUrlForRoute, tree, updateUrlForNode],
   );
 
-  /**
-   * Builds an item link under the current base path.
-   */
   const buildItemLink = useCallback(
     (itemId: string, pathIds: string[] = []) => {
       return buildItemRouteHref(basePath, itemId, pathIds);
@@ -259,10 +232,6 @@ export default function useItemNavigation({
     [handleSelectItemByIdNoPath, itemMap],
   );
 
-  /**
-   * Sync selected item with browser URL and handle browser back/forward navigation.
-   * Also normalizes invalid/missing route states to the closest resolvable node.
-   */
   useEffect(() => {
     if (!tree.length) {
       return undefined;
@@ -318,7 +287,6 @@ export default function useItemNavigation({
 
     applySelectionFromLocation({ normalize: true });
 
-    /** Restores the selected Item and dependency path when browser history changes. */
     const handlePopState = () => {
       lastHistoryUrlRef.current = window.location.href;
       if (window.history.state?.itemId) {

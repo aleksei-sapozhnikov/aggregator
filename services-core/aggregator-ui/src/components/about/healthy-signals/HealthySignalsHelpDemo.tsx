@@ -22,11 +22,9 @@ const ownChecks = clientChecks.map((signal, index) => ({
 // The outer selection follows the Item as a whole, while the three inner
 // selections continue to follow their individual healthy signals.
 const itemSource = { x: 239, y: 15, width: 162, height: 70 };
-/** Interpolates the position and size of animated check highlights. */
 const mix = (from: number, to: number, progress: number): number =>
   from + (to - from) * progress;
 
-/** Places animated check highlights over the live-style signal list. */
 function HealthySignalHighlights({
   targets,
   presentationProgress,
@@ -102,7 +100,6 @@ function HealthySignalHighlights({
   );
 }
 
-/** Illustrates the flow from healthy checks to the selected Item's presentation. */
 export default function HealthySignalsHelpDemo() {
   const { elapsed } = useHelpAnimationClock(cycleDuration, 7500);
 

@@ -1,68 +1,44 @@
 # Contextual help
 
-`core/ContextualHelpProvider.tsx` registers each topic's title, short hover summary,
-and full React content. `core/ContextualHelpDialog.tsx` displays the selected
-content in the common modal. Each static topic keeps its explanatory text and
-animation together inside its own `*HelpContent.tsx` next to the demo.
+Each static topic keeps its summary, explanation, and animation together in
+`*HelpContent.tsx`. The summary supplies both the hover tooltip and the first
+bold paragraph of the dialog, so the two stay consistent.
 
-The live Item UI and help animations share presentation components from
-`components/shared/item/`; they use independent, deterministic demo records
-from `about/shared/demoData.ts`. Help scenes omit actionable callbacks,
-disable catalog information, and render the UI in an inert layer.
+`core/ContextualHelpProvider.tsx` registers topics and owns the active dialog.
+The generic context and controls in `components/shared/help/` resolve and open
+topics without importing their content. Contact previews supply dynamic topics
+through the same context. Catalog Item descriptions use separate catalog
+metadata.
 
-`about/shared/HelpScene.tsx` scales HTML and SVG into a common coordinate
-space without `foreignObject`. The `useHelpTargets` hook measures rendered
-Item rows to align highlights and illustrated characters with the real UI.
-CSS selectors and animation geometry still require visual regression review
-when the shared markup changes.
+## Production UI in illustrations
 
-The Unhealthy walkthrough uses a compact sequence: the fully red diagram is
-held for 250 ms, the expanded Item is held for 2 seconds, and green recovery
-waves propagate upward as fast as the preceding red failure waves. Arrival
-times determine when dependent nodes change state.
+Help scenes reuse [shared Item components](../shared/item/README.md) with
+deterministic fixtures from `shared/demoData.ts`. Omit actionable callbacks,
+disable catalog information, and keep the preview layer inert so example
+controls cannot navigate or take focus. Scenario selection remains outside the
+passive illustration.
 
-## Healthy and unhealthy help
+`HelpScene` scales HTML and SVG together without `foreignObject`.
+`useHelpTargets` measures rendered rows to align highlights and characters.
+The selectors and geometry need visual review when shared markup changes.
+`useHelpAnimationClock` provides a chosen static frame for reduced motion.
 
-`healthy-signals/` and `unhealthy-signals/` expose separate help topics.
-Each has its own animation timing and propagation logic. Both use the shared
-`shared/signal-flow/SignalFlowHelpScene.tsx` layout and
-`shared/signal-flow/SignalFlowGraph.tsx` drawing; only shared display props
-cross that boundary. The failing-dependency projection lives in
-`unhealthy-signals/` and is never imported by a shared component.
-The graph uses explanatory SVG; the signals and ownership on the destination
-Item use production React components.
+Healthy and unhealthy topics own their timing and propagation separately.
+They share the graph and Item layout in `shared/signal-flow/`; the failing
+dependency projection stays in `unhealthy-signals/`. Wave arrival and node
+state changes must stay synchronized. Detailed holds and recovery timing are
+documented beside `UnhealthySignalTiming.ts`.
 
-## Deliberate illustration boundary
+## Illustrations and assets
 
-Grafana owns the chart, time range, signal filter, and hover popups inside an
-iframe. Therefore `timeline/GrafanaTimelineIllustration.tsx` is a static
-demonstration, while Item details on the simulated destination page use production
-components. The chart itself is displayed without an extra Timeline
-disclosure header.
+Grafana owns the live chart, filters, time range, and popups in a separate
+document. `timeline/GrafanaTimelineIllustration.tsx` uses an animated example
+of those controls; the destination Item view still uses production components.
 
-Characters, machines, phones, dependency diagrams, moving checkmarks,
-selection frames, and simulated cursors are explanatory SVG/CSS illustrations
-and do not replace the application UI.
+Shared characters and service illustrations use SVG layers with gestures
+defined per role. Keep Vite's `?no-inline` imports: SVG `<use>` fragment
+references need an emitted file rather than a data URL. Role captions are
+separate scene elements.
 
-Illustrations are organized by role in
-`about/shared/characters/{owner,user,support,service}/`.
-Each role owns a standalone SVG with named base and animated layers, its own
-React renderer and gesture CSS. The generic `characters/shared/CharacterLayer`
-composes SVG layers without choosing a role or inheriting character drawings.
-Sprite imports use Vite's `?no-inline` option because SVG `<use>` fragment
-references require a separately emitted file, not a small inlined data URL.
-User waves a phone, Owner carries the repair wrench, and Support adjusts a
-call-center headset. The same assets are reused in Actors and Primary contact. Service has its own
-SVG, component, and CSS. Its `unhealthy` parameter selects the green/red
-indicator layers without duplicating the machine illustration. Wooden
-captions are used for people only and remain
-separate `DemoWoodLabel` elements, rather than becoming part of the SVG
-assets. The service illustration needs no caption.
-
-Primary Contact centers the expanded Aggregator page independently from the
-SVG scene. Its Service, User with phone, and incoming Owner are distributed
-across the canvas, and the scene scales down as a unit on narrow screens so
-the figures and the outgoing phone waves remain inside the frame.
-
-Use the UI service's `npm run typecheck`, `npm test`, and `npm run build`
-for validation, plus browser checks at desktop and mobile widths.
+For animation changes, run the UI service's typecheck, tests, and build, then
+check desktop and mobile layouts, including reduced motion.

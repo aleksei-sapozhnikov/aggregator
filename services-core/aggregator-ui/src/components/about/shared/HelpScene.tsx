@@ -1,4 +1,4 @@
-/** @file Aligns scaled HTML previews and SVG illustration geometry. */
+/** @file Scales HTML previews and SVG illustrations in one coordinate space without foreignObject. */
 
 import { useLayoutEffect, useRef, useState } from "react";
 import type { ReactNode, RefObject } from "react";
@@ -6,7 +6,6 @@ import "./HelpScene.css";
 
 export type SceneRect = { x: number; y: number; width: number; height: number };
 
-/** Scale ordinary HTML and illustrative SVG together, without SVG foreignObject. */
 export default function HelpScene({
   width,
   height,
@@ -29,7 +28,6 @@ export default function HelpScene({
   useLayoutEffect(() => {
     const element = ref.current;
     if (!element) return;
-    /** Measures available width to scale the combined HTML/SVG scene. */
     const measure = () => {
       const measured = element.getBoundingClientRect().width;
       if (measured > 0) {
@@ -77,7 +75,6 @@ export function useHelpTargets<T extends string>(
   useLayoutEffect(() => {
     const page = pageRef.current;
     if (!page) return;
-    /** Re-measures the preview's DOM targets when the scene geometry changes. */
     const measure = () => {
       const pageRect = page.getBoundingClientRect();
       const scale = pageRect.width / page.offsetWidth;

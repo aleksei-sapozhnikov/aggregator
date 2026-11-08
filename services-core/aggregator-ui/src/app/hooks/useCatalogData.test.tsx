@@ -1,5 +1,5 @@
 /** @vitest-environment jsdom */
-/** @file Tests catalog loading and periodic Product Health refresh behavior. */
+/** @file Tests catalog retries, health polling, and preservation of the last snapshot through outages. */
 
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -71,6 +71,35 @@ describe("useCatalogData", () => {
       health.items[0],
     );
     expect(result.current.lastUpdated).not.toBe("");
+    expect(result.current.connectionStatus).toBe("connected");
+    expect(result.current.lastSuccessfulFetchAt).not.toBeNull();
+    expect(result.current.disconnectedDetectedAt).toBeNull();
+  });
+
+  it("retries catalog initialization after failure and stops retrying once loaded", async () => {
+    vi.useFakeTimers();
+    vi.mocked(loadCatalog).mockRejectedValueOnce(
+      new Error("Catalog unavailable"),
+    );
+    const { result } = renderHook(() => useCatalogData());
+    await flushMicrotasks();
+
+    expect(result.current.error).toBe("Catalog unavailable");
+    expect(result.current.catalog.items).toEqual([]);
+    expect(fetchProductHealth).not.toHaveBeenCalled();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10_000);
+    });
+    expect(loadCatalog).toHaveBeenCalledTimes(2);
+    expect(result.current.error).toBe("");
+    expect(result.current.catalog.items).toEqual(catalog.items);
+    expect(fetchProductHealth).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(20_000);
+    });
+    expect(loadCatalog).toHaveBeenCalledTimes(2);
   });
 
   it("starts polling only after a non-empty catalog loads and refreshes every 10 seconds", async () => {
@@ -110,6 +139,94 @@ describe("useCatalogData", () => {
     expect(result.current.itemSignals.checkout).toEqual([]);
   });
 
+  it("retains last known health on failed polls and resets connection on recovery", async () => {
+    vi.useFakeTimers();
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    const { result } = renderHook(() => useCatalogData());
+    await flushMicrotasks();
+
+    expect(result.current.itemStatuses.checkout).toBe("down");
+    const receivedAt = result.current.lastSuccessfulFetchAt;
+    const updatedLabel = result.current.lastUpdated;
+    vi.mocked(fetchProductHealth)
+      .mockRejectedValueOnce(new Error("Product Health is unreachable"))
+      .mockRejectedValueOnce(new Error("Still unavailable"));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10_000);
+    });
+
+    expect(log).toHaveBeenCalledOnce();
+    expect(result.current.connectionStatus).toBe("disconnected");
+    expect(result.current.itemStatuses).toEqual(health.itemStatuses);
+    expect(result.current.itemSignals).toEqual(health.itemSignals);
+    expect(result.current.productHealthByItemId.checkout).toEqual(
+      health.items[0],
+    );
+    expect(result.current.lastSuccessfulFetchAt).toBe(receivedAt);
+    expect(result.current.lastUpdated).toBe(updatedLabel);
+    const detectedAt = result.current.disconnectedDetectedAt;
+    expect(detectedAt).not.toBeNull();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10_000);
+    });
+    expect(result.current.connectionStatus).toBe("disconnected");
+    expect(result.current.disconnectedDetectedAt).toBe(detectedAt);
+    expect(result.current.itemStatuses).toEqual(health.itemStatuses);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10_000);
+    });
+    expect(result.current.connectionStatus).toBe("connected");
+    expect(result.current.disconnectedDetectedAt).toBeNull();
+    expect(result.current.itemStatuses).toEqual(health.itemStatuses);
+    expect(result.current.itemSignals).toEqual(health.itemSignals);
+    expect(result.current.lastSuccessfulFetchAt).toBeGreaterThan(receivedAt!);
+  });
+
+  it("aborts a stalled poll while retaining the last known UP/DOWN status", async () => {
+    vi.useFakeTimers();
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { result } = renderHook(() => useCatalogData());
+    await flushMicrotasks();
+    expect(result.current.itemStatuses.checkout).toBe("down");
+
+    vi.mocked(fetchProductHealth).mockImplementationOnce(
+      (signal?: AbortSignal) =>
+        new Promise((_, reject) => {
+          signal?.addEventListener("abort", () =>
+            reject(new DOMException("Aborted", "AbortError")),
+          );
+        }),
+    );
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(18_000);
+    });
+    expect(fetchProductHealth).toHaveBeenCalledTimes(2);
+    expect(result.current.itemStatuses).toEqual(health.itemStatuses);
+    expect(result.current.connectionStatus).toBe("disconnected");
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(2_000);
+    });
+    expect(fetchProductHealth).toHaveBeenCalledTimes(3);
+    expect(result.current.itemStatuses).toEqual({ checkout: "down" });
+  });
+
+  it("reports disconnection without inventing health states before the first success", async () => {
+    vi.mocked(fetchProductHealth).mockRejectedValueOnce(new Error("Offline"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { result } = renderHook(() => useCatalogData());
+    await flushMicrotasks();
+
+    expect(result.current.connectionStatus).toBe("disconnected");
+    expect(result.current.itemStatuses).toEqual({});
+    expect(result.current.itemSignals).toEqual({});
+    expect(result.current.lastSuccessfulFetchAt).toBeNull();
+    expect(result.current.disconnectedDetectedAt).not.toBeNull();
+  });
+
   it("does not poll for an empty catalog", async () => {
     vi.useFakeTimers();
     vi.mocked(loadCatalog).mockResolvedValue({ ...catalog, items: [] });
@@ -135,7 +252,7 @@ describe("useCatalogData", () => {
     expect(fetchProductHealth).not.toHaveBeenCalled();
   });
 
-  it("keeps the previous health response when one poll fails and retries at the next interval", async () => {
+  it("preserves stale health after an unsuccessful poll and retries at the next interval", async () => {
     vi.useFakeTimers();
     const log = vi.spyOn(console, "error").mockImplementation(() => {});
     const { result } = renderHook(() => useCatalogData());
@@ -147,13 +264,16 @@ describe("useCatalogData", () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(10_000);
     });
-    expect(result.current.itemStatuses).toEqual({ checkout: "down" });
+    expect(result.current.itemStatuses).toEqual(health.itemStatuses);
+    expect(result.current.connectionStatus).toBe("disconnected");
     expect(log).toHaveBeenCalledTimes(1);
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(10_000);
     });
     expect(fetchProductHealth).toHaveBeenCalledTimes(3);
+    expect(result.current.itemStatuses).toEqual(health.itemStatuses);
+    expect(result.current.connectionStatus).toBe("connected");
     expect(result.current.error).toBe("");
   });
 
@@ -172,7 +292,7 @@ describe("useCatalogData", () => {
     expect(fetchProductHealth).toHaveBeenCalledTimes(1);
 
     unmount();
-    expect(clearInterval).toHaveBeenCalledTimes(1);
+    expect(clearInterval).toHaveBeenCalledTimes(2);
     await act(async () => {
       resolveHealth(health);
     });
