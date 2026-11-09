@@ -87,7 +87,43 @@ schedule, or publication data. If the subscription is planned for create,
 replacement, or deletion, stop and do not apply. After review, apply the saved
 plan manually, then remove the plan file and run `Pop-Location`.
 
-After the Lambda deployment, review the Publisher administration plan:
+The three Secrets Manager resources also need permission to receive the
+provider's `Repository` default tag. The current `AggregatorPublisherManagement`
+policy only allows `Name` in a `TagResource` request, so the provider's
+`Repository` tag updates fail with `secretsmanager:TagResource` access denied.
+The policy in this branch restricts the grant to requests that add only that
+`Repository` tag to one of the three existing Publisher secrets, selected by
+its existing `Name` tag.
+
+Publish that updated management policy before retrying the Publisher resources.
+Use the `administrator` profile for this one policy update so the resource
+root's missing permission is in place without prematurely applying the
+permission-boundary change in the administration root:
+
+```powershell
+$env:AWS_PROFILE = "administrator"
+Push-Location tools/publisher/infra/administration
+$managementPolicy = (Resolve-Path "policies/AggregatorPublisherManagement.json").Path.Replace('\', '/')
+aws iam create-policy-version `
+  --policy-arn "arn:aws:iam::905418096305:policy/AggregatorPublisherManagement" `
+  --policy-document "file://$managementPolicy" `
+  --set-as-default
+Pop-Location
+```
+
+This updates only the management policy; it does not update the role boundary.
+Afterward, generate a fresh full plan in the Publisher resources root and
+review it before manually applying it. If an earlier apply partially
+succeeded, discard its saved plan and re-plan; successful updates will no
+longer appear. The partial apply reported during this retirement left five
+updates: the Lambda, its runner policy, and the three secret tag updates. The
+other eight tag updates had already succeeded, so the original 13-change plan
+must not be reused. Do not change `default_tags` or skip resources as a
+workaround.
+
+After the Lambda code and runner policy updates have been applied, review the
+Publisher administration plan to remove legacy table and bucket access from
+the role boundary:
 
 ```powershell
 $env:AWS_PROFILE = "administrator"
@@ -102,9 +138,16 @@ tofu show $policyPlan
 
 It should contain only an in-place update to
 `aws_iam_policy.publisher_role_boundary`, removing access to the old DynamoDB
-table and S3 bucket. If the plan differs, stop. After review, apply the saved
-plan manually with `tofu apply $policyPlan`, then remove the plan file and run
-`Pop-Location`.
+table and S3 bucket. Confirm the new Lambda is deployed and no longer uses
+legacy state before applying this boundary update. If the plan differs, stop.
+After review, apply the saved plan manually with `tofu apply $policyPlan`, then
+remove the plan file and run `Pop-Location`.
+
+Then re-plan the Publisher resources root. After the policy update, the
+remaining tag changes should apply without replacing the email subscription.
+If the new plan still shows the Lambda or runner policy update, finish and
+verify those changes before removing legacy permissions from the role
+boundary. Never reuse a saved plan after any partial apply.
 
 Verify that the new Lambda configuration no longer contains `LEGACY_*`
 variables or legacy table/bucket policies before beginning the legacy destroy.
