@@ -7,13 +7,11 @@ resource "aws_secretsmanager_secret" "notification_email" {
   tags = {
     Name = "${local.prefix}-notification-email"
   }
-
 }
 
 # Read the secret version by its stable name, independently of the managed
-# secret metadata resource. Referencing that resource's id defers this read
-# whenever its tags change, making the SNS endpoint unknown during planning and
-# causing OpenTofu to propose replacing the existing subscription.
+# secret metadata resource so tag updates do not defer resolution of the SNS
+# endpoint and trigger a subscription replacement.
 # The endpoint is a persistent resource argument and is stored in encrypted
 # OpenTofu state; ephemeral values cannot populate it.
 # tflint-ignore: aws_ephemeral_resources
