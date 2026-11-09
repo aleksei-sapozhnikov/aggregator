@@ -203,6 +203,94 @@ roles and policies, secrets, SNS notifications, SQS dead-letter queue, and
 CloudWatch logs and alarms. The plan must contain no `aggregator-publisher-*`
 resource, creation, or replacement. If it differs, stop and review it.
 
+### Recovery if legacy secret deletion is denied
+
+A first legacy-root apply can partially succeed: Lambda, Scheduler, roles,
+notifications, and other resources were deleted, while the three old
+Secrets Manager secrets failed with `AccessDeniedException` for
+`secretsmanager:DeleteSecret`. This is a permission problem with the
+`aggregator-admin` identity, **not** a reason to alter the new Publisher
+resources or remove failed objects from OpenTofu state.
+
+Grant one narrowly scoped, **temporary inline user policy**, using the
+`administrator` profile. Its only action is `secretsmanager:DeleteSecret`
+and its only resources are the following three **old**
+`aggregator-publication-*` secrets. Do not grant permissions on
+`aggregator-publisher-*` secrets.
+
+From the repository root, create a private policy file and install it:
+
+```powershell
+$policyFile = Join-Path (Get-Location) ".local/legacy-publisher-delete-secrets.json"
+New-Item -ItemType Directory -Force ".local" | Out-Null
+@'
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DeleteOnlyThreeRetiredPublicationSecrets",
+      "Effect": "Allow",
+      "Action": "secretsmanager:DeleteSecret",
+      "Resource": [
+        "arn:aws:secretsmanager:eu-central-1:905418096305:secret:aggregator-publication-github-token-6zeJFl",
+        "arn:aws:secretsmanager:eu-central-1:905418096305:secret:aggregator-publication-project-token-evS6Wk",
+        "arn:aws:secretsmanager:eu-central-1:905418096305:secret:aggregator-publication-notification-email-kXJ5RE"
+      ]
+    }
+  ]
+}
+'@ | Set-Content -Path $policyFile -Encoding utf8
+
+$env:AWS_PROFILE = "administrator"
+aws sts get-caller-identity
+aws iam put-user-policy `
+  --user-name aggregator-admin `
+  --policy-name TemporaryDeleteRetiredPublicationSecrets `
+  --policy-document "file://$($policyFile.Replace('\', '/'))"
+if ($LASTEXITCODE -ne 0) { throw "Temporary IAM policy could not be installed" }
+```
+
+If `administrator` cannot edit `aggregator-admin` inline policies, stop
+and use an authorized IAM administrator. Do not work around access denial by
+deleting state entries or broadening the new Publisher's management policy.
+
+With the temporary permission installed, **discard the original saved plan**
+because the first apply already changed AWS and the OpenTofu state. Generate
+a fresh full plan for the legacy root:
+
+```powershell
+$env:AWS_PROFILE = "aggregator-admin"
+Push-Location tools/publisher-legacy/infra
+tofu state list
+$legacyPlan = Join-Path $env:TEMP "legacy-publisher-retirement-retry.tfplan"
+tofu plan "-out=$legacyPlan"
+tofu show $legacyPlan
+```
+
+The retry must destroy only the remaining old secrets and other failed legacy
+resources, with at most the expected in-place `force_destroy = true` change to
+`aws_s3_bucket.publication`. **Do not approve changes to any new Publisher
+resource**. If the provider fails to delete even with the temporary policy,
+stop and inspect the actual IAM evaluation before attempting more changes.
+
+After the reviewed retry succeeds, remove the temporary inline user policy
+immediately (it is not managed in OpenTofu):
+
+```powershell
+$env:AWS_PROFILE = "administrator"
+aws iam delete-user-policy `
+  --user-name aggregator-admin `
+  --policy-name TemporaryDeleteRetiredPublicationSecrets
+if ($LASTEXITCODE -ne 0) { throw "Failed to revoke temporary delete permission" }
+Remove-Item $policyFile
+```
+
+Return to the legacy root (if needed) and verify `tofu state list`.
+Only the old `aws_s3_bucket.publication` should remain before the final
+bucket destroy. The Secrets Manager secrets are normally scheduled for
+deletion with their recovery windows, rather than disappearing immediately.
+Do not use force-delete-without-recovery to accelerate this cleanup.
+
 After review, apply the saved plan manually, then plan the final bucket
 deletion:
 
