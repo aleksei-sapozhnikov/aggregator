@@ -74,19 +74,17 @@
     {
       "Sid": "TagPublisherSecrets",
       "Effect": "Allow",
-      "Action": ["secretsmanager:TagResource"],
+      "Action": [
+        "secretsmanager:TagResource"
+      ],
       "Resource": "arn:aws:secretsmanager:eu-central-1:905418096305:secret:aggregator-publisher-*-??????",
       "Condition": {
         "StringEquals": {
-          "aws:ResourceTag/Name": [
+          "aws:RequestTag/Name": [
             "aggregator-publisher-github-token",
             "aggregator-publisher-project-token",
             "aggregator-publisher-notification-email"
-          ],
-          "aws:RequestTag/Repository": "https://github.com/aleksei-sapozhnikov/aggregator"
-        },
-        "ForAllValues:StringEquals": {
-          "aws:TagKeys": ["Repository"]
+          ]
         }
       }
     },
