@@ -55,38 +55,10 @@ resource "aws_iam_policy" "demo_sg_rule_creation" {
   }
 }
 
-resource "aws_iam_policy" "publication_management" {
-  name        = "AggregatorPublicationManagement"
-  path        = "/"
-  policy      = file("${path.module}/policies/AggregatorPublicationManagement.json")
-  description = "Manage Aggregator publication infrastructure"
-  tags = {
-    "Project" = "aggregator"
-  }
-
-  lifecycle {
-    prevent_destroy = true
-  }
-}
-
 resource "aws_iam_policy" "demo_role_boundary" {
   name        = "AggregatorDemoRoleBoundary"
   path        = "/"
   policy      = file("${path.module}/policies/AggregatorDemoRoleBoundary.json")
-  description = "Permissions boundary for Aggregator workloads"
-  tags = {
-    "Project" = "aggregator"
-  }
-
-  lifecycle {
-    prevent_destroy = true
-  }
-}
-
-resource "aws_iam_policy" "publication_role_boundary" {
-  name        = "AggregatorPublicationRoleBoundary"
-  path        = "/"
-  policy      = file("${path.module}/policies/AggregatorPublicationRoleBoundary.json")
   description = "Permissions boundary for Aggregator workloads"
   tags = {
     "Project" = "aggregator"

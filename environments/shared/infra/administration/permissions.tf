@@ -30,11 +30,6 @@ resource "aws_iam_group_policy_attachment" "demo_demo_sg_rule_creation" {
   policy_arn = aws_iam_policy.demo_sg_rule_creation.arn
 }
 
-resource "aws_iam_group_policy_attachment" "publication_publication_management" {
-  group      = aws_iam_group.publication.name
-  policy_arn = aws_iam_policy.publication_management.arn
-}
-
 resource "aws_iam_group_policy_attachment" "demo_state_access" {
   group      = aws_iam_group.demo.name
   policy_arn = aws_iam_policy.demo_state_access.arn
@@ -43,11 +38,6 @@ resource "aws_iam_group_policy_attachment" "demo_state_access" {
 resource "aws_iam_group_policy_attachment" "bedrock_developers_model_invoke" {
   group      = aws_iam_group.bedrock_developers.name
   policy_arn = aws_iam_policy.bedrock_model.arn
-}
-
-resource "aws_iam_group_policy_attachment" "publication_publication_state_access" {
-  group      = aws_iam_group.publication.name
-  policy_arn = aws_iam_policy.publication_state_access.arn
 }
 
 # Only the delegated project administrator may provision its project-state bucket.
