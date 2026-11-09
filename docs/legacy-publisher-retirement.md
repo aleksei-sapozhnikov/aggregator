@@ -68,20 +68,24 @@ tofu plan "-out=$runnerPlan"
 tofu show $runnerPlan
 ```
 
-The only expected changes are in-place updates to
-`aws_lambda_function.runner` (new package and removal of legacy environment
-variables) and `aws_iam_role_policy.runner` (removal of legacy table and
-bucket access). Do not apply a plan that changes the queue state table,
-schedule, schedule group, bucket, secrets, notifications, or any other new
-Publisher resource.
+The notification email data source reads the secret by its stable name rather
+than depending on `aws_secretsmanager_secret.notification_email.id`. With the
+provider's `default_tags`, the managed secret metadata has an in-place tag
+update. Referencing its resource ID defers the secret-version read until apply;
+then the SNS endpoint is unknown during planning, and OpenTofu proposes to
+replace the existing confirmed subscription because `endpoint` is replacement-
+forcing. Reading by name makes the data source independent, so the endpoint is
+resolved during planning and the imported subscription remains unchanged.
 
-The plan generated while preparing this change does **not** meet that limit:
-it proposed 13 in-place changes, one addition, and one destruction. These
-included tag updates on other Publisher resources and replacement of the SNS
-email subscription. Do not apply that plan. Reconcile those differences
-separately and regenerate the full plan; apply the saved plan manually only
-when it contains the two expected in-place changes and no others. Then remove
-the plan file and run `Pop-Location`.
+Keep `default_tags` and its 11 tag-only updates. The expected full plan is
+`0 to add, 13 to change, 0 to destroy`: 11 tag-only updates plus in-place
+updates to `aws_lambda_function.runner` (new package and removal of legacy
+environment variables) and `aws_iam_role_policy.runner` (removal of legacy
+table and bucket access). The plan must not show any action for
+`aws_sns_topic_subscription.failure_email`, nor modify the queue state,
+schedule, or publication data. If the subscription is planned for create,
+replacement, or deletion, stop and do not apply. After review, apply the saved
+plan manually, then remove the plan file and run `Pop-Location`.
 
 After the Lambda deployment, review the Publisher administration plan:
 

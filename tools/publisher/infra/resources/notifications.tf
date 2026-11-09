@@ -9,13 +9,15 @@ resource "aws_secretsmanager_secret" "notification_email" {
   }
 }
 
-# The initial secret version must be created outside Terraform before reading it.
-# The SNS endpoint is a persistent resource argument, so the secret version is
-# necessarily written to the encrypted state. Ephemeral values cannot populate
-# persistent resource arguments.
+# Read the secret version by its stable name, independently of the managed
+# secret metadata resource. Referencing that resource's id defers this read
+# whenever its tags change, making the SNS endpoint unknown during planning and
+# causing OpenTofu to propose replacing the existing subscription.
+# The endpoint is a persistent resource argument and is stored in encrypted
+# OpenTofu state; ephemeral values cannot populate it.
 # tflint-ignore: aws_ephemeral_resources
 data "aws_secretsmanager_secret_version" "notification_email" {
-  secret_id = aws_secretsmanager_secret.notification_email.id
+  secret_id = "${local.prefix}-notification-email"
 }
 
 # Import the existing confirmed subscription before applying this resource.
