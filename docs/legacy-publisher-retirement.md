@@ -44,27 +44,12 @@ Delete the local copy when it is no longer useful. Do not commit it.
 
 ### Update the new Publisher
 
-Remove the legacy permission boundary entry first, then deploy the new runner
-code and inline policy before destroying the old table and bucket.
-
-Review the Publisher administration plan:
-
-```powershell
-$env:AWS_PROFILE = "administrator"
-Push-Location tools/publisher/infra/administration
-tofu fmt -check -recursive
-tofu init -input=false -lockfile=readonly
-tofu validate
-$policyPlan = Join-Path $env:TEMP "publisher-boundary-retirement.tfplan"
-tofu plan "-out=$policyPlan"
-tofu show $policyPlan
-```
-
-It should contain only an in-place update to
-`aws_iam_policy.publisher_role_boundary`, removing access to the old DynamoDB
-table and S3 bucket. If the plan differs, stop. After review, apply that saved
-plan manually with `tofu apply $policyPlan`, then remove the plan file and run
-`Pop-Location`.
+Deploy the new Lambda code and its reduced inline policy **before** removing
+legacy permissions from the IAM permission boundary. Otherwise the still-running
+Lambda code may lose access to the old state before the new code is deployed.
+Keep the new Publisher paused while making these changes. Confirm the active
+queue revision and `paused: true` before and after deployment; neither the
+queue state nor the schedule should be modified during retirement.
 
 Build the new Lambda package and review its resource plan:
 
@@ -97,6 +82,30 @@ email subscription. Do not apply that plan. Reconcile those differences
 separately and regenerate the full plan; apply the saved plan manually only
 when it contains the two expected in-place changes and no others. Then remove
 the plan file and run `Pop-Location`.
+
+After the Lambda deployment, review the Publisher administration plan:
+
+```powershell
+$env:AWS_PROFILE = "administrator"
+Push-Location tools/publisher/infra/administration
+tofu fmt -check -recursive
+tofu init -input=false -lockfile=readonly
+tofu validate
+$policyPlan = Join-Path $env:TEMP "publisher-boundary-retirement.tfplan"
+tofu plan "-out=$policyPlan"
+tofu show $policyPlan
+```
+
+It should contain only an in-place update to
+`aws_iam_policy.publisher_role_boundary`, removing access to the old DynamoDB
+table and S3 bucket. If the plan differs, stop. After review, apply the saved
+plan manually with `tofu apply $policyPlan`, then remove the plan file and run
+`Pop-Location`.
+
+Verify that the new Lambda configuration no longer contains `LEGACY_*`
+variables or legacy table/bucket policies before beginning the legacy destroy.
+Do not change the 2026 publication calendar or the active DynamoDB queue as
+part of this retirement.
 
 ### Destroy the legacy resources
 
