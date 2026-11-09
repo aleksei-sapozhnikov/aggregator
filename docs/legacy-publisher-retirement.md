@@ -146,16 +146,29 @@ tofu show $policyPlan
 
 It should contain only an in-place update to
 `aws_iam_policy.publisher_role_boundary`, removing access to the old DynamoDB
-table and S3 bucket. Confirm the new Lambda is deployed and no longer uses
-legacy state before applying this boundary update. If the plan differs, stop.
-After review, apply the saved plan manually with `tofu apply $policyPlan`, then
-remove the plan file and run `Pop-Location`.
+table and S3 bucket. Expected plan: **0 to add, 1 to change, 0 to destroy**.
+The temporary `TagPublisherSecrets` change to
+`AggregatorPublisherManagement` was reverted because secret tag updates are
+currently excluded by `ignore_changes = [tags_all]`, and broadening
+`aggregator-admin` permissions is not needed for retirement.
 
-Then re-plan the Publisher resources root. After the policy update, the
-remaining tag changes should apply without replacing the email subscription.
-If the new plan still shows the Lambda or runner policy update, finish and
-verify those changes before removing legacy permissions from the role
-boundary. Never reuse a saved plan after any partial apply.
+Confirm the new Lambda is deployed and no longer uses legacy state before
+applying the boundary update. If the plan also updates
+`aws_iam_policy.publisher_management` or any other resource, **do not apply**.
+Refresh the local branch and regenerate a new saved plan instead. Never reuse
+an earlier saved plan after a source update or partial apply.
+
+After reviewing the single-resource plan, apply it manually:
+
+```powershell
+tofu apply $policyPlan
+Remove-Item $policyPlan
+Pop-Location
+```
+
+The Lambda and runner IAM policy updates must already be applied before this
+stage. Do not remove temporary secret tag suppression in this retirement
+change; revisit it later as separate maintenance.
 
 Verify that the new Lambda configuration no longer contains `LEGACY_*`
 variables or legacy table/bucket policies before beginning the legacy destroy.
