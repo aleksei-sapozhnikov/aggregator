@@ -8,11 +8,6 @@ resource "aws_secretsmanager_secret" "notification_email" {
     Name = "${local.prefix}-notification-email"
   }
 
-  # Temporary: prevent default Repository tag drift during legacy retirement.
-  # Remove after the operator grants secretsmanager:TagResource.
-  lifecycle {
-    ignore_changes = [tags_all]
-  }
 }
 
 # Read the secret version by its stable name, independently of the managed
