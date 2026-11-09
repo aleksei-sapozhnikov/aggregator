@@ -39,28 +39,16 @@ to update JSON plans and `publisher.py calendar --live` for status.
 The email address is not stored in repository files. Terraform manages the
 `aggregator-publisher-notification-email` secret metadata, and the email
 subscription reads its value from the current Secrets Manager version.
-The secret contains a **plain email address**, not JSON. Keep the existing confirmed SNS subscription intact; never replace it
-just to reconcile an email value.
+The secret contains a **plain email address**, not JSON. Keep the confirmed
+SNS subscription intact; never replace it just to reconcile an email value.
 
 ### Notification configuration
 
-The secret must contain the plain email address currently subscribed to the
-SNS topic. Update it through Secrets Manager, not through source files:
-
-```powershell
-$env:AWS_PROFILE = "aggregator-admin"
-$email = Read-Host "Confirmed SNS notification email"
-aws secretsmanager put-secret-value `
-  --secret-id aggregator-publisher-notification-email `
-  --secret-string $email
-Remove-Variable email
-```
-
-The email subscription is managed by OpenTofu; retain the confirmed
-subscription instead of recreating it. If the subscription is not yet present
-in OpenTofu state, import the existing subscription ARN before applying a plan.
-A plan that would replace the email subscription must be investigated rather
-than applied.
+The secret value and the confirmed SNS subscription endpoint must match.
+Treat changing the notification email as a coordinated operation: updating the
+secret value alone does **not** update the SNS subscription or confirm a new
+address. Manage the subscription through OpenTofu and check its confirmation
+status. A plan that replaces the subscription unexpectedly must not be applied.
 
 **State caveat:** Terraform reads the email from Secrets Manager, but the
 email also enters the encrypted OpenTofu state as a sensitive value. State
