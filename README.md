@@ -191,5 +191,5 @@ For architecture and operations:
 - [K3s GitOps deployment](deploy/kubernetes/README.md)
 - [Project infrastructure ownership](environments/shared/README.md)
 - [Publisher — publication automation](tools/publisher/README.md)
-- [Legacy Publisher retirement and data preservation](docs/legacy-publisher-retirement.md)
+- [Publisher infrastructure retirement](docs/legacy-publisher-retirement.md)
 - [Code QA](tools/code_qa/README.md)

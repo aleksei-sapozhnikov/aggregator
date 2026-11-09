@@ -1,92 +1,179 @@
-# Legacy Publisher retirement
+# Publisher retirement
 
-The legacy `aggregator-publication-*` runner has completed its queue through
-PR #349 and release `v0.7.13`. Its Lambda, 15-minute watchdog, scheduler group,
-execution roles and policies, notification resources, secrets, and deployment
-tooling are retired from source control. The newer `aggregator-publisher-*`
-runner and its November 10, 2026 start date remain unchanged.
+The legacy queue is complete. Its runner, tests, and deployment utilities have
+been removed. The new Publisher no longer checks the legacy DynamoDB table or
+S3 bucket. Its queue, schedule, state, publication behavior, and November 10,
+2026 activation date are unchanged.
 
-## Data dependency and deletion order
+The temporary OpenTofu root at `tools/publisher-legacy/infra` retains only the
+existing backend, provider, version constraint, and legacy bucket declaration
+needed to destroy resources from the current state. Remove that root after the
+state is empty. The shared `AggregatorPublicationAdmins` IAM group and the
+new Publisher's state bucket are shared dependencies and must remain.
 
-The new runner has a one-time handoff gate. Before recording
-`legacy_handoff_complete`, it consistently reads the legacy DynamoDB `QUEUE`
-item, loads the referenced schedule snapshot from the legacy S3 bucket, and
-checks that `aggregator-071-merge` and all scheduled legacy events are
-complete. The legacy table, snapshot bucket, and the new runner's read
-permissions are therefore retained as handoff dependencies. Do not remove
-them or their permissions before the new Publisher records
-`legacy_handoff_complete: true` in its own state table.
+## Optional local backup
 
-After that flag is confirmed, preserve a final copy of the legacy table before
-deleting the table or bucket. Use an approved encrypted S3 archive bucket in
-`eu-central-1` with restricted access and lifecycle retention appropriate for
-the project's audit needs. Do not put the export, local copies, or credentials
-in Git.
+A backup is optional. If useful, save the final queue item and active snapshot
+under `.local`, which is ignored by Git. No archive bucket or long-term
+retention is needed.
 
-1. Confirm the legacy watchdog is disabled and no legacy invocation is
-   in-flight. Confirm the final event and queue completion against the legacy
-   state and snapshot.
-2. Confirm point-in-time recovery is enabled for
-   `aggregator-publication-state`. Record a UTC export time after the final
-   queue update.
-3. Start a full point-in-time export to the approved archive bucket. Replace
-   the placeholders with that bucket and a unique prefix; use the account's
-   normal AWS profile and approved KMS key if the archive requires SSE-KMS:
+From the repository root in PowerShell:
 
-   ```powershell
-   aws dynamodb export-table-to-point-in-time `
-     --table-arn arn:aws:dynamodb:eu-central-1:905418096305:table/aggregator-publication-state `
-     --s3-bucket <approved-archive-bucket> `
-     --s3-prefix aggregator/publication-state/<UTC-timestamp> `
-     --export-time <UTC-timestamp> `
-     --export-format DYNAMODB_JSON `
-     --export-type FULL_EXPORT
-   ```
+```powershell
+$backupDir = Join-Path (Get-Location) ".local\legacy-publisher-backup"
+New-Item -ItemType Directory -Force -Path $backupDir | Out-Null
 
-4. Poll `aws dynamodb describe-export --export-arn <export-arn>` until the
-   export status is `COMPLETED`. Confirm the reported item count and S3 export
-   manifest, data files, encryption, and archive access. Keep the export ARN,
-   export time, item count, and verification result in the operator's
-   controlled change record. Do not paste item contents into that record.
-5. Preserve the legacy S3 snapshots as well. Copy every current and
-   noncurrent object version, along with delete markers and the bucket's
-   version inventory, into the approved archive using a version-aware S3
-   Batch Operations copy or an equivalent audited process. Verify destination
-   object/version counts and checksums against the source inventory. A simple
-   `aws s3 sync` is insufficient for a versioned bucket because it skips
-   noncurrent versions.
-6. Only after the handoff flag, DynamoDB export, and snapshot archive have all
-   been verified, rerun the legacy OpenTofu plan from current state. Review
-   every delete and apply it separately through the operator's approved
-   change process. The shared administration policy plan must follow legacy
-   role deletion because those roles still have the legacy permissions
-   boundary attached. A plan generated before handoff is stale for that later
-   deletion and must not be applied as-is.
+aws dynamodb get-item `
+  --table-name aggregator-publication-state `
+  --key '{"pk":{"S":"QUEUE"}}' `
+  --consistent-read `
+  --output json | Set-Content -Path (Join-Path $backupDir "queue.json") -Encoding utf8
 
-The export is an independent preserved copy; it does not keep the live
-handoff dependency available. This is why the table and snapshot bucket must
-remain until the new runner records completion.
+$queueItem = Get-Content (Join-Path $backupDir "queue.json") -Raw | ConvertFrom-Json
+$revision = $queueItem.Item.data_revision.S
+if (-not $revision) { throw "The legacy queue item has no active snapshot revision." }
 
-## Infrastructure plan roots
+aws s3 cp `
+  "s3://aggregator-publication-data-905418096305-eu-central-1/snapshots/$revision.json" `
+  (Join-Path $backupDir "active-snapshot.json")
+```
 
-The legacy OpenTofu root under `tools/publisher-legacy/infra` is now a minimal
-retirement root with its original backend and provider configuration. Its
-empty configuration makes the legacy state deletions reviewable with
-`tofu plan`; do not apply that plan until the data-deletion conditions above
-are met. The shared administration root separately removes the old
-publication management and state-access policies. It retains the
-`AggregatorPublicationAdmins` group because the new Publisher uses that group.
+Delete the local copy when it is no longer useful. Do not commit it.
 
-The current legacy-root plan contains 24 deletes with no additions, updates,
-or replacements. It includes the DynamoDB table, versioned S3 bucket, Lambda,
-watchdog and schedule group, execution roles and inline policies, log group,
-alarms, SNS topic and subscription, SQS dead-letter queue, and three Secrets
-Manager secrets. The plan output is intentionally not kept in the repository;
-regenerate it after the handoff and exports are complete.
+## Stage 1: Remove the legacy AWS resources
 
-The new Publisher administration and resource roots still contain a narrow
-read permission and handoff configuration for the legacy table and snapshot
-bucket. These are deliberately retained until `legacy_handoff_complete` is
-recorded. Remove those references and permissions in a follow-up cleanup,
-afterward, with a fresh plan that contains only those expected policy and
-environment changes.
+### Update the new Publisher
+
+Remove the legacy permission boundary entry first, then deploy the new runner
+code and inline policy before destroying the old table and bucket.
+
+Review the Publisher administration plan:
+
+```powershell
+$env:AWS_PROFILE = "administrator"
+Push-Location tools/publisher/infra/administration
+tofu fmt -check -recursive
+tofu init -input=false -lockfile=readonly
+tofu validate
+$policyPlan = Join-Path $env:TEMP "publisher-boundary-retirement.tfplan"
+tofu plan "-out=$policyPlan"
+tofu show $policyPlan
+```
+
+It should contain only an in-place update to
+`aws_iam_policy.publisher_role_boundary`, removing access to the old DynamoDB
+table and S3 bucket. If the plan differs, stop. After review, apply that saved
+plan manually with `tofu apply $policyPlan`, then remove the plan file and run
+`Pop-Location`.
+
+Build the new Lambda package and review its resource plan:
+
+```powershell
+Push-Location tools/publisher
+python publisher.py build
+Pop-Location
+
+$env:AWS_PROFILE = "aggregator-admin"
+Push-Location tools/publisher/infra/resources
+tofu fmt -check -recursive
+tofu init -input=false -lockfile=readonly
+tofu validate
+$runnerPlan = Join-Path $env:TEMP "publisher-runner-retirement.tfplan"
+tofu plan "-out=$runnerPlan"
+tofu show $runnerPlan
+```
+
+The only expected changes are in-place updates to
+`aws_lambda_function.runner` (new package and removal of legacy environment
+variables) and `aws_iam_role_policy.runner` (removal of legacy table and
+bucket access). Do not apply a plan that changes the queue state table,
+schedule, schedule group, bucket, secrets, notifications, or any other new
+Publisher resource.
+
+The plan generated while preparing this change does **not** meet that limit:
+it proposed 13 in-place changes, one addition, and one destruction. These
+included tag updates on other Publisher resources and replacement of the SNS
+email subscription. Do not apply that plan. Reconcile those differences
+separately and regenerate the full plan; apply the saved plan manually only
+when it contains the two expected in-place changes and no others. Then remove
+the plan file and run `Pop-Location`.
+
+### Destroy the legacy resources
+
+The legacy S3 bucket is versioned. Its temporary root first records
+`force_destroy = true` while deleting the other legacy resources. After that
+apply succeeds, a second destroy removes the bucket and its object versions.
+The AWS provider requires a successful apply to record this setting before
+emptying a versioned bucket ([provider documentation](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket)).
+
+From the repository root in PowerShell:
+
+```powershell
+$env:AWS_PROFILE = "aggregator-admin"
+Push-Location tools/publisher-legacy/infra
+tofu fmt -check -recursive
+tofu init -input=false -lockfile=readonly
+tofu validate
+$legacyPlan = Join-Path $env:TEMP "legacy-publisher-retirement.tfplan"
+tofu plan "-out=$legacyPlan"
+tofu show $legacyPlan
+```
+
+The current plan is `0 to add, 1 to change, 23 to destroy`. The change sets
+`force_destroy = true` on the old bucket. The 23 deletions are all legacy
+resources: Lambda, Scheduler and schedule group, DynamoDB, S3 settings, IAM
+roles and policies, secrets, SNS notifications, SQS dead-letter queue, and
+CloudWatch logs and alarms. The plan must contain no `aggregator-publisher-*`
+resource, creation, or replacement. If it differs, stop and review it.
+
+After review, apply the saved plan manually, then plan the final bucket
+deletion:
+
+```powershell
+tofu apply $legacyPlan
+$bucketPlan = Join-Path $env:TEMP "legacy-publisher-bucket-destroy.tfplan"
+tofu plan -destroy "-out=$bucketPlan"
+tofu show $bucketPlan
+```
+
+The second plan should contain only the old S3 bucket deletion. Review it,
+then apply it manually and verify that the legacy state is empty:
+
+```powershell
+tofu apply $bucketPlan
+tofu state list
+Pop-Location
+```
+
+### Remove shared legacy IAM policies
+
+After the workload roles are destroyed, remove the old shared IAM policies
+and their group attachments. Keep `AggregatorPublicationAdmins`, which the new
+Publisher still uses.
+
+```powershell
+$env:AWS_PROFILE = "administrator"
+Push-Location environments/shared/infra/administration
+tofu init -input=false -lockfile=readonly
+tofu validate
+$sharedPlan = Join-Path $env:TEMP "shared-legacy-publisher-iam.tfplan"
+tofu plan "-out=$sharedPlan"
+tofu show $sharedPlan
+```
+
+The plan should remove only the two legacy group-policy attachments and three
+legacy IAM policies. If it shows anything else, stop. After review, apply the
+saved plan manually, remove the plan file, and run `Pop-Location`.
+
+## Stage 2: Remove the temporary OpenTofu root
+
+After all legacy resources and shared IAM policies have been destroyed,
+confirm `tofu state list` in `tools/publisher-legacy/infra` is empty, then
+remove the temporary configuration from the branch:
+
+```powershell
+Push-Location tools/publisher-legacy/infra
+tofu state list
+Pop-Location
+git rm -r tools/publisher-legacy/infra
+```
