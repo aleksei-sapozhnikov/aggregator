@@ -20,6 +20,9 @@ After pulling an update from the previous 5.x configuration, run `tofu init -upg
 to replace the older provider. The existing `aws login` session can then be
 used through `AWS_PROFILE` without hardcoding an AWS profile in Terraform.
 
+For maintaining the three Publisher Secrets Manager `Repository` tags, see
+[Publisher secret tagging](../../../../docs/publisher-secret-tagging.md).
+
 ## Initial provisioning (PowerShell)
 
 ```powershell
