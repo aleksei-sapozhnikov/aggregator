@@ -1,41 +1,20 @@
-# Publication AWS infrastructure
+# Legacy Publisher infrastructure retirement root
 
-OpenTofu root for the scheduled GitHub publication system. It owns Lambda,
-its IAM roles, DynamoDB state, publication-data S3 storage, Scheduler
-and watchdog, CloudWatch logs, and failure notifications. It **does not**
-own the Lambda code release or the scheduled queue contents.
+This root retains the legacy backend and AWS provider configuration so its
+existing OpenTofu state can be reviewed for retirement. The resource
+definitions and deployment code have been removed.
 
-## Plan infrastructure changes
+Initialize and validate without applying:
 
-Use an AWS identity authorized to administer the project (for example
-`aggregator-admin`) in account `905418096305`, region `eu-central-1`.
-OpenTofu 1.12+ is required. From this directory:
-
-```sh
-aws sts get-caller-identity
+```powershell
 tofu init -input=false -lockfile=readonly
 tofu validate
-tofu plan
+tofu plan -destroy
 ```
 
-Inspect every plan before applying it, especially IAM, state resources,
-schedule changes, and notifications. The existing backend stores state
-at `publication/tofu.tfstate`. The state bucket, permission boundary,
-and Lambda bootstrap code object must already exist. Do not initialize
-empty replacement state.
-
-Lambda code releases are managed independently to avoid a routine
-infrastructure plan overwriting running code. Use
-[operator tools](tools/README.md) to build, preview and explicitly deploy
-a code update; `--apply` requires confirmation. The watchdog normally
-checks the queue every 15 minutes; the Lambda environment controls
-activation and notifications.
-
-Tokens belong in Secrets Manager, not Terraform variables. The SNS email
-endpoint is also sourced from a secret, but the provider can persist that
-endpoint in state and saved plans: treat those artifacts as sensitive.
-
-For infrastructure formatting and linting, use the repository's TFLint
-configuration and [Code QA](../../code_qa/README.md). Keep
-`.terraform.lock.hcl` committed, but never commit plans, state files,
-credentials, or downloaded Lambda ZIPs.
+The destroy plan includes legacy data storage. Do not apply it until the new
+Publisher has recorded `legacy_handoff_complete: true` and the legacy
+DynamoDB table has been exported and verified as documented in
+[`docs/legacy-publisher-retirement.md`](../../../docs/legacy-publisher-retirement.md).
+Regenerate the plan after those conditions are met. OpenTofu plan output and
+saved plan files may contain sensitive state; keep them out of Git.
