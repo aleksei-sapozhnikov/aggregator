@@ -104,7 +104,6 @@ class ModuleConfigurationTests(unittest.TestCase):
                     "build",
                     "dist",
                 }
-                and not (group == "tools" and directory.name == "publisher-legacy")
                 and not directory.name.startswith(".")
             },
         )

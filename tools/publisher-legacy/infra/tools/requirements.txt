@@ -1,2 +1,0 @@
-# AWS SDK for the interactive secret writer; Lambda supplies its own SDK.
-boto3
