@@ -71,11 +71,21 @@ resource "aws_secretsmanager_secret" "repository" {
   name        = "${local.prefix}-github-token"
   description = "GitHub repository token used by Aggregator Publisher to manage pull requests, version tags, and releases."
   tags        = { Name = "${local.prefix}-github-token" }
+  # Temporary: prevent default Repository tag drift during legacy retirement.
+  # Remove after the operator grants secretsmanager:TagResource.
+  lifecycle {
+    ignore_changes = [tags_all]
+  }
 }
 resource "aws_secretsmanager_secret" "project" {
   name        = "${local.prefix}-project-token"
   description = "GitHub Projects token used by Aggregator Publisher to update publication project items."
   tags        = { Name = "${local.prefix}-project-token" }
+  # Temporary: prevent default Repository tag drift during legacy retirement.
+  # Remove after the operator grants secretsmanager:TagResource.
+  lifecycle {
+    ignore_changes = [tags_all]
+  }
 }
 resource "aws_cloudwatch_log_group" "runner" {
   name              = "/aws/lambda/${local.prefix}-runner"
