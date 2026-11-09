@@ -67,9 +67,6 @@ Do not use the primary checkout for release branch checkouts.
 
 The JSON plan and outputs go under `.local/publisher/publisher_plan/`, and
 isolated preparation worktrees under `.local/publisher/worktrees/`.
-The retired runner source and deployment tooling have been removed. See
-[legacy Publisher retirement](../../docs/legacy-publisher-retirement.md) for
-the remaining infrastructure cleanup commands.
 
 The seven required Markdown files are:
 
