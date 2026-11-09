@@ -14,18 +14,14 @@ from .publication.snapshot_state import SnapshotState
 
 
 def _github_tokens() -> tuple[str, str]:
-    """Load tokens from Secrets Manager or legacy environment variables.
+    """Load repository and project tokens from their configured secrets.
 
     Called while constructing the runner at the start of a Lambda invocation.
-    Configured secret ARNs take precedence, and a read failure never falls back
-    to a legacy environment value.
     """
-    repo_secret_arn = os.environ.get("GITHUB_SECRET_ARN")
-    project_secret_arn = os.environ.get("PROJECT_SECRET_ARN")
-    repo_token = None
-    project_token = None
+    repo_secret_arn = os.environ["GITHUB_SECRET_ARN"]
+    project_secret_arn = os.environ["PROJECT_SECRET_ARN"]
 
-    # Only create a Secrets Manager client when an ARN actually needs reading.
+    # Create the client on first read and reuse it for both credentials.
     secret_client = None
 
     def read_secret(arn: str) -> str:
@@ -36,21 +32,13 @@ def _github_tokens() -> tuple[str, str]:
             secret_client = boto3.client("secretsmanager")
         return secret_client.get_secret_value(SecretId=arn)["SecretString"]
 
-    # Secret references take precedence. If a configured secret cannot be read,
-    # fail closed rather than silently using a potentially stale env token.
-    if repo_secret_arn:
-        repo_token = read_secret(repo_secret_arn)
-    else:
-        repo_token = os.environ.get("GITHUB_TOKEN")
-    if project_secret_arn:
-        project_token = read_secret(project_secret_arn)
-    else:
-        project_token = os.environ.get("PROJECT_TOKEN")
+    repo_token = read_secret(repo_secret_arn)
+    project_token = read_secret(project_secret_arn)
 
     def decode(value: str | None, variable: str) -> str:
         if not value:
             raise RuntimeError(
-                f"Missing GitHub credential: set {variable} in Lambda or configure its secret ARN"
+                f"Missing GitHub credential in the Secrets Manager secret configured by {variable}"
             )
         try:
             parsed = json.loads(value)
@@ -65,8 +53,8 @@ def _github_tokens() -> tuple[str, str]:
             return parsed
         raise RuntimeError(f"Invalid credential value for {variable}")
 
-    repository = decode(repo_token, "GITHUB_TOKEN")
-    project = decode(project_token, "PROJECT_TOKEN") if project_token else repository
+    repository = decode(repo_token, "GITHUB_SECRET_ARN")
+    project = decode(project_token, "PROJECT_SECRET_ARN")
     return repository, project
 
 

@@ -1,1 +1,1 @@
-"""Standalone publisher watchdog and legacy handover guard."""
+"""Standalone Publisher watchdog runtime."""

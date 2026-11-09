@@ -127,7 +127,7 @@ class PublisherTests(unittest.TestCase):
         state.pause_owned.assert_called_once()
         execute.assert_not_called()
 
-    def test_existing_snapshot_uses_legacy_execution_window(self):
+    def test_existing_snapshot_uses_its_configured_execution_window(self):
         config = self.build(sample())["config"]
         config.pop("execution_window")
         self.assertFalse(

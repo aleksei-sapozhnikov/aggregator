@@ -33,8 +33,7 @@ def _esc(value) -> str:
 
 
 def render(snapshot: dict, progress: dict | None = None, *, paused: bool = True,
-           checked_at: datetime | None = None, revision: str = "preview",
-           handoff_complete: bool | None = None) -> str:
+           checked_at: datetime | None = None, revision: str = "preview") -> str:
     progress = progress or {}
     done = set(progress.get("completed", []))
     records = progress.get("prs", {})
@@ -94,7 +93,7 @@ def render(snapshot: dict, progress: dict | None = None, *, paused: bool = True,
         for day, items in sorted(groups.items())
     ) or '<p>No publications are scheduled. Add pull requests to the JSON plan.</p>'
     total = len(snapshot["queue"]["entries"])
-    state = "Paused" if paused else ("Waiting for legacy" if handoff_complete is False else "Running")
+    state = "Paused" if paused else "Running"
     return (
         '<!doctype html><html lang="en"><head><meta charset="utf-8">'
         '<meta name="viewport" content="width=device-width,initial-scale=1">'

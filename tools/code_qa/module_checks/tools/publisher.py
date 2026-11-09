@@ -1,4 +1,4 @@
-"""Configure Code QA for Publisher; frozen Publisher Legacy stays excluded."""
+"""Configure Code QA for Publisher."""
 
 from code_qa.module_checks.specs import (
     ModuleSpec,

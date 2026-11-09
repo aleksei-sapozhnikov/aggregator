@@ -63,7 +63,7 @@ def compile_plan(path: Path) -> dict:
     if not isinstance(start, str) or not isinstance(end, str) or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", start) or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", end):
         raise ValueError("start_date and end_date must be YYYY-MM-DD")
     if start < START_NOT_BEFORE or end < start:
-        raise ValueError("publisher may not start before legacy's handover window")
+        raise ValueError("publisher may not start before its configured activation date")
     if not TAG.fullmatch(plan["previous_published_tag"]):
         raise ValueError("previous_published_tag must be a semver tag")
     if not isinstance(plan["pull_requests"], list) or not isinstance(plan["releases"], dict):

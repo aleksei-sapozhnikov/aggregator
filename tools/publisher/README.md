@@ -67,9 +67,9 @@ Do not use the primary checkout for release branch checkouts.
 
 The JSON plan and outputs go under `.local/publisher/publisher_plan/`, and
 isolated preparation worktrees under `.local/publisher/worktrees/`.
-The retired runner source and deployment tooling have been removed. Preserve
-the legacy state table and snapshot bucket until the handoff gate has recorded
-completion; see [legacy Publisher retirement](../../docs/legacy-publisher-retirement.md).
+The retired runner source and deployment tooling have been removed. See
+[legacy Publisher retirement](../../docs/legacy-publisher-retirement.md) for
+the remaining infrastructure cleanup commands.
 
 The seven required Markdown files are:
 
@@ -147,9 +147,8 @@ from publication plans; updating a plan does not require OpenTofu or rebuilding
 Lambda. Build the Lambda artifact with `python publisher.py build` only for
 runtime code deployment.
 
-Until the one-time handover condition is recorded, the worker waits for the
-preceding queue to finish; it also enforces the configured activation date.
-Do not remove that gate without reviewing the corresponding AWS state.
+The worker enforces the configured activation date before processing the
+publication queue.
 
 Use `python -m unittest discover -s tests -v` for offline checks. Code QA
-includes this Publisher and excludes the frozen predecessor.
+includes this Publisher.

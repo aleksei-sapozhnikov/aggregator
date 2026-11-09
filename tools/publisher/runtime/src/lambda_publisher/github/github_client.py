@@ -33,7 +33,7 @@ class GitHub:
             "Accept": "application/vnd.github+json",
             "Authorization": f"Bearer {self.token}",
             "X-GitHub-Api-Version": "2022-11-28",
-            "User-Agent": "aggregator-publication-runner",
+            "User-Agent": "aggregator-publisher-runner",
         }
         if body is not None:
             headers["Content-Type"] = "application/json"
@@ -99,7 +99,7 @@ class GitHub:
                 "Accept": "application/vnd.github+json",
                 "Authorization": f"Bearer {self.token}",
                 "X-GitHub-Api-Version": "2022-11-28",
-                "User-Agent": "aggregator-publication-runner",
+                "User-Agent": "aggregator-publisher-runner",
             },
             method=method,
         )

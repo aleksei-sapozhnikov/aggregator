@@ -24,11 +24,9 @@ provider "aws" {
 }
 
 locals {
-  prefix        = "aggregator-publisher"
-  bucket        = "${local.prefix}-data-905418096305-eu-central-1"
-  not_before    = "2026-11-10T08:00:00Z"
-  legacy_table  = "aggregator-publication-state"
-  legacy_bucket = "aggregator-publication-data-905418096305-eu-central-1"
+  prefix     = "aggregator-publisher"
+  bucket     = "${local.prefix}-data-905418096305-eu-central-1"
+  not_before = "2026-11-10T08:00:00Z"
 }
 
 resource "aws_s3_bucket" "data" {
@@ -104,8 +102,7 @@ resource "aws_iam_role_policy" "runner" {
   policy = jsonencode({ Version = "2012-10-17", Statement = [
     { Effect = "Allow", Action = ["logs:CreateLogStream", "logs:PutLogEvents"], Resource = "${aws_cloudwatch_log_group.runner.arn}:*" },
     { Effect = "Allow", Action = ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem"], Resource = aws_dynamodb_table.state.arn },
-    { Effect = "Allow", Action = ["dynamodb:GetItem"], Resource = "arn:aws:dynamodb:eu-central-1:905418096305:table/${local.legacy_table}" },
-    { Effect = "Allow", Action = ["s3:GetObject"], Resource = ["${aws_s3_bucket.data.arn}/snapshots/*", "arn:aws:s3:::${local.legacy_bucket}/snapshots/*"] },
+    { Effect = "Allow", Action = ["s3:GetObject"], Resource = "${aws_s3_bucket.data.arn}/snapshots/*" },
     { Effect = "Allow", Action = ["secretsmanager:GetSecretValue"], Resource = [aws_secretsmanager_secret.repository.arn, aws_secretsmanager_secret.project.arn] },
     { Effect = "Allow", Action = ["sns:Publish"], Resource = aws_sns_topic.failure.arn }
   ] })
@@ -129,9 +126,6 @@ resource "aws_lambda_function" "runner" {
       NOTIFICATIONS_ENABLED = "true"
       SNS_TOPIC_ARN         = aws_sns_topic.failure.arn
       NOT_BEFORE_UTC        = local.not_before
-      LEGACY_STATE_TABLE    = local.legacy_table
-      LEGACY_BUCKET         = local.legacy_bucket
-      LEGACY_FINAL_EVENT_ID = "aggregator-071-merge"
     }
   }
   depends_on = [aws_cloudwatch_log_group.runner, aws_iam_role_policy.runner]

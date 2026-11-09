@@ -29,10 +29,9 @@ tofu apply
 State: `s3://aggregator-project-tofu-state-905418096305-eu-central-1/aggregator-publisher/tofu.tfstate`.
 
 The `aggregator-publisher-*` resources are independent from the retired legacy
-runner. The watchdog has a 15-minute interval and remains guarded by the
-one-time legacy completion gate. Keep the legacy state table and snapshot
-bucket, and the runner's read permissions to them, until that gate records
-completion. See [legacy Publisher retirement](../../../../docs/legacy-publisher-retirement.md).
+runner. The watchdog has a 15-minute interval and starts on the configured
+date. See [legacy Publisher retirement](../../../../docs/legacy-publisher-retirement.md)
+for the separate legacy resource teardown procedure.
 
 Secrets must receive their GitHub token values separately after provisioning.
 Terraform is not required for each publication; use `publisher.py apply`

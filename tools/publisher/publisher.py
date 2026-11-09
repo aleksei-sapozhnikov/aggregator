@@ -179,7 +179,7 @@ def set_paused(paused: bool, profile: str) -> None:
         ConditionExpression="data_revision=:revision AND (attribute_not_exists(lease_until) OR lease_until<:now)",
         ExpressionAttributeValues={":new": paused, ":revision": item["data_revision"], ":now": int(time.time())},
     )
-    print("Publisher PAUSED" if paused else "Publisher ARMED; legacy completion gate still applies")
+    print("Publisher PAUSED" if paused else "Publisher ARMED")
 
 
 def live(profile: str):
@@ -189,7 +189,7 @@ def live(profile: str):
     if not item:
         raise RuntimeError("publisher QUEUE not initialized")
     snapshot = load_snapshot(session.client("s3"), BUCKET, item["data_revision"])
-    return snapshot, _progress(item), bool(item.get("paused", True)), item["data_revision"], bool(item.get("legacy_handoff_complete", False))
+    return snapshot, _progress(item), bool(item.get("paused", True)), item["data_revision"]
 
 
 def build(zip_path: Path) -> None:
@@ -233,8 +233,8 @@ def main(argv=None) -> None:
     elif args.command == "apply":
         apply(args.plan, args.profile)
     elif args.command == "calendar":
-        snapshot, progress, paused, revision, handoff = live(args.profile)
-        save(args.output, snapshot, progress, paused=paused, revision=revision, handoff_complete=handoff)
+        snapshot, progress, paused, revision = live(args.profile)
+        save(args.output, snapshot, progress, paused=paused, revision=revision)
         print(f"HTML calendar: {args.output}")
     elif args.command in ("pause", "resume"):
         set_paused(args.command == "pause", args.profile)
