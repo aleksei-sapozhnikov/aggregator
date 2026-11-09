@@ -15,19 +15,17 @@ The AWS provider and backend use the standard AWS credential chain. If
 `AWS_PROFILE` already points to `administrator`, do not set it again.
 Confirm the identity before applying IAM changes.
 
-This root pins AWS Provider 6.41.0, matching the shared administration root.
-After pulling an update from the previous 5.x configuration, run `tofu init -upgrade`
-to replace the older provider. The existing `aws login` session can then be
-used through `AWS_PROFILE` without hardcoding an AWS profile in Terraform.
+The root pins AWS Provider 6.41.0, matching the shared administration root.
+Use `AWS_PROFILE` for authentication rather than hardcoding credentials.
 
-## Initial provisioning (PowerShell)
+## Manage IAM policies (PowerShell)
 
 ```powershell
 aws sts get-caller-identity
-tofu init -upgrade
+tofu init -input=false -lockfile=readonly
 tofu validate
 tofu plan
-# Verify the plan creates only the five Publisher IAM resources.
+# Review the intended IAM policy and attachment changes.
 tofu apply
 ```
 
