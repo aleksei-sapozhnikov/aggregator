@@ -19,7 +19,7 @@ data "aws_secretsmanager_secret_version" "notification_email" {
   secret_id = "${local.prefix}-notification-email"
 }
 
-# Import the existing confirmed subscription before applying this resource.
+# Manage the confirmed SNS subscription without replacing it on unrelated changes.
 resource "aws_sns_topic_subscription" "failure_email" {
   topic_arn = aws_sns_topic.failure.arn
   protocol  = "email"
