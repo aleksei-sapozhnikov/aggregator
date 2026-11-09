@@ -77,49 +77,57 @@ replace the existing confirmed subscription because `endpoint` is replacement-
 forcing. Reading by name makes the data source independent, so the endpoint is
 resolved during planning and the imported subscription remains unchanged.
 
-Keep `default_tags` and its 11 tag-only updates. The expected full plan is
-`0 to add, 13 to change, 0 to destroy`: 11 tag-only updates plus in-place
-updates to `aws_lambda_function.runner` (new package and removal of legacy
-environment variables) and `aws_iam_role_policy.runner` (removal of legacy
-table and bucket access). The plan must not show any action for
-`aws_sns_topic_subscription.failure_email`, nor modify the queue state,
-schedule, or publication data. If the subscription is planned for create,
-replacement, or deletion, stop and do not apply. After review, apply the saved
-plan manually, then remove the plan file and run `Pop-Location`.
+The only intended functional updates are `aws_lambda_function.runner`
+(new code and removal of legacy environment variables) and
+`aws_iam_role_policy.runner` (removal of legacy table/bucket access).
+Do not apply a plan that replaces the confirmed SNS subscription or changes
+the queue state, schedule, or publication data. The temporary tagging
+workaround and fresh plan commands are below.
 
-The three Secrets Manager resources also need permission to receive the
-provider's `Repository` default tag. The current `AggregatorPublisherManagement`
-policy only allows `Name` in a `TagResource` request, so the provider's
-`Repository` tag updates fail with `secretsmanager:TagResource` access denied.
-The policy in this branch restricts the grant to requests that add only that
-`Repository` tag to one of the three existing Publisher secrets, selected by
-its existing `Name` tag.
+### Temporary workaround for Secrets Manager tagging
 
-Publish that updated management policy before retrying the Publisher resources.
-Use the `administrator` profile for this one policy update so the resource
-root's missing permission is in place without prematurely applying the
-permission-boundary change in the administration root:
+The existing `aggregator-admin` identity cannot call
+`secretsmanager:TagResource` on the three Publisher secrets. A partial
+resource apply has already succeeded for some unrelated `Repository`
+default-tag updates, but failed on those secrets. Do **not** replay the old
+saved plan.
+
+The three `aws_secretsmanager_secret` resources temporarily use
+`lifecycle { ignore_changes = [tags_all] }` to suppress only their
+provider-inherited tag drift during retirement. This does not remove or
+replace the secrets, their values, or the confirmed SNS subscription.
+The original provider `default_tags` remains unchanged.
+
+With this workaround the next normal plan is expected to contain **only**
+the remaining in-place Lambda and runner IAM policy changes
+(`0 to add, 2 to change, 0 to destroy`), assuming all earlier tag-only
+updates really completed. This count is a prediction, not verified against
+your live AWS state. If it still shows any secret tag update,
+SNS subscription replacement, or other resource action, **stop** and inspect
+the plan before applying. In particular, do not approve another
+`secretsmanager:TagResource` attempt.
+
+Regenerate a fresh full plan after pulling this commit:
 
 ```powershell
-$env:AWS_PROFILE = "administrator"
-Push-Location tools/publisher/infra/administration
-$managementPolicy = (Resolve-Path "policies/AggregatorPublisherManagement.json").Path.Replace('\', '/')
-aws iam create-policy-version `
-  --policy-arn "arn:aws:iam::905418096305:policy/AggregatorPublisherManagement" `
-  --policy-document "file://$managementPolicy" `
-  --set-as-default
-Pop-Location
+$env:AWS_PROFILE = "aggregator-admin"
+Push-Location tools/publisher/infra/resources
+tofu fmt -check -recursive
+tofu init -input=false -lockfile=readonly
+tofu validate
+$runnerPlan = Join-Path $env:TEMP "publisher-runner-retirement.tfplan"
+tofu plan "-out=$runnerPlan"
+tofu show $runnerPlan
 ```
 
-This updates only the management policy; it does not update the role boundary.
-Afterward, generate a fresh full plan in the Publisher resources root and
-review it before manually applying it. If an earlier apply partially
-succeeded, discard its saved plan and re-plan; successful updates will no
-longer appear. The partial apply reported during this retirement left five
-updates: the Lambda, its runner policy, and the three secret tag updates. The
-other eight tag updates had already succeeded, so the original 13-change plan
-must not be reused. Do not change `default_tags` or skip resources as a
-workaround.
+Apply only the freshly reviewed plan with `tofu apply $runnerPlan` after
+confirming it contains exclusively the intended changes. Then remove the
+saved plan and run `Pop-Location`.
+
+After completing legacy retirement, remove these three temporary
+`ignore_changes` blocks once appropriate `TagResource` permissions have
+been granted, then review and apply a separate normal tag-reconciliation
+plan. Do not widen administrator permissions just to complete the retirement.
 
 After the Lambda code and runner policy updates have been applied, review the
 Publisher administration plan to remove legacy table and bucket access from
