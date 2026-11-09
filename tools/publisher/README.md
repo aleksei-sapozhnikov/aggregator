@@ -13,9 +13,8 @@ Planning permits PR open/merge times from **09:00 through 20:30** local
 on an eligible day, including delayed operations scheduled at 20:30.
 After 22:00 it defers pending events to the next day; after the final
 day's 22:00 cutoff it pauses an incomplete queue and reports a missed
-deadline. The prior window remains in effect for snapshots staged before
-this setting was introduced. Updating the Lambda runtime in AWS is required
-to activate this behavior; a Git commit by itself does not redeploy Lambda.
+deadline. Runtime changes require deploying the Lambda package; a Git commit alone
+does not update the deployed worker.
 
 The input is a JSON plan. See [`examples/plan.json`](examples/plan.json) for an
 empty plan and [`examples/demo-plan.json`](examples/demo-plan.json) for a local
@@ -85,16 +84,7 @@ version numbering, and either a deadline or PR merge pace in
 relative to that explicitly supplied instruction path, not from a fixed
 working directory. The examples are illustrative and must be verified.
 
-For an existing checkout with guidance in the old location, move the entire
-directory (including `.remote-etag`) once, from `tools/publisher`:
-
-```powershell
-New-Item -ItemType Directory -Force ..\\..\\.local\\publisher | Out-Null
-Move-Item ..\\..\\.local\\codex-publication-preparation ..\\..\\.local\\publisher\\codex-publication-preparation
-```
-
-After the initial download of the guidance ZIP, extract those files directly
-into the new directory above. From `tools/publisher`, select `aggregator-admin`:
+From `tools/publisher`, select `aggregator-admin` to manage the guidance bundle:
 
 ```powershell
 $env:AWS_PROFILE = "aggregator-admin"
@@ -104,9 +94,6 @@ python notes.py pull --force # Replace a local directory deliberately
 ```
 
 The remote object is `s3://aggregator-publisher-data-905418096305-eu-central-1/operator/codex-publication-preparation.zip`.
-An older single-file `operator/codex-publication-preparation.md` object is not
-used by this bundle workflow and is not deleted automatically.
-
 The preparation request is a short parameter list. `From` and `To` are
 authoritative; an unpublished baseline such as `version/v0.7.13` must not be
 silently replaced by the latest published tag. Complex initiatives should
@@ -124,8 +111,7 @@ backup/safety step, and exact approval requested, instead of posting an
 incomplete long-form report.
 
 Each `push` packages the seven expected files; unrelated files in the local
-directory are not uploaded. On first upload the S3 ZIP must not yet exist.
-Later uploads use the stored `.remote-etag` for conditional writes.
+directory are not uploaded. Uploads use the stored `.remote-etag` for conditional writes.
 Run `pull` before modifying a copy on a second machine; use `push --force`
 only when explicitly overriding the remote version is intended. S3 object
 versioning retains previous revisions. Both `push` and `pull` (including
