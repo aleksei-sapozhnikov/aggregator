@@ -10,7 +10,6 @@ from zoneinfo import ZoneInfo
 
 REPOSITORY = "aleksei-sapozhnikov/aggregator"
 PROJECT_URL = "https://github.com/users/aleksei-sapozhnikov/projects/1"
-START_NOT_BEFORE = "2026-11-09"
 BRANCH = re.compile(r"[A-Za-z0-9][A-Za-z0-9._/-]{0,180}\Z")
 TAG = re.compile(r"v\d+\.\d+\.\d+\Z")
 RELEASE_TAG = re.compile(r"[A-Za-z0-9][A-Za-z0-9._/-]{0,180}\Z")
@@ -76,8 +75,8 @@ def compile_plan(path: Path) -> dict:
     start, end = plan["start_date"], plan["end_date"]
     if not isinstance(start, str) or not isinstance(end, str) or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", start) or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", end):
         raise ValueError("start_date and end_date must be YYYY-MM-DD")
-    if start < START_NOT_BEFORE or end < start:
-        raise ValueError("publisher may not start before its configured activation date")
+    if end < start:
+        raise ValueError("end_date must not precede start_date")
     if not TAG.fullmatch(plan["previous_published_tag"]):
         raise ValueError("previous_published_tag must be a semver tag")
     if not isinstance(plan["pull_requests"], list) or not isinstance(plan["releases"], dict):
@@ -215,8 +214,8 @@ def compile_operations(path: Path, plan: dict) -> dict:
         for value in (start, end)
     ):
         raise ValueError("start_date and end_date must use YYYY-MM-DD")
-    if start < START_NOT_BEFORE or end < start:
-        raise ValueError("invalid publication date range")
+    if end < start:
+        raise ValueError("end_date must not precede start_date")
     if not isinstance(plan["operations"], list) or not plan["operations"]:
         raise ValueError("operations must be a non-empty array")
 
