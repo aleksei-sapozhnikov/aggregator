@@ -353,7 +353,6 @@ class Runner:
             known_head=record.get("head_sha"),
             known_number=record.get("number"),
             queue_branches=self.queue_branches,
-            attempt_sha=record.get("merge_attempt_sha"),
             before_merge=save_attempt,
         )
         record.update({"number": pr["number"], "url": pr["html_url"], **merged})
