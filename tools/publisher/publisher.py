@@ -13,6 +13,7 @@ import time
 import zipfile
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from html_calendar import save
 from plan import compile_plan
@@ -164,7 +165,29 @@ def apply(plan: Path, profile: str) -> None:
     print("Publication remains PAUSED. Explicitly run `resume` after reviewing the calendar.")
 
 
-def set_paused(paused: bool, profile: str) -> None:
+def _validate_blocked_retry(snapshot: dict, progress: dict, *, now: datetime) -> str:
+    """Allow an operator to retry only today's recorded blocked event."""
+    next_due = _next_due(snapshot, progress["completed"])
+    if not next_due or next_due[0] > now:
+        raise RuntimeError("no overdue event to retry")
+    due, event_id = next_due
+    errors = progress.get("errors", [])
+    if not errors or errors[-1].get("event_id") != event_id:
+        raise RuntimeError("next event has no matching recorded block")
+    config = snapshot["config"]
+    tz = ZoneInfo(config["timezone"])
+    local_now, local_due = now.astimezone(tz), due.astimezone(tz)
+    window = config.get("execution_window", config["start_window"])
+    if (
+        local_now.date() != local_due.date()
+        or not config["start_date"] <= local_now.date().isoformat() <= config["end_date"]
+        or not window["from"] <= local_now.strftime("%H:%M") <= window["through"]
+    ):
+        raise RuntimeError("blocked event can only be retried during its scheduled day and execution window")
+    return event_id
+
+
+def set_paused(paused: bool, profile: str, *, retry_blocked: bool = False) -> None:
     session = _session(profile)
     table = _ddb(session)
     item = _state(table)
@@ -172,7 +195,16 @@ def set_paused(paused: bool, profile: str) -> None:
         raise RuntimeError("queue not initialized; apply a plan first")
     if not paused:
         snapshot = load_snapshot(session.client("s3"), BUCKET, item["data_revision"])
-        _enough_time(snapshot, _progress(item)["completed"])
+        progress = _progress(item)
+        if retry_blocked:
+            if item.get("paused") is not True or item.get("sync_pending"):
+                raise RuntimeError("blocked retry requires a paused, synchronized queue")
+            event_id = _validate_blocked_retry(
+                snapshot, progress, now=datetime.now(timezone.utc)
+            )
+            print(f"Retrying blocked event: {event_id}")
+        else:
+            _enough_time(snapshot, progress["completed"])
         _verify_remote_branches(snapshot)
     table.update_item(
         Key={"pk": "QUEUE"}, UpdateExpression="SET paused=:new",
@@ -218,7 +250,11 @@ def main(argv=None) -> None:
     cal.add_argument("--live", action="store_true", required=True)
     cal.add_argument("--output", type=Path, default=Path("calendar.html"))
     commands.add_parser("pause")
-    commands.add_parser("resume")
+    resume = commands.add_parser("resume")
+    resume.add_argument(
+        "--retry-blocked", action="store_true",
+        help="retry today's recorded blocked event during the execution window",
+    )
     builder = commands.add_parser("build")
     builder.add_argument("--zip", type=Path, default=ROOT / "build" / "publisher.zip")
     args = parser.parse_args(argv)
@@ -237,7 +273,10 @@ def main(argv=None) -> None:
         save(args.output, snapshot, progress, paused=paused, revision=revision)
         print(f"HTML calendar: {args.output}")
     elif args.command in ("pause", "resume"):
-        set_paused(args.command == "pause", args.profile)
+        set_paused(
+            args.command == "pause", args.profile,
+            retry_blocked=getattr(args, "retry_blocked", False),
+        )
     elif args.command == "build":
         build(args.zip)
 
