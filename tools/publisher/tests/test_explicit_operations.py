@@ -272,6 +272,24 @@ class ExplicitReleaseRunnerTests(unittest.TestCase):
         client.branch.assert_not_called()
         client.post.assert_not_called()
 
+    def test_conflicting_existing_tag_does_not_get_overwritten(self):
+        client = MagicMock()
+        client.tag_ref.return_value = {
+            "object": {"type": "commit", "sha": "b" * 40}
+        }
+        client.release_by_tag.return_value = None
+        progress = {
+            "releases": {"v0.8.5": {"sha": "a" * 40, "published": False}}
+        }
+        with self.assertRaisesRegex(RuntimeError, "conflicts with saved"):
+            releases.publish(
+                client,
+                {"tag": "v0.8.5", "title": "Title", "notes": "## Notes"},
+                progress,
+                save=lambda _: None,
+            )
+        client.post.assert_not_called()
+
     def test_previous_tag_is_used_only_when_explicit(self):
         client = MagicMock()
         client.branch.return_value = {"commit": {"sha": "a" * 40}}
