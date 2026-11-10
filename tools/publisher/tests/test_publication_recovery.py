@@ -12,7 +12,7 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "runtime" / "src"))
 
 from lambda_publisher.github import pull_requests
-from lambda_publisher.github.github_client import GitHubError, Retryable
+from lambda_publisher.github.github_client import GitHubError
 from lambda_publisher.publication.snapshot_runner import Runner
 
 
@@ -114,7 +114,7 @@ class PublisherGitHubBehaviorTests(unittest.TestCase):
         client.open_pulls.return_value = []
         row = {"branch": "service-layout"}
         sha_updates = []
-        merged, info = pull_requests.merge_pr(
+        _merged, info = pull_requests.merge_pr(
             client, MagicMock(), {"minimum_actual_open_minutes": 60}, row,
             now=datetime(2026, 11, 10, 12, tzinfo=timezone.utc),
             known_head="a" * 40,
