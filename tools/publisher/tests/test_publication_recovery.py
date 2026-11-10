@@ -52,6 +52,7 @@ def sample_runner():
     queue = {"repository": config["repository"], "entries": [{
         "id": 2, "branch": "service-layout",
         "depends_on": "ui-runtime", "release": "v0.8.0",
+        "title": "Service layout", "body": "- Changes\n\n## Result\n- Updated layout",
     }]}
     from lambda_publisher.publication.config import queue_digest
     schedule = {
