@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 
 from .github.github_client import GitHub
-from .publication.notifications import OPERATION_ERRORS, sanitize
+from .publication.notifications import OPERATION_ERRORS, alert, sanitize
 from .publication.publication import load_snapshot
 from .publication.snapshot_runner import Runner
 from .publication.snapshot_state import SnapshotState
@@ -169,8 +169,6 @@ def lambda_handler(event, context):
         ):
             try:
                 import boto3
-
-                from .notifications import alert
 
                 alert(
                     boto3.client("sns"),
