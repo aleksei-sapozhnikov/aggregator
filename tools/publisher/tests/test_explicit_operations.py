@@ -136,7 +136,7 @@ class ExplicitOperationsPlanTests(unittest.TestCase):
         self.assertIn("HTTPS ingress and reversible K3s cutover", html)
         self.assertIn("Published", html)
         self.assertLess(html.index("Ordinary PR with"), html.index("HTTPS ingress and reversible K3s cutover"))
-        self.assertLess(html.index("Release HTTPS ingress"), html.index("Follow-up fix"))
+        self.assertLess(html.index("HTTPS ingress and reversible K3s cutover"), html.index("Follow-up fix"))
 
     def test_completed_releases_cannot_be_rewritten(self):
         old = self.compile(sample_operations())
