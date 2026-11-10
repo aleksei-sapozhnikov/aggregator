@@ -80,6 +80,25 @@ class ExplicitOperationsPlanTests(unittest.TestCase):
             "v0.8.5", snapshot["releases"]["releases"][1]["previous_tag"]
         )
 
+    def test_version_named_pr_does_not_trigger_release(self):
+        plan = sample_operations()
+        plan["operations"] = [plan["operations"][0]]
+        snapshot = self.compile(plan)
+        self.assertEqual(
+            ["open_pr", "merge_pr"],
+            [event["action"] for event in snapshot["schedule"]["events"]],
+        )
+        self.assertEqual([], snapshot["releases"]["releases"])
+
+    def test_release_tag_need_not_be_semver_or_increasing(self):
+        plan = sample_operations()
+        plan["operations"][3]["tag"] = "hotfix-2027-11-27"
+        snapshot = self.compile(plan)
+        self.assertEqual(
+            "hotfix-2027-11-27",
+            snapshot["releases"]["releases"][1]["tag"],
+        )
+
     def test_release_only_plan_is_valid(self):
         plan = sample_operations()
         plan["operations"] = [plan["operations"][1]]
@@ -147,6 +166,17 @@ class ExplicitOperationsPlanTests(unittest.TestCase):
             _validate_history(
                 old, new,
                 ["publisher-001-open", "publisher-001-merge", "publisher-002-publish"],
+            )
+
+    def test_partially_created_release_cannot_be_rewritten(self):
+        old = self.compile(sample_operations())
+        plan = sample_operations()
+        plan["operations"][1]["notes"] = "## Different notes\n- Changed"
+        new = self.compile(plan)
+        with self.assertRaisesRegex(RuntimeError, "started operation"):
+            _validate_history(
+                old, new, ["publisher-001-open", "publisher-001-merge"],
+                {"releases": {"v0.8.5": {"sha": "a" * 40}}},
             )
 
     def test_legacy_and_explicit_snapshots_cannot_mutate_in_place(self):
