@@ -218,9 +218,12 @@ class Runner:
             return
         try:
             pr = self.repo.pr(result["pr"])
+            row = self.rows[event["queue_id"]]
             pull_requests.reconcile_associations_best_effort(
-                self.repo, self.project, self.config,
-                self.rows[event["queue_id"]], pr,
+                self.repo, self.project, self.config, row, pr,
+                attach_milestone=not (
+                    event["action"] == "merge_pr" and row["version_boundary"]
+                ),
             )
         except Exception as error:
             # Best effort even for unexpected metadata integration failures.
