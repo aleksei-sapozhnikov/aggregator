@@ -1,4 +1,4 @@
-"""Verify version-boundary releases, publish release notes, and close milestones."""
+"""Publish GitHub releases and retain compatibility with legacy version boundaries."""
 
 from __future__ import annotations
 
@@ -6,6 +6,7 @@ import base64
 from pathlib import Path
 
 from . import milestones
+from .github_client import GitHubError
 
 
 def _tag_sha(client, tag: str):
@@ -138,3 +139,86 @@ def finalize(client, release: dict, queue: dict, progress: dict, root: Path, *, 
             f"Release {tag} milestone closure warning: {type(error).__name__}"
         )
     return progress["releases"][tag]
+
+
+def publish(client, release: dict, progress: dict, *, save) -> dict:
+    """Publish an explicit release operation without inspecting the PR queue.
+
+    The selected main commit is saved before any GitHub mutation. An
+    interrupted invocation therefore retries the same target, even when
+    main advances in the meantime.
+    """
+    tag = release["tag"]
+    narrative = release["notes"].strip()
+    records = progress.setdefault("releases", {})
+    record = records.get(tag) or {}
+    persisted_sha = record.get("sha")
+    existing_tag_sha = _tag_sha(client, tag)
+    existing = client.release_by_tag(tag)
+
+    if persisted_sha:
+        sha = persisted_sha
+        if existing_tag_sha and existing_tag_sha != sha:
+            raise RuntimeError(f"existing tag {tag} conflicts with saved release target")
+    else:
+        current_main = client.branch("main")["commit"]["sha"]
+        if existing_tag_sha and existing_tag_sha != current_main and not existing:
+            raise RuntimeError(
+                f"existing tag {tag} differs from main without a saved release target"
+            )
+        sha = existing_tag_sha or current_main
+        record = {
+            "sha": sha,
+            "tag_created": bool(existing_tag_sha),
+            "published": False,
+        }
+        records[tag] = record
+        save(progress)
+
+    if not existing_tag_sha:
+        try:
+            client.post("/git/refs", {"ref": "refs/tags/" + tag, "sha": sha})
+        except GitHubError as error:
+            # A timed-out write may already have created the tag.
+            if error.status != 422 or _tag_sha(client, tag) != sha:
+                raise
+        record["tag_created"] = True
+        save(progress)
+
+    if existing:
+        if (
+            existing.get("draft")
+            or existing.get("prerelease")
+            or existing.get("name") != release["title"]
+            or not existing.get("body", "").startswith(narrative + "\n\n")
+            or "## What's Changed" not in existing.get("body", "")
+            or "**Full Changelog**" not in existing.get("body", "")
+        ):
+            raise RuntimeError(f"existing release {tag} conflicts with planned content")
+        published = existing
+    else:
+        payload = {"tag_name": tag, "target_commitish": sha}
+        if release.get("previous_tag"):
+            payload["previous_tag_name"] = release["previous_tag"]
+        generated = client.post("/releases/generate-notes", payload)
+        body = combine(narrative, generated["body"])
+        published = client.post(
+            "/releases",
+            {
+                "tag_name": tag,
+                "target_commitish": sha,
+                "name": release["title"],
+                "body": body,
+                "draft": False,
+                "prerelease": False,
+                "generate_release_notes": False,
+            },
+        )
+    records[tag] = {
+        "sha": sha,
+        "url": published["html_url"],
+        "tag_created": True,
+        "published": True,
+    }
+    save(progress)
+    return records[tag]
