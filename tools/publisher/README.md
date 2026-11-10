@@ -40,8 +40,11 @@ default; a release may specify `previous_tag` to request a custom baseline.
 There is no global `previous_published_tag`, version-name inference, or
 requirement that an earlier release belongs to the Publisher queue.
 
-Plan-relative `body_file` and `notes_file` values are resolved when the
-plan is compiled, then embedded in the immutable S3 snapshot.
+Plan-relative `body_file` and `notes_file` values are read from the local
+directory containing `plan.json` when the plan is compiled. Their text is
+embedded in the immutable JSON snapshot uploaded to S3; the Markdown files
+are not uploaded separately. Lambda reads the snapshot and requires no local
+Markdown files.
 
 **Compatibility:** deploying the new Lambda does not convert a running
 legacy queue. The runtime continues to handle its existing snapshot.
