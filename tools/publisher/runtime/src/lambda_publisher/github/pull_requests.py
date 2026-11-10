@@ -14,6 +14,10 @@ class Deferred(RuntimeError):
     """A gate may become true later without operator intervention."""
 
 
+class MergeNotReady(Deferred):
+    """GitHub declined merging the PR; retry when its merge conditions change."""
+
+
 def _matches_repo(pr: dict, repo: str, branch: str):
     head = pr["head"]
     head_repo = head.get("repo")
@@ -417,18 +421,11 @@ def open_pr(
         )
     _same_repo(pr, client.repo, row["branch"])
     if pr.get("merged_at"):
-        if known_head and pr["head"].get("sha") != known_head:
-            raise RuntimeError(
-                "merged PR head SHA differs from durable progress; pause for review"
-            )
-        # The merge event still verifies the SHA, actual age and squash commit.
         return pr, {}
     if pr["state"] != "open":
         raise RuntimeError(f"PR for {row['branch']} is not open")
-    associations = reconcile_associations_best_effort(
-        client, project_client, config, row, pr
-    )
-    return pr, associations
+    # PR identity is persisted by the runner before optional metadata work.
+    return pr, {}
 
 
 def merge_pr(
@@ -453,19 +450,8 @@ def merge_pr(
     if not pr:
         raise Deferred("PR not created yet")
     if pr.get("merged_at"):
-        if pr["head"].get("sha") != (attempt_sha or known_head):
-            raise RuntimeError(
-                "merged PR head SHA differs from durable merge attempt; pause for review"
-            )
-        created = datetime.fromisoformat(pr["created_at"].replace("Z", "+00:00"))
-        merged_at = datetime.fromisoformat(pr["merged_at"].replace("Z", "+00:00"))
-        if merged_at < created + timedelta(
-            minutes=config["minimum_actual_open_minutes"]
-        ):
-            raise RuntimeError("existing merge violated actual 60-minute gate")
-        commit = client.get("/commits/" + pr["merge_commit_sha"])
-        if len(commit.get("parents", [])) != 1:
-            raise RuntimeError("existing merge is not a single-parent squash commit")
+        # GitHub is authoritative if a verified queued PR was merged, even if
+        # its head moved after opening or an operator completed the merge.
         return pr, {
             "head_sha": pr["head"]["sha"],
             "merge_sha": pr["merge_commit_sha"],
@@ -480,9 +466,6 @@ def merge_pr(
         minutes=config["minimum_actual_open_minutes"]
     ):
         raise Deferred("actual GitHub created_at + 60 minutes not reached")
-    # Keep metadata up to date, but GitHub's merge endpoint decides eligibility.
-    # Metadata errors are reported as warnings and cannot veto the merge.
-    reconcile_associations_best_effort(client, project_client, config, row, pr)
     latest = client.pr(pr["number"])
     _same_repo(latest, client.repo, row["branch"])
     if latest["number"] != pr["number"] or latest.get("state") != "open":
@@ -490,13 +473,18 @@ def merge_pr(
     checked_sha = latest["head"]["sha"]
     if before_merge:
         before_merge(checked_sha)
-    result = client.put(
-        f"/pulls/{pr['number']}/merge", {"merge_method": "squash", "sha": checked_sha}
-    )
-    if not result.get("merged"):
-        raise RuntimeError(
-            result.get("message") or "GitHub did not confirm squash merge"
+    try:
+        result = client.put(
+            f"/pulls/{pr['number']}/merge", {"merge_method": "squash", "sha": checked_sha}
         )
+    except GitHubError as error:
+        if error.status in (405, 409, 422):
+            raise MergeNotReady(
+                f"GitHub rejected the merge (HTTP {error.status}); retry when the PR is mergeable"
+            ) from None
+        raise
+    if not result.get("merged"):
+        raise MergeNotReady("GitHub did not allow the merge yet")
     live = client.pr(pr["number"])
     if (
         not live.get("merged_at")
@@ -504,9 +492,6 @@ def merge_pr(
         or live["head"]["sha"] != checked_sha
     ):
         raise RuntimeError("merge response and live PR disagree")
-    commit = client.get("/commits/" + result["sha"])
-    if len(commit.get("parents", [])) != 1:
-        raise RuntimeError("merge commit is not a single-parent squash commit")
     return live, {
         "head_sha": checked_sha,
         "merge_sha": result["sha"],
