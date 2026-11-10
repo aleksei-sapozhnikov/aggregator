@@ -13,6 +13,18 @@ PROJECT_URL = "https://github.com/users/aleksei-sapozhnikov/projects/1"
 START_NOT_BEFORE = "2026-11-10"
 BRANCH = re.compile(r"[A-Za-z0-9][A-Za-z0-9._/-]{0,180}\Z")
 TAG = re.compile(r"v\d+\.\d+\.\d+\Z")
+RELEASE_TAG = re.compile(r"[A-Za-z0-9][A-Za-z0-9._/-]{0,180}\Z")
+
+
+def _valid_release_tag(value) -> bool:
+    return (
+        isinstance(value, str)
+        and bool(RELEASE_TAG.fullmatch(value))
+        and ".." not in value
+        and "//" not in value
+        and not value.endswith(("/", ".", ".lock"))
+    )
+
 
 
 def _file(root: Path, name: str) -> str:
@@ -322,7 +334,7 @@ def compile_operations(path: Path, plan: dict) -> dict:
             ):
                 raise ValueError(f"invalid release operation {index}")
             tag, title = row["tag"], row["title"]
-            if not isinstance(tag, str) or not TAG.fullmatch(tag) or tag in used_tags:
+            if not _valid_release_tag(tag) or tag in used_tags:
                 raise ValueError(f"invalid or duplicate release tag: {tag}")
             if not isinstance(title, str) or not title.strip():
                 raise ValueError(f"missing release title for {index}")
@@ -332,7 +344,7 @@ def compile_operations(path: Path, plan: dict) -> dict:
             previous = row.get("previous_tag")
             if previous is not None and (
                 not isinstance(previous, str)
-                or not TAG.fullmatch(previous)
+                or not _valid_release_tag(previous)
                 or previous == tag
             ):
                 raise ValueError(f"invalid optional previous_tag for {tag}")
