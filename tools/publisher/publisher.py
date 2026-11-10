@@ -62,13 +62,15 @@ def _progress(item):
     return result
 
 
-def _validate_history(current: dict, proposed: dict, completed: list[str]) -> None:
+def _validate_history(
+    current: dict, proposed: dict, completed: list[str], progress: dict | None = None
+) -> None:
     if current["format"] != proposed["format"]:
         raise RuntimeError(
             "cannot change snapshot format in place; migrate the active queue explicitly"
         )
     if current["format"] == 2:
-        return _validate_operation_history(current, proposed, completed)
+        return _validate_operation_history(current, proposed, completed, progress or {})
     old_events = current["schedule"]["events"]
     new_events = proposed["schedule"]["events"]
     old_by = {event["id"]: event for event in old_events}
@@ -100,7 +102,9 @@ def _validate_history(current: dict, proposed: dict, completed: list[str]) -> No
 
 
 
-def _validate_operation_history(current: dict, proposed: dict, completed: list[str]) -> None:
+def _validate_operation_history(
+    current: dict, proposed: dict, completed: list[str], progress: dict
+) -> None:
     """Keep already staged operations stable when extending a new-format queue."""
     old_events = current["schedule"]["events"]
     new_events = proposed["schedule"]["events"]
@@ -129,6 +133,14 @@ def _validate_operation_history(current: dict, proposed: dict, completed: list[s
         row["id"]: row for row in proposed["releases"]["releases"]
     }
     completed_ids = {old_by[event_id]["queue_id"] for event_id in completed}
+    for index, record in progress.get("prs", {}).items():
+        if any(record.get(field) for field in ("number", "head_sha", "merge_sha")):
+            completed_ids.add(int(index))
+    for tag, record in progress.get("releases", {}).items():
+        if record.get("sha") or record.get("tag_created") or record.get("published"):
+            completed_ids.update(
+                item["id"] for item in old_releases.values() if item["tag"] == tag
+            )
     for index in completed_ids:
         before = old_prs.get(index, old_releases.get(index))
         after = new_prs.get(index, new_releases.get(index))
@@ -177,7 +189,7 @@ def apply(plan: Path, profile: str) -> None:
     progress = _progress(item) if item else {"completed": [], "prs": {}, "attempts": {}, "errors": [], "alerts": []}
     if item:
         old = load_snapshot(session.client("s3"), BUCKET, item["data_revision"])
-        _validate_history(old, proposed, progress["completed"])
+        _validate_history(old, proposed, progress["completed"], progress)
     _enough_time(proposed, progress["completed"])
     _verify_remote_branches(proposed)
     raw = canonical(proposed)
