@@ -173,16 +173,23 @@ def ensure_only_queue_pr(
         raise RuntimeError(f"another queue PR is open: {conflicts}")
 
 
-def reconcile_associations_best_effort(repo_client, project_client, config, row, pr):
+def reconcile_associations_best_effort(
+    repo_client, project_client, config, row, pr, *, attach_milestone=True
+):
     """Attempt both associations independently without adding a merge gate."""
     result = {}
-    try:
-        milestone = milestones.ensure_open(repo_client, row["release"], existing_pr=pr)
-        result["milestone_number"] = milestones.attach(repo_client, pr, milestone)
-    except Exception as error:
-        print(
-            f"PR #{pr['number']} milestone reconciliation warning: {type(error).__name__}"
-        )
+    if attach_milestone:
+        try:
+            milestone = milestones.ensure_open(
+                repo_client, row["release"], existing_pr=pr
+            )
+            result["milestone_number"] = milestones.attach(
+                repo_client, pr, milestone
+            )
+        except Exception as error:
+            print(
+                f"PR #{pr['number']} milestone reconciliation warning: {type(error).__name__}"
+            )
     try:
         if config.get("expected_actor") and (
             project_client.identity()["login"] != config["expected_actor"]
