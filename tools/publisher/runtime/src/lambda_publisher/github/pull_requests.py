@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+import time
 
 from . import milestones, projects
 from .github_client import GitHubError
@@ -245,6 +246,74 @@ def open_pr(
     return pr, {}
 
 
+
+BRANCH_UPDATE_TIMEOUT_SECONDS = 30
+BRANCH_UPDATE_POLL_SECONDS = 3
+
+
+class MergeRejected(MergeNotReady):
+    """The GitHub merge endpoint rejected the request."""
+
+    def __init__(self, status: int):
+        super().__init__(f"GitHub rejected the merge (HTTP {status})")
+        self.status = status
+
+
+def _merged_record(pr):
+    return pr, {
+        "head_sha": pr["head"]["sha"],
+        "merge_sha": pr["merge_commit_sha"],
+        "merged_at": pr["merged_at"],
+    }
+
+
+def _squash_merge(client, pr, row, before_merge):
+    """Ask GitHub to merge this exact PR head, without local gate checks."""
+    sha = pr["head"]["sha"]
+    if before_merge:
+        before_merge(sha)
+    try:
+        result = client.put(
+            f"/pulls/{pr['number']}/merge",
+            {"merge_method": "squash", "sha": sha},
+        )
+    except GitHubError as error:
+        if error.status in (405, 409, 422):
+            raise MergeRejected(error.status) from None
+        raise
+    if not result.get("merged"):
+        raise MergeNotReady("GitHub did not allow the merge yet")
+    live = client.pr(pr["number"])
+    _same_repo(live, client.repo, row["branch"])
+    if (
+        not live.get("merged_at")
+        or live["merge_commit_sha"] != result["sha"]
+        or live["head"]["sha"] != sha
+    ):
+        raise RuntimeError("merge response and live PR disagree")
+    return _merged_record(live)
+
+
+def _wait_for_updated_head(client, number, row, original_sha):
+    """Wait no longer than the configured budget for the accepted branch update."""
+    deadline = time.monotonic() + BRANCH_UPDATE_TIMEOUT_SECONDS
+    while True:
+        updated = client.pr(number)
+        _same_repo(updated, client.repo, row["branch"])
+        if updated["number"] != number:
+            raise RuntimeError("PR identity changed during branch update")
+        if updated.get("merged_at"):
+            return updated
+        if updated["state"] != "open":
+            raise MergeNotReady("PR closed while waiting for branch update")
+        if updated["head"]["sha"] != original_sha:
+            return updated
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise MergeNotReady("GitHub branch update still pending after 30 seconds")
+        time.sleep(min(BRANCH_UPDATE_POLL_SECONDS, remaining))
+
+
 def merge_pr(
     client,
     project_client,
@@ -261,13 +330,7 @@ def merge_pr(
     if not pr:
         raise Deferred("PR not created yet")
     if pr.get("merged_at"):
-        # GitHub is authoritative if a verified queued PR was merged, even if
-        # its head moved after opening or an operator completed the merge.
-        return pr, {
-            "head_sha": pr["head"]["sha"],
-            "merge_sha": pr["merge_commit_sha"],
-            "merged_at": pr["merged_at"],
-        }
+        return _merged_record(pr)
     if pr["state"] != "open":
         raise RuntimeError("PR closed without merge")
     if queue_branches is not None:
@@ -277,34 +340,63 @@ def merge_pr(
         minutes=config["minimum_actual_open_minutes"]
     ):
         raise Deferred("actual GitHub created_at + 60 minutes not reached")
+
     latest = client.pr(pr["number"])
     _same_repo(latest, client.repo, row["branch"])
-    if latest["number"] != pr["number"] or latest.get("state") != "open":
-        raise Deferred("PR changed during validation; retry with current state")
-    checked_sha = latest["head"]["sha"]
-    if before_merge:
-        before_merge(checked_sha)
+    if latest["number"] != pr["number"]:
+        raise RuntimeError("PR identity changed during merge validation")
+    if latest.get("merged_at"):
+        return _merged_record(latest)
+    if latest["state"] != "open":
+        raise Deferred("PR changed during merge validation; retry with current state")
+
     try:
-        result = client.put(
-            f"/pulls/{pr['number']}/merge", {"merge_method": "squash", "sha": checked_sha}
+        return _squash_merge(client, latest, row, before_merge)
+    except MergeRejected as error:
+        # GitHub makes the merge decision. Only 'behind' identifies a
+        # rejection that a branch update may actually resolve.
+        refreshed = client.pr(pr["number"])
+        _same_repo(refreshed, client.repo, row["branch"])
+        if refreshed["number"] != pr["number"]:
+            raise RuntimeError("PR identity changed after merge rejection")
+        if refreshed.get("merged_at"):
+            return _merged_record(refreshed)
+        if refreshed["state"] != "open":
+            raise MergeNotReady("PR is no longer open after merge rejection")
+        if refreshed["head"]["sha"] != latest["head"]["sha"]:
+            raise MergeNotReady("PR head changed during merge; retry with latest SHA")
+        if refreshed.get("mergeable_state") != "behind":
+            raise MergeNotReady(
+                f"GitHub rejected the merge (HTTP {error.status}); "
+                "branch update is not indicated"
+            ) from None
+
+    # One update request per invocation; never overwrite a newer head.
+    original_sha = refreshed["head"]["sha"]
+    try:
+        client.put(
+            f"/pulls/{pr['number']}/update-branch",
+            {"expected_head_sha": original_sha},
         )
     except GitHubError as error:
-        if error.status in (405, 409, 422):
-            raise MergeNotReady(
-                f"GitHub rejected the merge (HTTP {error.status}); retry when the PR is mergeable"
-            ) from None
-        raise
-    if not result.get("merged"):
-        raise MergeNotReady("GitHub did not allow the merge yet")
-    live = client.pr(pr["number"])
-    if (
-        not live.get("merged_at")
-        or live["merge_commit_sha"] != result["sha"]
-        or live["head"]["sha"] != checked_sha
-    ):
-        raise RuntimeError("merge response and live PR disagree")
-    return live, {
-        "head_sha": checked_sha,
-        "merge_sha": result["sha"],
-        "merged_at": live["merged_at"],
-    }
+        if error.status == 422:
+            current = client.pr(pr["number"])
+            _same_repo(current, client.repo, row["branch"])
+            if current.get("merged_at"):
+                return _merged_record(current)
+            if current["head"]["sha"] != original_sha:
+                raise MergeNotReady("PR head changed before update; retry") from None
+        raise MergeNotReady(
+            f"GitHub rejected automatic branch update (HTTP {error.status})"
+        ) from None
+
+    updated = _wait_for_updated_head(client, pr["number"], row, original_sha)
+    if updated.get("merged_at"):
+        return _merged_record(updated)
+    try:
+        return _squash_merge(client, updated, row, before_merge)
+    except MergeRejected as error:
+        # Do not request another update in this Lambda invocation.
+        raise MergeNotReady(
+            f"GitHub rejected merge after branch update (HTTP {error.status}); retry later"
+        ) from None
