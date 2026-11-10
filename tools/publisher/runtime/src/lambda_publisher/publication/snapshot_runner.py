@@ -217,6 +217,8 @@ class Runner:
         if event["action"] not in ("open_pr", "merge_pr") or "pr" not in result:
             return
         try:
+            if self.project.identity()["login"] != self.config["expected_actor"]:
+                raise RuntimeError("Project PAT actor mismatch")
             pr = self.repo.pr(result["pr"])
             pull_requests.reconcile_associations_best_effort(
                 self.repo, self.project, self.config,
@@ -284,8 +286,6 @@ class Runner:
     def _execute(self, event, progress, now):
         if self.repo.identity()["login"] != self.config["expected_actor"]:
             raise RuntimeError("repository PAT actor mismatch")
-        if self.project.identity()["login"] != self.config["expected_actor"]:
-            raise RuntimeError("Project PAT actor mismatch")
         row = self.rows[event["queue_id"]]
         record = progress.setdefault("prs", {}).setdefault(str(row["id"]), {})
         if event["action"] == "open_pr":
