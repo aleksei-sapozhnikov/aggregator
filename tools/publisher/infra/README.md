@@ -12,12 +12,11 @@ and review `tofu plan` before applying. Both roots pin AWS Provider 6.41.0.
 The Lambda archive is built from the Publisher root with
 `python publisher.py build` before a workload deployment.
 
-These roots are independent of the existing shared account administration
-state. The runtime has a one-time compatibility gate for the preceding queue.
+These roots are independent of the shared account administration state.
 
 The failure-notification address is stored in Secrets Manager; the SNS
 subscription is managed by the workload root. See
-[`resources/README.md`](resources/README.md) for its state import procedure.
+[`resources/README.md`](resources/README.md) for operational guidance.
 
 Publication plans and private operator notes are managed with the CLI, not
 with OpenTofu.
