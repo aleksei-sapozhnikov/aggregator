@@ -173,22 +173,6 @@ def ensure_only_queue_pr(
         raise RuntimeError(f"another queue PR is open: {conflicts}")
 
 
-def reconcile_associations(
-    repo_client, project_client, config, row, pr, *, create_milestone=True
-):
-    milestone = milestones.ensure_open(
-        repo_client, row["release"], existing_pr=pr, create=create_milestone
-    )
-    milestone_number = milestones.attach(repo_client, pr, milestone)
-    project = projects.resolve(project_client, config)
-    item_id = projects.ensure(project_client, pr["node_id"], project["id"])
-    return {
-        "milestone_number": milestone_number,
-        "project_item_id": item_id,
-        "project_id": project["id"],
-    }
-
-
 def reconcile_associations_best_effort(repo_client, project_client, config, row, pr):
     """Attempt both associations independently without adding a merge gate."""
     result = {}
