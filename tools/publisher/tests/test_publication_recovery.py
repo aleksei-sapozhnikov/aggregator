@@ -14,7 +14,6 @@ sys.path.insert(0, str(ROOT / "runtime" / "src"))
 from lambda_publisher.github import pull_requests
 from lambda_publisher.github.github_client import GitHubError, Retryable
 from lambda_publisher.publication.snapshot_runner import Runner
-from plan import compile_plan
 
 
 def pr_data(head="a" * 40, *, merged=False):
@@ -116,13 +115,12 @@ class PublisherGitHubBehaviorTests(unittest.TestCase):
         row = {"branch": "service-layout"}
         sha_updates = []
         merged, info = pull_requests.merge_pr(
-            client, MagicMock(), {}, row,
+            client, MagicMock(), {"minimum_actual_open_minutes": 60}, row,
             now=datetime(2026, 11, 10, 12, tzinfo=timezone.utc),
             known_head="a" * 40,
             known_number=351,
             queue_branches={"service-layout"},
             before_merge=sha_updates.append,
-            config={"minimum_actual_open_minutes": 60},
         )
         self.assertEqual("c" * 40, info["head_sha"])
         self.assertEqual(["c" * 40], sha_updates)
@@ -136,7 +134,7 @@ class PublisherGitHubBehaviorTests(unittest.TestCase):
         client.repo = "aleksei-sapozhnikov/aggregator"
         client.pr.return_value = pr_data("c" * 40, merged=True)
         merged, info = pull_requests.merge_pr(
-            client, MagicMock(), {}, {"branch": "service-layout"},
+            client, MagicMock(), {"minimum_actual_open_minutes": 60}, {"branch": "service-layout"},
             now=datetime(2026, 11, 10, 12, tzinfo=timezone.utc),
             known_head="a" * 40,
             known_number=351,
