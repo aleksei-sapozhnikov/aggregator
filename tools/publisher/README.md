@@ -47,9 +47,34 @@ are not uploaded separately. Lambda reads the snapshot and requires no local
 Markdown files.
 
 **Compatibility:** deploying the new Lambda does not convert a running
-legacy queue. The runtime continues to handle its existing snapshot.
-Applying a new-format plan over that snapshot is rejected; migrate queue
-progress explicitly when converting existing plans.
+legacy queue. Ordinary `apply` rejects a switch between snapshot formats.
+Use the explicit migration command for a paused format-1 queue:
+
+```powershell
+$env:AWS_PROFILE = "aggregator-admin"
+python publisher.py pause
+python publisher.py migrate ../../.local/publisher/publisher_plan/plan.json
+# Inspect the reported completed-event mapping and next pending operation.
+python publisher.py migrate ../../.local/publisher/publisher_plan/plan.json --apply
+python publisher.py calendar --live --output ../../.local/publisher/publisher_plan/calendar-live.html
+# Resume only after checking the live calendar.
+python publisher.py resume
+```
+
+The first `migrate` performs a read-only migration preview. With `--apply`,
+Publisher writes the immutable format-2 snapshot to S3 and atomically switches
+both the DynamoDB revision and translated progress. It maps PRs by branch,
+retains PR numbers and SHAs, translates attempts/errors and restricted
+activation boundaries, and marks already-published legacy releases complete.
+The completed events must remain an unchanged prefix; matching PR bodies,
+release notes, and already-completed event times are mandatory. Conflicting
+or partially published releases cause migration to fail rather than risk
+republication. Already merged branches need not remain on GitHub.
+
+Migration does not deploy Lambda code, change GitHub PRs, or resume the
+queue. Keep the original snapshot and DynamoDB history for recovery.
+All input `body_file` and `notes_file` paths must resolve locally during
+plan compilation.
 
 From `tools/publisher`:
 
