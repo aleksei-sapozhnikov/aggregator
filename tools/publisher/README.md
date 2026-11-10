@@ -26,7 +26,8 @@ Each `{"type":"pull_request"}` operation has a branch, title, `body` or `body_fi
 and local `open` and `merge` times. Publisher emits two ordered events,
 resolves the actual PR through GitHub, and never infers a release from the
 branch name. The optional `milestone` on a PR assigns a GitHub milestone;
-without it, milestone association is skipped. The older `pr` spelling is\naccepted as an alias for previously prepared plans.
+without it, milestone association is skipped. The older `pr` spelling is
+accepted as an alias for previously prepared plans.
 
 Each `{"type":"release"}` operation has a tag, title, `notes` or
 `notes_file`, and a local `publish` time. It runs independently after all
