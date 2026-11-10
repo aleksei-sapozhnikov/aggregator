@@ -22,11 +22,11 @@ explicit PR and release workflow. The older `pull_requests` / `releases`
 format is still supported for existing plans and deployed snapshots until
 their migration.
 
-Each `{"type":"pr"}` operation has a branch, title, `body` or `body_file`,
+Each `{"type":"pull_request"}` operation has a branch, title, `body` or `body_file`,
 and local `open` and `merge` times. Publisher emits two ordered events,
 resolves the actual PR through GitHub, and never infers a release from the
 branch name. The optional `milestone` on a PR assigns a GitHub milestone;
-without it, milestone association is skipped.
+without it, milestone association is skipped. The older `pr` spelling is\naccepted as an alias for previously prepared plans.
 
 Each `{"type":"release"}` operation has a tag, title, `notes` or
 `notes_file`, and a local `publish` time. It runs independently after all
