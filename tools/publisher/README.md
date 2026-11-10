@@ -124,6 +124,25 @@ input cancels the operation. Codex itself must never call AWS.
 To edit publication material or the publication schedule, use the Publisher
 CLI and the JSON plan. `notes.py` is for private preparation guidance only.
 
+## Retrying a blocked publication
+
+A non-retryable validation failure pauses the queue and records the blocked
+event. Investigate and fix the failure before retrying. For a blocked event
+scheduled **today**, during the configured execution window, an operator can
+explicitly resume the same pending event without rewriting its schedule:
+
+```powershell
+$env:AWS_PROFILE = "aggregator-admin"
+python publisher.py resume --retry-blocked
+```
+
+This requires the queue to be paused, the latest recorded error to match the
+next pending event, and no active execution lease. The normal `resume` still
+rejects events that are overdue or too close. The watchdog performs the retry
+on its next run; check `publisher.py calendar --live` and CloudWatch for the
+outcome. If the scheduled day or execution window has passed, prepare a new
+reviewed plan instead of bypassing the queue's safety checks.
+
 ## Infrastructure and safety
 
 See [`infra/README.md`](infra/README.md) for the independent IAM
