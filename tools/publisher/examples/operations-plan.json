@@ -4,7 +4,7 @@
   "end_date": "2027-11-27",
   "operations": [
     {
-      "type": "pr",
+      "type": "pull_request",
       "branch": "k3s-https-ingress",
       "title": "Add HTTPS ingress",
       "body": "- Configure K3s HTTPS ingress.\n\n## Result\n- Ingress serves TLS.",
@@ -12,7 +12,7 @@
       "merge": "2027-11-26 10:30"
     },
     {
-      "type": "pr",
+      "type": "pull_request",
       "branch": "version/v0.8.5",
       "title": "Update project version",
       "body": "- Set the project version.\n\n## Result\n- Version metadata is updated.",
