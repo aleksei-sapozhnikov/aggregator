@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from ..github import pull_requests, rebase, releases
+from ..github import pull_requests, releases
 from ..github.github_client import Retryable
 from . import notifications
 from .config import queue_digest
@@ -192,7 +192,12 @@ class Runner:
                 progress["completed"].append(event["id"])
                 progress["last_execution_id"] = execution_id
                 self.state.save(progress)
+                # Optional GitHub metadata must never roll back or block a
+                # successfully recorded PR open/merge operation.
+                self._reconcile_optional_metadata(event, result)
                 return {"status": "completed", "event_id": event["id"], **result}
+            except pull_requests.MergeNotReady as error:
+                return self._retry(progress, event, str(error), execution_id, "deferred")
             except pull_requests.Deferred as error:
                 return {
                     "status": "deferred",
@@ -200,33 +205,57 @@ class Runner:
                     "reason": str(error),
                 }
             except Retryable as error:
-                clean = notifications.sanitize(str(error))
-                attempts = progress.setdefault("attempts", {})
-                attempts[event["id"]] = attempts.get(event["id"], 0) + 1
-                self.state.save(progress)
-                if attempts[event["id"]] < 3:
-                    return {
-                        "status": "retryable",
-                        "event_id": event["id"],
-                        "reason": clean,
-                        "attempt": attempts[event["id"]],
-                    }
-                reason = (
-                    "three ambiguous GitHub attempts; operator review required: "
-                    + clean
-                )
-                return self._block(progress, event, reason, execution_id, now)
+                return self._retry(progress, event, str(error), execution_id, "retryable")
             except notifications.OPERATION_ERRORS as error:
-                # Block recognized operational failures instead of aborting the run.
-                return self._block(
-                    progress,
-                    event,
-                    notifications.sanitize(str(error)),
-                    execution_id,
-                    now,
-                )
+                # Keep the queue ordered and retry recoverable runtime failures.
+                # Alert after repeated failures; never skip this event.
+                return self._retry(progress, event, str(error), execution_id, "retryable")
         finally:
             self.state.release()
+
+    def _reconcile_optional_metadata(self, event, result):
+        if event["action"] not in ("open_pr", "merge_pr") or "pr" not in result:
+            return
+        try:
+            pr = self.repo.pr(result["pr"])
+            pull_requests.reconcile_associations_best_effort(
+                self.repo, self.project, self.config,
+                self.rows[event["queue_id"]], pr,
+            )
+        except Exception as error:
+            # Best effort even for unexpected metadata integration failures.
+            # Do not log exception contents that may contain credentials.
+            print(json.dumps({
+                "level": "warning",
+                "event_id": event["id"],
+                "message": "PR metadata synchronization failed",
+                "error_type": type(error).__name__,
+            }))
+
+    def _retry(self, progress, event, reason, execution_id, status):
+        clean = notifications.sanitize(reason)
+        attempts = progress.setdefault("attempts", {})
+        count = attempts.get(event["id"], 0) + 1
+        attempts[event["id"]] = count
+        self.state.save(progress)
+        if count >= 3:
+            self._alert(
+                progress, event,
+                f"publication has not completed after {count} attempts: {clean}",
+                execution_id,
+            )
+        print(json.dumps({
+            "level": "warning",
+            "event_id": event["id"],
+            "attempt": count,
+            "reason": clean,
+        }))
+        return {
+            "status": status,
+            "event_id": event["id"],
+            "reason": clean,
+            "attempt": count,
+        }
 
     def _block(self, progress, event, reason, execution_id, now):
         progress.setdefault("errors", []).append(
@@ -267,24 +296,7 @@ class Runner:
                 known_number=record.get("number"),
                 scheduled_at=scheduled_at,
             )
-            prepared_now = None
-            if row["depends_on"] != self.config["base"] and already_open is None:
-                predecessor = next(
-                    entry
-                    for entry in self.queue["entries"]
-                    if entry["branch"] == row["depends_on"]
-                )
-                predecessor_record = progress.get("prs", {}).get(
-                    str(predecessor["id"]), {}
-                )
-                prepared_now = rebase.prepare(
-                    self.repo,
-                    row,
-                    record,
-                    predecessor_record,
-                    save=lambda: self.state.save(progress),
-                )
-            pr, associations = pull_requests.open_pr(
+            pr, _ = pull_requests.open_pr(
                 self.repo,
                 self.project,
                 self.config,
@@ -296,8 +308,6 @@ class Runner:
                 else record.get("number"),
                 known_head=record.get("merge_attempt_sha") or record.get("head_sha"),
             )
-            if prepared_now and pr["head"]["sha"] != prepared_now:
-                raise RuntimeError("PR head differs from runner-prepared branch")
             record.update(
                 {
                     "number": pr["number"],
@@ -308,7 +318,6 @@ class Runner:
                         "prepared_head_sha", pr["head"]["sha"]
                     ),
                     "source_head_sha": record.get("source_head_sha", pr["head"]["sha"]),
-                    **associations,
                 }
             )
             self.state.save(progress)
