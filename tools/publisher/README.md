@@ -25,7 +25,7 @@ their migration.
 Each `{"type":"pr"}` operation has a branch, title, `body` or `body_file`,
 and local `open` and `merge` times. Publisher emits two ordered events,
 resolves the actual PR through GitHub, and never infers a release from the
-branch name. The optional `release` on a PR assigns a GitHub milestone;
+branch name. The optional `milestone` on a PR assigns a GitHub milestone;
 without it, milestone association is skipped.
 
 Each `{"type":"release"}` operation has a tag, title, `notes` or
