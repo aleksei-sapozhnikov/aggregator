@@ -284,7 +284,7 @@ def compile_operations(path: Path, plan: dict) -> dict:
                 not {"type", "branch", "title", "open", "merge"}.issubset(row)
                 or set(row) - {
                     "id", "type", "branch", "title", "body", "body_file",
-                    "open", "merge", "release", "expected_source_commits",
+                    "open", "merge", "milestone", "expected_source_commits",
                 }
             ):
                 raise ValueError(f"invalid PR operation {index}")
@@ -301,11 +301,11 @@ def compile_operations(path: Path, plan: dict) -> dict:
             body = _content(path.parent, row, "body")
             if not body.startswith("- ") or "\n\n## Result\n- " not in body:
                 raise ValueError(f"PR {index} needs bullets and a ## Result section")
-            release = row.get("release")
-            if release is not None and (
-                not isinstance(release, str) or not TAG.fullmatch(release)
+            milestone = row.get("milestone")
+            if milestone is not None and (
+                not isinstance(milestone, str) or not TAG.fullmatch(milestone)
             ):
-                raise ValueError(f"invalid optional PR milestone: {release}")
+                raise ValueError(f"invalid optional PR milestone: {milestone}")
             count = row.get("expected_source_commits", 1)
             if type(count) is not int or count < 1:
                 raise ValueError("expected_source_commits must be positive")
@@ -316,13 +316,13 @@ def compile_operations(path: Path, plan: dict) -> dict:
                 raise ValueError(f"PR {index} must open at least 15 minutes after previous merge")
             entry = {
                 "id": index, "branch": branch, "title": title.strip(), "body": body,
-                "release": release, "source_mode": "new",
+                "milestone": milestone, "source_mode": "new",
                 "existing_pr_number": None,
             }
             entries.append(entry)
             used_branches.add(branch)
-            add_event(index, "open_pr", opened, branch=branch, tag=release)
-            add_event(index, "merge_pr", merged, branch=branch, tag=release)
+            add_event(index, "open_pr", opened, branch=branch, tag=None)
+            add_event(index, "merge_pr", merged, branch=branch, tag=None)
             last_merge = merged
         elif row.get("type") == "release":
             if (
