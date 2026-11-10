@@ -35,7 +35,7 @@ def load_snapshot(s3, bucket: str, revision: str) -> dict:
     if digest(raw) != revision:
         raise RuntimeError("S3 publication snapshot digest mismatch")
     result = json.loads(raw)
-    if result.get("format") != 1 or canonical(result) != raw:
+    if result.get("format") not in (1, 2) or canonical(result) != raw:
         raise RuntimeError("S3 publication snapshot format mismatch")
     validate_snapshot(result)
     return result
@@ -438,5 +438,43 @@ def validate_snapshot(snapshot: dict) -> None:
     historical = snapshot.get("history", {}).get("events", [])
     if len({event["id"] for event in historical + events}) != len(historical + events):
         raise ValueError("duplicate snapshot event ID")
-    if events and events[-1]["action"] != "merge_pr":
-        raise ValueError("snapshot must end with a merge")
+    if snapshot["format"] == 1:
+        if events and events[-1]["action"] != "merge_pr":
+            raise ValueError("legacy snapshot must end with a merge")
+    elif snapshot["format"] == 2:
+        pr_ids = {row["id"] for row in snapshot["queue"]["entries"]}
+        release_defs = snapshot["releases"]["releases"]
+        release_ids = {item["id"]: item["tag"] for item in release_defs}
+        if len(release_ids) != len(release_defs):
+            raise ValueError("duplicate release operation IDs")
+        if set(release_ids) & pr_ids:
+            raise ValueError("PR and release IDs must be disjoint")
+        if not events:
+            raise ValueError("operation snapshot cannot be empty")
+        prior_time = None
+        for event in events:
+            if event["action"] in ("open_pr", "merge_pr"):
+                if event["queue_id"] not in pr_ids:
+                    raise ValueError("PR event references missing PR")
+            elif event["action"] == "publish_release":
+                if release_ids.get(event["queue_id"]) != event.get("release"):
+                    raise ValueError("release event references missing release")
+            else:
+                raise ValueError("unknown operation in publication snapshot")
+            due = datetime.fromisoformat(event["utc"].replace("Z", "+00:00"))
+            if prior_time is not None and due <= prior_time:
+                raise ValueError("snapshot operation events are not ordered")
+            prior_time = due
+        event_actions = [
+            (event["queue_id"], event["action"]) for event in events
+        ]
+        for index in pr_ids:
+            if event_actions.count((index, "open_pr")) != 1 or (
+                event_actions.count((index, "merge_pr")) != 1
+            ):
+                raise ValueError("each PR requires one open and one merge event")
+        for index in release_ids:
+            if event_actions.count((index, "publish_release")) != 1:
+                raise ValueError("each release requires one publish event")
+    else:
+        raise ValueError("unsupported snapshot format")
