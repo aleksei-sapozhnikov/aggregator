@@ -44,6 +44,28 @@ python publisher.py resume # Only after reviewing the staged plan
 completed events and started publication metadata cannot be rewritten by a
 new plan. Review the CLI and `plan.py` for the enforced contract.
 
+## Publication behavior and recovery
+
+Publisher opens PRs in queue order and requests squash merges using the latest
+GitHub PR head SHA. GitHub decides merge eligibility. Publisher does not
+rewrite the source branches, require prior head SHAs to remain unchanged, or
+inspect ancestry and net file changes. Prepare stacked branches ahead of time
+or fix merge conflicts in GitHub before the scheduled merge.
+
+PR identity is saved in DynamoDB as soon as opening succeeds, before milestone
+or Project association. Optional metadata failures are warnings and never
+prevent PR publication. If an invocation is interrupted after GitHub creates
+a PR but before the number is saved, the next run searches GitHub for the
+existing PR rather than creating a duplicate.
+
+A GitHub merge refusal (including a conflict), transport error, or runtime
+failure leaves the event pending for the next watchdog invocation. Later
+events do not overtake it. After three failed attempts Publisher sends an
+alert, then continues retrying while the execution window remains open.
+Repeated alerts for the same reason are deduplicated. It pauses only when the
+configured final deadline is missed or when an operator explicitly pauses it.
+Errors cannot be bypassed by moving on to a later PR.
+
 ## Private Codex preparation guidance
 
 Codex instructions, PR templates/examples, publication task templates and
