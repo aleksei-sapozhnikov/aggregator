@@ -250,11 +250,10 @@ def compile_operations(path: Path, plan: dict) -> dict:
             "queue_id": index,
             "action": action,
             "branch": branch,
+            "release": tag or "",
             "local": timestamp.isoformat(timespec="seconds"),
             "utc": utc.isoformat(timespec="seconds").replace("+00:00", "Z"),
         }
-        if tag is not None:
-            event["release"] = tag
         events.append(event)
 
     for position, row in enumerate(plan["operations"], 1):
