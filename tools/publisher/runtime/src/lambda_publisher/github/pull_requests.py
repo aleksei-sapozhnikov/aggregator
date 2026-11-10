@@ -178,7 +178,7 @@ def reconcile_associations_best_effort(
 ):
     """Attempt both associations independently without adding a merge gate."""
     result = {}
-    if attach_milestone:
+    if attach_milestone and row.get("release"):
         try:
             milestone = milestones.ensure_open(
                 repo_client, row["release"], existing_pr=pr
