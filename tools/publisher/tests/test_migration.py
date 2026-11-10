@@ -108,8 +108,7 @@ class LegacyMigrationTests(unittest.TestCase):
         )
         self.assertEqual(6, len(translated["completed"]))
         self.assertIn("publisher-003-publish", translated["completed"])
-        self.assertEqual("publisher-004-open", summary["next_event"] if False else
-                         self.new["schedule"]["events"][6]["id"])
+        self.assertEqual("publisher-004-merge", summary["next_event"])
         self.assertEqual("publisher-004-merge", boundary)
         self.assertEqual(352, translated["prs"]["4"]["number"])
         self.assertNotIn("3", translated["prs"])
