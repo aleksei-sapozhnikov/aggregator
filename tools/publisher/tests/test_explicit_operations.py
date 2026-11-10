@@ -26,7 +26,7 @@ def sample_operations():
         "end_date": "2027-11-27",
         "operations": [
             {
-                "type": "pr", "branch": "version/v0.8.5",
+                "type": "pull_request", "branch": "version/v0.8.5",
                 "title": "Ordinary PR with a version-shaped branch name",
                 "body": "- Update version.\n\n## Result\n- Version is updated.",
                 "open": "2027-11-26 09:00",
@@ -39,7 +39,7 @@ def sample_operations():
                 "publish": "2027-11-26 11:00",
             },
             {
-                "type": "pr", "branch": "hotfix-after-release",
+                "type": "pull_request", "branch": "hotfix-after-release",
                 "title": "Follow-up fix",
                 "body": "- Repair configuration.\n\n## Result\n- Deploy restored.",
                 "open": "2027-11-26 12:00",
@@ -97,6 +97,15 @@ class ExplicitOperationsPlanTests(unittest.TestCase):
         self.assertEqual(
             "hotfix-2027-11-27",
             snapshot["releases"]["releases"][1]["tag"],
+        )
+
+    def test_short_pr_alias_remains_supported(self):
+        plan = sample_operations()
+        plan["operations"][0]["type"] = "pr"
+        snapshot = self.compile(plan)
+        self.assertEqual(
+            ["open_pr", "merge_pr"],
+            [event["action"] for event in snapshot["schedule"]["events"][:2]],
         )
 
     def test_release_only_plan_is_valid(self):
