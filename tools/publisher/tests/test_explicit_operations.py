@@ -133,9 +133,9 @@ class ExplicitOperationsPlanTests(unittest.TestCase):
             snapshot, progress, paused=False,
             checked_at=datetime(2027, 11, 26, 14, tzinfo=timezone.utc),
         )
-        self.assertIn("Release HTTPS ingress", html)
+        self.assertIn("HTTPS ingress and reversible K3s cutover", html)
         self.assertIn("Published", html)
-        self.assertLess(html.index("Ordinary PR with"), html.index("Release HTTPS ingress"))
+        self.assertLess(html.index("Ordinary PR with"), html.index("HTTPS ingress and reversible K3s cutover"))
         self.assertLess(html.index("Release HTTPS ingress"), html.index("Follow-up fix"))
 
     def test_completed_releases_cannot_be_rewritten(self):
