@@ -217,8 +217,6 @@ class Runner:
         if event["action"] not in ("open_pr", "merge_pr") or "pr" not in result:
             return
         try:
-            if self.project.identity()["login"] != self.config["expected_actor"]:
-                raise RuntimeError("Project PAT actor mismatch")
             pr = self.repo.pr(result["pr"])
             pull_requests.reconcile_associations_best_effort(
                 self.repo, self.project, self.config,
