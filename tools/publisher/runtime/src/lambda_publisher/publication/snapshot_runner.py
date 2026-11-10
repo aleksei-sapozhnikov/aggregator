@@ -222,7 +222,7 @@ class Runner:
             pull_requests.reconcile_associations_best_effort(
                 self.repo, self.project, self.config, row, pr,
                 attach_milestone=not (
-                    event["action"] == "merge_pr" and row["version_boundary"]
+                    event["action"] == "merge_pr" and row.get("version_boundary", False)
                 ),
             )
         except Exception as error:
@@ -287,6 +287,12 @@ class Runner:
     def _execute(self, event, progress, now):
         if self.repo.identity()["login"] != self.config["expected_actor"]:
             raise RuntimeError("repository PAT actor mismatch")
+        if event["action"] == "publish_release":
+            definition = self.release_defs[event["release"]]
+            published = releases.publish(
+                self.repo, definition, progress, save=self.state.save
+            )
+            return {"tag": event["release"], "url": published["url"]}
         row = self.rows[event["queue_id"]]
         record = progress.setdefault("prs", {}).setdefault(str(row["id"]), {})
         if event["action"] == "open_pr":
@@ -358,7 +364,7 @@ class Runner:
         )
         record.update({"number": pr["number"], "url": pr["html_url"], **merged})
         self.state.save(progress)
-        if row["version_boundary"]:
+        if row.get("version_boundary", False):
             releases.finalize(
                 self.repo,
                 self.release_defs[row["release"]],
