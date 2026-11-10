@@ -63,6 +63,20 @@ class ExplicitOperationsPlanTests(unittest.TestCase):
             path.write_text(json.dumps(plan), encoding="utf-8")
             return compile_plan(path)
 
+    def test_explicit_plan_accepts_dates_before_initial_activation(self):
+        plan = json.loads(
+            json.dumps(sample_operations()).replace("2027-11", "2025-11")
+        )
+        snapshot = self.compile(plan)
+        self.assertEqual("2025-11-26", snapshot["config"]["start_date"])
+        self.assertEqual(6, len(snapshot["schedule"]["events"]))
+
+    def test_explicit_plan_rejects_inverted_date_range(self):
+        plan = sample_operations()
+        plan["start_date"] = "2027-11-28"
+        with self.assertRaisesRegex(ValueError, "end_date must not precede"):
+            self.compile(plan)
+
     def test_release_is_an_explicit_operation(self):
         snapshot = self.compile(sample_operations())
         self.assertEqual(2, snapshot["format"])
