@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import re
 from datetime import datetime, timedelta, timezone
 
 from . import milestones, projects
@@ -175,183 +174,6 @@ def ensure_only_queue_pr(
         raise RuntimeError(f"another queue PR is open: {conflicts}")
 
 
-def _tree(client, ref: str):
-    try:
-        commit = client.get("/git/commits/" + ref)
-        tree = client.get("/git/trees/" + commit["tree"]["sha"] + "?recursive=1")
-    except GitHubError as error:
-        if error.status == 404:
-            raise RuntimeError(
-                "Git commit or tree is unavailable by immutable SHA; pause and restore a reviewed reachable ref"
-            ) from None
-        raise
-    if tree.get("truncated"):
-        raise RuntimeError("GitHub tree truncated; cannot prove net diff")
-    return {
-        item["path"]: (item.get("mode", "100644"), item["type"], item["sha"])
-        for item in tree["tree"]
-        if item["type"] != "tree"
-    }
-
-
-def predecessor_reachability(
-    client, dependency_sha: str, head_sha: str, dependency_pr_number: int
-) -> str:
-    """Prove a saved predecessor commit is still readable after its branch is deleted."""
-    try:
-        client.get("/git/commits/" + dependency_sha)
-    except GitHubError as error:
-        if error.status == 404:
-            raise RuntimeError(
-                "persisted predecessor head commit is unavailable; pause and recover its SHA or retained PR ref"
-            ) from None
-        raise
-    try:
-        comparison = client.compare(dependency_sha, head_sha)
-    except GitHubError as error:
-        if error.status == 404:
-            raise RuntimeError(
-                "predecessor/head ancestry comparison unavailable; pause and review retained refs"
-            ) from None
-        raise
-    if comparison.get("status") in ("ahead", "identical"):
-        return "downstream ancestry"
-    try:
-        retained = client.get(f"/git/ref/pull/{dependency_pr_number}/head")
-    except GitHubError as error:
-        if error.status == 404:
-            raise RuntimeError(
-                "predecessor head is neither downstream ancestry nor a retained PR ref; pause for review"
-            ) from None
-        raise
-    if retained.get("object", {}).get("sha") != dependency_sha:
-        raise RuntimeError(
-            "predecessor head is neither downstream ancestry nor a matching retained PR ref; pause for review"
-        )
-    return "retained PR ref"
-
-
-def verify_net_diff(
-    client,
-    row: dict,
-    pr: dict,
-    *,
-    dependency_sha: str | None = None,
-    dependency_pr_number: int | None = None,
-    source_sha: str | None = None,
-    dependency_prepared_sha: str | None = None,
-    prepared_sha: str | None = None,
-):
-    """Compare file blob transitions, avoiding ancestry-only differences after squash."""
-    if row["depends_on"] == "main":
-        main_sha = client.branch("main")["commit"]["sha"]
-        main, head = _tree(client, main_sha), _tree(client, pr["head"]["sha"])
-        if not {
-            path for path in set(main) | set(head) if main.get(path) != head.get(path)
-        }:
-            raise RuntimeError("first PR has an empty net diff")
-        return
-    if not dependency_sha or not re.fullmatch(r"[0-9a-fA-F]{40}", dependency_sha):
-        raise RuntimeError(
-            "predecessor head SHA missing or invalid in durable progress; pause and recover predecessor"
-        )
-    if not dependency_pr_number:
-        raise RuntimeError(
-            "predecessor PR number missing in durable progress; pause and recover predecessor"
-        )
-    predecessor = client.pr(dependency_pr_number)
-    if not predecessor.get("merged_at"):
-        raise RuntimeError("predecessor PR is not merged; net diff cannot be verified")
-    observed_sha = predecessor.get("head", {}).get("sha")
-    if observed_sha and observed_sha != (dependency_prepared_sha or dependency_sha):
-        raise RuntimeError(
-            "persisted predecessor head SHA differs from predecessor PR; pause for review"
-        )
-    main_sha = client.branch("main")["commit"]["sha"]
-    head_sha = pr["head"]["sha"]
-    source_sha = source_sha or head_sha
-    prepared_comparison = None
-    if prepared_sha and prepared_sha != head_sha:
-        try:
-            prepared_comparison = client.compare(prepared_sha, head_sha)
-        except GitHubError as error:
-            if error.status != 404:
-                raise
-        if not prepared_comparison or prepared_comparison.get("status") not in (
-            "ahead",
-            "identical",
-        ):
-            comparison = client.compare(main_sha, head_sha)
-            base_sha = comparison.get("merge_base_commit", {}).get("sha")
-            if not base_sha or not re.fullmatch(r"[0-9a-fA-F]{40}", base_sha):
-                raise RuntimeError(
-                    "current PR head lacks a verifiable main ancestry base"
-                )
-            from .rebase import source_commits
-
-            source_commits(client, base_sha, head_sha, 1)
-            base, main, head = (
-                _tree(client, base_sha),
-                _tree(client, main_sha),
-                _tree(client, head_sha),
-            )
-            paths = set(base) | set(main) | set(head)
-            intended = {path for path in paths if base.get(path) != head.get(path)}
-            actual = {path for path in paths if main.get(path) != head.get(path)}
-            if (
-                not intended
-                or intended != actual
-                or any(main.get(path) != base.get(path) for path in intended)
-            ):
-                raise RuntimeError(
-                    "current PR head has unexpected dependencies or conflicts with main"
-                )
-            return
-    predecessor_reachability(client, dependency_sha, source_sha, dependency_pr_number)
-    dependency = _tree(client, dependency_sha)
-    main, head, source = (
-        _tree(client, main_sha),
-        _tree(client, head_sha),
-        _tree(client, source_sha),
-    )
-    paths = set(main) | set(dependency) | set(head) | set(source)
-    original = {path for path in paths if dependency.get(path) != source.get(path)}
-    pushed = set()
-    prepared = None
-    if prepared_sha and prepared_sha != head_sha:
-        prepared = _tree(client, prepared_sha)
-        pushed = {
-            path
-            for path in set(prepared) | set(head)
-            if prepared.get(path) != head.get(path)
-        }
-    expected = original | pushed
-    paths |= set(prepared or {})
-    actual = {path for path in paths if main.get(path) != head.get(path)}
-    if not expected:
-        raise RuntimeError(f"empty source delta for {row['branch']}")
-    if expected != actual:
-        raise RuntimeError(
-            f"unexpected net file set for {row['branch']}: extra={sorted(actual - expected)}, missing={sorted(expected - actual)}"
-        )
-    divergent = [path for path in original if main.get(path) != dependency.get(path)]
-    if divergent:
-        raise RuntimeError(
-            f"main differs from prepared predecessor on touched files: {sorted(divergent)}"
-        )
-    if prepared is not None:
-        changed_base = [
-            path for path in pushed - original if main.get(path) != prepared.get(path)
-        ]
-        if changed_base:
-            raise RuntimeError(
-                f"main changed newly pushed paths: {sorted(changed_base)}"
-            )
-    wrong = [path for path in original - pushed if head.get(path) != source.get(path)]
-    if wrong:
-        raise RuntimeError(f"prepared branch changed source content on {sorted(wrong)}")
-
-
 def reconcile_associations(
     repo_client, project_client, config, row, pr, *, create_milestone=True
 ):
@@ -437,13 +259,7 @@ def merge_pr(
     now: datetime,
     known_head: str | None,
     queue_branches: set[str] | None = None,
-    dependency_sha: str | None = None,
-    dependency_pr_number: int | None = None,
     known_number: int | None = None,
-    source_sha: str | None = None,
-    dependency_prepared_sha: str | None = None,
-    prepared_sha: str | None = None,
-    attempt_sha: str | None = None,
     before_merge=None,
 ):
     pr = find_exact(client, row, known_number=known_number)
