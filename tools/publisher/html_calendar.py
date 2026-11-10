@@ -87,7 +87,7 @@ def render(snapshot: dict, progress: dict | None = None, *, paused: bool = True,
             f'<article class="item {status.lower()}"><div class="head"><span>#{index} · {title_markup}</span>'
             f'<span class="pill">{_esc(status)}</span></div>'
             f'<div class="meta">{_esc(open_time.strftime("%H:%M"))} open · {_esc(merge_time.strftime("%H:%M"))} merge'
-            f' · {_esc(row.get("release") or "PR")}</div>{detail}</article>'
+            f' · {_esc(row.get("milestone") or row.get("release") or "PR")}</div>{detail}</article>'
         ))
     planned_releases = [
         release for release in snapshot["releases"]["releases"] if "id" in release
