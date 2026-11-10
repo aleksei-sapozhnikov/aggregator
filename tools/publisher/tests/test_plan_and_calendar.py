@@ -38,6 +38,17 @@ class PublisherTests(unittest.TestCase):
             path.write_text(json.dumps(plan), encoding="utf-8")
             return compile_plan(path)
 
+    def test_legacy_plan_accepts_dates_before_initial_activation(self):
+        plan = json.loads(json.dumps(sample()).replace("2026-11", "2025-11"))
+        snapshot = self.build(plan)
+        self.assertEqual("2025-11-10", snapshot["config"]["start_date"])
+
+    def test_legacy_plan_rejects_inverted_date_range(self):
+        plan = sample()
+        plan["start_date"] = "2026-11-13"
+        with self.assertRaisesRegex(ValueError, "end_date must not precede"):
+            self.build(plan)
+
     def test_snapshot_and_html(self):
         snapshot = self.build(sample())
         self.assertEqual(4, len(snapshot["schedule"]["events"]))
