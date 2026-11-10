@@ -6,7 +6,6 @@ from datetime import datetime, timedelta, timezone
 
 from . import milestones, projects
 from .github_client import GitHubError
-from ..publication.notifications import sanitize
 
 
 class Deferred(RuntimeError):
@@ -196,9 +195,9 @@ def reconcile_associations_best_effort(repo_client, project_client, config, row,
     try:
         milestone = milestones.ensure_open(repo_client, row["release"], existing_pr=pr)
         result["milestone_number"] = milestones.attach(repo_client, pr, milestone)
-    except RuntimeError as error:
+    except Exception as error:
         print(
-            f"PR #{pr['number']} milestone reconciliation warning: {sanitize(str(error))}"
+            f"PR #{pr['number']} milestone reconciliation warning: {type(error).__name__}"
         )
     try:
         if config.get("expected_actor") and (
@@ -210,9 +209,9 @@ def reconcile_associations_best_effort(repo_client, project_client, config, row,
         result["project_item_id"] = projects.ensure(
             project_client, pr["node_id"], project["id"]
         )
-    except RuntimeError as error:
+    except Exception as error:
         print(
-            f"PR #{pr['number']} Project reconciliation warning: {sanitize(str(error))}"
+            f"PR #{pr['number']} Project reconciliation warning: {type(error).__name__}"
         )
     return result
 
