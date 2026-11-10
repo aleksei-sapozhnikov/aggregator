@@ -7,6 +7,7 @@ from datetime import datetime, timedelta, timezone
 
 from . import milestones, projects
 from .github_client import GitHubError
+from ..publication.notifications import sanitize
 
 
 class Deferred(RuntimeError):
@@ -365,8 +366,6 @@ def reconcile_associations(
 
 def reconcile_associations_best_effort(repo_client, project_client, config, row, pr):
     """Attempt both associations independently without adding a merge gate."""
-    from .notifications import sanitize
-
     result = {}
     try:
         milestone = milestones.ensure_open(repo_client, row["release"], existing_pr=pr)
