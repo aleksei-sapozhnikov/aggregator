@@ -117,6 +117,30 @@ class LegacyMigrationTests(unittest.TestCase):
         self.assertEqual(1, summary["published_releases"])
         self.assertEqual(5, len(state["completed"]))
 
+    def test_finished_legacy_queue_does_not_republish_any_release(self):
+        state = starting_progress()
+        state["completed"] = [
+            event["id"] for event in self.old["schedule"]["events"]
+        ]
+        for tag in ("v0.8.5", "v0.8.6"):
+            state["releases"][tag] = {
+                "sha": "c" * 40, "published": True,
+                "url": f"https://github.com/example/releases/{tag}",
+            }
+        translated, _, summary = migrate_progress(self.old, self.new, state)
+        self.assertEqual(
+            len(self.new["schedule"]["events"]), len(translated["completed"])
+        )
+        self.assertIsNone(summary["next_event"])
+        self.assertEqual(2, summary["published_releases"])
+
+    def test_restricted_activation_boundary_follows_new_pr_id(self):
+        translated, boundary, _ = migrate_progress(
+            self.old, self.new, starting_progress(), "publisher-003-merge"
+        )
+        self.assertEqual("publisher-004-merge", boundary)
+        self.assertEqual([], translated["completed"])
+
     def test_partial_open_preserves_number_and_progress(self):
         state = starting_progress()
         state["completed"] = [self.old["schedule"]["events"][0]["id"]]
