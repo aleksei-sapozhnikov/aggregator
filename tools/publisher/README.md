@@ -16,10 +16,36 @@ day's 22:00 cutoff it pauses an incomplete queue and reports a missed
 deadline. Runtime changes require deploying the Lambda package; a Git commit
 alone does not update the deployed worker.
 
-The input is a JSON plan. See [`examples/plan.json`](examples/plan.json) for an
-empty plan and [`examples/demo-plan.json`](examples/demo-plan.json) for a local
-preview example (its branches are not real). The plan references existing
-source branches and includes PR descriptions, release notes, and local times.
+The preferred input is an ordered JSON `operations` plan. See
+[`examples/operations-plan.json`](examples/operations-plan.json) for the
+explicit PR and release workflow. The older `pull_requests` / `releases`
+format is still supported for existing plans and deployed snapshots until
+their migration.
+
+Each `{"type":"pr"}` operation has a branch, title, `body` or `body_file`,
+and local `open` and `merge` times. Publisher emits two ordered events,
+resolves the actual PR through GitHub, and never infers a release from the
+branch name. The optional `release` on a PR assigns a GitHub milestone;
+without it, milestone association is skipped.
+
+Each `{"type":"release"}` operation has a tag, title, `notes` or
+`notes_file`, and a local `publish` time. It runs independently after all
+preceding operations are complete. The tag targets the current `main` HEAD
+at the start of that operation, and its selected commit SHA is persisted so
+retries do not silently move the tag. The release description begins with
+the prepared Markdown, followed by GitHub's generated `What's Changed`
+and `Full Changelog` sections. GitHub chooses the comparison baseline by
+default; a release may specify `previous_tag` to request a custom baseline.
+There is no global `previous_published_tag`, version-name inference, or
+requirement that an earlier release belongs to the Publisher queue.
+
+Plan-relative `body_file` and `notes_file` values are resolved when the
+plan is compiled, then embedded in the immutable S3 snapshot.
+
+**Compatibility:** deploying the new Lambda does not convert a running
+legacy queue. The runtime continues to handle its existing snapshot.
+Applying a new-format plan over that snapshot is rejected; migrate queue
+progress explicitly when converting existing plans.
 
 From `tools/publisher`:
 
