@@ -201,6 +201,10 @@ def reconcile_associations_best_effort(repo_client, project_client, config, row,
             f"PR #{pr['number']} milestone reconciliation warning: {sanitize(str(error))}"
         )
     try:
+        if config.get("expected_actor") and (
+            project_client.identity()["login"] != config["expected_actor"]
+        ):
+            raise RuntimeError("Project PAT actor mismatch")
         project = projects.resolve(project_client, config)
         result["project_id"] = project["id"]
         result["project_item_id"] = projects.ensure(
