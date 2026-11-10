@@ -253,7 +253,6 @@ def migrate(plan: Path, profile: str, *, execute: bool = False) -> None:
     translated, new_boundary, summary = migrate_progress(
         previous, proposed, progress, active_boundary
     )
-    _enough_time(proposed, translated["completed"])
     print(
         f"Migration preview: {summary['mapped_prs']} PRs, "
         f"{summary['old_completed']} -> {summary['new_completed']} completed events, "
@@ -264,6 +263,7 @@ def migrate(plan: Path, profile: str, *, execute: bool = False) -> None:
         print("Preview only. Run migrate with --apply to stage the migration.")
         return
 
+    _enough_time(proposed, translated["completed"])
     _verify_remote_branches(proposed, translated["completed"])
     raw = canonical(proposed)
     revision = digest(raw)
