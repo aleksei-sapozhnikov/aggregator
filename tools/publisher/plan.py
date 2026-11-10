@@ -10,7 +10,7 @@ from zoneinfo import ZoneInfo
 
 REPOSITORY = "aleksei-sapozhnikov/aggregator"
 PROJECT_URL = "https://github.com/users/aleksei-sapozhnikov/projects/1"
-START_NOT_BEFORE = "2026-11-10"
+START_NOT_BEFORE = "2026-11-09"
 BRANCH = re.compile(r"[A-Za-z0-9][A-Za-z0-9._/-]{0,180}\Z")
 TAG = re.compile(r"v\d+\.\d+\.\d+\Z")
 RELEASE_TAG = re.compile(r"[A-Za-z0-9][A-Za-z0-9._/-]{0,180}\Z")
