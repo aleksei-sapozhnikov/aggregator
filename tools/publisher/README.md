@@ -73,10 +73,19 @@ new plan. Review the CLI and `plan.py` for the enforced contract.
 ## Publication behavior and recovery
 
 Publisher opens PRs in queue order and requests squash merges using the latest
-GitHub PR head SHA. GitHub decides merge eligibility. Publisher does not
-rewrite the source branches, require prior head SHAs to remain unchanged, or
-inspect ancestry and net file changes. Prepare stacked branches ahead of time
-or fix merge conflicts in GitHub before the scheduled merge.
+GitHub PR head SHA. GitHub decides merge eligibility. If GitHub rejects the
+merge and the live PR reports `mergeable_state=behind`, Publisher requests
+one GitHub `Update branch` operation using `expected_head_sha`. It polls for
+an updated head for up to 30 seconds and tries squash merge once more. It
+never checks CI or reviews itself: GitHub enforces all merge conditions.
+If updating or merging still fails, the event remains pending for the next
+watchdog attempt. Other merge refusals do not trigger branch updates.
+
+Publisher never rebases or force-pushes, requires prior head SHAs to remain
+unchanged, or inspects ancestry and net file changes. GitHub `Update branch`
+merges the current base into the PR branch and may add a merge commit there;
+the final merge into `main` still uses squash. Prepare stacked branches
+ahead of time or resolve conflicts manually when GitHub cannot update them.
 
 PR identity is saved in DynamoDB as soon as opening succeeds, before milestone
 or Project association. Optional metadata failures are warnings and never
