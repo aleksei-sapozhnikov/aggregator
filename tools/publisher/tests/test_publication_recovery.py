@@ -138,7 +138,6 @@ class PublisherGitHubBehaviorTests(unittest.TestCase):
             now=datetime(2026, 11, 10, 12, tzinfo=timezone.utc),
             known_head="a" * 40,
             known_number=351,
-            config={"minimum_actual_open_minutes": 60},
         )
         self.assertEqual("e" * 40, info["merge_sha"])
         client.put.assert_not_called()
