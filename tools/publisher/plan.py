@@ -279,7 +279,7 @@ def compile_operations(path: Path, plan: dict) -> dict:
             raise ValueError("operation IDs must be unique")
         used_ids.add(index)
 
-        if row.get("type") == "pr":
+        if row.get("type") in ("pull_request", "pr"):
             if (
                 not {"type", "branch", "title", "open", "merge"}.issubset(row)
                 or set(row) - {
