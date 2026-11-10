@@ -20,7 +20,7 @@ class RuntimeNotificationsTests(unittest.TestCase):
         client = MagicMock()
         client.repo = "aleksei-sapozhnikov/aggregator"
         project_client = MagicMock()
-        row = {"branch": "service-layout", "title": "Service layout", "body": "body"}
+        row = {"branch": "service-layout", "title": "Service layout", "body": "body", "release": "v0.8.0"}
         pr = {
             "number": 351,
             "state": "open",
