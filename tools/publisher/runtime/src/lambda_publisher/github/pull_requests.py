@@ -1,4 +1,4 @@
-"""Open and merge queued pull requests after verifying identity, diff, and reviewed SHA."""
+"""Open and merge queued pull requests through GitHub, retaining queue order."""
 
 from __future__ import annotations
 
@@ -178,10 +178,11 @@ def reconcile_associations_best_effort(
 ):
     """Attempt both associations independently without adding a merge gate."""
     result = {}
-    if attach_milestone and row.get("release"):
+    milestone_name = row.get("milestone") or row.get("release")
+    if attach_milestone and milestone_name:
         try:
             milestone = milestones.ensure_open(
-                repo_client, row["release"], existing_pr=pr
+                repo_client, milestone_name, existing_pr=pr
             )
             result["milestone_number"] = milestones.attach(
                 repo_client, pr, milestone
