@@ -241,7 +241,7 @@ class Runner:
         if count >= 3:
             self._alert(
                 progress, event,
-                f"publication has not completed after {count} attempts: {clean}",
+                f"publication retry needed (three or more attempts): {clean}",
                 execution_id,
             )
         print(json.dumps({
