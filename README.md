@@ -118,20 +118,6 @@ Health propagation is deterministic:
 
 ---
 
-## Why so many technologies?
-
-Partly because it is more interesting than a single-stack toy app, but also
-because it mirrors a real company with history. Different teams know different
-stacks, services appear at different times, and ownership boundaries outlive
-framework choices. A useful platform should still work across those differences.
-
-That is why the repository has a Java backend, a Go catalog service, a React UI,
-Python demo automation, Java/Python/JavaScript dummy services, Prometheus,
-Grafana, Caddy, Docker Compose, and shared QA tooling. The important boundary is
-not the language. It is the contract between services.
-
----
-
 ## Run it locally
 
 You need Docker or Podman with Compose support. From the repository root:
@@ -158,53 +144,51 @@ downloads Prometheus/Grafana/Caddy images. Full local-run options are in
 
 ### Optional AI agent configuration
 
-The Python AI agent is disabled by default. To use the Bedrock provider, set
-`AGENT_AI_ENABLED=true` and provide `AGENT_AI_CONFIG`.
+Local Docker Compose environments enable the Bedrock AI agent with
+non-secret defaults from `deploy/compose/compose.overlay.local-ports.yaml`.
+Other developers can override `AGENT_AI_CONFIG` from their shell and provide
+temporary credentials from their own AWS profile, with access to their chosen
+Bedrock model. The project `aggregator-admin` profile is not required.
+The current AI agent implements the Bedrock provider only.
+The base Compose stack leaves AI disabled unless configured.
 
-For local development with a Bedrock API key, use `api_key`. This is a Bedrock
-bearer token, not an AWS access key or secret key:
+For the PowerShell login, credential refresh, and security notes, see
+[docs/running-locally.md](docs/running-locally.md#optional-ai-agent).
 
-```shell
-AGENT_AI_CONFIG={"provider":"bedrock","max_tool_rounds":2,"bedrock":{"model_id":"eu.amazon.nova-lite-v1:0","aws_region":"eu-central-1","api_key":"<bedrock-api-key>","temperature":0.00001,"max_tokens":300}}
-```
-
-For temporary local AWS credentials, use the explicit AWS credential fields:
-
-```shell
-AGENT_AI_CONFIG={"provider":"bedrock","max_tool_rounds":2,"bedrock":{"model_id":"eu.amazon.nova-lite-v1:0","aws_region":"eu-central-1","aws_access_key_id":"<aws-access-key-id>","aws_secret_access_key":"<aws-secret-access-key>","aws_session_token":"<optional-session-token>","temperature":0.00001,"max_tokens":300}}
-```
-
-For deployment on EC2, omit `api_key` and the explicit AWS credential fields so
-boto3 uses its normal default credential chain, including the instance IAM role.
+For deployment on EC2, omit `api_key` and explicit AWS credentials so boto3
+uses the instance IAM role.
 
 ---
 
-## Repository map
+## Module documentation
 
-- [services-core/aggregator](services-core/aggregator): Java / Spring Boot
-  backend. Loads catalog and signal definitions, polls health endpoints,
-  propagates health through the dependency graph, exposes current health facts,
-  and exports derived metrics.
-- [services-core/ai-agent](services-core/ai-agent): optional Python service that
-  answers natural-language health questions by calling the aggregator REST API
-  and using a configured model provider.
-- [services-core/catalog](services-core/catalog): Go service. Owns catalog
-  files, JSON schemas, validation, and the catalog HTTP API.
-- [services-core/aggregator-ui](services-core/aggregator-ui): React frontend
-  served by Caddy.
-- [services-extra/prometheus](services-extra/prometheus): metrics collection.
-- [services-extra/grafana](services-extra/grafana): dashboards used by the UI.
-- [services-demo/chaos-maker](services-demo/chaos-maker): Python service that
-  changes demo-service state.
-- [services-demo/dummy-java](services-demo/dummy-java),
-  [services-demo/dummy-python](services-demo/dummy-python), and
-  [services-demo/dummy-javascript](services-demo/dummy-javascript): simulated
-  services with health endpoints.
+The main services each document their role, integration boundary, and
+developer entrypoints:
 
-More detail:
+- [Health aggregator](services/aggregator/README.md): Java service that
+  calculates and exposes deterministic Product Health.
+- [Catalog](services/catalog/README.md): Go service owning catalog records
+  and HTTP signal definitions.
+- [Web UI](services/aggregator-ui/README.md): React interface, navigation,
+  connection states, and optional chat.
+- [AI agent](services/ai-agent/README.md): optional natural-language access
+  to health facts, backed by AWS Bedrock.
+- [Prometheus](services/prometheus/README.md) and
+  [Grafana](services/grafana/README.md): historical metrics and visualization.
+- [Chaos maker](services/chaos-maker/README.md) and the
+  [Java](services/dummy-java/README.md),
+  [Python](services/dummy-python/README.md), and
+  [JavaScript](services/dummy-javascript/README.md) dummy services:
+  demonstration failures and recovery.
 
-- [docs/services.md](docs/services.md) contains detailed architecture and
-  interaction diagrams.
-- [docs/development.md](docs/development.md) covers formatting, linting, and git
-  hooks.
-- [deploy/demo/README.md](deploy/demo/README.md) covers the hosted demo stack.
+For architecture and operations:
+
+- [Architecture and data flow](docs/services.md)
+- [Development and checks](docs/development.md)
+- [Local Compose environments](deploy/compose/README.md)
+- [Hosted demo and release workflow](environments/demo/README.md)
+- [K3s GitOps deployment](deploy/kubernetes/README.md)
+- [Project infrastructure ownership](environments/shared/README.md)
+- [Publisher — publication automation](tools/publisher/README.md)
+- [Publisher Legacy — current queue until v0.7.13](tools/publisher-legacy/README.md)
+- [Code QA](tools/code_qa/README.md)

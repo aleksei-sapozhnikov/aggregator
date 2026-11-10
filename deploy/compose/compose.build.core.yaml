@@ -1,0 +1,13 @@
+services:
+  catalog:
+    build:
+      context: services/catalog
+  aggregator:
+    build:
+      context: services/aggregator
+  ai-agent:
+    build:
+      context: services/ai-agent
+  aggregator-ui:
+    build:
+      context: services/aggregator-ui

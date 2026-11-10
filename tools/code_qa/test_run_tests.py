@@ -104,7 +104,7 @@ class TestRunnerTests(unittest.TestCase):
             )
             self.assertEqual(module.env["NO_COLOR"], "1")
             self.assertNotIn("FORCE_COLOR", module.env)
-            setup.assert_called_once_with(root / "services-core" / "aggregator-ui")
+            setup.assert_called_once_with(root / "services" / "aggregator-ui")
             with patch.object(
                 run_tests, "ensure_ui_test_dependencies", return_value=True
             ):
@@ -171,7 +171,7 @@ class TestRunnerTests(unittest.TestCase):
             root = Path(directory)
             names = ["aggregator", "catalog", "code-qa"]
             for name in names[:2]:
-                (root / "services-core" / name).mkdir(parents=True)
+                (root / "services" / name).mkdir(parents=True)
             calls = []
 
             def execute(
