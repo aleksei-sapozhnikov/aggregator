@@ -317,7 +317,7 @@ def compile_operations(path: Path, plan: dict) -> dict:
             entry = {
                 "id": index, "branch": branch, "title": title.strip(), "body": body,
                 "milestone": milestone, "source_mode": "new",
-                "existing_pr_number": None,
+                "expected_source_commits": count, "existing_pr_number": None,
             }
             entries.append(entry)
             used_branches.add(branch)
