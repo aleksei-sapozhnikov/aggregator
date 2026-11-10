@@ -160,6 +160,175 @@ class PublisherGitHubBehaviorTests(unittest.TestCase):
             )
 
 
+
+class PublisherBranchUpdateTests(unittest.TestCase):
+    def client(self):
+        client = MagicMock()
+        client.repo = "aleksei-sapozhnikov/aggregator"
+        client.open_pulls.return_value = []
+        return client
+
+    def merge(self, client, before_merge=None):
+        return pull_requests.merge_pr(
+            client, MagicMock(), {"minimum_actual_open_minutes": 60},
+            {"branch": "service-layout"},
+            now=datetime(2026, 11, 10, 12, tzinfo=timezone.utc),
+            known_head="a" * 40, known_number=351,
+            queue_branches={"service-layout"},
+            before_merge=before_merge,
+        )
+
+    def test_behind_branch_updates_then_squash_merges_in_same_invocation(self):
+        client = self.client()
+        behind = {**pr_data(), "mergeable_state": "behind"}
+        updated = {**pr_data("b" * 40), "mergeable_state": "clean"}
+        client.pr.side_effect = [
+            pr_data(), pr_data(), behind, behind,
+            updated, pr_data("b" * 40, merged=True),
+        ]
+        requests = []
+
+        def put(path, body):
+            requests.append((path, body))
+            if path == "/pulls/351/update-branch":
+                return {"message": "Updating pull request branch."}
+            if len(requests) == 1:
+                raise GitHubError(405, "Branch must be up to date")
+            return {"merged": True, "sha": "e" * 40}
+
+        client.put.side_effect = put
+        attempts = []
+        with patch.object(pull_requests.time, "sleep") as sleep:
+            _pr, merged = self.merge(client, attempts.append)
+        self.assertEqual("b" * 40, merged["head_sha"])
+        self.assertEqual(["a" * 40, "b" * 40], attempts)
+        self.assertEqual([
+            ("/pulls/351/merge", {
+                "merge_method": "squash", "sha": "a" * 40,
+            }),
+            ("/pulls/351/update-branch", {
+                "expected_head_sha": "a" * 40,
+            }),
+            ("/pulls/351/merge", {
+                "merge_method": "squash", "sha": "b" * 40,
+            }),
+        ], requests)
+        sleep.assert_called_once_with(3)
+        client.checks.assert_not_called()
+        client.status.assert_not_called()
+        client.reviews.assert_not_called()
+
+    def test_blocked_checks_do_not_trigger_branch_update(self):
+        client = self.client()
+        client.pr.side_effect = [
+            pr_data(), pr_data(),
+            {**pr_data(), "mergeable_state": "blocked"},
+        ]
+        client.put.side_effect = GitHubError(405, "Checks not complete")
+        with self.assertRaisesRegex(
+            pull_requests.MergeNotReady, "branch update is not indicated"
+        ):
+            self.merge(client)
+        client.put.assert_called_once_with(
+            "/pulls/351/merge",
+            {"merge_method": "squash", "sha": "a" * 40},
+        )
+        client.checks.assert_not_called()
+
+    def test_conflicted_branch_does_not_trigger_branch_update(self):
+        client = self.client()
+        client.pr.side_effect = [
+            pr_data(), pr_data(),
+            {**pr_data(), "mergeable_state": "dirty"},
+        ]
+        client.put.side_effect = GitHubError(405, "Conflicts")
+        with self.assertRaises(pull_requests.MergeNotReady):
+            self.merge(client)
+        client.put.assert_called_once()
+
+    def test_operator_push_after_merge_refusal_is_preserved(self):
+        client = self.client()
+        client.pr.side_effect = [
+            pr_data(), pr_data(),
+            {**pr_data("b" * 40), "mergeable_state": "behind"},
+        ]
+        client.put.side_effect = GitHubError(409, "SHA changed")
+        with self.assertRaisesRegex(
+            pull_requests.MergeNotReady, "PR head changed"
+        ):
+            self.merge(client)
+        client.put.assert_called_once()
+
+    def test_accepted_update_times_out_after_thirty_seconds(self):
+        client = self.client()
+        behind = {**pr_data(), "mergeable_state": "behind"}
+        client.pr.side_effect = [pr_data(), pr_data(), behind]
+        client.pr.return_value = behind
+
+        def get_pr(_number):
+            if client.pr.call_count <= 3:
+                return [pr_data(), pr_data(), behind][client.pr.call_count - 1]
+            return behind
+
+        client.pr.side_effect = get_pr
+        client.put.side_effect = [
+            GitHubError(405, "Behind"),
+            {"message": "Updating pull request branch."},
+        ]
+        clock = [0.0]
+        slept = []
+
+        def advance(duration):
+            slept.append(duration)
+            clock[0] += duration
+
+        with (
+            patch.object(pull_requests.time, "monotonic", side_effect=lambda: clock[0]),
+            patch.object(pull_requests.time, "sleep", side_effect=advance),
+        ):
+            with self.assertRaisesRegex(
+                pull_requests.MergeNotReady, "pending after 30 seconds"
+            ):
+                self.merge(client)
+        self.assertEqual(30.0, sum(slept))
+        self.assertEqual(2, client.put.call_count)
+        self.assertEqual(
+            "/pulls/351/update-branch", client.put.call_args_list[1].args[0]
+        )
+
+    def test_update_conflict_is_reported_without_repeating(self):
+        client = self.client()
+        behind = {**pr_data(), "mergeable_state": "behind"}
+        client.pr.side_effect = [pr_data(), pr_data(), behind, behind]
+        client.put.side_effect = [
+            GitHubError(405, "Behind"), GitHubError(422, "Update conflict"),
+        ]
+        with self.assertRaisesRegex(
+            pull_requests.MergeNotReady, "automatic branch update"
+        ):
+            self.merge(client)
+        self.assertEqual(2, client.put.call_count)
+
+    def test_second_merge_rejection_does_not_request_second_update(self):
+        client = self.client()
+        behind = {**pr_data(), "mergeable_state": "behind"}
+        client.pr.side_effect = [pr_data(), pr_data(), behind, pr_data("b" * 40)]
+        client.put.side_effect = [
+            GitHubError(405, "Behind"),
+            {"message": "Updating pull request branch."},
+            GitHubError(405, "Checks pending"),
+        ]
+        with self.assertRaisesRegex(
+            pull_requests.MergeNotReady, "merge after branch update"
+        ):
+            self.merge(client)
+        self.assertEqual(3, client.put.call_count)
+        self.assertEqual(
+            ["/pulls/351/merge", "/pulls/351/update-branch", "/pulls/351/merge"],
+            [call.args[0] for call in client.put.call_args_list],
+        )
+
+
 class PublisherRunnerBehaviorTests(unittest.TestCase):
     def test_open_pr_saves_identity_without_rebasing_predecessor(self):
         runner, repo, state, progress = sample_runner()
