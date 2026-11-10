@@ -54,9 +54,13 @@ class RuntimeNotificationsTests(unittest.TestCase):
                 queue_branches={row["branch"]},
                 scheduled_at=datetime(2026, 11, 10, 8, tzinfo=timezone.utc),
             )
+            optional = pull_requests.reconcile_associations_best_effort(
+                client, project_client, {}, row, opened
+            )
 
         self.assertEqual(pr, opened)
         self.assertEqual({}, associations)
+        self.assertEqual({}, optional)
 
     def test_bootstrap_failure_sends_notification(self):
         sns = MagicMock()
