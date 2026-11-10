@@ -17,10 +17,10 @@ h1{font-size:1.65rem;margin:0}small,.muted{color:#677384}p{line-height:1.5}
 .stat b{display:block;font-size:1.6rem}.days{display:grid;grid-template-columns:repeat(auto-fit,minmax(315px,1fr));gap:14px}
 .day{background:white;border:1px solid #dce3eb;border-radius:12px;padding:16px}.day h2{font-size:1rem;margin:0 0 14px}
 .item{border-left:4px solid #bbc6d0;background:#f8fafc;padding:12px;margin-top:10px;border-radius:6px}
-.item.merged{border-left-color:#238261}.item.open{border-left-color:#2468b3}.item.blocked{border-left-color:#c44646}.item.overdue{border-left-color:#b66b18}
+.item.merged,.item.published{border-left-color:#238261}.item.open{border-left-color:#2468b3}.item.blocked{border-left-color:#c44646}.item.overdue{border-left-color:#b66b18}
 .head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;font-weight:650}
 .pill{font-size:.73rem;font-weight:650;background:#e9eef4;border-radius:99px;padding:4px 9px;white-space:nowrap}
-.merged .pill{background:#d9f3e7;color:#156746}.blocked .pill{background:#ffdfdf;color:#943333}
+.merged .pill,.published .pill{background:#d9f3e7;color:#156746}.blocked .pill{background:#ffdfdf;color:#943333}
 .open .pill{background:#e0edff;color:#1c5595}.overdue .pill{background:#fff0d2;color:#85530b}
 .meta{font-size:.87rem;color:#526072;margin:7px 0 0;line-height:1.6;overflow-wrap:anywhere}
 footer{margin-top:26px;border-top:1px solid #dce3eb;padding-top:15px;font-size:.85rem;color:#677384}
@@ -45,7 +45,7 @@ def render(snapshot: dict, progress: dict | None = None, *, paused: bool = True,
     now_local = now.astimezone(tz)
     events = {e["id"]: e for e in snapshot["schedule"]["events"]}
     groups = defaultdict(list)
-    merged_count = open_count = 0
+    merged_count = open_count = published_count = 0
     for row in snapshot["queue"]["entries"]:
         index = row["id"]
         prefix = snapshot["config"]["event_prefix"]
@@ -82,16 +82,55 @@ def render(snapshot: dict, progress: dict | None = None, *, paused: bool = True,
         if record.get("merged_at"):
             actual.append(f'Merged: {_esc(record["merged_at"])}')
         detail = ("<div class=\"meta\">" + " · ".join(actual) + "</div>") if actual else ""
-        groups[open_time.date().isoformat()].append(
+        groups[open_time.date().isoformat()].append((
+            open_time,
             f'<article class="item {status.lower()}"><div class="head"><span>#{index} · {title_markup}</span>'
             f'<span class="pill">{_esc(status)}</span></div>'
             f'<div class="meta">{_esc(open_time.strftime("%H:%M"))} open · {_esc(merge_time.strftime("%H:%M"))} merge'
-            f' · {_esc(row["release"])}</div>{detail}</article>'
+            f' · {_esc(row.get("release") or "PR")}</div>{detail}</article>'
+        ))
+    planned_releases = [
+        release for release in snapshot["releases"]["releases"] if "id" in release
+    ]
+    for release in planned_releases:
+        index, tag = release["id"], release["tag"]
+        event_id = f'{snapshot["config"]["event_prefix"]}-{index:03d}-publish'
+        event = events.get(event_id)
+        if event is None:
+            continue
+        when = datetime.fromisoformat(event["local"])
+        if event_id in done:
+            status = "Published"
+            published_count += 1
+        elif paused and any(
+            error.get("event_id") == event_id for error in errors[-10:]
+        ):
+            status = "Blocked"
+        elif not paused and now > datetime.fromisoformat(
+            event["utc"].replace("Z", "+00:00")
+        ):
+            status = "Overdue"
+        else:
+            status = "Scheduled"
+        url = progress.get("releases", {}).get(tag, {}).get("url")
+        title = _esc(release["title"])
+        title_markup = (
+            f'<a href="{_esc(url)}" rel="noopener noreferrer">{title}</a>'
+            if url else title
         )
+        groups[when.date().isoformat()].append((
+            when,
+            f'<article class="item {status.lower()}"><div class="head">'
+            f'<span>Release {title_markup} · {_esc(tag)}</span>'
+            f'<span class="pill">{_esc(status)}</span></div>'
+            f'<div class="meta">{_esc(when.strftime("%H:%M"))} publish</div></article>',
+        ))
     cards = "".join(
-        f'<section class="day"><h2>{_esc(datetime.fromisoformat(day).strftime("%a, %d %b %Y"))}</h2>{"".join(items)}</section>'
+        f'<section class="day"><h2>{_esc(datetime.fromisoformat(day).strftime("%a, %d %b %Y"))}</h2>'
+        + "".join(markup for _, markup in sorted(items, key=lambda entry: entry[0]))
+        + '</section>'
         for day, items in sorted(groups.items())
-    ) or '<p>No publications are scheduled. Add pull requests to the JSON plan.</p>'
+    ) or '<p>No operations are scheduled. Add entries to the JSON plan.</p>'
     total = len(snapshot["queue"]["entries"])
     state = "Paused" if paused else "Running"
     return (
@@ -106,7 +145,9 @@ def render(snapshot: dict, progress: dict | None = None, *, paused: bool = True,
         + f'<div class="stat"><b>{total}</b><small>Total PRs</small></div>'
         + f'<div class="stat"><b>{merged_count}</b><small>Merged</small></div>'
         + f'<div class="stat"><b>{open_count}</b><small>Open</small></div>'
-        + f'<div class="stat"><b>{total-merged_count}</b><small>Remaining</small></div>'
+        + f'<div class="stat"><b>{len(planned_releases)}</b><small>Releases</small></div>'
+        + f'<div class="stat"><b>{published_count}</b><small>Published</small></div>'
+        + f'<div class="stat"><b>{total-merged_count}</b><small>PRs remaining</small></div>'
         + '</div><main class="days">' + cards + '</main><footer>Snapshot: '
         + _esc(revision) + ' · Generated: ' + _esc(now_local.isoformat(timespec="minutes"))
         + '. This is a static export; rerun calendar --live to refresh.</footer></body></html>'
