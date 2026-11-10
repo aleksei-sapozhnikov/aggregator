@@ -301,10 +301,11 @@ def prepare(client, row, record, predecessor_record, *, save):
         raise RuntimeError(
             "predecessor original head or merge SHA missing in durable progress"
         )
+    # The published PR may have been cherry-picked or rebased onto main, so its
+    # immutable head SHA need not equal the original stacked source branch SHA.
+    # Source ancestry and replayed file deltas are verified below.
     _commit(client, predecessor_record["head_sha"])
     live_predecessor = _branch_sha(client, row["depends_on"])
-    if live_predecessor and live_predecessor != predecessor_record["head_sha"]:
-        raise RuntimeError("predecessor branch differs from its merged PR head")
     bases = dict.fromkeys(
         (
             live_predecessor,
