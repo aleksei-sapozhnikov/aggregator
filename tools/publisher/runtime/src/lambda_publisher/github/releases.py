@@ -63,7 +63,7 @@ def finalize(client, release: dict, queue: dict, progress: dict, root: Path, *, 
         raise RuntimeError(f"existing {tag} points to conflicting SHA")
     if not current_tag_sha:
         client.post("/git/refs", {"ref": "refs/tags/" + tag, "sha": sha})
-    progress["releases"].setdefault(
+    progress.setdefault("releases", {}).setdefault(
         tag,
         {
             "sha": sha,
@@ -120,12 +120,21 @@ def finalize(client, release: dict, queue: dict, progress: dict, root: Path, *, 
         "milestone_closed": False,
     }
     save(progress)
-    milestone = milestones.matching(client, tag)
-    if not milestone:
-        raise RuntimeError(f"{tag} milestone missing during finalization")
-    closed = milestones.close(client, milestone)
-    if closed["state"] != "closed":
-        raise RuntimeError(f"{tag} milestone closure unconfirmed")
-    progress["releases"][tag]["milestone_closed"] = True
-    save(progress)
+    # Closing a milestone is optional project administration, not a release
+    # publication gate. The release/tag are already durable in GitHub.
+    try:
+        milestone = milestones.matching(client, tag)
+        if milestone:
+            closed = milestones.close(client, milestone)
+            if closed["state"] == "closed":
+                progress["releases"][tag]["milestone_closed"] = True
+                save(progress)
+            else:
+                print(f"Release {tag} milestone closure was not confirmed")
+        else:
+            print(f"Release {tag} milestone is missing; publication continues")
+    except Exception as error:
+        print(
+            f"Release {tag} milestone closure warning: {type(error).__name__}"
+        )
     return progress["releases"][tag]
