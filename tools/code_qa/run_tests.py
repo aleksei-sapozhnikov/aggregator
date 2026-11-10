@@ -52,7 +52,7 @@ def resolve_ai_agent_python(root: Path) -> str | None:
         return None
 
     if not python_test_dependencies_available(python):
-        requirements = root / "services-core" / "ai-agent" / "src" / "requirements.txt"
+        requirements = root / "services" / "ai-agent" / "src" / "requirements.txt"
         print(
             "Installing ai-agent test dependencies into the QA virtualenv...",
             flush=True,
@@ -128,7 +128,7 @@ def build_module(root: Path, name: str, *, verbose: bool = False) -> TestModule 
             ],
         )
 
-    directory = root / "services-core" / name
+    directory = root / "services" / name
     environment = None
     if name == "aggregator":
         java_home = resolve_java_home(root)
@@ -206,7 +206,7 @@ def run_modules(
     root = root or repo_root()
     failures: list[str] = []
     for name in names:
-        directory = root if name == "code-qa" else root / "services-core" / name
+        directory = root if name == "code-qa" else root / "services" / name
         if not directory.is_dir():
             print(f"Testing {name}.. FAILED", flush=True)
             print(f"  Missing module directory: {directory}", flush=True)
