@@ -63,6 +63,12 @@ def _progress(item):
 
 
 def _validate_history(current: dict, proposed: dict, completed: list[str]) -> None:
+    if current["format"] != proposed["format"]:
+        raise RuntimeError(
+            "cannot change snapshot format in place; migrate the active queue explicitly"
+        )
+    if current["format"] == 2:
+        return _validate_operation_history(current, proposed, completed)
     old_events = current["schedule"]["events"]
     new_events = proposed["schedule"]["events"]
     old_by = {event["id"]: event for event in old_events}
@@ -91,6 +97,43 @@ def _validate_history(current: dict, proposed: dict, completed: list[str]) -> No
         raise RuntimeError("release definition for a started release is immutable")
     if current["config"]["previous_published_tag"] != proposed["config"]["previous_published_tag"]:
         raise RuntimeError("previous published tag cannot change within the same queue")
+
+
+
+def _validate_operation_history(current: dict, proposed: dict, completed: list[str]) -> None:
+    """Keep already staged operations stable when extending a new-format queue."""
+    old_events = current["schedule"]["events"]
+    new_events = proposed["schedule"]["events"]
+    old_by = {event["id"]: event for event in old_events}
+    new_by = {event["id"]: event for event in new_events}
+    if (
+        len(completed) != len(set(completed))
+        or any(event_id not in old_by for event_id in completed)
+        or [event["id"] for event in new_events[:len(completed)]] != completed
+    ):
+        raise RuntimeError("completed operations must remain the exact ordered prefix")
+    if [event["id"] for event in new_events[:len(old_events)]] != [
+        event["id"] for event in old_events
+    ]:
+        raise RuntimeError("existing operation order cannot change; append new operations")
+    for event_id in completed:
+        if new_by[event_id] != old_by[event_id]:
+            raise RuntimeError(f"cannot reschedule completed event: {event_id}")
+
+    old_prs = {row["id"]: row for row in current["queue"]["entries"]}
+    new_prs = {row["id"]: row for row in proposed["queue"]["entries"]}
+    old_releases = {
+        row["id"]: row for row in current["releases"]["releases"]
+    }
+    new_releases = {
+        row["id"]: row for row in proposed["releases"]["releases"]
+    }
+    completed_ids = {old_by[event_id]["queue_id"] for event_id in completed}
+    for index in completed_ids:
+        before = old_prs.get(index, old_releases.get(index))
+        after = new_prs.get(index, new_releases.get(index))
+        if before != after:
+            raise RuntimeError(f"cannot change an already started operation: {index}")
 
 
 def _next_due(snapshot: dict, completed: list[str]):
@@ -260,9 +303,18 @@ def main(argv=None) -> None:
     args = parser.parse_args(argv)
     if args.command in ("validate", "preview"):
         snapshot = compile_plan(args.plan)
-        print(f"Valid: {len(snapshot['queue']['entries'])} PRs, {len(snapshot['schedule']['events'])} operations")
+        print(
+            f"Valid: {len(snapshot['queue']['entries'])} PRs, "
+            f"{len(snapshot['releases']['releases'])} releases, "
+            f"{len(snapshot['schedule']['events'])} events"
+        )
         for event in snapshot["schedule"]["events"]:
-            print(f"  {event['local']}: {event['id']} / {event['branch']}")
+            subject = (
+                event["release"]
+                if event["action"] == "publish_release"
+                else event["branch"]
+            )
+            print(f"  {event['local']}: {event['id']} / {subject}")
         if args.command == "preview":
             save(args.html, snapshot, paused=False, revision="local preview")
             print(f"HTML preview: {args.html}")
