@@ -9,8 +9,11 @@ Two independent OpenTofu roots manage the Publisher:
 
 Use the matching AWS identity, verify it with `aws sts get-caller-identity`,
 and review `tofu plan` before applying. Both roots pin AWS Provider 6.41.0.
-The Lambda archive is built from the Publisher root with
-`python publisher.py build` before a workload deployment.
+Build the Lambda ZIP and AL2023 Git Layer from the Publisher root with
+`python publisher.py build --git-layer` before deploying the updated
+runtime. The builder prefers Docker and falls back to Podman when Docker is
+not installed. Normal JSON plan
+updates never require rebuilding either artifact.
 
 These roots are independent of the shared account administration state.
 

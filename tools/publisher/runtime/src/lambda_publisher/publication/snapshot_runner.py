@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from ..github import pull_requests, releases
+from ..github import branch_rebase, pull_requests, releases
 from ..github.github_client import Retryable
 from . import notifications
 from .config import queue_digest
@@ -295,6 +295,19 @@ class Runner:
             return {"tag": event["release"], "url": published["url"]}
         row = self.rows[event["queue_id"]]
         record = progress.setdefault("prs", {}).setdefault(str(row["id"]), {})
+        # Refresh stacked branches before their PR is opened, not just after
+        # GitHub refuses a merge. Only the owned commit suffix is replayed.
+        if row.get("source_mode") == "new" and row.get("expected_source_commits"):
+            already_merged = False
+            if event["action"] == "merge_pr" and record.get("number"):
+                tracked_pr = self.repo.pr(record["number"])
+                pull_requests._same_repo(tracked_pr, self.repo.repo, row["branch"])
+                already_merged = bool(tracked_pr.get("merged_at"))
+            if not already_merged:
+                branch_rebase.ensure_clean_branch(
+                    self.repo, row, record,
+                    save=lambda: self.state.save(progress), now=now,
+                )
         if event["action"] == "open_pr":
             scheduled_at = datetime.fromisoformat(event["utc"].replace("Z", "+00:00"))
             already_open = pull_requests.find_exact(

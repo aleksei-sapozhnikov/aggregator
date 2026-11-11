@@ -35,4 +35,25 @@ If this privileged profile cannot read/write the new state key and its
 `.tflock`, have the central AWS administrator authorize this exact path.
 Do not use the project administrator or disable locking as a workaround.
 
+## Deploy scoped Git Layer permissions
+
+The workload administrator's `AggregatorPublisherManagement` policy allows
+Lambda function management separately from Layer management. It grants only:
+
+- `lambda:PublishLayerVersion` on `aggregator-publisher-git`
+- `lambda:GetLayerVersion` and `lambda:DeleteLayerVersion` on
+  `aggregator-publisher-git:*`
+
+A Layer uses a different ARN resource type from a Lambda function. The
+`AggregatorPublisherRoleBoundary` applies to Lambda and Scheduler execution
+roles, not to the `aggregator-admin` IAM user, so it must not be broadened
+for this deployment.
+
+When a resource-root deployment fails with `lambda:PublishLayerVersion`
+access denied, update this privileged IAM root first using the
+`administrator` profile. After it succeeds, return to
+`infra/resources` using `aggregator-admin`, generate a **fresh** plan,
+and apply it. Do not reuse the previously failed saved plan; another resource
+may already have changed during its partial apply.
+
 Run this root only when Publisher IAM permissions change; not for new PRs.

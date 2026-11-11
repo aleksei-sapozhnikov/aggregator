@@ -420,6 +420,10 @@ def main(argv=None) -> None:
     )
     builder = commands.add_parser("build")
     builder.add_argument("--zip", type=Path, default=ROOT / "build" / "publisher.zip")
+    builder.add_argument(
+        "--git-layer", action="store_true",
+        help="also build the Amazon Linux 2023 Git layer using Docker or Podman",
+    )
     args = parser.parse_args(argv)
     if args.command in ("validate", "preview"):
         snapshot = compile_plan(args.plan)
@@ -448,6 +452,10 @@ def main(argv=None) -> None:
         )
     elif args.command == "build":
         build(args.zip)
+        if args.git_layer:
+            from git_layer import build_git_layer
+
+            build_git_layer(ROOT / "build" / "git-layer.zip")
 
 
 if __name__ == "__main__":

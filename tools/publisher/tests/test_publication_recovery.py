@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "runtime" / "src"))
 
-from lambda_publisher.github import pull_requests
+from lambda_publisher.github import branch_rebase, pull_requests
 from lambda_publisher.github.github_client import GitHubError
 from lambda_publisher.publication.snapshot_runner import Runner
 
@@ -82,6 +82,91 @@ def sample_runner():
 
 
 class PublisherGitHubBehaviorTests(unittest.TestCase):
+    def test_stacked_source_rebases_inside_lambda_before_opening_pr(self):
+        runner, repo, state, progress = sample_runner()
+        row = runner.rows[2]
+        row.update({"source_mode": "new", "expected_source_commits": 1})
+        original = "a" * 40
+        updated = "c" * 40
+        repo.branch.side_effect = [
+            {"commit": {"sha": original}},  # Initial source head
+            {"commit": {"sha": "b" * 40}},  # Initial main head
+            {"commit": {"sha": updated}},   # Source head after rebase
+            {"commit": {"sha": "b" * 40}},  # Main head after rebase
+            {"commit": {"sha": updated}},   # Branch lookup before opening PR
+        ]
+        repo.compare.return_value = {"ahead_by": 16, "behind_by": 3}
+        repo.find_prs.return_value = []
+        repo.open_pulls.return_value = []
+        repo.post.return_value = pr_data(updated)
+
+        with (
+            patch.dict(os.environ, {"ACTIVATION_ENABLED": "true"}),
+            patch.object(
+                branch_rebase, "rebase_source_branch", return_value=updated
+            ) as git_rebase,
+            patch.object(
+                pull_requests, "reconcile_associations_best_effort", return_value={}
+            ),
+        ):
+            outcome = runner.run(
+                dry_run=False, reconcile=True,
+                now=datetime(2026, 11, 10, 10, tzinfo=timezone.utc),
+            )
+        self.assertEqual("completed", outcome["status"])
+        self.assertEqual(["publisher-002-open"], progress["completed"])
+        self.assertEqual(updated, progress["prs"]["2"]["rebase"]["new_head"])
+        self.assertEqual(351, progress["prs"]["2"]["number"])
+        git_rebase.assert_called_once()
+        repo.post.assert_called_once_with("/pulls", unittest.mock.ANY)
+        self.assertGreaterEqual(state.save.call_count, 3)
+
+    def test_conflicted_git_rebase_keeps_event_pending(self):
+        runner, repo, state, progress = sample_runner()
+        runner.rows[2].update({
+            "source_mode": "new", "expected_source_commits": 1,
+        })
+        repo.branch.side_effect = lambda name: {
+            "commit": {"sha": "a" * 40 if name == "service-layout" else "b" * 40}
+        }
+        repo.compare.return_value = {"ahead_by": 16, "behind_by": 3}
+        with (
+            patch.dict(os.environ, {"ACTIVATION_ENABLED": "true"}),
+            patch.object(
+                branch_rebase, "rebase_source_branch",
+                side_effect=branch_rebase.Retryable("rebase conflict"),
+            ),
+        ):
+            outcome = runner.run(
+                dry_run=False, reconcile=True,
+                now=datetime(2026, 11, 10, 10, tzinfo=timezone.utc),
+            )
+        self.assertEqual("retryable", outcome["status"])
+        self.assertEqual([], progress["completed"])
+        repo.post.assert_not_called()
+
+    def test_clean_owned_branch_opens_without_rebase(self):
+        runner, repo, state, progress = sample_runner()
+        row = runner.rows[2]
+        row.update({"source_mode": "new", "expected_source_commits": 1})
+        repo.branch.side_effect = lambda name: {
+            "commit": {"sha": "a" * 40 if name == "service-layout" else "b" * 40}
+        }
+        repo.compare.return_value = {"ahead_by": 1, "behind_by": 0}
+        repo.find_prs.return_value = []
+        repo.open_pulls.return_value = []
+        repo.post.return_value = pr_data()
+        with patch.dict(os.environ, {"ACTIVATION_ENABLED": "true"}), \
+                patch.object(pull_requests, "reconcile_associations_best_effort", return_value={}):
+            outcome = runner.run(
+                dry_run=False, reconcile=True,
+                now=datetime(2026, 11, 10, 10, tzinfo=timezone.utc),
+            )
+        self.assertEqual("completed", outcome["status"])
+        self.assertEqual(351, progress["prs"]["2"]["number"])
+        self.assertEqual(["publisher-002-open"], progress["completed"])
+        repo.post.assert_called_once_with("/pulls", unittest.mock.ANY)
+
     def test_open_pr_does_not_attempt_metadata_before_returning_identity(self):
         client = MagicMock()
         client.repo = "aleksei-sapozhnikov/aggregator"
@@ -147,6 +232,27 @@ class PublisherGitHubBehaviorTests(unittest.TestCase):
                 known_number=351,
             )
         client.put.assert_not_called()
+
+    def test_explicit_queue_never_merges_main_into_source_branch(self):
+        client = MagicMock()
+        client.repo = "aleksei-sapozhnikov/aggregator"
+        client.pr.return_value = pr_data()
+        client.open_pulls.return_value = []
+        client.put.side_effect = GitHubError(405, "Merge conflict")
+        row = {
+            "branch": "service-layout",
+            "source_mode": "new",
+            "expected_source_commits": 1,
+        }
+        with self.assertRaisesRegex(pull_requests.MergeNotReady, "next invocation"):
+            pull_requests.merge_pr(
+                client, MagicMock(), {"minimum_actual_open_minutes": 60},
+                row, now=datetime(2026, 11, 10, 12, tzinfo=timezone.utc),
+                known_head="a" * 40, known_number=351,
+            )
+        client.put.assert_called_once_with(
+            "/pulls/351/merge", {"merge_method": "squash", "sha": "a" * 40}
+        )
 
     def test_reconcile_merge_from_github_after_lost_response(self):
         client = MagicMock()

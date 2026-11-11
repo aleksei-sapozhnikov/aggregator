@@ -7,11 +7,22 @@ This root pins AWS Provider 6.41.0, matching Publisher administration.
 
 ## Manage runtime infrastructure (PowerShell)
 
-From `tools/publisher`, build the Lambda ZIP:
+From `tools/publisher`, build both the Lambda ZIP and its Amazon Linux 2023
+Git Layer. The builder uses Docker if it is installed, otherwise Podman.
+The selected container engine must be running (on Windows, start Docker
+Desktop or the Podman machine) before the layer build:
 
 ```powershell
-python publisher.py build
+python publisher.py build --git-layer
 ```
+
+This creates `build/publisher.zip` and `build/git-layer.zip`. The layer
+provides `/opt/bin/git`, its HTTPS remote helper, and compatible shared
+libraries; Publisher runs `git rebase` in Lambda using temporary storage
+and the existing repository token. The first layer build downloads the
+Lambda Python 3.12 image and Git packages. No GitHub Actions workflow
+is needed for rebase. Review the OpenTofu plan for the new layer version,
+Lambda memory, and ephemeral-storage changes.
 
 Then run from `tools/publisher/infra/resources`:
 

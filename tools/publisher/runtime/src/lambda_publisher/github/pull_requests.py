@@ -365,6 +365,13 @@ def merge_pr(
             raise MergeNotReady("PR is no longer open after merge rejection")
         if refreshed["head"]["sha"] != latest["head"]["sha"]:
             raise MergeNotReady("PR head changed during merge; retry with latest SHA")
+        if row.get("source_mode") == "new" and row.get("expected_source_commits"):
+            # Never add a Git merge commit to a prepared publication branch.
+            # The next watchdog run performs a clean, owned-commit rebase.
+            raise MergeNotReady(
+                f"GitHub rejected merge (HTTP {error.status}); "
+                "recheck and rebase the queued branch on the next invocation"
+            ) from None
         if refreshed.get("mergeable_state") != "behind":
             raise MergeNotReady(
                 f"GitHub rejected the merge (HTTP {error.status}); "

@@ -93,19 +93,36 @@ resuming publication.
 ## Publication behavior and recovery
 
 Publisher opens PRs in queue order and requests squash merges using the latest
-GitHub PR head SHA. GitHub decides merge eligibility. If GitHub rejects the
-merge and the live PR reports `mergeable_state=behind`, Publisher requests
-one GitHub `Update branch` operation using `expected_head_sha`. It polls for
-an updated head for up to 30 seconds and tries squash merge once more. It
-never checks CI or reviews itself: GitHub enforces all merge conditions.
-If updating or merging still fails, the event remains pending for the next
-watchdog attempt. Other merge refusals do not trigger branch updates.
+GitHub PR head SHA. To keep stacked PRs free of commits from already published
+branches, the worker checks the planned source branch **before opening a PR**
+and again before its merge attempt. The plan's `expected_source_commits`
+counts the commits belonging to that PR, not its stacked ancestors.
 
-Publisher never rebases or force-pushes, requires prior head SHAs to remain
-unchanged, or inspects ancestry and net file changes. GitHub `Update branch`
-merges the current base into the PR branch and may add a merge commit there;
-the final merge into `main` still uses squash. Prepare stacked branches
-ahead of time or resolve conflicts manually when GitHub cannot update them.
+If the branch does not contain exactly that many commits ahead of current
+`main`, with nothing behind, **the Lambda runs Git itself**. It fetches
+`main` and the queued branch into an isolated temporary working directory,
+verifies their SHAs and linear owned-commit suffix, and runs
+`git rebase --onto <main-sha> <original-head>~N`. The new head is pushed
+only with `--force-with-lease` after checking both remote refs a second
+time. A conflict, missing commit, changed ref, or failed push leaves the
+branch unchanged on GitHub. Publisher retries the event and alerts after
+repeated failures, without skipping ahead.
+
+The Git executable and its HTTPS helper ship in an Amazon Linux 2023
+Lambda Layer, built with Docker or Podman for Python 3.12 on x86_64. No GitHub
+Actions rebase workflow, extra GitHub token, or new external service is
+required. The existing repository PAT needs permission to force-update
+the unprotected queued source branches. Token values are used via an
+ephemeral askpass helper and are never included in command arguments
+or diagnostic output.
+
+GitHub still enforces CI, reviews, squash merge eligibility, and at
+least **60 actual minutes** from GitHub PR creation to merge. If GitHub
+rejects a merge, Publisher does not merge `main` into a queued source
+branch; it reevaluates the branch on the next invocation. The former
+`Update branch` fallback remains only for legacy queue entries.
+Lambda runtime changes require a separate package build and OpenTofu
+deployment; applying the publication JSON does not update the Lambda.
 
 PR identity is saved in DynamoDB as soon as opening succeeds, before milestone
 or Project association. Optional metadata failures are warnings and never
@@ -225,8 +242,11 @@ reviewed plan instead of bypassing the queue's safety checks.
 See [`infra/README.md`](infra/README.md) for the independent IAM
 administration and workload roots. Infrastructure is deployed separately
 from publication plans; updating a plan does not require OpenTofu or rebuilding
-Lambda. Build the Lambda artifact with `python publisher.py build` only for
-runtime code deployment.
+Lambda. Build the Lambda ZIP and Git Layer with
+`python publisher.py build --git-layer` before a runtime deployment.
+The builder prefers Docker, then falls back to Podman if Docker is absent.
+A working container engine is needed only when rebuilding the Git Layer, not for local
+`validate`, `apply`, `resume`, or normal publication-plan changes.
 
 The worker enforces the configured activation date before processing the
 publication queue.

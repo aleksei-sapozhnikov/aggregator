@@ -31,6 +31,21 @@
       ]
     },
     {
+      "Sid": "PublishPublisherGitLayer",
+      "Effect": "Allow",
+      "Action": "lambda:PublishLayerVersion",
+      "Resource": "arn:aws:lambda:eu-central-1:905418096305:layer:aggregator-publisher-git"
+    },
+    {
+      "Sid": "ManagePublisherGitLayerVersions",
+      "Effect": "Allow",
+      "Action": [
+        "lambda:GetLayerVersion",
+        "lambda:DeleteLayerVersion"
+      ],
+      "Resource": "arn:aws:lambda:eu-central-1:905418096305:layer:aggregator-publisher-git:*"
+    },
+    {
       "Sid": "CreatePublisherSecrets",
       "Effect": "Allow",
       "Action": "secretsmanager:CreateSecret",

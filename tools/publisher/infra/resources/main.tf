@@ -107,6 +107,15 @@ resource "aws_iam_role_policy" "runner" {
     { Effect = "Allow", Action = ["sns:Publish"], Resource = aws_sns_topic.failure.arn }
   ] })
 }
+resource "aws_lambda_layer_version" "git" {
+  layer_name               = "${local.prefix}-git"
+  filename                 = "${path.module}/../../build/git-layer.zip"
+  # Local QA validates this root without Docker; deployment requires the layer ZIP.
+  source_code_hash         = fileexists("${path.module}/../../build/git-layer.zip") ? filebase64sha256("${path.module}/../../build/git-layer.zip") : null
+  compatible_runtimes      = ["python3.12"]
+  compatible_architectures = ["x86_64"]
+}
+
 resource "aws_lambda_function" "runner" {
   function_name    = "${local.prefix}-runner"
   filename         = "${path.module}/../../build/publisher.zip"
@@ -114,8 +123,12 @@ resource "aws_lambda_function" "runner" {
   handler          = "publisher_runtime.handler.lambda_handler"
   runtime          = "python3.12"
   role             = aws_iam_role.runner.arn
-  memory_size      = 256
+  layers           = [aws_lambda_layer_version.git.arn]
+  memory_size      = 512
   timeout          = 840
+  ephemeral_storage {
+    size = 1024
+  }
   environment {
     variables = {
       PUBLICATION_BUCKET    = aws_s3_bucket.data.bucket
