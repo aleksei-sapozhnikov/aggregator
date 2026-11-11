@@ -67,7 +67,7 @@ def _validate_history(
 ) -> None:
     if current["format"] != proposed["format"]:
         raise RuntimeError(
-            "cannot change snapshot format in place; migrate the active queue explicitly"
+            "cannot change snapshot format in place"
         )
     if current["format"] == 2:
         return _validate_operation_history(current, proposed, completed, progress or {})
@@ -226,84 +226,6 @@ def apply(plan: Path, profile: str) -> None:
     print("Publication remains PAUSED. Explicitly run `resume` after reviewing the calendar.")
 
 
-def migrate(plan: Path, profile: str, *, execute: bool = False) -> None:
-    """Preview or atomically stage an explicit-operation snapshot over legacy state."""
-    from migration import migrate_progress
-
-    proposed = compile_plan(plan)
-    if proposed["format"] != 2:
-        raise RuntimeError("migrate requires an explicit operations plan")
-    session = _session(profile)
-    table = _ddb(session)
-    item = _state(table)
-    if not item or item.get("paused") is not True:
-        raise RuntimeError("pause the existing Publisher queue before migration")
-    if item.get("sync_pending") or int(item.get("lease_until", 0)) >= int(time.time()):
-        raise RuntimeError("active lease or incomplete synchronization; inspect live queue")
-
-    previous = load_snapshot(session.client("s3"), BUCKET, item["data_revision"])
-    if previous["format"] != 1:
-        raise RuntimeError("migrate only supports an active legacy format 1 snapshot")
-    progress = _progress(item)
-    active_boundary = None
-    if not item.get("activation_all", True):
-        active_boundary = item.get("activation_through")
-        if not active_boundary:
-            raise RuntimeError("restricted activation has no valid boundary")
-    translated, new_boundary, summary = migrate_progress(
-        previous, proposed, progress, active_boundary
-    )
-    print(
-        f"Migration preview: {summary['mapped_prs']} PRs, "
-        f"{summary['old_completed']} -> {summary['new_completed']} completed events, "
-        f"{summary['published_releases']} already published releases"
-    )
-    print(f"Next event: {summary['next_event'] or '(queue complete)'}")
-    if not execute:
-        print("Preview only. Run migrate with --apply to stage the migration.")
-        return
-
-    _enough_time(proposed, translated["completed"])
-    _verify_remote_branches(proposed, translated["completed"])
-    raw = canonical(proposed)
-    revision = digest(raw)
-    key = f"snapshots/{revision}.json"
-    s3 = session.client("s3")
-    try:
-        existing = s3.get_object(Bucket=BUCKET, Key=key)["Body"].read()
-        if existing != raw:
-            raise RuntimeError("snapshot key collision or corrupted S3 object")
-    except s3.exceptions.NoSuchKey:
-        s3.put_object(
-            Bucket=BUCKET, Key=key, Body=raw,
-            ContentType="application/json", IfNoneMatch="*",
-        )
-
-    # Commit the snapshot revision, mapped PR records, and completed events
-    # atomically. Guard against changes to the state between preview and write.
-    values = {
-        ":new": revision, ":old": item["data_revision"],
-        ":newprogress": json.dumps(translated, separators=(",", ":")),
-        ":oldprogress": item["progress"], ":paused": True,
-        ":now": int(time.time()),
-    }
-    update = "SET data_revision=:new, progress=:newprogress"
-    if new_boundary is not None:
-        update += ", activation_through=:newboundary"
-        values[":newboundary"] = new_boundary
-    table.update_item(
-        Key={"pk": "QUEUE"},
-        UpdateExpression=update,
-        ConditionExpression=(
-            "data_revision=:old AND progress=:oldprogress AND paused=:paused "
-            "AND (attribute_not_exists(lease_until) OR lease_until<:now)"
-        ),
-        ExpressionAttributeValues=values,
-    )
-    print(f"Migrated state and staged snapshot {revision}")
-    print("Publisher remains PAUSED. Review calendar --live, then resume explicitly.")
-
-
 def _validate_blocked_retry(snapshot: dict, progress: dict, *, now: datetime) -> str:
     """Allow an operator to retry only today's recorded blocked event."""
     next_due = _next_due(snapshot, progress["completed"])
@@ -394,12 +316,6 @@ def main(argv=None) -> None:
         "--retry-blocked", action="store_true",
         help="retry today's recorded blocked event during the execution window",
     )
-    migration_cmd = commands.add_parser("migrate")
-    migration_cmd.add_argument("plan", type=Path)
-    migration_cmd.add_argument(
-        "--apply", action="store_true",
-        help="atomically stage the new snapshot and remap existing progress",
-    )
     builder = commands.add_parser("build")
     builder.add_argument("--zip", type=Path, default=ROOT / "build" / "publisher.zip")
     args = parser.parse_args(argv)
@@ -422,8 +338,6 @@ def main(argv=None) -> None:
             print(f"HTML preview: {args.html}")
     elif args.command == "apply":
         apply(args.plan, args.profile)
-    elif args.command == "migrate":
-        migrate(args.plan, args.profile, execute=args.apply)
     elif args.command == "calendar":
         snapshot, progress, paused, revision = live(args.profile)
         save(args.output, snapshot, progress, paused=paused, revision=revision)

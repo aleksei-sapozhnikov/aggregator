@@ -19,8 +19,7 @@ alone does not update the deployed worker.
 The preferred input is an ordered JSON `operations` plan. See
 [`examples/operations-plan.json`](examples/operations-plan.json) for the
 explicit PR and release workflow. The older `pull_requests` / `releases`
-format is still supported for existing plans and deployed snapshots until
-their migration.
+format remains readable for archived plans and snapshots.
 
 Each `{"type":"pull_request"}` operation has a branch, title, `body` or `body_file`,
 and local `open` and `merge` times. Publisher emits two ordered events,
@@ -46,35 +45,14 @@ embedded in the immutable JSON snapshot uploaded to S3; the Markdown files
 are not uploaded separately. Lambda reads the snapshot and requires no local
 Markdown files.
 
-**Compatibility:** deploying the new Lambda does not convert a running
-legacy queue. Ordinary `apply` rejects a switch between snapshot formats.
-Use the explicit migration command for a paused format-1 queue:
+**Compatibility:** The running queue uses explicit format-2 operations.
+The CLI retains read support for historical format-1 snapshots, but does not
+offer a migration command. Switching an active queue between snapshot formats
+is explicitly prohibited. Completed operations and durable publication
+identities must remain unchanged when updating the plan.
 
-```powershell
-$env:AWS_PROFILE = "aggregator-admin"
-python publisher.py pause
-python publisher.py migrate ../../.local/publisher/publisher_plan/plan.json
-# Inspect the reported completed-event mapping and next pending operation.
-python publisher.py migrate ../../.local/publisher/publisher_plan/plan.json --apply
-python publisher.py calendar --live --output ../../.local/publisher/publisher_plan/calendar-live.html
-# Resume only after checking the live calendar.
-python publisher.py resume
-```
-
-The first `migrate` performs a read-only migration preview. With `--apply`,
-Publisher writes the immutable format-2 snapshot to S3 and atomically switches
-both the DynamoDB revision and translated progress. It maps PRs by branch,
-retains PR numbers and SHAs, translates attempts/errors and restricted
-activation boundaries, and marks already-published legacy releases complete.
-The completed events must remain an unchanged prefix; matching PR bodies,
-release notes, and already-completed event times are mandatory. Conflicting
-or partially published releases cause migration to fail rather than risk
-republication. Already merged branches need not remain on GitHub.
-
-Migration does not deploy Lambda code, change GitHub PRs, or resume the
-queue. Keep the original snapshot and DynamoDB history for recovery.
-All input `body_file` and `notes_file` paths must resolve locally during
-plan compilation.
+All plan-relative `body_file` and `notes_file` paths must resolve locally
+during compilation.
 
 From `tools/publisher`:
 
