@@ -71,11 +71,24 @@ python publisher.py calendar --live --output ../../.local/publisher/publisher_pl
 python publisher.py resume # Only after reviewing the staged plan
 ```
 
-`apply` stages an immutable S3 snapshot and leaves publication paused.
-`resume` explicitly enables scheduled processing. The worker runs every
-15 minutes; due times are targets, not hard execution guarantees. Existing
-completed events and started publication metadata cannot be rewritten by a
-new plan. Review the CLI and `plan.py` for the enforced contract.
+`apply` treats `plan.json` as the **complete desired remaining schedule**:
+unstarted operations may be inserted, changed, reordered, or removed.
+It preserves completed or durably started operations from the active AWS
+snapshot even if the supplied JSON omits or changes them. Already-started
+entries in the JSON are ignored with a warning. Unstarted operations with
+scheduled times in the past are **retained**, with a warning; they are not
+marked completed or silently skipped. A partially opened PR or release is
+never silently discarded. If the next pending event is due in less than
+20 minutes or already overdue, `apply` warns; it does not run until
+`resume` is invoked. The watchdog executes overdue events in queue order
+within the configured execution window and date range. A delayed PR merge
+still requires at least 60 minutes since its actual GitHub `created_at`.
+
+The new immutable S3 snapshot and reconciled DynamoDB progress are staged
+together while publication remains paused. `resume` explicitly enables
+processing. The worker runs every 15 minutes; due times are targets, not
+hard execution guarantees. Check `calendar --live` and review warnings before
+resuming publication.
 
 ## Publication behavior and recovery
 
@@ -201,8 +214,8 @@ python publisher.py resume --retry-blocked
 ```
 
 This requires the queue to be paused, the latest recorded error to match the
-next pending event, and no active execution lease. The normal `resume` still
-rejects events that are overdue or too close. The watchdog performs the retry
+next pending event, and no active execution lease. The normal `resume` warns about events that are overdue or
+due soon rather than rejecting them. The watchdog performs the retry
 on its next run; check `publisher.py calendar --live` and CloudWatch for the
 outcome. If the scheduled day or execution window has passed, prepare a new
 reviewed plan instead of bypassing the queue's safety checks.

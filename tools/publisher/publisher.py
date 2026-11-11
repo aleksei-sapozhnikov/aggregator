@@ -105,7 +105,7 @@ def _validate_history(
 def _validate_operation_history(
     current: dict, proposed: dict, completed: list[str], progress: dict
 ) -> None:
-    """Keep already staged operations stable when extending a new-format queue."""
+    """Protect completed and durably started operations while replacing the rest."""
     old_events = current["schedule"]["events"]
     new_events = proposed["schedule"]["events"]
     old_by = {event["id"]: event for event in old_events}
@@ -116,10 +116,9 @@ def _validate_operation_history(
         or [event["id"] for event in new_events[:len(completed)]] != completed
     ):
         raise RuntimeError("completed operations must remain the exact ordered prefix")
-    if [event["id"] for event in new_events[:len(old_events)]] != [
-        event["id"] for event in old_events
-    ]:
-        raise RuntimeError("existing operation order cannot change; append new operations")
+    # The supplied plan is authoritative for operations not yet started.
+    # Completed events retain their IDs and exact definitions; the remaining
+    # suffix may be freely replaced, reordered, or extended.
     for event_id in completed:
         if new_by[event_id] != old_by[event_id]:
             raise RuntimeError(f"cannot reschedule completed event: {event_id}")
@@ -148,6 +147,54 @@ def _validate_operation_history(
             raise RuntimeError(f"cannot change an already started operation: {index}")
 
 
+def _reconcile_future_progress(
+    current: dict, proposed: dict, progress: dict
+) -> dict:
+    """Discard transient retry records for changed or removed future events."""
+    import copy
+
+    old = {event["id"]: event for event in current["schedule"]["events"]}
+    unchanged = {
+        event["id"]
+        for event in proposed["schedule"]["events"]
+        if old.get(event["id"]) == event
+    }
+    result = copy.deepcopy(progress)
+    started_prs = {
+        str(index)
+        for index, row in progress.get("prs", {}).items()
+        if isinstance(row, dict) and any(
+            row.get(field) for field in ("number", "head_sha", "merge_sha")
+        )
+    }
+    result["prs"] = {
+        key: row for key, row in progress.get("prs", {}).items()
+        if str(key) in started_prs
+    }
+    result["releases"] = {
+        tag: row for tag, row in progress.get("releases", {}).items()
+        if isinstance(row, dict) and any(
+            row.get(field) for field in ("sha", "tag_created", "published")
+        )
+    }
+    attempts = result.get("attempts")
+    if isinstance(attempts, dict):
+        result["attempts"] = {
+            event_id: value for event_id, value in attempts.items()
+            if event_id in unchanged
+        }
+    for name in ("errors", "alerts"):
+        records = result.get(name)
+        if isinstance(records, list):
+            result[name] = [
+                record for record in records
+                if not isinstance(record, dict)
+                or not record.get("event_id")
+                or record["event_id"] in unchanged
+            ]
+    return result
+
+
 def _next_due(snapshot: dict, completed: list[str]):
     done = set(completed)
     for event in snapshot["schedule"]["events"]:
@@ -156,10 +203,46 @@ def _next_due(snapshot: dict, completed: list[str]):
     return None
 
 
-def _enough_time(snapshot: dict, completed: list[str]) -> None:
+def _warn_due_soon(snapshot: dict, completed: list[str]) -> None:
     next_due = _next_due(snapshot, completed)
-    if next_due and next_due[0] < datetime.now(timezone.utc) + timedelta(minutes=20):
-        raise RuntimeError(f"next pending event {next_due[1]} is too close or overdue; revise the JSON plan")
+    if not next_due:
+        return
+    due, event_id = next_due
+    now = datetime.now(timezone.utc)
+    if due <= now:
+        print(
+            f"WARNING: next pending event {event_id} is overdue; "
+            "it remains queued and may run after resume within the execution window"
+        )
+    elif due < now + timedelta(minutes=20):
+        print(
+            f"WARNING: next pending event {event_id} is due within 20 minutes; "
+            "it may run soon after resume"
+        )
+
+
+def _validation_summary(snapshot: dict, *, now: datetime | None = None) -> list[str]:
+    """Report local plan results after the full event list."""
+    now = now or datetime.now(timezone.utc)
+    if now.utcoffset() is None:
+        raise ValueError("validation time must include a timezone")
+    events = snapshot["schedule"]["events"]
+    lines = [
+        f"Valid: {len(snapshot['queue']['entries'])} PRs, "
+        f"{len(snapshot['releases']['releases'])} releases, {len(events)} events"
+    ]
+    past = [
+        event for event in events
+        if datetime.fromisoformat(event["utc"].replace("Z", "+00:00")) < now
+    ]
+    if past:
+        first = past[0]["id"]
+        lines.append(
+            f"WARNING: {len(past)} scheduled events have times in the past "
+            f"(first: {first}). Local validation does not check AWS completion "
+            "and does not remove these events."
+        )
+    return lines
 
 
 def _verify_remote_branches(snapshot: dict, completed: list[str] | None = None) -> None:
@@ -184,7 +267,6 @@ def _verify_remote_branches(snapshot: dict, completed: list[str] | None = None) 
 
 
 def apply(plan: Path, profile: str) -> None:
-    proposed = compile_plan(plan)
     session = _session(profile)
     table = _ddb(session)
     item = _state(table)
@@ -195,8 +277,20 @@ def apply(plan: Path, profile: str) -> None:
     progress = _progress(item) if item else {"completed": [], "prs": {}, "attempts": {}, "errors": [], "alerts": []}
     if item:
         old = load_snapshot(session.client("s3"), BUCKET, item["data_revision"])
+        if old["format"] == 2:
+            from plan_update import reconcile_operations_plan
+
+            proposed, warnings = reconcile_operations_plan(plan, old, progress)
+            for warning in warnings:
+                print(f"WARNING: {warning}")
+        else:
+            proposed = compile_plan(plan)
         _validate_history(old, proposed, progress["completed"], progress)
-    _enough_time(proposed, progress["completed"])
+        if old["format"] == 2:
+            progress = _reconcile_future_progress(old, proposed, progress)
+    else:
+        proposed = compile_plan(plan)
+    _warn_due_soon(proposed, progress["completed"])
     _verify_remote_branches(proposed, progress["completed"])
     raw = canonical(proposed)
     revision = digest(raw)
@@ -217,10 +311,18 @@ def apply(plan: Path, profile: str) -> None:
         )
     elif item["data_revision"] != revision:
         table.update_item(
-            Key={"pk": "QUEUE"}, UpdateExpression="SET data_revision=:new",
-            ConditionExpression="data_revision=:old AND paused=:yes AND (attribute_not_exists(lease_until) OR lease_until<:now)",
-            ExpressionAttributeValues={":new": revision, ":old": item["data_revision"],
-                                       ":yes": True, ":now": int(time.time())},
+            Key={"pk": "QUEUE"},
+            UpdateExpression="SET data_revision=:new, progress=:newprogress",
+            ConditionExpression=(
+                "data_revision=:old AND progress=:oldprogress AND paused=:yes "
+                "AND (attribute_not_exists(lease_until) OR lease_until<:now)"
+            ),
+            ExpressionAttributeValues={
+                ":new": revision, ":old": item["data_revision"],
+                ":oldprogress": item["progress"],
+                ":newprogress": json.dumps(progress, separators=(",", ":")),
+                ":yes": True, ":now": int(time.time()),
+            },
         )
     print(f"Staged {len(proposed['schedule']['events'])} operations in S3: {revision}")
     print("Publication remains PAUSED. Explicitly run `resume` after reviewing the calendar.")
@@ -265,7 +367,7 @@ def set_paused(paused: bool, profile: str, *, retry_blocked: bool = False) -> No
             )
             print(f"Retrying blocked event: {event_id}")
         else:
-            _enough_time(snapshot, progress["completed"])
+            _warn_due_soon(snapshot, progress["completed"])
         _verify_remote_branches(snapshot, progress["completed"])
     table.update_item(
         Key={"pk": "QUEUE"}, UpdateExpression="SET paused=:new",
@@ -321,11 +423,6 @@ def main(argv=None) -> None:
     args = parser.parse_args(argv)
     if args.command in ("validate", "preview"):
         snapshot = compile_plan(args.plan)
-        print(
-            f"Valid: {len(snapshot['queue']['entries'])} PRs, "
-            f"{len(snapshot['releases']['releases'])} releases, "
-            f"{len(snapshot['schedule']['events'])} events"
-        )
         for event in snapshot["schedule"]["events"]:
             subject = (
                 event["release"]
@@ -336,6 +433,8 @@ def main(argv=None) -> None:
         if args.command == "preview":
             save(args.html, snapshot, paused=False, revision="local preview")
             print(f"HTML preview: {args.html}")
+        for line in _validation_summary(snapshot):
+            print(line)
     elif args.command == "apply":
         apply(args.plan, args.profile)
     elif args.command == "calendar":

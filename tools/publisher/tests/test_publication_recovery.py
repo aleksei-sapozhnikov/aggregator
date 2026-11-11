@@ -130,6 +130,24 @@ class PublisherGitHubBehaviorTests(unittest.TestCase):
             {"merge_method": "squash", "sha": "c" * 40},
         )
 
+    def test_late_opened_pr_still_waits_60_actual_minutes_before_merge(self):
+        client = MagicMock()
+        client.repo = "aleksei-sapozhnikov/aggregator"
+        late_pr = pr_data()
+        late_pr["created_at"] = "2026-11-10T11:00:00Z"
+        client.pr.return_value = late_pr
+        with self.assertRaisesRegex(
+            pull_requests.Deferred, "created_at \\+ 60 minutes not reached"
+        ):
+            pull_requests.merge_pr(
+                client, MagicMock(), {"minimum_actual_open_minutes": 60},
+                {"branch": "service-layout"},
+                now=datetime(2026, 11, 10, 11, 59, tzinfo=timezone.utc),
+                known_head="a" * 40,
+                known_number=351,
+            )
+        client.put.assert_not_called()
+
     def test_reconcile_merge_from_github_after_lost_response(self):
         client = MagicMock()
         client.repo = "aleksei-sapozhnikov/aggregator"
