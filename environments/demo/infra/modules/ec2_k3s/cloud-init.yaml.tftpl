@@ -1,0 +1,7 @@
+#cloud-config
+# Provision only OS prerequisites. Versioned Ansible configuration is sent via SSM.
+package_update: true
+packages:
+  - git
+  - python3.12
+  - python3.12-pip
