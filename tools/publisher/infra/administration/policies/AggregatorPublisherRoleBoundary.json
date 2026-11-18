@@ -1,0 +1,59 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "PublisherCloudWatchLogs",
+      "Effect": "Allow",
+      "Action": ["logs:CreateLogStream", "logs:PutLogEvents"],
+      "Resource": "arn:aws:logs:eu-central-1:905418096305:log-group:/aws/lambda/aggregator-publisher-runner:*"
+    },
+    {
+      "Sid": "PublisherQueueState",
+      "Effect": "Allow",
+      "Action": ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem"],
+      "Resource": "arn:aws:dynamodb:eu-central-1:905418096305:table/aggregator-publisher-state"
+    },
+    {
+      "Sid": "ReadLegacyHandoffState",
+      "Effect": "Allow",
+      "Action": "dynamodb:GetItem",
+      "Resource": "arn:aws:dynamodb:eu-central-1:905418096305:table/aggregator-publication-state"
+    },
+    {
+      "Sid": "ReadPublisherAndLegacySnapshots",
+      "Effect": "Allow",
+      "Action": "s3:GetObject",
+      "Resource": [
+        "arn:aws:s3:::aggregator-publisher-data-905418096305-eu-central-1/snapshots/*",
+        "arn:aws:s3:::aggregator-publication-data-905418096305-eu-central-1/snapshots/*"
+      ]
+    },
+    {
+      "Sid": "PublisherFailureNotifications",
+      "Effect": "Allow",
+      "Action": "sns:Publish",
+      "Resource": "arn:aws:sns:eu-central-1:905418096305:aggregator-publisher-failure"
+    },
+    {
+      "Sid": "PublisherLambdaInvoke",
+      "Effect": "Allow",
+      "Action": "lambda:InvokeFunction",
+      "Resource": "arn:aws:lambda:eu-central-1:905418096305:function:aggregator-publisher-runner"
+    },
+    {
+      "Sid": "PublisherSchedulerDeadLetterQueue",
+      "Effect": "Allow",
+      "Action": "sqs:SendMessage",
+      "Resource": "arn:aws:sqs:eu-central-1:905418096305:aggregator-publisher-scheduler-dlq"
+    },
+    {
+      "Sid": "ReadPublisherGitHubTokens",
+      "Effect": "Allow",
+      "Action": "secretsmanager:GetSecretValue",
+      "Resource": [
+        "arn:aws:secretsmanager:eu-central-1:905418096305:secret:aggregator-publisher-github-token-??????",
+        "arn:aws:secretsmanager:eu-central-1:905418096305:secret:aggregator-publisher-project-token-??????"
+      ]
+    }
+  ]
+}
