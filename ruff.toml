@@ -1,5 +1,5 @@
 # Temporary Ruff exceptions for Argo CD helpers.
-# Remove this file in the v0.8.7 python-argocd-helpers PR after the shebangs are removed.
+# Remove this file in the v0.8.7 unified-qa-commands PR after the shebangs are removed.
 # Keep the Git file modes unchanged until those helpers use explicit Python invocation.
 
 [lint.per-file-ignores]
