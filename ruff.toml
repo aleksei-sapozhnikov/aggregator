@@ -1,7 +1,10 @@
 # Temporary Ruff exceptions for Argo CD helpers.
-# Remove this file in the v0.8.7 unified-qa-commands PR after the shebangs are removed.
-# Keep the Git file modes unchanged until those helpers use explicit Python invocation.
+# Keep the shebangs until the scheduled v0.8.7 helper changes land.
 
 [lint.per-file-ignores]
+# TODO: test_skip delete after 2026-11-30. Temporary EXE001 skip to keep
+# the scheduled publication pipeline green until unified-qa-commands.
 "tools/argocd/src/argocd_admin_hash.py" = ["EXE001"]
+# TODO: test_skip delete after 2026-11-30. Temporary EXE001 skip to keep
+# the scheduled publication pipeline green until unified-qa-commands.
 "tools/argocd/src/sync_argocd_password.py" = ["EXE001"]
