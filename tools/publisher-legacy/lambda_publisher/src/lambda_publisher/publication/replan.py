@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 from collections import Counter
-from datetime import UTC, date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from functools import lru_cache
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -54,7 +54,7 @@ def _distribute(
     age = max(90, int(config.get("minimum_planned_open_minutes", 90)))
 
     def advance(at, minutes):
-        return (at.astimezone(UTC) + timedelta(minutes=minutes)).astimezone(tz)
+        return (at.astimezone(timezone.utc) + timedelta(minutes=minutes)).astimezone(tz)
 
     def place(offset, count, day, prior):
         cursor = datetime.fromisoformat(
@@ -325,7 +325,9 @@ def replan(
         moved.append({"id": event_id, "from": old_time, "to": row[cell]})
         if is_merge:
             merges_per_day[cursor.date()] = merges_per_day.get(cursor.date(), 0) + 1
-        cursor = (cursor.astimezone(UTC) + timedelta(minutes=25)).astimezone(tz)
+        cursor = (cursor.astimezone(timezone.utc) + timedelta(minutes=25)).astimezone(
+            tz
+        )
     config["end_date"] = max(
         config["end_date"], deadline.isoformat(), moved[-1]["to"][:10]
     )
