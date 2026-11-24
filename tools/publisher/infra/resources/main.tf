@@ -15,18 +15,19 @@ terraform {
 provider "aws" {
   region              = "eu-central-1"
   allowed_account_ids = ["905418096305"]
-}
 
-variable "permission_boundary_arn" {
-  type    = string
-  default = "arn:aws:iam::905418096305:policy/AggregatorPublisherRoleBoundary"
+  default_tags {
+    tags = {
+      Repository = "https://github.com/aleksei-sapozhnikov/aggregator"
+    }
+  }
 }
 
 locals {
-  prefix       = "aggregator-publisher"
-  bucket       = "${local.prefix}-data-905418096305-eu-central-1"
-  not_before   = "2026-11-10T08:00:00Z"
-  legacy_table = "aggregator-publication-state"
+  prefix        = "aggregator-publisher"
+  bucket        = "${local.prefix}-data-905418096305-eu-central-1"
+  not_before    = "2026-11-10T08:00:00Z"
+  legacy_table  = "aggregator-publication-state"
   legacy_bucket = "aggregator-publication-data-905418096305-eu-central-1"
 }
 
@@ -71,12 +72,12 @@ resource "aws_dynamodb_table" "state" {
 resource "aws_secretsmanager_secret" "repository" {
   name        = "${local.prefix}-github-token"
   description = "GitHub repository token used by Aggregator Publisher to manage pull requests, version tags, and releases."
-  tags = { Name = "${local.prefix}-github-token" }
+  tags        = { Name = "${local.prefix}-github-token" }
 }
 resource "aws_secretsmanager_secret" "project" {
   name        = "${local.prefix}-project-token"
   description = "GitHub Projects token used by Aggregator Publisher to update publication project items."
-  tags = { Name = "${local.prefix}-project-token" }
+  tags        = { Name = "${local.prefix}-project-token" }
 }
 resource "aws_cloudwatch_log_group" "runner" {
   name              = "/aws/lambda/${local.prefix}-runner"
@@ -87,9 +88,9 @@ resource "aws_sns_topic" "failure" {
 }
 
 resource "aws_sqs_queue" "dlq" {
-  name                       = "${local.prefix}-scheduler-dlq"
-  message_retention_seconds  = 1209600
-  sqs_managed_sse_enabled    = true
+  name                      = "${local.prefix}-scheduler-dlq"
+  message_retention_seconds = 1209600
+  sqs_managed_sse_enabled   = true
 }
 
 resource "aws_iam_role" "runner" {
@@ -152,11 +153,11 @@ resource "aws_scheduler_schedule_group" "publication" {
   name = "${local.prefix}-group"
 }
 resource "aws_scheduler_schedule" "watchdog" {
-  name                 = "${local.prefix}-watchdog"
-  group_name           = aws_scheduler_schedule_group.publication.name
-  schedule_expression  = "rate(15 minutes)"
-  start_date           = local.not_before
-  state                = "ENABLED"
+  name                = "${local.prefix}-watchdog"
+  group_name          = aws_scheduler_schedule_group.publication.name
+  schedule_expression = "rate(15 minutes)"
+  start_date          = local.not_before
+  state               = "ENABLED"
   flexible_time_window {
     mode = "OFF"
   }
@@ -174,10 +175,3 @@ resource "aws_scheduler_schedule" "watchdog" {
   }
   depends_on = [aws_iam_role_policy.scheduler]
 }
-
-output "publication_bucket" { value = aws_s3_bucket.data.bucket }
-output "state_table" { value = aws_dynamodb_table.state.name }
-output "runner_arn" { value = aws_lambda_function.runner.arn }
-output "watchdog_name" { value = aws_scheduler_schedule.watchdog.name }
-
-output "failure_topic_arn" { value = aws_sns_topic.failure.arn }

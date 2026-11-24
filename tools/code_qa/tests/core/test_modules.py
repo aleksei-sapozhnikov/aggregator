@@ -110,22 +110,24 @@ class ModuleConfigurationTests(unittest.TestCase):
         )
         self.assertEqual(len(registry.MODULE_IMPORTS), len(paths))
 
-    def test_scoped_demo_checks_use_their_own_directory(self) -> None:
+    def test_scoped_publisher_infrastructure_checks_use_their_own_directory(
+        self,
+    ) -> None:
         root = repo_root()
         check = next(
             check
             for check in cli.CHECKS
-            if check.check_id == "demo/infra/tofu-validate"
+            if check.check_id == "publisher/administration/tofu-validate"
         )
-        self.assertEqual(check.module, "demo")
-        self.assertEqual(check.scope_path, "environments/demo/infra")
+        self.assertEqual(check.module, "publisher")
+        self.assertEqual(check.scope_path, "tools/publisher/infra/administration")
         with patch.object(cli, "run_module", return_value=(True, [])) as run:
             self.assertEqual(
                 cli.execute_check(check, check.check_args, root, []), (True, [])
             )
         self.assertEqual(
             run.call_args.args[1][run.call_args.args[1].index("--directory") + 1],
-            str(root / "environments/demo/infra"),
+            str(root / "tools/publisher/infra/administration"),
         )
 
     def test_shared_infra_roots_and_demo_ansible_are_registered(self) -> None:
@@ -137,6 +139,9 @@ class ModuleConfigurationTests(unittest.TestCase):
             modules.MODULE_BY_NAME["demo"].tests.kind,
             "unittest_tests",
         )
+        checks = [check.check_id for check in cli.CHECKS]
+        self.assertIn("publisher/administration/tflint", checks)
+        self.assertIn("publisher/resources/tflint", checks)
         self.assertEqual(
             modules.MODULE_BY_NAME["publisher"].scoped_tests[0].tests.kind,
             "unittest_tests",
@@ -154,9 +159,7 @@ class ModuleConfigurationTests(unittest.TestCase):
         ]
         self.assertEqual(
             paths,
-            [
-                root / "tools/publisher",
-            ],
+            [root / "tools/publisher"],
         )
 
     def test_shared_tflint_config_is_forwarded_to_scoped_checks(self) -> None:
