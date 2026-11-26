@@ -29,6 +29,12 @@ locals {
   not_before    = "2026-11-10T08:00:00Z"
   legacy_table  = "aggregator-publication-state"
   legacy_bucket = "aggregator-publication-data-905418096305-eu-central-1"
+
+  lambda_source_dir = "${path.module}/../../runtime/src"
+  lambda_source_hash = base64sha256(jsonencode({
+    for file in fileset(local.lambda_source_dir, "**") :
+    file => filesha256("${local.lambda_source_dir}/${file}")
+  }))
 }
 
 resource "aws_s3_bucket" "data" {
@@ -113,7 +119,7 @@ resource "aws_iam_role_policy" "runner" {
 resource "aws_lambda_function" "runner" {
   function_name    = "${local.prefix}-runner"
   filename         = "${path.module}/../../build/publisher.zip"
-  source_code_hash = filebase64sha256("${path.module}/../../build/publisher.zip")
+  source_code_hash = local.lambda_source_hash
   handler          = "publisher_runtime.handler.lambda_handler"
   runtime          = "python3.12"
   role             = aws_iam_role.runner.arn
