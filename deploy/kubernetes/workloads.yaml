@@ -463,20 +463,6 @@ spec:
     spec:
       securityContext:
         fsGroup: 472
-      initContainers:
-        - name: configure-public-url
-          image: curlimages/curl:8.12.1
-          securityContext:
-            runAsUser: 0
-          command: [/bin/sh, -ec]
-          args:
-            - |
-              token="$(curl -fsS --retry 5 -X PUT -H 'X-aws-ec2-metadata-token-ttl-seconds: 300' http://169.254.169.254/latest/api/token)"
-              address="$(curl -fsS -H "X-aws-ec2-metadata-token: $token" http://169.254.169.254/latest/meta-data/public-ipv4)"
-              printf '[server]\nroot_url = http://%s/grafana/\nserve_from_sub_path = true\n' "$address" > /runtime/grafana.ini
-          volumeMounts:
-            - name: runtime
-              mountPath: /runtime
       containers:
         - name: grafana
           image: grafana/grafana:12.3.1
@@ -484,8 +470,10 @@ spec:
             - containerPort: 3000
               name: http
           env:
-            - name: GF_PATHS_CONFIG
-              value: /runtime/grafana.ini
+            - name: GF_SERVER_ROOT_URL
+              value: https://aggregator.alivion.cc/grafana/
+            - name: GF_SERVER_SERVE_FROM_SUB_PATH
+              value: "true"
             - name: GF_AUTH_ANONYMOUS_ENABLED
               value: "true"
             - name: GF_AUTH_ANONYMOUS_ORG_ROLE
@@ -507,8 +495,6 @@ spec:
             limits:
               memory: 512Mi
           volumeMounts:
-            - name: runtime
-              mountPath: /runtime
             - name: datasource
               mountPath: /etc/grafana/provisioning/datasources/prometheus.yaml
               subPath: prometheus.yaml
@@ -523,8 +509,6 @@ spec:
             - name: data
               mountPath: /var/lib/grafana
       volumes:
-        - name: runtime
-          emptyDir: {}
         - name: datasource
           configMap:
             name: grafana-datasource
@@ -560,14 +544,77 @@ spec:
     requests:
       storage: 2Gi
 ---
+# Traefik terminates TLS; the UI's internal Caddy keeps serving the app/API proxy.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: aggregator-web
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
 spec:
   ingressClassName: traefik
   rules:
-    - http:
+    - host: aggregator.alivion.cc
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: aggregator-ui
+                port:
+                  name: http
+---
+# Preserve the old edge Caddy's www.alivion.cc behavior.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: aggregator-www
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: www.alivion.cc
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: aggregator-ui
+                port:
+                  name: http
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: redirect-apex
+spec:
+  redirectRegex:
+    regex: ^https?://alivion\\.cc(.*)$
+    replacement: https://aggregator.alivion.cc${1}
+    permanent: true
+---
+# Preserve the old edge Caddy's apex redirect, including path and query.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: aggregator-apex
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
+    traefik.ingress.kubernetes.io/router.middlewares: aggregator-redirect-apex@kubernetescrd
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: alivion.cc
+      http:
         paths:
           - path: /
             pathType: Prefix

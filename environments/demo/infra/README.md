@@ -26,7 +26,7 @@ tofu plan
 root. In GitHub, their required values come from `ENABLE_K3S_NODE` and
 `ENABLE_BEDROCK` in `demo-infra-plan`. Match those flags when planning
 locally; never approve an accidental K3s deletion or a replacement of the
-**serving Compose EC2**. K3s uses a separate security group, IAM profile,
+**serving Compose EC2**. K3s uses a separate security group (public TCP 80 and 443), IAM profile,
 public IP and encrypted root volume (50 GiB by default).
 
 The pinned Amazon Linux 2023 cloud-init installs Git and Python; node

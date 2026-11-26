@@ -15,7 +15,7 @@
     mode: "0600"
     content: |
       write-kubeconfig-mode: "0600"
-      # Keep the bundled Traefik and ServiceLB enabled for IP-based HTTP ingress.
+      # Keep packaged Traefik and ServiceLB enabled for HTTP/HTTPS ingress.
   notify: Restart K3s
 
 - name: Download the official K3s installer
@@ -39,6 +39,22 @@
     INSTALL_K3S_EXEC: server
   when: installed_k3s.rc != 0 or k3s_version not in installed_k3s.stdout
   notify: Restart K3s
+
+- name: Create the K3s manifest directory for packaged Traefik configuration
+  ansible.builtin.file:
+    path: /var/lib/rancher/k3s/server/manifests
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Configure bundled Traefik with HTTPS and persistent ACME storage
+  ansible.builtin.copy:
+    src: traefik-config.yaml
+    dest: /var/lib/rancher/k3s/server/manifests/traefik-config.yaml
+    owner: root
+    group: root
+    mode: "0644"
 
 - name: Ensure the K3s service is enabled and started
   ansible.builtin.systemd_service:
