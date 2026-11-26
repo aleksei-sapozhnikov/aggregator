@@ -5,19 +5,19 @@
 
 set -euo pipefail
 [[ "$ENABLE_K3S_NODE" == true || "$ENABLE_K3S_NODE" == false ]] || {
-  echo "::error::ENABLE_K3S_NODE must be explicitly true or false."
+  echo "::error::ENABLE_K3S_NODE must be explicitly true or false." >&2
   exit 1
 }
 [[ "$ENABLE_BEDROCK" == true || "$ENABLE_BEDROCK" == false ]] || {
-  echo "::error::ENABLE_BEDROCK must be explicitly true or false."
+  echo "::error::ENABLE_BEDROCK must be explicitly true or false." >&2
   exit 1
 }
 [[ "${EIP_TARGET_K3S:-false}" == true || "${EIP_TARGET_K3S:-false}" == false ]] || {
-  echo "::error::EIP_TARGET_K3S must be true or false."
+  echo "::error::EIP_TARGET_K3S must be true or false." >&2
   exit 1
 }
 if [[ "${EIP_TARGET_K3S:-false}" == true && "$ENABLE_K3S_NODE" != true ]]; then
-  echo "::error::Cannot move the Elastic IP to K3s while ENABLE_K3S_NODE=false."
+  echo "::error::Cannot move the Elastic IP to K3s while ENABLE_K3S_NODE=false." >&2
   exit 1
 fi
 {
