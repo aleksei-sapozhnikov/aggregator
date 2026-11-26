@@ -72,6 +72,9 @@ module "aggregator_demo" {
   }
   # Keep the serving instance profile untagged.
   iam_instance_profile_tags = {}
+
+  # Opt-in only, after HTTPS/GitOps pre-cutover checks succeed.
+  eip_target_instance_id = var.eip_target_k3s ? module.aggregator_demo_k3s[0].instance_id : null
 }
 
 # This optional node is independent of the protected serving demo.

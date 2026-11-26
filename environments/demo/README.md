@@ -27,6 +27,10 @@ A commit to `dev` alone does **not** deploy. The release source branch is
 
 The EC2 instances do not build service images. AWS authentication uses
 GitHub OIDC and SSM, with no inbound SSH or stored deploy keys.
+While the existing Elastic IP serves Compose/Caddy, both Compose and K3s are
+updated. Once the opt-in `EIP_TARGET_K3S` cutover is approved, public HTTPS
+is served by K3s Traefik and Compose SSM deployments are skipped. See
+[the cutover runbook](infra/README.md#elastic-ip-cutover-last-step).
 See [WORKFLOW.md](WORKFLOW.md) for required GitHub Environment settings,
 approval rules, flags, secret handling and recovery steps.
 

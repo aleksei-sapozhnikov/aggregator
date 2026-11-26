@@ -34,6 +34,41 @@ configuration runs afterwards from the exact Git revision over AWS SSM.
 Ansible configures K3s, bundled Traefik/ServiceLB, Argo CD and its
 Application. No SSH or public Kubernetes API access is required.
 
+## Elastic IP cutover (last step)
+
+The existing Elastic IP allocation is protected. The association starts on
+the legacy Compose instance; `eip_target_k3s=false` is the default.
+The switch changes only `aws_eip_association.public` within
+`module.aggregator_demo`, preserving the old EC2 and EIP allocation.
+
+1. Promote and deploy the HTTPS changes through `deploy/demo` with
+   the repository-level Actions variable `EIP_TARGET_K3S=false`.
+   Check Argo CD Synced/Healthy, Traefik service TCP 80/443, and the
+   `curl --resolve` pre-cutover tests in
+   [K3s README](../../../deploy/kubernetes/README.md).
+2. Set the repository-level Actions variable `EIP_TARGET_K3S=true`.
+   Promote a new infrastructure-changing commit to `deploy/demo`, which
+   triggers a fresh `Demo pipeline` run. (The manual
+   `workflow_dispatch` entry point is unavailable until
+   `demo-infra.yml` also exists on the default branch.) In the generated OpenTofu plan, verify
+   only the intended association is replaced, the EIP allocation is
+   unchanged, no instance is replaced, and the association is re-pointed
+   to the K3s instance. Explicitly approve the protected apply.
+3. After EIP reassociation, verify trusted Let's Encrypt HTTPS on
+   `aggregator.alivion.cc`, `www.alivion.cc`, and `alivion.cc`,
+   plus HTTP redirects, the UI, APIs, agent and Grafana timeline.
+   HTTP-01 issuance happens **after** the IP moves; temporary default
+   TLS until issuance is expected, but must not be accepted as complete.
+4. If validation fails, set `EIP_TARGET_K3S=false`, promote another
+   infrastructure-changing commit to `deploy/demo`, and approve the rollback
+   and confirm that the original Caddy site is serving HTTPS again. The same flag re-enables the Compose SSM deployment
+   once the old instance regains connectivity. Do not destroy the old EC2
+   during migration.
+
+Changes to `dev` alone never deploy or move the Elastic IP. A manual
+`aws ec2 associate-address` outside OpenTofu would cause state drift;
+use the reviewed workflow to switch or roll back.
+
 ## Approved automation
 
 [Demo pipeline](../WORKFLOW.md) runs OpenTofu validation and planning before
