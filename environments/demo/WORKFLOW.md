@@ -37,7 +37,8 @@ Restrict deployment Environments to `deploy/demo`.
    Traefik and Argo CD through SSM, then record the successful configuration
    fingerprint. Errors leave the previous success marker untouched.
 5. **Deploy the application.** After successful infrastructure stages, dispatch
-   `Demo deploy` for application changes or a missing K3s release.
+   `Demo deploy` for application changes, a missing K3s release, or a GitOps
+   snapshot differing from the current desired Kubernetes manifests and image tags.
    That independent workflow runs full QA, builds only missing GHCR image
    tags, deploys Compose via SSM **only while `EIP_TARGET_K3S` is not `true`**,
    then publishes `deploy/k8s-live` on `deploy/demo-gitops` for Argo CD to sync.
